@@ -29,6 +29,8 @@ const commands =
         "test-project-atomic-save",
         "test-analysis-evidence",
         "test-revision-history",
+        "test-workspace-context",
+        "test-skill-routing",
       ]
     : [
         "build-web",

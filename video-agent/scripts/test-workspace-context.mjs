@@ -1,0 +1,20 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import {spawnSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
+const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
+const required=['timeline-edit','speech-captions','visual-composition','audio-mix','rough-cut','hyperframes','faceless-explainer','hyperframes-creative','media-use','hyperframes-animation'];
+const run=spawnSync(process.execPath,['scripts/workspace-context.mjs'],{cwd:ROOT,encoding:'utf8',windowsHide:true});
+assert.equal(run.status,0,run.stderr||run.stdout);
+const context=JSON.parse(await fs.readFile(path.join(ROOT,'outputs/workspace-context.json'),'utf8'));
+assert.equal(context.runtime.hyperframes,'0.8.33');
+assert.equal(context.policy.neverDiscardDirtyFiles,true);
+assert.equal(context.policy.noForcePushMain,true);
+for(const id of required)assert(context.agent.skills.includes(id),'missing skill '+id);
+const registry=JSON.parse(await fs.readFile(path.join(ROOT,'config/skills/registry.json'),'utf8'));
+assert.equal(new Set(registry.skills.map(s=>s.id)).size,registry.skills.length,'skill ids must be unique');
+for(const skill of registry.skills){if(skill.instructions)await fs.access(path.join(ROOT,'config/skills',skill.instructions));}
+const prompt=await fs.readFile(path.join(ROOT,'prompts/workbench-agent.md'),'utf8');
+for(const phrase of ['Local files are the execution source','origin/main','Never discard uncommitted local files','HyperFrames 0.8.33'])assert(prompt.includes(phrase),'prompt missing policy: '+phrase);
+console.log('PASS workspace context preserves local work and exposes the complete skill/runtime contract');
