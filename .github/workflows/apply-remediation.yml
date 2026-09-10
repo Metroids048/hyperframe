@@ -3,8 +3,7 @@ on:
   push:
     branches: [agent/remediation-20260910]
     paths:
-      - 'video-agent/scripts/apply-remediation-phase1.mjs'
-      - 'video-agent/scripts/apply-remediation-phase1-wrapper.mjs'
+      - 'video-agent/scripts/apply-remediation-phase1-v2.mjs'
       - '.github/workflows/apply-remediation.yml'
 permissions:
   contents: write
@@ -36,7 +35,7 @@ jobs:
         working-directory: video-agent
         run: npm ci --no-audit --no-fund
       - name: Apply phase-1 code changes
-        run: node video-agent/scripts/apply-remediation-phase1-wrapper.mjs
+        run: node video-agent/scripts/apply-remediation-phase1-v2.mjs
       - name: Syntax check changed JavaScript
         working-directory: video-agent
         run: |
@@ -46,6 +45,8 @@ jobs:
           node --check scripts/test-revision-history.mjs
           node --check scripts/test-upgrade-service.mjs
           node --check scripts/acceptance.mjs
+          node --check lib/edit/preview-check.mjs
+          node --check server.mjs
       - name: Run verification and capture exit codes
         id: verify
         working-directory: video-agent
@@ -66,7 +67,7 @@ jobs:
           git config user.email "hyperframe-remediation-bot@users.noreply.github.com"
           git add -A
           if ! git diff --cached --quiet; then
-            git commit -m "fix: repair history navigation and strengthen acceptance evidence"
+            git commit -m "fix: repair history navigation and release blockers"
             git push origin HEAD:agent/remediation-20260910
           fi
       - name: Upload remediation evidence
