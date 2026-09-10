@@ -15,7 +15,7 @@ export async function cachedFile(namespace,key,extension,build) {
   pending.set(file,work);try{await work;return {file,hit:false};}finally{pending.delete(file);}
 }
 async function validBundle(dir, metadata) {
-  if(!metadata || !Array.isArray(metadata.files))return false;
+  if(!metadata || !Array.isArray(metadata.files)||!metadata.files.length)return false;
   for(const name of metadata.files){
     if(typeof name!=='string'||!name||path.isAbsolute(name)||name.includes('\\'))return false;
     const relative=path.relative(dir,path.resolve(dir,name));
@@ -27,7 +27,7 @@ async function validBundle(dir, metadata) {
 export async function cachedBundle(namespace,key,build) {
   const dir=path.join(cacheRoot(),MEDIA_CACHE_VERSION,namespace,key),manifest=path.join(dir,'cache.json');
   try{const metadata=JSON.parse(await fs.readFile(manifest,'utf8'));if(await validBundle(dir,metadata))return {dir,metadata,hit:true};}catch{}
-  if(pending.has(manifest)){await pending.get(manifest);return {dir,metadata:JSON.parse(await fs.readFile(manifest,'utf8')),hit:true};}
+  if(pending.has(manifest)){await pending.get(manifest);const metadata=JSON.parse(await fs.readFile(manifest,'utf8'));if(!await validBundle(dir,metadata))throw Error('媒体缓存不完整；请重试导入');return {dir,metadata,hit:true};}
   const work=(async()=>{await fs.mkdir(dir,{recursive:true});await fs.rm(manifest,{force:true});const metadata=await build(dir);if(!await validBundle(dir,metadata))throw Error('媒体缓存不完整；请重试导入');const temp=path.join(dir,randomUUID()+'.json');try{await fs.writeFile(temp,JSON.stringify(metadata));await fs.rename(temp,manifest);}finally{await fs.rm(temp,{force:true}).catch(()=>{});}return metadata;})();
   pending.set(manifest,work);try{return {dir,metadata:await work,hit:false};}finally{pending.delete(manifest);}
 }

@@ -3,7 +3,12 @@ import path from 'node:path';
 import {createHash} from 'node:crypto';
 const hash=value=>createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const uuid=/^[a-f0-9-]{36}$/;
-async function atomic(file,value){await fs.mkdir(path.dirname(file),{recursive:true});await fs.writeFile(file+'.tmp',JSON.stringify(value,null,2));await fs.rename(file+'.tmp',file);}
+export async function replaceFileAtomically(from,to,{rename=fs.rename,wait=ms=>new Promise(resolve=>setTimeout(resolve,ms))}={}){
+  // Windows scanners/readers can briefly lock the destination. Retry the same
+  // atomic replace; never unlink the previous committed metadata first.
+  for(let attempt=0;;attempt++)try{await rename(from,to);return;}catch(error){if(!['EPERM','EBUSY','EACCES'].includes(error.code)||attempt>=7)throw error;await wait(Math.min(250,15*2**attempt));}
+}
+async function atomic(file,value){await fs.mkdir(path.dirname(file),{recursive:true});await fs.writeFile(file+'.tmp',JSON.stringify(value,null,2));await replaceFileAtomically(file+'.tmp',file);}
 
 // Metadata is the commit point. Version timelines and analyses are separate files;
 // existing v1 project.json files remain readable and are migrated on a real write.

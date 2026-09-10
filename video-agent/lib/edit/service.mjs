@@ -6,7 +6,7 @@ import {Transform} from 'node:stream';
 import {createHash} from 'node:crypto';
 import {ROOT} from '../workflow.mjs';
 import {uid,EditError,insist,initialTimeline,applyOperations,validateTimeline,duration,frame,positioned,migrateTimeline,sourceStart,sourceLength} from './timeline.mjs';
-import {prepareAsset,prepareAnalysis,composeRevision,checkRevision,renderRevision,run,closePreviewChecks} from './media.mjs';
+import {prepareAsset,prepareSpeech,prepareAnalysis,composeRevision,checkRevision,renderRevision,run,closePreviewChecks} from './media.mjs';
 import {CloudProvider} from './provider.mjs';
 import {CodexProvider} from './codex-provider.mjs';
 import {syncCaptionVoices} from './caption-voices.mjs';
@@ -23,8 +23,9 @@ import {importGeneratedMedia} from './generation-import.mjs';
 const activeStates=['queued','running'];
 const clone=x=>structuredClone(x);
 const fingerprint=x=>createHash('sha256').update(JSON.stringify(x)).digest('hex');
-export async function createEditService({dataDir=process.env.VIDEO_AGENT_EDIT_DATA_DIR||path.join(ROOT,'data/edit-projects'),provider=process.env.VIDEO_AGENT_EDIT_PROVIDER==='openai'?new CloudProvider():new CodexProvider(),configFile=process.env.VIDEO_AGENT_EDIT_CONFIG_FILE||path.join(ROOT,'config/edit.local.json'),mediaEngine={prepareAsset,prepareAnalysis,composeRevision,checkRevision,renderRevision,run}}={}) {
+export async function createEditService({dataDir=process.env.VIDEO_AGENT_EDIT_DATA_DIR||path.join(ROOT,'data/edit-projects'),provider=process.env.VIDEO_AGENT_EDIT_PROVIDER==='openai'?new CloudProvider():new CodexProvider(),configFile=process.env.VIDEO_AGENT_EDIT_CONFIG_FILE||path.join(ROOT,'config/edit.local.json'),mediaEngine={prepareAsset,prepareSpeech,prepareAnalysis,composeRevision,checkRevision,renderRevision,run}}={}) {
   const {prepareAsset,prepareAnalysis,composeRevision,checkRevision,renderRevision,run}=mediaEngine;
+  const prepareAudio=mediaEngine.prepareSpeech||prepareAnalysis;
   if(provider instanceof CloudProvider&&!(provider instanceof CodexProvider))try{provider.settings=JSON.parse(await fs.readFile(configFile,'utf8'));}catch(e){if(e.code!=='ENOENT')throw new EditError('本机模型配置无法读取');}
   const projects=new Map(),controllers=new Map(),reserved=new Set(),activeProjects=new Set(),activeImportProjects=new Set(),runningTasks=new Set();
   const store=new ProjectStore(dataDir);let pumping=false,running=0,importing=0,rendering=0,closed=false;
@@ -185,19 +186,25 @@ export async function createEditService({dataDir=process.env.VIDEO_AGENT_EDIT_DA
           const a=p.assets[c.assetId];if(!a.hasAudio)continue;
           // The generated script is already known: avoid an unnecessary ASR round trip.
           if(a.generated&&a.text&&a.text.length<=240&&sourceStart(c)<1e-6&&sourceLength(c)>=a.frames-1){const groupId=uid();result.push({type:'caption_add',id:groupId,groupId,start:c.start,end:c.end,text:a.text,position:'bottom',sourceSpoken:true,audioId:c.id,sourceAssetId:a.id,voicePolicy:'linked',anchor:'source',coordinateSpace:'result'});continue;}
-          if(!a.analysis?.transcript){await prepareAnalysis(assetDir(p.id,a.id),a,signal);const transcript=await measure(j,'transcribe',()=>provider.transcribe(path.join(assetDir(p.id,a.id),a.speech),signal));a.analysis={...(a.analysis||{}),transcript};j.cloudVerifiedAt=new Date().toISOString();await save(p);}
+          if(!a.analysis?.transcript){await measure(j,'prepare_speech',()=>prepareAudio(assetDir(p.id,a.id),a,signal));const transcript=await measure(j,'transcribe',()=>provider.transcribe(path.join(assetDir(p.id,a.id),a.speech),signal));a.analysis={...(a.analysis||{}),transcript};j.cloudVerifiedAt=new Date().toISOString();await save(p);}
           const sourceIn=sourceStart(c),sourceOut=sourceIn+sourceLength(c),words=a.analysis.transcript.words.filter(w=>frame(w.end)>sourceIn&&frame(w.start)<sourceOut);let group=[];
           function flush(){if(!group.length)return;const rate=c.rate||1,start=c.start+Math.round((Math.max(sourceIn,frame(group[0].start))-sourceIn)/rate),end=Math.min(c.end,c.start+Math.round((Math.min(sourceOut,frame(group.at(-1).end))-sourceIn)/rate));if(end>start)result.push({type:'caption_add',start,end,text:group.map((w,i)=>(i&&/^[a-z0-9]/i.test(w.text)?' ':'')+w.text).join(''),position:'bottom',sourceSpoken:true,sourceAssetId:a.id,anchor:'source',coordinateSpace:'result',...(audioState.clips.some(x=>x.id===c.id)?{anchorClipId:c.id}:{})});group=[];}
           for(const w of words){if(group.length&&(group.reduce((s,x)=>s+x.text.length,0)+w.text.length>24||w.start-group.at(-1).end>0.4||w.end-group[0].start>3))flush();group.push(w);}flush();
         }
         insist(result.length>captionStart,'没有检测到可生成字幕的讲话。可以添加画面说明，或换用有讲话的素材。');
-        if(op.language!=null&&String(op.language).trim().toLowerCase()!=='source'){
+        const targetLanguage=String(op.language||'source').trim().toLowerCase();
+        const captionRows=result.slice(captionStart).map(c=>({...c,id:c.id||uid()}));
+        // Trust recorded ASR language or an unambiguous, entirely Chinese known
+        // narration script. Mixed scripts still go through translation.
+        const needsTranslation=captionRows.filter(c=>{const a=p.assets[c.sourceAssetId],sourceLanguage=a?.analysis?.transcript?.language||(a?.generated&&/[\p{Script=Han}]/u.test(a.text||'')&&!/[\p{Script=Latin}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/u.test(a.text||'')?'zh':null);return targetLanguage!=='source'&&sourceLanguage!==targetLanguage;});
+        if(needsTranslation.length){
           insist(typeof provider.translateCaptions==='function','字幕翻译需要连接支持翻译的模型，请连接模型后重试');
           await update(j,p,'正在翻译字幕并保留原有时间',50);
-          const captions=result.slice(captionStart).map(c=>({...c,id:c.id||uid()}));
+          const captions=needsTranslation;
           const translated=await measure(j,'translate_captions',()=>provider.translateCaptions(captions,op.language,signal));
           insist(Array.isArray(translated.captions)&&translated.captions.length===captions.length&&translated.captions.every((c,i)=>c.id===captions[i].id&&typeof c.text==='string'&&c.text.trim()),'字幕翻译结果不完整，当前视频未修改');
-          result.splice(captionStart,captions.length,...captions.map((c,i)=>({...c,text:translated.captions[i].text})));
+          const texts=new Map(translated.captions.map(c=>[c.id,c.text]));
+          result.splice(captionStart,captionRows.length,...captionRows.map(c=>({...c,text:texts.get(c.id)??c.text})));
           j.metrics.modelCalls+=translated.metrics?.modelCalls||0;j.translationUsage??=[];j.translationUsage.push({model:translated.model,usage:translated.usage,targetLanguage:translated.targetLanguage});
           if(translated.toolCalls?.length){j.toolCalls??=[];j.toolCalls.push(...translated.toolCalls);}j.cloudVerifiedAt=new Date().toISOString();
         }
@@ -205,7 +212,7 @@ export async function createEditService({dataDir=process.env.VIDEO_AGENT_EDIT_DA
       }
       if(op.type!=='voiceover'){
         if(op.type==='audio_add'&&op.role==='music'&&op.duck){
-          for(const c of base.timeline.clips){const a=p.assets[c.assetId];if(a.hasAudio&&!a.analysis?.transcript){await update(j,p,'识别人声区间，自动压低配乐',45);await prepareAnalysis(assetDir(p.id,a.id),a,signal);a.analysis={...(a.analysis||{}),transcript:await measure(j,'transcribe',()=>provider.transcribe(path.join(assetDir(p.id,a.id),a.speech),signal))};await save(p);}}
+          for(const c of [...base.timeline.clips,...(base.timeline.overlays||[])]){const a=p.assets[c.assetId];if(c.gain>0&&a.hasAudio&&!a.analysis?.transcript&&!a.analysis?.speechActivity){await update(j,p,'识别人声区间，自动压低配乐',45);await measure(j,'prepare_speech',()=>prepareAudio(assetDir(p.id,a.id),a,signal));const activity=typeof provider.detectSpeech==='function'?{speechActivity:await measure(j,'detect_speech',()=>provider.detectSpeech(path.join(assetDir(p.id,a.id),a.speech),signal))}:{transcript:await measure(j,'transcribe',()=>provider.transcribe(path.join(assetDir(p.id,a.id),a.speech),signal))};a.analysis={...(a.analysis||{}),...activity};await save(p);}}
         }
         result.push(op);continue;
       }

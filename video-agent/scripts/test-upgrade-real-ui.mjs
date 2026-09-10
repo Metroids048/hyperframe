@@ -174,6 +174,13 @@ try {
     waitUntil: "domcontentloaded",
   });
   await ready();
+  await page.waitForFunction(() => {
+    const p=document.querySelector('#player'),doc=p?.shadowRoot?.querySelector('iframe')?.contentDocument;
+    const v=doc?.querySelector('video[data-start="0"]');
+    if(!v||v.readyState<2||v.seeking||Math.abs(v.currentTime-Number(v.dataset.mediaStart||0))>1/30+.005)return false;
+    return [...doc.querySelectorAll('.caption')].every(c=>{const visible=getComputedStyle(c).visibility!=='hidden'&&getComputedStyle(c).display!=='none'&&Number(getComputedStyle(c.querySelector('.caption-content')).opacity)>.01;return visible===(Math.round(Number(c.dataset.start)*30)===0);});
+  },{timeout:20000});
+  pass('暂停初始预览已显示源视频首帧，未来字幕不会提前出现');
   assert.equal(
     await page.$$eval(
       "textarea",

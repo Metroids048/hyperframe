@@ -15,6 +15,8 @@ async function step(key,text,verify){
   const r=p.revisions.find(x=>x.id===j.revisionId);await verify?.(r,p,j);if(!state.checks.includes(key))state.checks.push(key);await save();console.log('PASS '+key);return r;
 }
 try{
+  const redo=process.argv.find(x=>x.startsWith('--redo='))?.slice(7);
+  if(redo){const index=state.steps.findIndex(x=>x.key===redo);assert.ok(index>=0,'Unknown redo step');const previous=state.steps[index];p=await api('/api/edit-projects/'+state.projectId);const restored=await api('/api/edit-projects/'+p.id+'/restore',{baseRevisionId:p.currentRevisionId,revisionId:previous.baseRevisionId},202);assert.equal((await settle(restored.jobId)).status,'complete');state.previousAttempts??=[];state.previousAttempts.push({reason:'Implementation regression corrected; re-run from original base',steps:state.steps.splice(index),at:new Date().toISOString()});state.checks=state.checks.filter(key=>state.steps.some(s=>s.key===key));await save();}
   if(!state.projectId){p=await api('/api/edit-samples/tears-of-steel/start',{},201);state.projectId=p.id;state.importJobId=p.jobs[0].id;await save();}
   assert.equal((await settle(state.importJobId)).status,'complete');
   await step('01_compound_trim_and_caption','只保留原视频第 6 秒到第 36 秒，把输出设成横屏 1280×720，在成片前 3 秒添加标题「行动准备」。保留原声，不要添加旁白。',(r)=>{assert.equal(span(r.timeline),900);assert.equal(r.timeline.audio.length,0);assert.ok(r.timeline.captions.some(c=>c.text==='行动准备'&&c.start===0&&c.end===90));assert.equal(r.timeline.output.width,1280);});
@@ -31,5 +33,5 @@ try{
   if(!state.exportJobId){p=await api('/api/edit-projects/'+state.projectId);state.exportRevisionId=p.currentRevisionId;state.exportJobId=(await api('/api/edit-projects/'+p.id+'/render',{revisionId:p.currentRevisionId},202)).jobId;await save();}
   await step('11_edit_during_export','删除刚才加入的背景音乐，保留旁白和视频原声，其他内容不变。',r=>assert.ok(!r.timeline.audio.some(c=>c.role==='music')));
   const exported=await settle(state.exportJobId);assert.equal(exported.status,'complete',exported.error);assert.equal(exported.revisionId,state.exportRevisionId);assert.notEqual(p.currentRevisionId,state.exportRevisionId);assert.ok(Date.parse(state.steps.find(x=>x.key==='11_edit_during_export').job.startedAt)<Date.parse(exported.completedAt),'Export prevented the next edit from starting');
-  state.exportJob=exported;state.exportedUrl=p.revisions.find(r=>r.id===state.exportRevisionId).videoUrl;state.currentRevisionId=p.currentRevisionId;state.completedAt=new Date().toISOString();state.status='passed';state.checks.push('fixed_export_version_does_not_replace_new_preview');await save();console.log('LIVE REPORT '+stateFile);
+  state.exportJob=exported;state.exportedUrl=p.revisions.find(r=>r.id===state.exportRevisionId).videoUrl;state.currentRevisionId=p.currentRevisionId;state.completedAt=new Date().toISOString();state.status='passed';delete state.error;state.checks.push('fixed_export_version_does_not_replace_new_preview');await save();console.log('LIVE REPORT '+stateFile);
 }catch(error){state.status='failed';state.error=error.message;await save();throw error;}

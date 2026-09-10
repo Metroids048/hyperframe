@@ -8,7 +8,7 @@ import {EditError,insist,duration,FPS} from './timeline.mjs';
 
 // Preview is a sampled runtime/media/layout check, not the complete HyperFrames
 // lint, motion and contrast audit. Export always retains the official full check.
-export const PREVIEW_CHECK_VERSION='runtime-preview-v1-hf-0.8.33';
+export const PREVIEW_CHECK_VERSION='runtime-preview-v2-hf-0.8.33';
 const contentHashes=new Map(),assetRoutes=new Map(),documents=new Map(),pages=new Set();
 let sessionPromise=null,idleTimer=null,activeChecks=0,auditScript;
 const mime={'.mp4':'video/mp4','.webm':'video/webm','.m4a':'audio/mp4','.mp3':'audio/mpeg','.wav':'audio/wav','.js':'text/javascript','.png':'image/png','.jpg':'image/jpeg','.woff2':'font/woff2'};
@@ -60,7 +60,7 @@ async function getSession() {
   if(!sessionPromise)sessionPromise=(async()=>{
     const server=http.createServer(serve);await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(0,'127.0.0.1',resolve);});server.unref();
     let browser;
-    try{const {default:puppeteer}=await import('puppeteer-core');browser=await puppeteer.launch({executablePath:runtimeEnv().HYPERFRAMES_BROWSER_PATH,headless:true,timeout:20000,cwd:ROOT,args:['--autoplay-policy=no-user-gesture-required','--disable-background-networking','--disable-component-update','--disable-default-apps','--disable-sync','--disable-extensions','--disable-renderer-backgrounding','--disable-background-timer-throttling','--no-first-run']});browser.process()?.unref();return {browser,server,origin:`http://127.0.0.1:${server.address().port}`};}
+    try{const {default:puppeteer}=await import('puppeteer-core');browser=await puppeteer.launch({executablePath:runtimeEnv().HYPERFRAMES_BROWSER_PATH,headless:true,timeout:20000,cwd:ROOT,args:['--force-color-profile=srgb','--autoplay-policy=no-user-gesture-required','--disable-background-networking','--disable-component-update','--disable-default-apps','--disable-sync','--disable-extensions','--disable-renderer-backgrounding','--disable-background-timer-throttling','--no-first-run']});browser.process()?.unref();return {browser,server,origin:`http://127.0.0.1:${server.address().port}`};}
     catch(e){await browser?.close().catch(()=>{});server.closeAllConnections?.();await new Promise(resolve=>server.close(resolve));sessionPromise=null;throw e;}
   })();
   return sessionPromise;
@@ -95,7 +95,7 @@ async function seekAndInspect(page,time,timeline) {
     const runtimeDuration=Number(hf?.duration||player?.getDuration?.());
     if(!Number.isFinite(runtimeDuration)||Math.abs(runtimeDuration-expectedDuration)>1/30+.001)throw Error('运行时时长与时间轴不一致');
     const visible=el=>{for(let p=el;p&&p!==document.documentElement;p=p.parentElement){const s=getComputedStyle(p);if(s.display==='none'||s.visibility==='hidden'||Number(s.opacity)<.01)return false;}return el.getBoundingClientRect().width>0;};
-    const captions=[...document.querySelectorAll('.caption')].map(el=>{const start=Number(el.dataset.start),end=start+Number(el.dataset.duration),expected=time>=start&&time<end,shown=visible(el.querySelector('.caption-content')||el);if(expected!==shown)throw Error(`字幕显示时间不一致：${el.id} at ${time}`);return {id:el.id,visible:shown,text:shown?el.textContent:''};});
+    const captions=[...document.querySelectorAll('.caption')].map(el=>{const start=Math.round(Number(el.dataset.start)*30),end=start+Math.round(Number(el.dataset.duration)*30),current=Math.round(time*30),expected=current>=start&&current<end,shown=visible(el.querySelector('.caption-content')||el);if(expected!==shown)throw Error(`字幕显示时间不一致：${el.id} at ${time}`);return {id:el.id,visible:shown,text:shown?el.textContent:''};});
     const issues=window.__hyperframesLayoutAudit({time,tolerance:2});
     return {time,runtimeDuration,media:pending.map(el=>({id:el.id,currentTime:el.currentTime,readyState:el.readyState})),captions,issues};
   },{time,expectedDuration:duration(timeline)/FPS});

@@ -120,6 +120,21 @@ try {
     () => document.querySelector("#player")?.ready === true,
     { timeout: 30000 },
   );
+  async function decodedPreview(){
+    const start=performance.now();
+    await deadline(async()=>{
+      for(const frame of page.frames())if(frame!==page.mainFrame())try{
+        if(await frame.evaluate(()=>[...document.querySelectorAll('video')].some(v=>{
+          for(let e=v;e&&e!==document.documentElement;e=e.parentElement){const s=getComputedStyle(e);if(s.display==='none'||s.visibility==='hidden'||Number(s.opacity)<.01)return false;}
+          if(v.readyState<2||v.seeking||!v.videoWidth)return false;
+          const c=document.createElement('canvas');c.width=32;c.height=18;const ctx=c.getContext('2d');ctx.drawImage(v,0,0,32,18);const data=ctx.getImageData(0,0,32,18).data;let sum=0,sq=0;for(let i=0;i<data.length;i+=4){const y=(data[i]+data[i+1]+data[i+2])/3;sum+=y;sq+=y*y;}return sum/576>5&&sq/576-(sum/576)**2>25;
+        })))return true;
+      }catch{}return false;
+    },'first video frame is decoded and visible',15000);
+    return Math.round(performance.now()-start);
+  }
+  const firstDecodedMs=await decodedPreview();
+  pass('initial paused preview contains a decoded visible film frame ('+firstDecodedMs+'ms after ready)');
   await page.hover("#player");
   const play = await page.$("pierce/.hfp-play-btn");
   assert(play, "Real player play control must exist");

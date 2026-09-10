@@ -12,7 +12,7 @@ const triggers={
   'speech-captions':/字幕|配音|旁白|朗读|说|台词|翻译|caption|voice|speech|transcri|subtitle|translate/i,
   'visual-composition':/画中画|[Bb]-?roll|叠加|转场|画幅|横屏|竖屏|裁|主体|画面|overlay|crop|transition|picture/i,
   'audio-mix':/音乐|音量|响度|原声|声音|淡入|淡出|静音|music|audio|volume|duck|loudness|lufs/i,
-  'rough-cut':/停顿|空白|静音|精华|精彩|总结|摘要|访谈|口播|镜头|场景|节奏|silence|pause|highlight|scene/i
+  'rough-cut':/停顿|空白|静音|精华|精彩|总结|摘要|访谈|口播|镜头|场景|节奏|因果|独立看懂|重复表达|按.*内容|silence|pause|highlight|scene/i
 };
 export function skillCapabilities(){return {skills:registry.skills.map(({instructions,snapshot,...skill})=>({...skill,installed:true,implementation:'project-adapter'})),optionalProviders:optionalProviderCapabilities()};}
 export function selectSkills(message='',operations=[]) {

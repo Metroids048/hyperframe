@@ -7,6 +7,15 @@ import time
 _models = {}
 
 
+def detect_speech(source):
+    started = time.monotonic()
+    from faster_whisper.audio import decode_audio
+    from faster_whisper.vad import get_speech_timestamps, VadOptions
+    audio = decode_audio(source, sampling_rate=16000)
+    spans = get_speech_timestamps(audio, VadOptions(threshold=.5, min_silence_duration_ms=300, speech_pad_ms=100), sampling_rate=16000)
+    return dict(engine='silero-vad', regions=[dict(start=s['start']/16000, end=s['end']/16000) for s in spans], metrics=dict(vadMs=round((time.monotonic()-started)*1000)))
+
+
 def transcribe(source, engine='faster-whisper', language=None):
     started = time.monotonic()
     name = os.environ.get('VIDEO_AGENT_WHISPER_MODEL', 'small')

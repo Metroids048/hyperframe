@@ -17,7 +17,7 @@ export function fastIntent(revision,message,selection){
   if(selection||typeof message!=='string'||message.length>6000)return null;
   const parts=clauses(message);if(parts.length<1||parts.slice(1).some(x=>!protections.has(x)))return null;
   const first=parts[0],t=revision.timeline;let operations,summary;
-  const add=new RegExp('^在第?'+number+'\\s*秒(?:到|至)第?'+number+'\\s*秒(?:添加|加上|加)(底部|顶部|居中)?字幕'+quote+'$').exec(first);
+  const add=new RegExp('^在第?\\s*'+number+'\\s*秒(?:到|至)第?\\s*'+number+'\\s*秒(?:添加|加上|加)(底部|顶部|居中)?字幕'+quote+'$').exec(first);
   if(add){const start=frame(Number(add[1])),end=frame(Number(add[2]));if(start<0||end<=start||end>duration(t))return null;operations=[{type:'caption_add',start,end,text:add[4],position:({底部:'bottom',顶部:'top',居中:'center'})[add[3]]||'bottom'}];summary=`已在 ${(start/30).toFixed(2)}～${(end/30).toFixed(2)} 秒添加字幕「${add[4]}」。`;}
   else{
     const named=new RegExp('^把(?:字幕|标题)'+quote+'(?:的文字)?(?:改为|改成|换成)'+quote+'$').exec(first);

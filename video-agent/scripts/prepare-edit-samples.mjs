@@ -14,10 +14,11 @@ const catalog=[],manifest={schemaVersion:1,frozenAt:new Date().toISOString(),fps
 for(const spec of specs){
   const source=path.join(downloads,spec.file),target=path.join(dir,spec.id+'.mp4');
   await fs.access(source);const sourceHash=await hashFile(source),receiptFile=path.join(dir,spec.id+'.source.json');
-  const signature=JSON.stringify({sourceHash,start:spec.start,end:spec.end,fps:30,crf:19});
+  const crf=spec.crf??(spec.id==='mandarin-interview'?25:19);
+  const signature=JSON.stringify({sourceHash,start:spec.start,end:spec.end,fps:30,crf});
   const previous=JSON.parse(await fs.readFile(receiptFile,'utf8').catch(()=>'{}'));
   if(previous.signature!==signature||!(await fs.access(target).then(()=>true).catch(()=>false))){
-    await run(ffmpeg,['-y','-v','error','-ss',String(spec.start||0),'-i',source,...(spec.end!=null?['-t',String(spec.end-(spec.start||0))]:[]),'-map','0:v:0','-map','0:a:0?','-vf','scale=1920:1080:force_original_aspect_ratio=decrease,scale=trunc(iw/2)*2:trunc(ih/2)*2,setsar=1,fps=30','-c:v','libx264','-preset','fast','-crf','19','-pix_fmt','yuv420p','-c:a','aac','-ar','48000','-b:a','160k','-movflags','+faststart',target],{timeout:900000});
+    await run(ffmpeg,['-y','-v','error','-ss',String(spec.start||0),'-i',source,...(spec.end!=null?['-t',String(spec.end-(spec.start||0))]:[]),'-map','0:v:0','-map','0:a:0?','-vf','scale=1920:1080:force_original_aspect_ratio=decrease,scale=trunc(iw/2)*2:trunc(ih/2)*2,setsar=1,fps=30','-c:v','libx264','-preset','fast','-crf',String(crf),'-pix_fmt','yuv420p','-c:a','aac','-ar','48000','-b:a','160k','-movflags','+faststart',target],{timeout:900000});
   }
   const info=await probe(target),sha256=await hashFile(target);
   await run(ffmpeg,['-y','-v','error','-ss','6','-i',target,'-frames:v','1','-vf','scale=480:-2',path.join(dir,spec.id+'.jpg')]);

@@ -46,7 +46,8 @@ export class CodexProvider extends CloudProvider {
       child.stdout.on('data',b=>output=(output+b).slice(-4000));child.stderr.on('data',b=>output=(output+b).slice(-4000));child.on('error',()=>finish(-1));child.on('close',finish);
     }).finally(()=>{this.loginPending=null;});return this.loginPending;
   }
-  async structured(instructions,input,schema,signal) {
+  async structured(instructions,input,schema,signal,attempt=0) {
+    const candidates=[...new Set([this.model,...(process.env.VIDEO_AGENT_CODEX_FALLBACK_MODELS||'').split(',').map(x=>x.trim()).filter(Boolean)])],model=candidates[attempt]||this.model;
     if(this.loginPending||!this.loggedIn||Date.now()-this.loginCheckedAt>30000)await this.refreshLogin();
     insist(this.loggedIn,'本机 Codex 尚未使用 ChatGPT 登录，请先完成 Codex 登录');
     const dir=path.join(this.cacheRoot,'edit-engine',uid());await fs.mkdir(dir,{recursive:true});const schemaFile=path.join(dir,'schema.json'),output=path.join(dir,'result.json');await fs.writeFile(schemaFile,JSON.stringify(schema));
@@ -55,7 +56,7 @@ export class CodexProvider extends CloudProvider {
       if(c.type==='input_text')parts.push(c.text);
       else if(c.type==='input_image'){const match=/^data:image\/(jpeg|png);base64,(.+)$/s.exec(c.image_url);insist(match,'模型图片必须为本地抽帧');const f=path.join(dir,`frame-${images.length}.${match[1]}`);await fs.writeFile(f,Buffer.from(match[2],'base64'));images.push(f);parts.push(`【附图 ${images.length}】`);}
     }messages.push({role:item.role,content:parts.join('\n')});}
-    const {args,prompt}=codexRequest({model:this.model,schemaFile,output,images,instructions,messages});
+    const {args,prompt}=codexRequest({model,schemaFile,output,images,instructions,messages});
     try {
       await new Promise((resolve,reject)=>{
         if(signal?.aborted)return reject(new EditError('任务已取消'));
@@ -64,10 +65,11 @@ export class CodexProvider extends CloudProvider {
         const timer=setTimeout(()=>{timed=true;kill();},180000);signal?.addEventListener('abort',kill,{once:true});
         child.stdin.on('error',()=>{});child.stdin.end(prompt);child.stdout.on('data',b=>tail=(tail+b).slice(-16000));child.stderr.on('data',b=>tail=(tail+b).slice(-16000));
         child.on('error',()=>{clearTimeout(timer);signal?.removeEventListener('abort',kill);reject(new EditError('Codex 无法启动，请检查本机安装',503));});
-        child.on('close',code=>{clearTimeout(timer);signal?.removeEventListener('abort',kill);if(signal?.aborted)return reject(new EditError('任务已取消',409));if(code!==0||timed){const failure=codexFailure(tail,{timed});return reject(Object.assign(new EditError(failure.message,503),{code:failure.code}));}resolve();});
+        child.on('close',code=>{clearTimeout(timer);signal?.removeEventListener('abort',kill);if(signal?.aborted)return reject(new EditError('任务已取消',409));if(code!==0||timed){const diagnostic=tail.replace(/sk-[a-zA-Z0-9_-]+/g,'[redacted]').replace(/Bearer\s+\S+/gi,'Bearer [redacted]'),capacity=!timed&&/Selected model is at capacity|model.*temporarily unavailable/i.test(tail),failure=codexFailure(tail,{timed}),error=Object.assign(new EditError(failure.message,503),{capacity,code:failure.code});void fs.writeFile(path.join(dir,'failure.log'),diagnostic).catch(()=>{}).finally(()=>reject(error));return;}resolve();});
       });
-      const result=JSON.parse(await fs.readFile(output,'utf8'));this.verifiedAt=new Date().toISOString();return {result,usage:null,model:this.model||'Codex 默认模型'};
-    }finally {await fs.writeFile(path.join(dir,'request.json'),JSON.stringify({model:this.model,imageCount:images.length,completedAt:new Date().toISOString()})).catch(()=>{});}
+      const result=JSON.parse(await fs.readFile(output,'utf8'));this.verifiedAt=new Date().toISOString();return {result,usage:null,model:model||'Codex 默认模型',...(attempt?{fallbackFrom:this.model}:{})};
+    }catch(error){if(error.capacity&&attempt+1<candidates.length&&!signal?.aborted)return await this.structured(instructions,input,schema,signal,attempt+1);if(error.capacity)error.message='可用模型当前都很繁忙，输入已保存，请稍后重试';throw error;}
+    finally {await fs.writeFile(path.join(dir,'request.json'),JSON.stringify({model,imageCount:images.length,completedAt:new Date().toISOString()})).catch(()=>{});}
   }
   async transcribe(file,signal) {
     if(signal?.aborted)throw new EditError('任务已取消',409);
@@ -81,6 +83,14 @@ export class CodexProvider extends CloudProvider {
     if(signal?.aborted)throw new EditError('任务已取消',409);await fs.mkdir(dir,{recursive:true});const pending=target+'.'+uid()+'.tmp';
     await fs.writeFile(pending,JSON.stringify({cacheKey:key,result}));await fs.rename(pending,target);
     return {...result,metrics:{...result.metrics,cacheHit:false}};
+  }
+  async detectSpeech(file,signal){
+    if(signal?.aborted)throw new EditError('任务已取消',409);
+    const key=createHash('sha256').update(JSON.stringify({source:await hashFile(file),runtime:await this.runtimeSignature('asr'),engine:'silero-vad',version:1})).digest('hex'),dir=path.join(this.cacheRoot,'edit-speech-activity'),target=path.join(dir,key+'.json');
+    try{const cached=JSON.parse(await fs.readFile(target,'utf8'));return {...cached,metrics:{...cached.metrics,cacheHit:true}};}catch(error){if(error.code!=='ENOENT'&&!(error instanceof SyntaxError))throw error;}
+    const result=await this.asr.request('detect_speech',{source:file},{signal,timeout:120000});
+    insist(Array.isArray(result.regions)&&result.regions.every(r=>Number.isFinite(r.start)&&r.start>=0&&Number.isFinite(r.end)&&r.end>r.start),'人声活动检测返回无效时间');
+    if(signal?.aborted)throw new EditError('任务已取消',409);await fs.mkdir(dir,{recursive:true});const pending=target+'.'+uid()+'.tmp';await fs.writeFile(pending,JSON.stringify(result));await fs.rename(pending,target);return {...result,metrics:{...result.metrics,cacheHit:false}};
   }
   async speak(text,voice,instructions,signal,{rate=1}={}) {
     insist(typeof text==='string'&&text.trim()&&text.length<=4000,'旁白请填写 1～4000 个字符');

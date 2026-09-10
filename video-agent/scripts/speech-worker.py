@@ -23,6 +23,8 @@ def dispatch(request):
         return {name: importlib.util.find_spec(name) is not None for name in ['faster_whisper', 'whisperx', 'kokoro_onnx', 'misaki', 'scenedetect']}
     if operation == 'transcribe':
         return asr.transcribe(request['source'], request.get('engine', 'faster-whisper'), request.get('language'))
+    if operation == 'detect_speech':
+        return asr.detect_speech(request['source'])
     if operation == 'speak':
         return tts.speak(request['text'], request['output'], request.get('voice', 'zf_xiaobei'), request.get('rate', 1))
     if operation == 'detect_scenes':

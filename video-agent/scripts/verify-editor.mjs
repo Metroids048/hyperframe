@@ -26,11 +26,14 @@ const commands =
         "test-continuation",
         "test-fast-intents",
         "test-edit-review-precision",
+        "test-project-atomic-save",
+        "test-analysis-evidence",
       ]
     : [
         "build-web",
         "test-editor-upgrade-ui",
         "test-upgrade-media",
+        "test-upgrade-preview",
         "test-upgrade-edge-media",
         "test-upgrade-loudness",
         "test-upgrade-generation",

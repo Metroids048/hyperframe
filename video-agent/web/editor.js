@@ -150,6 +150,11 @@
     if (old.muted) player.setAttribute("muted", "");
     player.setAttribute("volume", String(old.volume ?? 1));
     player.setAttribute("src", src);
+    player.addEventListener("ready", () => {
+      // The embedded runtime reports metadata before seeking the first media
+      // frame. Complete its setup, then initialize the paused preview at zero.
+      queueMicrotask(() => { if (player.isConnected && player.paused) player.seek?.(0); });
+    }, { once: true });
     player.addEventListener("play", () => $("voice-audition").pause());
     player.addEventListener("timeupdate", (e) => {
       $("playhead").textContent = stamp(

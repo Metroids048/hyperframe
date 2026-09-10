@@ -1,8 +1,16 @@
-# 商品视频生成与自然语言剪辑
+# 对话式视频剪辑
 
-打开 [本地工作台](http://127.0.0.1:3020/)，生成成片后点击“对话剪辑”即可连续修改，无需重新上传。也可在 [上传视频 / 剪辑案例](http://127.0.0.1:3020/edit) 导入自己的视频或体验三个真实样例。
+运行 `powershell -ExecutionPolicy Bypass -File .\start-local.ps1`，打开 [本地工作台](http://127.0.0.1:3020/)。上传素材或选择真实样例，在聊天里描述剪法，预览后继续修改；需要成片时再导出 MP4。`/` 与 `/edit` 都进入剪辑，早期图片生成器保留在 `/create`。
 
-默认通过本机 Codex / ChatGPT 订阅理解指令，HyperFrames 执行、检查、渲染，中文转写和配音本地处理，无需另外填写 API Key。安装与使用见 [EDITING.md](EDITING.md)，真实模型验收见 [EDITING-ACCEPTANCE.md](EDITING-ACCEPTANCE.md)。
+支持单素材和多素材，每个素材和成片最多 10 分钟，最高 1080p，时间线使用 30fps。普通字幕不会自动朗读；明确绑定生成旁白的字幕改词会同步更新那条旁白。导出固定到被请求版本，导出期间可以继续聊天编辑。
+
+默认通过本机 Codex / ChatGPT 订阅理解要求，转写和中文配音在本地执行。无歧义的字幕快捷指令和撤销直接调用受控工具。模型满载时尝试配置的备用模型；`VIDEO_AGENT_CODEX_FALLBACK_MODELS` 可指定逗号分隔的列表。可选音视频 API 需要自行配置，未配置时会明确提示。
+
+阅读 [中文原理与技能说明](docs/剪辑原理与技能说明.md)、[性能对照](docs/性能对照.md) 和 [24 项盲评办法](docs/evaluation/README.md)。当前尚未证明达到专家相对 85 分，须有专家参考片与两位独立真人评分。旧验收文档保留作历史记录，不代表本轮全部功能均已完成验收。
+
+已有视频的对话剪辑步骤及与文章创作路线的差距见 [零基础自动剪辑工作流](docs/零基础自动剪辑工作流.md)。当前尚未实现从零素材主题/文章直接创建整条视频，详细边界见该文档。
+
+验证命令：`npm run test:edit`、`npm run test:upgrade`、`npm run test:upgrade:ui`；真实媒体检查使用 `npm run test:upgrade:media`。真实模型连续流程使用隔离服务：先运行 `node scripts/start-upgrade-server.mjs`，再运行 `npm run test:upgrade:live`，数据写入 `outputs/upgrade/live-app`。
 
 以下是保留的早期生成原型说明，不能代表当前剪辑功能范围。
 

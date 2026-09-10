@@ -44,6 +44,9 @@ jobs:
       - name: Real browser, FFmpeg and HyperFrames acceptance
         working-directory: video-agent
         run: node scripts/verify-editor.mjs browser
+      - name: Legacy creation and server regressions
+        working-directory: video-agent
+        run: node scripts/acceptance.mjs
       - name: Retain reports and rendered evidence, not fonts or user projects
         if: always()
         uses: actions/upload-artifact@v4

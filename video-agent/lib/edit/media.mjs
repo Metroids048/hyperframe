@@ -67,6 +67,15 @@ export async function prepareAsset(dir,asset,signal,progress=()=>{}) {
 }
 // Expensive analysis is explicitly requested by semantic editing, transcription
 // or the asset inspector. Importing material does not wait for this stage.
+export async function prepareSpeech(dir,asset,signal){
+  insist(asset.hasAudio,'素材没有音轨');
+  if(asset.speech){try{await fs.access(path.join(dir,asset.speech));return asset;}catch{}}
+  const hash=asset.sha256||await hashFile(path.join(dir,asset.work));
+  const bundle=await cachedBundle('speech-input',cacheKey([hash,asset.normalizationVersion||'legacy','mono-16k-mp3-v1']),async cached=>{
+    await run(ffmpeg,['-y','-v','error','-i',path.join(dir,asset.work),'-vn','-ac','1','-ar','16000','-b:a','64k',path.join(cached,'speech.mp3')],{signal,timeout:Math.max(120000,asset.duration*1000)});return {files:['speech.mp3'],speech:'speech.mp3'};
+  });
+  await linkOrCopy(path.join(bundle.dir,'speech.mp3'),path.join(dir,'speech.mp3'));asset.speech='speech.mp3';asset.speechPreparationCacheHit=bundle.hit;return asset;
+}
 export async function prepareAnalysis(dir,asset,signal) {
   const started=performance.now(),key=asset.sha256||await hashFile(path.join(dir,asset.work));
   const bundle=await cachedBundle('analysis',cacheKey([key,asset.normalizationVersion||'legacy']),async cached=>{
@@ -115,7 +124,7 @@ export async function composeRevision(dir,t,assets,assetDir,signal) {
   const stems=[],stemKeys=[];
   const audio=[...[...clips,...t.overlays].filter(c=>assets[c.assetId].hasAudio&&c.gain>0).map(c=>({...c,role:'voice',original:true,fadeIn:t.transitions.find(x=>x.toId===c.id)?.duration||0,fadeOut:t.transitions.find(x=>x.fromId===c.id)?.duration||0})),...t.audio];
   const speech=audio.filter(c=>c.role==='voice'&&c.gain>0).flatMap(c=>{
-    const words=c.original?assets[c.assetId].analysis?.transcript?.words:null;
+    const words=c.original?(assets[c.assetId].analysis?.transcript?.words??assets[c.assetId].analysis?.speechActivity?.regions):null;
     if(!words)return [[seconds(c.start),seconds(c.end)]];
     return words.map(w=>[Math.max(seconds(sourceStart(c)),w.start),Math.min(seconds(sourceStart(c)+sourceLength(c)),w.end)]).filter(([s,e])=>e>s).map(([s,e])=>[seconds(c.start)+(s-seconds(sourceStart(c)))/(c.rate||1),seconds(c.start)+(e-seconds(sourceStart(c)))/(c.rate||1)]);
   }).sort((a,b)=>a[0]-b[0]);
