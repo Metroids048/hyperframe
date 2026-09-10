@@ -4,11 +4,13 @@ on:
     branches: [agent/remediation-20260910]
     paths:
       - 'video-agent/scripts/apply-remediation-phase1.mjs'
+      - 'video-agent/scripts/apply-remediation-phase1-wrapper.mjs'
       - '.github/workflows/apply-remediation.yml'
   pull_request:
     branches: [main]
     paths:
       - 'video-agent/scripts/apply-remediation-phase1.mjs'
+      - 'video-agent/scripts/apply-remediation-phase1-wrapper.mjs'
       - '.github/workflows/apply-remediation.yml'
 permissions:
   contents: write
@@ -41,7 +43,7 @@ jobs:
         working-directory: video-agent
         run: npm ci --no-audit --no-fund
       - name: Apply phase-1 code changes
-        run: node video-agent/scripts/apply-remediation-phase1.mjs
+        run: node video-agent/scripts/apply-remediation-phase1-wrapper.mjs
       - name: Syntax check changed JavaScript
         working-directory: video-agent
         run: |
