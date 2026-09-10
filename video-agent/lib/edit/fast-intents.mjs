@@ -5,7 +5,7 @@ import {selectSkills} from './skills.mjs';
 // back to the model; this is not a fuzzy keyword detector.
 const quote='[「“"]([^「」“”"]{1,240})[」”"]';
 const protections=new Set(['其他不变','其他内容不变','其余内容不变','保留它的位置和时间','保留字幕时间与位置','保留字幕时间和位置','声音和画面都不变','保留原声','不要添加或修改任何声音','不添加或修改任何声音','不要添加旁白','不要配音','不要朗读','不加旁白','不加声音']);
-const number='(\\d+(?:\\.\\d{1,3})?)';
+const number='\\s*(\\d+(?:\\.\\d{1,3})?)\\s*';
 function clauses(text){
   const result=[];let part='',inside=false;
   for(const c of text.trim()){if('「“"'.includes(c)){if(c==='"')inside=!inside;else inside=true;}else if('」”'.includes(c))inside=false;

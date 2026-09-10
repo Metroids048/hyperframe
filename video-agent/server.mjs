@@ -13,7 +13,6 @@ import {cases,demoOptimize,validateSettings} from './lib/demo-planner.mjs';
 import {ROOT,STUDIO,STUDIO_URL,defaults,InputError,validateBrief,validateStoryboard,storyboard,compose,runHF,verifyVideo} from './lib/workflow.mjs';
 
 const PORT=Number(process.env.VIDEO_AGENT_PORT||3020),DATA=path.resolve(process.env.VIDEO_AGENT_DATA_DIR||path.join(ROOT,'data/projects')),WEB=path.join(ROOT,'web-dist');
-try { process.loadEnvFile(path.join(ROOT,'config/edit.local.env')); } catch(e) { if(e.code!=='ENOENT') console.error('本地剪辑配置无法读取'); }
 const editor=await createEditService();
 const projects=new Map(),writes=new Map();let active=null,studioProject=null,studioBusy=false,accepting=true;
 await fs.mkdir(DATA,{recursive:true});

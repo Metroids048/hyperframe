@@ -52,9 +52,9 @@
   const active = (j) => !done.has(j.status),
     jobs = () => project?.jobs || [],
     editJobs = () =>
-      jobs().filter((j) => active(j) && editingKinds.has(j.kind)),
+      jobs().filter((j) => active(j) && editingKinds.has(j.kind) && (j.kind !== "asset" || !project?.currentRevisionId)),
     renderJobs = () => jobs().filter((j) => active(j) && j.kind === "render"),
-    editing = () => uploading || editJobs().length > 0;
+    editing = () => (uploading && !project?.currentRevisionId) || editJobs().length > 0;
   const editorUrl = (id) =>
     "/edit" +
     (id ? "?project=" + encodeURIComponent(id) : "") +
@@ -185,7 +185,7 @@
     $("preview-tools").hidden = !has;
     $("send").disabled =
       posting ||
-      uploading ||
+      (uploading && !revision) ||
       !project ||
       (!revision && !importing) ||
       !$("prompt").value.trim() ||
@@ -211,7 +211,7 @@
         revision?.id,
     );
     for (const id of ["export", "export-inline"])
-      $(id).disabled = !has || uploading || exporting || posting;
+      $(id).disabled = !has || exporting || posting;
     $("undo").disabled = !canEdit || !revision?.parentId;
     $("restore").hidden = !has || isCurrent;
     $("restore").disabled = editing() || posting;
@@ -246,7 +246,7 @@
           label: "自动加字幕",
           text: "给原片讲话加中文字幕，保留原声，不添加旁白。",
         },
-        { label: "调整时间", text: "只保留视频的前 10 秒，其他保持不变。" },
+        { label: "调整时间", text: "只保留第 0 秒到第 10 秒，其他不变。" },
         {
           label: "加一句旁白",
           text: "从第 1 秒添加中文旁白「欢迎观看」，正常语速，把原声调低，同时为这段旁白加字幕。",

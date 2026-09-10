@@ -15,6 +15,8 @@ import {measure,jobEvent} from './job-metrics.mjs';
 import {skillCapabilities} from './skills.mjs';
 import {executeAnalysisTool} from './analysis-tools.mjs';
 import {fastIntent} from './fast-intents.mjs';
+import {localEditIntent} from './local-edit-intents.mjs';
+import {exportProjectZip} from './zip-export.mjs';
 import {shutdownSpeechWorkers} from './speech-worker.mjs';
 import {importGeneratedMedia} from './generation-import.mjs';
 
@@ -24,8 +26,8 @@ const fingerprint=x=>createHash('sha256').update(JSON.stringify(x)).digest('hex'
 export async function createEditService({dataDir=process.env.VIDEO_AGENT_EDIT_DATA_DIR||path.join(ROOT,'data/edit-projects'),provider=process.env.VIDEO_AGENT_EDIT_PROVIDER==='openai'?new CloudProvider():new CodexProvider(),configFile=process.env.VIDEO_AGENT_EDIT_CONFIG_FILE||path.join(ROOT,'config/edit.local.json'),mediaEngine={prepareAsset,prepareAnalysis,composeRevision,checkRevision,renderRevision,run}}={}) {
   const {prepareAsset,prepareAnalysis,composeRevision,checkRevision,renderRevision,run}=mediaEngine;
   if(provider instanceof CloudProvider&&!(provider instanceof CodexProvider))try{provider.settings=JSON.parse(await fs.readFile(configFile,'utf8'));}catch(e){if(e.code!=='ENOENT')throw new EditError('本机模型配置无法读取');}
-  const projects=new Map(),controllers=new Map(),reserved=new Set(),activeProjects=new Set(),runningTasks=new Set();
-  const store=new ProjectStore(dataDir);let pumping=false,running=0,rendering=0,closed=false;
+  const projects=new Map(),controllers=new Map(),reserved=new Set(),activeProjects=new Set(),activeImportProjects=new Set(),runningTasks=new Set();
+  const store=new ProjectStore(dataDir);let pumping=false,running=0,importing=0,rendering=0,closed=false;
   const maxJobs=Math.max(1,Math.min(4,Number(process.env.VIDEO_AGENT_JOB_CONCURRENCY)||2));
   await fs.mkdir(dataDir,{recursive:true});
   const projectDir=id=>path.join(dataDir,id);
@@ -42,8 +44,9 @@ export async function createEditService({dataDir=process.env.VIDEO_AGENT_EDIT_DA
     projects.set(p.id,p);if(changed)await save(p,{type:'recovered',revisionId:p.currentRevisionId});
   }
   function get(id) {const p=projects.get(id);if(!p)throw new EditError('编辑项目不存在',404);return p;}
-  const editingJob=j=>j.kind!=='render';
-  function busy(p) {return connecting||reserved.has(p.id)||p.jobs.some(j=>editingJob(j)&&activeStates.includes(j.status));}
+  const editingJob=j=>!['render','asset'].includes(j.kind);
+  const initialImportBusy=p=>!p.currentRevisionId&&(reserved.has(p.id)||p.jobs.some(j=>j.kind==='asset'&&activeStates.includes(j.status)));
+  function busy(p) {return connecting||initialImportBusy(p)||p.jobs.some(j=>editingJob(j)&&activeStates.includes(j.status));}
   function checkBase(p,base) {if(p.currentRevisionId!==base)throw new EditError('视频版本已变化，请刷新后重试；查看历史版本时请先恢复该版本',409);}
   function view(p) {
     const safe=clone(p);for(const j of safe.jobs)delete j.payload;
@@ -86,7 +89,7 @@ export async function createEditService({dataDir=process.env.VIDEO_AGENT_EDIT_DA
     if(!['render','asset'].includes(kind)&&busy(p)&&!deferred)throw new EditError('这个项目有任务正在处理，请完成或取消后再修改',409);
     if(deferred){insist(!payload.selection,'排队指令请用文字描述；选中范围需要等当前修改完成后重新选择');insist(p.jobs.filter(j=>activeStates.includes(j.status)).length<8,'最多排队 8 个任务，请稍候');}
     if(['edit','operations','restore'].includes(kind)&&!deferred)checkBase(p,payload.baseRevisionId);
-    const j={id:uid(),key,hash,kind,payload:clone(payload),...(kind==='render'?{revisionId:payload.revisionId}:{}),afterJobId:deferred?p.jobs.filter(j=>editingJob(j)&&activeStates.includes(j.status)).at(-1)?.id:null,status:'queued',stage:'等待处理',progress:0,createdAt:new Date().toISOString(),metrics:{stages:[],modelCalls:0,cacheHits:0}};p.jobs.push(j);
+    const j={id:uid(),key,hash,kind,payload:clone(payload),...(kind==='render'?{revisionId:payload.revisionId}:{}),afterJobId:deferred?p.jobs.filter(j=>(editingJob(j)||(!p.currentRevisionId&&j.kind==='asset'))&&activeStates.includes(j.status)).at(-1)?.id:null,status:'queued',stage:'等待处理',progress:0,createdAt:new Date().toISOString(),metrics:{stages:[],modelCalls:0,cacheHits:0}};p.jobs.push(j);
     if(kind==='edit')p.messages.push({id:uid(),role:'user',text:payload.text,revisionId:payload.baseRevisionId,jobId:j.id});
     await save(p,jobEvent(j));void pump();return clone(j);
   }
@@ -159,6 +162,7 @@ export async function createEditService({dataDir=process.env.VIDEO_AGENT_EDIT_DA
     p.revisions.push(r);p.currentRevisionId=id;j.revisionId=id;j.committedAt=new Date().toISOString();
     try{await save(p,{type:'revision',jobId:j.id,revisionId:id,status:'preview_ready'});}
     catch(error){p.revisions.pop();p.currentRevisionId=old;delete j.revisionId;delete j.committedAt;throw error;}
+    if(process.platform==='win32')await fs.rm(dir,{recursive:true,force:true,maxRetries:3,retryDelay:100}).catch(()=>{});
     return r;
   }
   async function voiceOperations(p,base,ops,j,signal) {
@@ -222,15 +226,21 @@ export async function createEditService({dataDir=process.env.VIDEO_AGENT_EDIT_DA
     }
     return result;
   }
+  async function prepareRequestedMusic(p,j,signal) {
+    if(!/(?:背景音乐|配乐|背景乐|\bbgm\b|\bmusic\b|\bsoundtrack\b)/i.test(j.payload.text)||Object.values(p.assets).some(a=>a.builtin==='music'))return;
+    const source=path.join(ROOT,'assets/music.wav');
+    try{await fs.access(source);}catch(error){if(error.code==='ENOENT')return;throw error;}
+    const id=uid(),dir=assetDir(p.id,id);await fs.mkdir(dir,{recursive:true});await fs.copyFile(source,path.join(dir,'original.wav'));
+    const music={id,name:'轻快背景音乐（内置）',original:'original.wav',builtin:'music',status:'pending'};
+    await update(j,p,'准备可选配乐素材',20);await measure(j,'prepare_music',()=>prepareAsset(dir,music,signal));
+    music.analysis={summary:'内置合成纯音乐；只有明确选择后才会加入时间轴',scenes:[],transcript:{text:'',words:[],segments:[],status:'no_speech'}};
+    p.assets[id]=music;await save(p);
+  }
   async function execute(p,j,signal) {
     const payload=j.payload;
     if(j.kind==='asset') {
       const a=p.assets[payload.assetId];await update(j,p,'正在读取视频与音频',8);
       if(a.status!=='ready')await measure(j,'prepare_asset',()=>prepareAsset(assetDir(p.id,a.id),a,signal));await save(p);
-      if(!p.currentRevisionId&&a.kind==='video'&&!Object.values(p.assets).some(x=>x.builtin==='music')){
-        const id=uid(),dir=assetDir(p.id,id);await fs.mkdir(dir,{recursive:true});await fs.copyFile(path.join(ROOT,'assets/music.wav'),path.join(dir,'original.wav'));
-        const music={id,name:'轻快背景音乐（内置）',original:'original.wav',builtin:'music',status:'pending'};await prepareAsset(dir,music,signal);music.analysis={summary:'轻快纯音乐，适合产品短片配乐',scenes:[],transcript:{text:'',words:[],segments:[]}};p.assets[id]=music;await save(p);
-      }
       if(!p.currentRevisionId&&a.kind==='video')await newRevision(p,initialTimeline(a),null,'导入原视频',[],j,signal);
       // Import publishes a playable original first. Content analysis is requested by the planner only when needed.
       return;
@@ -250,13 +260,14 @@ export async function createEditService({dataDir=process.env.VIDEO_AGENT_EDIT_DA
         const media=await measure(j,'render',()=>renderRevision(dir,r.timeline,signal,text=>{const matches=[...text.matchAll(/(\d+)%/g)];if(matches.length&&Date.now()-lastProgress>1200){lastProgress=Date.now();const percent=Math.max(renderPercent,Math.min(100,Number(matches.at(-1)[1])));renderPercent=percent;j.progress=10+Math.floor(percent*.8);j.stage=`正在导出 MP4 · ${percent}%`;void save(p,jobEvent(j));}}));await update(j,p,'核对成片与打包工程',92);
         insist(media.hasAudio===r.media.hasAudio,'成片音轨与时间轴不一致');
         await fs.writeFile(path.join(dir,'checks.json'),JSON.stringify({hyperframes:'passed',timeline:'passed',render:'passed',media,checkedAt:new Date().toISOString()},null,2));
-        r.render={status:'complete',media,completedAt:new Date().toISOString()};r.quality={...(r.quality||{}),level:'full',status:'passed'};j.revisionId=r.id;
-        await fs.writeFile(path.join(dir,'revision.json'),JSON.stringify(r,null,2));
+        const complete={status:'complete',media,completedAt:new Date().toISOString()},quality={...(r.quality||{}),level:'full',status:'passed'};
+        await fs.writeFile(path.join(dir,'revision.json'),JSON.stringify({...r,render:complete,quality},null,2));
         // Include the verified metadata in the downloadable project. A package
         // failure leaves this export retryable and never changes the preview.
         const packageFiles=['index.html','preview.template','assets','timeline.json','subtitles.srt','manifest.json','revision.json','checks.json','check.log','DESIGN.md','hyperframes.json'];
         const present=[];for(const name of packageFiles)if(await fs.access(path.join(dir,name)).then(()=>true).catch(()=>false))present.push(name);
-        await run(process.platform==='win32'?'tar.exe':'tar',['-a','-cf','project.zip',...present],{cwd:dir,signal,timeout:Math.max(120000,duration(r.timeline)*20)});
+        await measure(j,'package',()=>exportProjectZip(dir,present,{signal}));
+        r.render=complete;r.quality=quality;j.revisionId=r.id;
         p.messages.push({id:uid(),role:'assistant',text:`第 ${r.number} 版已导出，可以下载 MP4。`,revisionId:r.id,jobId:j.id});
       }catch(e){r.render={status:signal.aborted?'cancelled':'failed',error:e.message};throw e;}return;
     }
@@ -280,6 +291,7 @@ export async function createEditService({dataDir=process.env.VIDEO_AGENT_EDIT_DA
         const target=undo?p.revisions.find(r=>r.id===base.parentId):p.revisions.find(r=>r.number===n);insist(target,'找不到要恢复的版本');
         await newRevision(p,clone(target.timeline),base.id,`恢复到第 ${target.number} 版`,[],j,signal,{reuse:target});p.messages.push({id:uid(),role:'assistant',text:`已恢复到第 ${target.number} 版的内容。`,revisionId:j.revisionId,jobId:j.id});return;
       }
+      await prepareRequestedMusic(p,j,signal);
       const messageIndex=p.messages.findIndex(m=>m.jobId===j.id&&m.role==='user');planningProject={...p,messages:messageIndex>=0?p.messages.slice(0,messageIndex+1):p.messages};
       await update(j,p,'正在理解修改要求',25);answer=await planRequest();
       for(let pass=0;pass<2&&(answer.result.analysisRequired||answer.result.toolRequests?.length);pass++){
@@ -326,7 +338,7 @@ export async function createEditService({dataDir=process.env.VIDEO_AGENT_EDIT_DA
         await newRevision(p,t,base.id,summary,ops,j,signal,{verify:contentReview?(draft,dir)=>provider.verifyEdit(p,draft,payload.text,{signal,beforeRevision:base,planResult:answer.result,revisionDir:dir}):null});
         break;
       }catch(error){
-        if(signal.aborted||j.committedAt||!answer||attempt===2||error.status===503)throw error;
+        if(signal.aborted||j.committedAt||!answer||attempt===2||error.status===503||answer.executionMode==='exact-local-intent')throw error;
         await update(j,p,`正在修正剪辑方案（${attempt+1}/2）`,55);j.repairCount=attempt+1;
         answer=await planRequest({repairContext:{error:error.message,previousOperations:ops,originalOperations:requestedOps}});
         if(answer.result.clarification){j.status='needs_input';j.question=answer.result.clarification;p.messages.push({id:uid(),role:'assistant',text:j.question,jobId:j.id,revisionId:base.id});return;}
@@ -336,7 +348,7 @@ export async function createEditService({dataDir=process.env.VIDEO_AGENT_EDIT_DA
     }
     p.messages.push({id:uid(),role:'assistant',text:summary,revisionId:j.revisionId,jobId:j.id});
     async function planRequest(options){
-      if(!options?.repairContext){const local=fastIntent(base,payload.text,payload.selection);if(local){j.selectedSkills=local.selectedSkills;j.planningMetrics=local.metrics;j.toolCalls??=[];j.toolCalls.push(...local.toolCalls);await update(j,p,'正在更新字幕',50);return local;}}
+      if(!options?.repairContext){const local=fastIntent(base,payload.text,payload.selection)||localEditIntent(base,payload.text,payload.selection);if(local){j.selectedSkills=local.selectedSkills;j.planningMetrics=local.metrics;j.toolCalls??=[];j.toolCalls.push(...local.toolCalls);await update(j,p,'正在执行精确修改',50);return local;}}
       await provider.refreshLogin?.();
       if(!provider.status().configured)throw new EditError('模型连接尚未就绪。点击“连接模型”完成连接后，点“重试”继续这次修改；视频和指令已保存。',503);
       const result=await measure(j,'plan',()=>provider.plan(planningProject,base,payload.text,payload.selection,id=>assetDir(p.id,id),signal,options));
@@ -349,10 +361,14 @@ export async function createEditService({dataDir=process.env.VIDEO_AGENT_EDIT_DA
     if(pumping||closed)return;pumping=true;
     try{
       for(const p of projects.values()){
-        if(running<maxJobs&&!activeProjects.has(p.id)&&!reserved.has(p.id)){
+        if(running<maxJobs&&!activeProjects.has(p.id)&&!initialImportBusy(p)){
           const j=p.jobs.find(j=>j.status==='queued'&&editingJob(j));
           if(j){running++;activeProjects.add(p.id);j.status='running';launch(p,j);}
         }
+      }
+      for(const p of projects.values())if(importing<maxJobs&&!activeImportProjects.has(p.id)&&!reserved.has(p.id)){
+        const j=p.jobs.find(j=>j.status==='queued'&&j.kind==='asset');
+        if(j){importing++;activeImportProjects.add(p.id);j.status='running';launch(p,j);}
       }
       if(rendering<1)for(const p of projects.values()){
         const j=p.jobs.find(j=>j.status==='queued'&&j.kind==='render');
@@ -372,7 +388,7 @@ export async function createEditService({dataDir=process.env.VIDEO_AGENT_EDIT_DA
     }finally{
       j.completedAt=new Date().toISOString();j.metrics.elapsedMs=Date.parse(j.completedAt)-Date.parse(j.startedAt);controllers.delete(j.id);
       try{await save(p,jobEvent(j));}catch(error){console.error('Unable to persist job result',j.id,error.message);}
-      if(j.kind==='render')rendering--;else{running--;activeProjects.delete(p.id);}
+      if(j.kind==='render')rendering--;else if(j.kind==='asset'){importing--;activeImportProjects.delete(p.id);}else{running--;activeProjects.delete(p.id);}
       try{
         if(!closed&&j.kind==='asset'&&j.status==='complete')await firstEdit(p);
         if(!closed&&j.kind==='edit'&&j.status==='complete'&&j.revisionId&&(j.exportRequested||(j.payload.autoExport&&!p.jobs.some(x=>x.status==='queued'&&editingJob(x)))))await enqueue(p,'render',{revisionId:j.revisionId},'auto-export-'+j.id);

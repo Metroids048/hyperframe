@@ -1,3 +1,4 @@
+import {runtimeEnv} from '../lib/workflow.mjs';
 // Isolated frontend contract tests. The API and player are simulated; this does
 // not claim model quality, real speech, or MP4 rendering acceptance.
 import http from "node:http";
@@ -361,8 +362,7 @@ await new Promise((r) => server.listen(0, "127.0.0.1", r));
 const base = "http://127.0.0.1:" + server.address().port;
 const browser = await puppeteer.launch({
     executablePath:
-      process.env.CHROME_PATH ||
-      "C:/Program Files/Google/Chrome/Application/chrome.exe",
+      process.env.CHROME_PATH || runtimeEnv().HYPERFRAMES_BROWSER_PATH,
     headless: true,
     defaultViewport: { width: 1440, height: 1000 },
   }),

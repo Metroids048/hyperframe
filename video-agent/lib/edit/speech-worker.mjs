@@ -1,11 +1,11 @@
 import {spawn,spawnSync} from 'node:child_process';
 import path from 'node:path';
-import os from 'node:os';
+import {pythonExecutable} from '../runtime-tools.mjs';
 import {randomUUID} from 'node:crypto';
 import {ROOT} from '../workflow.mjs';
 import {EditError} from './timeline.mjs';
 
-export const localPython=()=>process.env.VIDEO_AGENT_PYTHON||process.env.HYPERFRAMES_PYTHON||path.join(os.homedir(),'.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe');
+export const localPython=()=>pythonExecutable();
 
 /** Serialized requests per resource; aborting a running inference destroys that worker, never its next job. */
 export class SpeechWorker {
@@ -35,8 +35,8 @@ export class SpeechWorker {
         this.pump();
       }
     });
-    const failed=()=>{if(this.child===child)this.stop(new EditError('本地语音进程已退出，请重试',503));};
-    child.on('error',failed);child.on('close',failed);
+    const failed=error=>{if(this.child===child)this.stop(new EditError(error?.code==='ENOENT'?'本地 Python 未找到。请安装 Python，或设置 VIDEO_AGENT_PYTHON 为现有解释器路径；视频与指令已保留。':'本地语音进程已退出，请检查语音依赖后重试',503));};
+    child.on('error',failed);child.on('close',()=>failed());
   }
   pump() {
     clearTimeout(this.idle);if(this.active)return;
