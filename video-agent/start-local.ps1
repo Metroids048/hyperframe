@@ -2,6 +2,13 @@ $ErrorActionPreference = 'Stop'
 $taskRoot = $PSScriptRoot
 Set-Location -LiteralPath $taskRoot
 New-Item -ItemType Directory -Force -Path (Join-Path $taskRoot 'outputs') | Out-Null
+
+# Build a non-destructive GitHub + local workspace snapshot before starting.
+# A failed network fetch is recorded as a warning by the Node script; invalid
+# project/skill configuration is fatal because the Agent would be unsafe/stale.
+& node (Join-Path $taskRoot 'scripts/workspace-context.mjs') --fetch-soft
+if ($LASTEXITCODE -ne 0) { throw 'Workspace preflight failed. See the error above before starting the workbench.' }
+
 try {
   $taskHealth = Invoke-RestMethod 'http://127.0.0.1:3020/api/health' -TimeoutSec 2
   $taskEditor = Invoke-RestMethod 'http://127.0.0.1:3020/api/edit-capabilities' -TimeoutSec 2

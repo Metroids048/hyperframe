@@ -19,6 +19,7 @@ import {localEditIntent} from './local-edit-intents.mjs';
 import {exportProjectZip} from './zip-export.mjs';
 import {shutdownSpeechWorkers} from './speech-worker.mjs';
 import {importGeneratedMedia} from './generation-import.mjs';
+import {parseRevisionNumber,undoNavigation,redoNavigation} from './revision-history.mjs';
 
 const activeStates=['queued','running'];
 const clone=x=>structuredClone(x);
@@ -131,7 +132,7 @@ export async function createEditService({dataDir=process.env.VIDEO_AGENT_EDIT_DA
       else if(e.isFile()){if(/\.(mp4|m4a|wav|mp3|jpg|png|woff2)$/.test(e.name)){try{await fs.link(from,to);continue;}catch{}}await fs.copyFile(from,to);}
     }
   }
-  async function newRevision(p,t,parent,description,ops,j,signal,{reuse=null,verify=null}={}){
+  async function newRevision(p,t,parent,description,ops,j,signal,{reuse=null,verify=null,navigation=null}={}){
     t=migrateTimeline(t);validateTimeline(t,p.assets);
     const id=uid(),dir=path.join(projectDir(p.id),'staging',id),destination=revisionDir(p.id,id);
     await fs.mkdir(dir,{recursive:true});let media,quality={level:'preview',status:'passed'};
@@ -142,7 +143,7 @@ export async function createEditService({dataDir=process.env.VIDEO_AGENT_EDIT_DA
       await update(j,p,'更新画面与声音',65);media=await measure(j,'compose',()=>composeRevision(dir,t,p.assets,asset=>assetDir(p.id,asset),signal));
       await update(j,p,'检查修改位置',82);await measure(j,'preview_check',()=>checkRevision(dir,signal,{mode:'preview',timeline:t,operations:ops}));
     }
-    const r={id,number:p.revisions.length+1,parentId:parent,timeline:t,description,operations:clone(ops),media,quality,createdAt:new Date().toISOString(),render:{status:'pending'}};
+    const r={id,number:p.revisions.length+1,parentId:parent,timeline:t,description,operations:clone(ops),media,quality,...(navigation?{navigation:clone(navigation)}:{}),createdAt:new Date().toISOString(),render:{status:'pending'}};
     if(verify){const result=await measure(j,'quality_review',()=>verify(r,dir));r.quality.review=result;insist(result.passed,result.repairInstructions||result.issues?.map(x=>x.message).join('；')||'修改结果未通过内容检查');}
     if(signal.aborted)throw new EditError('任务已取消',409);
     checkBase(p,parent);
@@ -167,7 +168,7 @@ export async function createEditService({dataDir=process.env.VIDEO_AGENT_EDIT_DA
     return r;
   }
   async function voiceOperations(p,base,ops,j,signal) {
-    insist(Array.isArray(ops)&&ops.length>0&&ops.length<=100,'一次支持 1～100 项编辑指令');
+    insist(Array.isArray(ops)&&ops.length>0&&ops.length<=2000,'一次支持 1～2000 项编辑指令');
     const result=[];
     const layoutOps=ops.filter(o=>['delete_range','keep_ranges','split','move','insert','clip_speed','transition'].includes(o.type));
     const finalLength=layoutOps.length?duration(applyOperations(base.timeline,layoutOps,p.assets)):duration(base.timeline);
@@ -287,16 +288,19 @@ export async function createEditService({dataDir=process.env.VIDEO_AGENT_EDIT_DA
     if(j.kind==='restore') {
       const target=p.revisions.find(r=>r.id===payload.revisionId);insist(target,'历史版本不存在');
       // Reuse immutable media; restore remains a new, reversible revision.
-      await newRevision(p,clone(target.timeline),base.id,`恢复到第 ${target.number} 版`,[],j,signal,{reuse:target});return;
+      await newRevision(p,clone(target.timeline),base.id,`恢复到第 ${target.number} 版`,[],j,signal,{reuse:target,navigation:{restoredFromId:target.id,redoStack:[]}});return;
     }
     let ops=payload.operations,summary=payload.description||'精确编辑',answer=null,planningProject=null;
     if(j.kind==='edit') {
-      const undo=/^(撤销(上一步|刚才的修改)?|回到上一版)[。！!\s]*$/.test(payload.text.trim());
-      const match=/^回到第([\d一二三四五六七八九十]+)版[。！!\s]*$/.exec(payload.text.trim());
-      if(undo||match) {
-        const n=match?Number(match[1])||'一二三四五六七八九十'.indexOf(match[1])+1:null;
-        const target=undo?p.revisions.find(r=>r.id===base.parentId):p.revisions.find(r=>r.number===n);insist(target,'找不到要恢复的版本');
-        await newRevision(p,clone(target.timeline),base.id,`恢复到第 ${target.number} 版`,[],j,signal,{reuse:target});p.messages.push({id:uid(),role:'assistant',text:`已恢复到第 ${target.number} 版的内容。`,revisionId:j.revisionId,jobId:j.id});return;
+      const clean=payload.text.trim(),undo=/^(撤销(上一步|刚才的修改)?|回到上一版)[。！!\s]*$/.test(clean),redo=/^(重做|恢复撤销|撤销的撤销)[。！!\s]*$/.test(clean);
+      const match=/^回到第([\d零〇一二两三四五六七八九十百千]+)版[。！!\s]*$/.exec(clean);
+      if(undo||redo||match) {
+        let resolved;
+        if(undo)resolved=undoNavigation(p.revisions,base);
+        else if(redo)resolved=redoNavigation(p.revisions,base);
+        else {const n=parseRevisionNumber(match[1]);insist(n,'版本号无法识别，请使用 1～9999 的阿拉伯数字或中文整数');const target=p.revisions.find(r=>r.number===n);resolved=target?{target,navigation:{restoredFromId:target.id,redoStack:[]}}:null;}
+        insist(resolved?.target,redo?'没有可以重做的版本':undo?'已经是最早可撤销的内容':'找不到要恢复的版本');
+        const {target,navigation}=resolved;await newRevision(p,clone(target.timeline),base.id,`恢复到第 ${target.number} 版`,[],j,signal,{reuse:target,navigation});p.messages.push({id:uid(),role:'assistant',text:`已恢复到第 ${target.number} 版的内容。`,revisionId:j.revisionId,jobId:j.id});return;
       }
       await prepareRequestedMusic(p,j,signal);
       const messageIndex=p.messages.findIndex(m=>m.jobId===j.id&&m.role==='user');planningProject={...p,messages:messageIndex>=0?p.messages.slice(0,messageIndex+1):p.messages};

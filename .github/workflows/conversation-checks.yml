@@ -47,6 +47,24 @@ jobs:
       - name: Legacy creation and server regressions
         working-directory: video-agent
         run: node scripts/acceptance.mjs
+      - name: Windows workbench startup smoke test
+        if: runner.os == 'Windows'
+        working-directory: video-agent
+        shell: pwsh
+        run: |
+          [void][scriptblock]::Create((Get-Content -Raw ./start-local.ps1))
+          try {
+            ./start-local.ps1
+            $health = Invoke-RestMethod 'http://127.0.0.1:3020/api/health' -TimeoutSec 3
+            $editor = Invoke-RestMethod 'http://127.0.0.1:3020/api/edit-capabilities' -TimeoutSec 3
+            if (-not $health.ok -or -not $editor.engine) { throw 'Workbench did not become healthy.' }
+          } finally {
+            $pidPath = Join-Path $PWD 'outputs/server.pid'
+            if (Test-Path $pidPath) {
+              $serverPid = [int](Get-Content $pidPath -Raw)
+              Stop-Process -Id $serverPid -Force -ErrorAction SilentlyContinue
+            }
+          }
       - name: Retain reports and rendered evidence, not fonts or user projects
         if: always()
         uses: actions/upload-artifact@v4
@@ -63,3 +81,4 @@ jobs:
             video-agent/outputs/upgrade/conversation-media/**/desktop.png
             video-agent/outputs/upgrade/conversation-media/**/mobile.png
             video-agent/outputs/upgrade/conversation-media/**/conversation-result.mp4
+            video-agent/outputs/acceptance/**
