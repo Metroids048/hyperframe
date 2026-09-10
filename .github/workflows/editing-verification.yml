@@ -9,31 +9,28 @@ on:
 permissions:
   contents: read
 jobs:
-  source:
+  runtime:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - name: Bundle tracked source (no media, credentials, or dependencies)
-        shell: python
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned runtime (legacy Windows dependencies tolerated during migration)
+        working-directory: video-agent
+        run: npm ci --force --no-audit --no-fund
+      - name: Bundle runtime and tracked test inputs
         run: |
-          import pathlib, subprocess, zipfile
-          root = pathlib.Path.cwd()
-          paths = subprocess.check_output(['git', 'ls-files', '-z']).decode('utf-8').split('\0')
-          extensions = {'.mjs', '.js', '.cjs', '.json', '.html', '.css', '.md', '.py', '.txt', '.toml', '.yml', '.yaml', '.ts', '.tsx', '.jsx', '.svg'}
-          with zipfile.ZipFile('source-code.zip', 'w', zipfile.ZIP_DEFLATED) as bundle:
-              for name in paths:
-                  if not name:
-                      continue
-                  path = root / name
-                  if path.is_file() and (path.suffix.lower() in extensions or path.name in {'.gitignore', '.npmrc'}):
-                      bundle.write(path, name)
-              bundle.writestr('SOURCE_COMMIT.txt', subprocess.check_output(['git', 'rev-parse', 'HEAD']))
+          mkdir -p verification-bundle
+          tar -czf verification-bundle/node-runtime.tar.gz -C video-agent node_modules
+          git archive --format=tar.gz HEAD > verification-bundle/tracked-project.tar.gz
+          git rev-parse HEAD > verification-bundle/SOURCE_COMMIT.txt
       - uses: actions/upload-artifact@v4
         with:
-          name: editing-source-${{ github.sha }}
-          path: source-code.zip
+          name: editing-runtime-${{ github.sha }}
+          path: verification-bundle/
           if-no-files-found: error
-          retention-days: 3
+          retention-days: 1
