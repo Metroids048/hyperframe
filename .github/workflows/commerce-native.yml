@@ -6,6 +6,7 @@ on:
     paths:
       - 'video-agent/lib/creative/**'
       - 'video-agent/scripts/commerce-agent*.mjs'
+      - 'video-agent/scripts/prepare-commerce-fixtures.mjs'
       - 'video-agent/scripts/test-commerce-native.mjs'
       - 'video-agent/examples/commerce/**'
       - 'video-agent/package.json'
@@ -32,10 +33,10 @@ jobs:
           node-version: '22'
           cache: npm
           cache-dependency-path: video-agent/package-lock.json
-      - name: Install FFmpeg for real rendering
+      - name: Install media tools and Chinese glyph coverage
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg
+          sudo apt-get install -y ffmpeg fonts-noto-cjk
       - run: npm ci
       - run: npm run test:commerce
       - run: node scripts/test-skill-routing.mjs
@@ -44,20 +45,23 @@ jobs:
       - run: npm run commerce:build
       - name: HyperFrames structure check
         run: |
-          cd data/commerce-runs/coffee-demo
+          cd data/commerce-runs/nova-demo
           node ../../../node_modules/hyperframes/bin/hyperframes.mjs check
       - name: Verify native image output
         run: |
-          test -f data/commerce-runs/coffee-demo/index.html
-          test -f data/commerce-runs/coffee-demo/document.json
-          grep -q '<img' data/commerce-runs/coffee-demo/index.html
-          ! grep -q 'hero.mp4' data/commerce-runs/coffee-demo/index.html
+          test -f data/commerce-runs/nova-demo/index.html
+          test -f data/commerce-runs/nova-demo/document.json
+          test -s data/commerce-samples/nova-hero.jpg
+          test -s data/commerce-samples/nova-detail.jpg
+          test -s data/commerce-samples/nova-context.jpg
+          grep -q '<img' data/commerce-runs/nova-demo/index.html
+          ! grep -q 'hero.mp4' data/commerce-runs/nova-demo/index.html
       - name: Render real 30-second vertical MP4
         run: |
-          printf '%s' '{"action":"render","outputDir":"data/commerce-runs/coffee-demo","quality":"standard","video":"commerce-final.mp4"}' | node scripts/commerce-agent-tool.mjs
-          test -s data/commerce-runs/coffee-demo/commerce-final.mp4
-          ffprobe -v error -show_entries stream=width,height -show_entries format=duration -of json data/commerce-runs/coffee-demo/commerce-final.mp4 > data/commerce-runs/coffee-demo/ffprobe.json
-          node -e "const r=require('fs').readFileSync('data/commerce-runs/coffee-demo/ffprobe.json','utf8');const j=JSON.parse(r);if(Math.abs(Number(j.format.duration)-30)>.15)process.exit(2);const v=j.streams.find(x=>x.width);if(v.width!==1080||v.height!==1920)process.exit(3);"
+          printf '%s' '{"action":"render","outputDir":"data/commerce-runs/nova-demo","quality":"standard","video":"commerce-final.mp4"}' | node scripts/commerce-agent-tool.mjs
+          test -s data/commerce-runs/nova-demo/commerce-final.mp4
+          ffprobe -v error -show_entries stream=width,height -show_entries format=duration -of json data/commerce-runs/nova-demo/commerce-final.mp4 > data/commerce-runs/nova-demo/ffprobe.json
+          node -e "const r=require('fs').readFileSync('data/commerce-runs/nova-demo/ffprobe.json','utf8');const j=JSON.parse(r);if(Math.abs(Number(j.format.duration)-30)>.15)process.exit(2);const v=j.streams.find(x=>x.width);if(v.width!==1080||v.height!==1920)process.exit(3);"
       - name: Upload rendered and editable evidence
         uses: actions/upload-artifact@v4
         with:
@@ -65,12 +69,13 @@ jobs:
           retention-days: 7
           if-no-files-found: error
           path: |
-            video-agent/data/commerce-runs/coffee-demo/commerce-final.mp4
-            video-agent/data/commerce-runs/coffee-demo/document.json
-            video-agent/data/commerce-runs/coffee-demo/object-map.json
-            video-agent/data/commerce-runs/coffee-demo/manifest.json
-            video-agent/data/commerce-runs/coffee-demo/DESIGN.md
-            video-agent/data/commerce-runs/coffee-demo/check.log
-            video-agent/data/commerce-runs/coffee-demo/render.log
-            video-agent/data/commerce-runs/coffee-demo/ffprobe.json
+            video-agent/data/commerce-runs/nova-demo/commerce-final.mp4
+            video-agent/data/commerce-runs/nova-demo/document.json
+            video-agent/data/commerce-runs/nova-demo/object-map.json
+            video-agent/data/commerce-runs/nova-demo/manifest.json
+            video-agent/data/commerce-runs/nova-demo/DESIGN.md
+            video-agent/data/commerce-runs/nova-demo/check.log
+            video-agent/data/commerce-runs/nova-demo/render.log
+            video-agent/data/commerce-runs/nova-demo/ffprobe.json
+            video-agent/data/commerce-samples/nova-*.jpg
             video-agent/data/commerce-runs/tool-ci/revisions/*.json
