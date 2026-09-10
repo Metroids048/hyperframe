@@ -6,20 +6,13 @@ on:
       - 'video-agent/scripts/apply-remediation-phase1.mjs'
       - 'video-agent/scripts/apply-remediation-phase1-wrapper.mjs'
       - '.github/workflows/apply-remediation.yml'
-  pull_request:
-    branches: [main]
-    paths:
-      - 'video-agent/scripts/apply-remediation-phase1.mjs'
-      - 'video-agent/scripts/apply-remediation-phase1-wrapper.mjs'
-      - '.github/workflows/apply-remediation.yml'
 permissions:
   contents: write
 concurrency:
-  group: remediation-${{ github.event.pull_request.head.ref || github.ref }}
-  cancel-in-progress: false
+  group: remediation-agent-remediation-20260910
+  cancel-in-progress: true
 jobs:
   apply-and-verify:
-    if: github.event_name == 'push' || github.event.pull_request.head.ref == 'agent/remediation-20260910'
     runs-on: ubuntu-latest
     timeout-minutes: 55
     env:
