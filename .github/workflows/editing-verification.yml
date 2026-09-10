@@ -19,7 +19,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Verify the exact locally tested patch and apply it
+      - name: Verify the exact locally tested patch and apply application files only
         shell: python
         run: |
           import base64, hashlib, lzma, os, pathlib, subprocess
@@ -29,9 +29,9 @@ jobs:
           assert hashlib.sha256(blob).hexdigest() == expected, 'Patch checksum mismatch; refusing to apply'
           patch = pathlib.Path(os.environ['RUNNER_TEMP']) / 'verified-editing.patch'
           patch.write_bytes(lzma.decompress(blob))
-          subprocess.run(['git', 'apply', '--check', '--index', str(patch)], check=True)
-          subprocess.run(['git', 'apply', '--index', str(patch)], check=True)
-          subprocess.run(['git', 'rm', '-r', '.github/continuation', '.github/workflows/editing-verification.yml'], check=True)
+          subprocess.run(['git', 'apply', '--check', '--index', '--exclude=.github/workflows/*', str(patch)], check=True)
+          subprocess.run(['git', 'apply', '--index', '--exclude=.github/workflows/*', str(patch)], check=True)
+          subprocess.run(['git', 'rm', '-r', '.github/continuation'], check=True)
       - name: Install verification media tools
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
       - name: Verify clean installation and core regressions
