@@ -38,7 +38,7 @@ function textEl(node, className) {
 
 function internalImageMedia(media, assets, className = '') {
   if (!media || media.kind !== 'image') return '';
-  return `<div class="media-frame media-entrance enter"><div class="media-motion motion">${imageMarkup(assets[media.assetId], media, className)}</div></div>`;
+  return `<div class="media-frame media-entrance enter" data-layout-allow-overflow><div class="media-motion motion">${imageMarkup(assets[media.assetId], media, className)}</div></div>`;
 }
 
 function hasVideo(scene, document) {
@@ -61,7 +61,7 @@ function externalVideoLayers(document, assets) {
     media.forEach((node, order) => {
       const asset = assets[node.assetId];
       const mediaStart = Number(asset.sourceStartSeconds || 0);
-      layers.push(`<div id="media-wrap-${esc(node.id)}" data-scene-media="${esc(scene.id)}" class="video-layer media-entrance" style="${videoLayout(scene, order)}z-index:${8 + document.scenes.indexOf(scene)}"><div class="media-motion motion"><video id="obj-${esc(node.id)}" src="${esc(publicAsset(asset))}" muted playsinline preload="auto" data-start="${sec(node.startFrame)}" data-duration="${sec(node.durationFrames)}" data-media-start="${mediaStart}" data-track-index="${track++}"></video></div></div>`);
+      layers.push(`<div id="media-wrap-${esc(node.id)}" data-scene-media="${esc(scene.id)}" class="video-layer media-entrance" data-layout-allow-overflow style="${videoLayout(scene, order)}z-index:${8 + document.scenes.indexOf(scene)}"><div class="media-motion motion"><video id="obj-${esc(node.id)}" src="${esc(publicAsset(asset))}" muted playsinline preload="auto" data-start="${sec(node.startFrame)}" data-duration="${sec(node.durationFrames)}" data-media-start="${mediaStart}" data-track-index="${track++}"></video></div></div>`);
     });
   }
   return layers.join('\n');
@@ -82,7 +82,7 @@ function renderScene(document, scene, assets) {
   const media = mediaForScene(scene, n, assets);
 
   if (scene.effect === 'product-reveal' || scene.effect === 'image-pan-zoom') {
-    return `${media}<div class="scrim"></div><div class="scene-content">${commonCopy}</div>`;
+    return `${media}<div class="scrim"></div><div class="scene-content" style="justify-content:flex-end">${commonCopy}</div>`;
   }
   if (scene.effect === 'detail-inset') {
     const p = scene.effectParams || {};
@@ -93,7 +93,7 @@ function renderScene(document, scene, assets) {
   if (scene.effect === 'layered-parallax') {
     const images = n.media.filter(x => x.kind === 'image');
     const back = images[0], front = images[1];
-    const imageLayers = back && front ? `<div class="media-frame"><div class="media-motion parallax-back">${imageMarkup(assets[back.assetId], back)}</div><div class="media-motion parallax-front enter">${imageMarkup(assets[front.assetId], front)}</div></div>` : '';
+    const imageLayers = back && front ? `<div class="media-frame" data-layout-allow-overflow><div class="media-motion parallax-back">${imageMarkup(assets[back.assetId], back)}</div><div class="media-motion parallax-front enter">${imageMarkup(assets[front.assetId], front)}</div></div>` : '';
     return `${imageLayers}<div class="scrim"></div><div class="scene-content">${commonCopy}</div>`;
   }
   if (scene.effect === 'feature-callout') {
@@ -105,7 +105,7 @@ function renderScene(document, scene, assets) {
   if (scene.effect === 'split-detail') {
     const p = scene.effectParams || {};
     const width = Math.round((p.mediaWidth ?? .58) * 100);
-    const left = firstMedia?.kind === 'image' ? `<div class="split-media media-entrance enter"><div class="media-motion motion">${imageMarkup(assets[firstMedia.assetId], firstMedia)}</div></div>` : '<div></div>';
+    const left = firstMedia?.kind === 'image' ? `<div class="split-media media-entrance enter" data-layout-allow-overflow><div class="media-motion motion">${imageMarkup(assets[firstMedia.assetId], firstMedia)}</div></div>` : '<div></div>';
     return `<div class="split" style="grid-template-columns:${width}% 1fr">${left}<div class="split-copy"><div class="copy-panel">${title}${feature}</div></div></div>`;
   }
   if (scene.effect === 'price-lockup') {
@@ -133,8 +133,10 @@ function motionSelector(scene) {
 function sceneTimeline(document, scene) {
   const start = Number(sec(scene.startFrame)), duration = Number(sec(scene.durationFrames));
   const selector = `#${scene.id}`;
+  const incomingTransition = document.transitions.find(t => t.toSceneId === scene.id);
+  const contentStart = start + (incomingTransition ? Number(sec(incomingTransition.durationFrames)) : 0);
   const lines = [];
-  lines.push(`tl.from(${js(`${selector} .enter`)},{opacity:0,y:${Number(scene.effectParams?.offsetY ?? 28)},duration:0.45,ease:"power3.out",stagger:0.07},${start});`);
+  lines.push(`tl.from(${js(`${selector} .enter`)},{opacity:0,y:${Number(scene.effectParams?.offsetY ?? 28)},duration:0.45,ease:"power3.out",stagger:0.07},${contentStart});`);
   if (scene.effect === 'product-reveal') lines.push(`tl.from(${js(mediaSelector(scene))},{opacity:0,scale:${Number(scene.effectParams?.scale ?? 1.08)},duration:0.7,ease:"power3.out"},${start});`);
   if (scene.effect === 'image-pan-zoom') {
     const p = scene.effectParams || {};
@@ -216,7 +218,7 @@ export function compileDocument(document, preparedAssets) {
     output: document.output,
     scenes: document.scenes.map(s => ({id: s.id, purpose: s.purpose, effect: s.effect, startFrame: s.startFrame, durationFrames: s.durationFrames})),
     effects: [...new Set([...document.scenes.map(s => s.effect), ...document.transitions.map(t => t.effect)])],
-    assets: Object.values(assets).map(a => ({id: a.id, kind: a.kind, sha256: a.sha256, ref: publicAsset(a), rights: a.rights || {status: 'unknown'}})),
+    assets: Object.values(assets).map(a => ({id: a.id, kind: a.kind, sha256: a.sha256, ref: publicAsset(a), rights: a.rights || {status: 'unknown'}, sourceStartSeconds: a.sourceStartSeconds || 0, sourceDurationSeconds: a.sourceDurationSeconds ?? null, volume: a.volume ?? 1})),
   }};
 }
 
