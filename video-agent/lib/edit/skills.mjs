@@ -8,7 +8,7 @@ import {optionalProviderCapabilities} from './adapters/optional-providers.mjs';
 const directory=path.join(ROOT,'config/skills');
 const registry=JSON.parse(readFileSync(path.join(directory,'registry.json'),'utf8'));
 const commerceSkill={
-  id:'commerce-promo',version:'1.0.0',source:'project-native',license:'project',instructions:'commerce-promo.md',
+  id:'commerce-promo',version:'1.0.0',source:'https://github.com/Metroids048/hyperframe',sourceCommit:'d60c3f61066021d0377d1e7c4e4dd94fa2a9cb6b',license:'project',instructions:'commerce-promo.md',
   capabilities:['product-brief','native-document-v3','product-motion','object-level-edit','hyperframes-compile'],execution:'project-tool',
   successCriteria:['商品事实不超出用户提供或已验证内容','图片保持原生图片节点而非静止视频代理','动效由可执行组件产生并保留稳定对象ID','最终渲染前执行HyperFrames检查'],
   requiredTools:['scripts/commerce-agent-tool.mjs','HyperFrames 0.8.33','GSAP 3.14.2'],compatibility:{hyperframes:'0.8.33',gsap:'3.14.2'},
