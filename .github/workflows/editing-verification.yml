@@ -1,0 +1,39 @@
+name: Editing verification
+on:
+  push:
+    branches: [agent/continue-editing-optimization]
+  pull_request:
+    paths:
+      - 'video-agent/**'
+      - '.github/workflows/editing-verification.yml'
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Bundle tracked source (no media, credentials, or dependencies)
+        shell: python
+        run: |
+          import pathlib, subprocess, zipfile
+          root = pathlib.Path.cwd()
+          paths = subprocess.check_output(['git', 'ls-files', '-z']).decode('utf-8').split('\0')
+          extensions = {'.mjs', '.js', '.cjs', '.json', '.html', '.css', '.md', '.py', '.txt', '.toml', '.yml', '.yaml', '.ts', '.tsx', '.jsx', '.svg'}
+          with zipfile.ZipFile('source-code.zip', 'w', zipfile.ZIP_DEFLATED) as bundle:
+              for name in paths:
+                  if not name:
+                      continue
+                  path = root / name
+                  if path.is_file() and (path.suffix.lower() in extensions or path.name in {'.gitignore', '.npmrc'}):
+                      bundle.write(path, name)
+              bundle.writestr('SOURCE_COMMIT.txt', subprocess.check_output(['git', 'rev-parse', 'HEAD']))
+      - uses: actions/upload-artifact@v4
+        with:
+          name: editing-source-${{ github.sha }}
+          path: source-code.zip
+          if-no-files-found: error
+          retention-days: 3
