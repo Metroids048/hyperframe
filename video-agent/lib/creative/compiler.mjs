@@ -154,24 +154,14 @@ function sceneTimeline(document, scene) {
 
 function transitionTimeline(document, transition) {
   const incoming = document.scenes.find(s => s.id === transition.toSceneId);
-  const outgoing = document.scenes.find(s => s.id === transition.fromSceneId);
   const start = Number(sec(incoming.startFrame)), duration = Number(sec(transition.durationFrames));
   const incomingSelector = `#${incoming.id}, [data-scene-media="${incoming.id}"]`;
-  const outgoingSelector = `#${outgoing.id}, [data-scene-media="${outgoing.id}"]`;
   if (transition.effect === 'dissolve-transition') {
-    return [
-      `tl.fromTo(${js(incomingSelector)},{opacity:0},{opacity:1,duration:${duration},ease:"power1.inOut"},${start});`,
-      `tl.to(${js(outgoingSelector)},{opacity:0,duration:${duration},ease:"power1.inOut"},${start});`,
-    ];
+    return [`tl.fromTo(${js(incomingSelector)},{opacity:0},{opacity:1,duration:${duration},ease:"power1.inOut"},${start});`];
   }
   const direction = transition.params?.direction || 'left';
   const inset = direction === 'right' ? 'inset(0 100% 0 0)' : direction === 'up' ? 'inset(100% 0 0 0)' : direction === 'down' ? 'inset(0 0 100% 0)' : 'inset(0 0 0 100%)';
-  const axis = ['left', 'right'].includes(direction) ? 'x' : 'y';
-  const sign = ['right', 'down'].includes(direction) ? 1 : -1;
-  return [
-    `tl.fromTo(${js(incomingSelector)},{clipPath:${js(inset)},opacity:1},{clipPath:"inset(0 0 0 0)",duration:${duration},ease:"power2.inOut"},${start});`,
-    `tl.to(${js(outgoingSelector)},{${axis}:${sign * 32},opacity:.55,duration:${duration},ease:"power2.inOut"},${start});`,
-  ];
+  return [`tl.fromTo(${js(incomingSelector)},{clipPath:${js(inset)},opacity:1},{clipPath:"inset(0 0 0 0)",duration:${duration},ease:"power2.inOut"},${start});`];
 }
 
 export function compileDocument(document, preparedAssets) {
@@ -182,7 +172,7 @@ export function compileDocument(document, preparedAssets) {
   const objectMap = {};
   for (const node of document.nodes) objectMap[node.id] = {domId: `obj-${node.id}`, sceneId: node.sceneId, semanticRole: node.semanticRole, kind: node.kind};
   const videoHtml = externalVideoLayers(document, assets);
-  const sceneHtml = document.scenes.map((scene, index) => `<section id="${esc(scene.id)}" class="clip scene scene-${esc(scene.effect)}${hasVideo(scene, document) ? ' scene-has-video' : ''}" data-start="${sec(scene.startFrame)}" data-duration="${sec(scene.durationFrames)}" data-track-index="${1 + index % 2}" style="z-index:${40 + index}">${renderScene(document, scene, assets)}</section>`).join('\n');
+  const sceneHtml = document.scenes.map((scene, index) => `<section id="${esc(scene.id)}" class="clip scene scene-${esc(scene.effect)}${hasVideo(scene, document) ? ' scene-has-video' : ''}" data-start="${sec(scene.startFrame)}" data-duration="${sec(scene.durationFrames)}" data-track-index="${1 + index % 2}" style="z-index:${40 + index};opacity:${index === 0 ? 1 : 0}">${renderScene(document, scene, assets)}</section>`).join('\n');
   const timeline = [...document.scenes.flatMap(scene => sceneTimeline(document, scene)), ...document.transitions.flatMap(transition => transitionTimeline(document, transition))].join('\n    ');
   const d = document.design;
   const html = `<!doctype html>
@@ -193,7 +183,9 @@ export function compileDocument(document, preparedAssets) {
   <title>${esc(document.brief.name)} · 商品宣传片</title>
   <style>
     html,body{margin:0;width:100%;height:100%;overflow:hidden;background:${esc(d.background)}}
-    body{font-family:${esc(d.fontFamily)};text-rendering:geometricPrecision}
+    @font-face{font-family:"PingFang SC";src:local("PingFang SC")}
+    @font-face{font-family:"Microsoft YaHei";src:local("Microsoft YaHei")}
+    body{font-family:${d.fontFamily};text-rendering:geometricPrecision}
     [data-composition-id="commerce-root"]{position:relative;width:100%;height:100%;overflow:hidden;--bg:${esc(d.background)};--fg:${esc(d.foreground)};--panel:${esc(d.panel)};--accent:${esc(d.accent)};--accentContrast:${esc(d.accentContrast)}}
     .scene-has-video{background:transparent}
     .video-layer{position:absolute;overflow:hidden;pointer-events:none}
