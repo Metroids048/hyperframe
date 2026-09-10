@@ -98,21 +98,25 @@ export function normalizeCommerceRequest(input = {}) {
     };
   });
   const product = input.product || {};
+  const normalizedProduct = {
+    id: product.id || 'product-1',
+    name: String(product.name || '商品展示').trim().slice(0, 80),
+    facts: normalizeFacts(product.facts),
+    price: product.price == null ? null : String(product.price).trim().slice(0, 80),
+    cta: String(product.cta || '了解更多').trim().slice(0, 80),
+    audience: product.audience == null ? null : String(product.audience).trim().slice(0, 120),
+    prohibited: Array.isArray(product.prohibited) ? product.prohibited.map(x => String(x)).slice(0, 20) : [],
+  };
+  const output = validateOutput(input.output);
+  const message = String(input.message || '').trim();
+  const style = ['premium', 'functional', 'promotion'].includes(input.style) ? input.style : 'premium';
   return {
-    requestId: input.requestId || stableId('request', Date.now(), assets.map(a => a.path), input.message || ''),
-    projectId: input.projectId || stableId('commerce', product.name || 'product', assets.map(a => a.path)),
-    message: String(input.message || '').trim(),
-    style: ['premium', 'functional', 'promotion'].includes(input.style) ? input.style : 'premium',
-    output: validateOutput(input.output),
-    product: {
-      id: product.id || 'product-1',
-      name: String(product.name || '商品展示').trim().slice(0, 80),
-      facts: normalizeFacts(product.facts),
-      price: product.price == null ? null : String(product.price).trim().slice(0, 80),
-      cta: String(product.cta || '了解更多').trim().slice(0, 80),
-      audience: product.audience == null ? null : String(product.audience).trim().slice(0, 120),
-      prohibited: Array.isArray(product.prohibited) ? product.prohibited.map(x => String(x)).slice(0, 20) : [],
-    },
+    requestId: input.requestId || stableId('request', normalizedAssets.map(a => ({id:a.id,path:a.path,kind:a.kind,role:a.role,sourceStartSeconds:a.sourceStartSeconds,sourceDurationSeconds:a.sourceDurationSeconds})), normalizedProduct, message, style, output),
+    projectId: input.projectId || stableId('commerce', normalizedProduct.name || 'product', normalizedAssets.map(a => a.path)),
+    message,
+    style,
+    output,
+    product: normalizedProduct,
     assets: normalizedAssets,
     render: input.render === true,
     outputDir: input.outputDir || null,
