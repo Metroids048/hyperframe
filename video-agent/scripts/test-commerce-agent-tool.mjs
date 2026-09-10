@@ -5,6 +5,7 @@ import {spawn} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
+await import('./prepare-commerce-fixtures.mjs');
 const tool=path.join(root,'scripts/commerce-agent-tool.mjs');
 const run=input=>new Promise((resolve,reject)=>{
   const child=spawn(process.execPath,[tool],{cwd:root,stdio:['pipe','pipe','pipe']});let out='',err='';
