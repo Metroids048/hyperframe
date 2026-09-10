@@ -53,6 +53,22 @@ try {
       /win32-x64/,
     );
   });
+  await test("HyperFrames receives absolute PATH-resolved media executables", () => {
+    const tools = runtimeTools(tmp, {
+      platform: "linux",
+      env: { PATH: "/tools:/usr/bin", HYPERFRAMES_FFMPEG_PATH: "ffmpeg" },
+      exists: (p) => ["/tools/ffmpeg", "/usr/bin/ffprobe"].includes(p),
+    });
+    assert.equal(tools.HYPERFRAMES_FFMPEG_PATH, "/tools/ffmpeg");
+    assert.equal(tools.HYPERFRAMES_FFPROBE_PATH, "/usr/bin/ffprobe");
+    const win = runtimeTools(tmp, {
+      platform: "win32",
+      env: { Path: "C:\\Tools;C:\\Windows" },
+      exists: (p) =>
+        p === "C:\\Tools\\ffmpeg.exe" || p === "C:\\Tools\\ffprobe.exe",
+    });
+    assert.equal(win.HYPERFRAMES_FFMPEG_PATH, "C:\\Tools\\ffmpeg.exe");
+  });
   await test("Codex uses stdin for complete instructions and no forced private model", () => {
     const input = {
       schemaFile: "schema.json",

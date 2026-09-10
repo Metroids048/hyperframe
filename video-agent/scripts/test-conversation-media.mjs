@@ -20,6 +20,7 @@ const data = path.join(out, "projects"),
   measurements = [],
   errors = [];
 let browser, child, base, pid;
+const serverLog = [];
 const deadline = async (fn, label, ms = 180000) => {
   const start = Date.now();
   while (Date.now() - start < ms) {
@@ -58,7 +59,6 @@ try {
   const port = portServer.address().port;
   await new Promise((resolve) => portServer.close(resolve));
   base = "http://127.0.0.1:" + port;
-  const serverLog = [];
   child = spawn(process.execPath, ["server.mjs"], {
     cwd: ROOT,
     env: {
@@ -112,8 +112,14 @@ try {
   });
   const page = await browser.newPage();
   page.on("pageerror", (e) => errors.push(e.message));
-  await page.goto(base + "/edit?project=" + pid, { waitUntil: "networkidle0" });
+  await page.goto(base + "/edit?project=" + pid, {
+    waitUntil: "domcontentloaded",
+  });
   await page.waitForSelector("#viewer:not([hidden])");
+  await page.waitForFunction(
+    () => document.querySelector("#player")?.ready === true,
+    { timeout: 30000 },
+  );
   const commands = [
     "在第 2.033 秒到第 5 秒添加底部字幕「对话剪辑测试」",
     "把字幕「对话剪辑测试」改为「只改文字，不加配音」",
@@ -157,8 +163,12 @@ try {
       executionMode: done.j.executionMode || "restore",
     });
     await page.waitForFunction(
-      (rev) =>
-        document.querySelector("#player")?.getAttribute("src")?.includes(rev),
+      (rev) => {
+        const player = document.querySelector("#player");
+        return (
+          player?.getAttribute("src")?.includes(rev) && player.ready === true
+        );
+      },
       {},
       done.p.currentRevisionId,
     );
@@ -166,8 +176,12 @@ try {
   pass(
     "ten real UI chat turns execute, refresh previews and retain history without a model",
   );
-  await page.reload({ waitUntil: "networkidle0" });
+  await page.reload({ waitUntil: "domcontentloaded" });
   await page.waitForSelector("#viewer:not([hidden])");
+  await page.waitForFunction(
+    () => document.querySelector("#player")?.ready === true,
+    { timeout: 30000 },
+  );
   await page.screenshot({
     path: path.join(out, "desktop.png"),
     fullPage: true,
@@ -232,8 +246,12 @@ try {
   await download.body.cancel();
   pass("actual MP4 download endpoint is available");
   await page.setViewport({ width: 390, height: 844 });
-  await page.reload({ waitUntil: "networkidle0" });
+  await page.reload({ waitUntil: "domcontentloaded" });
   await page.waitForSelector("#viewer:not([hidden])");
+  await page.waitForFunction(
+    () => document.querySelector("#player")?.ready === true,
+    { timeout: 30000 },
+  );
   await page.screenshot({ path: path.join(out, "mobile.png"), fullPage: true });
   assert.deepEqual(errors, []);
   pass("mobile view renders without browser JavaScript errors");
@@ -273,6 +291,7 @@ try {
   await fs.writeFile(path.join(out, "server.log"), serverLog.join(""));
   console.log("Conversation media acceptance:", out);
 } catch (error) {
+  await fs.writeFile(path.join(out, "server.log"), serverLog.join(""));
   await fs.writeFile(
     path.join(out, "failure.json"),
     JSON.stringify(
