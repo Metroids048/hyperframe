@@ -1,3 +1,4 @@
+import {runtimeEnv} from '../lib/workflow.mjs';
 // Read-only browser acceptance against an explicitly supplied isolated live
 // project. This test never imports, edits, renders, or starts a service.
 import assert from "node:assert/strict";
@@ -53,8 +54,7 @@ assert(
 );
 const browser = await puppeteer.launch({
     executablePath:
-      process.env.CHROME_PATH ||
-      "C:/Program Files/Google/Chrome/Application/chrome.exe",
+      process.env.CHROME_PATH || runtimeEnv().HYPERFRAMES_BROWSER_PATH,
     headless: true,
     defaultViewport: { width: 1440, height: 1000 },
   }),

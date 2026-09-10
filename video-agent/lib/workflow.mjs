@@ -1,3 +1,5 @@
+import './local-env.mjs';
+import {runtimeTools} from './runtime-tools.mjs';
 import {composeShots} from './multishot.mjs';
 import fs from 'node:fs/promises';
 import {createWriteStream} from 'node:fs';
@@ -58,13 +60,14 @@ export async function compose(dir,b,scenes=storyboard(b)){
  for(const file of ['gsap.min.js','music.wav'])await fs.copyFile(path.join(ROOT,'assets',file),path.join(dir,'assets',file));
  await fs.writeFile(path.join(dir,'meta.json'),JSON.stringify({id:path.basename(dir),name:`${b.brand} · ${b.product}`}));
 }
-export const runtimeEnv=()=>({...process.env,HYPERFRAMES_NO_TELEMETRY:'1',XDG_STATE_HOME:path.join(ROOT,'.state'),HYPERFRAMES_FFMPEG_PATH:path.join(ROOT,'node_modules/@ffmpeg-installer/win32-x64/ffmpeg.exe'),HYPERFRAMES_FFPROBE_PATH:path.join(ROOT,'node_modules/@ffprobe-installer/win32-x64/ffprobe.exe'),HYPERFRAMES_BROWSER_PATH:process.env.HYPERFRAMES_BROWSER_PATH||'C:/Program Files/Google/Chrome/Application/chrome.exe'});
+export const runtimeEnv=()=>({...process.env,HYPERFRAMES_NO_TELEMETRY:'1',XDG_STATE_HOME:path.join(ROOT,'.state'),...runtimeTools(ROOT)});
 export function runHF(dir,args,{logFile,onOutput,timeoutMs=300000}={}){
  return new Promise((resolve,reject)=>{
   const child=spawn(process.execPath,[path.join(ROOT,'node_modules/hyperframes/bin/hyperframes.mjs'),...args],{cwd:dir,env:runtimeEnv(),windowsHide:true,stdio:['ignore','pipe','pipe']});
   const log=logFile?createWriteStream(logFile,{flags:'a'}):null;let tail='',timedOut=false,failureTimer=null,reportedFailure=false;
-  const receive=chunk=>{const s=chunk.toString();tail=(tail+s).slice(-5000);log?.write(s);onOutput?.(s);if(!reportedFailure&&/Render failed|Check failed:/.test(tail)){reportedFailure=true;failureTimer=setTimeout(()=>spawnSync('taskkill',['/pid',String(child.pid),'/T','/F'],{windowsHide:true,stdio:'ignore'}),1000);}};child.stdout.on('data',receive);child.stderr.on('data',receive);
-  const timer=setTimeout(()=>{timedOut=true;spawnSync('taskkill',['/pid',String(child.pid),'/T','/F'],{windowsHide:true,stdio:'ignore'});},timeoutMs);
+  const kill=()=>{if(process.platform==='win32'&&child.pid)spawnSync('taskkill',['/pid',String(child.pid),'/T','/F'],{windowsHide:true,stdio:'ignore'});else child.kill('SIGKILL');};
+  const receive=chunk=>{const s=chunk.toString();tail=(tail+s).slice(-5000);log?.write(s);onOutput?.(s);if(!reportedFailure&&/Render failed|Check failed:/.test(tail)){reportedFailure=true;failureTimer=setTimeout(kill,1000);}};child.stdout.on('data',receive);child.stderr.on('data',receive);
+  const timer=setTimeout(()=>{timedOut=true;kill();},timeoutMs);
   child.on('error',e=>{clearTimeout(timer);clearTimeout(failureTimer);log?.end();reject(e);});
   child.on('close',code=>{clearTimeout(timer);clearTimeout(failureTimer);log?.end();code===0&&!timedOut&&!reportedFailure?resolve(tail):reject(new Error(timedOut?'任务超时，输入已保留，可以重试':`HyperFrames ${args[0]} 未完成，输入已保留，可以重试。详情已保存在项目日志。`));});
  });

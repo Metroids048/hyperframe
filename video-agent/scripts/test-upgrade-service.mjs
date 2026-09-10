@@ -34,6 +34,24 @@ await test('editing remains available while an old revision is rendering',async(
 await test('restore reuses immutable artifacts and does not compile or render again',async()=>{const target=p.revisions[0],before=calls.compose,job=await service.enqueue(p,'restore',{baseRevisionId:p.currentRevisionId,revisionId:target.id},uid());assert.equal((await ready(job,p)).status,'complete');assert.equal(calls.compose,before);assert.deepEqual(p.revisions.at(-1).timeline,target.timeline);});
 await test('ten conversational revisions retain history and refresh provider login each turn',async()=>{const before=calls.plan;for(let i=0;i<10;i++){const j=await service.enqueue(p,'edit',{baseRevisionId:p.currentRevisionId,text:'调整第 '+i+' 次'},uid());assert.equal((await ready(j,p)).status,'complete');}assert.equal(calls.plan-before,10);assert.ok(calls.refresh>=10);assert.equal(calls.render,1);});
 await test('event sequences persist and reconnect resumes after the last event',async()=>{assert.ok(events.length>10);assert.ok(events.every((e,i)=>!i||e.sequence>events[i-1].sequence));const cursor=events.at(-2).sequence,replayed=[];const off=service.subscribe(p.id,cursor,e=>replayed.push(e));off();assert.deepEqual(replayed.map(e=>e.sequence),events.filter(e=>e.sequence>cursor).map(e=>e.sequence));const persisted=(await fs.readFile(path.join(dataDir,p.id,'events.ndjson'),'utf8')).trim().split('\n').map(JSON.parse);assert.equal(persisted.at(-1).sequence,events.at(-1).sequence);});
+await test('precise chat edits and invalid exact instructions never need a configured model',async()=>{
+  const q=await project('offline-exact'),before=calls.plan,originalStatus=provider.status;
+  provider.status=()=>({configured:false});
+  try{let job=await service.enqueue(q,'edit',{baseRevisionId:q.currentRevisionId,text:'删除开头1秒'},uid());assert.equal((await ready(job,q)).status,'complete');assert.equal(duration(q.revisions.at(-1).timeline),270);assert.equal(q.jobs.find(x=>x.id===job.id).metrics.modelCalls,0);
+    const base=q.currentRevisionId;job=await service.enqueue(q,'edit',{baseRevisionId:base,text:'删除开头99秒'},uid());assert.equal((await ready(job,q)).status,'failed');assert.equal(q.currentRevisionId,base);assert.equal(calls.plan,before);
+  }finally{provider.status=originalStatus;}
+});
+await test('second source preparation does not block chat edits to the current revision',async()=>{
+  const q=await project('import-concurrent'),original=mediaEngine.prepareAsset;let entered=false,release;
+  // A separate service captures this delayed media method in its dependencies.
+  const delayed={...mediaEngine,async prepareAsset(dir,a,...args){if(a.id==='slow-source'){entered=true;await new Promise(resolve=>release=resolve);}return original(dir,a,...args);}};
+  const local=await createEditService({dataDir:path.join(out,'concurrent-data'),provider,mediaEngine:delayed});
+  try{const file=path.join(out,'compound.mp4'),created=await local.importFile(file,'first.mp4'),r=local.get(created.id);await until(()=>r.currentRevisionId&&r.jobs.every(j=>j.status==='complete'),'first import');await delay(20);
+    r.assets['slow-source']={id:'slow-source',name:'second.mp4',original:'original.mp4',status:'pending'};const folder=local.assetDir(r.id,'slow-source');await fs.mkdir(folder,{recursive:true});await fs.writeFile(path.join(folder,'original.mp4'),'mock');
+    const imported=await local.enqueue(r,'asset',{assetId:'slow-source'},uid());await until(()=>entered,'second source preparation');
+    const edited=await local.enqueue(r,'edit',{baseRevisionId:r.currentRevisionId,text:'关闭原声'},uid());await until(()=>r.jobs.find(j=>j.id===edited.id).status==='complete','edit while import');assert.equal(r.jobs.find(j=>j.id===imported.id).status,'running');assert.equal(r.revisions.at(-1).timeline.clips[0].gain,0);release();await until(()=>r.jobs.find(j=>j.id===imported.id).status==='complete','second import complete');
+  }finally{release?.();await local.close();}
+});
 await test('restart recovers revisions, analyses, event cursor and interrupts an uncommitted job',async()=>{unsubscribe();await service.close();const fake={id:uid(),kind:'operations',status:'running',key:uid(),payload:{baseRevisionId:p.currentRevisionId,operations:[]},createdAt:new Date().toISOString()};p.jobs.push(fake);await service.save(p);const current=p.currentRevisionId,sequence=p.eventSequence;service=await createEditService({dataDir,provider,mediaEngine});const loaded=service.get(p.id);assert.equal(loaded.currentRevisionId,current);assert.equal(loaded.revisions.length,p.revisions.length);assert.equal(loaded.jobs.find(j=>j.id===fake.id).status,'interrupted');assert.ok(loaded.eventSequence>sequence);});
 await fs.writeFile(path.join(out,'result.json'),JSON.stringify({status:'passed',validation:'mock media/provider integration; real media is covered separately',passed,calls},null,2));console.log('Service acceptance:',out);
 }finally{unsubscribe();await service.close();}
