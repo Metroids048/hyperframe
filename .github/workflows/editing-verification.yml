@@ -19,18 +19,46 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Install pinned runtime (legacy Windows dependencies tolerated during migration)
+      - name: Install pinned runtime
         working-directory: video-agent
         run: npm ci --force --no-audit --no-fund
-      - name: Bundle runtime and tracked test inputs
+      - name: Bundle runtime and selected source inputs separately
         run: |
           mkdir -p verification-bundle
-          tar -czf verification-bundle/node-runtime.tar.gz -C video-agent node_modules
-          git archive --format=tar.gz HEAD > verification-bundle/tracked-project.tar.gz
-          git rev-parse HEAD > verification-bundle/SOURCE_COMMIT.txt
+          tar -czf verification-bundle/node-runtime.tar.gz --exclude='node_modules/@ffmpeg-installer/win32-x64' --exclude='node_modules/@ffprobe-installer/win32-x64' -C video-agent node_modules
+          split -b 160M -d verification-bundle/node-runtime.tar.gz verification-bundle/runtime-part-
+          python - <<'PY'
+          import pathlib, subprocess, tarfile
+          root=pathlib.Path.cwd()
+          names=subprocess.check_output(['git','ls-files','-z']).decode().split('\0')
+          selected={'tears-of-steel.mp4','viewport-navigation.mp4','tears-of-steel.jpg','viewport-navigation.jpg','music.wav'}
+          with tarfile.open('verification-bundle/test-inputs.tar.gz','w:gz') as archive:
+              for name in names:
+                  if not name: continue
+                  p=root/name
+                  if p.is_file() and (p.stat().st_size<1500000 or p.name in selected) and not name.startswith('video-agent/outputs/'):
+                      archive.add(p,arcname=name)
+          PY
+          ls -lh verification-bundle
       - uses: actions/upload-artifact@v4
         with:
-          name: editing-runtime-${{ github.sha }}
-          path: verification-bundle/
-          if-no-files-found: error
+          name: editing-runtime-part-00
+          path: verification-bundle/runtime-part-00
+          retention-days: 1
+      - uses: actions/upload-artifact@v4
+        if: hashFiles('verification-bundle/runtime-part-01') != ''
+        with:
+          name: editing-runtime-part-01
+          path: verification-bundle/runtime-part-01
+          retention-days: 1
+      - uses: actions/upload-artifact@v4
+        if: hashFiles('verification-bundle/runtime-part-02') != ''
+        with:
+          name: editing-runtime-part-02
+          path: verification-bundle/runtime-part-02
+          retention-days: 1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: editing-test-inputs
+          path: verification-bundle/test-inputs.tar.gz
           retention-days: 1
