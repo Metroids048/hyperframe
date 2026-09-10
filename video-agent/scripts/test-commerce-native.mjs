@@ -29,6 +29,11 @@ test('effect registry exposes twelve executable effects', () => {
   assert.ok(effects.every(x => x.deterministic));
 });
 
+test('same request normalizes to the same deterministic request id', () => {
+  const input = {style:'premium',output:{width:1080,height:1920,durationSeconds:30},product:{name:'商品',facts:['卖点']},assets:[{id:'hero',path:'assets/edit-samples/coffee.jpg',kind:'image'}]};
+  assert.equal(normalizeCommerceRequest(input).requestId, normalizeCommerceRequest(structuredClone(input)).requestId);
+});
+
 test('director creates an exact 30-second native document including transition overlap', () => {
   const {request, prepared} = fixture();
   const document = planCommerceDocument(request, prepared);
