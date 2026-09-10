@@ -32,6 +32,10 @@ jobs:
           node-version: '22'
           cache: npm
           cache-dependency-path: video-agent/package-lock.json
+      - name: Install FFmpeg for real rendering
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
       - run: npm ci
       - run: npm run test:commerce
       - run: node scripts/test-skill-routing.mjs
