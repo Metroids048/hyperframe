@@ -1,0 +1,87 @@
+name: Apply remediation phase 1
+on:
+  push:
+    branches: [agent/remediation-20260910]
+    paths:
+      - 'video-agent/scripts/apply-remediation-phase1.mjs'
+      - '.github/workflows/apply-remediation.yml'
+permissions:
+  contents: write
+concurrency:
+  group: remediation-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  apply-and-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    env:
+      PYTHONUTF8: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: video-agent/package-lock.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install media tools and Chinese glyph coverage
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg fonts-noto-cjk
+      - name: Install locked dependencies
+        working-directory: video-agent
+        run: npm ci --no-audit --no-fund
+      - name: Apply phase-1 code changes
+        working-directory: video-agent
+        run: node scripts/apply-remediation-phase1.mjs
+      - name: Syntax check changed JavaScript
+        working-directory: video-agent
+        run: |
+          node --check lib/edit/revision-history.mjs
+          node --check lib/edit/service.mjs
+          node --check web/editor.js
+          node --check scripts/test-revision-history.mjs
+          node --check scripts/test-upgrade-service.mjs
+          node --check scripts/acceptance.mjs
+      - name: Run verification and capture exit codes
+        id: verify
+        working-directory: video-agent
+        shell: bash
+        run: |
+          set +e
+          node scripts/verify-editor.mjs core; core=$?
+          node scripts/verify-editor.mjs browser; browser=$?
+          node scripts/acceptance.mjs; legacy=$?
+          echo "core=$core" >> "$GITHUB_OUTPUT"
+          echo "browser=$browser" >> "$GITHUB_OUTPUT"
+          echo "legacy=$legacy" >> "$GITHUB_OUTPUT"
+          exit 0
+      - name: Save patched branch
+        shell: bash
+        run: |
+          git config user.name "hyperframe-remediation-bot"
+          git config user.email "hyperframe-remediation-bot@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "fix: repair history navigation and strengthen acceptance evidence"
+            git push origin HEAD:agent/remediation-20260910
+          fi
+      - name: Upload remediation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: remediation-phase1-${{ github.run_id }}
+          retention-days: 7
+          path: |
+            video-agent/outputs/upgrade/verification/**
+            video-agent/outputs/acceptance/**
+      - name: Enforce verification result
+        if: always()
+        shell: bash
+        run: |
+          echo "core=${{ steps.verify.outputs.core }} browser=${{ steps.verify.outputs.browser }} legacy=${{ steps.verify.outputs.legacy }}"
+          test "${{ steps.verify.outputs.core }}" = "0"
+          test "${{ steps.verify.outputs.browser }}" = "0"
+          test "${{ steps.verify.outputs.legacy }}" = "0"
