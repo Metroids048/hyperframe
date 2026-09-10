@@ -39,8 +39,9 @@
     "test:workspace": "node scripts/test-workspace-context.mjs",
     "test:continuation": "node scripts/test-continuation.mjs && node scripts/test-fast-intents.mjs && node scripts/test-edit-review-precision.mjs",
     "test:conversation:media": "node scripts/build-web.mjs && node scripts/test-conversation-media.mjs",
-    "commerce:build": "node scripts/commerce-agent.mjs --input examples/commerce/request.sample.json",
-    "commerce:render": "node scripts/commerce-agent.mjs --input examples/commerce/request.sample.json --render",
+    "commerce:fixtures": "node scripts/prepare-commerce-fixtures.mjs",
+    "commerce:build": "npm run commerce:fixtures && node scripts/commerce-agent.mjs --input examples/commerce/request.sample.json",
+    "commerce:render": "npm run commerce:fixtures && node scripts/commerce-agent.mjs --input examples/commerce/request.sample.json --render",
     "test:commerce": "node --test scripts/test-commerce-native.mjs"
   },
   "dependencies": {
