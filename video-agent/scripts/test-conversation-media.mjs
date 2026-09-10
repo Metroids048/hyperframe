@@ -120,6 +120,22 @@ try {
     () => document.querySelector("#player")?.ready === true,
     { timeout: 30000 },
   );
+  await page.hover("#player");
+  const play = await page.$("pierce/.hfp-play-btn");
+  assert(play, "Real player play control must exist");
+  await play.click();
+  await page.waitForFunction(
+    () => document.querySelector("#player").currentTime > 0.5,
+    { timeout: 20000 },
+  );
+  await page.$eval("#player", (player) => {
+    player.pause();
+    player.seek(2);
+  });
+  await page.waitForFunction(
+    () => Math.abs(document.querySelector("#player").currentTime - 2) < 0.12,
+  );
+  pass("real player plays advancing footage and seeks to requested time");
   const commands = [
     "在第 2.033 秒到第 5 秒添加底部字幕「对话剪辑测试」",
     "把字幕「对话剪辑测试」改为「只改文字，不加配音」",
@@ -146,7 +162,12 @@ try {
       },
       text,
     );
+    const response = page.waitForResponse(
+      (r) => r.url().endsWith("/messages") && r.request().method() === "POST",
+    );
     await page.click("#send");
+    assert.equal((await response).status(), 202);
+    const receiptMs = Math.round(performance.now() - start);
     const done = await deadline(async () => {
       const p = await project(),
         j = p.jobs.slice(before).find((j) => j.kind === "edit");
@@ -156,12 +177,7 @@ try {
     }, text);
     assert.equal(done.j.metrics.modelCalls, 0);
     assert.equal(done.p.revisions.at(-1).timeline.audio.length, 0);
-    measurements.push({
-      text,
-      endToEndMs: Math.round(performance.now() - start),
-      metrics: done.j.metrics,
-      executionMode: done.j.executionMode || "restore",
-    });
+    const jobCompleteMs = Math.round(performance.now() - start);
     await page.waitForFunction(
       (rev) => {
         const player = document.querySelector("#player");
@@ -171,6 +187,19 @@ try {
       },
       {},
       done.p.currentRevisionId,
+    );
+    measurements.push({
+      text,
+      receiptMs,
+      jobCompleteMs,
+      endToEndMs: Math.round(performance.now() - start),
+      metrics: done.j.metrics,
+      executionMode: done.j.executionMode || "restore",
+    });
+    console.log(
+      "TURN",
+      text,
+      measurements.at(-1).endToEndMs + "ms preview-ready",
     );
   }
   pass(
@@ -219,6 +248,16 @@ try {
     },
     "render and concurrent edit",
     600000,
+  );
+  const renderJob = p.jobs.slice(before).find((j) => j.kind === "render");
+  const concurrentEdit = p.jobs
+    .slice(before)
+    .filter((j) => j.kind === "edit")
+    .at(-1);
+  assert.ok(concurrentEdit && renderJob, "Both edit and export must exist");
+  assert.ok(
+    Date.parse(concurrentEdit.startedAt) < Date.parse(renderJob.completedAt),
+    "Export must not block the next edit from starting",
   );
   assert.notEqual(p.currentRevisionId, exportedId);
   assert.equal(p.revisions.at(-1).render.status, "pending");
