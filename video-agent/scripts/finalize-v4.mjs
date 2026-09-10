@@ -1,0 +1,3 @@
+import fs from 'node:fs';
+let html=fs.readFileSync('web/index.html','utf8');html=html.replace('<div id="optimization-result" class="optimization-result" hidden aria-live="polite">','<details id="optimization-result" class="optimization-result" hidden><summary>查看整理后的需求 <span>可选</span></summary>').replace('<p id="missing-info"></p></div>','<p id="missing-info"></p></details>');fs.writeFileSync('web/index.html',html);
+let readme=fs.readFileSync('README.md','utf8');readme=readme.replace(/\*\*新增 v0\.2 本地前端\*\*[^\n]+/,'**当前 v0.4 本地前端**：打开 http://127.0.0.1:3020 ，一段话加图片即可直接生成，也可先编辑分镜；四个案例可播放。使用方式见 [LOCAL-DEMO.md](LOCAL-DEMO.md)，产品定义见 [video-agent-definition.md](../video-agent-definition.md)。下文仅保留 v0.1 命令行示例说明。');fs.writeFileSync('README.md',readme);

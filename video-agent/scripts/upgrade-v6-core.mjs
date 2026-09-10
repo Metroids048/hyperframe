@@ -1,0 +1,21 @@
+import fs from 'node:fs';
+const read=p=>fs.readFileSync(p,'utf8'),put=(p,s)=>fs.writeFileSync(p,s);
+let s=read('lib/workflow.mjs');s="import {composeShots} from './multishot.mjs';\n"+s;s=s.replace("export async function compose(dir,b,scenes=storyboard(b)){","export async function compose(dir,b,scenes=storyboard(b)){\n if(scenes[0]?.layout)return composeShots(dir,b,scenes);");s=s.replace('export async function verifyVideo(file){','export async function verifyVideo(file,expected={duration:15,width:1280,height:720}){').replace('v.width!==1280||v.height!==720||Math.abs(Number(meta.format.duration)-15)>.1','v.width!==expected.width||v.height!==expected.height||Math.abs(Number(meta.format.duration)-expected.duration)>.1');put('lib/workflow.mjs',s);
+s=read('lib/demo-planner.mjs').replace('[15,30,60].includes','[15,30,60,90,120].includes').replace('value.duration??15','value.duration??30');put('lib/demo-planner.mjs',s);
+s=read('server.mjs');s="import {planShots,validateShots} from './lib/multishot.mjs';\n"+s;
+const va=s.indexOf('function view(p)'),vb=s.indexOf('async function stage',va);
+s=s.slice(0,va)+`function view(p){const s=p.requestedSettings||{duration:15,aspect:'16:9',quality:'720p'},duration=p.engine==='multishot-v1'?p.storyboard.at(-1).end:15;return {...p,requestedSettings:s,actualSettings:{duration,aspect:'16:9',quality:'720p'},renderNotice:s.aspect!=='16:9'||s.quality!=='720p'?'时长与镜头设置实际生效；本轮输出横屏 720p，其他画幅与画质仅保存需求。':null,videoUrl:p.status==='complete'?\`/api/projects/\${p.id}/video\`:null,storyboardUrl:\`/api/projects/\${p.id}/storyboard\`,imageUrls:Array.from({length:p.assetCount||3},(_,n)=>\`/api/projects/\${p.id}/image/\${n+1}\`),studioUrl:studioProject===p.id?STUDIO_URL:null};}
+`+s.slice(vb);
+s=s.replace("verifyVideo(path.join(dir,'video.mp4'))","verifyVideo(path.join(dir,'video.mp4'),{duration:p.engine==='multishot-v1'?p.storyboard.at(-1).end:15,width:1280,height:720})");
+s=s.replace('max=25*1024*1024','max=100*1024*1024').replace('上传总大小不能超过 25 MB','上传总大小不能超过 100 MB').replace("files.length>3)throw new InputError('最多上传三张图片')","files.length>12)throw new InputError('最多上传十二张图片')");
+s=s.replace('for(let n=1;n<=3;n++)images.push','for(let n=1;n<=(get(parentId).assetCount||3);n++)images.push');
+s=s.replace("for(let n=1;n<=3;n++)await fs.writeFile", "const assetCount=images.length;brief.assetCount=assetCount;brief.duration=requestedSettings.duration;\n for(let n=1;n<=assetCount;n++)await fs.writeFile");
+s=s.replace("source,imageCount:images.length,status:","source,assetCount,engine:'multishot-v1',imageCount:images.length,status:");s=s.replace('storyboard:storyboard(brief)','storyboard:planShots(brief,requestedSettings,assetCount)');
+s=s.replace("['product1.png','product2.png','product3.png','music.wav','gsap.min.js']","[...Array.from({length:p.assetCount||3},(_,n)=>'product'+(n+1)+'.png'),'music.wav','gsap.min.js']");
+s=s.replace('image\\/[123]','image\\/(?:[1-9]|1[0-2])');s=s.replace('body(req,8000)','body(req,24000)');
+s=s.replace('const edited=validateStoryboard(input.storyboard,p.brief);',"const edited=p.engine==='multishot-v1'?validateShots(input.storyboard,p.assetCount):validateStoryboard(input.storyboard,p.brief);");
+s=s.replace("storyboard:edited,createdAt:now", "storyboard:edited,requestedSettings:{...p.requestedSettings,duration:p.engine==='multishot-v1'?edited.at(-1).end:15},createdAt:now");
+s=s.replace('for(let n=1;n<=3;n++)await fs.copyFile','for(let n=1;n<=(p.assetCount||3);n++)await fs.copyFile');
+s=s.replace("`product${action.at(-1)}.png`","`product${Number(action.split('/')[1])}.png`");
+s=s.replace("if(req.method==='GET'&&action?.startsWith('image/'))return file", "if(req.method==='GET'&&action?.startsWith('image/')&&Number(action.split('/')[1])<=(p.assetCount||3))return file");
+s=s.replaceAll('0.5.0-demo','0.6.0-demo');put('server.mjs',s);put('start-local.ps1',read('start-local.ps1').replaceAll('0.5.0-demo','0.6.0-demo'));

@@ -1,0 +1,4 @@
+import fs from 'node:fs/promises';
+const base='http://127.0.0.1:3020',short=JSON.parse(await fs.readFile('outputs/v6-example.json','utf8')),tests=JSON.parse(await fs.readFile('outputs/v6-tests-pending.json','utf8')),out=[];
+for(const [id,title] of [[short.id,'青序 · 60 秒商品展示'],[tests.longId,'早屿 · 120 秒咖啡长片']]){const p=await fetch(base+'/api/projects/'+id).then(r=>r.json());const scenes=p.storyboard.map(s=>({...s,copy:s.headline===s.copy?p.brief.product:s.copy}));const revision=await fetch(base+'/api/projects/'+id+'/storyboard',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({storyboard:scenes})}).then(r=>r.json());await fetch(base+'/api/projects/'+revision.id+'/render',{method:'POST'});out.push({projectId:revision.id,title});}
+await fs.writeFile('demos.json',JSON.stringify(out,null,2));console.log(JSON.stringify(out));

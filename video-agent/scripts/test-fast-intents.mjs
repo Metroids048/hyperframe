@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {fastIntent} from '../lib/edit/fast-intents.mjs';
+import {initialTimeline,applyOperations} from '../lib/edit/timeline.mjs';
+const a={id:'source',kind:'video',status:'ready',frames:2700,width:1920,height:1080},assets={source:a},r={id:'v1',timeline:initialTimeline(a)};
+let n=0;const ok=(name,fn)=>{fn();console.log('PASS '+name);n++;};
+ok('exact explicit times create silent caption with frame precision',()=>{const p=fastIntent(r,'在第 2.033 秒到第 5 秒添加底部字幕「你好，世界」。保留原声，不加旁白。');assert.equal(p.result.operations[0].start,61);assert.equal(p.result.operations[0].text,'你好，世界');assert.equal(p.metrics.modelCalls,0);});
+r.timeline=applyOperations(r.timeline,[{type:'caption_add',start:60,end:150,text:'原文'}],assets);
+ok('unique named and contextual caption corrections retain other properties',()=>{for(const s of ['把字幕「原文」改为「新文」，其他不变。','把刚才那条字幕的文字改为「第2版」，保留它的位置和时间，不要添加或修改任何声音，其他内容不变。'])assert.equal(fastIntent(r,s).result.operations[0].type,'caption_update');});
+ok('unrecognized compound requirements never disappear',()=>{for(const s of ['把字幕「原文」改为「新文」，同时删除开头3秒。','把字幕「原文」改为「新文」，改为红色。','在第 2 秒到第 5 秒添加底部字幕「测试」，配中文旁白。','在第 2 秒到第 500 秒添加底部字幕「测试」。'])assert.equal(fastIntent(r,s),null);});
+ok('ambiguous multiple captions require the model',()=>{const multi={...r,timeline:applyOperations(r.timeline,[{type:'caption_add',start:180,end:220,text:'另一条'}],assets)};assert.equal(fastIntent(multi,'把字幕改为「新文」'),null);assert.ok(fastIntent(multi,'把字幕「原文」改为「新文」'));});
+ok('linked narration and selections always use the model',()=>{const linked=structuredClone(r);linked.timeline.captions[0].audioId='voice';assert.equal(fastIntent(linked,'把字幕「原文」改为「新文」'),null);assert.equal(fastIntent(r,'把字幕「原文」改为「新文」',{startFrame:0,endFrame:1}),null);});
+console.log(n+' fast intent safety tests passed');

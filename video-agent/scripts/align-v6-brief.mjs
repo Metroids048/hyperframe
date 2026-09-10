@@ -1,0 +1,1 @@
+import fs from 'node:fs';let s=fs.readFileSync('server.mjs','utf8');s=s.replace("const revision={...p,id,parentId:p.id,version:","const revision={...p,id,parentId:p.id,brief:{...p.brief,duration:p.engine==='multishot-v1'?edited.at(-1).end:15},version:");fs.writeFileSync('server.mjs',s);

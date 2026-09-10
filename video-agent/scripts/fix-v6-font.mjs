@@ -1,0 +1,2 @@
+import fs from 'node:fs';
+let s=fs.readFileSync('lib/multishot.mjs','utf8');s=s.replace('<style>\n*{','<style>\n@font-face{font-family:"Microsoft YaHei";src:local("Microsoft YaHei");font-weight:100 900}\n*{');s=s.replace("const copy=first?b.product:last?b.brandLatin:layout==='duo'?b.benefits.join(' · '):benefit||b.brand;","const copy=first?b.product:last?b.brandLatin:layout==='duo'?b.benefits.join(' · '):headline===benefit?b.product:benefit||b.brand;");fs.writeFileSync('lib/multishot.mjs',s);

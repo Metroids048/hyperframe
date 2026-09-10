@@ -1,0 +1,9 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+import {ROOT} from '../lib/workflow.mjs';
+import {run,ffmpeg,prepareAsset,composeRevision,renderRevision} from '../lib/edit/media.mjs';
+import {initialTimeline,applyOperations,duration,sourceStart} from '../lib/edit/timeline.mjs';
+const out=path.join(ROOT,'outputs/upgrade/frame-precision',new Date().toISOString().replaceAll(':','-')),source=path.join(out,'source');await fs.mkdir(source,{recursive:true});process.env.EDIT_MEDIA_CACHE_DIR=path.join(ROOT,'outputs/upgrade/media-cache');
+await run(ffmpeg,['-y','-v','error','-f','lavfi','-i','testsrc2=size=320x240:rate=30:duration=0.5','-f','lavfi','-i','sine=frequency=300:sample_rate=48000:duration=0.5','-c:v','libx264','-preset','ultrafast','-c:a','aac','-shortest',path.join(source,'original.mp4')]);
+const a={id:'precision',original:'original.mp4'};await prepareAsset(source,a);const assets={[a.id]:a};let t=applyOperations(initialTimeline(a),[{type:'keep_ranges',ranges:[{start:0,end:9}]}],assets);t=applyOperations(t,[{type:'clip_speed',id:t.clips[0].id,rate:.1}],assets);t=applyOperations(t,[{type:'delete_range',start:0,end:1},{type:'split',at:2}],assets);assert.equal(duration(t),89);assert.equal(t.clips[0].duration,1);assert.ok(Math.abs(sourceStart(t.clips[0])-.1)<1e-8);const revision=path.join(out,'revision');await composeRevision(revision,t,assets,()=>source);const meta=await renderRevision(revision,t);assert.equal(meta.frames,89);const html=await fs.readFile(path.join(revision,'index.html'),'utf8');assert.ok(html.includes('data-media-start="0.0033333333333333335"'));await fs.writeFile(path.join(out,'result.json'),JSON.stringify({status:'passed',meta,expectedFrames:89},null,2));console.log('PASS real strict render: 0.1x plus one-frame cut has exactly 89 frames',out);

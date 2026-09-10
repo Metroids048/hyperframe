@@ -1,0 +1,798 @@
+{
+  "schemaVersion": 1,
+  "id": "video-edit-85-v1",
+  "createdAt": "2026-09-10",
+  "status": "pending_freeze",
+  "description": "24项真人/实录素材剪辑基准。C01～C12允许校准，H01～H12必须保持未用于本次调优。",
+  "holdoutPolicy": "不能基于保留集结果修改提示词、技能或代码后重复宣称同一保留集为未见测试；发生泄露需换新版本。",
+  "dimensions": [
+    {
+      "id": "requirements",
+      "label": "要求完成度与关键内容保留",
+      "weight": 25
+    },
+    {
+      "id": "narrative",
+      "label": "叙事逻辑与选段",
+      "weight": 20
+    },
+    {
+      "id": "pacing",
+      "label": "剪切点、节奏和句子完整性",
+      "weight": 15
+    },
+    {
+      "id": "captions",
+      "label": "字幕准确、同步与可读性",
+      "weight": 15
+    },
+    {
+      "id": "audio",
+      "label": "配音、混音与音画一致",
+      "weight": 15
+    },
+    {
+      "id": "visuals",
+      "label": "构图与视觉完成度",
+      "weight": 10
+    }
+  ],
+  "groups": [
+    {
+      "id": "precision",
+      "label": "时间与重排"
+    },
+    {
+      "id": "semantic",
+      "label": "内容与选段"
+    },
+    {
+      "id": "captions",
+      "label": "字幕与翻译"
+    },
+    {
+      "id": "audio",
+      "label": "声音与配音"
+    },
+    {
+      "id": "visuals",
+      "label": "画面与构图"
+    },
+    {
+      "id": "compound",
+      "label": "复合与连续修改"
+    }
+  ],
+  "thresholds": {
+    "overall": 85,
+    "group": 80,
+    "task": 70,
+    "requiredReviewers": 2,
+    "maxHardFailures": 0,
+    "requireHoldoutPass": true,
+    "aggregateRelativeCap": 100
+  },
+  "assets": [
+    {
+      "id": "tos",
+      "label": "Tears of Steel 真人与CGI电影节选",
+      "status": "pending_freeze",
+      "sourceUrl": "https://download.blender.org/demo/movies/ToS/",
+      "license": "CC BY 3.0",
+      "attribution": "Tears of Steel — Blender Foundation / mango.blender.org",
+      "sourceExcerptSeconds": {
+        "start": 185,
+        "end": 275
+      },
+      "expectedDurationSeconds": 90,
+      "minDurationSeconds": 89,
+      "file": null,
+      "sha256": null,
+      "note": "185～275秒区间已由本轮素材观看确认，覆盖完整台词；待实际文件、哈希及观看声明绑定后冻结。变更时必须更新基准版本。"
+    },
+    {
+      "id": "tutorial",
+      "label": "Blender Viewport Navigation 实录教程",
+      "status": "pending_freeze",
+      "sourceUrl": "https://studio.blender.org/training/blender-2-8-fundamentals/viewport-navigation/",
+      "license": null,
+      "attribution": null,
+      "expectedDurationSeconds": 221.833,
+      "minDurationSeconds": 120,
+      "file": null,
+      "sha256": null,
+      "note": "使用全片，实际时长、下载来源与许可由素材清单核验。"
+    },
+    {
+      "id": "talk",
+      "label": "授权真人讲话素材",
+      "status": "pending_source",
+      "sourceUrl": null,
+      "license": null,
+      "attribution": null,
+      "minDurationSeconds": 60,
+      "file": null,
+      "sha256": null,
+      "note": "须为真实连续讲话，含自然停顿；内容/语言/许可与使用授权待补。"
+    },
+    {
+      "id": "mandarin",
+      "label": "授权普通话真人讲话",
+      "status": "pending_source",
+      "sourceUrl": null,
+      "license": null,
+      "attribution": null,
+      "minDurationSeconds": 90,
+      "file": null,
+      "sha256": null,
+      "note": "须为真实普通话讲话，包含完整观点和事实；不以合成旁白替代。"
+    },
+    {
+      "id": "music",
+      "label": "授权背景音乐",
+      "status": "pending_source",
+      "sourceUrl": null,
+      "license": null,
+      "attribution": null,
+      "minDurationSeconds": 30,
+      "file": null,
+      "sha256": null,
+      "note": "由双方共用的同一首授权音乐；不要用不同素材影响盲评。"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "C01",
+      "split": "calibration",
+      "group": "precision",
+      "assets": [
+        "tos"
+      ],
+      "brief": "从原片第5秒开始，只保留到第35秒；保留原声，不加字幕或转场。",
+      "acceptance": [
+        "成片900帧",
+        "源范围150～1050帧",
+        "原声无额外配音"
+      ],
+      "output": {
+        "fps": 30,
+        "maxWidth": 1920,
+        "maxHeight": 1920,
+        "maxShortEdge": 1080,
+        "maxDurationSeconds": 600,
+        "format": "mp4"
+      },
+      "status": "pending",
+      "runPolicy": {
+        "maxAutomaticRepairRounds": 2,
+        "allowHumanTimelineEdits": false
+      }
+    },
+    {
+      "id": "C02",
+      "split": "calibration",
+      "group": "precision",
+      "assets": [
+        "tutorial"
+      ],
+      "brief": "先播放原片30～45秒，再播放0～15秒。两个片段直接拼接，保留原声音量。",
+      "acceptance": [
+        "成片900帧",
+        "顺序与源区间准确",
+        "声音随片段重排"
+      ],
+      "output": {
+        "fps": 30,
+        "maxWidth": 1920,
+        "maxHeight": 1920,
+        "maxShortEdge": 1080,
+        "maxDurationSeconds": 600,
+        "format": "mp4"
+      },
+      "status": "pending",
+      "runPolicy": {
+        "maxAutomaticRepairRounds": 2,
+        "allowHumanTimelineEdits": false
+      }
+    },
+    {
+      "id": "C03",
+      "split": "calibration",
+      "group": "semantic",
+      "assets": [
+        "talk"
+      ],
+      "brief": "删去超过0.6秒的停顿和明显重复表达，保留全部事实信息及完整句子，停顿边缘各留约0.15秒；不要加速。",
+      "acceptance": [
+        "未删关键事实",
+        "无半词或半句",
+        "保留必要的语义停顿"
+      ],
+      "output": {
+        "fps": 30,
+        "maxWidth": 1920,
+        "maxHeight": 1920,
+        "maxShortEdge": 1080,
+        "maxDurationSeconds": 600,
+        "format": "mp4"
+      },
+      "status": "pending",
+      "runPolicy": {
+        "maxAutomaticRepairRounds": 2,
+        "allowHumanTimelineEdits": false
+      }
+    },
+    {
+      "id": "C04",
+      "split": "calibration",
+      "group": "semantic",
+      "assets": [
+        "tos"
+      ],
+      "brief": "剪成30～45秒、能独立看懂的片段：保留人物对话与动作的因果关系，优先保留完整台词，不加速，不添加新剧情。",
+      "acceptance": [
+        "30～45秒",
+        "对白与行动连贯",
+        "未编造原片没有的关系"
+      ],
+      "output": {
+        "fps": 30,
+        "maxWidth": 1920,
+        "maxHeight": 1920,
+        "maxShortEdge": 1080,
+        "maxDurationSeconds": 600,
+        "format": "mp4"
+      },
+      "status": "pending",
+      "runPolicy": {
+        "maxAutomaticRepairRounds": 2,
+        "allowHumanTimelineEdits": false
+      }
+    },
+    {
+      "id": "C05",
+      "split": "calibration",
+      "group": "captions",
+      "assets": [
+        "mandarin"
+      ],
+      "brief": "为整段普通话讲话生成中文字幕，按真实讲话时间显示，修正常见同音字；最多两行，不加配音。",
+      "acceptance": [
+        "内容逐句准确",
+        "字幕音画同步",
+        "无新增声音"
+      ],
+      "output": {
+        "fps": 30,
+        "maxWidth": 1920,
+        "maxHeight": 1920,
+        "maxShortEdge": 1080,
+        "maxDurationSeconds": 600,
+        "format": "mp4"
+      },
+      "status": "pending",
+      "runPolicy": {
+        "maxAutomaticRepairRounds": 2,
+        "allowHumanTimelineEdits": false
+      }
+    },
+    {
+      "id": "C06",
+      "split": "calibration",
+      "group": "captions",
+      "assets": [
+        "tos"
+      ],
+      "brief": "为原片英文对话添加简体中文字幕；保留原声，译文自然且不改人物意思，原片已烧录文字保持原样。",
+      "acceptance": [
+        "翻译准确",
+        "非说话区间不虚构台词",
+        "不覆盖关键人物面部"
+      ],
+      "output": {
+        "fps": 30,
+        "maxWidth": 1920,
+        "maxHeight": 1920,
+        "maxShortEdge": 1080,
+        "maxDurationSeconds": 600,
+        "format": "mp4"
+      },
+      "status": "pending",
+      "runPolicy": {
+        "maxAutomaticRepairRounds": 2,
+        "allowHumanTimelineEdits": false
+      }
+    },
+    {
+      "id": "C07",
+      "split": "calibration",
+      "group": "audio",
+      "assets": [
+        "tos"
+      ],
+      "brief": "在第1秒添加自然中文女声旁白“在这一刻，故事开始发生变化。”，语速1.2倍，同时添加这句中文字幕；把原声音量降到百分之二十。",
+      "acceptance": [
+        "台词逐字一致",
+        "实际语速生效",
+        "字幕对应新旁白且不重复朗读"
+      ],
+      "output": {
+        "fps": 30,
+        "maxWidth": 1920,
+        "maxHeight": 1920,
+        "maxShortEdge": 1080,
+        "maxDurationSeconds": 600,
+        "format": "mp4"
+      },
+      "status": "pending",
+      "runPolicy": {
+        "maxAutomaticRepairRounds": 2,
+        "allowHumanTimelineEdits": false
+      }
+    },
+    {
+      "id": "C08",
+      "split": "calibration",
+      "group": "audio",
+      "assets": [
+        "talk",
+        "music"
+      ],
+      "brief": "给真人讲话加入提供的音乐，音量百分之二十，人说话时压低音乐；音乐开头淡入0.5秒、结尾淡出1秒，整体响度统一到负16 LUFS。",
+      "acceptance": [
+        "配乐来自music素材",
+        "讲话清楚无削波",
+        "淡入淡出与响度有实际效果"
+      ],
+      "output": {
+        "fps": 30,
+        "maxWidth": 1920,
+        "maxHeight": 1920,
+        "maxShortEdge": 1080,
+        "maxDurationSeconds": 600,
+        "format": "mp4"
+      },
+      "status": "pending",
+      "runPolicy": {
+        "maxAutomaticRepairRounds": 2,
+        "allowHumanTimelineEdits": false
+      }
+    },
+    {
+      "id": "C09",
+      "split": "calibration",
+      "group": "visuals",
+      "assets": [
+        "tos"
+      ],
+      "brief": "做成1080×1920竖版，优先保留说话的人物和关键动作；可按镜头调整取景，不新增字幕或声音。",
+      "acceptance": [
+        "画幅正确",
+        "主体与动作不被误裁",
+        "横转竖后视觉连贯"
+      ],
+      "output": {
+        "fps": 30,
+        "maxWidth": 1920,
+        "maxHeight": 1920,
+        "maxShortEdge": 1080,
+        "maxDurationSeconds": 600,
+        "format": "mp4"
+      },
+      "status": "pending",
+      "runPolicy": {
+        "maxAutomaticRepairRounds": 2,
+        "allowHumanTimelineEdits": false
+      }
+    },
+    {
+      "id": "C10",
+      "split": "calibration",
+      "group": "visuals",
+      "assets": [
+        "tutorial",
+        "tos"
+      ],
+      "brief": "在教程第5～15秒右上角加入电影原片前10秒的静音画中画，区域为画面宽30%、高30%，距右边和上边各5%；其余教程保持不变。",
+      "acceptance": [
+        "画中画开始结束准确",
+        "位置尺寸正确",
+        "没有第二路原声混入"
+      ],
+      "output": {
+        "fps": 30,
+        "maxWidth": 1920,
+        "maxHeight": 1920,
+        "maxShortEdge": 1080,
+        "maxDurationSeconds": 600,
+        "format": "mp4"
+      },
+      "status": "pending",
+      "runPolicy": {
+        "maxAutomaticRepairRounds": 2,
+        "allowHumanTimelineEdits": false
+      }
+    },
+    {
+      "id": "C11",
+      "split": "calibration",
+      "group": "compound",
+      "assets": [
+        "tos"
+      ],
+      "brief": "仅保留前35秒，在最后3秒添加“故事还在继续”；第1秒加入中文旁白“现在，让我们看看接下来会发生什么。”并添加同文字幕，原声音量降为百分之十五。",
+      "acceptance": [
+        "成片35秒",
+        "末尾标题不被二次偏移",
+        "新旁白与字幕一一对应"
+      ],
+      "output": {
+        "fps": 30,
+        "maxWidth": 1920,
+        "maxHeight": 1920,
+        "maxShortEdge": 1080,
+        "maxDurationSeconds": 600,
+        "format": "mp4"
+      },
+      "status": "pending",
+      "runPolicy": {
+        "maxAutomaticRepairRounds": 2,
+        "allowHumanTimelineEdits": false
+      }
+    },
+    {
+      "id": "C12",
+      "split": "calibration",
+      "group": "compound",
+      "assets": [
+        "tutorial"
+      ],
+      "brief": "依次完成三轮：第一轮只保留前60秒；第二轮在第2～5秒加字幕“旋转、缩放、平移”；第三轮撤销第二轮后再把第一轮导出。刷新页面后确认预览与导出仍是无新增字幕的60秒版本。",
+      "acceptance": [
+        "三轮版本可追溯",
+        "撤销恢复正确",
+        "刷新与导出版本一致"
+      ],
+      "output": {
+        "fps": 30,
+        "maxWidth": 1920,
+        "maxHeight": 1920,
+        "maxShortEdge": 1080,
+        "maxDurationSeconds": 600,
+        "format": "mp4"
+      },
+      "status": "pending",
+      "runPolicy": {
+        "maxAutomaticRepairRounds": 2,
+        "allowHumanTimelineEdits": false
+      }
+    },
+    {
+      "id": "H01",
+      "split": "holdout",
+      "group": "precision",
+      "assets": [
+        "tos"
+      ],
+      "brief": "只保留原片7.2～19.7秒，按30fps精确裁切，保留原声；不要补帧、加速或额外转场。",
+      "acceptance": [
+        "成片375帧",
+        "源范围216～591帧",
+        "误差不超过1帧"
+      ],
+      "output": {
+        "fps": 30,
+        "maxWidth": 1920,
+        "maxHeight": 1920,
+        "maxShortEdge": 1080,
+        "maxDurationSeconds": 600,
+        "format": "mp4"
+      },
+      "status": "pending",
+      "runPolicy": {
+        "maxAutomaticRepairRounds": 2,
+        "allowHumanTimelineEdits": false
+      }
+    },
+    {
+      "id": "H02",
+      "split": "holdout",
+      "group": "precision",
+      "assets": [
+        "tutorial"
+      ],
+      "brief": "把原片90～105秒、45～60秒、0～15秒按这个顺序组成45秒视频；每段原声跟随画面，片尾最后2秒加“再练习一次”。",
+      "acceptance": [
+        "三段顺序正确",
+        "片尾文字在最终43～45秒",
+        "音画同步"
+      ],
+      "output": {
+        "fps": 30,
+        "maxWidth": 1920,
+        "maxHeight": 1920,
+        "maxShortEdge": 1080,
+        "maxDurationSeconds": 600,
+        "format": "mp4"
+      },
+      "status": "pending",
+      "runPolicy": {
+        "maxAutomaticRepairRounds": 2,
+        "allowHumanTimelineEdits": false
+      }
+    },
+    {
+      "id": "H03",
+      "split": "holdout",
+      "group": "semantic",
+      "assets": [
+        "mandarin"
+      ],
+      "brief": "剪到45秒以内，保留讲话的主要结论和支撑它的事实；删掉重复表述与无关铺垫，不加速，不改变说话人的原意。",
+      "acceptance": [
+        "不超过45秒",
+        "结论与事实完整",
+        "切点不破坏句意"
+      ],
+      "output": {
+        "fps": 30,
+        "maxWidth": 1920,
+        "maxHeight": 1920,
+        "maxShortEdge": 1080,
+        "maxDurationSeconds": 600,
+        "format": "mp4"
+      },
+      "status": "pending",
+      "runPolicy": {
+        "maxAutomaticRepairRounds": 2,
+        "allowHumanTimelineEdits": false
+      }
+    },
+    {
+      "id": "H04",
+      "split": "holdout",
+      "group": "semantic",
+      "assets": [
+        "tutorial"
+      ],
+      "brief": "剪成45～60秒的视口导航教学摘要，让初学者看到旋转、缩放、平移三种操作及对应说明；删除不相关等待，不加速。",
+      "acceptance": [
+        "三种操作都有证据",
+        "操作顺序易懂",
+        "说明未被截断"
+      ],
+      "output": {
+        "fps": 30,
+        "maxWidth": 1920,
+        "maxHeight": 1920,
+        "maxShortEdge": 1080,
+        "maxDurationSeconds": 600,
+        "format": "mp4"
+      },
+      "status": "pending",
+      "runPolicy": {
+        "maxAutomaticRepairRounds": 2,
+        "allowHumanTimelineEdits": false
+      }
+    },
+    {
+      "id": "H05",
+      "split": "holdout",
+      "group": "captions",
+      "assets": [
+        "talk"
+      ],
+      "brief": "为整段真人讲话加原语言字幕，正确保留人名、数字和术语；对确实听不清的地方如实标注，不猜测补字，不生成旁白。",
+      "acceptance": [
+        "专名数字正确",
+        "不确定处透明标注",
+        "未增加声音"
+      ],
+      "output": {
+        "fps": 30,
+        "maxWidth": 1920,
+        "maxHeight": 1920,
+        "maxShortEdge": 1080,
+        "maxDurationSeconds": 600,
+        "format": "mp4"
+      },
+      "status": "pending",
+      "runPolicy": {
+        "maxAutomaticRepairRounds": 2,
+        "allowHumanTimelineEdits": false
+      }
+    },
+    {
+      "id": "H06",
+      "split": "holdout",
+      "group": "captions",
+      "assets": [
+        "tutorial"
+      ],
+      "brief": "在教程里恰当的旋转、缩放、平移演示位置分别加一条简短中文提示，避开鼠标操作区域；原有画面及声音保持不变。",
+      "acceptance": [
+        "三条提示与画面一致",
+        "提示易读且不挡操作",
+        "没有误用自动配音"
+      ],
+      "output": {
+        "fps": 30,
+        "maxWidth": 1920,
+        "maxHeight": 1920,
+        "maxShortEdge": 1080,
+        "maxDurationSeconds": 600,
+        "format": "mp4"
+      },
+      "status": "pending",
+      "runPolicy": {
+        "maxAutomaticRepairRounds": 2,
+        "allowHumanTimelineEdits": false
+      }
+    },
+    {
+      "id": "H07",
+      "split": "holdout",
+      "group": "audio",
+      "assets": [
+        "mandarin"
+      ],
+      "brief": "把第10～25秒的原声替换为男声台词“这段说明需要更加清楚，请跟着画面一步一步操作。”，语速正常，并添加同文字幕；其余时间的原声保留。",
+      "acceptance": [
+        "指定范围原声被替换",
+        "其余原声保留",
+        "男声、时长及字幕准确"
+      ],
+      "output": {
+        "fps": 30,
+        "maxWidth": 1920,
+        "maxHeight": 1920,
+        "maxShortEdge": 1080,
+        "maxDurationSeconds": 600,
+        "format": "mp4"
+      },
+      "status": "pending",
+      "runPolicy": {
+        "maxAutomaticRepairRounds": 2,
+        "allowHumanTimelineEdits": false
+      }
+    },
+    {
+      "id": "H08",
+      "split": "holdout",
+      "group": "audio",
+      "assets": [
+        "tutorial",
+        "music"
+      ],
+      "brief": "把整段教程以1.25倍速度播放，声音同步且尽量保持自然音高；加入百分之十音量的提供音乐，头尾各淡变1秒。",
+      "acceptance": [
+        "成片时长为原片除以1.25",
+        "音画同步及音高自然",
+        "音乐边界正确"
+      ],
+      "output": {
+        "fps": 30,
+        "maxWidth": 1920,
+        "maxHeight": 1920,
+        "maxShortEdge": 1080,
+        "maxDurationSeconds": 600,
+        "format": "mp4"
+      },
+      "status": "pending",
+      "runPolicy": {
+        "maxAutomaticRepairRounds": 2,
+        "allowHumanTimelineEdits": false
+      }
+    },
+    {
+      "id": "H09",
+      "split": "holdout",
+      "group": "visuals",
+      "assets": [
+        "tos"
+      ],
+      "brief": "连接原片0～15秒和30～45秒，在两段之间做0.5秒交叉淡化；保留原声随转场过渡，不加字幕。",
+      "acceptance": [
+        "总时长29.5秒",
+        "0.5秒重叠真实存在",
+        "转场无黑帧及声音突跳"
+      ],
+      "output": {
+        "fps": 30,
+        "maxWidth": 1920,
+        "maxHeight": 1920,
+        "maxShortEdge": 1080,
+        "maxDurationSeconds": 600,
+        "format": "mp4"
+      },
+      "status": "pending",
+      "runPolicy": {
+        "maxAutomaticRepairRounds": 2,
+        "allowHumanTimelineEdits": false
+      }
+    },
+    {
+      "id": "H10",
+      "split": "holdout",
+      "group": "visuals",
+      "assets": [
+        "talk"
+      ],
+      "brief": "将全片设为1.25倍速，最后3秒加居中的标题“谢谢观看”；标题跟随最终片尾，文字足够清楚，不遮住主体脸部。",
+      "acceptance": [
+        "速度与声音同步",
+        "标题位于最终最后3秒",
+        "字位置与阅读效果合理"
+      ],
+      "output": {
+        "fps": 30,
+        "maxWidth": 1920,
+        "maxHeight": 1920,
+        "maxShortEdge": 1080,
+        "maxDurationSeconds": 600,
+        "format": "mp4"
+      },
+      "status": "pending",
+      "runPolicy": {
+        "maxAutomaticRepairRounds": 2,
+        "allowHumanTimelineEdits": false
+      }
+    },
+    {
+      "id": "H11",
+      "split": "holdout",
+      "group": "compound",
+      "assets": [
+        "mandarin",
+        "music"
+      ],
+      "brief": "删掉长停顿，添加准确中文字幕，再加入柔和背景音乐并在人声出现时压低；输出1080×1920竖版，保留说话人，不生成新的旁白。",
+      "acceptance": [
+        "内容完整且节奏自然",
+        "字幕、配乐、画幅均兑现",
+        "没有未授权合成声音"
+      ],
+      "output": {
+        "fps": 30,
+        "maxWidth": 1920,
+        "maxHeight": 1920,
+        "maxShortEdge": 1080,
+        "maxDurationSeconds": 600,
+        "format": "mp4"
+      },
+      "status": "pending",
+      "runPolicy": {
+        "maxAutomaticRepairRounds": 2,
+        "allowHumanTimelineEdits": false
+      }
+    },
+    {
+      "id": "H12",
+      "split": "holdout",
+      "group": "compound",
+      "assets": [
+        "talk",
+        "tutorial"
+      ],
+      "brief": "做一段60秒教学预告：先用真人讲话前10秒开场，中间用教程30～70秒，最后接真人讲话10～20秒；保留各段原声，在最后3秒加“开始动手练习”。",
+      "acceptance": [
+        "总时长60秒",
+        "多素材精确重排",
+        "最后标题及全部音频随最终时间轴一致"
+      ],
+      "output": {
+        "fps": 30,
+        "maxWidth": 1920,
+        "maxHeight": 1920,
+        "maxShortEdge": 1080,
+        "maxDurationSeconds": 600,
+        "format": "mp4"
+      },
+      "status": "pending",
+      "runPolicy": {
+        "maxAutomaticRepairRounds": 2,
+        "allowHumanTimelineEdits": false
+      }
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+import {ROOT} from '../lib/workflow.mjs';
+import {run,ffmpeg,prepareAsset,composeRevision,checkRevision,hashFile} from '../lib/edit/media.mjs';
+import {initialTimeline,applyOperations} from '../lib/edit/timeline.mjs';
+const out=path.join(ROOT,'outputs/upgrade/loudness',new Date().toISOString().replaceAll(':','-')),source=path.join(out,'source');await fs.mkdir(source,{recursive:true});process.env.EDIT_MEDIA_CACHE_DIR=path.join(ROOT,'outputs/upgrade/media-cache');
+await run(ffmpeg,['-y','-v','error','-f','lavfi','-i','color=c=gray:size=320x240:rate=30:duration=6','-f','lavfi','-i','sine=frequency=440:sample_rate=48000:duration=6','-af','volume=0.2','-c:v','libx264','-preset','ultrafast','-c:a','aac','-shortest',path.join(source,'original.mp4')]);
+const asset={id:'quiet',original:'original.mp4'};await prepareAsset(source,asset);const assets={quiet:asset};let t=applyOperations(initialTimeline(asset),[{type:'output',loudness:-16}],assets);const revision=path.join(out,'normalized'),first=await composeRevision(revision,t,assets,()=>source);await checkRevision(revision);
+const log=await run(ffmpeg,['-hide_banner','-i',path.join(revision,'assets/mix.m4a'),'-af','loudnorm=I=-16:TP=-1:LRA=11:print_format=json','-f','null','-']);const data=JSON.parse(log.match(/\{\s*"input_i"[\s\S]*?\}/)[0]),integrated=Number(data.input_i);assert.ok(Math.abs(integrated+16)<1,'requested integrated loudness must be reached');
+t=applyOperations(t,[{type:'caption_add',start:0,end:90,text:'同一响度'}],assets);const secondDir=path.join(out,'caption'),second=await composeRevision(secondDir,t,assets,()=>source);assert.equal(second.cache.stemsMiss,0);assert.equal(second.cache.mixMiss,0);assert.equal(await hashFile(path.join(revision,'assets/mix.m4a')),await hashFile(path.join(secondDir,'assets/mix.m4a')));
+t=applyOperations(t,[{type:'output',loudness:'off'}],assets);const disabled=path.join(out,'disabled');await composeRevision(disabled,t,assets,()=>source);assert.equal(await hashFile(path.join(disabled,'assets/mix.m4a')),await hashFile(path.join(disabled,'assets/stem-0.m4a')));
+await fs.writeFile(path.join(out,'result.json'),JSON.stringify({status:'passed',targetLUFS:-16,measuredLUFS:integrated,first,second},null,2));console.log('PASS loudness target, caption cache reuse, disable restores original level',out);
