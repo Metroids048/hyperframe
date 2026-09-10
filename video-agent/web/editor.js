@@ -217,12 +217,17 @@
     );
     for (const id of ["export", "export-inline"])
       $(id).disabled = !has || exporting || posting;
-    $("undo").disabled = !canEdit || !revision?.parentId;
+    const historySource = revision?.navigation?.restoredFromId
+      ? project?.revisions.find((r) => r.id === revision.navigation.restoredFromId)
+      : revision;
+    $("undo").disabled = !canEdit || !historySource?.parentId;
+    $("redo").disabled = !canEdit || !(revision?.navigation?.redoStack || []).length;
     $("restore").hidden = !has || isCurrent;
     $("restore").disabled = editing() || posting;
     $("versions").disabled = !has;
     $("versions").hidden = !has;
     $("undo").hidden = !has;
+    $("redo").hidden = !has;
     $("analyze").disabled = !project || editing() || posting;
     for (const id of ["reference-frame", "composer-reference", "open-range"])
       $(id).disabled = !canEdit || comparing;
@@ -1116,12 +1121,10 @@
     }
   });
   $("undo").onclick = async () => {
-    try {
-      const r = current();
-      await submit("restore", { baseRevisionId: r.id, revisionId: r.parentId });
-    } catch (e) {
-      err(e);
-    }
+    try {const r=current();await submit("messages",{text:"撤销",baseRevisionId:r.id,selection:null,afterCurrent:false,autoExport:false});} catch (e) {err(e);}
+  };
+  $("redo").onclick = async () => {
+    try {const r=current();await submit("messages",{text:"重做",baseRevisionId:r.id,selection:null,afterCurrent:false,autoExport:false});} catch (e) {err(e);}
   };
   $("restore").onclick = async () => {
     try {

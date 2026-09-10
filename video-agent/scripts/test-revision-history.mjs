@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {parseRevisionNumber,undoNavigation,redoNavigation} from '../lib/edit/revision-history.mjs';
+const pass=n=>console.log('PASS '+n);
+for(const [text,value] of [['1',1],['11',11],['一',1],['十',10],['十一',11],['二十',20],['二十一',21],['一百零一',101],['两百三十',230]])assert.equal(parseRevisionNumber(text),value,text);
+for(const bad of ['', '零', '第十一', '1.5', '-1', '一万'])assert.equal(parseRevisionNumber(bad),null,bad);
+pass('Chinese and Arabic revision numbers share one bounded parser');
+const revisions=[{id:'original',parentId:null},{id:'a',parentId:'original'},{id:'b',parentId:'a'}];
+let current=revisions[2];let u=undoNavigation(revisions,current);assert.equal(u.target.id,'a');
+current={id:'undo1',parentId:'b',navigation:u.navigation};revisions.push(current);u=undoNavigation(revisions,current);assert.equal(u.target.id,'original');assert.deepEqual(u.navigation.redoStack,['a','b']);
+current={id:'undo2',parentId:'undo1',navigation:u.navigation};revisions.push(current);let r=redoNavigation(revisions,current);assert.equal(r.target.id,'a');
+current={id:'redo1',parentId:'undo2',navigation:r.navigation};revisions.push(current);r=redoNavigation(revisions,current);assert.equal(r.target.id,'b');assert.deepEqual(r.navigation.redoStack,[]);
+pass('undo walks content history and redo replays the same branch');

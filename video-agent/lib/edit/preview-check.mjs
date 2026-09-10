@@ -10,7 +10,7 @@ import {EditError,insist,duration,FPS} from './timeline.mjs';
 // lint, motion and contrast audit. Export always retains the official full check.
 export const PREVIEW_CHECK_VERSION='runtime-preview-v2-hf-0.8.33';
 const contentHashes=new Map(),assetRoutes=new Map(),documents=new Map(),pages=new Set();
-let sessionPromise=null,idleTimer=null,activeChecks=0,auditScript;
+let sessionPromise=null,idleTimer=null,activeChecks=0,auditScript,closingPromise=null;
 const mime={'.mp4':'video/mp4','.webm':'video/webm','.m4a':'audio/mp4','.mp3':'audio/mpeg','.wav':'audio/wav','.js':'text/javascript','.png':'image/png','.jpg':'image/jpeg','.woff2':'font/woff2'};
 const failCancelled=()=>new EditError('任务已取消',409);
 const ensureActive=signal=>{if(signal?.aborted)throw failCancelled();};
@@ -57,6 +57,7 @@ function serve(req,res) {
 
 async function getSession() {
   clearTimeout(idleTimer);
+  if(closingPromise)await closingPromise;
   if(!sessionPromise)sessionPromise=(async()=>{
     const server=http.createServer(serve);await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(0,'127.0.0.1',resolve);});server.unref();
     let browser;
@@ -67,11 +68,16 @@ async function getSession() {
 }
 
 export async function closePreviewChecks() {
-  clearTimeout(idleTimer);idleTimer=null;const pending=sessionPromise;sessionPromise=null;if(!pending)return;
-  let session;try{session=await pending;}catch{return;}
-  await Promise.allSettled([...pages].map(page=>page.close()));pages.clear();
-  await session.browser.close().catch(()=>{});session.server.closeAllConnections?.();await new Promise(resolve=>session.server.close(resolve));
-  documents.clear();assetRoutes.clear();
+  clearTimeout(idleTimer);idleTimer=null;if(closingPromise)return closingPromise;const pending=sessionPromise;sessionPromise=null;if(!pending)return;
+  closingPromise=(async()=>{
+    let session;try{session=await pending;}catch{return;}
+    await Promise.allSettled([...pages].map(page=>page.close()));pages.clear();
+    await Promise.race([session.browser.close().catch(()=>{}),new Promise(resolve=>setTimeout(resolve,3000))]);
+    session.server.closeAllConnections?.();
+    await new Promise(resolve=>{let settled=false;const timer=setTimeout(done,1500);function done(){if(settled)return;settled=true;clearTimeout(timer);resolve();}try{if(!session.server.listening)return done();session.server.close(done);}catch{done();}});
+    documents.clear();assetRoutes.clear();
+  })().finally(()=>{closingPromise=null;});
+  return closingPromise;
 }
 
 function scheduleIdleClose() {

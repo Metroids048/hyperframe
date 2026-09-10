@@ -79,13 +79,13 @@ const server=http.createServer(async(req,res)=>{
   const origin=req.headers.origin;if(origin&&!allowed.some(h=>origin===`http://${h}`))throw new InputError('此操作只允许在本地制作页面发起',403);
   const url=new URL(req.url,`http://127.0.0.1:${PORT}`),route=url.pathname;
   if(await editRoutes(editor,req,res,url,{json,jsonBody,file}))return;
-  if(['GET','HEAD'].includes(req.method)&&route==='/editor-player.js')return file(req,res,path.join(ROOT,'node_modules/hyperframes/dist/hyperframes-player.global.js'),'text/javascript; charset=utf-8');
+  if(['GET','HEAD'].includes(req.method)&&route==='/editor-player.js')return await file(req,res,path.join(ROOT,'node_modules/hyperframes/dist/hyperframes-player.global.js'),'text/javascript; charset=utf-8');
   if(req.method==='GET'&&route==='/api/health')return json(res,{ok:true,version:'0.7.0-conversation',activeProjectId:active,studioProjectId:studioProject});
   if(req.method==='POST'&&route==='/api/optimize'){const input=await jsonBody(req,16000,'需求描述');if(input.mode==='live'&&process.env.VIDEO_AGENT_LIVE_CODEX!=='1')throw new InputError('实时 Codex 当前未启用：上次模型连接超时。请使用演示整理，或手动补充；输入已保留。',503);return json(res,input.mode==='live'?await optimizePrompt(input.text):demoOptimize(input.text));}
   if(req.method==='GET'&&route==='/api/cases')return json(res,await Promise.all(cases.map(async c=>({...c,ready:await fs.access(path.join(ROOT,'showcase',c.id,'media.json')).then(()=>true).catch(()=>false),imageUrl:`/cases/${c.id}/image`,videoUrl:`/cases/${c.id}/video`}))));
   const ce=/^\/api\/cases\/([a-z]+)\/edit$/.exec(route);
   if(req.method==='POST'&&ce){const c=cases.find(c=>c.id===ce[1]);if(!c)throw new InputError('案例不存在',404);const e=await editor.importFile(path.join(ROOT,'showcase',c.id,'video.mp4'),c.title+'.mp4',{originProjectId:'case-'+c.id});return json(res,{projectId:e.id,url:`/edit?project=${e.id}`});}
-  const cm=/^\/cases\/([a-z]+)\/(image|video)$/.exec(route);if(req.method==='GET'&&cm){if(!cases.some(c=>c.id===cm[1]))throw new InputError('案例不存在',404);return file(req,res,cm[2]==='image'?path.join(ROOT,'assets/cases',cm[1]+'.png'):path.join(ROOT,'showcase',cm[1],'video.mp4'),cm[2]==='image'?'image/png':'video/mp4');}
+  const cm=/^\/cases\/([a-z]+)\/(image|video)$/.exec(route);if(req.method==='GET'&&cm){if(!cases.some(c=>c.id===cm[1]))throw new InputError('案例不存在',404);return await file(req,res,cm[2]==='image'?path.join(ROOT,'assets/cases',cm[1]+'.png'):path.join(ROOT,'showcase',cm[1],'video.mp4'),cm[2]==='image'?'image/png':'video/mp4');}
   if(req.method==='GET'&&route==='/api/demos'){let list=[];try{list=JSON.parse(await fs.readFile(path.join(ROOT,'demos.json'),'utf8'));}catch{}return json(res,list.filter(x=>projects.has(x.projectId)&&get(x.projectId).status==='complete').map(x=>({...view(get(x.projectId)),demoTitle:x.title})));}
   if(req.method==='GET'&&route==='/api/sample')return json(res,{brief:defaults,videoUrl:'/sample/video',imageUrl:'/sample/image'});
   if(req.method==='GET'&&route==='/api/projects')return json(res,[...projects.values()].sort((a,b)=>b.createdAt.localeCompare(a.createdAt)).slice(0,30).map(view));
@@ -110,14 +110,14 @@ const server=http.createServer(async(req,res)=>{
      if(p.status!=='complete')throw new InputError('视频完成后即可对话剪辑',409);
      const e=await editor.importFile(path.join(dir,'video.mp4'),`${p.brief.brand} · ${p.brief.product}.mp4`,{originProjectId:p.id});return json(res,{projectId:e.id,url:`/edit?project=${e.id}`});
    }
-   if(['GET','HEAD'].includes(req.method)&&action==='video'){if(p.status!=='complete')throw new InputError('视频尚未完成',409);return file(req,res,path.join(dir,'video.mp4'),'video/mp4',url.searchParams.has('download')?`product-video-${p.id.slice(0,8)}.mp4`:null);}
-   if(req.method==='GET'&&action==='storyboard')return file(req,res,path.join(dir,'storyboard.json'),'application/json; charset=utf-8','storyboard.json');
-   if(req.method==='GET'&&action?.startsWith('image/')&&Number(action.split('/')[1])<=(p.assetCount||3))return file(req,res,path.join(dir,'assets',`product${Number(action.split('/')[1])}.png`),'image/png');
+   if(['GET','HEAD'].includes(req.method)&&action==='video'){if(p.status!=='complete')throw new InputError('视频尚未完成',409);return await file(req,res,path.join(dir,'video.mp4'),'video/mp4',url.searchParams.has('download')?`product-video-${p.id.slice(0,8)}.mp4`:null);}
+   if(req.method==='GET'&&action==='storyboard')return await file(req,res,path.join(dir,'storyboard.json'),'application/json; charset=utf-8','storyboard.json');
+   if(req.method==='GET'&&action?.startsWith('image/')&&Number(action.split('/')[1])<=(p.assetCount||3))return await file(req,res,path.join(dir,'assets',`product${Number(action.split('/')[1])}.png`),'image/png');
   }
-  if(['GET','HEAD'].includes(req.method)&&route==='/sample/video')return file(req,res,path.join(ROOT,'outputs/qing-demo.mp4'),'video/mp4');
-  if(req.method==='GET'&&route==='/sample/image')return file(req,res,path.join(ROOT,'assets/product.png'),'image/png');
+  if(['GET','HEAD'].includes(req.method)&&route==='/sample/video')return await file(req,res,path.join(ROOT,'outputs/qing-demo.mp4'),'video/mp4');
+  if(req.method==='GET'&&route==='/sample/image')return await file(req,res,path.join(ROOT,'assets/product.png'),'image/png');
   const assets={'/':['editor.html','text/html; charset=utf-8'],'/edit':['editor.html','text/html; charset=utf-8'],'/create':['index.html','text/html; charset=utf-8'],'/editor.js':['editor.js','text/javascript; charset=utf-8'],'/editor.css':['editor.css','text/css; charset=utf-8'],'/app.js':['app.js','text/javascript; charset=utf-8'],'/style.css':['style.css','text/css; charset=utf-8']};
-  if(['GET','HEAD'].includes(req.method)&&assets[route])return file(req,res,path.join(WEB,assets[route][0]),assets[route][1]);
+  if(['GET','HEAD'].includes(req.method)&&assets[route])return await file(req,res,path.join(WEB,assets[route][0]),assets[route][1]);
   throw new InputError('找不到这个页面',404);
  }catch(e){if(res.headersSent){res.destroy();return;}if(!(e instanceof InputError)&&!(e instanceof EditError))console.error(e);json(res,{ok:false,error:e instanceof InputError||e instanceof EditError?e.message:'操作暂时无法完成，请重试；详情已记录在本地日志。'},e.status||500);}
 });

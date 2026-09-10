@@ -28,6 +28,7 @@ const commands =
         "test-edit-review-precision",
         "test-project-atomic-save",
         "test-analysis-evidence",
+        "test-revision-history",
       ]
     : [
         "build-web",
