@@ -105,7 +105,7 @@ const server=http.createServer(async(req,res)=>{
     const id=randomUUID(), outputDir=path.join(ROOT,'data/commerce-runs',id), uploadDir=path.join(outputDir,'uploads');await fs.mkdir(uploadDir,{recursive:true});
     const assets=[];for(let i=0;i<files.length;i++){const file=files[i];if(file.size>8*1024*1024)throw new InputError('每张图片不能超过 8 MB',413);if(!['image/png','image/jpeg','image/webp'].includes(file.type))throw new InputError('仅支持 PNG、JPEG、WebP 图片');const bytes=Buffer.from(await file.arrayBuffer());const name=`product-${i+1}.png`;await sharp(bytes,{limitInputPixels:20000000}).rotate().resize({width:1800,height:1800,fit:'inside',withoutEnlargement:true}).png().toFile(path.join(uploadDir,name));assets.push({id:`asset-${i+1}`,path:`data/commerce-runs/${id}/uploads/${name}`,kind:'image',role:i===0?'hero':'detail',rights:{status:'user-provided'}});}
     const parseJson=(key,fallback)=>{try{return JSON.parse(String(form.get(key)||''))||fallback;}catch{return fallback;}};
-    const product=parseJson('product',{name:String(form.get('productName')||'商品展示'),facts:String(form.get('facts')||'').split(/[、,，\n]/).map(x=>x.trim()).filter(Boolean),cta:String(form.get('cta')||'了解更多')});
+    const product=parseJson('product',{name:String(form.get('productName')||'商品展示'),facts:String(form.get('facts')||'').split(/[、,，\n]/).map(x=>x.trim()).filter(Boolean),price:String(form.get('price')||'').trim()||null,cta:String(form.get('cta')||'了解更多').trim()||'了解更多'});
     const output=parseJson('output',{width:1080,height:1920,durationSeconds:Number(form.get('duration')||15)});
     const result=await buildCommerceProject({projectId:id,style:String(form.get('style')||'premium'),message:String(form.get('message')||''),product,assets,output,render:true,outputDir:`data/commerce-runs/${id}`});
     return json(res,{ok:true,action:'create',result,message:'已生成可连续播放的商品宣传视频'},201);
@@ -166,3 +166,4 @@ server.on('error',e=>{console.error(e.message);process.exit(1);});
 let closing=false;
 async function shutdown(){if(closing)return;closing=true;accepting=false;server.close();server.closeAllConnections?.();await editor.close();await Promise.allSettled([...writes.values()]);process.exit(0);}
 process.on('SIGINT',()=>void shutdown());process.on('SIGTERM',()=>void shutdown());
+
