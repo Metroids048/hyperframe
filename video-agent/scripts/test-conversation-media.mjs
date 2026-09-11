@@ -306,6 +306,7 @@ try {
     () => document.querySelector("#player")?.ready === true,
     { timeout: 30000 },
   );
+  await decodedPreview();
   await page.screenshot({ path: path.join(out, "mobile.png"), fullPage: true });
   assert.deepEqual(errors, []);
   pass("mobile view renders without browser JavaScript errors");

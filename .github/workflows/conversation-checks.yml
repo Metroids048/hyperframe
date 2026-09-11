@@ -41,12 +41,12 @@ jobs:
       - name: Core regressions (no paid providers)
         working-directory: video-agent
         run: node scripts/verify-editor.mjs core
-      - name: Real browser, FFmpeg and HyperFrames acceptance
-        working-directory: video-agent
-        run: node scripts/verify-editor.mjs browser
       - name: Legacy creation and server regressions
         working-directory: video-agent
         run: node scripts/acceptance.mjs
+      - name: Real browser, FFmpeg and HyperFrames acceptance
+        working-directory: video-agent
+        run: node scripts/verify-editor.mjs browser
       - name: Windows workbench startup smoke test
         if: runner.os == 'Windows'
         working-directory: video-agent
@@ -72,6 +72,9 @@ jobs:
           name: editing-evidence-${{ matrix.os }}
           retention-days: 7
           path: |
+            video-agent/outputs/acceptance/**/report.json
+            video-agent/outputs/acceptance/**/*.png
+            video-agent/outputs/acceptance/**/server.log
             video-agent/outputs/upgrade/verification/**
             video-agent/outputs/upgrade/**/result.json
             video-agent/outputs/upgrade/ui/**/*.png
@@ -81,4 +84,3 @@ jobs:
             video-agent/outputs/upgrade/conversation-media/**/desktop.png
             video-agent/outputs/upgrade/conversation-media/**/mobile.png
             video-agent/outputs/upgrade/conversation-media/**/conversation-result.mp4
-            video-agent/outputs/acceptance/**

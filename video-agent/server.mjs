@@ -11,6 +11,7 @@ import sharp from 'sharp';
 import {optimizePrompt} from './lib/planner.mjs';
 import {cases,demoOptimize,validateSettings} from './lib/demo-planner.mjs';
 import {ROOT,STUDIO,STUDIO_URL,defaults,InputError,validateBrief,validateStoryboard,storyboard,compose,runHF,verifyVideo} from './lib/workflow.mjs';
+import {buildCommerceProject,patchCommerceProject,renderCommerceProject} from './lib/creative/runner.mjs';
 
 const PORT=Number(process.env.VIDEO_AGENT_PORT||3020),DATA=path.resolve(process.env.VIDEO_AGENT_DATA_DIR||path.join(ROOT,'data/projects')),WEB=path.join(ROOT,'web-dist');
 const editor=await createEditService();
@@ -67,6 +68,8 @@ async function loadStudio(p){
  }finally{studioBusy=false;}
 }
 function json(res,data,status=200){res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(JSON.stringify(data));}
+const commerceId=/^[a-zA-Z0-9_-]{1,100}$/;
+function commerceOutputDir(id){if(!commerceId.test(id))throw new InputError('商品工程 ID 无效');return path.join(ROOT,'data/commerce-runs',id);}
 async function file(req,res,target,type,download){
  const stat=await fs.stat(target).catch(e=>{if(e.code==='ENOENT')throw new InputError('文件不存在',404);throw e;});const headers={'Content-Type':type,'Content-Length':stat.size,'Accept-Ranges':'bytes','X-Content-Type-Options':'nosniff','Cache-Control':'no-store'};if(download)headers['Content-Disposition']=`attachment; filename="${download}"`;
  const range=req.headers.range;let start=0,end=stat.size-1,status=200;
@@ -79,6 +82,25 @@ const server=http.createServer(async(req,res)=>{
   const origin=req.headers.origin;if(origin&&!allowed.some(h=>origin===`http://${h}`))throw new InputError('此操作只允许在本地制作页面发起',403);
   const url=new URL(req.url,`http://127.0.0.1:${PORT}`),route=url.pathname;
   if(await editRoutes(editor,req,res,url,{json,jsonBody,file}))return;
+  // Native commerce projects use the same editable document/runner as the
+  // CLI, exposed here through a small allow-listed bridge for the chat UI and
+  // agent tools. Paths and file names never come from an arbitrary URL.
+  if(req.method==='POST'&&route==='/api/commerce'){
+   const input=await jsonBody(req,256000,'商品视频请求'),action=input.action||'create';
+   let result;
+   if(action==='create')result=await buildCommerceProject(input.request||input);
+   else if(action==='patch'){const outputDir=input.outputDir||`data/commerce-runs/${input.projectId||''}`;result=await patchCommerceProject({...input,outputDir});}
+   else if(action==='render'){const outputDir=input.outputDir||`data/commerce-runs/${input.projectId||''}`;result=await renderCommerceProject({...input,outputDir});}
+   else throw new InputError('不支持的商品视频操作');
+   return json(res,{ok:true,action,result},action==='create'?201:200);
+  }
+  const commerceFile=/^\/api\/commerce\/([a-zA-Z0-9_-]{1,100})\/(status|document|preview|video)$/.exec(route);
+  if(commerceFile&&['GET','HEAD'].includes(req.method)){
+   const dir=commerceOutputDir(commerceFile[1]),kind=commerceFile[2];
+   const targets={status:['status.json','application/json; charset=utf-8'],document:['document.json','application/json; charset=utf-8'],preview:['index.html','text/html; charset=utf-8'],video:['commerce-final.mp4','video/mp4']};
+   const [name,type]=targets[kind];if(kind==='video'&&!(await fs.access(path.join(dir,name)).then(()=>true).catch(()=>false)))throw new InputError('商品视频尚未导出',409);
+   return await file(req,res,path.join(dir,name),type,kind==='video'?`commerce-${commerceFile[1]}.mp4`:null);
+  }
   if(['GET','HEAD'].includes(req.method)&&route==='/editor-player.js')return await file(req,res,path.join(ROOT,'node_modules/hyperframes/dist/hyperframes-player.global.js'),'text/javascript; charset=utf-8');
   if(req.method==='GET'&&route==='/api/health')return json(res,{ok:true,version:'0.7.0-conversation',activeProjectId:active,studioProjectId:studioProject});
   if(req.method==='POST'&&route==='/api/optimize'){const input=await jsonBody(req,16000,'需求描述');if(input.mode==='live'&&process.env.VIDEO_AGENT_LIVE_CODEX!=='1')throw new InputError('实时 Codex 当前未启用：上次模型连接超时。请使用演示整理，或手动补充；输入已保留。',503);return json(res,input.mode==='live'?await optimizePrompt(input.text):demoOptimize(input.text));}
@@ -114,7 +136,7 @@ const server=http.createServer(async(req,res)=>{
    if(req.method==='GET'&&action==='storyboard')return await file(req,res,path.join(dir,'storyboard.json'),'application/json; charset=utf-8','storyboard.json');
    if(req.method==='GET'&&action?.startsWith('image/')&&Number(action.split('/')[1])<=(p.assetCount||3))return await file(req,res,path.join(dir,'assets',`product${Number(action.split('/')[1])}.png`),'image/png');
   }
-  if(['GET','HEAD'].includes(req.method)&&route==='/sample/video')return await file(req,res,path.join(ROOT,'outputs/qing-demo.mp4'),'video/mp4');
+  if(['GET','HEAD'].includes(req.method)&&route==='/sample/video'){const generated=path.join(ROOT,'outputs/qing-demo.mp4'),target=await fs.access(generated).then(()=>generated).catch(()=>path.join(ROOT,'showcase/qing/video.mp4'));return await file(req,res,target,'video/mp4');}
   if(req.method==='GET'&&route==='/sample/image')return await file(req,res,path.join(ROOT,'assets/product.png'),'image/png');
   const assets={'/':['editor.html','text/html; charset=utf-8'],'/edit':['editor.html','text/html; charset=utf-8'],'/create':['index.html','text/html; charset=utf-8'],'/editor.js':['editor.js','text/javascript; charset=utf-8'],'/editor.css':['editor.css','text/css; charset=utf-8'],'/app.js':['app.js','text/javascript; charset=utf-8'],'/style.css':['style.css','text/css; charset=utf-8']};
   if(['GET','HEAD'].includes(req.method)&&assets[route])return await file(req,res,path.join(WEB,assets[route][0]),assets[route][1]);
