@@ -1,0 +1,31 @@
+name: Commerce demo reference review
+on:
+  push:
+    branches: [agent/commerce-demo-quality]
+    paths:
+      - 'video-agent/scripts/collect-commerce-references.py'
+      - '.github/workflows/commerce-demo-review.yml'
+permissions:
+  contents: read
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: video-agent/package-lock.json
+      - run: npm ci --no-audit --no-fund
+        working-directory: video-agent
+      - run: python video-agent/scripts/collect-commerce-references.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: commerce-research-runtime
+          path: commerce-research-runtime.zip
+          retention-days: 2
+          if-no-files-found: error
