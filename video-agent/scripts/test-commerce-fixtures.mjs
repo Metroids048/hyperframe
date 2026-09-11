@@ -30,7 +30,14 @@ const cases = [
 for (const expected of cases) {
   const input = JSON.parse(await fs.readFile(path.join(fixtureDir, expected.file), 'utf8'));
   const outputDir = path.resolve(root, input.outputDir);
-  await fs.rm(outputDir, {recursive: true, force: true});
+  // HyperFrames may leave a transaction directory behind when a local render
+  // is interrupted on Windows. It is safe to reuse the project files, so a
+  // locked cleanup directory must not make fixture verification fail.
+  try {
+    await fs.rm(outputDir, {recursive: true, force: true});
+  } catch (error) {
+    if (error.code !== 'EBUSY' && error.code !== 'EPERM') throw error;
+  }
   const status = await buildCommerceProject(input);
   assert.equal(status.state, 'composed', `${expected.file}: build should compose`);
   assert.equal(status.rendered, false, `${expected.file}: fixture test does not require a render`);
