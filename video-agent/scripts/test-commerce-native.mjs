@@ -6,6 +6,7 @@ import {compileDocument} from '../lib/creative/compiler.mjs';
 import {listEffects} from '../lib/creative/effects.mjs';
 import {applyDocumentPatch, computeInvalidation} from '../lib/creative/patch.mjs';
 import {validateDocument} from '../lib/creative/document.mjs';
+import {planCommerceMessage} from '../lib/creative/intent.mjs';
 
 function fixture() {
   const request = normalizeCommerceRequest({
@@ -23,9 +24,9 @@ function fixture() {
   return {request, prepared};
 }
 
-test('effect registry exposes twelve executable effects', () => {
+test('effect registry exposes thirteen executable effects', () => {
   const effects = listEffects();
-  assert.equal(effects.length, 12);
+  assert.equal(effects.length, 13);
   assert.ok(effects.every(x => x.deterministic));
 });
 
@@ -104,4 +105,51 @@ test('missing media and invented fact references are rejected', () => {
   broken.nodes.find(n => n.kind === 'text').params.factRefs = ['fact-does-not-exist'];
   assert.throws(() => compileDocument(broken, prepared), /未知商品事实/);
   assert.throws(() => normalizeCommerceRequest({product: {name: 'x'}, assets: []}), /至少需要一个/);
+});
+
+test('scene effect patch swaps a reusable motion preset with contract validation', () => {
+  const {request, prepared} = fixture();
+  const assets = Object.fromEntries(prepared.map(a => [a.id, a]));
+  const document = planCommerceDocument(request, prepared);
+  const target = document.scenes.find(s => s.purpose === 'context');
+  const updated = applyDocumentPatch(document, [{
+    type: 'set_scene_effect',
+    sceneId: target.id,
+    effect: 'feature-callout',
+    params: {pointX: .42, pointY: .38, labelX: .1, labelY: .7},
+  }], assets);
+  assert.equal(updated.scenes.find(s => s.id === target.id).effect, 'feature-callout');
+  assert.equal(updated.scenes.find(s => s.id === target.id).effectParams.pointX, .42);
+  assert.doesNotThrow(() => compileDocument(updated, prepared));
+  const retuned = applyDocumentPatch(updated, [{type:'set_scene_effect', sceneId:target.id, effect:'feature-callout', params:{pointY:.5}}], assets);
+  assert.equal(retuned.scenes.find(s => s.id === target.id).effectParams.pointX, .42);
+
+  const imageOnly = structuredClone(document);
+  imageOnly.nodes = imageOnly.nodes.filter(n => n.sceneId !== target.id || n.kind !== 'text');
+  assert.throws(() => applyDocumentPatch(imageOnly, [{type: 'set_scene_effect', sceneId: target.id, effect: 'feature-callout'}], assets), /需要 text/);
+});
+
+test('flash transition is a finite editable overlay effect', () => {
+  const {request, prepared} = fixture();
+  const assets = Object.fromEntries(prepared.map(a => [a.id, a]));
+  const document = planCommerceDocument(request, prepared);
+  const from = document.scenes[0], to = document.scenes[1];
+  const updated = applyDocumentPatch(document, [{type:'set_transition', fromSceneId:from.id, toSceneId:to.id, effect:'flash-transition', durationFrames:6, params:{color:'#FFEA80', intensity:.7}}], assets);
+  const result = compileDocument(updated, prepared);
+  assert.match(result.html, /class="flash-overlay"/);
+  assert.match(result.html, /flash-transition|backgroundColor/);
+  assert.equal(updated.transitions[0].effect, 'flash-transition');
+  assert.equal(updated.transitions[0].params.color, '#FFEA80');
+});
+
+test('common Chinese commerce requests map to stable object patches', () => {
+  const {request, prepared} = fixture();
+  const document = planCommerceDocument(request, prepared);
+  const price = planCommerceMessage(document, '片尾价格更醒目一点，加一个闪白转场');
+  assert.equal(price.operations[0].type, 'update_effect_params');
+  assert.ok(price.operations.some(x => x.type === 'set_transition' && x.effect === 'flash-transition'));
+  const title = planCommerceMessage(document, '第一幕把标题改成“夏日手冲套装”');
+  assert.equal(title.operations[0].type, 'update_text');
+  assert.equal(title.operations[0].text, '夏日手冲套装');
+  assert.equal(planCommerceMessage(document, '请做一个完全未知的创意'), null);
 });

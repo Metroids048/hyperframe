@@ -98,7 +98,7 @@ export function validateDocument(document, assets = {}) {
     pairs.add(pair);
     const index = document.scenes.findIndex(s => s.id === transition.fromSceneId);
     insist(index >= 0 && document.scenes[index + 1]?.id === transition.toSceneId, '转场只能连接相邻场景', 'INVALID_TRANSITION_PAIR');
-    insist(['dissolve-transition', 'directional-transition'].includes(transition.effect), '转场效果不支持', 'INVALID_TRANSITION_EFFECT');
+    insist(['dissolve-transition', 'directional-transition', 'flash-transition'].includes(transition.effect), '转场效果不支持', 'INVALID_TRANSITION_EFFECT');
     insist(Number.isInteger(transition.durationFrames) && transition.durationFrames > 0, '转场时长无效', 'INVALID_TRANSITION_TIME');
     const a = document.scenes[index], b = document.scenes[index + 1];
     insist(transition.durationFrames < a.durationFrames && transition.durationFrames < b.durationFrames, '转场不能覆盖整个场景', 'TRANSITION_TOO_LONG');

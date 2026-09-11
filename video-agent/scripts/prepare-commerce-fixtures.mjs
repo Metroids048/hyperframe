@@ -45,6 +45,10 @@ const context=`<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350
 <rect x="470" y="930" width="490" height="155" rx="42" fill="#d8c7af"/>
 ${bottle(535,390,.72)}</svg>`;
 for(const [name,svg] of [['nova-hero.jpg',hero],['nova-detail.jpg',detail],['nova-context.jpg',context]]){
+  // libvips on Windows cannot atomically replace an existing JPEG. Remove the
+  // previous generated fixture first so `npm run commerce:fixtures` is
+  // repeatable after a prior run.
+  await fs.rm(path.join(out,name), {force:true});
   await sharp(Buffer.from(svg)).jpeg({quality:92,chromaSubsampling:'4:4:4'}).toFile(path.join(out,name));
 }
 console.log(`Prepared 3 synthetic commerce fixtures in ${out}`);

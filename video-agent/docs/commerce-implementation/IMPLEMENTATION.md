@@ -10,6 +10,8 @@ Baseline: GitHub `main` at `d2d21bbbbdee7d948ff18ae9ec10fbf41bb5294a` before thi
 - Native image/video HTML compilation instead of converting images to MP4.
 - Object map for later conversation-level edits.
 - Structured document patching for text, effect parameters, asset replacement, scene duration, scene reorder, transitions and output size.
+- Deterministic conversation intent mapping for common Chinese commerce edits, including effect swaps, flash transitions, duration changes and quoted title/CTA updates.
+- Reproducible fixture inputs covering premium image, promotion/price and single-image functional promos.
 - Safe relative-path request contract and image preparation with Sharp input-pixel limits.
 - Host-agent/CLI runner that writes `document.json`, `object-map.json`, `manifest.json`, `DESIGN.md`, `index.html` and optional MP4 render.
 - A sample product-image request using existing repository sample images.
@@ -17,7 +19,7 @@ Baseline: GitHub `main` at `d2d21bbbbdee7d948ff18ae9ec10fbf41bb5294a` before thi
 
 ## Deliberately not claimed complete yet
 
-- Existing `/api/edit-projects` chat service does not yet dispatch NativeDocument v3 operations; this slice gives the host agent a real executable tool without rewriting the existing workbench.
+- Existing `/api/edit-projects` chat service does not yet dispatch NativeDocument v3 operations; the native path is available through `scripts/commerce-agent-tool.mjs` and the `/api/commerce` bridge without rewriting the existing workbench.
 - The current commerce runner does not auto-transcribe, generate speech, generate media, or infer product claims.
 - Video-source audio is not automatically inserted into the commerce document; existing editing/audio subsystems remain the source for that behavior until the bridge loop is completed.
 - Custom model-generated scene source bundles are not enabled yet; only reviewed project effects execute in this slice.

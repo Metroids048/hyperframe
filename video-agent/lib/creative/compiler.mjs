@@ -72,7 +72,10 @@ function mediaForScene(scene, n, assets) {
 }
 
 function renderScene(document, scene, assets) {
-  validateEffect(scene.effect, {assetCount: document.nodes.filter(n => n.sceneId === scene.id && n.assetId).length});
+  validateEffect(scene.effect, {
+    assetCount: document.nodes.filter(n => n.sceneId === scene.id && n.assetId).length,
+    nodeKinds: document.nodes.filter(n => n.sceneId === scene.id).map(n => n.kind),
+  });
   const n = sceneNodes(document, scene);
   const title = textEl(n.title, 'product-title');
   const feature = textEl(n.feature, 'product-subtitle');
@@ -87,7 +90,7 @@ function renderScene(document, scene, assets) {
   if (scene.effect === 'detail-inset') {
     const p = scene.effectParams || {};
     const inset = secondMedia || firstMedia;
-    const insetMarkup = inset?.kind === 'image' ? `<div class="inset-card enter" style="left:${pct(p.insetX ?? .56)};top:${pct(p.insetY ?? .55)};width:${pct(p.insetSize ?? .34)};aspect-ratio:1/1">${imageMarkup(assets[inset.assetId], inset)}</div>` : '';
+    const insetMarkup = inset?.kind === 'image' ? `<div class="inset-card enter" data-layout-allow-overflow style="left:${pct(p.insetX ?? .56)};top:${pct(p.insetY ?? .55)};width:${pct(p.insetSize ?? .34)};aspect-ratio:1/1">${imageMarkup(assets[inset.assetId], inset)}</div>` : '';
     return `${media}<div class="scrim"></div>${insetMarkup}<div class="scene-content" style="justify-content:flex-end">${commonCopy}</div>`;
   }
   if (scene.effect === 'layered-parallax') {
@@ -161,6 +164,11 @@ function transitionTimeline(document, transition) {
   if (transition.effect === 'dissolve-transition') {
     return [`tl.fromTo(${js(incomingSelector)},{opacity:0},{opacity:1,duration:${duration},ease:"power1.inOut"},${start});`];
   }
+  if (transition.effect === 'flash-transition') {
+    const p = transition.params || {};
+    const color = js(p.color || '#FFFFFF'), opacity = Number(p.intensity ?? .82);
+    return [`tl.set(${js(`#flash-${transition.id}`)},{backgroundColor:${color}},${start});`, `tl.fromTo(${js(`#flash-${transition.id}`)},{opacity:0},{opacity:${opacity},duration:${duration / 2},ease:"power2.out"},${start});`, `tl.to(${js(`#flash-${transition.id}`)},{opacity:0,duration:${duration / 2},ease:"power2.in"},${start + duration / 2});`, `tl.fromTo(${js(incomingSelector)},{opacity:0},{opacity:1,duration:${duration},ease:"power1.inOut"},${start});`];
+  }
   const direction = transition.params?.direction || 'left';
   const inset = direction === 'right' ? 'inset(0 100% 0 0)' : direction === 'up' ? 'inset(100% 0 0 0)' : direction === 'down' ? 'inset(0 0 100% 0)' : 'inset(0 0 0 100%)';
   return [`tl.fromTo(${js(incomingSelector)},{clipPath:${js(inset)},opacity:1},{clipPath:"inset(0 0 0 0)",duration:${duration},ease:"power2.inOut"},${start});`];
@@ -189,6 +197,7 @@ export function compileDocument(document, preparedAssets) {
     @font-face{font-family:"Microsoft YaHei";src:local("Microsoft YaHei")}
     body{font-family:${d.fontFamily};text-rendering:geometricPrecision}
     [data-composition-id="commerce-root"]{position:relative;width:100%;height:100%;overflow:hidden;--bg:${esc(d.background)};--fg:${esc(d.foreground)};--panel:${esc(d.panel)};--accent:${esc(d.accent)};--accentContrast:${esc(d.accentContrast)}}
+    .flash-overlay{position:absolute;inset:0;opacity:0;pointer-events:none;z-index:200}
     .scene-has-video{background:transparent}
     .video-layer{position:absolute;overflow:hidden;pointer-events:none}
     .video-layer .media-motion{position:absolute;inset:-2%;will-change:transform}
@@ -199,6 +208,7 @@ export function compileDocument(document, preparedAssets) {
 <body>
   <div id="commerce-root" data-composition-id="commerce-root" data-start="0" data-duration="${sec(document.durationFrames)}" data-track-index="0" data-width="${document.output.width}" data-height="${document.output.height}">
     ${videoHtml}
+    ${document.transitions.filter(t => t.effect === 'flash-transition').map(t => `<div id="flash-${esc(t.id)}" class="flash-overlay" data-layout-ignore></div>`).join('')}
     ${sceneHtml}
   </div>
   <script src="assets/gsap.min.js"></script>

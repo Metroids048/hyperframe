@@ -2,7 +2,7 @@ import {insist, stableId} from './contracts.mjs';
 import {cloneDocument, recomputeSceneStarts, validateDocument} from './document.mjs';
 import {normalizeEffectParams, validateEffect} from './effects.mjs';
 
-const allowed = new Set(['update_text', 'update_effect_params', 'replace_asset', 'set_scene_duration', 'reorder_scenes', 'set_transition', 'change_output']);
+const allowed = new Set(['update_text', 'update_effect_params', 'set_scene_effect', 'replace_asset', 'set_scene_duration', 'reorder_scenes', 'set_transition', 'change_output']);
 
 export function applyDocumentPatch(input, operations, assets) {
   insist(Array.isArray(operations) && operations.length > 0 && operations.length <= 100, '修改清单必须为 1～100 项', 'INVALID_PATCH');
@@ -18,8 +18,28 @@ export function applyDocumentPatch(input, operations, assets) {
     if (op.type === 'update_effect_params') {
       const scene = document.scenes.find(s => s.id === op.sceneId);
       insist(scene, '目标场景不存在', 'PATCH_TARGET_MISSING');
-      validateEffect(scene.effect, {assetCount: document.nodes.filter(n => n.sceneId === scene.id && n.assetId).length});
+      validateEffect(scene.effect, {
+        assetCount: document.nodes.filter(n => n.sceneId === scene.id && n.assetId).length,
+        nodeKinds: document.nodes.filter(n => n.sceneId === scene.id).map(n => n.kind),
+      });
       scene.effectParams = normalizeEffectParams(scene.effect, {...scene.effectParams, ...(op.params || {})});
+    }
+    if (op.type === 'set_scene_effect') {
+      const scene = document.scenes.find(s => s.id === op.sceneId);
+      insist(scene, '目标场景不存在', 'PATCH_TARGET_MISSING');
+      insist(typeof op.effect === 'string' && op.effect, '必须提供目标动效组件', 'MISSING_EFFECT');
+      const sceneNodes = document.nodes.filter(n => n.sceneId === scene.id);
+      validateEffect(op.effect, {
+        assetCount: sceneNodes.filter(n => n.assetId).length,
+        nodeKinds: sceneNodes.map(n => n.kind),
+      });
+      const previousEffect = scene.effect;
+      scene.effect = op.effect;
+      // Preserve tuned values when a conversation re-applies the same effect
+      // with only one parameter changed; switching to a new effect uses its
+      // documented defaults.
+      const baseParams = previousEffect === op.effect ? (scene.effectParams || {}) : {};
+      scene.effectParams = normalizeEffectParams(op.effect, {...baseParams, ...(op.params || {})});
     }
     if (op.type === 'replace_asset') {
       const node = document.nodes.find(n => n.id === op.nodeId);
@@ -54,7 +74,7 @@ export function applyDocumentPatch(input, operations, assets) {
       insist(index >= 0 && document.scenes[index + 1]?.id === op.toSceneId, '转场必须连接相邻场景', 'INVALID_TRANSITION_PAIR');
       const effect = op.effect || document.design.transition;
       validateEffect(effect);
-      insist(['dissolve-transition', 'directional-transition'].includes(effect), '这里只允许转场组件', 'INVALID_TRANSITION_EFFECT');
+      insist(['dissolve-transition', 'directional-transition', 'flash-transition'].includes(effect), '这里只允许转场组件', 'INVALID_TRANSITION_EFFECT');
       const durationFrames = Number(op.durationFrames ?? 9);
       insist(Number.isInteger(durationFrames) && durationFrames >= 1 && durationFrames <= 30, '转场必须为 1～30 帧', 'INVALID_TRANSITION_TIME');
       const next = {id: stableId('transition', op.fromSceneId, op.toSceneId), fromSceneId: op.fromSceneId, toSceneId: op.toSceneId, effect, durationFrames, params: normalizeEffectParams(effect, {...op.params, durationFrames})};

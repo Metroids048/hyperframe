@@ -28,4 +28,9 @@ node scripts/commerce-agent-tool.mjs < examples/commerce/request.sample.json
 
 An agent can change the request or use `lib/creative/patch.mjs` against stable object IDs. The pipeline does not invent price, benefits or performance claims when they are absent from the request.
 
+For the common conversational loop, `lib/creative/intent.mjs` maps a small,
+deterministic set of Chinese requests (for example “价格更醒目”“第三幕切快一点”“加一个闪白转场”“标题改成……”)
+to the same object-level patches. Unsupported creative prose is rejected for a
+model or structured plan instead of being silently ignored.
+
 See `docs/commerce-implementation/IMPLEMENTATION.md` for the verified scope and remaining bridge work.

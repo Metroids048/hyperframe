@@ -13,6 +13,7 @@ const definitions = [
   ['end-card', 'commerce', ['image', 'text'], ['productScale', 'ctaPulse']],
   ['dissolve-transition', 'transition', [], ['durationFrames']],
   ['directional-transition', 'transition', [], ['durationFrames', 'direction']],
+  ['flash-transition', 'transition', [], ['durationFrames', 'color', 'intensity']],
 ];
 
 export const EFFECTS = Object.freeze(Object.fromEntries(definitions.map(([id, category, requires, mutableParams]) => [id, {
@@ -33,6 +34,17 @@ export function listEffects() {
 export function validateEffect(effectId, context = {}) {
   const effect = EFFECTS[effectId];
   insist(effect, `未知动效组件：${effectId}`, 'UNKNOWN_EFFECT');
+  // Callers that have a scene node inventory can validate the declared media
+  // contract up front.  This keeps chat-driven effect swaps deterministic and
+  // prevents compiling a visually empty effect after a natural-language edit.
+  if (Array.isArray(context.nodeKinds)) {
+    for (const required of effect.requires) {
+      // "image" denotes visual media in the native document; video assets are
+      // rendered through the same media layer and satisfy image-style effects.
+      const available = context.nodeKinds.filter(kind => required === 'image' ? (kind === 'image' || kind === 'video') : kind === required).length;
+      insist(available > 0, `${effectId} 需要 ${required} 素材或文字节点`, 'EFFECT_REQUIREMENT_UNMET');
+    }
+  }
   if (effectId === 'layered-parallax') {
     insist((context.assetCount || 0) >= 2, 'layered-parallax 需要至少两张可分层素材', 'EFFECT_REQUIREMENT_UNMET');
   }
@@ -61,6 +73,10 @@ export function normalizeEffectParams(effectId, params = {}) {
     case 'directional-transition': {
       const direction = ['left', 'right', 'up', 'down'].includes(params.direction) ? params.direction : 'left';
       return {durationFrames: Math.round(number('durationFrames', 9, 1, 30)), direction};
+    }
+    case 'flash-transition': {
+      const color = typeof params.color === 'string' && /^#[0-9a-f]{6}$/i.test(params.color) ? params.color : '#FFFFFF';
+      return {durationFrames: Math.round(number('durationFrames', 6, 1, 20)), color, intensity: number('intensity', .82, .2, 1)};
     }
     default: return {};
   }

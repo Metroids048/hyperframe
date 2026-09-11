@@ -8,6 +8,7 @@ import {planCommerceDocument} from './director.mjs';
 import {compileDocument, designMarkdown} from './compiler.mjs';
 import {documentSummary, validateDocument} from './document.mjs';
 import {applyDocumentPatch, computeInvalidation} from './patch.mjs';
+import {requireCommerceMessagePlan} from './intent.mjs';
 
 const moduleDir = path.dirname(fileURLToPath(import.meta.url));
 export const VIDEO_AGENT_ROOT = path.resolve(moduleDir, '../..');
@@ -114,7 +115,8 @@ export async function patchCommerceProject(input, {root = VIDEO_AGENT_ROOT} = {}
   const outputDir = await resolveOutputDir(root, input.outputDir);
   const {document, assets} = await readNativeProject(outputDir);
   const previousRevisionId = document.revisionId;
-  const next = applyDocumentPatch(document, input.operations, Object.fromEntries(assets.map(a => [a.id, a])));
+  const planned = Array.isArray(input.operations) && input.operations.length ? {operations: input.operations, summary: input.description} : requireCommerceMessagePlan(document, input.message);
+  const next = applyDocumentPatch(document, planned.operations, Object.fromEntries(assets.map(a => [a.id, a])));
   const revisions = path.join(outputDir, 'revisions');
   await fs.mkdir(revisions, {recursive: true});
   await fs.writeFile(path.join(revisions, `${previousRevisionId}.json`), JSON.stringify(document, null, 2));
