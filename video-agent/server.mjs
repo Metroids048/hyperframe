@@ -94,6 +94,24 @@ const server=http.createServer(async(req,res)=>{
    else throw new InputError('不支持的商品视频操作');
    return json(res,{ok:true,action,result},action==='create'?201:200);
   }
+  // Conversation-first commerce entry point. Accepts product images directly
+  // from the browser, composes a native HyperFrames document, and renders a
+  // continuous MP4 in the same request so the chat can immediately preview it.
+  if(req.method==='POST'&&route==='/api/commerce-chat'){
+   const type=req.headers['content-type']||'';
+   if(type.startsWith('multipart/form-data;')){
+    let form;try{const bytes=await body(req);form=await new Request(`http://127.0.0.1:${PORT}/`,{method:'POST',headers:{'content-type':type},body:bytes}).formData();}catch{throw new InputError('上传表单无法解析');}
+    const files=form.getAll('images').filter(f=>typeof f==='object'&&f.size);if(!files.length)throw new InputError('请上传至少一张商品图片');if(files.length>12)throw new InputError('最多上传十二张图片');
+    const id=randomUUID(), outputDir=path.join(ROOT,'data/commerce-runs',id), uploadDir=path.join(outputDir,'uploads');await fs.mkdir(uploadDir,{recursive:true});
+    const assets=[];for(let i=0;i<files.length;i++){const file=files[i];if(file.size>8*1024*1024)throw new InputError('每张图片不能超过 8 MB',413);if(!['image/png','image/jpeg','image/webp'].includes(file.type))throw new InputError('仅支持 PNG、JPEG、WebP 图片');const bytes=Buffer.from(await file.arrayBuffer());const name=`product-${i+1}.png`;await sharp(bytes,{limitInputPixels:20000000}).rotate().resize({width:1800,height:1800,fit:'inside',withoutEnlargement:true}).png().toFile(path.join(uploadDir,name));assets.push({id:`asset-${i+1}`,path:`data/commerce-runs/${id}/uploads/${name}`,kind:'image',role:i===0?'hero':'detail',rights:{status:'user-provided'}});}
+    const parseJson=(key,fallback)=>{try{return JSON.parse(String(form.get(key)||''))||fallback;}catch{return fallback;}};
+    const product=parseJson('product',{name:String(form.get('productName')||'商品展示'),facts:String(form.get('facts')||'').split(/[、,，\n]/).map(x=>x.trim()).filter(Boolean),cta:String(form.get('cta')||'了解更多')});
+    const output=parseJson('output',{width:1080,height:1920,durationSeconds:Number(form.get('duration')||15)});
+    const result=await buildCommerceProject({projectId:id,style:String(form.get('style')||'premium'),message:String(form.get('message')||''),product,assets,output,render:true,outputDir:`data/commerce-runs/${id}`});
+    return json(res,{ok:true,action:'create',result,message:'已生成可连续播放的商品宣传视频'},201);
+   }
+   const input=await jsonBody(req,256000,'商品对话请求'),action=input.action||'patch';if(!['patch','render'].includes(action))throw new InputError('不支持的商品对话操作');const projectId=String(input.projectId||'');const outputDir=input.outputDir||`data/commerce-runs/${projectId}`;const result=action==='patch'?await patchCommerceProject({...input,outputDir,render:input.render!==false}):await renderCommerceProject({...input,outputDir});return json(res,{ok:true,action,result});
+  }
   const commerceFile=/^\/api\/commerce\/([a-zA-Z0-9_-]{1,100})\/(status|document|preview|video)$/.exec(route);
   if(commerceFile&&['GET','HEAD'].includes(req.method)){
    const dir=commerceOutputDir(commerceFile[1]),kind=commerceFile[2];
@@ -138,7 +156,7 @@ const server=http.createServer(async(req,res)=>{
   }
   if(['GET','HEAD'].includes(req.method)&&route==='/sample/video'){const generated=path.join(ROOT,'outputs/qing-demo.mp4'),target=await fs.access(generated).then(()=>generated).catch(()=>path.join(ROOT,'showcase/qing/video.mp4'));return await file(req,res,target,'video/mp4');}
   if(req.method==='GET'&&route==='/sample/image')return await file(req,res,path.join(ROOT,'assets/product.png'),'image/png');
-  const assets={'/':['editor.html','text/html; charset=utf-8'],'/edit':['editor.html','text/html; charset=utf-8'],'/create':['index.html','text/html; charset=utf-8'],'/editor.js':['editor.js','text/javascript; charset=utf-8'],'/editor.css':['editor.css','text/css; charset=utf-8'],'/app.js':['app.js','text/javascript; charset=utf-8'],'/style.css':['style.css','text/css; charset=utf-8']};
+  const assets={'/':['commerce.html','text/html; charset=utf-8'],'/edit':['editor.html','text/html; charset=utf-8'],'/create':['index.html','text/html; charset=utf-8'],'/commerce':['commerce.html','text/html; charset=utf-8'],'/editor.js':['editor.js','text/javascript; charset=utf-8'],'/editor.css':['editor.css','text/css; charset=utf-8'],'/app.js':['app.js','text/javascript; charset=utf-8'],'/commerce.js':['commerce.js','text/javascript; charset=utf-8'],'/commerce.css':['commerce.css','text/css; charset=utf-8'],'/style.css':['style.css','text/css; charset=utf-8']};
   if(['GET','HEAD'].includes(req.method)&&assets[route])return await file(req,res,path.join(WEB,assets[route][0]),assets[route][1]);
   throw new InputError('找不到这个页面',404);
  }catch(e){if(res.headersSent){res.destroy();return;}if(!(e instanceof InputError)&&!(e instanceof EditError))console.error(e);json(res,{ok:false,error:e instanceof InputError||e instanceof EditError?e.message:'操作暂时无法完成，请重试；详情已记录在本地日志。'},e.status||500);}
