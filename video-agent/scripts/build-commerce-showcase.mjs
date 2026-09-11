@@ -52,7 +52,7 @@ function sceneHtml(s,index,c){
  let body;
  if(s.layout==='cover')body=`${head}<div class="copy">${copy}${note}</div><div class="cover-photo">${photo}</div>`;
  if(s.layout==='poster')body=`${head}<div class="poster-copy">${copy}${note}</div><div class="poster-photo">${photo}</div><div class="stamp enter" data-layout-ignore>THE<br>EDIT ↗</div>`;
- if(s.layout==='diptych')body=`${head}<div class="copy">${copy}</div><div class="diptych"><div class="panel first">${photo}<div class="tiny">01 / DETAIL</div></div><div class="panel second">${picture(s,'detail',s.secondary)}<div class="tiny">02 / DETAIL</div></div></div>${note}`;
+ if(s.layout==='diptych')body=`${head}<div class="copy">${copy}</div><div class="detail-grid"><div class="panel first">${photo}<div class="tiny">01 / DETAIL</div></div><div class="panel second">${picture(s,'detail',s.secondary)}<div class="tiny">02 / DETAIL</div></div></div>${note}`;
  if(s.layout==='bleed')body=`${head}<div class="bleed-photo">${photo}</div><div class="bleed-copy">${copy}${note}</div>`;
  if(s.layout==='editorial')body=`${head}<div class="editorial-photo">${photo}</div><div class="editorial-copy">${copy}${note}</div><div class="index-mark" data-layout-ignore>0${index+1}</div>`;
  if(s.layout==='end')body=`${head}<div class="end-photo">${photo}</div><div class="end-copy">${copy}</div><div class="cta enter"><span>${esc(s.note)}</span><span class="arrow">↗</span></div>`;
@@ -98,13 +98,14 @@ function compile(c){
  .foot{font-size:21px;line-height:1.6;display:flex;justify-content:space-between;gap:12px;margin-top:auto;flex-shrink:0;letter-spacing:1px}
  .poster-copy{display:flex;flex-direction:column;gap:6px;margin-top:30px;flex-shrink:0}.poster-photo{height:990px;margin-top:25px;flex-shrink:0;position:relative}
  .stamp{position:absolute;right:48px;top:680px;border-radius:100%;width:168px;height:168px;background:${c.accent};color:#202022;display:flex;align-items:center;justify-content:center;font-size:29px;font-weight:900;transform:rotate(11deg);z-index:4;text-align:center;line-height:1.15}
- .diptych{display:grid;grid-template-columns:1fr 1fr;gap:28px;height:900px;flex-shrink:0;padding:30px 0 0}
- .diptych .panel{display:flex;flex-direction:column;gap:16px;min-width:0;min-height:0}.diptych .photo{height:720px;flex-shrink:0}.diptych .second{padding-top:100px}.tiny{font-size:23px;letter-spacing:3px;font-weight:700}
+ /* A layout class must never also resize the enclosing timed .scene. */
+ .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:28px;height:900px;flex-shrink:0;padding:30px 0 0}
+ .detail-grid .panel{display:flex;flex-direction:column;gap:16px;min-width:0;min-height:0}.detail-grid .photo{height:720px;flex-shrink:0}.detail-grid .second{padding-top:100px}.tiny{font-size:23px;letter-spacing:3px;font-weight:700}
  .bleed-photo{height:1040px;flex-shrink:0;margin-top:30px}.bleed-copy{display:flex;flex-direction:column;gap:14px;margin-top:-8px}
  .editorial-photo{height:940px;flex-shrink:0;width:78%;align-self:flex-end;margin-top:22px}.editorial-copy{display:flex;flex-direction:column;gap:25px}
  .index-mark{position:absolute;left:55px;top:430px;writing-mode:vertical-rl;font-size:116px;line-height:1;font-weight:900;opacity:.25;letter-spacing:-8px}
  .end-photo{height:810px;flex-shrink:0;margin-top:40px}.end-copy{margin-top:10px}.cta{display:flex;align-items:center;justify-content:space-between;font-size:40px;line-height:1.3;border-top:2px solid ${c.ink};padding-top:26px;flex-shrink:0}.arrow{display:flex;justify-content:center;align-items:center;width:88px;height:88px;border-radius:50%;background:${c.accent};color:#202022;font-size:60px}
- ${c.id==='03-sneakers'?'.cover-photo,.poster-photo{height:970px}.diptych .photo{height:570px}.diptych{height:760px}.bleed-photo{height:880px}.end-photo{height:810px}':''}
+ ${c.id==='03-sneakers'?'.cover-photo,.poster-photo{height:970px}.detail-grid .photo{height:570px}.detail-grid{height:760px}.bleed-photo{height:880px}.end-photo{height:810px}':''}
  </style></head><body><div id="composition" data-composition-id="showcase" data-start="0" data-duration="${c.duration}" data-width="1080" data-height="1920" data-track-index="0">${scenes.map((s,i)=>sceneHtml(s,i,c)).join('\n')}</div><script src="assets/gsap.min.js"></script><script>
  window.__timelines=window.__timelines||{};const tl=gsap.timeline({paused:true});
  ${scenes.map(animate).join('\n')}
