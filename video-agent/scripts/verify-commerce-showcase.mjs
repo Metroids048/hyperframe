@@ -12,16 +12,18 @@ const cases=JSON.parse(await fs.readFile(path.join(ROOT,'cases.json'),'utf8'));
 const types={'.html':'text/html; charset=utf-8','.jpg':'image/jpeg','.js':'text/javascript','.json':'application/json'};
 const server=http.createServer(async(req,res)=>{try{const pathname=decodeURIComponent(new URL(req.url,'http://127.0.0.1').pathname);const file=path.resolve(ROOT,'.'+pathname);if(!file.startsWith(ROOT+path.sep))throw Error('outside');const b=await fs.readFile(file);res.writeHead(200,{'Content-Type':types[path.extname(file)]||'application/octet-stream'});res.end(b);}catch{res.writeHead(404);res.end();}});
 await new Promise(r=>server.listen(0,'127.0.0.1',r));
-const browser=await puppeteer.launch({executablePath:process.env.HYPERFRAMES_BROWSER_PATH||'/usr/bin/google-chrome',headless:true,args:['--disable-dev-shm-usage']});
+let browser;
 const hash=b=>createHash('sha256').update(b).digest('hex');
 try{
+ browser=await puppeteer.launch({executablePath:process.env.HYPERFRAMES_BROWSER_PATH||'/usr/bin/google-chrome',headless:true,protocolTimeout:30000,args:['--disable-dev-shm-usage']});
  for(const c of cases){
   const page=await browser.newPage();await page.setViewport({width:1080,height:1920,deviceScaleFactor:1});
   const runtimeErrors=[];page.on('pageerror',e=>runtimeErrors.push(e.message));
-  await page.goto(`http://127.0.0.1:${server.address().port}/${c.id}/index.html`,{waitUntil:'networkidle0'});
-  await page.evaluate(()=>document.fonts.ready);
+  await page.goto(`http://127.0.0.1:${server.address().port}/${c.id}/index.html`,{waitUntil:'networkidle0',timeout:20000});
+  await page.evaluate(async()=>{await document.fonts.ready;return true;});
   const document=JSON.parse(await fs.readFile(path.join(ROOT,c.id,'document.json'),'utf8'));
-  const seek=async t=>{await page.evaluate(t=>window.__timelines.showcase.seek(t,false),t);};
+  // GSAP timelines are thenable: returning seek() would wait forever while paused.
+  const seek=async t=>{await page.evaluate(t=>{window.__timelines.showcase.seek(t,false);return true;},t);};
   const issues=[],samples=[];const thumbs=[];
   for(const scene of document.scenes){
    const t=Math.min(scene.end-.3,scene.start+1.35);await seek(t);
@@ -45,4 +47,4 @@ try{
  }
  const boards=await Promise.all(cases.map(c=>fs.readFile(path.join(ROOT,c.id,'storyboard.jpg'))));
  await sharp({create:{width:1350,height:1440,channels:3,background:'#dddddd'}}).composite(boards.map((input,i)=>({input,left:0,top:i*480}))).jpeg({quality:90}).toFile(path.join(ROOT,'overview.jpg'));
-}finally{await browser.close();await new Promise(r=>server.close(r));}
+}finally{if(browser)await browser.close();await new Promise(r=>server.close(r));}
