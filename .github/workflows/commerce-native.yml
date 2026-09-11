@@ -40,6 +40,8 @@ jobs:
           sudo apt-get install -y ffmpeg fonts-noto-cjk
       - run: npm ci
       - run: npm run test:commerce
+      - name: Verify conversational commerce fixtures
+        run: npm run test:commerce:fixtures
       - run: node scripts/test-skill-routing.mjs
       - name: Host-agent create and continued edit
         run: node scripts/test-commerce-agent-tool.mjs
