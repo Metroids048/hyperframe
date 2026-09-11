@@ -77,7 +77,9 @@ export function normalizeFacts(facts = []) {
 export function normalizeCommerceRequest(input = {}) {
   insist(input && typeof input === 'object' && !Array.isArray(input), '请求必须为对象', 'INVALID_REQUEST');
   const assets = Array.isArray(input.assets) ? input.assets : [];
-  insist(assets.length > 0, '至少需要一个商品图片或视频素材', 'MISSING_MEDIA');
+  // Text-first motion graphics are intentionally media-free. Other routes
+  // still require at least one user-provided asset.
+  insist(assets.length > 0 || input.creativeMode === 'text', '至少需要一个商品图片或视频素材', 'MISSING_MEDIA');
   insist(assets.length <= MAX_ASSETS, `一个任务最多 ${MAX_ASSETS} 个素材`, 'TOO_MANY_ASSETS');
   const normalizedAssets = assets.map((asset, index) => {
     insist(asset && typeof asset.path === 'string', '每个素材都必须提供 path', 'INVALID_ASSET');
@@ -114,6 +116,7 @@ export function normalizeCommerceRequest(input = {}) {
     requestId: input.requestId || stableId('request', normalizedAssets.map(a => ({id:a.id,path:a.path,kind:a.kind,role:a.role,sourceStartSeconds:a.sourceStartSeconds,sourceDurationSeconds:a.sourceDurationSeconds})), normalizedProduct, message, style, output),
     projectId: input.projectId || stableId('commerce', normalizedProduct.name || 'product', normalizedAssets.map(a => a.path)),
     message,
+    creativeMode: ['text','image','video','mixed'].includes(input.creativeMode) ? input.creativeMode : null,
     style,
     output,
     product: normalizedProduct,

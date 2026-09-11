@@ -69,7 +69,7 @@ function textNode(scene, role, text, factRefs = [], extra = {}) {
 
 function mediaNode(scene, role, assetId, extra = {}) {
   return {
-    id: stableId('node', scene.id, role, assetId),
+    id: stableId('node', scene.id, role, assetId, extra.params?.variant || ''),
     sceneId: scene.id,
     semanticRole: role,
     kind: extra.kind || 'image',
@@ -88,6 +88,7 @@ export function planCommerceDocument(request, preparedAssets) {
   const brief = buildProductBrief({...request, assets: preparedAssets});
   const design = chooseDesign(request);
   const hasPrice = Boolean(brief.price);
+  const creativeMode = request.creativeMode || (visualAssets.some(a => a.kind === 'video') ? (visualAssets.some(a => a.kind === 'image') ? 'mixed' : 'video') : (visualAssets.length > 1 ? 'image' : 'text'));
   const sceneCount = hasPrice ? 6 : 5;
   const targetFrames = frame(request.output.durationSeconds);
   const overlapFrames = request.style === 'promotion' ? 8 : 10;
@@ -101,32 +102,50 @@ export function planCommerceDocument(request, preparedAssets) {
     scenes.push(scene); return scene;
   };
 
-  const s1 = addScene('hero', 'product-reveal', durations[0], {scale: request.style === 'promotion' ? 1.14 : 1.08});
-  const s2 = addScene('context', 'image-pan-zoom', durations[1], {scaleTo: request.style === 'premium' ? 1.1 : 1.16});
-  const s3 = addScene('detail', visualAssets.length >= 2 ? 'detail-inset' : 'image-pan-zoom', durations[2]);
-  const s4 = addScene('feature', brief.facts.length ? 'feature-callout' : 'split-detail', durations[3]);
+  // Creative v2 uses the official showcase vocabulary: type-led beats, purposeful
+  // layouts, real footage layers and callouts. The old image-pan-zoom sequence is
+  // retained only as a fallback for legacy requests.
+  const effects = creativeMode === 'text'
+    ? ['title-reveal', 'keyword-emphasis', 'title-reveal', 'keyword-emphasis', 'title-reveal']
+    : creativeMode === 'video'
+      ? ['title-reveal', 'split-detail', 'feature-callout', 'split-detail', 'end-card']
+      : creativeMode === 'mixed'
+        ? ['product-reveal', 'split-detail', 'detail-inset', 'feature-callout', 'end-card']
+        : ['product-reveal', 'split-detail', 'detail-inset', 'feature-callout', 'end-card'];
+  const s1 = addScene('hero', effects[0], durations[0], {scale: request.style === 'promotion' ? 1.14 : 1.08});
+  const s2 = addScene('context', effects[1], durations[1], {scaleTo: request.style === 'premium' ? 1.1 : 1.16});
+  const s3 = addScene('detail', effects[2], durations[2]);
+  const s4 = addScene('feature', brief.facts.length ? effects[3] : effects[1], durations[3]);
   let priceScene = null;
   if (hasPrice) priceScene = addScene('price', 'price-lockup', durations[4], {priceScale: request.style === 'promotion' ? 1.16 : 1.05});
   const endDuration = durations.at(-1);
-  const sEnd = addScene('end', 'end-card', endDuration, {ctaPulse: request.style === 'promotion'});
+  const sEnd = addScene('end', creativeMode === 'text' ? 'title-reveal' : 'end-card', endDuration, {ctaPulse: request.style === 'promotion'});
 
   const nodes = [];
-  nodes.push(mediaNode(s1, 'hero', assetAt(0).id, {kind: assetAt(0).kind}));
+  if (creativeMode !== 'text') nodes.push(mediaNode(s1, 'hero', assetAt(0).id, {kind: assetAt(0).kind}));
   nodes.push(textNode(s1, 'title', brief.name));
   const first = brief.facts[0];
   if (first) nodes.push(textNode(s1, 'feature', first.text, [first.id]));
 
-  nodes.push(mediaNode(s2, 'hero', assetAt(1).id, {kind: assetAt(1).kind}));
+  if (creativeMode !== 'text') nodes.push(mediaNode(s2, 'hero', assetAt(1).id, {kind: assetAt(1).kind}));
+  // Layered parallax is a two-layer effect; provide a second real image in
+  // the context scene when the image route selected it.
+  if (effects[1] === 'layered-parallax' && visualAssets.length >= 2) {
+    nodes.push(mediaNode(s2, 'detail', assetAt(0).id, {kind: assetAt(0).kind, params: {variant: 'parallax-back'}}));
+  }
   const second = brief.facts[1];
   if (second) nodes.push(textNode(s2, 'feature', second.text, [second.id]));
   else nodes.push(textNode(s2, 'title', '场景展示'));
 
-  nodes.push(mediaNode(s3, 'detail', assetAt(2).id, {kind: assetAt(2).kind}));
-  if (visualAssets.length >= 2) nodes.push(mediaNode(s3, 'detail', assetAt(0).id, {kind: assetAt(0).kind, params: {variant: 'inset'}}));
+  if (creativeMode !== 'text') {
+    const detailAsset = assetAt(2) || assetAt(0);
+    nodes.push(mediaNode(s3, 'detail', detailAsset.id, {kind: detailAsset.kind}));
+    if (visualAssets.length >= 2) nodes.push(mediaNode(s3, 'detail', assetAt(1).id, {kind: assetAt(1).kind, params: {variant: 'inset'}}));
+  }
   const third = brief.facts[2];
   nodes.push(textNode(s3, third ? 'feature' : 'title', third?.text || '细节近看', third ? [third.id] : []));
 
-  nodes.push(mediaNode(s4, 'hero', assetAt(3).id, {kind: assetAt(3).kind}));
+  if (creativeMode !== 'text') nodes.push(mediaNode(s4, 'hero', assetAt(3).id, {kind: assetAt(3).kind}));
   const fourth = brief.facts[3] || brief.facts[0];
   nodes.push(textNode(s4, fourth ? 'feature' : 'title', fourth?.text || '重点展示', fourth ? [fourth.id] : []));
 
@@ -136,7 +155,7 @@ export function planCommerceDocument(request, preparedAssets) {
     nodes.push(textNode(priceScene, 'title', brief.name));
   }
 
-  nodes.push(mediaNode(sEnd, 'hero', assetAt(0).id, {kind: assetAt(0).kind}));
+  if (creativeMode !== 'text') nodes.push(mediaNode(sEnd, 'hero', assetAt(0).id, {kind: assetAt(0).kind}));
   nodes.push(textNode(sEnd, 'title', brief.name));
   nodes.push(textNode(sEnd, 'cta', brief.cta));
 
