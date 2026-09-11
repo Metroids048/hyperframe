@@ -54,7 +54,7 @@ export async function prepareAsset(dir,asset,signal,progress=()=>{}) {
       metadata.work='work.mp4';metadata.proxy='work.mp4';
       const compatible=info.videoCodec==='h264'&&info.pixelFormat==='yuv420p'&&info.rotation===0&&info.width===metadata.width&&info.height===metadata.height&&info.sourceFps==='30/1'&&info.nominalFps==='30/1'&&(!info.hasAudio||info.audioCodec==='aac');
       const encoding=compatible?['-c','copy']:['-vf',`scale=${metadata.width}:${metadata.height},setsar=1,fps=30`,'-c:v','libx264','-preset','fast','-crf','18','-pix_fmt','yuv420p','-c:a','aac','-ar','48000','-b:a','192k'];
-      await run(ffmpeg,['-y','-v','error','-i',original,'-map','0:v:0','-map','0:a:0?',...encoding,'-movflags','+faststart',path.join(cached,metadata.work)],{signal,timeout});
+      await run(ffmpeg,['-y','-v','error','-threads','2','-i',original,'-map','0:v:0','-map','0:a:0?',...encoding,'-movflags','+faststart',path.join(cached,metadata.work)],{signal,timeout});
       const normalized=await probe(path.join(cached,metadata.work),signal);metadata.frames=normalized.frames;metadata.duration=normalized.duration;metadata.preparation=compatible?'remux':'transcode';files.push(metadata.work);
       await extractFrame(cached,metadata,0,'thumbs/poster.jpg',signal);metadata.thumbnails=[{file:'thumbs/poster.jpg',time:0}];files.push('thumbs/poster.jpg');
     }else{

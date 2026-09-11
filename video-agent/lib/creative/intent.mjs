@@ -41,6 +41,13 @@ export function planCommerceMessage(document, message = '') {
   if (!text) return null;
   const scene = targetScene(document, text);
   const operations = [];
+  const price=text.match(/(?:价格|演示价)\s*(?:改成|改为|设为|调整为)\s*([¥￥]?\s*\d+(?:\.\d{1,2})?)/);
+  if(price){const node=document.nodes.find(n=>n.semanticRole==='price');insist(node,'工程没有价格对象','INTENT_TARGET_MISSING');operations.push({type:'update_text',nodeId:node.id,text:'¥'+price[1].replace(/[¥￥\s]/g,'')});}
+  if(/锁定|解锁/.test(text)){
+    const kinds=[];if(/内容/.test(text))kinds.push('content');if(/布局/.test(text))kinds.push('layout');if(/时长|段内时间/.test(text))kinds.push('timing');if(/绝对位置/.test(text))kinds.push('absolute');
+    operations.push({type:/解锁|取消锁定/.test(text)?'unlock_scene':'lock_scene',sceneId:scene.id,params:{kinds:kinds.length?kinds:['content','timing']}});
+  }
+  const total=text.match(/(?:改成|改为|调整为)\s*(\d+)\s*秒/);if(total)operations.push({type:'retime_document',durationFrames:Number(total[1])*30});
   if (/价格|优惠|折扣/.test(text) && /醒目|突出|放大|大一点|更大/.test(text)) {
     const priceScene = document.scenes.find(s => s.purpose === 'price') || scene;
     operations.push({type:'update_effect_params', sceneId:priceScene.id, params:{priceScale:Math.min(1.5, Number(priceScene.effectParams?.priceScale || 1.08) + .1)}});
@@ -72,7 +79,7 @@ export function planCommerceMessage(document, message = '') {
     operations.push({type:'update_text', nodeId:node.id, text:title});
   }
   if (title && /片尾|结尾|CTA|行动提示|下单/.test(text)) {
-    const end = document.scenes.at(-1), node = targetText(document, end, 'cta');
+    const end = document.scenes.at(-1), node = targetText(document, end, 'cta')||targetText(document,end,'title');
     insist(node, '片尾没有行动提示文字', 'INTENT_TARGET_MISSING');
     operations.push({type:'update_text', nodeId:node.id, text:title});
   }

@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
 import os from "node:os";
+import { fileURLToPath } from "node:url";
 
 /** Explicit overrides win. Never send shell commands through an executable path. */
 export function runtimeTools(
@@ -103,9 +104,12 @@ export function pythonExecutable({
   platform = process.platform,
   home = os.homedir(),
   exists = existsSync,
+  root = fileURLToPath(new URL("../", import.meta.url)),
 } = {}) {
   if (env.VIDEO_AGENT_PYTHON || env.HYPERFRAMES_PYTHON)
     return env.VIDEO_AGENT_PYTHON || env.HYPERFRAMES_PYTHON;
+  const projectPython = path.join(root, ".venv-speech", platform === "win32" ? "Scripts/python.exe" : "bin/python");
+  if (exists(projectPython)) return projectPython;
   const cached = path.join(
     home,
     ".cache/codex-runtimes/codex-primary-runtime/dependencies/python",

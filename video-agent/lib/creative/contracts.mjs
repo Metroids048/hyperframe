@@ -79,10 +79,11 @@ export function normalizeCommerceRequest(input = {}) {
   const assets = Array.isArray(input.assets) ? input.assets : [];
   // Text-first motion graphics are intentionally media-free. Other routes
   // still require at least one user-provided asset.
-  insist(assets.length > 0 || input.creativeMode === 'text', '至少需要一个商品图片或视频素材', 'MISSING_MEDIA');
+  insist(assets.length > 0 || input.creativeMode === 'text' || input.inferRequest === true, '至少需要一个商品图片或视频素材', 'MISSING_MEDIA');
   insist(assets.length <= MAX_ASSETS, `一个任务最多 ${MAX_ASSETS} 个素材`, 'TOO_MANY_ASSETS');
   const normalizedAssets = assets.map((asset, index) => {
     insist(asset && typeof asset.path === 'string', '每个素材都必须提供 path', 'INVALID_ASSET');
+    insist(!asset.id || /^[a-zA-Z0-9_-]{1,100}$/.test(asset.id), '素材 ID 无效', 'INVALID_ASSET_ID');
     const inferred = assetKindFromName(asset.path);
     const kind = asset.kind || inferred;
     insist(['image', 'video', 'audio'].includes(kind), `不支持的素材类型：${asset.path}`, 'UNSUPPORTED_ASSET');
@@ -97,15 +98,17 @@ export function normalizeCommerceRequest(input = {}) {
       sourceStartSeconds: Number(asset.sourceStartSeconds ?? 0),
       sourceDurationSeconds: asset.sourceDurationSeconds == null ? null : Number(asset.sourceDurationSeconds),
       volume: asset.volume == null ? 1 : Number(asset.volume),
+      generatedVoice:asset.generatedVoice===true,
     };
   });
+  insist(new Set(normalizedAssets.map(a=>a.id)).size===normalizedAssets.length,'素材 ID 重复','INVALID_ASSET_ID');
   const product = input.product || {};
   const normalizedProduct = {
     id: product.id || 'product-1',
-    name: String(product.name || '商品展示').trim().slice(0, 80),
+    name: String(product.name || (input.inferRequest?'':'商品展示')).trim().slice(0, 80),
     facts: normalizeFacts(product.facts),
     price: product.price == null ? null : String(product.price).trim().slice(0, 80),
-    cta: String(product.cta || '了解更多').trim().slice(0, 80),
+    cta: String(product.cta || (input.inferRequest?'':'了解更多')).trim().slice(0, 80),
     audience: product.audience == null ? null : String(product.audience).trim().slice(0, 120),
     prohibited: Array.isArray(product.prohibited) ? product.prohibited.map(x => String(x)).slice(0, 20) : [],
   };
@@ -116,7 +119,8 @@ export function normalizeCommerceRequest(input = {}) {
     requestId: input.requestId || stableId('request', normalizedAssets.map(a => ({id:a.id,path:a.path,kind:a.kind,role:a.role,sourceStartSeconds:a.sourceStartSeconds,sourceDurationSeconds:a.sourceDurationSeconds})), normalizedProduct, message, style, output),
     projectId: input.projectId || stableId('commerce', normalizedProduct.name || 'product', normalizedAssets.map(a => a.path)),
     message,
-    creativeMode: ['text','image','video','mixed'].includes(input.creativeMode) ? input.creativeMode : null,
+    inferRequest:input.inferRequest===true,
+    creativeMode: ['text','image','video','mixed'].includes(input.creativeMode) ? input.creativeMode : normalizedAssets.some(a=>a.kind==='video')?(normalizedAssets.some(a=>a.kind==='image')?'mixed':'video'):normalizedAssets.some(a=>a.kind==='image')?'image':'text',
     style,
     output,
     product: normalizedProduct,

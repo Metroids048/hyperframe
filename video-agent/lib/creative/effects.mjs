@@ -1,6 +1,7 @@
 import {CreativeError, insist} from './contracts.mjs';
 
 const definitions = [
+  ['media-cut', 'editing', ['image'], []],
   ['product-reveal', 'product', ['image'], ['scale', 'offsetY', 'radius']],
   ['image-pan-zoom', 'product', ['image'], ['scaleFrom', 'scaleTo', 'panX', 'panY']],
   ['detail-inset', 'detail', ['image'], ['insetX', 'insetY', 'insetSize', 'focusX', 'focusY']],
@@ -86,9 +87,9 @@ export function effectCss() {
   return `
 .scene{position:absolute;inset:0;overflow:hidden;background:var(--bg);color:var(--fg)}
 .scene-content{position:absolute;inset:0;box-sizing:border-box;padding:7.5%;display:flex;flex-direction:column;gap:28px;justify-content:center}
-.media-frame{position:absolute;inset:0;overflow:hidden;background:#0b0b0c}
+.media-frame{position:absolute;inset:0;overflow:hidden;background:var(--bg)}
 .media-frame img,.media-frame video{width:100%;height:100%;object-fit:cover;display:block}
-.media-motion{position:absolute;inset:-2%;will-change:transform}
+.media-motion{position:absolute;inset:0;will-change:transform}
 .scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.08),rgba(0,0,0,.16) 45%,rgba(0,0,0,.62))}
 .product-title{max-width:86%;font-size:clamp(56px,6.4vw,118px);line-height:.96;letter-spacing:-.04em;font-weight:760;margin:0;text-wrap:balance}
 .product-subtitle{max-width:78%;font-size:clamp(26px,2.8vw,48px);line-height:1.22;font-weight:560;margin:0;opacity:.88}

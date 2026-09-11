@@ -1,0 +1,181 @@
+{
+  "updatedAt": "2026-09-11T06:08:26.324Z",
+  "scope": "开发验证与历史示例，不是最终演示包关门",
+  "records": [
+    {
+      "id": "core-regression",
+      "status": "PASS",
+      "ref": "outputs/upgrade/verification/core-2026-09-11T04-01-17.863Z/report.json",
+      "scope": "既有编辑业务核心；新creative服务独立验证"
+    },
+    {
+      "id": "browser-regression",
+      "status": "PASS",
+      "ref": "outputs/upgrade/verification/browser-2026-09-11T04-02-11.518Z/report.json",
+      "scope": "既有编辑器UI、媒体、音频、10轮对话、固定版本导出"
+    },
+    {
+      "id": "text-real-model-ui-create",
+      "status": "PASS",
+      "ref": "outputs/resume/text-validation-2026-09-11T03-59-43.113Z/report.json"
+    },
+    {
+      "id": "text-semantic-continuation",
+      "status": "PARTIAL",
+      "ref": "outputs/resume/text-continuation-2026-09-11T04-02-01.582Z/report.json",
+      "note": "修改成功；首次导出失败已保留"
+    },
+    {
+      "id": "text-export-play-reopen",
+      "status": "PASS",
+      "ref": "outputs/resume/text-export-retry-2026-09-11T04-05-40.592Z/report.json"
+    },
+    {
+      "id": "ten-continuations-before-windows-lock",
+      "status": "PARTIAL",
+      "ref": "outputs/resume/text-12-rounds-2026-09-11T04-23-23.060Z/report.json",
+      "note": "前10轮成功，不能写成完整12轮通过"
+    },
+    {
+      "id": "locks-and-selective-restore-unit",
+      "status": "PASS",
+      "command": "node --test scripts/test-commerce-native.mjs scripts/test-creative-continuation.mjs",
+      "tests": 16,
+      "scope": "代码与语义验证，不能代替浏览器门槛"
+    },
+    {
+      "id": "minimal-presets-three",
+      "status": "PASS",
+      "ref": "outputs/resume/minimal-presets-2026-09-11T04-32-09.048Z/report.json",
+      "scope": "实际点击、输入和MP4哈希、完整播放、原附件再生成准备、窄屏"
+    },
+    {
+      "id": "minimal-natural-input-square",
+      "status": "PASS",
+      "ref": "outputs/resume/minimal-input-2026-09-11T04-28-52.156Z/report.json",
+      "scope": "只有文本推断8秒方形；实际模型、严格导出、完整播放和重开"
+    },
+    {
+      "id": "voice-audition-confirm-create",
+      "status": "PASS",
+      "ref": "outputs/resume/voice-ui-2026-09-11T04-41-51.557Z/report.json",
+      "scope": "两种真实中文声音试听；确认第一版后同WAV/哈希进入15秒竖版原生工程并严格导出；人工听感待验收"
+    },
+    {
+      "id": "native-audio-dsp",
+      "status": "PASS",
+      "ref": "outputs/resume/native-audio-2026-09-11T04-46-12.251Z/test-evidence.json",
+      "scope": "合成测试音只用于DSP工程验证，非商品或演示素材；半速保音高、淡入淡出、区间压低、缓存"
+    },
+    {
+      "id": "continuation-after-atomic-fix",
+      "status": "PASS",
+      "ref": "outputs/resume/text-12-rounds-continue-2026-09-11T04-29-02.255Z/report.json",
+      "scope": "3轮实际UI续改，包括内容锁拒绝，不冒充一次连续12轮首次全过"
+    },
+    {
+      "id": "acceptance-isolated-server",
+      "status": "PASS",
+      "ref": "outputs/acceptance/2026-09-11T04-31-49-104Z/report.json",
+      "scope": "20/20；修复测试服务端口碰撞，等待其自身启动后才检查健康"
+    },
+    {
+      "id": "real-video-edit-ui",
+      "status": "PARTIAL",
+      "ref": "outputs/resume/real-video-editing-2026-09-11T04-47-27.384Z/report.json",
+      "scope": "真实素材创建、分割、同步裁切、原声音量、严格导出和完整播放通过；重开因等待networkidle0超时，保留失败记录"
+    },
+    {
+      "id": "real-video-reopen",
+      "status": "PASS",
+      "ref": "outputs/resume/real-video-reopen-2026-09-11T04-54-27.479Z/report.json",
+      "scope": "实际加载/播放器就绪判断；完整播放、重开和窄屏通过"
+    },
+    {
+      "id": "source-captions-ui",
+      "status": "PASS",
+      "ref": "outputs/resume/native-voice-captions-2026-09-11T04-53-38.001Z/report.json",
+      "scope": "真实本地ASR、只纠错字幕、不改音轨、严格导出、完整播放、重开；人工听感/字级校准待审"
+    },
+    {
+      "id": "three-opening-branches-ui",
+      "status": "PASS",
+      "ref": "outputs/resume/branches-2026-09-11T04-54-17.098Z/report.json",
+      "scope": "一次真实模型规划，三份独立原生分支；主版本/后文/时长/画幅/音轨保持，逐个完整播放"
+    },
+    {
+      "id": "acceptance-latest",
+      "status": "PASS",
+      "ref": "outputs/acceptance/2026-09-11T04-57-53-529Z/report.json",
+      "scope": "既有业务20/20回归；不替代新增creative路线验收"
+    },
+    {
+      "id": "actual-product-photos-ui",
+      "status": "PASS",
+      "ref": "outputs/resume/product-observation-2026-09-11T05-14-06.539Z/report.json",
+      "scope": "工程真实原图观察、相同/不同款/重复、竖屏导出和完整播放；构图美观仍需改进，不是最终商品样片"
+    },
+    {
+      "id": "native-straight-cuts-ui",
+      "status": "PASS",
+      "ref": "outputs/resume/native-plain-cuts-2026-09-11T05-14-18.598Z/report.json",
+      "scope": "真实授权非商品视频，CFR归一与3片段纯直切/原声/导出播放重开"
+    },
+    {
+      "id": "portable-history-first-attempt",
+      "status": "FAIL",
+      "ref": "outputs/resume/portable-ui-2026-09-11T05-32-24.940Z/report.json",
+      "note": "导入后缀类型判断错误，未发布版本；已修复后独立复跑"
+    },
+    {
+      "id": "portable-history-ui",
+      "status": "PASS",
+      "ref": "outputs/resume/portable-ui-2026-09-11T05-33-38.260Z/report.json",
+      "scope": "真实浏览器下载ZIP64/新数据目录导入，3版本逐对象比较，原始声音/字幕/试听/确认保留，恢复初始版本后自然语言续改与完整播放"
+    },
+    {
+      "id": "custom-windows-isolation",
+      "status": "PASS",
+      "ref": "outputs/resume/custom-isolation-2026-09-11T05-40-40.231Z",
+      "scope": "5工程测试，AST/HTML/CSS拒绝危险源码；真正静态目标按无运动失败；Windows Job CPU/内存/墙钟时间+子进程关闭，浏览器禁外网/其他项目/file/worker；不代替真实模型custom交付"
+    },
+    {
+      "id": "custom-real-model-first-attempt",
+      "status": "FAIL",
+      "ref": "data/creative-validation/e0cfaa31-07c3-402b-9784-d8d1e86f26d9/native-project.json",
+      "note": "模型选择原创源码，SVG描边属性未支持导致安全拒绝，未发布。已补明确属性支持与关键过程采样，复跑中"
+    },
+    {
+      "id": "custom-native-independent-model-ui",
+      "status": "PASS",
+      "ref": "outputs/resume/custom-native-flow-2026-09-11T05-47-25.760Z/report.json",
+      "scope": "原生源码真实创建/自动修复/参数续改/严格导出/全片播放与重开；圆环只是工程验证，用户拒绝作为商品示例"
+    },
+    {
+      "id": "custom-portable-resource-failure",
+      "status": "FAIL",
+      "ref": "outputs/resume/portable-ui-2026-09-11T05-52-55.560Z/report.json",
+      "scope": "ZIP64下载成功；导入第1/2版本Windows Add-Type页文件不足，未发布导入版本，保留全部原文件"
+    },
+    {
+      "id": "commerce-photo-detail-review-draft",
+      "status": "PARTIAL",
+      "ref": "outputs/resume/commerce-detail-design-2026-09-11T05-48-08.255Z/report.json",
+      "scope": "商品原图真实模型设计/检查/导出成功；局部放大旧实现缺陷已修代码，用户进一步明确需要连续实拍，不能当最终质量通过"
+    },
+    {
+      "id": "commerce-project-picker-and-preview",
+      "status": "PASS",
+      "ref": "outputs/resume/commerce-project-browser-2026-09-11T06-02-40.115Z/report.json",
+      "scope": "可逆隐藏测试/空工程，去重预设，清理空项目旧视频/下载/对象/异步回写，直接项目URL与移动端。首次TDZ失败已修；root在可见浏览器复核"
+    },
+    {
+      "id": "native-source-audio-follow",
+      "status": "PASS",
+      "command": "node --test scripts/test-creative-media.mjs scripts/test-creative-continuation.mjs scripts/test-commerce-native.mjs",
+      "tests": 24,
+      "scope": "原声源对象随分割/裁切/顺序/倍速同步、字幕源身份保留，音频显式独立时间修改解除绑定；DSP真实处理回归。新源绑定尚待UI实拍复验"
+    }
+  ],
+  "humanReview": "PENDING"
+}

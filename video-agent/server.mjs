@@ -12,9 +12,12 @@ import {optimizePrompt} from './lib/planner.mjs';
 import {cases,demoOptimize,validateSettings} from './lib/demo-planner.mjs';
 import {ROOT,STUDIO,STUDIO_URL,defaults,InputError,validateBrief,validateStoryboard,storyboard,compose,runHF,verifyVideo} from './lib/workflow.mjs';
 import {buildCommerceProject,patchCommerceProject,renderCommerceProject} from './lib/creative/runner.mjs';
+import {createCreativeService,creativeRoutes} from './lib/creative/service.mjs';
+import {CreativeError} from './lib/creative/contracts.mjs';
 
 const PORT=Number(process.env.VIDEO_AGENT_PORT||3020),DATA=path.resolve(process.env.VIDEO_AGENT_DATA_DIR||path.join(ROOT,'data/projects')),WEB=path.join(ROOT,'web-dist');
 const editor=await createEditService();
+const creative=await createCreativeService();
 const projects=new Map(),writes=new Map();let active=null,studioProject=null,studioBusy=false,accepting=true;
 await fs.mkdir(DATA,{recursive:true});
 async function save(p){const snapshot=JSON.stringify(p,null,2),file=path.join(DATA,p.id,'project.json');const task=(writes.get(p.id)||Promise.resolve()).catch(()=>{}).then(async()=>{await fs.writeFile(file+'.tmp',snapshot);await fs.rename(file+'.tmp',file);});writes.set(p.id,task);await task;}
@@ -82,6 +85,7 @@ const server=http.createServer(async(req,res)=>{
   const origin=req.headers.origin;if(origin&&!allowed.some(h=>origin===`http://${h}`))throw new InputError('此操作只允许在本地制作页面发起',403);
   const url=new URL(req.url,`http://127.0.0.1:${PORT}`),route=url.pathname;
   if(await editRoutes(editor,req,res,url,{json,jsonBody,file}))return;
+  if(await creativeRoutes(creative,req,res,url,{json,jsonBody,file}))return;
   // Native commerce projects use the same editable document/runner as the
   // CLI, exposed here through a small allow-listed bridge for the chat UI and
   // agent tools. Paths and file names never come from an arbitrary URL.
@@ -159,7 +163,7 @@ const server=http.createServer(async(req,res)=>{
   const assets={'/creative-studio':['creative-studio.html','text/html; charset=utf-8'],'/creative-v2':['creative-v2.html','text/html; charset=utf-8'],'/creative-v2/text-demo/final.mp4':['../examples/creative-v2/text-demo/output/final.mp4','video/mp4'],'/creative-v2/image-demo/final.mp4':['../examples/creative-v2/image-demo/output/final.mp4','video/mp4'],'/creative-v2/video-demo/final.mp4':['../examples/creative-v2/video-demo/output/final.mp4','video/mp4'],'/creative-v2/mixed-demo/final.mp4':['../examples/creative-v2/mixed-demo/output/final.mp4','video/mp4'],'/':['commerce.html','text/html; charset=utf-8'],'/edit':['editor.html','text/html; charset=utf-8'],'/create':['index.html','text/html; charset=utf-8'],'/commerce':['commerce.html','text/html; charset=utf-8'],'/editor.js':['editor.js','text/javascript; charset=utf-8'],'/editor.css':['editor.css','text/css; charset=utf-8'],'/app.js':['app.js','text/javascript; charset=utf-8'],'/commerce.js':['commerce.js','text/javascript; charset=utf-8'],'/commerce.css':['commerce.css','text/css; charset=utf-8'],'/style.css':['style.css','text/css; charset=utf-8']};
   if(['GET','HEAD'].includes(req.method)&&assets[route])return await file(req,res,path.join(WEB,assets[route][0]),assets[route][1]);
   throw new InputError('找不到这个页面',404);
- }catch(e){if(res.headersSent){res.destroy();return;}if(!(e instanceof InputError)&&!(e instanceof EditError))console.error(e);json(res,{ok:false,error:e instanceof InputError||e instanceof EditError?e.message:'操作暂时无法完成，请重试；详情已记录在本地日志。'},e.status||500);}
+ }catch(e){if(res.headersSent){res.destroy();return;}if(!(e instanceof InputError)&&!(e instanceof EditError)&&!(e instanceof CreativeError))console.error(e);json(res,{ok:false,error:e instanceof InputError||e instanceof EditError||e instanceof CreativeError?e.message:'操作暂时无法完成，请重试；详情已记录在本地日志。',code:e.code},e.status||500);}
 });
 server.listen(PORT,'127.0.0.1',()=>console.log(`对话视频剪辑 http://127.0.0.1:${PORT}`));
 server.on('error',e=>{console.error(e.message);process.exit(1);});

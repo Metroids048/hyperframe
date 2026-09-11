@@ -116,7 +116,7 @@ export class CodexProvider extends CloudProvider {
     this.signatures??=new Map();if(this.signatures.has(kind))return this.signatures.get(kind);
     const promise=(async()=>{const scripts=kind==='tts'?['local-speak.py','speech-worker.py']:['local-transcribe.py','speech-worker.py'];
       const source=await Promise.all(scripts.map(name=>fs.readFile(path.join(ROOT,'scripts',name))));
-      const sitePackages=path.join(path.dirname(localPython()),'Lib/site-packages'),packages=(await fs.readdir(sitePackages).catch(()=>[])).filter(name=>/\.dist-info$/.test(name)&&/^(?:kokoro_onnx|misaki|onnxruntime|faster_whisper|ctranslate2|whisperx|torch|scenedetect)-/i.test(name)).sort();
+      const pythonDir=path.dirname(localPython()),sitePackages=path.join(/^(Scripts|bin)$/i.test(path.basename(pythonDir))?path.dirname(pythonDir):pythonDir,'Lib/site-packages'),packages=(await fs.readdir(sitePackages).catch(()=>[])).filter(name=>/\.dist-info$/.test(name)&&/^(?:kokoro_onnx|misaki|onnxruntime|faster_whisper|ctranslate2|whisperx|torch|scenedetect)-/i.test(name)).sort();
       const models=kind==='tts'?[path.join(os.homedir(),'.cache/hyperframes/tts/models/kokoro-v1.0.onnx'),path.join(os.homedir(),'.cache/hyperframes/tts/voices/voices-v1.0.bin')]:[path.join(ROOT,'data/models/whisper-'+(process.env.VIDEO_AGENT_WHISPER_MODEL||'small')+'/model.bin')];
       const stamps=await Promise.all(models.map(async file=>{const stat=await fs.stat(file).catch(()=>null);return stat?{size:stat.size,mtime:stat.mtimeMs}:null;}));
       const hash=createHash('sha256');for(const bytes of source)hash.update(bytes);hash.update(JSON.stringify({python:localPython(),packages,stamps}));return hash.digest('hex');})();this.signatures.set(kind,promise);return promise;

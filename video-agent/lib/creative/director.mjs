@@ -150,7 +150,7 @@ export function planCommerceDocument(request, preparedAssets) {
   nodes.push(textNode(s4, fourth ? 'feature' : 'title', fourth?.text || '重点展示', fourth ? [fourth.id] : []));
 
   if (priceScene) {
-    nodes.push(mediaNode(priceScene, 'background', assetAt(0).id, {kind: assetAt(0).kind}));
+    if (creativeMode !== 'text') nodes.push(mediaNode(priceScene, 'background', assetAt(0).id, {kind: assetAt(0).kind}));
     nodes.push(textNode(priceScene, 'price', brief.price));
     nodes.push(textNode(priceScene, 'title', brief.name));
   }

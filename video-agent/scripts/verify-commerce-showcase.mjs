@@ -1,75 +1,56 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import http from 'node:http';
-import {fileURLToPath} from 'node:url';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
-import sharp from 'sharp';
 import puppeteer from 'puppeteer-core';
-const APP=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
-const ROOT=path.join(APP,'outputs/commerce-showcase');
-const cases=JSON.parse(await fs.readFile(path.join(ROOT,'cases.json'),'utf8'));
-const types={'.html':'text/html; charset=utf-8','.jpg':'image/jpeg','.js':'text/javascript','.json':'application/json'};
-const server=http.createServer(async(req,res)=>{try{const pathname=decodeURIComponent(new URL(req.url,'http://127.0.0.1').pathname);const file=path.resolve(ROOT,'.'+pathname);if(!file.startsWith(ROOT+path.sep))throw Error('outside');const b=await fs.readFile(file);res.writeHead(200,{'Content-Type':types[path.extname(file)]||'application/octet-stream'});res.end(b);}catch{res.writeHead(404);res.end();}});
-await new Promise(r=>server.listen(0,'127.0.0.1',r));
-let browser;
-const hash=b=>createHash('sha256').update(b).digest('hex');
-// Runs in the browser. Check clipping ancestors, not just the global viewport.
-function inspectScene(id){
- const root=document.getElementById(id), box=root.getBoundingClientRect(), issues=[];
- if(Math.abs(box.width-1080)>.5||Math.abs(box.height-1920)>.5)issues.push({code:'scene_dimensions',width:box.width,height:box.height});
- const outside=(r,b)=>r.left<b.left-.5||r.right>b.right+.5||r.top<b.top-.5||r.bottom>b.bottom+.5;
- for(const el of root.querySelectorAll('.line,.note,.cta,.foot,.tiny')){
-  const r=el.getBoundingClientRect();
-  if(outside(r,{left:0,right:1080,top:0,bottom:1920})||el.scrollWidth>el.clientWidth+2)issues.push({code:'text_overflow',text:el.textContent,rect:{x:r.x,y:r.y,w:r.width,h:r.height}});
-  for(let parent=el.parentElement;parent&&parent!==document.body;parent=parent.parentElement){
-   const style=getComputedStyle(parent);
-   if(['hidden','clip'].includes(style.overflowY)||['hidden','clip'].includes(style.overflowX)){
-    if(outside(r,parent.getBoundingClientRect()))issues.push({code:'clipped_text',text:el.textContent,parent:parent.id||parent.className});
-   }
-  }
- }
- for(const img of root.querySelectorAll('img'))if(!img.complete||!img.naturalWidth)issues.push({code:'missing_image',id:img.id});
- return {issues,dimensions:{width:box.width,height:box.height}};
-}
+import {ROOT,runtimeEnv} from '../lib/workflow.mjs';
+
+const base='http://127.0.0.1:3022',directory=path.join(ROOT,'outputs/resume','commerce-showcase-ui-'+new Date().toISOString().replaceAll(':','-'));
+await fs.mkdir(directory,{recursive:true});
+const browser=await puppeteer.launch({executablePath:runtimeEnv().HYPERFRAMES_BROWSER_PATH||'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true,defaultViewport:{width:1500,height:1040}});
+const page=await browser.newPage(),report={status:'running',cases:[],errors:[]};page.on('pageerror',e=>report.errors.push(e.message));
+const save=()=>fs.writeFile(path.join(directory,'report.json'),JSON.stringify(report,null,2));
 try{
- browser=await puppeteer.launch({executablePath:process.env.HYPERFRAMES_BROWSER_PATH||'/usr/bin/google-chrome',headless:true,protocolTimeout:30000,args:['--disable-dev-shm-usage']});
- for(const c of cases){
-  console.log('CHECK '+c.id);
-  const page=await browser.newPage();await page.setViewport({width:1080,height:1920,deviceScaleFactor:1});
-  const runtimeErrors=[];page.on('pageerror',e=>runtimeErrors.push(e.message));
-  await page.goto(`http://127.0.0.1:${server.address().port}/${c.id}/index.html`,{waitUntil:'networkidle0',timeout:20000});
-  await page.evaluate(async()=>{await document.fonts.ready;return true;});
-  const document=JSON.parse(await fs.readFile(path.join(ROOT,c.id,'document.json'),'utf8'));
-  // GSAP timelines are thenable; return a scalar instead of awaiting paused seek().
-  const seek=async t=>{await page.evaluate(t=>{window.__timelines.showcase.seek(t,false);return true;},t);};
-  const issues=[],samples=[],thumbs=[];
-  for(const scene of document.scenes){
-   const t=Math.min(scene.end-.3,scene.start+1.35);await seek(t);
-   const check=await page.evaluate(inspectScene,scene.id);
-   issues.push(...check.issues.map(x=>({sceneId:scene.id,time:t,...x})));
-   const jpeg=await page.screenshot({type:'jpeg',quality:88});
-   if(!samples.length)await fs.writeFile(path.join(ROOT,c.id,'poster.jpg'),jpeg);
-   thumbs.push(await sharp(jpeg).resize(270,480).toBuffer());samples.push({sceneId:scene.id,time:t,dimensions:check.dimensions});
+ await page.goto(base,{waitUntil:'domcontentloaded'});
+ const all=(await(await fetch(base+'/api/commerce-demos')).json()).presets,presets=all.filter(p=>p.category&&p.category!=='基础示例'&&p.reviewStatus!=='draft'&&(!process.argv[2]||p.id===process.argv[2]));report.skippedDrafts=all.filter(p=>p.reviewStatus==='draft').map(p=>p.id);
+ assert(presets.length>=1,'at least one finished commerce film required');
+ await page.waitForFunction(()=>document.querySelector('#example-select')?.options.length>=2,{timeout:10000});
+ assert.equal(await page.$$eval('textarea',a=>a.length),1);assert.equal(await page.$$eval('input:not([type=file])',a=>a.length),0);
+ await page.screenshot({path:path.join(directory,'01-examples.png'),fullPage:true});
+ for(const preset of presets){
+  await page.select('#example-select',preset.id);await page.click('#example-load');
+  await page.waitForFunction(id=>{try{return JSON.parse(document.querySelector('#status').textContent).preset===id;}catch{return false;}},{timeout:45000},preset.id);
+  assert.equal(await page.$eval('#message',e=>e.value),preset.input);
+  const state=JSON.parse(await page.$eval('#status',e=>e.textContent)),project=(await(await fetch(base+'/api/commerce/'+state.projectId)).json()).project;
+  assert.equal(project.jobs.length,0,'loading a fixed example must not create a model job');
+  const revision=project.revisions.find(r=>r.id===project.currentRevisionId);
+  const bytes=Buffer.from(await(await fetch(base+revision.videoUrl)).arrayBuffer());
+  assert.equal(createHash('sha256').update(bytes).digest('hex'),preset.sha256,'exact prerecorded output');
+  await page.waitForFunction(()=>document.querySelector('#player')?.duration>0,{timeout:30000});
+  await page.click('#example-evidence summary');
+  assert.equal(await page.$$eval('#example-assets a',a=>a.length),project.assets.length);
+  assert((await page.$$eval('#example-process li',a=>a.length))>=3,'actual process should be inspectable');
+  const inputHashes=[];
+  for(const a of project.assets){const input=Buffer.from(await(await fetch(base+'/api/commerce/'+project.id+'/input-assets/'+a.id)).arrayBuffer()),sha256=createHash('sha256').update(input).digest('hex');assert.equal(sha256,preset.inputs.find(original=>original.id===a.id)?.sha256,'preset must preserve the exact original upload');inputHashes.push({name:a.name,sha256,bytes:input.length});}
+  await page.screenshot({path:path.join(directory,preset.id+'-process.png'),fullPage:true});
+  await page.click('#example-evidence summary');
+  await page.evaluate(()=>{const player=document.querySelector('#player');player.seek(0);player.play();});
+  await page.waitForFunction(()=>document.querySelector('#player').currentTime>=1,{timeout:15000});
+  await page.waitForFunction(end=>document.querySelector('#player').currentTime>=end-.15,{timeout:Math.max(30000,preset.durationSeconds*1400)},preset.durationSeconds);
+  await page.waitForFunction(end=>{const p=document.querySelector('#player');return p.paused&&p.currentTime<end&&Math.abs(p.currentTime-(end-1/30))<.01;},{timeout:10000},preset.durationSeconds);
+  await page.screenshot({path:path.join(directory,preset.id+'-natural-ended.png'),fullPage:true});
+  await page.evaluate(()=>document.querySelector('#player').play());
+  await page.waitForFunction(()=>{const p=document.querySelector('#player');return !p.paused&&p.currentTime>.1&&p.currentTime<2;},{timeout:10000});
+  for(const [i,t] of [1.5,preset.durationSeconds*.45,preset.durationSeconds-1].entries()){
+   await page.evaluate(time=>{const player=document.querySelector('#player');player.pause();player.seek(time);},t);await new Promise(r=>setTimeout(r,350));
+   await page.screenshot({path:path.join(directory,preset.id+'-frame-'+i+'.png'),fullPage:true});
   }
-  await seek(1.35);const first=await page.screenshot({type:'png'});await seek(c.duration-1);await seek(1.35);const again=await page.screenshot({type:'png'});
-  const repeatable=hash(first)===hash(again);
-  const firstScene=document.scenes[0];
-  await page.evaluate(id=>{document.getElementById(id).style.height='900px';return true;},firstScene.id);
-  const catchesRegression=(await page.evaluate(inspectScene,firstScene.id)).issues.some(x=>x.code==='scene_dimensions');
-  await page.evaluate(id=>{document.getElementById(id).style.removeProperty('height');return true;},firstScene.id);
-  await seek(.8);const m1=await page.$eval(`#${firstScene.id} .photo-inner`,e=>getComputedStyle(e).transform);
-  await seek(1.7);const m2=await page.$eval(`#${firstScene.id} .photo-inner`,e=>getComputedStyle(e).transform);
-  const result={kind:'reference-author-browser-check',notLiveAgentEvidence:true,runtimeErrors,layoutIssues:issues,repeatableSeek:repeatable,productPhotoMotion:m1!==m2,sceneSizeFaultDetected:catchesRegression,motionSamples:[m1,m2],samples,fullVideoHumanReview:false,commercialRightsCleared:false};
-  await fs.writeFile(path.join(ROOT,c.id,'qa.json'),JSON.stringify(result,null,2));
-  await sharp({create:{width:1350,height:480,channels:3,background:'#dddddd'}}).composite(thumbs.map((input,i)=>({input,left:i*270,top:0}))).jpeg({quality:91}).toFile(path.join(ROOT,c.id,'storyboard.jpg'));
-  assert.equal(runtimeErrors.length,0,`${c.id}: runtime errors`);
-  assert.equal(issues.length,0,`${c.id}: layout overflow: ${JSON.stringify(issues)}`);
-  assert.equal(repeatable,true,`${c.id}: non-repeatable seek`);
-  assert.equal(catchesRegression,true,`${c.id}: checker missed a deliberately shortened scene`);
-  assert.notEqual(m1,m2,`${c.id}: product photograph does not move`);
-  console.log('PASS '+c.id+' full-frame scenes, ancestor clipping, typography, product motion, repeated seek');await page.close();
+  report.cases.push({id:preset.id,projectId:project.id,revisionId:revision.id,sha256:preset.sha256,inputHashes,fullPlayback:true,lastFramePreserved:true});await save();
+  await page.click('#regenerate');
+  await page.waitForFunction(n=>document.querySelectorAll('#thumbs .file-chip').length===n,{timeout:45000},project.assets.length);
+  assert.equal(await page.$eval('#message',e=>e.value),preset.input);assert.equal(await page.$eval('#send',e=>e.textContent),'生成视频');
  }
- const boards=await Promise.all(cases.map(c=>fs.readFile(path.join(ROOT,c.id,'storyboard.jpg'))));
- await sharp({create:{width:1350,height:1440,channels:3,background:'#dddddd'}}).composite(boards.map((input,i)=>({input,left:0,top:i*480}))).jpeg({quality:90}).toFile(path.join(ROOT,'overview.jpg'));
-}finally{if(browser)await browser.close();await new Promise(r=>server.close(r));}
+ await page.setViewport({width:390,height:844});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'mobile layout overflow');await page.screenshot({path:path.join(directory,'mobile.png'),fullPage:true});
+ assert.deepEqual(report.errors,[]);report.status='passed';
+}catch(error){report.status='failed';report.error=error.stack;process.exitCode=1;await page.screenshot({path:path.join(directory,'failure.png'),fullPage:true}).catch(()=>{});}
+finally{await save();await browser.close();console.log(JSON.stringify({directory,...report}));}

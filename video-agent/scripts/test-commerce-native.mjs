@@ -24,9 +24,9 @@ function fixture() {
   return {request, prepared};
 }
 
-test('effect registry exposes thirteen executable effects', () => {
+test('effect registry exposes fourteen executable effects including plain media cuts', () => {
   const effects = listEffects();
-  assert.equal(effects.length, 13);
+  assert.equal(effects.length, 14);
   assert.ok(effects.every(x => x.deterministic));
 });
 
@@ -105,6 +105,13 @@ test('missing media and invented fact references are rejected', () => {
   broken.nodes.find(n => n.kind === 'text').params.factRefs = ['fact-does-not-exist'];
   assert.throws(() => compileDocument(broken, prepared), /未知商品事实/);
   assert.throws(() => normalizeCommerceRequest({product: {name: 'x'}, assets: []}), /至少需要一个/);
+});
+
+test('a single source image can provide a detail view without duplicate media identities',()=>{
+  const {request,prepared}=fixture(),document=planCommerceDocument(request,prepared),scene=document.scenes[0];
+  const next=applyDocumentPatch(document,[{type:'set_scene_effect',sceneId:scene.id,effect:'detail-inset',params:{focusX:.7,focusY:.4}}],Object.fromEntries(prepared.map(a=>[a.id,a])));
+  const html=compileDocument(next,prepared).html,ids=[...html.matchAll(/\sid="([^"]+)"/g)].map(m=>m[1]);
+  assert.equal(new Set(ids).size,ids.length);assert(html.includes('data-object-id='));assert.match(html,/background-position:-?[\d.]+px -?[\d.]+px/);
 });
 
 test('scene effect patch swaps a reusable motion preset with contract validation', () => {

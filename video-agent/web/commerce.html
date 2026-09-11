@@ -1,2 +1,36 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>电商商品视频 · 对话制作</title><link rel="stylesheet" href="/commerce.css"></head><body><header><a href="/create">商品短视频制作助手</a><span>HyperFrames Commerce Studio</span></header><main><section class="chat"><h1>把商品图变成可用的宣传短视频</h1><p class="muted">上传商品图片，用一句话描述风格；随后继续对话修改字幕、动效和转场。</p><div id="messages" class="messages"><div class="bubble assistant">你好！上传 1–12 张商品图，然后告诉我想突出什么。</div></div><form id="create"><label class="drop">选择或拖入商品图片<input id="images" name="images" type="file" accept="image/png,image/jpeg,image/webp" multiple></label><div id="thumbs"></div><input name="productName" placeholder="商品名称（可选）"><div class="row"><input name="price" placeholder="价格，如 ¥99（可选）"><input name="cta" placeholder="结尾 CTA，如 立即购买（可选）"></div><input name="facts" placeholder="卖点，用逗号分隔（可选）"><textarea name="message" rows="3" placeholder="例如：做一条 15 秒竖屏高级感视频，突出瓶身细节，加入大标题和闪白转场"></textarea><div class="row"><select name="style"><option value="premium">高级质感</option><option value="promotion">促销醒目</option><option value="functional">功能说明</option></select><label class="duration">时长 <input name="duration" type="number" min="5" max="60" value="15"> 秒</label><button id="send" type="submit">生成宣传视频</button></div><p id="error" class="error" hidden></p></form><form id="follow" hidden><input name="message" placeholder="继续修改，例如：把价格放大一点，第三幕加闪白转场"><button type="submit">发送修改</button></form></section><section class="preview"><div id="empty"><h2>成片预览</h2><p class="muted">生成后这里会播放完整连续的视频。</p></div><video id="video" controls playsinline hidden></video><a id="download" class="download" hidden>下载 MP4</a><details id="details" hidden><summary>查看工程状态</summary><pre id="status"></pre></details></section></main><script type="module" src="/commerce.js"></script></body></html>
-
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>视频创作</title><link rel="stylesheet" href="/commerce.css"></head>
+<body>
+<header><a href="/">视频创作</a><div class="header-actions"><select id="projects" aria-label="打开作品"><option value="">我的作品</option></select><button id="open-package" class="quiet" type="button">打开工程</button><input id="package-file" type="file" accept=".zip" aria-label="选择原生工程包" hidden><button id="new-project" class="quiet" type="button">新建</button></div></header>
+<main>
+<section class="chat" aria-label="创作对话">
+<div class="intro"><h1>把想法，变成视频。</h1><p>描述你的需求，也可以附上图片或视频。</p></div>
+<section id="presets" aria-label="电商演示预设">
+<div class="example-picker"><label for="example-select">电商示例</label><select id="example-select" aria-label="选择电商示例"><option value="">选择一个商品场景</option></select></div>
+<article id="example-card" hidden><img id="example-poster" alt="示例成片画面" hidden><div class="example-copy"><p id="example-category"></p><h2 id="example-title"></h2><p id="example-description"></p><div id="example-tags"></div><button id="example-load" type="button">▷ 查看示例成品</button></div></article>
+<p id="examples-loading" class="example-loading">正在读取可播放的商品示例…</p>
+</section>
+<div id="messages" class="messages" aria-live="polite"></div>
+<div id="voice-results" hidden></div>
+<div id="preset-notice" class="preset-notice" hidden><span>正在查看预设演示</span><button id="regenerate" class="quiet" type="button">按此输入重新生成</button></div>
+<details id="example-evidence" hidden><summary>这条视频是怎么做的</summary><div class="example-evidence-body"><p class="example-fixed-note">这是已经生成的固定样片。重新生成会再次理解输入、选材和制作。</p><h3>输入素材</h3><div id="example-assets"></div><h3>实际制作过程</h3><ol id="example-process"></ol><h3>查看分镜</h3><div id="example-beats"></div><p id="example-result"></p><div id="example-credits"></div></div></details>
+<form id="composer">
+<textarea id="message" name="message" rows="4" placeholder="想做一条怎样的视频？" aria-label="视频需求"></textarea>
+<div id="thumbs"></div>
+<div class="composer-footer"><label class="attachment">＋ 添加素材<input id="images" type="file" accept="image/png,image/jpeg,image/webp,video/mp4,video/quicktime,video/webm,audio/mpeg,audio/wav,audio/mp4" multiple></label><span id="composer-hint">素材可不填</span><button id="send" type="submit">生成视频</button></div>
+<p id="error" class="error" hidden></p>
+</form>
+</section>
+<section class="preview" aria-label="作品预览">
+<div id="empty"><div class="empty-icon">▷</div><p>作品会出现在这里</p></div>
+<hyperframes-player id="player" controls hidden></hyperframes-player>
+<div id="revision-tools" hidden><select id="revisions" aria-label="作品版本"></select><div class="toolbar"><button id="undo" class="quiet">撤销</button><button id="redo" class="quiet">重做</button><button id="restore" class="quiet">恢复此版</button><button id="export">导出</button></div></div>
+<div class="downloads"><a id="download" hidden>下载 MP4</a><a id="package" hidden>下载原生工程</a></div>
+<details id="object-tools" hidden><summary>选择修改对象</summary><select id="objects" aria-label="画面对象"><option value="">自动理解修改目标</option></select><p id="object-info"></p></details>
+<div id="jobs" aria-live="polite"></div>
+<details id="details" hidden><summary>工程信息</summary><pre id="status"></pre></details>
+</section>
+</main>
+<script src="/editor-player.js"></script><script type="module" src="/commerce.js"></script>
+</body></html>

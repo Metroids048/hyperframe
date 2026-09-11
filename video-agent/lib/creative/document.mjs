@@ -89,6 +89,12 @@ export function validateDocument(document, assets = {}) {
     insist(allowedAnchors.has(node.anchor || 'scene-local'), `节点 ${node.id} 锚点无效`, 'INVALID_ANCHOR');
     insist(Number.isInteger(node.startFrame) && Number.isInteger(node.durationFrames) && node.durationFrames > 0, `节点 ${node.id} 时间无效`, 'INVALID_NODE_TIME');
     if (node.assetId) insist(assets[node.assetId], `节点 ${node.id} 引用了不存在的素材`, 'MISSING_ASSET');
+    if(['image','video','audio'].includes(node.kind))insist(assets[node.assetId]?.kind===node.kind,`媒体节点 ${node.id} 缺少匹配的源素材`,'INVALID_MEDIA_ASSET');
+    if (node.kind === 'video' && assets[node.assetId]?.mediaMetadata?.duration) {
+      const asset=assets[node.assetId], start=Number(node.params?.sourceStartSeconds??asset.sourceStartSeconds??0),rate=node.params?.playbackRate??1;
+      insist(Number.isFinite(rate)&&rate>=.1&&rate<=5,'视频播放速度必须为0.1—5倍','INVALID_PLAYBACK_RATE');
+      insist(Number.isFinite(start)&&start>=0&&start+node.durationFrames/FPS*rate<=asset.mediaMetadata.duration+1/FPS, `视频节点 ${node.id} 超出真实素材时长`, 'INVALID_SOURCE_RANGE');
+    }
     if (node.kind === 'text') insist(typeof node.params?.text === 'string' && node.params.text.trim(), `文字节点 ${node.id} 不能为空`, 'INVALID_TEXT');
   }
   const pairs = new Set();
@@ -105,6 +111,28 @@ export function validateDocument(document, assets = {}) {
   }
   const expectedDuration = document.scenes.at(-1).startFrame + document.scenes.at(-1).durationFrames;
   insist(document.durationFrames === expectedDuration, '工程总时长与场景不一致', 'DURATION_MISMATCH');
+  insist(document.durationFrames>0&&document.durationFrames<=600*FPS,'工程时长必须在10分钟以内','INVALID_DURATION');
+  const audioIds=new Set();
+  for(const audio of document.audioGraph||[]){
+    const asset=assets[audio.assetId];insist(asset?.mediaMetadata?.hasAudio,'音轨引用了无声或缺失素材','INVALID_AUDIO_ASSET');
+    insist(typeof audio.id==='string'&&!audioIds.has(audio.id),'音轨ID无效或重复','INVALID_AUDIO_ID');audioIds.add(audio.id);
+    insist(Number.isInteger(audio.startFrame)&&audio.startFrame>=0&&Number.isInteger(audio.durationFrames)&&audio.durationFrames>0&&audio.startFrame+audio.durationFrames<=document.durationFrames,'音轨超出成片时长','INVALID_AUDIO_TIME');
+    const rate=audio.playbackRate??1,start=audio.sourceStartSeconds??0;
+    insist(Number.isFinite(rate)&&rate>=.1&&rate<=5&&Number.isFinite(start)&&start>=0&&start+audio.durationFrames/FPS*rate<=asset.mediaMetadata.duration+1/FPS,'音轨超出真实源时长','INVALID_SOURCE_RANGE');
+    insist(Number.isFinite(audio.volume)&&audio.volume>=0&&audio.volume<=2,'音量无效','INVALID_AUDIO_VOLUME');
+    for(const key of ['fadeInFrames','fadeOutFrames'])if(audio[key]!==undefined)insist(Number.isInteger(audio[key])&&audio[key]>=0&&audio[key]<=audio.durationFrames,'淡入淡出时长超出音轨','INVALID_AUDIO_FADE');
+    insist((audio.fadeInFrames||0)+(audio.fadeOutFrames||0)<=audio.durationFrames,'淡入淡出范围重叠','INVALID_AUDIO_FADE');
+    insist(!audio.ducking||Array.isArray(audio.ducking)&&audio.ducking.length<=100,'压低区间无效','INVALID_AUDIO_DUCK');
+    for(const span of audio.ducking||[])insist(Number.isInteger(span.startFrame)&&Number.isInteger(span.endFrame)&&span.startFrame>=audio.startFrame&&span.endFrame>span.startFrame&&span.endFrame<=audio.startFrame+audio.durationFrames&&Number.isFinite(span.gain)&&span.gain>=0&&span.gain<=1,'压低区间必须在音轨内，增益为0—1','INVALID_AUDIO_DUCK');
+  }
+  const captionIds=new Set();
+  insist(!document.captions||Array.isArray(document.captions)&&document.captions.length<=3000,'字幕数量超过上限','INVALID_CAPTIONS');
+  for(const cue of document.captions||[]){
+    insist(typeof cue.id==='string'&&!captionIds.has(cue.id),'字幕ID无效','INVALID_CAPTION_ID');captionIds.add(cue.id);
+    insist(typeof cue.text==='string'&&cue.text.trim()&&[...cue.text].length<=240,'字幕文字无效','INVALID_TEXT');
+    const asset=assets[cue.assetId];insist(asset?.mediaMetadata?.hasAudio&&cue.anchor==='source-content'&&typeof cue.trackId==='string','字幕缺少真实音源锚点','INVALID_CAPTION_SOURCE');
+    insist(Number.isFinite(cue.sourceStartSeconds)&&Number.isFinite(cue.sourceEndSeconds)&&cue.sourceStartSeconds>=0&&cue.sourceEndSeconds>cue.sourceStartSeconds&&cue.sourceEndSeconds<=asset.mediaMetadata.duration+1/FPS,'字幕超出源素材范围','INVALID_CAPTION_SOURCE');
+  }
   return document;
 }
 

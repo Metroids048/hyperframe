@@ -102,6 +102,9 @@ try {
     assert.equal(codexFailure("", { timed: true }).code, "CODEX_TIMEOUT");
   });
   await test("Python falls back by platform and respects override", () => {
+    const speechRoot = path.resolve("speech-test");
+    const speechPython = path.join(speechRoot, ".venv-speech", "Scripts/python.exe");
+    assert.equal(pythonExecutable({env:{},platform:"win32",root:speechRoot,exists:p=>p===speechPython}),speechPython);
     assert.equal(
       pythonExecutable({ env: {}, platform: "linux", exists: () => false }),
       "python3",

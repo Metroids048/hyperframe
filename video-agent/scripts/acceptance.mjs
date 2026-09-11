@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import {spawn} from 'node:child_process';
 import {once} from 'node:events';
 import http from 'node:http';
+import net from 'node:net';
 import sharp from 'sharp';
 import puppeteer from 'puppeteer-core';
 import {ROOT,defaults,verifyVideo,runtimeEnv} from '../lib/workflow.mjs';
@@ -12,7 +13,8 @@ import {validateSettings} from '../lib/demo-planner.mjs';
 
 // Isolated project storage and server: never rewrites the user's projects.
 const run=path.join(ROOT,'outputs','acceptance',new Date().toISOString().replace(/[:.]/g,'-'));
-const dataDir=path.join(run,'projects'),port=Number(process.env.VIDEO_AGENT_TEST_PORT||3022),base=`http://127.0.0.1:${port}`;
+const freePort=()=>new Promise((resolve,reject)=>{const socket=net.createServer();socket.once('error',reject);socket.listen(0,'127.0.0.1',()=>{const port=socket.address().port;socket.close(()=>resolve(port));});});
+const dataDir=path.join(run,'projects'),port=process.env.VIDEO_AGENT_TEST_PORT?Number(process.env.VIDEO_AGENT_TEST_PORT):await freePort(),base=`http://127.0.0.1:${port}`;
 await fs.mkdir(dataDir,{recursive:true});
 const checks=[],errors=[];let server,browser,log='';
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
@@ -20,9 +22,10 @@ async function check(name,fn){try{await fn();checks.push({name,passed:true});con
 async function api(route,options={},status=200){const r=await fetch(base+route,{signal:AbortSignal.timeout(15000),...options});const b=await r.json();assert.equal(r.status,status,JSON.stringify(b));return b;}
 const json=(body,method='POST')=>({method,headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
 async function start(){
- server=spawn(process.execPath,['server.mjs'],{cwd:ROOT,windowsHide:true,env:{...process.env,VIDEO_AGENT_PORT:String(port),VIDEO_AGENT_DATA_DIR:dataDir,VIDEO_AGENT_EDIT_DATA_DIR:path.join(run,'edit-projects'),VIDEO_AGENT_LIVE_CODEX:'0'},stdio:['ignore','pipe','pipe']});
+ const startOffset=log.length;
+ server=spawn(process.execPath,['server.mjs'],{cwd:ROOT,windowsHide:true,env:{...process.env,VIDEO_AGENT_PORT:String(port),VIDEO_AGENT_DATA_DIR:dataDir,VIDEO_AGENT_EDIT_DATA_DIR:path.join(run,'edit-projects'),VIDEO_AGENT_CREATIVE_DATA_DIR:path.join(run,'creative-projects'),VIDEO_AGENT_LIVE_CODEX:'0'},stdio:['ignore','pipe','pipe']});
  server.stdout.on('data',b=>log+=b);server.stderr.on('data',b=>log+=b);
- for(let n=0;n<40;n++){if(server.exitCode!==null)throw Error('Test server exited: '+log);try{await api('/api/health');return;}catch{}await delay(100);}
+ for(let n=0;n<100;n++){if(server.exitCode!==null)throw Error('Test server exited: '+log.slice(startOffset));if(log.slice(startOffset).includes('对话视频剪辑 '+base)){try{await api('/api/health');return;}catch{}}await delay(100);}
  throw Error('Isolated server did not start');
 }
 async function stop(){if(server&&server.exitCode===null){const ended=once(server,'exit');server.kill();await ended;}}
