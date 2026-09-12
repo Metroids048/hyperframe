@@ -40,26 +40,20 @@ export function runtimeTools(
     env.HYPERFRAMES_FFMPEG_PATH ||
     first(
       windows
-        ? [
-            path.join(
-              root,
-              "node_modules/@ffmpeg-installer/win32-x64/ffmpeg.exe",
-            ),
-          ]
-        : [],
+        ? [path.join(root, 'node_modules/@ffmpeg-installer/win32-x64/ffmpeg.exe')]
+        : platform === 'darwin'
+          ? [path.join(root, 'node_modules/@ffmpeg-installer/darwin-arm64/ffmpeg'), path.join(root, 'node_modules/@ffmpeg-installer/darwin-x64/ffmpeg')]
+          : [path.join(root, 'node_modules/@ffmpeg-installer/linux-x64/ffmpeg')],
     ) ||
     "ffmpeg";
   const ffprobe =
     env.HYPERFRAMES_FFPROBE_PATH ||
     first(
       windows
-        ? [
-            path.join(
-              root,
-              "node_modules/@ffprobe-installer/win32-x64/ffprobe.exe",
-            ),
-          ]
-        : [],
+        ? [path.join(root, 'node_modules/@ffprobe-installer/win32-x64/ffprobe.exe')]
+        : platform === 'darwin'
+          ? [path.join(root, 'node_modules/@ffprobe-installer/darwin-arm64/ffprobe'), path.join(root, 'node_modules/@ffprobe-installer/darwin-x64/ffprobe')]
+          : [path.join(root, 'node_modules/@ffprobe-installer/linux-x64/ffprobe')],
     ) ||
     "ffprobe";
   const browser =
@@ -117,3 +111,4 @@ export function pythonExecutable({
   );
   return exists(cached) ? cached : platform === "win32" ? "python" : "python3";
 }
+
