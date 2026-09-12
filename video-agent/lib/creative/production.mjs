@@ -1,3 +1,7 @@
+import {directionPrefix,createDirectionPreview} from './direction-preview.mjs';
+import {instantiateNativeRecipe,nativeRecipeContract} from './native-recipes.mjs';
+import {buildEvidenceIndex,queryEvidence,readEvidenceImages,reusableInspection} from './evidence-index.mjs';
+import {repairRoute,requiredRepairs,keyframeFailure} from './repair-routing.mjs';
 import {bindResourceChecks} from './resource-receipts.mjs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -28,7 +32,7 @@ const range=obj({assetId:str,startSeconds:num,endSeconds:num,reason:str});
 const observationSchema=obj({observations:creationSchema.properties.observations,candidates:list(range),inspectRanges:list(range),gaps:list(str)});
 const resourceSchema=obj({selected:list(obj({id:str,reason:str})),originalNeeds:list(str),gaps:list(str),blockingGaps:list(str)});
 const sceneProperties=creationSchema.properties.scenes.items.properties;
-const storyScene=obj(Object.fromEntries(Object.entries({...sceneProperties,paragraphId:str,newInformation:str,resourceId:str,visualDirection:str}).filter(([key])=>!['effectParamsJson','customSourceJson'].includes(key))));
+const storyScene=obj(Object.fromEntries(Object.entries({...sceneProperties,paragraphId:str,newInformation:str,resourceId:str,visualDirection:str,productionMethod:{type:'string',enum:nativeRecipeContract.methods}}).filter(([key])=>!['effectParamsJson','customSourceJson'].includes(key))));
 const storySchema=obj({inspectActions:list(range),inspectRanges:list(range),blockingGaps:list(str),summary:str,transition:creationSchema.properties.transition,design:obj({...creationSchema.properties.design.properties,fontFamily:{type:'string',enum:['Microsoft YaHei','Arial']},typeScale:obj({title:num,body:num,label:num}),safeMarginPx:num,labelStyle:str}),scenes:list(storyScene),audio:creationSchema.properties.audio,omitted:creationSchema.properties.omitted,paragraphs:list(obj({id:str,purpose:str,information:str}))});
 const shotSchema=obj({source:obj({html:str,css:str,timeline:str,parameters:list(obj({name:str,value:num,min:num,max:num})),objects:list(obj({elementId:str,ref:str})),motionTargets:list(str),textStyles:list(obj({elementId:str,match:str,fontSize:num,fontWeight:num,color:str}))}),notes:str});
 const animationSchema=obj({animation:obj(Object.fromEntries(['timeline','parameters','motionTargets'].map(k=>[k,shotSchema.properties.source.properties[k]]))),notes:str});
@@ -61,27 +65,35 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
     const previous=provider.onInvocation;
     let counted=false;provider.onInvocation=async invocation=>{counted=true;await ctx.recordModelCall({...invocation,stage});await previous?.(invocation);};
     const input=[{role:'user',content:[{type:'input_text',text:JSON.stringify(data)},...images]}];
-    const callNo=ctx.run.modelCalls+1,receipt={stage,context:guidance.records,inputHash:resourceHash(data),imageHashes:images.filter(i=>i.type==='input_image').map(i=>resourceHash(i.image_url)),implementationHash,resources,startedAt:new Date().toISOString()};
+    const callNo=ctx.run.modelCalls+1,receipt={inputTextBytes:Buffer.byteLength(JSON.stringify(data)),imageBytes:images.reduce((n,i)=>n+(i.image_url?.length||0),0),guidanceBytes:Buffer.byteLength(guidance.text+extra),stage,context:guidance.records,inputHash:resourceHash(data),imageHashes:images.filter(i=>i.type==='input_image').map(i=>resourceHash(i.image_url)),implementationHash,resources,startedAt:new Date().toISOString()};
     try{
       if(!(provider instanceof CodexProvider)){counted=true;await ctx.recordModelCall({stage,provider:'injected-test-provider'});}
       const answer=await provider.structured(guidance.text+'\n'+extra,input,schema,signal);
       await fs.mkdir(path.dirname(cacheFile),{recursive:true});await fs.writeFile(cacheFile,JSON.stringify({result:answer.result,outputHash:resourceHash(answer.result),context:guidance.records}));
       Object.assign(receipt,{status:'completed',model:answer.model,usage:answer.usage??null,reasoningEffort:answer.reasoningEffort||provider.reasoningEffort||null,outputHash:resourceHash(answer.result)});return answer.result;
     }catch(error){Object.assign(receipt,{status:'failed',error:error.message,code:error.code});throw error;}
-    finally{provider.onInvocation=previous;await fs.mkdir(path.join(outputDir,'receipts'),{recursive:true});await fs.writeFile(path.join(outputDir,'receipts',String(callNo).padStart(3,'0')+'-'+stage+'.json'),JSON.stringify({...receipt,counted},null,2));}
+    finally{provider.onInvocation=previous;await fs.mkdir(path.join(outputDir,'receipts'),{recursive:true});await fs.writeFile(path.join(outputDir,'receipts',String(callNo).padStart(3,'0')+'-'+stage+'.json'),JSON.stringify({...receipt,counted,elapsedMs:Date.now()-Date.parse(receipt.startedAt)},null,2));}
   }
   async function evidenceImages(){if(visualInputs.length)return visualInputs;const evidence=await readJSON('evidence.json');for(const a of evidence.assets){const samples=a.kind==='image'?a.samples:[];for(const s of samples){const bytes=await fs.readFile(path.join(outputDir,s.file));visualInputs.push({type:'input_text',text:'素材 '+a.assetId},{type:'input_image',image_url:'data:image/jpeg;base64,'+bytes.toString('base64')});}}
     const files=await fs.readdir(path.join(outputDir,'evidence'));for(const name of files.filter(n=>n.includes('-contact-')&&n.endsWith('.jpg')&&!/^(?:inspection|action)-/.test(n))){const bytes=await fs.readFile(path.join(outputDir,'evidence',name));visualInputs.push({type:'input_text',text:name},{type:'input_image',image_url:'data:image/jpeg;base64,'+bytes.toString('base64')});}return visualInputs;
   }
-  async function storyImages(run){
-    const all=[...(run.artifacts.storyInspections||[]),...(run.artifacts.actionInspections||[])],latest=all.find(record=>record.key===run.artifacts.latestStoryEvidenceKey)||all.at(-1);if(!latest)return evidenceImages();
-    const images=[];for(const record of latest.records||[]){const bytes=await fs.readFile(path.join(outputDir,record.file));insist(resourceHash(bytes)===record.sha256,'补充观察图片已变化','CHECKPOINT_HASH');images.push({type:'input_text',text:record.file+' '+record.assetId+' 源秒数 '+record.times.join(',')},{type:'input_image',image_url:'data:image/jpeg;base64,'+bytes.toString('base64')});}return images;
+  async function sourceEvidence(run,query={}){
+    const dense=await readJSON('dense-evidence.json').catch(e=>{if(e.code!=='ENOENT')throw e;return {records:[]};});
+    const initial=await readJSON('evidence.json');
+    const overviewRecords=initial.assets.flatMap(a=>(a.kind==='image'?a.samples.filter(s=>s.sha256).map(s=>({...s,times:[]})):a.contactSheets||[]).map(r=>({...r,assetId:a.assetId,sourceSha256:a.sha256,startSeconds:0,endSeconds:a.metadata?.duration||0})));
+    const batches=[{key:'initial-overview',tool:'assets.observe',records:overviewRecords},{...dense,tool:'assets.observe',key:'initial-dense'},...(run.artifacts.storyInspections||[]),...(run.artifacts.actionInspections||[])];
+    const index=buildEvidenceIndex(assets,batches,result(run,'observe')?.observations||[]);
+    await saveJSON('source-evidence-index.json',index);
+    const selected=queryEvidence(index,query),images=await readEvidenceImages(outputDir,selected.records);
+    // Retain the overall asset view without flooding every request with all frames.
+    const overview=overviewRecords.length?[]:await evidenceImages();
+    return {selection:{...selected,events:run.artifacts.sourceEvidenceEvents||[]},images:[...overview.slice(0,4),...images]};
   }
   async function denseImages(ranges){const inputs=[],records=[];for(const [i,r] of ranges.entries()){
     const asset=byId[r.assetId];insist(asset?.kind==='video'&&r.startSeconds>=0&&r.endSeconds>r.startSeconds&&r.endSeconds<=asset.mediaMetadata.duration,'加密观察超出源片范围','INVALID_SOURCE_RANGE');
     const times=Array.from({length:9},(_,j)=>r.startSeconds+(r.endSeconds-r.startSeconds)*(j+.15)/9),cells=[];
     for(const [j,time] of times.entries()){const file=path.join(outputDir,'evidence',`detail-${i}-${j}.jpg`);await mediaRun(ffmpeg,['-y','-v','error','-ss',String(time),'-i',path.join(outputDir,asset.compiledRef),'-frames:v','1','-vf','scale=400:225:force_original_aspect_ratio=decrease,format=rgb24,pad=400:225:(ow-iw)/2:(oh-ih)/2',file],{signal,timeout:30000});cells.push({input:await fs.readFile(file),left:j%3*400,top:Math.floor(j/3)*225});}
-    const bytes=await sharp({create:{width:1200,height:675,channels:3,background:'#111'}}).composite(cells).jpeg({quality:88}).toBuffer(),file=`evidence/detail-contact-${i}.jpg`;await fs.writeFile(path.join(outputDir,file),bytes);records.push({...r,times,file});inputs.push({type:'input_text',text:`${r.assetId} 加密画面，按从左至右逐行对应源秒数：${times.map(t=>t.toFixed(3)).join(',')}`},{type:'input_image',image_url:'data:image/jpeg;base64,'+bytes.toString('base64')});
+    const bytes=await sharp({create:{width:1200,height:675,channels:3,background:'#111'}}).composite(cells).jpeg({quality:88}).toBuffer(),file=`evidence/detail-contact-${i}.jpg`;await fs.writeFile(path.join(outputDir,file),bytes);records.push({...r,times,file,sha256:resourceHash(bytes),sourceSha256:asset.sha256});inputs.push({type:'input_text',text:`${r.assetId} 加密画面，按从左至右逐行对应源秒数：${times.map(t=>t.toFixed(3)).join(',')}`},{type:'input_image',image_url:'data:image/jpeg;base64,'+bytes.toString('base64')});
   }await saveJSON('dense-evidence.json',{records});return inputs;}
   const registry=new ToolRegistry();
   registry.register('brief.parse',async(_,ctx)=>{
@@ -95,7 +107,7 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
     const brief=result(ctx.run,'brief');
     const evidence=io.collectEvidence?await io.collectEvidence(assets):await collectCreativeEvidence(assets,outputDir,root,signal);visualInputs=evidence.inputs;
     let observation=await ask(ctx,'R2',{message:request.message,brief,assets:evidence.records,sourceMetadata:assets.map(a=>({id:a.id,...a.mediaMetadata}))},observationSchema,{images:visualInputs,extra:'分别列出可观察的候选动作源区间。如果间隔抽帧无法确认关键动作起止，inspectRanges列出至多6段、每段不超过45秒的需要加密观察区间；应用将执行真实工具再给你结果。不可只写「需要检查」后继续把不确定片段当确认。不要先写视觉场景。'});
-    if(observation.inspectRanges.length){insist(observation.inspectRanges.length<=6&&observation.inspectRanges.every(r=>r.endSeconds-r.startSeconds<=45),'加密观察超过预算','OBSERVATION_BUDGET');const dense=io.denseImages?await io.denseImages(observation.inspectRanges):await denseImages(observation.inspectRanges);observation=await ask(ctx,'R2',{brief,prior:observation,metadata:assets.map(a=>({id:a.id,...a.mediaMetadata}))},observationSchema,{images:dense,extra:'这是实际加密观察结果。修正动作与起止，保留未确认的局限。inspectRanges现在为空；仍不足以完成必需动作则写gaps，不虚构。'});}
+    if(observation.inspectRanges.length){insist(observation.inspectRanges.length<=6&&observation.inspectRanges.every(r=>r.endSeconds-r.startSeconds<=45),'加密观察超过预算','OBSERVATION_BUDGET');const dense=io.denseImages?await io.denseImages(observation.inspectRanges):await denseImages(observation.inspectRanges);visualInputs=[...visualInputs.slice(0,4),...dense];observation=await ask(ctx,'R2',{brief,prior:observation,metadata:assets.map(a=>({id:a.id,...a.mediaMetadata}))},observationSchema,{images:dense,extra:'这是实际加密观察结果。修正动作与起止，保留未确认的局限。inspectRanges现在为空；仍不足以完成必需动作则写gaps，不虚构。'});}
     for(let attempt=0;attempt<3;attempt++){
       try{validateObservations(assets,observation.observations);break;}catch(error){
         await saveJSON('failed-observation-'+attempt+'.json',{observation,error:{code:error.code,message:error.message}});if(attempt===2)throw error;
@@ -107,9 +119,9 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
   });
   registry.register('resources.plan',async(_,ctx)=>{
     const candidates=catalog.candidates({message:request.message+' '+result(ctx.run,'brief').capabilities.join(' '),assets});
-    const usable=candidates.filter(c=>c.eligible&&c.compatible).slice(0,3);
-    const contracts=await catalog.context('R3',usable.map(c=>c.id));
-    const plan=await ask(ctx,'R3',{message:request.message,brief:result(ctx.run,'brief'),observations:result(ctx.run,'observe'),candidates:usable,verifiedSourceFiles:contracts.records,adapter:{contractVersion:2,runtime:'0.8.33',method:'adapt visual structure into AST/CSS-validated native bundle',executionCompatibility:'checked per generated bundle before publication',rights:'upstream reference license separate from user media',tools:['resources.adapt_native_bundle','native.compile','native.isolate','hyperframes.check']}},resourceSchema,{resources:usable.map(c=>c.id),extra:'selected只能选候选id。候选完整蓝图和必要规则正文已附，并由应用验证文件哈希；无需再要求用户提供这些合同。只按表达是否适合选择资源，适配时使用当前应用受管原生合同，不原样执行上游脚本。可组合制作方法，不要求选场景菜单。没有适合资源时originalNeeds说明原生原创需要；不声称完成资源执行。现在已完成实际素材观察。gaps保留限制和不确定项；blockingGaps只列用户要求必须具备、工具也无法取得、没有它就无法制作的资料。商品介绍允许采用观察到的中性操作说明，未要求的商品名称/价格/参数不构成阻塞。之前未观察素材属于已执行工具工作，不能再要求用户确认。只有blockingGaps才会暂停任务。'});
+    const usable=candidates.filter(c=>c.eligible&&c.compatible);
+    const contracts=await catalog.context('R3',[]);
+    const plan=await ask(ctx,'R3',{message:request.message,brief:result(ctx.run,'brief'),observations:result(ctx.run,'observe'),candidates:usable,verifiedSourceFiles:contracts.records,adapter:{contractVersion:2,runtime:'0.8.33',method:'adapt visual structure into AST/CSS-validated native bundle',executionCompatibility:'checked per generated bundle before publication',rights:'upstream reference license separate from user media',tools:['resources.adapt_native_bundle','native.compile','native.isolate','hyperframes.check']}},resourceSchema,{resources:[],extra:'selected只能选候选id。候选为元数据索引，具体蓝图将在镜头制作时读取并校验哈希；无需再要求用户提供这些合同。只按表达是否适合选择资源，适配时使用当前应用受管原生合同，不原样执行上游脚本。可组合制作方法，不要求选场景菜单。没有适合资源时originalNeeds说明原生原创需要；不声称完成资源执行。现在已完成实际素材观察。gaps保留限制和不确定项；blockingGaps只列用户要求必须具备、工具也无法取得、没有它就无法制作的资料。商品介绍允许采用观察到的中性操作说明，未要求的商品名称/价格/参数不构成阻塞。之前未观察素材属于已执行工具工作，不能再要求用户确认。只有blockingGaps才会暂停任务。'});
     insist(plan.selected.every(s=>usable.some(c=>c.id===s.id)),'资源选择包含不可运行项','RESOURCE_UNAVAILABLE');ctx.run.selectedSkills=plan.selected.map(s=>s.id);return saveJSON('resource-plan.json',{...plan,candidates});
   });
   async function restoreNarration(record){
@@ -135,22 +147,29 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
     const transcripts=await readJSON('transcripts.json');if(!transcripts.some(t=>t.assetId===id))transcripts.push({assetId:id,sourceSha256:asset.sha256,transcript});await saveJSON('transcripts.json',transcripts);
     return saveJSON('narration.json',record);
   });
-  registry.register('assets.inspect_ranges',async({ranges},ctx)=>{
-    validateInspectionRanges(ranges,assets);const inspections=ctx.run.artifacts.storyInspections||[];
-    insist(inspections.length<2,'补充素材观察预算已用完，已保留证据与缺口','OBSERVATION_BUDGET');
-    const record=io.inspectSourceRanges?await io.inspectSourceRanges(ranges):await inspectSourceRanges(outputDir,assets,ranges,{signal});
-    ctx.run.artifacts.storyInspections=[...inspections,record];ctx.run.artifacts.latestStoryEvidenceKey=record.key;visualInputs=[];await saveJSON('story-inspections.json',ctx.run.artifacts.storyInspections);await ctx.persist();return record;
-  });
-  registry.register('assets.inspect_actions',async({ranges},ctx)=>{
-    validateActionRanges(ranges,assets);const inspections=ctx.run.artifacts.actionInspections||[];
-    insist(inspections.length<2,'动作边界观察预算已用完，证据已保留','OBSERVATION_BUDGET');
-    const record=io.inspectActionRanges?await io.inspectActionRanges(ranges):await inspectActionRanges(outputDir,assets,ranges,{signal});
-    ctx.run.artifacts.actionInspections=[...inspections,record];ctx.run.artifacts.latestStoryEvidenceKey=record.key;await saveJSON('action-inspections.json',ctx.run.artifacts.actionInspections);await ctx.persist();return record;
-  });
+  async function inspectWithBudget(ranges,ctx,action){
+    const field=action?'actionInspections':'storyInspections',tool=action?'assets.inspect_actions':'assets.inspect_ranges';
+    (action?validateActionRanges:validateInspectionRanges)(ranges,assets);
+    const inspections=ctx.run.artifacts[field]||[];
+    const reused=reusableInspection(inspections,ranges);if(reused){await readEvidenceImages(outputDir,buildEvidenceIndex(assets,[reused]).entries);return reused;}
+    try{
+      insist(inspections.length<2,'观察预算已用完；已有证据已保留，这不代表素材没有所需内容','OBSERVATION_BUDGET');
+      const inspect=action?(io.inspectActionRanges||((r)=>inspectActionRanges(outputDir,assets,r,{signal}))):(io.inspectSourceRanges||((r)=>inspectSourceRanges(outputDir,assets,r,{signal})));
+      const record=await inspect(ranges);
+      ctx.run.artifacts[field]=[...inspections,record];ctx.run.artifacts.latestStoryEvidenceKey=record.key;visualInputs=[];
+      await saveJSON(action?'action-inspections.json':'story-inspections.json',ctx.run.artifacts[field]);await ctx.persist();return record;
+    }catch(error){
+      (ctx.run.artifacts.sourceEvidenceEvents??=[]).push({tool,ranges,state:error.code==='OBSERVATION_BUDGET'?'budget_exhausted':'media_error',code:error.code,message:error.message});
+      await saveJSON('source-evidence-events.json',ctx.run.artifacts.sourceEvidenceEvents);await ctx.persist();throw error;
+    }
+  }
+  registry.register('assets.inspect_ranges',(input,ctx)=>inspectWithBudget(input.ranges,ctx,false));
+  registry.register('assets.inspect_actions',(input,ctx)=>inspectWithBudget(input.ranges,ctx,true));
   registry.register('story.plan',async(_,ctx)=>{
     const brief=result(ctx.run,'brief'),resources=result(ctx.run,'resources');
     let story,lastError=ctx.run.artifacts.storyValidationError;for(let attempt=0;attempt<3;attempt++){
-    story=await ask(ctx,'R4',{message:request.message,brief,attempt,validationError:lastError?.message,priorStory:result(ctx.run,'story')||null,additionalSourceEvidence:[...(ctx.run.artifacts.storyInspections||[]),...(ctx.run.artifacts.actionInspections||[])],availableTools:[{name:'assets.inspect_actions',remaining:2-(ctx.run.artifacts.actionInspections?.length||0),maxRanges:3,maxRangeSeconds:12,sampleFps:4,playableProxy:true},{name:'assets.inspect_ranges',remaining:2-(ctx.run.artifacts.storyInspections?.length||0),maxRanges:3,maxRangeSeconds:30}],observations:result(ctx.run,'observe'),narration:result(ctx.run,'narration'),transcripts:await readJSON('transcripts.json'),assets:assets.map(a=>({id:a.id,kind:a.kind,metadata:a.mediaMetadata})),resources,fontContract},runtimeStorySchema,{images:await storyImages(ctx.run),resources:resources.selected.map(r=>r.id),extra:'只输出整片故事和精确镜头时间，不写HTML。需要确认短动作起止时用inspectActions请求密集观察：每次至多3段，每段12秒，工具生成4Hz逐帧时间标记接触表和可播放源片段。4Hz证据只支持约0.25秒粒度的判断，不能宣称模型完整播放或帧级精确核验。观察宽区间用inspectRanges，两种工具分开记录预算。没有请求时inspectActions为空。若离散观察不足，先通过inspectRanges请求检查已有源片的具体区间（每次最多3段、每段30秒），本次scenes可留空，下一轮会得到真实工具图片及秒数。不要把未观察当成不可获得素材；也不把候选窗口当全部可用素材。已得到的补充观察不要重复请求。仅在确有不可取得的必需资料时填写blockingGaps，解释缺口；不能悄悄缩时长、补写事实或空转。有效完整分镜时两个数组均为空。按内容决定镜头数，不平均分配。每个镜头必须带新的信息或明确观看作用，paragraphId引用段落。不要把几个相似状态各自长时间停留当新信息；对连续超过8秒的镜头说明期间实际发生什么变化、为什么值得观看。durationSeconds明确到1/30秒；cut时总和严格等于目标秒数，其他转场每处重叠0.3秒。视频源区间必须足够且不重复凑时长，不改变播放速度除非用户明确要求。效应可为custom-native，后续镜头制作者处理。至少让有需要的关键镜头获得原创设计，但不要强制每幕动效或改掉自然实拍剪辑。resourceId为selected资源id或native-original。没有价格就没有价格段；用户要求开头价格则放开头。每镜头最多4媒体、32文字，整片最多300原生节点是执行预算。保持原声时audio列出有声视频assetId/volume:1/sourceStartSeconds:0；原声实际随每个源镜头裁切。如果narration.enabled，必须使用其真实asset.id音轨，保留完整已合成声音，并根据transcript的真实词时间安排镜头和文字。只使用brief.request的已确认事实，事实ID按fact-1顺序。设计颜色均#RRGGBB。typeScale给当前输出尺寸的像素字号，safeMarginPx给安全边距；labelStyle统一全片标签形状、边距、线条与层级，镜头制作必须继承，不各自发明字体和标签风格。'});
+    const evidence=await sourceEvidence(ctx.run);
+    story=await ask(ctx,'R4',{sourceEvidence:evidence.selection,message:request.message,brief,attempt,validationError:lastError?.message,priorStory:result(ctx.run,'story')||null,additionalSourceEvidence:[...(ctx.run.artifacts.storyInspections||[]),...(ctx.run.artifacts.actionInspections||[])],availableTools:[{name:'assets.inspect_actions',remaining:2-(ctx.run.artifacts.actionInspections?.length||0),maxRanges:3,maxRangeSeconds:12,sampleFps:4,playableProxy:true},{name:'assets.inspect_ranges',remaining:2-(ctx.run.artifacts.storyInspections?.length||0),maxRanges:3,maxRangeSeconds:30}],observations:result(ctx.run,'observe'),narration:result(ctx.run,'narration'),transcripts:await readJSON('transcripts.json'),assets:assets.map(a=>({id:a.id,kind:a.kind,metadata:a.mediaMetadata})),resources,nativeRecipeContract,fontContract},runtimeStorySchema,{images:evidence.images,resources:[],extra:'只输出整片故事和精确镜头时间，不写HTML。需要确认短动作起止时用inspectActions请求密集观察：每次至多3段，每段12秒，工具生成4Hz逐帧时间标记接触表和可播放源片段。4Hz证据只支持约0.25秒粒度的判断，不能宣称模型完整播放或帧级精确核验。观察宽区间用inspectRanges，两种工具分开记录预算。没有请求时inspectActions为空。若离散观察不足，先通过inspectRanges请求检查已有源片的具体区间（每次最多3段、每段30秒），本次scenes可留空，下一轮会得到真实工具图片及秒数。不要把未观察当成不可获得素材；也不把候选窗口当全部可用素材。已得到的补充观察不要重复请求。仅在确有不可取得的必需资料时填写blockingGaps，解释缺口；不能悄悄缩时长、补写事实或空转。有效完整分镜时两个数组均为空。按内容决定镜头数，不平均分配。每个镜头必须带新的信息或明确观看作用，paragraphId引用段落。不要把几个相似状态各自长时间停留当新信息；对连续超过8秒的镜头说明期间实际发生什么变化、为什么值得观看。durationSeconds明确到1/30秒；cut时总和严格等于目标秒数，其他转场每处重叠0.3秒。视频源区间必须足够且不重复凑时长，不改变播放速度除非用户明确要求。效应可为custom-native，后续镜头制作者处理。至少让有需要的关键镜头获得原创设计，但不要强制每幕动效或改掉自然实拍剪辑。按每镜头表达任务从resources.candidates中eligible且compatible的候选选择resourceId，selected仅为整片建议，不限制镜头；没有合适资源用native-original。productionMethod为footage-cut（单段实拍且无文字）、parameterized（符合nativeRecipeContract的常规布局）、composition-adapt（组合或局部适配）、original（必要原创）。常规镜头优先复用，关键创意不强制降级。visualDirection说明商品与文字主次、开场吸引点、此镜头新增理解及需要克制的地方。没有价格就没有价格段；用户要求开头价格则放开头。每镜头最多4媒体、32文字，整片最多300原生节点是执行预算。保持原声时audio列出有声视频assetId/volume:1/sourceStartSeconds:0；原声实际随每个源镜头裁切。如果narration.enabled，必须使用其真实asset.id音轨，保留完整已合成声音，并根据transcript的真实词时间安排镜头和文字。只使用brief.request的已确认事实，事实ID按fact-1顺序。设计颜色均#RRGGBB。typeScale给当前输出尺寸的像素字号，safeMarginPx给安全边距；labelStyle统一全片标签形状、边距、线条与层级，镜头制作必须继承，不各自发明字体和标签风格。'});
     if(story.inspectActions?.length){validateActionRanges(story.inspectActions,assets);return saveJSON('story-plan.json',story);}
     if(story.inspectRanges?.length){validateInspectionRanges(story.inspectRanges,assets);return saveJSON('story-plan.json',story);}
     if(story.blockingGaps?.length)return saveJSON('story-plan.json',story);
@@ -179,6 +198,26 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
   async function buildShotInSlot(ctx,index,feedback){
     const story=result(ctx.run,'story'),shot=story.scenes[index],timing=result(ctx.run,'timing').scenes[index],sceneId=timing.id;
     const sourceFile=`scene-${String(index+1).padStart(3,'0')}.json`,sources={};
+    // A clean, single real video segment needs no authored HTML. Keep it as a
+    // native media-cut so it can run on every supported desktop without
+    // entering the custom-source isolation worker.
+    if(!feedback&&shot.productionMethod==='footage-cut'&&shot.media.length===1&&shot.text.length===0&&byId[shot.media[0].assetId]?.kind==='video'){
+      const receipt={resourceId:'native-original',tool:'native.footage-cut',method:'footage-cut',sceneId,status:'compiled'};
+      await saveJSON(sourceFile,{source:null,receipt,notes:'Direct source cut; no custom HTML authored.'});
+      return {file:sourceFile,sourceHash:resourceHash(null),sceneId,receipt};
+    }
+    const reusable=!feedback&&instantiateNativeRecipe(shot,story.design,result(ctx.run,'brief').request.output,assets);
+    if(reusable){
+      const adapted=await catalog.adapt(reusable.source,{resourceId:shot.resourceId,sceneId,objectIds:[],design:story.design});
+      const document=documentFromModelPlan(request,assets,nativePlan(ctx.run,{[index]:adapted.source}));
+      compileDocument(document,assets);
+      const still={...adapted.source,timeline:'',motionTargets:[]},staticDocument=documentFromModelPlan(request,assets,nativePlan(ctx.run,{[index]:still}));
+      const inspected=await (io.inspectKeyframe||inspectKeyframe)(staticDocument,sceneId,assets,outputDir,runHyperFrames,{signal,atSeconds:Math.min(1,shot.durationSeconds*.45)});
+      const receipt={...adapted.receipt,tool:'resources.instantiate_native',method:reusable.method,adapterId:reusable.adapterId,adapterVersion:reusable.adapterVersion,implementationHash:reusable.implementationHash,adapterSourceSha256:implementation.files['lib/creative/native-recipes.mjs'],parameterHash:reusable.parameterHash,objectIds:document.nodes.filter(n=>n.sceneId===sceneId).map(n=>n.id),status:'compiled-static-checked',checks:inspected};
+      await saveJSON(sourceFile,{source:adapted.source,bundle:document.sourceBundles.find(b=>b.sceneId===sceneId),receipt,notes:'Parameterized native execution; complete film review still required.'});
+      return {file:sourceFile,sourceHash:resourceHash(adapted.source),sceneId,receipt};
+    }
+
     const keyframeChoices=[...new Set([.2,.45,.75].map(f=>Math.round(shot.durationSeconds*FPS*f)/FPS))];
     const staticShotSchema=obj({...shotSchema.properties,keyframeAtSeconds:{type:'number',enum:keyframeChoices}});
     const images=[],sourceBoundaryImages=[];
@@ -199,7 +238,7 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
     }
     const previousSource=feedback?await readJSON(sourceFile).then(r=>r.source).catch(e=>{if(e.code!=='ENOENT')throw e;return null;}):null;
     const packet={message:request.message,sceneId,shot,output:result(ctx.run,'brief').request.output,design:story.design,fontContract,keyframeChoices,previous:story.scenes[index-1]||null,next:story.scenes[index+1]||null,observations:result(ctx.run,'observe').observations.filter(o=>shot.media.some(m=>m.assetId===o.assetId)),feedback:feedback||null,previousSource,repairInstruction:feedback?'在现有源码中做解决已报告问题所需的最小修改；保持所有已有原生对象映射，不重新设计本镜头。':null};
-    let lastError,keyframe=null,keyframeImage=[];
+    let lastError,keyframe=null,keyframeImage=[];const failedLayouts=new Set();
     if(!feedback){
       for(let attempt=0;attempt<3;attempt++){
         const answer=await ask(ctx,'R5',{...packet,phase:'static-keyframe',attempt,error:lastError?.message},staticShotSchema,{images,resources:shot.resourceId==='native-original'?[]:[shot.resourceId],extra:CUSTOM_SOURCE_CONTRACT.replaceAll('customSourceJson','source')+'\n这里只制作最清晰的静态关键画面，尚未制作动画。根据已提供的真实候选帧，从keyframeChoices选择主体与动作最清楚的本镜头秒数，返回keyframeAtSeconds；不要固定使用中点。静态图没有可见时序差异时也从此列表选择。timeline必须为空字符串，motionTargets必须为空数组，全部获准文字在CSS静态状态清晰可见，不能使用opacity:0隐藏。保留真实实拍主体与所有获准原生对象。不要为动效预置不可见状态。应用会先运行真实布局/对比度检查并截图评审，再单独请求动画。'});
@@ -208,13 +247,13 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
           const adapted=await catalog.adapt(answer.source,{resourceId:shot.resourceId,sceneId,objectIds:[],design:story.design});
           const native=documentFromModelPlan(request,assets,nativePlan(ctx.run,{[index]:adapted.source}));
           await onStage?.('检查镜头 '+(index+1)+' 的静态布局');
-          const inspected=await inspectKeyframe(native,sceneId,assets,outputDir,runHyperFrames,{signal,atSeconds:answer.keyframeAtSeconds});
+          const inspected=await (io.inspectKeyframe||inspectKeyframe)(native,sceneId,assets,outputDir,runHyperFrames,{signal,atSeconds:answer.keyframeAtSeconds});
           keyframeImage=[{type:'input_text',text:'已检查的静态关键画面 '+inspected.folder+'/'+inspected.image},{type:'input_image',image_url:'data:image/png;base64,'+(await fs.readFile(inspected.imagePath)).toString('base64')}];
-          const review=await ask(ctx,'R6',{phase:'static-keyframe',sceneId,shot,design:story.design,output:native.output,keyframeAtSeconds:answer.keyframeAtSeconds,evidence:inspected.folder+'/'+inspected.image},obj({issues:list(obj({severity:{type:'string',enum:['major','minor']},problem:str,repair:str})),summary:str}),{images:[...sourceBoundaryImages,...keyframeImage],extra:'另提供源选段首末帧，用来核对入点和末帧的可见动作与本镜头说明是否相符；不能仅凭离散帧宣称完整连续动作通过。源边界未加包装，不检查其文字布局。检查静态关键画面中商品、文字主次、主体裁切和中文可读性。只报告图片可确认的问题；尚未添加动画，不把静止当缺陷。major需具体局部修复。'});
+          const review=await ask(ctx,'R6',{phase:'static-keyframe',sceneId,shot,design:story.design,output:native.output,keyframeAtSeconds:answer.keyframeAtSeconds,evidence:inspected.folder+'/'+inspected.image},obj({issues:list(obj({severity:{type:'string',enum:['major','minor']},repairKind:{type:'string',enum:['layout','source-selection','text-evidence','text-timing','fact-binding']},problem:str,repair:str})),summary:str}),{images:[...sourceBoundaryImages,...keyframeImage],extra:'另提供源选段首末帧，用来核对入点和末帧的可见动作与本镜头说明是否相符；不能仅凭离散帧宣称完整连续动作通过。源边界未加包装，不检查其文字布局。检查静态关键画面中商品、文字主次、主体裁切和中文可读性。只报告图片可确认的问题；尚未添加动画，不把静止当缺陷。major需具体局部修复。repairKind仅在源区间或动作确实错误时为source-selection；对比度、遮挡、排版为layout；事实冲突为fact-binding。'});
           await saveJSON('keyframe-review-'+index+'-'+attempt+'.json',{...inspected,imagePath:undefined,review,sourceHash:resourceHash(adapted.source)});
-          insist(!review.issues.some(i=>i.severity==='major'),JSON.stringify(review.issues),'KEYFRAME_LAYOUT');
+          const failure=keyframeFailure(review.issues);if(failure)throw failure;
           keyframe=adapted.source;await saveJSON('keyframe-'+index+'.json',{source:keyframe,evidence:inspected,review});break;
-        }catch(error){lastError=error;await saveJSON('failed-keyframe-'+index+'-'+attempt+'.json',{answer,error:{code:error.code,message:error.message}});if(attempt===2)throw error;}
+        }catch(error){lastError=error;await saveJSON('failed-keyframe-'+index+'-'+attempt+'.json',{answer,error:{code:error.code,message:error.message}});const failureHash=resourceHash({code:error.code,message:error.message,source:answer.source});const repeated=failedLayouts.has(failureHash);failedLayouts.add(failureHash);if(repeated||repairRoute(error)!=='scene'||attempt===2)throw error;}
       }
       lastError=null;
     }
@@ -231,7 +270,8 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
   async function replanSourceShot(ctx,index,feedback){
     const count=ctx.run.artifacts.storyRepairCount||0;insist(count<2,'镜头选段重规划预算已用完；保留有效镜头和缺陷','STORY_REPAIR_BUDGET');
     const original=result(ctx.run,'story'),brief=result(ctx.run,'brief'),resources=result(ctx.run,'resources');
-    const repaired=await ask(ctx,'R4',{phase:'repair-one-source-selection',index,story:original,brief,observations:result(ctx.run,'observe'),additionalSourceEvidence:ctx.run.artifacts.storyInspections||[],sourceMetadata:assets.map(a=>({id:a.id,...a.mediaMetadata})),feedback},storyScene,{images:await evidenceImages(),extra:'画面检查指出源片选段或模型自拟观察说明与画面不符。仅修复这个镜头：若画面正确但模型自拟的中性说明不符，可根据真实证据纠正该说明，不必换掉正确实拍。用户消息中逐字提供的文字、有factRefs的文字、价格与CTA必须原样保留。文字数量、角色、事实引用、媒体数量、时长、段落和资源ID不变；更正说明不得新增数值、参数、价格或无法从实际画面确认的商品事实。不改其他镜头或声音策略。不要重复其他镜头补时长，不编造缺失动作或商品关联。片尾不能在新动作中间戛然而止；依据实际接触表选择能自然结束的真实区间，不能冻结、慢放或循环。返回完整单镜头；sourceStartSeconds实际影响原生视频及同步原声音轨。'});
+    const shot=original.scenes[index],evidence=await sourceEvidence(ctx.run,{assetIds:shot.media.map(m=>m.assetId),preferredRanges:shot.media.map(m=>({assetId:m.assetId,startSeconds:m.sourceStartSeconds,endSeconds:m.sourceStartSeconds+shot.durationSeconds*(m.playbackRate||1)}))});
+    const repaired=await ask(ctx,'R4',{sourceEvidence:evidence.selection,phase:'repair-one-source-selection',index,story:original,brief,observations:result(ctx.run,'observe'),additionalSourceEvidence:[...(ctx.run.artifacts.storyInspections||[]),...(ctx.run.artifacts.actionInspections||[])],sourceMetadata:assets.map(a=>({id:a.id,...a.mediaMetadata})),feedback},storyScene,{images:evidence.images,extra:'画面检查指出源片选段或模型自拟观察说明与画面不符。仅修复这个镜头：若画面正确但模型自拟的中性说明不符，可根据真实证据纠正该说明，不必换掉正确实拍。用户消息中逐字提供的文字、有factRefs的文字、价格与CTA必须原样保留。文字数量、角色、事实引用、媒体数量、时长、段落和资源ID不变；更正说明不得新增数值、参数、价格或无法从实际画面确认的商品事实。不改其他镜头或声音策略。不要重复其他镜头补时长，不编造缺失动作或商品关联。片尾不能在新动作中间戛然而止；依据实际接触表选择能自然结束的真实区间，不能冻结、慢放或循环。返回完整单镜头；sourceStartSeconds实际影响原生视频及同步原声音轨。'});
     validateShotRepair(original.scenes[index],repaired,request.message);
     const story=replaceStoryShot(original,index,repaired,brief,resources),native=documentFromModelPlan(request,assets,nativePlan(ctx.run,{},story));
     await saveJSON('story-before-repair-'+count+'.json',original);await saveJSON('story-repair-'+count+'.json',{index,before:original.scenes[index],after:repaired,reason:feedback});
@@ -241,25 +281,36 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
   registry.register('scene.author',async({index},ctx)=>{
     if(io.buildShot)return io.buildShot(index,ctx);
     for(;;){try{return await buildShot(ctx,index);}catch(error){
-      if(error.code!=='KEYFRAME_LAYOUT'||signal?.aborted)throw error;
-      await replanSourceShot(ctx,index,[{problem:error.message,repairKind:'source-selection'}]);
+      if(repairRoute(error)!=='source-selection'||signal?.aborted)throw error;
+      await replanSourceShot(ctx,index,error.issues||[{problem:error.message,repairKind:'source-selection'}]);
     }}
   });
   async function assemble(ctx){const sources={};for(const [i] of result(ctx.run,'story').scenes.entries()){const record=await readJSON(result(ctx.run,'shot-'+i).file);insist(resourceHash(record.source)===result(ctx.run,'shot-'+i).sourceHash,'镜头检查点内容变更','SCENE_HASH');sources[i]=record.source;}
     const document=documentFromModelPlan(request,assets,nativePlan(ctx.run,sources));document.storyPlan={paragraphs:result(ctx.run,'story').paragraphs,scenes:result(ctx.run,'story').scenes.map((s,i)=>({sceneId:document.scenes[i].id,paragraphId:s.paragraphId,newInformation:s.newInformation,visualDirection:s.visualDirection}))};document.timingPlan=result(ctx.run,'timing');document.production={runId:ctx.run.id,inputFingerprint:fingerprint,workflowVersion:1};document.dependencyLock={...document.dependencyLock,resources:catalog.snapshot?.commit,prompts:resourceHash(await fs.readFile(path.join(root,'prompts/commerce/manifest.json'),'utf8'))};document.resourceReceipts=Object.keys(sources).map(i=>result(ctx.run,'shot-'+i).receipt);
     if(result(ctx.run,'brief').needsCaptions)document.captions=await recognizeNativeCaptions(document,assets,outputDir,{signal,provider});
     const audioRefs=await prepareNativeAudio(outputDir,document,assets,{signal});const compiled=compileDocument(document,assets,{audioRefs});await fs.writeFile(path.join(outputDir,'index.html'),compiled.html);await saveJSON('document.json',document);await saveJSON('object-map.json',compiled.objectMap);await saveJSON('manifest.json',compiled.manifest);await fs.writeFile(path.join(outputDir,'DESIGN.md'),designMarkdown(document));await fs.writeFile(path.join(outputDir,'STORYBOARD.md'),'# Storyboard\n\n'+result(ctx.run,'story').summary+'\n\n'+document.storyPlan.scenes.map(s=>s.sceneId+' · '+s.newInformation).join('\n'));
-    await catalog.lockUsedResources?.(outputDir);
-    await saveJSON('resource-receipts.json',document.resourceReceipts);await saveJSON('hyperframes.json',{version:1,entry:'index.html'});
+    await saveJSON('resource-receipts.json',document.resourceReceipts);
+    await catalog.lockUsedResources?.(outputDir);await saveJSON('hyperframes.json',{version:1,entry:'index.html'});
     await (io.verifyCustomProject||verifyCustomProject)(outputDir,document,assets,{signal});
     await fs.writeFile(path.join(outputDir,'check.log'),await runHyperFrames(outputDir,'check',[],{signal}));return {revisionId:document.revisionId,durationFrames:document.durationFrames};
   }
+  registry.register('project.direction_preview',async(_,ctx)=>{
+    if(io.directionPreview)return io.directionPreview(ctx);
+    const sources={},completed=[];
+    for(const [i]of result(ctx.run,'story').scenes.entries()){
+      const checkpoint=result(ctx.run,'shot-'+i);if(!checkpoint)break;
+      const record=await readJSON(checkpoint.file);insist(resourceHash(record.source)===checkpoint.sourceHash,'方向预览的镜头检查点已变化','SCENE_HASH');sources[i]=record.source;completed.push(checkpoint.sceneId);
+    }
+    const document=documentFromModelPlan(request,assets,nativePlan(ctx.run,sources));
+    const record=await createDirectionPreview(document,completed,assets,outputDir,root,runHyperFrames,{signal,binding:{runId:ctx.run.id,inputFingerprint:fingerprint,storyHash:resourceHash(result(ctx.run,'story')),timingHash:resourceHash(result(ctx.run,'timing')),implementationHash,sourceHashes:Object.fromEntries(Object.keys(sources).map(i=>[i,result(ctx.run,'shot-'+i).sourceHash]))}});
+    ctx.run.artifacts.directionPreview=record;await ctx.persist();return saveJSON('direction-preview.json',record);
+  });
   registry.register('project.assemble',async(_,ctx)=>{
     if(io.assemble)return io.assemble(ctx);
     for(;;){try{return await assemble(ctx);}catch(error){
       await saveJSON('assembly-failure-'+Date.now()+'.json',{message:error.message,code:error.code,sceneId:error.sceneId});
       const targets=[...new Set([error.sceneId,...[...String(error.message).matchAll(/custom-(scene-\d+)-/g)].map(m=>m[1])].filter(Boolean))];
-      if(!targets.length||signal?.aborted)throw error;
+      if(!targets.length||signal?.aborted||repairRoute(error)!=='scene')throw error;
       for(const sceneId of targets){const index=result(ctx.run,'timing').scenes.findIndex(s=>s.id===sceneId);if(index<0)throw error;const current=result(ctx.run,'shot-'+index),repairs=current.engineeringRepairCount||0;if(repairs>=2)throw error;await onStage?.('修复镜头 '+(index+1)+' 的工程检查问题');const rebuilt=await buildShot(ctx,index,[{kind:'engineering-check',problem:error.message,scope:'only this scene; preserve approved text, media, timing and stable object roles'}]);ctx.run.checkpoints['shot-'+index].result={...rebuilt,engineeringRepairCount:repairs+1};await ctx.persist();}
     }}
   });
@@ -278,20 +329,20 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
         for(const name of names){const bytes=await sharp(path.join(outputDir,folder,name)).resize({width:1280,height:960,fit:'inside'}).jpeg({quality:86}).toBuffer();images.push({type:'input_text',text:folder+'/'+name},{type:'input_image',image_url:'data:image/jpeg;base64,'+bytes.toString('base64')});}
         insist(images.length,'没有实际预览帧，不能评审通过','PREVIEW_EVIDENCE_MISSING');
         const {sourceBundles,...reviewDocument}=document;reviewDocument.scenes=scenes;reviewDocument.nodes=document.nodes.filter(n=>ids.has(n.sceneId));
-        const reviewed=await ask(ctx,'R6',{message:request.message,document:reviewDocument,frameTimes,evidence:names.map(n=>folder+'/'+n),round,batch:offset/3,limits:{sceneRepairs:2,wholeFilmReviews:2}},boundedQualitySchema(ids,reviewDocument.nodes,frameTimes),{images,extra:'本批只检查给定镜头，其他镜头另批处理。只根据实际图片与时间/源区间检查结果评价；没有试听/全片运动证据则把该项列入unreviewed。问题必须有本批有效sceneId和实际证据文件名。major/blocker必须给具体可执行的局部修复。repairKind必须准确区分：源画面选错/动作不完整/片尾在新动作中截断用source-selection，由导演重选原生媒体区间；构图遮挡用layout；文字退出时点用text-timing；模型自拟说明本身与实拍证据不符用text-evidence，由导演纠正中性说明，不能改变用户原文或事实。不要要求镜头CSS编写器改变原生视频选段。不要把增加动画数量当质量。'});
+        const reviewed=await ask(ctx,'R6',{message:request.message,document:reviewDocument,animationEvidence:sourceBundles.filter(b=>ids.has(b.sceneId)).map(b=>({sceneId:b.sceneId,timeline:b.timeline,objects:b.objects})),frameTimes,evidence:names.map(n=>folder+'/'+n),round,batch:offset/3,limits:{sceneRepairs:2,wholeFilmReviews:2}},boundedQualitySchema(ids,reviewDocument.nodes,frameTimes),{images,extra:'本批只检查给定镜头，其他镜头另批处理。只根据实际图片与时间/源区间检查结果评价；没有试听/全片运动证据则把该项列入unreviewed。问题必须有本批有效sceneId和实际证据文件名。major/blocker必须给具体可执行的局部修复。repairKind必须准确区分：源画面选错/动作不完整/片尾在新动作中截断用source-selection，由导演重选原生媒体区间；构图遮挡用layout；文字退出时点用text-timing；模型自拟说明本身与实拍证据不符用text-evidence，由导演纠正中性说明，不能改变用户原文或事实。不要要求镜头CSS编写器改变原生视频选段。不要把增加动画数量当质量。'});
         for(const issue of reviewed.issues){insist(ids.has(issue.sceneId)&&issue.nodeIds.every(id=>document.nodes.some(n=>n.id===id&&n.sceneId===issue.sceneId)),'评审对象不存在或不属于目标镜头','REVIEW_TARGET');insist(issue.startSeconds>=0&&issue.endSeconds>=issue.startSeconds&&issue.endSeconds<=document.durationFrames/FPS&&issue.evidence.length&&issue.evidence.every(f=>frameTimes.some(t=>t.file===f)),'评审必须定位实际时间与本轮预览文件','REVIEW_EVIDENCE');}
         await saveJSON(`quality-round-${round}-batch-${offset/3}.json`,{...reviewed,frameTimes});batches.push(reviewed);
       }
       report={summary:batches.map(b=>b.summary).join('\n'),issues:batches.flatMap(b=>b.issues),unreviewed:[...new Set(batches.flatMap(b=>b.unreviewed))]};
       await saveJSON('quality-round-'+round+'.json',report);
-      const required=report.issues.filter(i=>round===0||['blocker','major'].includes(i.severity));
+      const required=requiredRepairs(report.issues);
       if(!required.length)break;
       if(round===2)break;
-      for(const sceneId of new Set(required.map(i=>i.sceneId))){const index=document.scenes.findIndex(s=>s.id===sceneId);insist(index>=0,'评审引用了不存在镜头','REVIEW_TARGET');const current=ctx.run.checkpoints['shot-'+index].result,repairCount=current.repairCount||0;if(repairCount>=2)continue;const feedback=required.filter(i=>i.sceneId===sceneId),sourceSelection=feedback.some(i=>['source-selection','text-evidence'].includes(i.repairKind));if(sourceSelection)await replanSourceShot(ctx,index,feedback);const rebuilt=await buildShot(ctx,index,sourceSelection?undefined:feedback);ctx.run.checkpoints['shot-'+index].result={...rebuilt,repairCount:repairCount+1};await ctx.persist();}
+      for(const sceneId of new Set(required.map(i=>i.sceneId))){const index=document.scenes.findIndex(s=>s.id===sceneId);insist(index>=0,'评审引用了不存在镜头','REVIEW_TARGET');const current=ctx.run.checkpoints['shot-'+index].result,repairCount=current.repairCount||0;if(repairCount>=2)continue;const feedback=required.filter(i=>i.sceneId===sceneId),sourceSelection=feedback.some(i=>['source-selection','text-evidence'].includes(i.repairKind));if(sourceSelection)await replanSourceShot(ctx,index,feedback);const rebuilt=await buildShot(ctx,index,sourceSelection?undefined:feedback);insist(sourceSelection||rebuilt.sourceHash!==current.sourceHash,'局部修复没有改变问题镜头，已保留原工程和缺陷','REPAIR_NO_PROGRESS');ctx.run.checkpoints['shot-'+index].result={...rebuilt,repairCount:repairCount+1};await ctx.persist();}
       ctx.run.repairCount++;await ctx.persist();await assemble(ctx);
     }
     const blockers=report.issues.filter(i=>['blocker','major'].includes(i.severity));const document=await readJSON('document.json');
-    const quality={...report,status:blockers.length?'needs-repair':'preview-reviewed',engineering:'checked',fullPlayback:'pending',humanReview:'pending',rights:'requires-publisher-review',revisionId:document.revisionId};document.quality=quality;bindResourceChecks(document,{engineering:true,visual:quality.status});await saveJSON('resource-receipts.json',document.resourceReceipts);document.previewRange={startFrame:document.scenes[Math.floor(document.scenes.length/3)].startFrame,endFrame:Math.min(document.durationFrames,document.scenes[Math.floor(document.scenes.length/3)].startFrame+15*FPS)};await saveJSON('document.json',document);await saveJSON('quality-report.json',quality);ctx.run.verification=quality;
+    const quality={...report,status:blockers.length?'needs-repair':'preview-reviewed',engineering:'checked',fullPlayback:'pending',humanReview:'pending',rights:'requires-publisher-review',revisionId:document.revisionId};document.quality=quality;document.directionPreview=ctx.run.artifacts.directionPreview||null;bindResourceChecks(document,{engineering:true,visual:quality.status});await saveJSON('resource-receipts.json',document.resourceReceipts);document.previewRange={startFrame:document.scenes[Math.floor(document.scenes.length/3)].startFrame,endFrame:Math.min(document.durationFrames,document.scenes[Math.floor(document.scenes.length/3)].startFrame+15*FPS)};await saveJSON('document.json',document);await saveJSON('quality-report.json',quality);ctx.run.verification=quality;
     if(blockers.length)throw Object.assign(Error('预览仍有严重问题，保留草稿与修复记录'),{code:'VISUAL_REVIEW_FAILED'});return quality;
   });
   const phaseTools=[['brief','brief.parse'],['observe','assets.observe'],['resources','resources.plan'],['narration','narration.prepare'],['story','story.plan'],['timing','timing.verify']];
@@ -306,12 +357,16 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
     if(result(run,'story')?.inspectRanges?.length){
       const ranges=result(run,'story').inspectRanges,key='story-inspection-'+resourceHash(ranges).slice(0,16);
       if(!result(run,key)){await onStage?.('补充观察导演需要的真实素材');return {kind:'tool',tool:'assets.inspect_ranges',checkpoint:key,input:{ranges}};}
-      const last=run.toolCalls.at(-1),lastResult=run.toolResults.at(-1);if(last?.name==='story.plan'&&lastResult?.status==='completed'&&lastResult.idempotencyKey===run.checkpoints.story.idempotencyKey&&last.input?.evidenceHash===key)return {kind:'need_user',gaps:['已检查同一区间仍无法确认所需内容；请补充能证明该动作或商品关联的资料。']};
+      const last=run.toolCalls.at(-1),lastResult=run.toolResults.at(-1);if(last?.name==='story.plan'&&lastResult?.status==='completed'&&lastResult.idempotencyKey===run.checkpoints.story.idempotencyKey&&last.input?.evidenceHash===key)return {kind:'need_user',gaps:['已检查同一区间，当前证据仍不确定；已保留观察结果，可补充观察或调整要求。这不代表源素材没有该内容。']};
       await onStage?.('根据新增素材证据更新分镜');return {kind:'tool',tool:'story.plan',checkpoint:'story',input:{evidenceHash:key}};
     }
     if(result(run,'resources')?.blockingGaps?.length)return {kind:'need_user',gaps:result(run,'resources').blockingGaps};
     for(const [key,tool] of phaseTools)if(!result(run,key)){await onStage?.(labels[key]);return {kind:'tool',tool,checkpoint:key,input:{}};}
     kernel.maxModelCalls=Math.min(128,12+7*result(run,'story').scenes.length);
+    const timingScenes=result(run,'timing').scenes,completed=timingScenes.filter((s,i)=>result(run,'shot-'+i));
+    if(!result(run,'direction-preview')&&completed.length>0&&completed.length<timingScenes.length&&completed.at(-1).startFrame+completed.at(-1).durationFrames>=10*FPS){
+      await onStage?.('提前检查母工程的方向预览');return {kind:'tool',tool:'project.direction_preview',checkpoint:'direction-preview',input:{}};
+    }
     for(const [index] of result(run,'story').scenes.entries())if(!result(run,'shot-'+index)){await onStage?.('制作镜头 '+(index+1)+'/'+result(run,'story').scenes.length);return {kind:'tool',tool:'scene.author',checkpoint:'shot-'+index,input:{index}};}
     if(!result(run,'assemble')){await onStage?.(labels.assemble);return {kind:'tool',tool:'project.assemble',checkpoint:'assemble'};}
     if(!result(run,'quality')){await onStage?.(labels.quality);return {kind:'tool',tool:'preview.review',checkpoint:'quality'};}
@@ -362,3 +417,4 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
     return await readJSON('document.json');
   }finally{if(own)await provider.close();}
 }
+
