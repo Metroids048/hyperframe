@@ -1,0 +1,11 @@
+import fs from 'node:fs/promises';
+const file=new URL('../web/app.js',import.meta.url);let s=await fs.readFile(file,'utf8');
+s=s.replace("let current=null,files=[]", "let catalog=[],selectedCaseId='qing',optimizedFor=null;\nlet current=null,files=[]");
+s=s.replace('const response=await fetch(url,options);','const response=await fetch(url,{signal:AbortSignal.timeout(75000),...options});');
+s=s.replace('function readBrief(){return {brand:',"function readBrief(){return {theme:$('setting-theme').value,brand:");
+s=s.replace("function display(p){current=p;", "function display(p){current=p;$('render-notice').textContent=p.renderNotice||'';$('render-notice').hidden=!p.renderNotice;$('confirm').textContent=p.renderNotice?'按 Demo 规格生成样片':'确认并生成视频';");
+s=s.replace("e.preventDefault();error('form-error','');if(!form.reportValidity())return;", "e.preventDefault();error('form-error','');if(optimizedFor!==$('description').value)return error('form-error','请先整理这段需求，或选择手动补充。');$('extracted').hidden=false;$('extracted').open=true;if(!form.reportValidity())return;");
+s=s.replace("data.set('useExample',String(useExample));", "data.set('useExample',String(useExample));data.set('caseId',selectedCaseId);data.set('description',$('description').value);data.set('settings',JSON.stringify(readSettings()));");
+s=s.replace("button.textContent='生成分镜 →'", "button.textContent='采用优化结果，生成分镜 →'");
+s=s.replace("fillBrief(input);return {staged:true", "fillBrief(input);revealExtraction();optimizedFor=$('description').value;return {staged:true");
+await fs.writeFile(file,s);

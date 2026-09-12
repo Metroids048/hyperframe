@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Frame · 对话剪辑</title>
+    <link rel="stylesheet" href="/editor.css" />
+    <script src="/editor-player.js" defer></script>
+    <script src="/editor.js" defer></script>
+  </head>
+  <body class="landing">
+    <header class="app-header">
+      <a class="brand" href="/edit"
+        ><span class="brand-mark">▰</span><strong>Frame</strong
+        ><span>对话剪辑</span></a
+      >
+      <div class="project-switch">
+        <select id="projects" aria-label="选择项目">
+          <option value="">选择项目</option></select
+        ><button id="new-project" class="quiet">＋ 新项目</button>
+      </div>
+      <nav>
+        <a href="/create">图片成片</a
+        ><button id="model-help" class="quiet">连接状态</button
+        ><button id="export" class="primary" disabled>导出 MP4 ↗</button>
+      </nav>
+    </header>
+    <div class="app">
+      <aside class="chat" aria-label="剪辑对话">
+        <div class="chat-heading">
+          <span class="agent-icon" aria-hidden="true">✳</span>
+          <div>
+            <strong>剪辑搭档</strong>
+            <p id="provider-status">正在检查连接…</p>
+          </div>
+          <span id="connection-dot" class="connection-dot"></span>
+        </div>
+        <div
+          id="messages"
+          class="messages"
+          aria-live="polite"
+          aria-relevant="additions text"
+        ></div>
+        <div id="chat-task" class="chat-task" hidden role="status">
+          <span class="task-spinner" aria-hidden="true"></span
+          ><span id="chat-stage"></span
+          ><progress
+            id="chat-progress"
+            max="100"
+            value="0"
+            aria-label="剪辑进度"
+          ></progress
+          ><button id="chat-cancel" type="button" class="quiet">
+            停止当前修改
+          </button>
+          <button id="chat-retry" type="button" class="quiet" hidden>
+            重试当前任务
+          </button>
+        </div>
+        <div id="error" class="error" role="alert" hidden></div>
+        <div id="reconnect" class="reconnect" hidden>
+          <span>连接暂时中断，草稿与已提交任务仍保留。</span
+          ><button id="reconnect-button" class="quiet">重新连接</button>
+        </div>
+        <div class="chat-suggestions">
+          <span id="suggestions-label">试着这样说 · 点击填入，可以改写</span>
+          <div id="chat-prompts"></div>
+        </div>
+        <form id="chat-form">
+          <div
+            id="attachments"
+            class="attachments"
+            hidden
+            aria-label="已添加素材"
+          ></div>
+          <div id="selection" class="selection" hidden>
+            <span id="selection-text"></span
+            ><button id="clear-selection" type="button" aria-label="取消引用">
+              ×
+            </button>
+          </div>
+          <label for="prompt" class="sr-only">剪辑要求</label
+          ><textarea
+            id="prompt"
+            rows="3"
+            maxlength="6000"
+            placeholder="描述你想怎么剪，例如：保留最精彩的 30 秒，给讲话加中文字幕。"
+          ></textarea>
+          <div class="composer-bottom">
+            <button id="chat-attach" type="button" class="quiet">
+              ＋ 添加素材</button
+            ><button
+              id="composer-reference"
+              type="button"
+              class="quiet"
+              disabled
+            >
+              引用画面</button
+            ><button id="send" class="primary" disabled>发送 ↑</button>
+          </div>
+        </form>
+        <p id="chat-note" class="chat-note">
+          先添加视频。Enter 发送，Shift+Enter 换行。
+        </p>
+      </aside>
+      <main aria-label="视频预览">
+        <div class="viewer-heading">
+          <div class="heading-copy">
+            <span id="version-label" class="eyebrow">从一段原片开始</span>
+            <h1 id="title">把剪辑，说出来。</h1>
+          </div>
+          <div class="version-actions">
+            <select id="versions" aria-label="历史版本" disabled>
+              <option>版本记录</option></select
+            ><button id="undo" class="quiet" disabled>↶ 撤销</button
+            ><button id="redo" class="quiet" disabled>↷ 重做</button
+            ><button id="restore" class="quiet" hidden>从此版继续</button
+            ><button id="export-inline" class="primary" disabled>
+              导出 MP4 ↗
+            </button>
+          </div>
+        </div>
+        <div class="source-toolbar">
+          <button id="source-upload" class="quiet">＋ 添加视频</button
+          ><button id="pick-sample" class="quiet">体验样例</button
+          ><button id="show-library" class="quiet">素材与文字稿</button
+          ><span id="source-label">原片会保留，每次修改都有记录</span>
+        </div>
+        <div id="import-loading" class="import-loading" hidden role="status">
+          <span class="task-spinner" aria-hidden="true"></span>
+          <div>
+            <strong>正在准备素材</strong>
+            <p id="import-stage">读取视频并制作预览…</p>
+            <small>可以先写下剪辑要求。</small>
+          </div>
+        </div>
+        <section id="empty" class="empty">
+          <div class="empty-icon" aria-hidden="true">▷</div>
+          <h2>一段视频，一个想法。</h2>
+          <p>
+            添加素材，再用对话调整内容、字幕和声音。<br />修改后先预览，满意时再导出。
+          </p>
+          <button id="upload" class="upload-zone">
+            ＋ 点击添加，或拖入视频<span id="chosen-file"
+              >MP4 / MOV / WebM · 10 分钟内 · 单文件最大 1 GB</span
+            >
+          </button>
+          <div class="samples-heading">
+            <h3>用真实素材试一试</h3>
+            <span>只导入原片，由你决定怎么剪</span>
+          </div>
+          <div id="sample-gallery" class="sample-gallery"></div>
+        </section>
+        <section id="viewer" class="viewer" hidden>
+          <hyperframes-player id="player" controls></hyperframes-player>
+          <div class="viewer-bottom">
+            <span id="spec"></span><span id="preview-label">可播放预览</span>
+          </div>
+        </section>
+        <div id="preview-tools" class="preview-tools" hidden>
+          <button id="reference-frame" class="quiet">引用当前画面</button
+          ><button id="open-range" class="quiet">引用一段时间</button
+          ><span id="playhead">00:00</span>
+        </div>
+        <div id="change-summary" class="change-summary" hidden>
+          <span id="change-text"></span>
+          <div>
+            <button id="watch-change" class="quiet">播放修改处 ▷</button
+            ><button id="compare-original" class="quiet">对比原片</button>
+          </div>
+        </div>
+        <div id="voice-preview" class="voice-preview" hidden>
+          <div id="voice-summary"></div>
+          <div id="voice-actions"></div>
+          <audio id="voice-audition" controls preload="none" hidden></audio>
+        </div>
+        <div id="export-status" class="export-status" hidden role="status">
+          <span id="export-stage"></span
+          ><progress
+            id="export-progress"
+            max="100"
+            value="0"
+            aria-label="导出进度"
+          ></progress
+          ><button id="cancel-export" class="quiet">停止导出</button
+          ><button id="retry-export" class="quiet" hidden>重试导出</button>
+        </div>
+        <div id="downloads" class="downloads" hidden></div>
+        <p id="delivery-note" class="delivery-note" hidden>
+          预览与导出独立。继续聊天不会覆盖已导出的版本。
+        </p>
+        <div id="job-status" hidden>
+          <span id="job-stage"></span
+          ><progress id="job-progress" max="100"></progress
+          ><button id="cancel-job">取消</button
+          ><button id="retry-job" hidden>重试</button>
+        </div>
+      </main>
+    </div>
+    <button
+      id="library-backdrop"
+      class="library-backdrop"
+      hidden
+      aria-label="关闭素材与文字稿"
+    ></button>
+    <aside id="library" class="library" hidden aria-label="素材与文字稿">
+      <div class="library-heading">
+        <h2>素材与文字稿</h2>
+        <button id="close-library" class="quiet">关闭</button>
+      </div>
+      <div class="section-label">
+        项目素材<button id="add-asset" class="small">＋ 添加</button>
+      </div>
+      <div id="assets" class="asset-list"></div>
+      <div class="section-label second">
+        文字稿<button id="analyze" class="small" disabled>读取文字稿</button>
+      </div>
+      <p class="muted">点击一句话，定位画面并带入对话。</p>
+      <div id="transcript" class="transcript"></div>
+      <footer>原片保留 · 识别文字可以继续纠正</footer>
+    </aside>
+    <input
+      id="file"
+      type="file"
+      accept=".mp4,.mov,.webm,.mp3,.wav,.m4a"
+      multiple
+      hidden
+    />
+    <dialog id="range-dialog">
+      <div class="dialog-heading">
+        <h2>引用一段时间</h2>
+        <button id="close-range" class="quiet">关闭</button>
+      </div>
+      <p>选择当前版本中的范围，再说你想怎么修改。</p>
+      <div class="range-row">
+        <label
+          >起点（秒）<input
+            id="range-start"
+            type="number"
+            min="0"
+            step="0.033333"
+            value="0" /></label
+        ><label
+          >终点（秒）<input
+            id="range-end"
+            type="number"
+            min="0"
+            step="0.033333"
+            value="3"
+        /></label>
+      </div>
+      <button id="reference-range" class="primary">带入对话</button>
+    </dialog>
+    <dialog id="source-dialog">
+      <div class="dialog-heading">
+        <h2>选择原始样例</h2>
+        <button id="close-sources" class="quiet">关闭</button>
+      </div>
+      <p>样例可能含英语讲话。可以用中文要求剪辑、翻译字幕或添加旁白。</p>
+      <div id="source-options" class="sample-gallery"></div>
+    </dialog>
+    <dialog id="model-dialog">
+      <div class="dialog-heading">
+        <h2>剪辑连接</h2>
+        <button id="close-model" class="quiet">关闭</button>
+      </div>
+      <div id="subscription-help" hidden>
+        <p>使用本机已登录的 ChatGPT 订阅理解要求，无需另填 API Key。</p>
+        <p>视频处理、字幕和普通话配音由已配置的工具完成。</p>
+        <button id="verify-subscription" class="primary">验证连接</button
+        ><button id="close-subscription" class="quiet">返回剪辑</button>
+        <p id="subscription-status" role="status"></p>
+      </div>
+      <div id="api-connection">
+        <p>连接模型后，即可通过对话剪辑。</p>
+        <form id="connect-form">
+          <label
+            >OpenAI API Key<input
+              id="api-key"
+              type="password"
+              autocomplete="off"
+              required
+              placeholder="sk-…"
+          /></label>
+          <details>
+            <summary>高级设置</summary>
+            <label>模型<input id="model-name" value="gpt-5.6-sol" /></label>
+          </details>
+          <p id="connect-status" class="muted" role="status"></p>
+          <button id="connect" class="primary">连接并验证</button>
+        </form>
+      </div>
+      <div id="capability-summary" class="capability-summary"></div>
+    </dialog>
+    <div id="legacy-controls" hidden inert>
+      <textarea id="first-prompt"></textarea><button id="start-edit"></button
+      ><button id="sample-edit"></button>
+      <details id="advanced">
+        <section id="timeline-section">
+          <span id="duration"></span>
+          <div id="timeline"></div>
+          <div id="layers"></div>
+        </section>
+        <details id="precise">
+          <select id="tool"></select
+          ><textarea id="tool-text"></textarea
+          ><select id="tool-asset"></select
+          ><input id="gain" /><select id="caption-position"></select
+          ><select id="aspect"></select
+          ><select id="fit"></select
+          ><input id="duck" type="checkbox" /><button id="apply-tool"></button>
+        </details>
+      </details>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,11 @@
+import fs from 'node:fs/promises';
+import assert from 'node:assert/strict';
+import puppeteer from 'puppeteer-core';
+const base='http://127.0.0.1:3020',sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const browser=await puppeteer.launch({executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true,defaultViewport:{width:1440,height:1000}});
+let id;try{const page=await browser.newPage();await page.goto(base+'/edit',{waitUntil:'networkidle0'});await page.waitForSelector('.sample-card');await page.evaluate(()=>[...document.querySelectorAll('.sample-card button')].find(b=>b.textContent==='加入轻快背景音乐').click());await page.waitForFunction(()=>location.search.includes('project='));id=new URL(page.url()).searchParams.get('project');console.log('PROJECT '+id);}finally{await browser.close();}
+async function get(){return(await fetch(base+'/api/edit-projects/'+id)).json()};async function wait(){let prev='';for(let i=0;i<600;i++){const p=await get(),j=p.jobs.find(j=>['queued','running'].includes(j.status));if(!j){assert.equal(p.jobs.at(-1).status,'complete',JSON.stringify(p.jobs.at(-1)));return p;}if(j.stage!==prev){console.log(j.stage);prev=j.stage}await sleep(1000)}throw Error('timeout')}
+async function post(action,body){const r=await fetch(base+'/api/edit-projects/'+id+'/'+action,{method:'POST',headers:{'Content-Type':'application/json','Idempotency-Key':crypto.randomUUID()},body:JSON.stringify(body)});assert(r.ok);return wait()}
+let p=await wait(),r=p.revisions.find(r=>r.id===p.currentRevisionId);assert(r.timeline.audio.some(a=>a.role==='music'&&a.end===450&&a.gain===.2&&a.duck));assert.equal(r.media.duration,24);console.log('PASS 点击样例：自然语言 15 秒配乐与人声压低');
+p=await post('messages',{baseRevisionId:p.currentRevisionId,text:'为视频中的讲话生成中文字幕，按真实说话时间显示。保留刚才添加的音乐。'});r=p.revisions.find(r=>r.id===p.currentRevisionId);assert(r.timeline.captions.length>=2);assert(r.timeline.audio.some(a=>a.role==='music'));console.log('PASS 同一视频继续加讲话字幕');
+p=await post('render',{revisionId:p.currentRevisionId});r=p.revisions.find(r=>r.id===p.currentRevisionId);assert(r.videoUrl);await fs.writeFile('outputs/live-sample-button.json',JSON.stringify({projectId:id,revisionId:r.id,checks:['real browser sample button','15 second music, ducking, fades','Chinese speech captions','rendered MP4']},null,2));console.log('PASS 成片 '+r.videoUrl);

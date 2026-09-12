@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+const base='http://127.0.0.1:3020',results=[];
+const ok=(name,fn)=>{fn();results.push(name);console.log('PASS '+name);};
+const call=async(url,options)=>{const r=await fetch(base+url,options);return {status:r.status,data:await r.json()};};
+const cases=(await call('/api/cases')).data,c=cases[0];
+const form=new FormData();form.set('brief',JSON.stringify(c.brief));form.set('useExample','true');form.set('caseId',c.id);form.set('description',c.description);
+const original=(await call('/api/projects',{method:'POST',body:form})).data;
+const scenes=structuredClone(original.storyboard);scenes[0].headline='让清爽，准时登场。';scenes[0].copy='午后时光 · 清爽相伴';scenes[1].headline='一口青柠香';scenes[1].copy='青柠香气 / 细密气泡 / 冰爽即刻';scenes[2].headline='开启这一刻的清爽';scenes[2].copy='QING';
+const patch=await call('/api/projects/'+original.id+'/storyboard',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({storyboard:scenes})});
+const p=patch.data;ok('编辑创建独立版本',()=>{assert.equal(patch.status,201);assert.notEqual(p.id,original.id);assert.equal(p.parentId,original.id);assert.equal(p.storyboard[0].copy,scenes[0].copy);});
+const old=(await call('/api/projects/'+original.id)).data;ok('原始分镜保持不变',()=>assert.deepEqual(old.storyboard,original.storyboard));
+const invalid=structuredClone(scenes);invalid[1].copy='只有一个卖点';const bad=await call('/api/projects/'+p.id+'/storyboard',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({storyboard:invalid})});ok('无效编辑明确拒绝',()=>assert.equal(bad.status,400));
+await call('/api/projects/'+p.id+'/render',{method:'POST'});
+await fs.writeFile('outputs/v4-pending.json',JSON.stringify({id:p.id,originalId:original.id,scenes,results},null,2));
+console.log('RENDER_STARTED '+p.id);

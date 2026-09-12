@@ -1,0 +1,102 @@
+name: Commerce quality showcase
+on:
+  push:
+    branches: [agent/commerce-demo-quality]
+    paths:
+      - 'video-agent/scripts/build-commerce-showcase.mjs'
+      - 'video-agent/scripts/verify-commerce-showcase.mjs'
+      - '.github/workflows/commerce-showcase.yml'
+permissions:
+  contents: write
+concurrency:
+  group: commerce-quality-showcase
+  cancel-in-progress: true
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      HYPERFRAMES_NO_TELEMETRY: '1'
+      HYPERFRAMES_BROWSER_PATH: /usr/bin/google-chrome
+      HYPERFRAMES_FFMPEG_PATH: /usr/bin/ffmpeg
+      HYPERFRAMES_FFPROBE_PATH: /usr/bin/ffprobe
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/commerce-demo-quality
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: video-agent/package-lock.json
+      - name: Media tools and system fonts (fonts are never packaged)
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg fonts-noto-cjk
+      - run: npm ci --no-audit --no-fund
+        working-directory: video-agent
+      - name: Build input and editable reference projects
+        working-directory: video-agent
+        run: |
+          node --check scripts/build-commerce-showcase.mjs
+          node --check scripts/verify-commerce-showcase.mjs
+          node scripts/build-commerce-showcase.mjs
+      - name: Browser layout and repeatable motion checks
+        working-directory: video-agent
+        run: node scripts/verify-commerce-showcase.mjs
+      - name: HyperFrames check and real render
+        working-directory: video-agent
+        run: |
+          CLI="$PWD/node_modules/hyperframes/bin/hyperframes.mjs"
+          for CASE in 01-fragrance 02-headphones 03-sneakers; do
+            (cd "outputs/commerce-showcase/$CASE" && node "$CLI" check > check.log 2>&1 && node "$CLI" render --output final.mp4 --fps 30 --quality high --workers 1 --strict --no-best-effort > render.log 2>&1)
+            ffprobe -v error -count_frames -show_entries stream=width,height,nb_read_frames,codec_name,codec_type,pix_fmt,r_frame_rate -show_entries format=duration -of json "outputs/commerce-showcase/$CASE/final.mp4" > "outputs/commerce-showcase/$CASE/video-info.json"
+          done
+      - name: Validate video output and curate distributable files
+        shell: python
+        run: |
+          import json,pathlib,shutil
+          root=pathlib.Path('video-agent/outputs/commerce-showcase')
+          target=pathlib.Path('video-agent/examples/commerce-quality')
+          target.mkdir(parents=True,exist_ok=True)
+          for case in json.loads((root/'cases.json').read_text()):
+              source=root/case['id']; dest=target/case['id']; dest.mkdir(exist_ok=True)
+              meta=json.loads((source/'video-info.json').read_text()); videos=[s for s in meta['streams'] if s['codec_type']=='video']
+              assert len(videos)==1 and videos[0]['width']==1080 and videos[0]['height']==1920
+              assert int(videos[0]['nb_read_frames'])==case['duration']*30
+              assert not any(s['codec_type']=='audio' for s in meta['streams'])
+              for name in ['input.jpg','request.json','document.json','index.html','PROMPT.md','DESIGN.md','SOURCES.md','final.mp4','poster.jpg','storyboard.jpg','qa.json','video-info.json','check.log','render.log']:
+                  shutil.copy2(source/name,dest/name)
+              (dest/'assets').mkdir(exist_ok=True)
+              for p in (source/'assets').iterdir():
+                  if p.suffix in {'.jpg','.js'}:shutil.copy2(p,dest/'assets'/p.name)
+          for name in ['cases.json','index.html','overview.jpg']:shutil.copy2(root/name,target/name)
+          for name in ['LICENSE','LICENSE.md','LICENSE.txt']:
+              p=pathlib.Path('video-agent/node_modules/gsap')/name
+              if p.is_file():shutil.copy2(p,target/('GSAP-'+name))
+          assert not any(p.suffix.lower() in {'.ttf','.otf','.woff','.woff2','.ttc'} for p in target.rglob('*'))
+      - name: Save demo-only outputs to the review branch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f video-agent/examples/commerce-quality
+          git diff --cached --quiet || git commit -m 'demo: add three rendered photography-led quality references'
+          git push origin HEAD:agent/commerce-demo-quality
+      - name: Demo inputs, prompts, native HTML and output videos
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: commerce-quality-demo-pack
+          retention-days: 7
+          path: video-agent/examples/commerce-quality/
+          if-no-files-found: error
+      - name: Retain failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: commerce-quality-diagnostics
+          retention-days: 2
+          path: |
+            video-agent/outputs/commerce-showcase/**/qa.json
+            video-agent/outputs/commerce-showcase/**/check.log
+            video-agent/outputs/commerce-showcase/**/render.log
+            video-agent/outputs/commerce-showcase/**/poster.jpg
+            video-agent/outputs/commerce-showcase/**/storyboard.jpg

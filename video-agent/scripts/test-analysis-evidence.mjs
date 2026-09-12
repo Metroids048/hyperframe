@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import {CloudProvider} from '../lib/edit/provider.mjs';
+import {ROOT} from '../lib/workflow.mjs';
+const out=path.join(ROOT,'outputs/upgrade/analysis-evidence',crypto.randomUUID());await fs.mkdir(out,{recursive:true});await fs.writeFile(path.join(out,'frame.jpg'),Buffer.from([0xff,0xd8,0xff,0xd9]));
+const asset={id:'source',kind:'video',duration:10,hasAudio:false,thumbnails:[{time:0,file:'frame.jpg'},{time:5,file:'frame.jpg'}]};
+const response=evidenceTimes=>({summary:'fixture',scenes:[{start:0,end:10,description:'fixture',confidence:'high',evidenceTimes}]});
+let calls=0;const provider=new CloudProvider({apiKey:'mock'});provider.structured=async(instructions,input)=>{calls++;const context=JSON.parse(input[0].content[0].text);assert.deepEqual(context.sampledTimes,[0,5]);if(calls>1)assert.match(instructions,/allowedEvidenceTimes/);return {result:response(calls===1?[8]:[5]),model:'mock'};};
+const result=await provider.analyze(asset,out);assert.equal(calls,2);assert.deepEqual(result.scenes[0].evidenceTimes,[5]);assert.equal(result.analysisMetrics.repairCount,1);
+calls=0;provider.structured=async()=>{calls++;return {result:response([8]),model:'mock'};};await assert.rejects(provider.analyze(asset,out),/自动修正两次/);assert.equal(calls,3);
+await fs.writeFile(path.join(out,'report.json'),JSON.stringify({validation:'mock analysis response, no human viewing',passed:2},null,2));console.log('2 bounded analysis evidence regressions passed; '+out);

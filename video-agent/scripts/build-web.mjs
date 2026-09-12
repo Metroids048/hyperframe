@@ -1,0 +1,10 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import {transform} from 'esbuild';
+import {ROOT} from '../lib/workflow.mjs';
+await fs.mkdir(path.join(ROOT,'web-dist'),{recursive:true});
+for(const file of ['index.html','style.css','editor.html','editor.css','editor.js','commerce.html','commerce.css','commerce.js','creative-v2.html','creative-studio.html','creative-v2.js'])await fs.copyFile(path.join(ROOT,'web',file),path.join(ROOT,'web-dist',file));
+const source=(await fs.readFile(path.join(ROOT,'web/app.js'),'utf8'))+'\n'+(await fs.readFile(path.join(ROOT,'web/experience.js'),'utf8'))+'\n'+(await fs.readFile(path.join(ROOT,'web/shots.js'),'utf8'));
+const result=await transform(source,{minify:true,format:'esm',target:'es2022',loader:'js'});
+await fs.writeFile(path.join(ROOT,'web-dist/app.js'),result.code);
+console.log('Local frontend built: web-dist');

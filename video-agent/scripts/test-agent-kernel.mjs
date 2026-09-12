@@ -1,0 +1,26 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import {AgentKernel, AgentRunStore} from '../lib/edit/agent-kernel.mjs';
+import {ToolRegistry, createCoreToolRegistry} from '../lib/edit/tool-registry.mjs';
+
+const dir=await fs.mkdtemp(path.join(os.tmpdir(),'video-agent-run-')); const calls=[];
+const registry=new ToolRegistry(); registry.register('detect.silence', async()=>{calls.push('silence'); return {ranges:[{start:2,end:4}]};}); registry.register('timeline.apply', async()=>{calls.push('apply'); return {revisionId:'r2'};}); registry.register('verify.timeline', async()=>({passed:true}));
+let n=0; const planner=async({run})=>{n++; if(n===1)return {kind:'tool',tool:'detect.silence',input:{}}; if(n===2)return {kind:'tool',tool:'timeline.apply',input:{}}; if(n===3)return {kind:'tool',tool:'verify.timeline',input:{}}; return {kind:'complete',resultRevisionId:'r2'};};
+const kernel=new AgentKernel({registry,store:new AgentRunStore(dir),planner}); const done=await kernel.start({userRequest:'找到最长停顿并删掉'});
+assert.equal(done.status,'completed'); assert.deepEqual(calls,['silence','apply']); assert.equal(done.toolResults.length,3); assert.equal((await new AgentRunStore(dir).resumable()).length,0);
+const failed=new AgentKernel({registry,store:new AgentRunStore(dir),planner:async()=>({kind:'tool',tool:'missing.tool'})}); const run=await failed.start({userRequest:'x'}); assert.equal(run.status,'recoverable'); assert.match(run.error,/not registered/);
+assert.equal(createCoreToolRegistry().has('speech.transcribe'),false);
+assert.ok(createCoreToolRegistry({transcribe:async()=>({segments:[]})}).has('speech.transcribe'));
+const concurrent=new AgentRunStore(dir);await concurrent.open({id:'parallel',status:'running'});
+await Promise.all(Array.from({length:20},(_,i)=>concurrent.update('parallel',{['field'+i]:i})));
+const saved=await concurrent.get('parallel');for(let i=0;i<20;i++)assert.equal(saved['field'+i],i);
+await assert.rejects(()=>concurrent.get('../outside'),/Invalid run/);
+await fs.writeFile(path.join(dir,'orphan.tmp.json'),'not a committed run');await fs.writeFile(path.join(dir,'orphan.json.1.tmp'),'partial');assert((await concurrent.resumable()).some(r=>r.id==='parallel'));
+let attempted=0;const receiptRegistry=new ToolRegistry().register('stage.once',async()=>{attempted++;return {ok:true};}).register('stage.fail',async()=>{throw Error('temporary');});
+const resumableKernel=new AgentKernel({registry:receiptRegistry,store:new AgentRunStore(dir),planner:async({run})=>!run.checkpoints['stage.once']?{kind:'tool',tool:'stage.once'}:run.toolResults.some(r=>r.status==='failed')?{kind:'complete'}:{kind:'tool',tool:'stage.fail'}});
+const interrupted=await resumableKernel.start({userRequest:'resume',inputFingerprint:'same'});assert.equal(interrupted.status,'recoverable');
+await assert.rejects(()=>resumableKernel.resume(interrupted.id,{inputFingerprint:'different'}),/输入/);
+assert.equal((await resumableKernel.resume(interrupted.id,{inputFingerprint:'same'})).status,'completed');assert.equal(attempted,1);
+console.log('agent kernel tests passed');

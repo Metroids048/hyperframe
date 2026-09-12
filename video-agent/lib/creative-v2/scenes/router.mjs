@@ -1,0 +1,3 @@
+const ROUTES=new Set(["type-motion","image-motion","footage","mixed","diagram","data-viz","custom-native"]);
+export function routeScene(scene, evidence){const hasVideo=evidence.assets.some(a=>a.kind==="video"),hasImage=evidence.assets.some(a=>a.kind==="image"); const route=scene.implementationRoute|| (hasVideo&&hasImage?"mixed":hasVideo?"footage":hasImage?"image-motion":"type-motion"); if(!ROUTES.has(route)) throw new Error(`Unknown scene route: ${route}`); return {...scene,implementationRoute:route};}
+export function routeStoryboard(storyboard,evidence){return {...storyboard,scenes:storyboard.scenes.map(s=>routeScene(s,evidence))};}

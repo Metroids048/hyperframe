@@ -1,0 +1,22 @@
+import assert from 'node:assert/strict';
+import {applyOperations,initialTimeline,positioned,duration,validateTimeline,srt} from '../lib/edit/timeline.mjs';
+const assets={v:{id:'v',kind:'video',status:'ready',frames:1200,width:640,height:360,hasAudio:true},music:{id:'music',kind:'audio',status:'ready',frames:18000,hasAudio:true}};
+const base=initialTimeline(assets.v);let count=0;
+function test(name,fn){fn();count++;console.log('PASS '+name);}
+test('40 秒剪至 15 秒，保留指定源片段',()=>{const t=applyOperations(base,[{type:'keep_ranges',ranges:[{start:150,end:300},{start:600,end:900}],maxFrames:450}],assets);assert.equal(duration(t),450);assert.deepEqual(t.clips.map(c=>[c.in,c.out]),[[150,300],[600,900]]);assert.equal(duration(base),1200);});
+const withLayers=applyOperations(base,[{type:'caption_add',start:150,end:240,text:'新品上市'},{type:'audio_add',start:150,end:300,in:0,assetId:'music',role:'voice',gain:1}],assets);
+test('删除开头后字幕与音轨同步前移',()=>{const t=applyOperations(withLayers,[{type:'delete_range',start:0,end:90}],assets);assert.equal(t.captions[0].start,60);assert.equal(t.audio[0].start,60);assert.equal(t.clips[0].in,90);});
+test('同句指令的字幕范围始终基于输入版本',()=>{const t=applyOperations(base,[{type:'delete_range',start:0,end:90},{type:'caption_add',start:150,end:240,text:'固定基础版本坐标'}],assets);assert.equal(t.captions[0].start,60);assert.equal(t.captions[0].end,150);});
+test('跨删除区间音频正确保留源入点',()=>{const t=applyOperations(withLayers,[{type:'delete_range',start:180,end:210}],assets);assert.deepEqual(t.audio.map(c=>[c.start,c.end,c.in]),[[150,180,0],[180,270,60]]);assert.deepEqual(t.captions.map(c=>[c.start,c.end]),[[150,210]]);});
+test('删掉的字幕不会留在尾部',()=>{const t=applyOperations(withLayers,[{type:'delete_range',start:120,end:330}],assets);assert.equal(t.captions.length,0);assert.equal(t.audio.length,0);});
+test('分割后移动片段，字幕跟随原内容',()=>{let t=applyOperations(withLayers,[{type:'split',at:300}],assets);t=applyOperations(t,[{type:'move',id:t.clips[0].id,at:1200}],assets);assert.equal(t.clips[0].in,300);assert.equal(t.captions[0].start,1050);assert.equal(duration(t),1200);});
+test('分割片段稳定 ID，原声绑定',()=>{const t=applyOperations(base,[{type:'split',at:300}],assets);assert.equal(t.clips[0].id,base.clips[0].id);assert.notEqual(t.clips[1].id,t.clips[0].id);assert.equal(t.clips[1].in,300);});
+test('十轮连续修改保持视频片段不变',()=>{let t=withLayers;for(let i=0;i<10;i++)t=applyOperations(t,[{type:'caption_update',id:t.captions[0].id,text:'第'+i+'次修改'}],assets);assert.deepEqual(t.clips,withLayers.clips);assert.equal(t.captions[0].text,'第9次修改');});
+test('替换旁白不改变任何画面',()=>{const t=applyOperations(withLayers,[{type:'audio_update',id:withLayers.audio[0].id,assetId:'music',in:30,end:270,text:'新旁白'}],assets);assert.deepEqual(t.clips,withLayers.clips);assert.deepEqual(t.captions,withLayers.captions);});
+test('不允许越界、空片、重复范围、假素材',()=>{for(const ops of [[{type:'delete_range',start:0,end:1200}],[{type:'caption_add',start:1190,end:1250,text:'x'}],[{type:'keep_ranges',ranges:[{start:0,end:60},{start:30,end:100}]}],[{type:'insert',assetId:'none',in:0,out:30,at:0}],[{type:'execute_shell',command:'x'}]])assert.throws(()=>applyOperations(base,ops,assets));});
+test('必须保留的内容超时长时拒绝',()=>assert.throws(()=>applyOperations(base,[{type:'keep_ranges',ranges:[{start:0,end:600}],maxFrames:450}],assets),/超过/));
+test('旁白越过素材末尾被拒绝',()=>assert.throws(()=>applyOperations(base,[{type:'audio_add',assetId:'v',in:1190,start:0,end:60,gain:1}],assets)));
+test('字幕文件包含准确的 5～8 秒',()=>{assert.match(srt(withLayers),/00:00:05,000 --> 00:00:08,000/);});
+test('插入视频让后续字幕同步顺延',()=>{const t=applyOperations(withLayers,[{type:'insert',assetId:'v',in:0,out:60,at:90}],assets);assert.equal(t.captions[0].start,210);assert.equal(duration(t),1260);});
+test('竖屏输出参数实际改变',()=>{const t=applyOperations(base,[{type:'output',width:1080,height:1920,fit:'contain'}],assets);assert.equal(t.output.height,1920);});
+console.log(`${count} timeline tests passed`);

@@ -1,0 +1,71 @@
+{
+  "name": "video-agent",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node agent.mjs build",
+    "check": "node agent.mjs check",
+    "render": "node agent.mjs render",
+    "preview": "node agent.mjs preview",
+    "status": "node agent.mjs status",
+    "build:web": "node scripts/build-web.mjs",
+    "test": "node scripts/build-web.mjs && node scripts/acceptance.mjs",
+    "test:edit": "node scripts/test-edit-timeline.mjs && node scripts/test-edit-provider.mjs",
+    "test:edit:media": "node scripts/test-edit-media.mjs",
+    "test:edit:web": "node scripts/build-web.mjs && node scripts/test-edit-web.mjs",
+    "start": "node server.mjs",
+    "test:edit:edges": "node scripts/test-edit-edge-media.mjs",
+    "test:edit:frames": "node scripts/test-edit-render-frames.mjs",
+    "test:edit:onboarding": "node scripts/build-web.mjs && node scripts/test-user-chat-flow.mjs",
+    "test:edit:audio": "node scripts/test-edit-ducking.mjs",
+    "test:edit:live": "node scripts/build-web.mjs && node scripts/test-live-edit.mjs",
+    "prepare:edit-samples": "node scripts/prepare-edit-samples.mjs",
+    "test:edit:integration": "node scripts/test-edit-integration.mjs",
+    "test:edit:user-flow": "node scripts/test-user-chat-flow.mjs",
+    "test:edit:preview-audio": "node scripts/build-web.mjs && node scripts/test-preview-audio.mjs",
+    "test:edit:presets": "node scripts/build-web.mjs && node scripts/test-preset-loading.mjs",
+    "test:upgrade": "node scripts/test-upgrade-timeline.mjs && node scripts/test-upgrade-planner.mjs && node scripts/test-upgrade-service.mjs && node scripts/test-caption-translation.mjs && node scripts/test-edit-quality-evaluation.mjs && node scripts/test-fast-intents.mjs && node scripts/test-edit-review-precision.mjs && node scripts/test-project-atomic-save.mjs && node scripts/test-analysis-evidence.mjs && node scripts/test-revision-history.mjs && node scripts/test-workspace-context.mjs && node scripts/test-skill-routing.mjs",
+    "test:upgrade:vad": "node scripts/test-upgrade-vad.mjs",
+    "test:upgrade:preview": "node scripts/test-upgrade-preview.mjs",
+    "test:upgrade:ui": "node scripts/build-web.mjs && node scripts/test-editor-upgrade-ui.mjs",
+    "test:upgrade:media": "node scripts/test-upgrade-media.mjs && node scripts/test-upgrade-edge-media.mjs && node scripts/test-upgrade-loudness.mjs",
+    "test:upgrade:generation": "node scripts/test-upgrade-generation.mjs",
+    "test:upgrade:live": "node scripts/test-upgrade-live.mjs",
+    "test:upgrade:semantic": "node scripts/test-upgrade-semantic.mjs",
+    "benchmark:upgrade": "node scripts/benchmark-upgrade.mjs current",
+    "quality:status": "node scripts/evaluate-edit-quality.mjs status",
+    "doctor:edit": "node scripts/doctor-edit.mjs",
+    "doctor:workspace": "node scripts/workspace-context.mjs --fetch-soft",
+    "test:workspace": "node scripts/test-workspace-context.mjs",
+    "test:continuation": "node scripts/test-continuation.mjs && node scripts/test-fast-intents.mjs && node scripts/test-edit-review-precision.mjs",
+    "test:conversation:media": "node scripts/build-web.mjs && node scripts/test-conversation-media.mjs",
+    "commerce:fixtures": "node scripts/prepare-commerce-fixtures.mjs",
+    "commerce:build": "npm run commerce:fixtures && node scripts/commerce-agent.mjs --input examples/commerce/request.sample.json",
+    "commerce:render": "npm run commerce:fixtures && node scripts/commerce-agent.mjs --input examples/commerce/request.sample.json --render",
+    "test:commerce:fixtures": "npm run commerce:fixtures && node scripts/test-commerce-fixtures.mjs",
+    "test:commerce": "node --test scripts/test-commerce-native.mjs",
+    "test:agent-kernel": "node scripts/test-agent-kernel.mjs"
+  },
+  "dependencies": {
+    "acorn": "8.15.0",
+    "gsap": "3.14.2",
+    "parse5": "7.3.0",
+    "postcss": "8.5.28",
+    "sharp": "0.35.4",
+    "yauzl": "3.4.0",
+    "yazl": "3.3.1"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.12",
+    "hyperframes": "0.8.33"
+  },
+  "optionalDependencies": {
+    "@ffmpeg-installer/win32-x64": "4.1.0",
+    "@ffprobe-installer/win32-x64": "5.1.0",
+    "@ffmpeg-installer/darwin-arm64": "4.1.5",
+    "@ffprobe-installer/darwin-arm64": "5.0.1"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

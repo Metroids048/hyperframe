@@ -1,0 +1,15 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+import {ROOT} from '../lib/workflow.mjs';
+import {run,ffmpeg,prepareAsset,composeRevision,checkRevision,renderRevision,probe} from '../lib/edit/media.mjs';
+import {initialTimeline,applyOperations} from '../lib/edit/timeline.mjs';
+const out=path.join(ROOT,'outputs/edit-acceptance');await fs.mkdir(out,{recursive:true});const dir=path.join(out,'source');await fs.mkdir(dir,{recursive:true});
+await run(ffmpeg,['-y','-v','error','-f','lavfi','-i','testsrc2=size=640x360:rate=30:duration=40','-f','lavfi','-i','sine=frequency=440:sample_rate=48000:duration=40','-c:v','libx264','-preset','ultrafast','-pix_fmt','yuv420p','-c:a','aac','-shortest',path.join(dir,'original.mp4')]);
+console.log('Generated 40 second source fixture');
+const a={id:'00000000-0000-4000-8000-000000000001',original:'original.mp4',name:'40 秒测试源片'};await prepareAsset(dir,a);await fs.writeFile(path.join(dir,'asset.json'),JSON.stringify(a,null,2));console.log('Asset probe, normalization, proxy, thumbnails and waveform passed');
+let t=applyOperations(initialTimeline(a),[{type:'keep_ranges',ranges:[{start:150,end:300},{start:600,end:900}],maxFrames:450}],{[a.id]:a});
+t=applyOperations(t,[{type:'caption_add',start:150,end:240,text:'新品上市 · 字幕边界验证'},{type:'audio_add',assetId:a.id,in:0,start:0,end:450,role:'music',gain:0.2,duck:true,fadeIn:15,fadeOut:30}],{[a.id]:a});
+const revision=path.join(out,'revision');await composeRevision(revision,t,{[a.id]:a},()=>dir);console.log('Composed clipped video, caption and mixed audio');await checkRevision(revision);console.log('HyperFrames check passed');
+const meta=await renderRevision(revision,t);assert(Math.abs(meta.duration-15)<=0.1);assert(meta.hasAudio);console.log('Real MP4 render passed',JSON.stringify(meta));
+await fs.writeFile(path.join(out,'report.json'),JSON.stringify({status:'passed',sourceDuration:40,outputDuration:meta.duration,sourceRanges:[[5,10],[20,30]],captionRange:[5,8],media:meta,cloudVoice:'not-tested-without-credentials'},null,2));

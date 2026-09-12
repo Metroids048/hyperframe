@@ -1,0 +1,17 @@
+import fs from 'node:fs/promises';
+import assert from 'node:assert/strict';
+const base='http://127.0.0.1:3020',pending=JSON.parse(await fs.readFile('outputs/v4-pending.json','utf8')),results=pending.results;
+const ok=(n,f)=>{f();results.push(n);console.log('PASS '+n);};
+const p=await fetch(base+'/api/projects/'+pending.id).then(r=>r.json());
+ok('编辑后真实渲染成功',()=>{assert.equal(p.status,'complete');assert.equal(p.media.duration,15);assert.equal(p.media.width,1280);assert.equal(p.media.audioCodec,'aac');});
+const html=await fs.readFile('data/projects/'+p.id+'/index.html','utf8');
+ok('全部分镜文案进入渲染工程',()=>{for(const s of pending.scenes){assert(html.includes(s.headline.replace('让清爽，准时登场。','让清爽，</span><span style="display:block">准时登场。')));for(const text of s.copy.split('/').map(x=>x.trim()))assert(html.includes(text));}});
+const check=await fs.readFile('data/projects/'+p.id+'/check.log','utf8');ok('HyperFrames 实际检查通过',()=>assert(check.includes('Check passed')));
+const vid=await fetch(base+p.videoUrl,{headers:{Range:'bytes=0-99'}});ok('编辑后的成片可播放',()=>assert.equal(vid.status,206));await vid.arrayBuffer();
+const revision=await fetch(base+'/api/projects/'+p.id+'/storyboard',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({storyboard:pending.scenes.map((s,i)=>({...s,headline:i===2?'清爽继续，喜欢继续':s.headline}))})});const draft=await revision.json();
+ok('已完成视频可继续修改为草稿',()=>{assert.equal(revision.status,201);assert.equal(draft.parentId,p.id);assert.equal(draft.status,'awaiting_confirmation');});
+const old=await fetch(base+'/api/projects/'+p.id).then(r=>r.json());ok('成片原版本仍可用',()=>{assert.equal(old.status,'complete');assert.deepEqual(old.storyboard,p.storyboard);});
+const page=await fetch(base).then(r=>r.text()),js=await fs.readFile('web/app.js','utf8'),experience=await fs.readFile('web/experience.js','utf8');
+ok('生成入口始终显示且优化为可选',()=>{assert.match(page,/<button id="plan-button"[^>]*type="submit">生成视频/);assert(!experience.includes("$('plan-button').hidden=true"));assert(js.includes('await optimizeInput()'));assert(js.includes('void createFromInput(true)'));});
+const ids=[...page.matchAll(/\bid="([^"]+)"/g)].map(x=>x[1]);ok('前端 DOM ID 无重复',()=>assert.equal(new Set(ids).size,ids.length));
+await fs.writeFile('outputs/v4-tests.json',JSON.stringify({passed:results.length,results,projectId:p.id,revisionId:draft.id,time:new Date().toISOString()},null,2));console.log('PASS TOTAL '+results.length);

@@ -1,0 +1,19 @@
+import fs from 'node:fs';
+const read=p=>fs.readFileSync(p,'utf8'),put=(p,s)=>fs.writeFileSync(p,s);
+let s=read('web/index.html').replace('1–3 张','1–12 张').replace('依次用于开场、卖点和收尾','可在分镜中为每个镜头选择图片').replace('15 秒 · 横屏 · 720p','30 秒 · 横屏 · 720p');
+s=s.replace('<option value="30">30 秒</option>','<option value="30" selected>30 秒</option>').replace('<option value="60">60 秒</option>','<option value="60">60 秒</option><option value="90">90 秒</option><option value="120">120 秒</option>');
+s=s.replace('Demo 实际输出：15 秒 / 横屏 / 720p。其他规格暂存为需求。','时长实际生效，自动安排 4–20 个镜头。当前输出横屏 720p。');
+s=s.replace('<div id="storyboard" class="storyboard"></div>','<div class="shot-summary"><strong id="shot-summary"></strong><button id="add-shot" type="button" class="button ghost" hidden>添加镜头 ＋</button></div><div id="storyboard" class="storyboard"></div>');
+s=s.replace('<section class="case-library">','<section id="long-examples" class="case-library" hidden><div class="section-title"><h3>多镜头长片示例</h3><span>真实渲染 · 可继续编辑</span></div><div id="long-example-list" class="history"></div></section><section class="case-library">');put('web/index.html',s);
+s=read('web/app.js');s=s.replace("function renderPlan(p){","function renderLegacyPlan(p){$('add-shot').hidden=true;$('shot-summary').textContent=p?.storyboard?`${p.storyboard.length} 镜头 · ${p.storyboard.at(-1).end} 秒`:'';");
+s=s.replace('if(next.length>3)', 'if(next.length>12)').replace('最多选择三张图片','最多选择十二张图片').replace('${files.length} 张图片 · 按顺序用于三幕','${files.length} 张图片 · 在分镜中分配').replace('依次用于开场、卖点和收尾','可在分镜中为每个镜头选择图片');
+s=s.replace("'修改标题和文案后，点击「保存并生成视频」。原版本会保留。'","'调整文案、时长、顺序与图片，保存后生成新版。原版本会保留。'");
+s=s.replace("if(heads.length!==3)return p;","if(p.engine==='multishot-v1'){const scenes=readShotEdits();const shape=s=>({id:s.id,headline:s.headline,copy:s.copy,duration:s.duration,layout:s.layout,image:s.image});if(JSON.stringify(scenes.map(shape))===JSON.stringify(p.storyboard.map(shape)))return p;const revision=await api('/api/projects/'+p.id+'/storyboard',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({storyboard:scenes})});display(revision);await refreshHistory();return revision;}\n if(heads.length!==3)return p;");
+s=s.replace("${p.media?.duration||15} 秒 · 1280 × 720", "${p.media?.duration||p.actualSettings?.duration||15} 秒 · ${p.storyboard.length} 镜头 · 1280 × 720");
+// Declare the editor state before initial renderPlan(null).
+s="let draftShots=[];\n"+s;
+put('web/app.js',s);
+s=read('web/experience.js');const at=s.indexOf("for(const id of ['setting-duration'");const end=s.indexOf('loadCatalog().catch',at);
+s=s.slice(0,at)+`for(const id of ['setting-duration','setting-aspect','setting-quality'])$(id).onchange=()=>{const s=readSettings();$('settings-note').textContent=\`\${s.duration} 秒 · 自动安排 \${Math.max(4,Math.ceil(s.duration/6))} 个镜头。\${s.aspect!=='16:9'||s.quality!=='720p'?'本轮仍输出横屏 720p；其余规格仅存为需求。':'实际输出横屏 720p。'}\`;};
+`+s.slice(end);put('web/experience.js',s);
+fs.appendFileSync('web/style.css','\n.shot-summary{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0 0 16px}.shot-summary strong{font-size:14px;color:var(--accent)}.shot-settings{display:grid;grid-template-columns:80px 1fr 1fr;gap:10px;margin-top:12px}.shot-settings label{font-size:12px;color:var(--muted)}.shot-settings input,.shot-settings select{margin:0;padding:8px;min-height:38px;font-size:13px}.shot-actions{display:flex;gap:16px;margin-top:13px}.shot-actions button{font-size:13px;border:0;background:none;color:var(--accent);padding:3px 0}.shot-actions button:last-child{margin-left:auto;color:var(--muted)}.scene-card img{max-height:270px}.scene-content .copy-label{font-size:12px;color:var(--muted);margin-top:8px}.shot-label{font-size:12px;color:var(--muted)}@media(max-width:1000px){.shot-settings{grid-template-columns:70px 1fr}.shot-settings label:last-child{grid-column:1/-1}}\n');

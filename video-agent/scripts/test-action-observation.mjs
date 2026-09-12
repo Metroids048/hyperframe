@@ -1,0 +1,14 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+import {inspectActionRanges} from '../lib/creative/source-inspection.mjs';
+import {hashFile,probe,linkOrCopy} from '../lib/edit/media.mjs';
+const directory=path.resolve('outputs/commerce-next/action-observation',Date.now().toString());
+await fs.mkdir(path.join(directory,'assets'),{recursive:true});
+const source=path.resolve('assets/commerce-showcase/moka-brewing.webm'),file=path.join(directory,'assets/source.webm');await linkOrCopy(source,file);
+const asset={id:'moka',kind:'video',compiledRef:'assets/source.webm',sha256:await hashFile(source),mediaMetadata:await probe(source)};
+const report=await inspectActionRanges(directory,[asset],[{assetId:'moka',startSeconds:118,endSeconds:121,reason:'source observation engineering regression'}]);
+const times=report.records.flatMap(r=>r.times);assert(times.length>=10&&times.length<=12);assert(times.every((t,i)=>t>=118&&t<121&&(!i||t>times[i-1])));
+for(const record of [...report.records,...report.clips])assert.equal(await hashFile(path.join(directory,record.file)),record.sha256);
+const clip=await probe(path.join(directory,report.clips[0].file));assert(Math.abs(clip.duration-3)<0.06);assert.equal(clip.hasAudio,false);
+await fs.writeFile(path.join(directory,'report.json'),JSON.stringify({status:'passed',scope:'Actual-source observation, timestamp and playable proxy checks; no creative quality claim',report,clip},null,2));console.log(JSON.stringify({status:'passed',directory,times}));

@@ -1,0 +1,86 @@
+name: Conversational editing checks
+on:
+  push:
+    branches: [main, agent/continue-editing-optimization]
+    paths: ['video-agent/**', '.github/workflows/conversation-checks.yml']
+  pull_request:
+    paths: ['video-agent/**', '.github/workflows/conversation-checks.yml']
+permissions:
+  contents: read
+concurrency:
+  group: editing-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 50
+    env:
+      PYTHONUTF8: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: video-agent/package-lock.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Linux media tools and Chinese glyph coverage
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg fonts-noto-cjk
+      - name: Install pinned dependencies
+        working-directory: video-agent
+        run: npm ci --no-audit --no-fund
+      - name: Core regressions (no paid providers)
+        working-directory: video-agent
+        run: node scripts/verify-editor.mjs core
+      - name: Legacy creation and server regressions
+        working-directory: video-agent
+        run: node scripts/acceptance.mjs
+      - name: Real browser, FFmpeg and HyperFrames acceptance
+        working-directory: video-agent
+        run: node scripts/verify-editor.mjs browser
+      - name: Windows workbench startup smoke test
+        if: runner.os == 'Windows'
+        working-directory: video-agent
+        shell: pwsh
+        run: |
+          [void][scriptblock]::Create((Get-Content -Raw ./start-local.ps1))
+          try {
+            ./start-local.ps1
+            $health = Invoke-RestMethod 'http://127.0.0.1:3020/api/health' -TimeoutSec 3
+            $editor = Invoke-RestMethod 'http://127.0.0.1:3020/api/edit-capabilities' -TimeoutSec 3
+            if (-not $health.ok -or -not $editor.engine) { throw 'Workbench did not become healthy.' }
+          } finally {
+            $pidPath = Join-Path $PWD 'outputs/server.pid'
+            if (Test-Path $pidPath) {
+              $serverPid = [int](Get-Content $pidPath -Raw)
+              Stop-Process -Id $serverPid -Force -ErrorAction SilentlyContinue
+            }
+          }
+      - name: Retain reports and rendered evidence, not fonts or user projects
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: editing-evidence-${{ matrix.os }}
+          retention-days: 7
+          path: |
+            video-agent/outputs/acceptance/**/report.json
+            video-agent/outputs/acceptance/**/*.png
+            video-agent/outputs/acceptance/**/server.log
+            video-agent/outputs/upgrade/verification/**
+            video-agent/outputs/upgrade/**/result.json
+            video-agent/outputs/upgrade/ui/**/*.png
+            video-agent/outputs/upgrade/conversation-media/**/report.json
+            video-agent/outputs/upgrade/conversation-media/**/failure.json
+            video-agent/outputs/upgrade/conversation-media/**/server.log
+            video-agent/outputs/upgrade/conversation-media/**/desktop.png
+            video-agent/outputs/upgrade/conversation-media/**/mobile.png
+            video-agent/outputs/upgrade/conversation-media/**/conversation-result.mp4

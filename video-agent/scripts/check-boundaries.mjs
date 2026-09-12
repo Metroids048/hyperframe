@@ -1,0 +1,10 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import {ROOT,defaults,compose,runHF,validateBrief} from '../lib/workflow.mjs';
+import {layouts} from '../lib/multishot.mjs';
+const dir=path.join(ROOT,'outputs','acceptance-boundaries');await fs.mkdir(path.join(dir,'assets'),{recursive:true});
+await fs.copyFile(path.join(ROOT,'assets/cases/qing.png'),path.join(dir,'assets/product1.png'));
+const b={...validateBrief({...defaults,brand:'甲'.repeat(8),product:'乙'.repeat(12)}),assetCount:1};
+const shots=layouts.map((layout,i)=>({id:'shot-boundary-'+i,duration:2,headline:'甲乙丙丁戊己庚辛'.repeat(3),copy:'子丑寅卯辰巳午未'.repeat(6),image:0,layout,title:'边界测试'}));
+await compose(dir,b,shots);await runHF(dir,['check'],{timeoutMs:60000,logFile:path.join(dir,'check.log'),onOutput:s=>process.stdout.write(s)});
+console.log('Boundary check passed');
