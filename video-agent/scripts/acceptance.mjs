@@ -73,4 +73,3 @@ finally{
  const report={date:new Date().toISOString(),scope:'isolated API + real Chrome + real HyperFrames render',passed:checks.filter(x=>x.passed).length,failed:checks.filter(x=>!x.passed).length,checks,browserErrors:errors,run};
  await fs.writeFile(path.join(run,'report.json'),JSON.stringify(report,null,2));await fs.writeFile(path.join(ROOT,'outputs/acceptance-latest.json'),JSON.stringify(report,null,2));console.log(JSON.stringify({passed:report.passed,failed:report.failed,run}));
 }
-

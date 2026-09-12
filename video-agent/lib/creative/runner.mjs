@@ -171,4 +171,3 @@ export async function renderCommerceProject(input, {root = VIDEO_AGENT_ROOT} = {
   await fs.writeFile(path.join(outputDir, 'status.json'), JSON.stringify(status, null, 2));
   return status;
 }
-

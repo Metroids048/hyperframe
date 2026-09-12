@@ -1,3 +1,4 @@
+import {createHash} from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import sharp from 'sharp';
@@ -35,12 +36,12 @@ export async function collectCreativeEvidence(assets, outputDir, root, signal) {
   const evidenceDir=path.join(outputDir,'evidence');await fs.mkdir(evidenceDir,{recursive:true});
   const inputs=[],records=[];
   for(const asset of assets){
-    const source=path.resolve(root,asset.normalizedRef),duplicate=records.find(r=>r.sha256===asset.sha256),record={assetId:asset.id,kind:asset.kind,sha256:asset.sha256,duplicateOf:duplicate?.assetId||null,metadata:asset.mediaMetadata,samples:[]};
+    const source=path.resolve(root,asset.normalizedRef),duplicate=records.find(r=>r.sha256===asset.sha256),record={assetId:asset.id,kind:asset.kind,sha256:asset.sha256,duplicateOf:duplicate?.assetId||null,metadata:asset.mediaMetadata,samples:[],contactSheets:[]};
     if(asset.kind==='image'){
       const bytes=await sharp(source).resize({width:960,height:960,fit:'inside',withoutEnlargement:true}).jpeg({quality:82}).toBuffer();
       const file=path.join(evidenceDir,asset.id+'.jpg');await fs.writeFile(file,bytes);
       inputs.push({type:'input_text',text:`素材 ${asset.id}，原图：`},{type:'input_image',image_url:'data:image/jpeg;base64,'+bytes.toString('base64')});
-      record.samples.push({file:path.relative(outputDir,file).replaceAll('\\','/'),time:null});
+      record.samples.push({file:path.relative(outputDir,file).replaceAll('\\','/'),time:null,sha256:createHash('sha256').update(bytes).digest('hex')});
     }else if(asset.kind==='video'){
       const duration=asset.mediaMetadata.duration,budget=Math.max(12,Math.floor(48/assets.filter(a=>a.kind==='video').length)),count=Math.min(budget,Math.max(6,Math.ceil(duration/6)));
       const cells=[],times=[];
@@ -54,6 +55,7 @@ export async function collectCreativeEvidence(assets, outputDir, root, signal) {
       for(let offset=0;offset<count;offset+=12){
         const cellsInPage=cells.slice(offset,offset+12),bytes=await sharp({create:{width:960,height:Math.ceil(cellsInPage.length/3)*268,channels:3,background:'#111'}}).composite(cellsInPage).jpeg({quality:84}).toBuffer();
         await fs.writeFile(path.join(evidenceDir,asset.id+`-contact-${offset/12+1}.jpg`),bytes);
+        record.contactSheets.push({file:'evidence/'+asset.id+`-contact-${offset/12+1}.jpg`,times:times.slice(offset,offset+12),sha256:createHash('sha256').update(bytes).digest('hex')});
         inputs.push({type:'input_text',text:`视频 ${asset.id}，实际时长 ${duration}s；本页源时间 ${times.slice(offset,offset+12).join(', ')} 秒。只按这些真实画面判断动作，不能把备料/倒粉误称研磨，不能把倒水当成倒咖啡。未观察到的动作应继续查素材或说明，禁止从文件名和用户预期补写画面。`},{type:'input_image',image_url:'data:image/jpeg;base64,'+bytes.toString('base64')});
       }
     }else if(asset.kind==='audio'&&!asset.generatedVoice){

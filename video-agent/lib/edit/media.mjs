@@ -205,4 +205,3 @@ export async function renderRevision(dir,t,signal,onOutput) {
   const release=await acquireRender({kind:'render',signal});try{await run(process.execPath,[path.join(ROOT,'node_modules/hyperframes/bin/hyperframes.mjs'),'render','--output','video.mp4','--fps','30','--quality','standard','--workers','1','--strict','--no-best-effort'],{cwd:dir,signal,timeout:Math.max(300000,d*45000),log:path.join(dir,'render.log'),onOutput});}finally{release();}
   const meta=await probe(path.join(dir,'video.mp4'),signal);insist(Math.abs(meta.duration-d)<=0.1&&meta.width===t.output.width&&meta.height===t.output.height,'实际输出规格与时间轴不一致');return meta;
 }
-

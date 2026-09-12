@@ -346,6 +346,12 @@ try {
   await fs.writeFile(path.join(out, "server.log"), serverLog.join(""));
   console.log("Conversation media acceptance:", out);
 } catch (error) {
+  const pages=await browser?.pages().catch(()=>[])||[],diagnostics=[];
+  for(const [index,page]of pages.entries()){
+    await page.screenshot({path:path.join(out,'failure-'+index+'.png')}).catch(()=>{});
+    diagnostics.push(await page.evaluate(()=>{const p=document.querySelector('#player');return {url:location.href,visibility:document.visibilityState,player:p?{ready:p.ready,paused:p.paused,currentTime:p.currentTime,duration:p.duration,muted:p.muted,src:p.getAttribute('src')}:null,error:document.querySelector('#error')?.textContent};}).catch(e=>({error:e.message})));
+  }
+  await fs.writeFile(path.join(out,'playback-diagnostics.json'),JSON.stringify({errors,pages:diagnostics},null,2));
   await fs.writeFile(path.join(out, "server.log"), serverLog.join(""));
   await fs.writeFile(
     path.join(out, "failure.json"),

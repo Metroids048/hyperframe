@@ -134,4 +134,3 @@ test('story model request includes earlier broad frames together with newer acti
   await assert.rejects(()=>produceDocument(request,[asset],{root,outputDir:dir,provider,io}),/stop after evidence assertion/);
   assert.equal(calls,6);
 });
-

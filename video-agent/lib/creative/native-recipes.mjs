@@ -33,4 +33,3 @@ export function instantiateNativeRecipe(shot,design,output,assets){
   const source={html:html.join(''),css:css.join('\n'),timeline:timeline.join('\n'),parameters:[],objects,motionTargets,textStyles:[]};
   return {source,method,adapterId:method==='footage-cut'?'native-footage-cut':shot.resourceId,adapterVersion:nativeRecipeContract.version,parameterHash:resourceHash({shot,design,output}),implementationHash:resourceHash(instantiateNativeRecipe.toString())};
 }
-

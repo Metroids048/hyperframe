@@ -16,7 +16,8 @@ export async function runSceneIsolation(directory,config,{signal,probe}={}){
  const profile=path.join(directory,'profile'),windows=process.platform==='win32',environment=windows?{SystemRoot:process.env.SystemRoot||'C:\\Windows',WINDIR:process.env.WINDIR||'C:\\Windows',PATH:path.dirname(process.execPath)+';'+path.join(process.env.SystemRoot||'C:\\Windows','System32'),TEMP:path.join(directory,'temp'),TMP:path.join(directory,'temp'),LOCALAPPDATA:path.join(profile,'AppData/Local'),APPDATA:path.join(profile,'AppData/Roaming'),USERPROFILE:profile,SystemDrive:path.parse(directory).root.replace(/[\\/]+$/,'')}:{PATH:path.dirname(process.execPath)+':/usr/bin:/bin',HOME:profile,TMPDIR:path.join(directory,'temp'),TEMP:path.join(directory,'temp'),TMP:path.join(directory,'temp')};
  for(const dir of [environment.TEMP,environment.TMPDIR,environment.LOCALAPPDATA,environment.APPDATA].filter(Boolean))await fs.mkdir(dir,{recursive:true});
  const limits={cpuSeconds:30,wallMs:45000,processMemoryBytes:1024**3,jobMemoryBytes:2*1024**3};if(probe==='timeout')limits.wallMs=1500;if(probe==='memory'){limits.processMemoryBytes=192*1024**2;limits.jobMemoryBytes=256*1024**2;}
- await fs.writeFile(workerConfig,JSON.stringify({...config,directory,gate,probe,browser:process.env.HYPERFRAMES_BROWSER_PATH||'C:/Program Files/Google/Chrome/Application/chrome.exe'}));
+ const defaultBrowser=process.platform==='win32'?'C:/Program Files/Google/Chrome/Application/chrome.exe':process.platform==='darwin'?'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome':'/usr/bin/google-chrome';
+ await fs.writeFile(workerConfig,JSON.stringify({...config,directory,gate,probe,browser:process.env.HYPERFRAMES_BROWSER_PATH||defaultBrowser}));
  await fs.writeFile(jobConfig,JSON.stringify({executable:process.execPath,arguments:['--max-old-space-size=192',path.join(root,'scripts/native-scene-worker.mjs'),workerConfig],directory,gate,environment,...limits}));
  let log='';const result=await new Promise((resolve,reject)=>{
   signal?.throwIfAborted();
@@ -30,7 +31,7 @@ export async function runSceneIsolation(directory,config,{signal,probe}={}){
  await fs.writeFile(path.join(directory,windows?'windows-job.log':'portable-job.log'),log);let evidence;try{const lines=log.trim().split(/\r?\n/).reverse();evidence=JSON.parse(lines.find(line=>line.trim().startsWith('{'))||'');}catch{if(probe==='memory'||probe==='timeout'){evidence={status:'failed',timedOut:probe==='timeout',stderr:log.slice(-1500)};}else insist(false,'隔离启动失败：'+log.slice(-1500),'ISOLATION_FAILED');}
  await fs.writeFile(path.join(directory,windows?'windows-job.json':'portable-job.json'),JSON.stringify(evidence,null,2));signal?.throwIfAborted();
  if(probe==='timeout'||probe==='memory')return {...result,evidence};
- insist(result.code===0&&evidence.assigned&&!evidence.timedOut,'自定义场景隔离检查未通过：'+JSON.stringify(evidence).slice(-1200),'CUSTOM_RUNTIME_FAILED');
+ insist(result.code===0&&evidence.status==='passed'&&evidence.protocolVersion===1&&!evidence.timedOut,'自定义场景隔离检查未通过：'+JSON.stringify(evidence).slice(-1200),'CUSTOM_RUNTIME_FAILED');
  return {...result,evidence,runtime:JSON.parse(await fs.readFile(path.join(directory,'runtime-evidence.json'),'utf8'))};
 }
 export async function verifyCustomProject(outputDir,document,assets,{signal}={}){
@@ -46,4 +47,3 @@ export async function verifyCustomProject(outputDir,document,assets,{signal}={})
  const result={evidence:results[0].evidence,runtime:{motion:results.flatMap(r=>r.runtime.motion)},scenes:results.map((r,i)=>({sceneId:targets[i].id,evidence:r.evidence,runtime:r.runtime}))};
  await fs.writeFile(path.join(outputDir,'custom-isolation.json'),JSON.stringify({status:'passed',inputHash,directory:path.relative(outputDir,directory).replaceAll('\\','/'),isolationPlatform:process.platform,windows:result.evidence,motion:result.runtime.motion,scenes:result.scenes},null,2));verifiedProjects.set(cacheKey,result);if(verifiedProjects.size>32)verifiedProjects.delete(verifiedProjects.keys().next().value);return result;
 }
-

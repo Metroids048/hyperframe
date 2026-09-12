@@ -39,4 +39,3 @@ export async function createDirectionPreview(document,completedSceneIds,assets,o
   await fs.writeFile(path.join(directory,'preview-binding.json'),JSON.stringify(record,null,2));
   return record;
 }
-

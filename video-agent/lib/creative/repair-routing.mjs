@@ -14,4 +14,3 @@ export function keyframeFailure(issues){
   const code=required.some(i=>i.repairKind==='fact-binding')?'KEYFRAME_FACT':required.some(i=>['source-selection','text-evidence'].includes(i.repairKind))?'KEYFRAME_SOURCE':'KEYFRAME_LAYOUT';
   return Object.assign(Error(JSON.stringify(required)),{code,issues:required});
 }
-

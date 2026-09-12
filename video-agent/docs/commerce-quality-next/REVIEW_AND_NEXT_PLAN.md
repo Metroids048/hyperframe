@@ -241,4 +241,3 @@
 - S12 故事合同： https://github.com/Metroids048/hyperframe/blob/6d85be33480bb4b07c354d66082e43db14c32d37/video-agent/lib/creative/story-validation.mjs
 - 官方能力地图（与固定运行时分开验证）： https://hyperframes.heygen.com/prompting/overview
 - 官方完整作品/模板参考： https://hyperframes.heygen.com/showcase
-

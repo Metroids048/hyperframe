@@ -417,4 +417,3 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
     return await readJSON('document.json');
   }finally{if(own)await provider.close();}
 }
-

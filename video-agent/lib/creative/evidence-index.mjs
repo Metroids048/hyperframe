@@ -48,4 +48,3 @@ export async function readEvidenceImages(directory,records){
 export function reusableInspection(batches,ranges){
   return batches.find(b=>ranges.every(r=>(b.records||[]).some(e=>e.assetId===r.assetId&&e.startSeconds<=r.startSeconds&&e.endSeconds>=r.endSeconds)));
 }
-

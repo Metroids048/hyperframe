@@ -52,4 +52,3 @@ export class CapabilityCatalog {
     const lock={runtime:'0.8.33',commit:this.snapshot.commit,files,execution:'reference files are inert; native bundles are the only executable adaptation',license:'upstream LICENSE; asset rights reviewed separately'};await fs.writeFile(path.join(directory,'resource-lock.json'),JSON.stringify(lock,null,2));return lock;
   }
 }
-

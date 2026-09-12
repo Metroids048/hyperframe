@@ -48,4 +48,3 @@ N0 的远端 CI 尚未重新运行；N1 的旧 L90/L120 检查点和 Windows C4 
 - 自定义场景隔离在 macOS 使用受限 Node worker：独立临时目录、最小环境、CSP/网络拦截、超时终止和运行证据；Windows PowerShell 路径保持不变。
 - 媒体探测兼容 ffprobe 警告输出，浏览器验收使用跨平台选择器。
 - 本机 `test-creative-custom.mjs`：7 通过、2 个 Windows 专项跳过；macOS 隔离与静态运动拒绝用例通过。
-

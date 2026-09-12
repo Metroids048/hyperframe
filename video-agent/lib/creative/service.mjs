@@ -55,7 +55,7 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
   }
   const get=id=>{const p=projects.get(id);if(!p)throw new CreativeError('原生项目不存在','PROJECT_NOT_FOUND',404);return p;};
   const revision=(p,id=p.currentRevisionId)=>{const r=p.revisions.find(r=>r.id===id);if(!r)throw new CreativeError('版本不存在','REVISION_NOT_FOUND',404);return r;};
-  const view=p=>({...structuredClone(p),jobs:p.jobs.map(({snapshot,...job})=>({...job,resumeAllowed:canResumeJob(job),budgetExhausted:budgetExhausted(job)})),auditions:(p.auditions||[]).map(a=>({...a,url:`/api/commerce/${p.id}/auditions/${a.id}.wav`})),revisions:p.revisions.map(r=>({...r,previewUrl:`/api/commerce/${p.id}/revisions/${r.id}/preview.html`,videoUrl:r.rendered?`/api/commerce/${p.id}/revisions/${r.id}/commerce-final.mp4`:null,documentUrl:`/api/commerce/${p.id}/revisions/${r.id}/document.json`,packageUrl:r.historyPackaged?`/api/commerce/${p.id}/revisions/${r.id}/history.zip`:r.packaged?`/api/commerce/${p.id}/revisions/${r.id}/project.zip`:null}))});
+  const view=p=>({...structuredClone(p),jobs:p.jobs.map(({snapshot,...job})=>({...job,...(job.directionPreview?{directionPreview:{...job.directionPreview,previewUrl:`/api/commerce/${p.id}/jobs/${job.id}/direction/watch.html`}}:{}),resumeAllowed:canResumeJob(job),budgetExhausted:budgetExhausted(job)})),auditions:(p.auditions||[]).map(a=>({...a,url:`/api/commerce/${p.id}/auditions/${a.id}.wav`})),revisions:p.revisions.map(r=>({...r,previewUrl:`/api/commerce/${p.id}/revisions/${r.id}/preview.html`,videoUrl:r.rendered?`/api/commerce/${p.id}/revisions/${r.id}/commerce-final.mp4`:null,documentUrl:`/api/commerce/${p.id}/revisions/${r.id}/document.json`,packageUrl:r.historyPackaged?`/api/commerce/${p.id}/revisions/${r.id}/history.zip`:r.packaged?`/api/commerce/${p.id}/revisions/${r.id}/project.zip`:null}))});
   async function create(input={}){
     const p={schemaVersion:1,id:randomUUID(),title:String(input.product?.name||'新创作'),createdAt:now(),updatedAt:now(),request:input,assets:[],revisions:[],currentRevisionId:null,jobs:[],messages:[],redo:[]};
     await fs.mkdir(path.join(directory(p),'uploads'),{recursive:true});projects.set(p.id,p);try{await save(p);}catch(error){projects.delete(p.id);throw error;}return p;
@@ -103,7 +103,12 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
   }
   async function planEdit(p,base,document,input,signal,evidence={}){
     if(input.operations)return {operations:input.operations,mode:'structured'};
-    if(/(?:恢复|撤销).*(?:动效|动画|效果)/.test(input.message)){
+    // The inverse shortcut is deliberately conservative: only an entire, positive
+    // restore request may take it.  Negated, quoted, conditional, or compound
+    // language must go through the full planner so no clause is dropped.
+    const restoreText=String(input.message||'').trim();
+    const restoreOnly=/^(?:请|帮我)?\s*(?:撤销|恢复)(?:上次|刚才的|最近的)?\s*(?:动效|动画|效果)(?:[。.!！?？\s]*)$/u;
+    if(restoreOnly.test(restoreText)){
       const number=sceneNumber(input.message),sceneIds=number?[document.scenes[number-1]?.id]:undefined;
       if(number)insist(sceneIds[0],'找不到要恢复的镜头','RESTORE_NOT_FOUND');
       let r=base;
@@ -167,7 +172,7 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
         else if(job.input.message){p.request={...p.request,message:job.input.message};}
         job.stage='观察素材与设计分镜';await save(p);
         const dir=path.join(directory(p),'versions',job.id);
-        await buildCommerceProject({...p.request,projectId:p.id,assets:p.assets,outputDir:path.relative(root,dir).replaceAll('\\','/'),render:false,planning:planner,signal,resumeRunId:job.resumeRunId,onRun:async run=>{job.runId=run.id;job.checkpoints=Object.keys(run.checkpoints||{});job.modelCalls=run.modelCalls;job.gaps=run.gaps||[];job.quality=run.verification;await save(p);},onStage:async stage=>{job.stage=stage;await save(p);}},{root});
+        await buildCommerceProject({...p.request,projectId:p.id,assets:p.assets,outputDir:path.relative(root,dir).replaceAll('\\','/'),render:false,planning:planner,signal,resumeRunId:job.resumeRunId,onRun:async run=>{job.runId=run.id;job.checkpoints=Object.keys(run.checkpoints||{});job.modelCalls=run.modelCalls;job.gaps=run.gaps||[];job.quality=run.verification;job.directionPreview=run.artifacts?.directionPreview;await save(p);},onStage:async stage=>{job.stage=stage;await save(p);}},{root});
         const {document}=await readNativeProject(dir);p.title=document.brief.name;job.stage='检查原生预览';await save(p);await publish(p,job,dir,document,'初始创作');
       }else if(job.kind==='edit'){
         const base=revision(p,job.baseRevisionId),from=versionDirectory(p,base),{document,assets}=await readNativeProject(from);
@@ -287,6 +292,18 @@ export async function creativeRoutes(service,req,res,url,{json,jsonBody,file}){
     if(audition){const a=p.auditions?.find(a=>a.id===audition[1]);insist(a,'试听版本不存在','VOICE_NOT_FOUND');await file(req,res,path.join(service.versionDirectory(p,{directory:'.'}),a.path),'audio/wav');return true;}
     const inputAsset=/^input-assets\/([a-zA-Z0-9_-]+)$/.exec(action);
     if(inputAsset){const asset=p.assets.find(a=>a.id===inputAsset[1]);insist(asset,'素材不存在','ASSET_NOT_FOUND');await file(req,res,path.join(ROOT,asset.path),mime[path.extname(asset.path)]||'application/octet-stream',url.searchParams.has('download')?asset.name:undefined);return true;}
+    const direction=/^jobs\/([a-zA-Z0-9_-]+)\/direction\/(watch.html|preview.html|document.json|assets\/[a-zA-Z0-9_.-]+)$/.exec(action);
+    if(direction){
+      const job=p.jobs.find(j=>j.id===direction[1]),record=job?.directionPreview;
+      insist(record?.status==='range-engineering-checked'&&/^direction-preview\/[a-f0-9]{16}$/.test(record.directory),'方向预览尚未通过范围检查','PREVIEW_NOT_READY');
+      const dir=service.versionDirectory(p,{directory:'versions/'+job.id+'/'+record.directory}),name=direction[2];
+      if(name==='watch.html'){
+        const html='<!doctype html><meta charset="utf-8"><title>方向预览</title><style>body{margin:24px;background:#151515;color:#eee;font:16px sans-serif}hyperframes-player{display:block;max-width:960px;width:100%;aspect-ratio:'+record.output.width+'/'+record.output.height+'}</style><p>母工程方向预览 · 仅此范围已做工程检查，全片尚未完成，画面与声音待评审。</p><hyperframes-player id="direction" controls src="preview.html"></hyperframes-player><script src="/editor-player.js"></script><script>const p=document.getElementById("direction");p.addEventListener("timeupdate",()=>{if(p.currentTime>='+record.range.endFrame+'/30)p.pause();});p.addEventListener("ready",()=>p.seek(0));</script>';
+        res.writeHead(200,{'Content-Type':mime['.html'],'Cache-Control':'no-cache'});res.end(req.method==='HEAD'?undefined:html);return true;
+      }
+      if(name==='preview.html'){const source=await fs.readFile(path.join(dir,'index.html'),'utf8'),html=source.replace('</body>','<script src="assets/runtime.js"></script></body>');res.writeHead(200,{'Content-Type':mime['.html'],'Content-Length':Buffer.byteLength(html),'Cache-Control':'no-cache'});res.end(req.method==='HEAD'?undefined:html);return true;}
+      await file(req,res,path.join(dir,name),mime[path.extname(name)]||'application/octet-stream');return true;
+    }
     const rm=/^revisions\/([a-zA-Z0-9_-]+)\/(preview.html|document.json|commerce-final.mp4|project.zip|history.zip|assets\/[a-zA-Z0-9_.-]+)$/.exec(action);
     if(rm){const r=service.revision(p,rm[1]),name=rm[2];
       if(name==='preview.html'){const source=await fs.readFile(path.join(service.versionDirectory(p,r),'index.html'),'utf8'),html=source.replace('</body>','<script src="assets/runtime.js"></script></body>');res.writeHead(200,{'Content-Type':mime['.html'],'Content-Length':Buffer.byteLength(html),'Cache-Control':'no-cache'});res.end(req.method==='HEAD'?undefined:html);return true;}

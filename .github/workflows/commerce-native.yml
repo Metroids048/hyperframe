@@ -7,7 +7,11 @@ on:
       - 'video-agent/lib/creative/**'
       - 'video-agent/scripts/commerce-agent*.mjs'
       - 'video-agent/scripts/prepare-commerce-fixtures.mjs'
-      - 'video-agent/scripts/test-commerce-native.mjs'
+      - 'video-agent/scripts/test-commerce*.mjs'
+      - 'video-agent/lib/edit/agent-kernel.mjs'
+      - 'video-agent/prompts/commerce/**'
+      - 'video-agent/config/hyperframes/**'
+      - 'video-agent/package-lock.json'
       - 'video-agent/scripts/test-commerce-agent-tool.mjs'
       - 'video-agent/examples/commerce/**'
       - 'video-agent/package.json'
@@ -39,6 +43,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ffmpeg fonts-noto-cjk
       - run: npm ci
+      - name: Staged production, evidence and repair regressions (no authenticated model)
+        run: node --test scripts/test-commerce-next.mjs scripts/test-commerce-quality-next.mjs
       - run: npm run test:commerce
       - name: Verify conversational commerce fixtures
         run: npm run test:commerce:fixtures
