@@ -1,3 +1,4 @@
+import {deliveryRoutes} from './lib/creative/delivery-entry.mjs';
 import {planShots,validateShots} from './lib/multishot.mjs';
 import {createEditService,editRoutes} from './lib/edit/service.mjs';
 import {EditError} from './lib/edit/timeline.mjs';
@@ -84,6 +85,7 @@ const server=http.createServer(async(req,res)=>{
   const allowed=[`127.0.0.1:${PORT}`,`localhost:${PORT}`];if(!allowed.includes(req.headers.host))throw new InputError('无效的本地访问地址',403);
   const origin=req.headers.origin;if(origin&&!allowed.some(h=>origin===`http://${h}`))throw new InputError('此操作只允许在本地制作页面发起',403);
   const url=new URL(req.url,`http://127.0.0.1:${PORT}`),route=url.pathname;
+  if(await deliveryRoutes(ROOT,req,res,url,{file,json}))return;
   if(await editRoutes(editor,req,res,url,{json,jsonBody,file}))return;
   if(await creativeRoutes(creative,req,res,url,{json,jsonBody,file}))return;
   // Native commerce projects use the same editable document/runner as the

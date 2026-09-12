@@ -1,0 +1,4 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {boundObservationRanges} from '../lib/creative/observation-request.mjs';
+const assets=[{id:'source',kind:'video',mediaMetadata:{duration:301.472}}];
+test('long observation requests stay within budget and retain explicit unknown ranges',()=>{const r=boundObservationRanges([{assetId:'source',startSeconds:255,endSeconds:301.472}],assets);assert.equal(r.selected[0].endSeconds-r.selected[0].startSeconds,45);assert.equal(r.omitted[0].status,'not-densely-observed');assert.equal(r.requested[0].startSeconds,255);});
+test('unknown sources and out-of-source requests cannot be repaired by guessing',()=>{for(const r of [{assetId:'typo',startSeconds:0,endSeconds:10},{assetId:'source',startSeconds:0,endSeconds:999}])assert.throws(()=>boundObservationRanges([r],assets),{code:'INVALID_OBSERVATION_REQUEST'});});

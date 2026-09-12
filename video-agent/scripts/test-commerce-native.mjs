@@ -160,3 +160,9 @@ test('common Chinese commerce requests map to stable object patches', () => {
   assert.equal(title.operations[0].text, '夏日手冲套装');
   assert.equal(planCommerceMessage(document, '请做一个完全未知的创意'), null);
 });
+test('all later scenes remain under the root theme after a split-detail scene',async()=>{
+ const {parse}=await import('parse5'),{request,prepared}=fixture(),document=planCommerceDocument(request,prepared),tree=parse(compileDocument(document,prepared).html);
+ const scenes=[];function visit(node){if(node.tagName==='section')scenes.push(node);for(const child of node.childNodes||[])visit(child);}visit(tree);
+ assert.equal(scenes.length,document.scenes.length);
+ for(const scene of scenes){let parent=scene.parentNode,root=false;while(parent){root ||= parent.attrs?.some(a=>a.name==='id'&&a.value==='commerce-root');parent=parent.parentNode;}assert(root,'scene escaped root theme');}
+});

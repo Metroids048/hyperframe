@@ -170,6 +170,11 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
           p.request={message:job.input.message+'\n用户已确认的配音稿：'+selected.text+'\n使用已确认的音频素材 '+selected.id+'，不要重新配音。',inferRequest:true};
         }
         else if(job.input.message){p.request={...p.request,message:job.input.message};}
+        // The draft is created before uploads finish. Persist the complete
+        // asset manifest before handing the request to the production runner
+        // so observation, planning and recovery all see the same inputs that
+        // are currently attached to the project.
+        p.request={...p.request,assets:structuredClone(p.assets)};
         job.stage='观察素材与设计分镜';await save(p);
         const dir=path.join(directory(p),'versions',job.id);
         await buildCommerceProject({...p.request,projectId:p.id,assets:p.assets,outputDir:path.relative(root,dir).replaceAll('\\','/'),render:false,planning:planner,signal,resumeRunId:job.resumeRunId,onRun:async run=>{job.runId=run.id;job.checkpoints=Object.keys(run.checkpoints||{});job.modelCalls=run.modelCalls;job.gaps=run.gaps||[];job.quality=run.verification;job.directionPreview=run.artifacts?.directionPreview;await save(p);},onStage:async stage=>{job.stage=stage;await save(p);}},{root});

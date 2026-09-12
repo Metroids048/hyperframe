@@ -1,0 +1,1028 @@
+{
+  "schema_version": 1,
+  "frozen": true,
+  "scope_sha256": "4fccab7abbd04f7399eb37dad79dd3678395d2265efa0facd608dd94d160c196",
+  "reference_commit": "8e3e61a5cc3e3edffdd190cda9d0de679a8d3bdc",
+  "note": "Original definitions frozen; no case has been declared executed. Behavior cases retain their full original media/edit obligations in original_definition and required_checks.",
+  "cases": [
+    {
+      "id": "N0-N1-RUNTIME",
+      "original_case_id": "N0/N1",
+      "definition_source": {
+        "path": "docs/result-completion/02_ACCEPTANCE_CONTRACT.md",
+        "sha256": "40cd37f4643fc6177545f65bf932741cab16ccb41ba93330b523dc25ed05f000"
+      },
+      "expected_outcome": "engineering",
+      "duration_seconds": null,
+      "fps": null,
+      "width": null,
+      "height": null,
+      "audio": null,
+      "origin": "actual_runtime",
+      "required_artifacts": [
+        "input",
+        "run_evidence"
+      ],
+      "required_checks": [
+        "protocol_positive",
+        "protocol_negative",
+        "current_platform_scene_success",
+        "cancel_cleanup",
+        "security_boundaries",
+        "clean_install"
+      ],
+      "original_definition": "# 结果验收合同：先交结果，再谈完成\n\n本文件规定本轮交付，不代表任何项目用例已经运行通过。以现有原始需求和冻结用例为准；下表补充对交付证据的约束，不把测试任务改成固定商业场景菜单。\n\n## 一、用户应该实际拿到什么\n\n| 结果 | 合格证据 | 不能替代它的东西 |\n|---|---|---|\n| 正常自定义场景与跨平台回执 | 共享协议测试；当前平台经生产父子进程、真实浏览器的有效动态正例；反例及取消回收结果 | 只测拒绝、其他平台 skip、伪造 passed |\n| 30 秒视觉回归 | 原失败工程重新编译与实际 MP4，商品和重要文字可辨认，关键时间前后对照 | 删除警告、只改最终 HTML、旧 MP4 |\n| Q01 45 秒 | 原冻结图文请求，经现有 WebUI 的完整输出与工程 | 延长图片停留凑时间 |\n| Q02 / N3-A、N3-B | 相同输入、两次独立创意调用，经 WebUI 的两条 60 秒视频、原生工程、早期预览和制作记录 | 不同 run ID 但复用整片模型答案、复制成片 |\n| Q03 90 秒 | 原混合素材任务的完整视频，动作、来源及内容连贯 | 73 秒或半成品冒充90秒 |\n| Q04 120 秒 | 原讲解任务及所需真实声音/字幕、完整计时与结果 | 音轨存在就说试听通过 |\n| Q05 180 秒 | 完整视频、真实中断后续跑、依赖有效检查点和恢复记录 | 只模拟状态切换、重新生成却说恢复 |\n| Q06—Q10 | 原短片、复杂修改、画幅、素材不足等定义的实际结果 | 另换简单请求、强行要求负例也输出 MP4 |\n| I01—I12 | 原输入/编辑/锁定等测试及10—14轮连续对话，真实文档差异与媒体结果 | 只看意图路由或测试打印 |\n| H01—H10 | 原冻结未见输入逐项结果，所有失败及后续修复保留 | 挑最佳、失败用例移出名单 |\n| 结果入口 | 同一真实服务中可播放视频、看修改前后、打开/导入工程和状态 | 一堆猜测的本地 URL、裸源码、已过期链接 |\n\n原用例有别名时建一张映射，不重命名丢失原身份。上述义务已被当前版本有效证据覆盖的可以复用，但独立 N3-B 不能靠复用 N3-A 的创意答案完成。\n\n## 二、机器、模型、人类三层不要混淆\n\n### A. 机器与工程\n\n先验证文件、哈希、完整解码、时长/画幅/帧率、声音需求、源引用、稳定对象、资源锁、版本及失败回滚。字体不缺字，路径不跨界，命令与依赖可复现。正式输出采用已约定规格，不能因为机器慢或编码失败降低要求。\n\n目标时长按视频有效帧及容器时长检查，允许必要编码尾差，不能允许实际内容少几秒。30fps 下重要时间编辑以帧精度记录；音画同步范围根据实际合同冻结，不在失败后放宽。预览抽样不足以证明全片无误，最终还需完整解码和播放过程证据。\n\n对比度和可读性检查评估文字真正应该可读的时段，避免把动画瞬时低透明度误判为长期失败。重要价格/条件/字幕长期不可读为硬缺陷；装饰、短暂转场和刻意叠层需实际画面判定。不能靠机器统一亮度阈值宣布商品拍摄效果合格。\n\n### B. 模型辅助复核\n\n依据真实帧/时间/声音能力提供问题定位、依据和局部修复，不空写“高级感”。每次修复确认指定问题减少且无关对象/声音不变。修复无进展转诊断，达到既有预算保留失败，不循环到输出漂亮分数。\n\n自动检查必须明确 unreviewed：无听音能力不能写已试听；无完整动作证据不能写动作连贯；没有权利材料不能说已商用授权。\n\n### C. 用户与独立人评\n\n沿用原目标：85/100，且与合格同输入参考的差距不超过5分；两位独立评审须是真人且实际看过绑定版本。若原冻结量表已有维度/权重，以原量表为准，不能另立宽松标准。没有量表时建议在评审前冻结：商品表达25、叙事20、视觉20、动效15、声音10、续改/交付10，总分100；无声音的合法任务按事前声明重分配，不拿免音轨当满分。\n\n硬违例优先于平均分：错商品/错价/不被支持的功效、漏用户要求、不可读必要条件、意外黑帧/截断、强制静音、错误修改无关内容，不能靠漂亮画面抵消。\n\n用户是最终签收者。正式人评未完成：可以并应该继续制作其他无硬阻塞任务，把全部成片准备好；状态仍是 awaiting_human。不得由 AI 代签，也不得因等待人评提前停在没有成片的位置。\n\n## 三、预算、独立性与失败处理\n\n使用现有 provider、账号、调用/费用/资源限制；安全与账单限制不可绕过。开发者定点重现与正式运行分别记录，既有实际预算不因清空文件或换 run ID 复位。\n\n两次独立生成可共享源媒体解码/转写等确定性分析缓存，但各自的创意规划与镜头决策不能复用另一条最终答案；记录 creative_attempt_id、阶段调用与 cache receipt。仅两个随机 UUID 不构成独立证据。\n\n外部阻塞需要原始错误、范围和最小解除动作。内部 Bug、没找到日志、尚未查过的素材都不是外部阻塞。物理没有某平台时保持其平台待验证，可推进当前支持平台成片；本地未授权推送也不能成为不交付本地产物的理由。\n\n保留全部尝试。冻结未见用例失败后被用于调试，应在报告标记该用例不再是最终版本的严格 holdout，不能隐瞒为从未见过。负例按预期行为判定，不统一要求视频文件。\n\n## 四、交付清单与检查器\n\n优先兼容已有台账，不增加运行平台。附带模板是**未冻结的起点**；`resolve_original`、`from_request`、缺源定义、空输入等必须由 Codex 从原本地资料解析，不能让检查器自动当通过。模板中的源码 `8e3e61a` 仅为审查参考，不要求回退本地。\n\n### 1. 冻结合同\n\n将 `delivery-contract.template.json` 按原定义落到实际合同文件：\n- 每个 case 保留原 ID/别名及 definition_source 的真实文件路径、sha256。\n- expected_outcome 只能是 video / behavior / engineering；负例通常是 behavior。\n- 视频的音频需求为 required / forbidden / optional，必须依据输入选择，不能为过测改成 optional。\n- 指定 duration_seconds；width/height 按原需求填写，缺画幅时按产品合法默认而非检查器默认。\n- required_checks 是该用例必须具备的机器/产品记录，不能删除难做项。\n- 读完原定义后 frozen=true；把 cases 数组按 `json.dumps(..., ensure_ascii=False, sort_keys=True, separators=(',', ':'))` UTF-8 的 sha256 填入 scope_sha256。首次冻结的完整合同哈希另存台账；后续非用户授权不得变更范围。\n\n### 2. 生成实际 manifest\n\n字段格式见 `DELIVERY_MANIFEST.template.json`。所有 path 相对指定的本地 video-agent 根目录，不允许越界或 symlink 指向外部。每个 artifact 是 `{kind, path, sha256}`。源文件 source_files 使用 `{path, sha256}`，至少覆盖实际改动和关键运行入口；workspace_fingerprint 是按路径排序后的 source_files 数组使用上述 canonical JSON 算法计算的 sha256。检查器复核文件内容，防止报告沿用旧代码哈希。复用旧产物时，workspace_fingerprint 表示本次复验所用实现；原生成指纹必须原样保留在 run_evidence，另记依赖影响分析与迁移/复验记录，不能涂改历史让旧片看起来由新代码生成。\n\n每个视频 case 必须有 final_video（实际 MP4）、native_document（JSON）、native_project（包或可携带的工程入口）、input、resource_receipts、run_evidence，以及 required_checks 对应记录。视频不在这里现场重新生成，检查器只核验结果。\n\nchecks 中每项格式：`{\"name\":\"browser_playback\",\"path\":\"...json\",\"sha256\":\"...\"}`。该 JSON 由对应真实测试输出或薄的规范化器从真实日志整理，应至少有：\n\n```json\n{\n  \"check\": \"browser_playback\",\n  \"status\": \"passed\",\n  \"case_id\": \"Q02-A\",\n  \"run_id\": \"实际run\",\n  \"revision_id\": \"实际revision\",\n  \"workspace_fingerprint\": \"源码清单指纹\",\n  \"evidence_paths\": [\"outputs/真实记录.json\"]\n}\n```\n\n`evidence_paths` 内文件也必须列进该 case.artifacts 以便哈希校验。不能生成空的同结构 JSON 冒充测试。薄规范化器不得把 failed/unreviewed 变为 passed。native_document 的 revisionId 必须与 case 关联。\n\n### 3. 调用方式（由 Codex 执行，不要求用户改用终端）\n\n```text\npython <本包目录>/verify_delivery.py --root <实际video-agent目录> \\\n  --contract <实际冻结合同.json> --manifest <实际DELIVERY_MANIFEST.json> \\\n  --ffprobe <当前已验证的ffprobe路径>\n```\n\n检查器只读，输出 JSON 到标准输出：退出码0只表示 `EVIDENCE_COMPLETE_AWAITING_ACCEPTANCE`；退出码1表示缺失/失配；退出码2是运行参数/环境错误。**退出0不等于人评通过、授权通过、日志真实性证明或项目商用完成。** 它不评审画面美感、不验证人类身份、不保证上传材料真实。其作用是阻止无文件、旧文件、错时长、漏音轨、错版本、缺测试记录仍意外被汇总成完成。\n\n需要新的测试记录由 Codex 在现有测试/结果链中接入，不允许从模板直接填 passed。checklist 不是结果，样例 JSON 不是证据。CI/测试适配完成后还要开真实浏览器，不能只跑本检查器收尾。\n\n## 五、最终交付内容\n\n优先展示一个实际打开验证过的结果入口，然后是全部必需视频、修改前后、原生工程、逐条请求完成情况和明确待人评/授权项。底层日志与测试置后。目标是用户能直接检查而不是自行在几十份文档和目录里找。\n\n“可执行交付齐备，待用户签收”仅在所有必需机器/产品结果已齐备时成立；若任一要求仍有内部错误或无产物，写任务未完成并继续修复。在全部剩余项真正外部受阻或宿主中断时保存接力，不能改口称基本完成。\n"
+    },
+    {
+      "id": "N2-FIXTURE30",
+      "original_case_id": "N2",
+      "definition_source": {
+        "path": "docs/result-completion/02_ACCEPTANCE_CONTRACT.md",
+        "sha256": "40cd37f4643fc6177545f65bf932741cab16ccb41ba93330b523dc25ed05f000"
+      },
+      "expected_outcome": "video",
+      "duration_seconds": 30,
+      "fps": 30,
+      "width": 1080,
+      "height": 1920,
+      "audio": "forbidden",
+      "origin": "synthetic_regression",
+      "required_artifacts": [
+        "input",
+        "run_evidence"
+      ],
+      "required_checks": [
+        "media_contract",
+        "visual_regression"
+      ],
+      "original_definition": "# 结果验收合同：先交结果，再谈完成\n\n本文件规定本轮交付，不代表任何项目用例已经运行通过。以现有原始需求和冻结用例为准；下表补充对交付证据的约束，不把测试任务改成固定商业场景菜单。\n\n## 一、用户应该实际拿到什么\n\n| 结果 | 合格证据 | 不能替代它的东西 |\n|---|---|---|\n| 正常自定义场景与跨平台回执 | 共享协议测试；当前平台经生产父子进程、真实浏览器的有效动态正例；反例及取消回收结果 | 只测拒绝、其他平台 skip、伪造 passed |\n| 30 秒视觉回归 | 原失败工程重新编译与实际 MP4，商品和重要文字可辨认，关键时间前后对照 | 删除警告、只改最终 HTML、旧 MP4 |\n| Q01 45 秒 | 原冻结图文请求，经现有 WebUI 的完整输出与工程 | 延长图片停留凑时间 |\n| Q02 / N3-A、N3-B | 相同输入、两次独立创意调用，经 WebUI 的两条 60 秒视频、原生工程、早期预览和制作记录 | 不同 run ID 但复用整片模型答案、复制成片 |\n| Q03 90 秒 | 原混合素材任务的完整视频，动作、来源及内容连贯 | 73 秒或半成品冒充90秒 |\n| Q04 120 秒 | 原讲解任务及所需真实声音/字幕、完整计时与结果 | 音轨存在就说试听通过 |\n| Q05 180 秒 | 完整视频、真实中断后续跑、依赖有效检查点和恢复记录 | 只模拟状态切换、重新生成却说恢复 |\n| Q06—Q10 | 原短片、复杂修改、画幅、素材不足等定义的实际结果 | 另换简单请求、强行要求负例也输出 MP4 |\n| I01—I12 | 原输入/编辑/锁定等测试及10—14轮连续对话，真实文档差异与媒体结果 | 只看意图路由或测试打印 |\n| H01—H10 | 原冻结未见输入逐项结果，所有失败及后续修复保留 | 挑最佳、失败用例移出名单 |\n| 结果入口 | 同一真实服务中可播放视频、看修改前后、打开/导入工程和状态 | 一堆猜测的本地 URL、裸源码、已过期链接 |\n\n原用例有别名时建一张映射，不重命名丢失原身份。上述义务已被当前版本有效证据覆盖的可以复用，但独立 N3-B 不能靠复用 N3-A 的创意答案完成。\n\n## 二、机器、模型、人类三层不要混淆\n\n### A. 机器与工程\n\n先验证文件、哈希、完整解码、时长/画幅/帧率、声音需求、源引用、稳定对象、资源锁、版本及失败回滚。字体不缺字，路径不跨界，命令与依赖可复现。正式输出采用已约定规格，不能因为机器慢或编码失败降低要求。\n\n目标时长按视频有效帧及容器时长检查，允许必要编码尾差，不能允许实际内容少几秒。30fps 下重要时间编辑以帧精度记录；音画同步范围根据实际合同冻结，不在失败后放宽。预览抽样不足以证明全片无误，最终还需完整解码和播放过程证据。\n\n对比度和可读性检查评估文字真正应该可读的时段，避免把动画瞬时低透明度误判为长期失败。重要价格/条件/字幕长期不可读为硬缺陷；装饰、短暂转场和刻意叠层需实际画面判定。不能靠机器统一亮度阈值宣布商品拍摄效果合格。\n\n### B. 模型辅助复核\n\n依据真实帧/时间/声音能力提供问题定位、依据和局部修复，不空写“高级感”。每次修复确认指定问题减少且无关对象/声音不变。修复无进展转诊断，达到既有预算保留失败，不循环到输出漂亮分数。\n\n自动检查必须明确 unreviewed：无听音能力不能写已试听；无完整动作证据不能写动作连贯；没有权利材料不能说已商用授权。\n\n### C. 用户与独立人评\n\n沿用原目标：85/100，且与合格同输入参考的差距不超过5分；两位独立评审须是真人且实际看过绑定版本。若原冻结量表已有维度/权重，以原量表为准，不能另立宽松标准。没有量表时建议在评审前冻结：商品表达25、叙事20、视觉20、动效15、声音10、续改/交付10，总分100；无声音的合法任务按事前声明重分配，不拿免音轨当满分。\n\n硬违例优先于平均分：错商品/错价/不被支持的功效、漏用户要求、不可读必要条件、意外黑帧/截断、强制静音、错误修改无关内容，不能靠漂亮画面抵消。\n\n用户是最终签收者。正式人评未完成：可以并应该继续制作其他无硬阻塞任务，把全部成片准备好；状态仍是 awaiting_human。不得由 AI 代签，也不得因等待人评提前停在没有成片的位置。\n\n## 三、预算、独立性与失败处理\n\n使用现有 provider、账号、调用/费用/资源限制；安全与账单限制不可绕过。开发者定点重现与正式运行分别记录，既有实际预算不因清空文件或换 run ID 复位。\n\n两次独立生成可共享源媒体解码/转写等确定性分析缓存，但各自的创意规划与镜头决策不能复用另一条最终答案；记录 creative_attempt_id、阶段调用与 cache receipt。仅两个随机 UUID 不构成独立证据。\n\n外部阻塞需要原始错误、范围和最小解除动作。内部 Bug、没找到日志、尚未查过的素材都不是外部阻塞。物理没有某平台时保持其平台待验证，可推进当前支持平台成片；本地未授权推送也不能成为不交付本地产物的理由。\n\n保留全部尝试。冻结未见用例失败后被用于调试，应在报告标记该用例不再是最终版本的严格 holdout，不能隐瞒为从未见过。负例按预期行为判定，不统一要求视频文件。\n\n## 四、交付清单与检查器\n\n优先兼容已有台账，不增加运行平台。附带模板是**未冻结的起点**；`resolve_original`、`from_request`、缺源定义、空输入等必须由 Codex 从原本地资料解析，不能让检查器自动当通过。模板中的源码 `8e3e61a` 仅为审查参考，不要求回退本地。\n\n### 1. 冻结合同\n\n将 `delivery-contract.template.json` 按原定义落到实际合同文件：\n- 每个 case 保留原 ID/别名及 definition_source 的真实文件路径、sha256。\n- expected_outcome 只能是 video / behavior / engineering；负例通常是 behavior。\n- 视频的音频需求为 required / forbidden / optional，必须依据输入选择，不能为过测改成 optional。\n- 指定 duration_seconds；width/height 按原需求填写，缺画幅时按产品合法默认而非检查器默认。\n- required_checks 是该用例必须具备的机器/产品记录，不能删除难做项。\n- 读完原定义后 frozen=true；把 cases 数组按 `json.dumps(..., ensure_ascii=False, sort_keys=True, separators=(',', ':'))` UTF-8 的 sha256 填入 scope_sha256。首次冻结的完整合同哈希另存台账；后续非用户授权不得变更范围。\n\n### 2. 生成实际 manifest\n\n字段格式见 `DELIVERY_MANIFEST.template.json`。所有 path 相对指定的本地 video-agent 根目录，不允许越界或 symlink 指向外部。每个 artifact 是 `{kind, path, sha256}`。源文件 source_files 使用 `{path, sha256}`，至少覆盖实际改动和关键运行入口；workspace_fingerprint 是按路径排序后的 source_files 数组使用上述 canonical JSON 算法计算的 sha256。检查器复核文件内容，防止报告沿用旧代码哈希。复用旧产物时，workspace_fingerprint 表示本次复验所用实现；原生成指纹必须原样保留在 run_evidence，另记依赖影响分析与迁移/复验记录，不能涂改历史让旧片看起来由新代码生成。\n\n每个视频 case 必须有 final_video（实际 MP4）、native_document（JSON）、native_project（包或可携带的工程入口）、input、resource_receipts、run_evidence，以及 required_checks 对应记录。视频不在这里现场重新生成，检查器只核验结果。\n\nchecks 中每项格式：`{\"name\":\"browser_playback\",\"path\":\"...json\",\"sha256\":\"...\"}`。该 JSON 由对应真实测试输出或薄的规范化器从真实日志整理，应至少有：\n\n```json\n{\n  \"check\": \"browser_playback\",\n  \"status\": \"passed\",\n  \"case_id\": \"Q02-A\",\n  \"run_id\": \"实际run\",\n  \"revision_id\": \"实际revision\",\n  \"workspace_fingerprint\": \"源码清单指纹\",\n  \"evidence_paths\": [\"outputs/真实记录.json\"]\n}\n```\n\n`evidence_paths` 内文件也必须列进该 case.artifacts 以便哈希校验。不能生成空的同结构 JSON 冒充测试。薄规范化器不得把 failed/unreviewed 变为 passed。native_document 的 revisionId 必须与 case 关联。\n\n### 3. 调用方式（由 Codex 执行，不要求用户改用终端）\n\n```text\npython <本包目录>/verify_delivery.py --root <实际video-agent目录> \\\n  --contract <实际冻结合同.json> --manifest <实际DELIVERY_MANIFEST.json> \\\n  --ffprobe <当前已验证的ffprobe路径>\n```\n\n检查器只读，输出 JSON 到标准输出：退出码0只表示 `EVIDENCE_COMPLETE_AWAITING_ACCEPTANCE`；退出码1表示缺失/失配；退出码2是运行参数/环境错误。**退出0不等于人评通过、授权通过、日志真实性证明或项目商用完成。** 它不评审画面美感、不验证人类身份、不保证上传材料真实。其作用是阻止无文件、旧文件、错时长、漏音轨、错版本、缺测试记录仍意外被汇总成完成。\n\n需要新的测试记录由 Codex 在现有测试/结果链中接入，不允许从模板直接填 passed。checklist 不是结果，样例 JSON 不是证据。CI/测试适配完成后还要开真实浏览器，不能只跑本检查器收尾。\n\n## 五、最终交付内容\n\n优先展示一个实际打开验证过的结果入口，然后是全部必需视频、修改前后、原生工程、逐条请求完成情况和明确待人评/授权项。底层日志与测试置后。目标是用户能直接检查而不是自行在几十份文档和目录里找。\n\n“可执行交付齐备，待用户签收”仅在所有必需机器/产品结果已齐备时成立；若任一要求仍有内部错误或无产物，写任务未完成并继续修复。在全部剩余项真正外部受阻或宿主中断时保存接力，不能改口称基本完成。\n"
+    },
+    {
+      "id": "Q01",
+      "original_case_id": "Q01",
+      "definition_source": {
+        "path": "docs/commerce-agent-next/04_BENCHMARK_AND_ACCEPTANCE.md",
+        "sha256": "dfffa323cdf50502cc0cd7547f46ace13491aeedf39a9e7167741b11ddf78b0b"
+      },
+      "expected_outcome": "video",
+      "duration_seconds": 45,
+      "fps": 30,
+      "width": 1920,
+      "height": 1080,
+      "audio": "optional",
+      "origin": "fresh_webui",
+      "required_artifacts": [
+        "input",
+        "run_evidence"
+      ],
+      "required_checks": [
+        "input_fidelity",
+        "media_contract",
+        "browser_playback",
+        "native_reopen",
+        "resource_execution",
+        "visual_machine_review"
+      ],
+      "original_definition": "45 秒商品图文与真实细节\n\n输入：同款商品至少 4 张清晰、授权适用的不同用途图片，附经确认的参数/配件说明；不得用旧广告截图作为原始商品照。\n\n短请求：“用这些商品图做一条45秒介绍视频，把整体、细节和适用方式讲清楚。风格跟商品匹配，画面有层次，但别花哨。只用我提供的信息。”\n\n检查：Agent 自行选材和叙事；局部放大指向真实细节；可用图解而不是全程图片慢推；没有捏造动作/性能。分别测试横屏和竖屏布局。\n\n续改：“只把中间的参数展示改得更清晰，开头和结尾保持不变。”\n"
+    },
+    {
+      "id": "Q02-A",
+      "original_case_id": "Q02/N3",
+      "definition_source": {
+        "path": "docs/commerce-agent-next/04_BENCHMARK_AND_ACCEPTANCE.md",
+        "sha256": "dfffa323cdf50502cc0cd7547f46ace13491aeedf39a9e7167741b11ddf78b0b"
+      },
+      "expected_outcome": "video",
+      "duration_seconds": 60,
+      "fps": 30,
+      "width": 1920,
+      "height": 1080,
+      "audio": "required",
+      "origin": "fresh_webui",
+      "required_artifacts": [
+        "input",
+        "run_evidence"
+      ],
+      "required_checks": [
+        "input_fidelity",
+        "media_contract",
+        "browser_playback",
+        "native_reopen",
+        "resource_execution",
+        "visual_machine_review",
+        "early_direction_preview",
+        "scoped_edit_and_undo",
+        "concurrent_export"
+      ],
+      "original_definition": "60 秒真实操作与动效包装（第一主门槛）\n\n输入：同一商品多段真实操作视频，总有效内容足以支撑 60 秒；可使用既有素材但必须核实实际动作。保留原素材及源区间。\n\n短请求：“把这些实拍做成一分钟的商品介绍，操作过程要看懂，配一点恰当的文字和动效，不要像图片轮播。保留操作原声，不加配音，不编造参数。”\n\n检查：选镜/trim/重排是实际视频编辑；动作有起止；字幕和图形配合动作；时长是 60 秒，不通过慢放/循环凑长；真实视频不被全屏装饰替代。\n\n续改：“开头更有吸引力，中间步骤别打乱，最后留出看清成品的时间。”\n"
+    },
+    {
+      "id": "Q02-B",
+      "original_case_id": "Q02/N3",
+      "definition_source": {
+        "path": "docs/commerce-agent-next/04_BENCHMARK_AND_ACCEPTANCE.md",
+        "sha256": "dfffa323cdf50502cc0cd7547f46ace13491aeedf39a9e7167741b11ddf78b0b"
+      },
+      "expected_outcome": "video",
+      "duration_seconds": 60,
+      "fps": 30,
+      "width": 1920,
+      "height": 1080,
+      "audio": "required",
+      "origin": "fresh_webui",
+      "required_artifacts": [
+        "input",
+        "run_evidence"
+      ],
+      "required_checks": [
+        "input_fidelity",
+        "media_contract",
+        "browser_playback",
+        "native_reopen",
+        "resource_execution",
+        "visual_machine_review"
+      ],
+      "original_definition": "60 秒真实操作与动效包装（第一主门槛）\n\n输入：同一商品多段真实操作视频，总有效内容足以支撑 60 秒；可使用既有素材但必须核实实际动作。保留原素材及源区间。\n\n短请求：“把这些实拍做成一分钟的商品介绍，操作过程要看懂，配一点恰当的文字和动效，不要像图片轮播。保留操作原声，不加配音，不编造参数。”\n\n检查：选镜/trim/重排是实际视频编辑；动作有起止；字幕和图形配合动作；时长是 60 秒，不通过慢放/循环凑长；真实视频不被全屏装饰替代。\n\n续改：“开头更有吸引力，中间步骤别打乱，最后留出看清成品的时间。”\n"
+    },
+    {
+      "id": "Q03",
+      "original_case_id": "Q03",
+      "definition_source": {
+        "path": "docs/commerce-agent-next/04_BENCHMARK_AND_ACCEPTANCE.md",
+        "sha256": "dfffa323cdf50502cc0cd7547f46ace13491aeedf39a9e7167741b11ddf78b0b"
+      },
+      "expected_outcome": "video",
+      "duration_seconds": 90,
+      "fps": 30,
+      "width": 1920,
+      "height": 1080,
+      "audio": "optional",
+      "origin": "fresh_webui",
+      "required_artifacts": [
+        "input",
+        "run_evidence"
+      ],
+      "required_checks": [
+        "input_fidelity",
+        "media_contract",
+        "browser_playback",
+        "native_reopen",
+        "resource_execution",
+        "visual_machine_review"
+      ],
+      "original_definition": "90 秒混合素材商品解释\n\n输入：商品图片、实拍、确认文案/规格和可用声音（无音轨也可）；至少包含整体、细节和说明资料。\n\n短请求：“用这些材料做90秒的视频，让第一次看的人弄明白产品是什么、怎么用、适合哪些已说明的需求，最后自然收尾。不要机械罗列卖点。”\n\n检查：需求驱动组合图片布局、实拍选镜、图解和字幕，文案与证据相互对应；有段落节奏和全片统一设计；不能只堆九张十秒文字卡。\n\n续改：“把中间解释压缩10秒，把省下来的时间用于已经提供的使用细节，总长不变。”\n"
+    },
+    {
+      "id": "Q04",
+      "original_case_id": "Q04",
+      "definition_source": {
+        "path": "docs/commerce-agent-next/04_BENCHMARK_AND_ACCEPTANCE.md",
+        "sha256": "dfffa323cdf50502cc0cd7547f46ace13491aeedf39a9e7167741b11ddf78b0b"
+      },
+      "expected_outcome": "video",
+      "duration_seconds": 120,
+      "fps": 30,
+      "width": 1920,
+      "height": 1080,
+      "audio": "required",
+      "origin": "fresh_webui",
+      "required_artifacts": [
+        "input",
+        "run_evidence"
+      ],
+      "required_checks": [
+        "input_fidelity",
+        "media_contract",
+        "browser_playback",
+        "native_reopen",
+        "resource_execution",
+        "visual_machine_review"
+      ],
+      "original_definition": "120 秒口播/旁白与图形同步\n\n输入：180—600 秒的授权口播，或足够的已批准商品讲解文字加现有可用配音能力，以及对应的商品辅助素材。\n\n短请求：“做成两分钟的商品讲解，关键条件都要保留。字幕跟声音对齐，有重点的时候再出现商品细节和图形，不要整段一直用同一种标题。”\n\n检查：真实转写/音频计时；语义和限定条件完整；字幕、辅助镜头、关键字强调同步；不会因为语音比估计长而截断；支持从母工程输出代表性方向预览。\n\n续改：“只改第二段这句话，其他讲解内容不要改；重新对齐相关字幕。”替换文字来自测试提供的实际原句，不由系统编造。\n"
+    },
+    {
+      "id": "Q05",
+      "original_case_id": "Q05",
+      "definition_source": {
+        "path": "docs/commerce-agent-next/04_BENCHMARK_AND_ACCEPTANCE.md",
+        "sha256": "dfffa323cdf50502cc0cd7547f46ace13491aeedf39a9e7167741b11ddf78b0b"
+      },
+      "expected_outcome": "video",
+      "duration_seconds": 180,
+      "fps": 30,
+      "width": 1920,
+      "height": 1080,
+      "audio": "required",
+      "origin": "fresh_webui",
+      "required_artifacts": [
+        "input",
+        "run_evidence"
+      ],
+      "required_checks": [
+        "input_fidelity",
+        "media_contract",
+        "browser_playback",
+        "native_reopen",
+        "resource_execution",
+        "visual_machine_review",
+        "actual_cancel_and_resume"
+      ],
+      "original_definition": "180 秒较长叙事与恢复\n\n输入：足量、有清晰步骤或信息结构的真实商品演示及文案；不是将 Q02 素材简单复制三份。\n\n短请求：“做成三分钟的完整介绍，各部分衔接自然，已经重复说过的信息不用再说。”\n\n检查：分层计划、逐镜头制作、全片一致、字幕声音、内存/缓存和任务恢复。中途取消或服务中断后能安全恢复有效产物，不污染上一版本。\n\n说明：用于长任务能力与工程验证，不要求所有电商广告都达到三分钟。\n"
+    },
+    {
+      "id": "Q06",
+      "original_case_id": "Q06",
+      "definition_source": {
+        "path": "docs/commerce-agent-next/04_BENCHMARK_AND_ACCEPTANCE.md",
+        "sha256": "dfffa323cdf50502cc0cd7547f46ace13491aeedf39a9e7167741b11ddf78b0b"
+      },
+      "expected_outcome": "video",
+      "duration_seconds": 15,
+      "fps": 30,
+      "width": 1920,
+      "height": 1080,
+      "audio": "optional",
+      "origin": "fresh_webui",
+      "required_artifacts": [
+        "input",
+        "run_evidence"
+      ],
+      "required_checks": [
+        "resolve_original_checks"
+      ],
+      "original_definition": "15 秒精确促销回归\n\n输入：确认的商品图、价格、币种、活动日期和条件。\n\n短请求：“做15秒促销视频，第一秒就让人看到活动价，条件也要看清，结尾不需要重复价格。”\n\n检查：移除“价格只能最后三秒”的通用硬编码；信息准确；短片紧凑。该用例与长片同样重要，但不是旗舰质量证明。\n"
+    },
+    {
+      "id": "Q07",
+      "original_case_id": "Q07",
+      "definition_source": {
+        "path": "docs/commerce-agent-next/04_BENCHMARK_AND_ACCEPTANCE.md",
+        "sha256": "dfffa323cdf50502cc0cd7547f46ace13491aeedf39a9e7167741b11ddf78b0b"
+      },
+      "expected_outcome": "behavior",
+      "duration_seconds": null,
+      "fps": null,
+      "width": null,
+      "height": null,
+      "audio": null,
+      "origin": "fresh_webui",
+      "required_artifacts": [
+        "input",
+        "run_evidence"
+      ],
+      "required_checks": [
+        "resolve_original_checks"
+      ],
+      "original_definition": "无模板名称的复杂组合需求\n\n输入：现有 60 秒原生工程、新商品图和确认文案。\n\n请求：“中间改成一边播放操作、一边解释细节，讲到哪里就标到哪里；后面保持原来的剪辑和声音。”\n\n检查：不要求用户选择“画中画/促销/图文”场景；受管多媒体布局与图形标注可执行；仅修改指定范围；资源不适合时受控原创而非拒绝。\n"
+    },
+    {
+      "id": "Q08",
+      "original_case_id": "Q08",
+      "definition_source": {
+        "path": "docs/commerce-agent-next/04_BENCHMARK_AND_ACCEPTANCE.md",
+        "sha256": "dfffa323cdf50502cc0cd7547f46ace13491aeedf39a9e7167741b11ddf78b0b"
+      },
+      "expected_outcome": "behavior",
+      "duration_seconds": null,
+      "fps": null,
+      "width": null,
+      "height": null,
+      "audio": null,
+      "origin": "fresh_webui",
+      "required_artifacts": [
+        "input",
+        "run_evidence"
+      ],
+      "required_checks": [
+        "resolve_original_checks"
+      ],
+      "original_definition": "素材不足与不合理时长\n\n输入：一张图片，没有动作视频，也没有足以支持长篇解释的资料。\n\n请求：“做两分钟真实开箱、安装、使用过程，产品从不同角度转一圈。”\n\n检查：识别无法证明的动作/视角；说明素材缺口和可执行的补拍/简化方案；本轮不自动调用生图生视频，不用虚假的 3D 或静帧循环冒充真实过程。正确处理缺口也算 Agent 能力，但不算已经完成该原始视频需求。\n"
+    },
+    {
+      "id": "Q09",
+      "original_case_id": "Q09",
+      "definition_source": {
+        "path": "docs/commerce-agent-next/04_BENCHMARK_AND_ACCEPTANCE.md",
+        "sha256": "dfffa323cdf50502cc0cd7547f46ace13491aeedf39a9e7167741b11ddf78b0b"
+      },
+      "expected_outcome": "behavior",
+      "duration_seconds": null,
+      "fps": null,
+      "width": null,
+      "height": null,
+      "audio": null,
+      "origin": "fresh_webui",
+      "required_artifacts": [
+        "input",
+        "run_evidence"
+      ],
+      "required_checks": [
+        "resolve_original_checks"
+      ],
+      "original_definition": "品牌一致与多画幅\n\n输入：已经确认的 Q02/Q03 工程及授权适用的品牌规范。\n\n请求：“保留内容和节奏，再给我竖屏和方屏版本，不能裁掉商品，字体和风格要一样。”\n\n检查：重排而非硬裁；文字/价格/品牌留白一致；对应修复不会修改母版；字体缺失有真实处理记录。\n"
+    },
+    {
+      "id": "Q10",
+      "original_case_id": "Q10",
+      "definition_source": {
+        "path": "docs/commerce-agent-next/04_BENCHMARK_AND_ACCEPTANCE.md",
+        "sha256": "dfffa323cdf50502cc0cd7547f46ace13491aeedf39a9e7167741b11ddf78b0b"
+      },
+      "expected_outcome": "behavior",
+      "duration_seconds": null,
+      "fps": null,
+      "width": null,
+      "height": null,
+      "audio": null,
+      "origin": "fresh_webui",
+      "required_artifacts": [
+        "input",
+        "run_evidence"
+      ],
+      "required_checks": [
+        "resolve_original_checks"
+      ],
+      "original_definition": "对话十到十四轮连续编辑\n\n使用 Q02/Q03 的真实工程完成：改标题 → 改强调色 → 指定镜头细节 → 改价（仅当用例有价格）→ 仅撤销动效 → 缩短一段 → 恢复指定版本 → 切画幅 → 只改结尾 → 导出期间继续编辑 → 重开工程 → 比较两版本。\n\n没有价格的工程不要为测试强加价格；使用同等范围的另一项事实更新。每轮记录目标对象、影响范围、锁定项、实际差异和验证结果。\n"
+    },
+    {
+      "id": "I01",
+      "original_case_id": "I01",
+      "definition_source": {
+        "path": "docs/03_RUNTIME_AND_ACCEPTANCE.md",
+        "sha256": "5264d882a78881e8ca3445e6b948687ef82f328691160c41ce3c9eadf272429c"
+      },
+      "expected_outcome": "behavior",
+      "duration_seconds": null,
+      "fps": null,
+      "width": null,
+      "height": null,
+      "audio": null,
+      "origin": "fresh_webui",
+      "required_artifacts": [
+        "input",
+        "run_evidence"
+      ],
+      "required_checks": [
+        "resolve_original_checks"
+      ],
+      "original_definition": "| I01 | 不要撤销动效，只把标题改成“新品上市” | 只改定位标题 | 撤销动效、改声音、改其它镜头 |"
+    },
+    {
+      "id": "I02",
+      "original_case_id": "I02",
+      "definition_source": {
+        "path": "docs/03_RUNTIME_AND_ACCEPTANCE.md",
+        "sha256": "5264d882a78881e8ca3445e6b948687ef82f328691160c41ce3c9eadf272429c"
+      },
+      "expected_outcome": "behavior",
+      "duration_seconds": null,
+      "fps": null,
+      "width": null,
+      "height": null,
+      "audio": null,
+      "origin": "fresh_webui",
+      "required_artifacts": [
+        "input",
+        "run_evidence"
+      ],
+      "required_checks": [
+        "resolve_original_checks"
+      ],
+      "original_definition": "| I02 | 撤销上次动效，然后把标题改成“新品上市” | 两项均完成，原子发布 | 只做前半句、丢后半句 |"
+    },
+    {
+      "id": "I03",
+      "original_case_id": "I03",
+      "definition_source": {
+        "path": "docs/03_RUNTIME_AND_ACCEPTANCE.md",
+        "sha256": "5264d882a78881e8ca3445e6b948687ef82f328691160c41ce3c9eadf272429c"
+      },
+      "expected_outcome": "behavior",
+      "duration_seconds": null,
+      "fps": null,
+      "width": null,
+      "height": null,
+      "audio": null,
+      "origin": "fresh_webui",
+      "required_artifacts": [
+        "input",
+        "run_evidence"
+      ],
+      "required_checks": [
+        "resolve_original_checks"
+      ],
+      "original_definition": "| I03 | 标题改成“不要撤销动画” | 标题逐字成为给定文字 | 引号内文案触发动作 |"
+    },
+    {
+      "id": "I04",
+      "original_case_id": "I04",
+      "definition_source": {
+        "path": "docs/03_RUNTIME_AND_ACCEPTANCE.md",
+        "sha256": "5264d882a78881e8ca3445e6b948687ef82f328691160c41ce3c9eadf272429c"
+      },
+      "expected_outcome": "behavior",
+      "duration_seconds": null,
+      "fps": null,
+      "width": null,
+      "height": null,
+      "audio": null,
+      "origin": "fresh_webui",
+      "required_artifacts": [
+        "input",
+        "run_evidence"
+      ],
+      "required_checks": [
+        "resolve_original_checks"
+      ],
+      "original_definition": "| I04 | 把这条字幕改成“查看商品细节”，不要改声音 | 字幕更新 | TTS调用、声音源/音量/时序变化 |"
+    },
+    {
+      "id": "I05",
+      "original_case_id": "I05",
+      "definition_source": {
+        "path": "docs/03_RUNTIME_AND_ACCEPTANCE.md",
+        "sha256": "5264d882a78881e8ca3445e6b948687ef82f328691160c41ce3c9eadf272429c"
+      },
+      "expected_outcome": "behavior",
+      "duration_seconds": null,
+      "fps": null,
+      "width": null,
+      "height": null,
+      "audio": null,
+      "origin": "fresh_webui",
+      "required_artifacts": [
+        "input",
+        "run_evidence"
+      ],
+      "required_checks": [
+        "resolve_original_checks"
+      ],
+      "original_definition": "| I05 | 只用第二张商品图，不要使用第一张和第三张 | 仅指定图进入可见工程 | 其它图参与背景/细节或预览 |"
+    },
+    {
+      "id": "I06",
+      "original_case_id": "I06",
+      "definition_source": {
+        "path": "docs/03_RUNTIME_AND_ACCEPTANCE.md",
+        "sha256": "5264d882a78881e8ca3445e6b948687ef82f328691160c41ce3c9eadf272429c"
+      },
+      "expected_outcome": "behavior",
+      "duration_seconds": null,
+      "fps": null,
+      "width": null,
+      "height": null,
+      "audio": null,
+      "origin": "fresh_webui",
+      "required_artifacts": [
+        "input",
+        "run_evidence"
+      ],
+      "required_checks": [
+        "resolve_original_checks"
+      ],
+      "original_definition": "| I06 | 做15秒促销，第一秒就显示活动价，条件要看清 | 有效首秒价格与条件可读 | 套用“价格只能最后三秒” |"
+    },
+    {
+      "id": "I07",
+      "original_case_id": "I07",
+      "definition_source": {
+        "path": "docs/03_RUNTIME_AND_ACCEPTANCE.md",
+        "sha256": "5264d882a78881e8ca3445e6b948687ef82f328691160c41ce3c9eadf272429c"
+      },
+      "expected_outcome": "behavior",
+      "duration_seconds": null,
+      "fps": null,
+      "width": null,
+      "height": null,
+      "audio": null,
+      "origin": "fresh_webui",
+      "required_artifacts": [
+        "input",
+        "run_evidence"
+      ],
+      "required_checks": [
+        "resolve_original_checks"
+      ],
+      "original_definition": "| I07 | 第20到30秒改成操作与细节双栏，其它内容和声音不变 | 对应范围重排 | 重新生成整片、改锁定对象 |"
+    },
+    {
+      "id": "I08",
+      "original_case_id": "I08",
+      "definition_source": {
+        "path": "docs/03_RUNTIME_AND_ACCEPTANCE.md",
+        "sha256": "5264d882a78881e8ca3445e6b948687ef82f328691160c41ce3c9eadf272429c"
+      },
+      "expected_outcome": "behavior",
+      "duration_seconds": null,
+      "fps": null,
+      "width": null,
+      "height": null,
+      "audio": null,
+      "origin": "fresh_webui",
+      "required_artifacts": [
+        "input",
+        "run_evidence"
+      ],
+      "required_checks": [
+        "resolve_original_checks"
+      ],
+      "original_definition": "| I08 | 保持开头与结尾，只压缩中间说明10秒，再把这10秒给已有操作细节，总长不变 | 两段时间重新分配 | 总长变化、编造额外动作 |"
+    },
+    {
+      "id": "I09",
+      "original_case_id": "I09",
+      "definition_source": {
+        "path": "docs/03_RUNTIME_AND_ACCEPTANCE.md",
+        "sha256": "5264d882a78881e8ca3445e6b948687ef82f328691160c41ce3c9eadf272429c"
+      },
+      "expected_outcome": "behavior",
+      "duration_seconds": null,
+      "fps": null,
+      "width": null,
+      "height": null,
+      "audio": null,
+      "origin": "fresh_webui",
+      "required_artifacts": [
+        "input",
+        "run_evidence"
+      ],
+      "required_checks": [
+        "resolve_original_checks"
+      ],
+      "original_definition": "| I09 | 只撤销刚才的动效，保留后面改过的价格 | 选择性逆操作 | 回退整版而丢新价格 |"
+    },
+    {
+      "id": "I10",
+      "original_case_id": "I10",
+      "definition_source": {
+        "path": "docs/03_RUNTIME_AND_ACCEPTANCE.md",
+        "sha256": "5264d882a78881e8ca3445e6b948687ef82f328691160c41ce3c9eadf272429c"
+      },
+      "expected_outcome": "behavior",
+      "duration_seconds": null,
+      "fps": null,
+      "width": null,
+      "height": null,
+      "audio": null,
+      "origin": "fresh_webui",
+      "required_artifacts": [
+        "input",
+        "run_evidence"
+      ],
+      "required_checks": [
+        "resolve_original_checks"
+      ],
+      "original_definition": "| I10 | 导出当前版本，同时继续修改另一版标题 | 导出绑定原revision | 导出中途读到新标题 |"
+    },
+    {
+      "id": "I11",
+      "original_case_id": "I11",
+      "definition_source": {
+        "path": "docs/03_RUNTIME_AND_ACCEPTANCE.md",
+        "sha256": "5264d882a78881e8ca3445e6b948687ef82f328691160c41ce3c9eadf272429c"
+      },
+      "expected_outcome": "behavior",
+      "duration_seconds": null,
+      "fps": null,
+      "width": null,
+      "height": null,
+      "audio": null,
+      "origin": "fresh_webui",
+      "required_artifacts": [
+        "input",
+        "run_evidence"
+      ],
+      "required_checks": [
+        "resolve_original_checks"
+      ],
+      "original_definition": "| I11 | 保持内容和声音，做竖屏与方屏版本，不裁商品 | 原生重排、母版保留 | 硬裁主体、重配音、覆盖母版 |"
+    },
+    {
+      "id": "I12",
+      "original_case_id": "I12",
+      "definition_source": {
+        "path": "docs/03_RUNTIME_AND_ACCEPTANCE.md",
+        "sha256": "5264d882a78881e8ca3445e6b948687ef82f328691160c41ce3c9eadf272429c"
+      },
+      "expected_outcome": "behavior",
+      "duration_seconds": null,
+      "fps": null,
+      "width": null,
+      "height": null,
+      "audio": null,
+      "origin": "fresh_webui",
+      "required_artifacts": [
+        "input",
+        "run_evidence"
+      ],
+      "required_checks": [
+        "resolve_original_checks"
+      ],
+      "original_definition": "| I12 | 取消当前任务后从检查点恢复 | 同源关联、有效缓存、累计预算保留 | 污染旧版、伪造恢复、清零预算 |"
+    },
+    {
+      "id": "H01",
+      "original_case_id": "H01",
+      "definition_source": {
+        "path": "scripts/freeze-commerce-holdouts.mjs",
+        "sha256": "82b66aba47e0dd4011637bbeedf2b8e7426fee43bb73672e7b0e4ebac4005b28"
+      },
+      "expected_outcome": "video",
+      "duration_seconds": 60,
+      "fps": 30,
+      "width": 1920,
+      "height": 1080,
+      "audio": "optional",
+      "origin": "fresh_webui",
+      "required_artifacts": [
+        "input",
+        "run_evidence"
+      ],
+      "required_checks": [
+        "resolve_original_checks"
+      ],
+      "original_input": {
+        "id": "H01",
+        "files": [
+          "assets/commerce-showcase/moka-brewing.webm"
+        ],
+        "message": "把提供材料讲清楚，60秒，只用已有信息。输出横屏1080p。"
+      },
+      "original_definition": {
+        "id": "H01",
+        "files": [
+          "assets/commerce-showcase/moka-brewing.webm"
+        ],
+        "message": "把提供材料讲清楚，60秒，只用已有信息。输出横屏1080p。"
+      }
+    },
+    {
+      "id": "H02",
+      "original_case_id": "H02",
+      "definition_source": {
+        "path": "scripts/freeze-commerce-holdouts.mjs",
+        "sha256": "82b66aba47e0dd4011637bbeedf2b8e7426fee43bb73672e7b0e4ebac4005b28"
+      },
+      "expected_outcome": "video",
+      "duration_seconds": 45,
+      "fps": 30,
+      "width": 1920,
+      "height": 1080,
+      "audio": "forbidden",
+      "origin": "fresh_webui",
+      "required_artifacts": [
+        "input",
+        "run_evidence"
+      ],
+      "required_checks": [
+        "resolve_original_checks"
+      ],
+      "original_input": {
+        "id": "H02",
+        "files": [
+          "assets/creative-observation/01.jpg",
+          "assets/creative-observation/02.jpg",
+          "assets/creative-observation/04.jpg"
+        ],
+        "message": "用这三张器具照片做45秒观察介绍，照片并未确认为同款，分别说明可见的外观与部件，不编造使用实拍或性能。文字和图片要有层级。横屏1080p，静音。",
+        "scope": "Existing photos are observation test material, not approved marketing assets."
+      },
+      "original_definition": {
+        "id": "H02",
+        "files": [
+          "assets/creative-observation/01.jpg",
+          "assets/creative-observation/02.jpg",
+          "assets/creative-observation/04.jpg"
+        ],
+        "message": "用这三张器具照片做45秒观察介绍，照片并未确认为同款，分别说明可见的外观与部件，不编造使用实拍或性能。文字和图片要有层级。横屏1080p，静音。",
+        "scope": "Existing photos are observation test material, not approved marketing assets."
+      }
+    },
+    {
+      "id": "H03",
+      "original_case_id": "H03",
+      "definition_source": {
+        "path": "scripts/freeze-commerce-holdouts.mjs",
+        "sha256": "82b66aba47e0dd4011637bbeedf2b8e7426fee43bb73672e7b0e4ebac4005b28"
+      },
+      "expected_outcome": "video",
+      "duration_seconds": 45,
+      "fps": 30,
+      "width": 1920,
+      "height": 1080,
+      "audio": "required",
+      "origin": "fresh_webui",
+      "required_artifacts": [
+        "input",
+        "run_evidence"
+      ],
+      "required_checks": [
+        "resolve_original_checks"
+      ],
+      "original_input": {
+        "id": "H03",
+        "files": [
+          "assets/commerce-showcase/moka-brewing.webm"
+        ],
+        "message": "用操作片做45秒介绍，保留动作和原声。不编造参数，不加配音或价格。横屏1080p。"
+      },
+      "original_definition": {
+        "id": "H03",
+        "files": [
+          "assets/commerce-showcase/moka-brewing.webm"
+        ],
+        "message": "用操作片做45秒介绍，保留动作和原声。不编造参数，不加配音或价格。横屏1080p。"
+      }
+    },
+    {
+      "id": "H04",
+      "original_case_id": "H04",
+      "definition_source": {
+        "path": "scripts/freeze-commerce-holdouts.mjs",
+        "sha256": "82b66aba47e0dd4011637bbeedf2b8e7426fee43bb73672e7b0e4ebac4005b28"
+      },
+      "expected_outcome": "video",
+      "duration_seconds": 15,
+      "fps": 30,
+      "width": 1920,
+      "height": 1080,
+      "audio": "forbidden",
+      "origin": "fresh_webui",
+      "required_artifacts": [
+        "input",
+        "run_evidence"
+      ],
+      "required_checks": [
+        "resolve_original_checks"
+      ],
+      "original_input": {
+        "id": "H04",
+        "files": [],
+        "message": "做15秒纯文字排版功能测试，保留全部以下演示文案，不添加照片。第一秒显示“演示样例 · ¥199”。条件：“仅限指定款式；活动有效期以店铺页面为准；优惠不可与其他活动叠加；实际支付金额请以结算页面为准。”最后显示“下单前请核对款式与适用条件”。中文较长时重新排版，横屏1080p，静音。",
+        "scope": "Synthetic typography fixture, not an actual offer."
+      },
+      "original_definition": {
+        "id": "H04",
+        "files": [],
+        "message": "做15秒纯文字排版功能测试，保留全部以下演示文案，不添加照片。第一秒显示“演示样例 · ¥199”。条件：“仅限指定款式；活动有效期以店铺页面为准；优惠不可与其他活动叠加；实际支付金额请以结算页面为准。”最后显示“下单前请核对款式与适用条件”。中文较长时重新排版，横屏1080p，静音。",
+        "scope": "Synthetic typography fixture, not an actual offer."
+      }
+    },
+    {
+      "id": "H05",
+      "original_case_id": "H05",
+      "definition_source": {
+        "path": "scripts/freeze-commerce-holdouts.mjs",
+        "sha256": "82b66aba47e0dd4011637bbeedf2b8e7426fee43bb73672e7b0e4ebac4005b28"
+      },
+      "expected_outcome": "video",
+      "duration_seconds": 15,
+      "fps": 30,
+      "width": 1920,
+      "height": 1080,
+      "audio": "forbidden",
+      "origin": "fresh_webui",
+      "required_artifacts": [
+        "input",
+        "run_evidence"
+      ],
+      "required_checks": [
+        "resolve_original_checks"
+      ],
+      "original_input": {
+        "id": "H05",
+        "files": [
+          "assets/creative-observation/01.jpg",
+          "assets/creative-observation/02.jpg",
+          "assets/creative-observation/04.jpg"
+        ],
+        "message": "只介绍第二张照片里出现的器具，其他照片没有确认是同型号，不要凭相似外观混用。做15秒静音横屏展示，只写照片能够证明的内容。",
+        "scope": "Observation correctness fixture, not marketing approval."
+      },
+      "original_definition": {
+        "id": "H05",
+        "files": [
+          "assets/creative-observation/01.jpg",
+          "assets/creative-observation/02.jpg",
+          "assets/creative-observation/04.jpg"
+        ],
+        "message": "只介绍第二张照片里出现的器具，其他照片没有确认是同型号，不要凭相似外观混用。做15秒静音横屏展示，只写照片能够证明的内容。",
+        "scope": "Observation correctness fixture, not marketing approval."
+      }
+    },
+    {
+      "id": "H06",
+      "original_case_id": "H06",
+      "definition_source": {
+        "path": "scripts/freeze-commerce-holdouts.mjs",
+        "sha256": "82b66aba47e0dd4011637bbeedf2b8e7426fee43bb73672e7b0e4ebac4005b28"
+      },
+      "expected_outcome": "behavior",
+      "duration_seconds": null,
+      "fps": null,
+      "width": null,
+      "height": null,
+      "audio": null,
+      "origin": "fresh_webui",
+      "required_artifacts": [
+        "input",
+        "run_evidence"
+      ],
+      "required_checks": [
+        "resolve_original_checks"
+      ],
+      "original_input": {
+        "id": "H06",
+        "files": [
+          "assets/creative-observation/02.jpg"
+        ],
+        "message": "只有一张照片和足量批准说明，做90秒解释型视频。",
+        "status": "blocked-input",
+        "blocker": "No approved long-form product copy was supplied. Do not invent it to satisfy the duration."
+      },
+      "original_definition": {
+        "id": "H06",
+        "files": [
+          "assets/creative-observation/02.jpg"
+        ],
+        "message": "只有一张照片和足量批准说明，做90秒解释型视频。",
+        "status": "blocked-input",
+        "blocker": "No approved long-form product copy was supplied. Do not invent it to satisfy the duration."
+      }
+    },
+    {
+      "id": "H07",
+      "original_case_id": "H07",
+      "definition_source": {
+        "path": "scripts/freeze-commerce-holdouts.mjs",
+        "sha256": "82b66aba47e0dd4011637bbeedf2b8e7426fee43bb73672e7b0e4ebac4005b28"
+      },
+      "expected_outcome": "video",
+      "duration_seconds": 60,
+      "fps": 30,
+      "width": 1920,
+      "height": 1080,
+      "audio": "required",
+      "origin": "fresh_webui",
+      "required_artifacts": [
+        "input",
+        "run_evidence"
+      ],
+      "required_checks": [
+        "resolve_original_checks"
+      ],
+      "original_input": {
+        "id": "H07",
+        "files": [
+          "assets/commerce-showcase/moka-brewing.webm"
+        ],
+        "message": "从这段长视频里找完整操作，剪成一分钟。保留原声，少量中文提示，横屏1080p；不能把其他器具当同一商品，不加配音。"
+      },
+      "original_definition": {
+        "id": "H07",
+        "files": [
+          "assets/commerce-showcase/moka-brewing.webm"
+        ],
+        "message": "从这段长视频里找完整操作，剪成一分钟。保留原声，少量中文提示，横屏1080p；不能把其他器具当同一商品，不加配音。"
+      }
+    },
+    {
+      "id": "H08",
+      "original_case_id": "H08",
+      "definition_source": {
+        "path": "scripts/freeze-commerce-holdouts.mjs",
+        "sha256": "82b66aba47e0dd4011637bbeedf2b8e7426fee43bb73672e7b0e4ebac4005b28"
+      },
+      "expected_outcome": "video",
+      "duration_seconds": 15,
+      "fps": 30,
+      "width": 1920,
+      "height": 1080,
+      "audio": "forbidden",
+      "origin": "fresh_webui",
+      "required_artifacts": [
+        "input",
+        "run_evidence"
+      ],
+      "required_checks": [
+        "resolve_original_checks"
+      ],
+      "original_input": {
+        "id": "H08",
+        "files": [],
+        "message": "制作15秒静音字体测试。逐字保留“演示品牌 DEMO STUDIO”和“观察 · 理解 · 制作 / Observe · Understand · Create”，把中文和英文排成清晰层级，统一字体；这是排版样例，不声明真实商标。1920×1080。",
+        "scope": "Synthetic bilingual typography fixture."
+      },
+      "original_definition": {
+        "id": "H08",
+        "files": [],
+        "message": "制作15秒静音字体测试。逐字保留“演示品牌 DEMO STUDIO”和“观察 · 理解 · 制作 / Observe · Understand · Create”，把中文和英文排成清晰层级，统一字体；这是排版样例，不声明真实商标。1920×1080。",
+        "scope": "Synthetic bilingual typography fixture."
+      }
+    },
+    {
+      "id": "H09",
+      "original_case_id": "H09",
+      "definition_source": {
+        "path": "scripts/freeze-commerce-holdouts.mjs",
+        "sha256": "82b66aba47e0dd4011637bbeedf2b8e7426fee43bb73672e7b0e4ebac4005b28"
+      },
+      "expected_outcome": "video",
+      "duration_seconds": 60,
+      "fps": 30,
+      "width": 1920,
+      "height": 1080,
+      "audio": "forbidden",
+      "origin": "fresh_webui",
+      "required_artifacts": [
+        "input",
+        "run_evidence"
+      ],
+      "required_checks": [
+        "resolve_original_checks"
+      ],
+      "original_input": {
+        "id": "H09",
+        "files": [
+          "assets/commerce-showcase/moka-brewing.webm"
+        ],
+        "message": "把这些资料做成60秒静音视频，不加音乐和配音。操作过程看得懂，适量文字，不能虚构价格参数，也不要重复片段填时间。1920×1080。"
+      },
+      "original_definition": {
+        "id": "H09",
+        "files": [
+          "assets/commerce-showcase/moka-brewing.webm"
+        ],
+        "message": "把这些资料做成60秒静音视频，不加音乐和配音。操作过程看得懂，适量文字，不能虚构价格参数，也不要重复片段填时间。1920×1080。"
+      }
+    },
+    {
+      "id": "H10",
+      "original_case_id": "H10",
+      "definition_source": {
+        "path": "scripts/freeze-commerce-holdouts.mjs",
+        "sha256": "82b66aba47e0dd4011637bbeedf2b8e7426fee43bb73672e7b0e4ebac4005b28"
+      },
+      "expected_outcome": "behavior",
+      "duration_seconds": null,
+      "fps": null,
+      "width": null,
+      "height": null,
+      "audio": null,
+      "origin": "fresh_webui",
+      "required_artifacts": [
+        "input",
+        "run_evidence"
+      ],
+      "required_checks": [
+        "resolve_original_checks"
+      ],
+      "original_input": {
+        "id": "H10",
+        "files": [],
+        "package": "data/commerce-next-current/4b4696cc-a5fb-488a-a218-764e6cfedc83/versions/job-0edc7207-bb55-47c5-8623-75cf7968fc2f/history.zip",
+        "message": "只把第三段“整理粉面”改为“整理咖啡粉面”，素材、声音、其他文字和时长保持。",
+        "kind": "edit"
+      },
+      "original_definition": {
+        "id": "H10",
+        "files": [],
+        "package": "data/commerce-next-current/4b4696cc-a5fb-488a-a218-764e6cfedc83/versions/job-0edc7207-bb55-47c5-8623-75cf7968fc2f/history.zip",
+        "message": "只把第三段“整理粉面”改为“整理咖啡粉面”，素材、声音、其他文字和时长保持。",
+        "kind": "edit"
+      }
+    },
+    {
+      "id": "RESULT-ENTRY",
+      "original_case_id": "N5/delivery",
+      "definition_source": {
+        "path": "docs/result-completion/02_ACCEPTANCE_CONTRACT.md",
+        "sha256": "40cd37f4643fc6177545f65bf932741cab16ccb41ba93330b523dc25ed05f000"
+      },
+      "expected_outcome": "behavior",
+      "duration_seconds": null,
+      "fps": null,
+      "width": null,
+      "height": null,
+      "audio": null,
+      "origin": "actual_browser",
+      "required_artifacts": [
+        "input",
+        "run_evidence"
+      ],
+      "required_checks": [
+        "all_links_open",
+        "all_required_cases_indexed",
+        "native_package_import",
+        "final_regressions"
+      ],
+      "original_definition": "# 结果验收合同：先交结果，再谈完成\n\n本文件规定本轮交付，不代表任何项目用例已经运行通过。以现有原始需求和冻结用例为准；下表补充对交付证据的约束，不把测试任务改成固定商业场景菜单。\n\n## 一、用户应该实际拿到什么\n\n| 结果 | 合格证据 | 不能替代它的东西 |\n|---|---|---|\n| 正常自定义场景与跨平台回执 | 共享协议测试；当前平台经生产父子进程、真实浏览器的有效动态正例；反例及取消回收结果 | 只测拒绝、其他平台 skip、伪造 passed |\n| 30 秒视觉回归 | 原失败工程重新编译与实际 MP4，商品和重要文字可辨认，关键时间前后对照 | 删除警告、只改最终 HTML、旧 MP4 |\n| Q01 45 秒 | 原冻结图文请求，经现有 WebUI 的完整输出与工程 | 延长图片停留凑时间 |\n| Q02 / N3-A、N3-B | 相同输入、两次独立创意调用，经 WebUI 的两条 60 秒视频、原生工程、早期预览和制作记录 | 不同 run ID 但复用整片模型答案、复制成片 |\n| Q03 90 秒 | 原混合素材任务的完整视频，动作、来源及内容连贯 | 73 秒或半成品冒充90秒 |\n| Q04 120 秒 | 原讲解任务及所需真实声音/字幕、完整计时与结果 | 音轨存在就说试听通过 |\n| Q05 180 秒 | 完整视频、真实中断后续跑、依赖有效检查点和恢复记录 | 只模拟状态切换、重新生成却说恢复 |\n| Q06—Q10 | 原短片、复杂修改、画幅、素材不足等定义的实际结果 | 另换简单请求、强行要求负例也输出 MP4 |\n| I01—I12 | 原输入/编辑/锁定等测试及10—14轮连续对话，真实文档差异与媒体结果 | 只看意图路由或测试打印 |\n| H01—H10 | 原冻结未见输入逐项结果，所有失败及后续修复保留 | 挑最佳、失败用例移出名单 |\n| 结果入口 | 同一真实服务中可播放视频、看修改前后、打开/导入工程和状态 | 一堆猜测的本地 URL、裸源码、已过期链接 |\n\n原用例有别名时建一张映射，不重命名丢失原身份。上述义务已被当前版本有效证据覆盖的可以复用，但独立 N3-B 不能靠复用 N3-A 的创意答案完成。\n\n## 二、机器、模型、人类三层不要混淆\n\n### A. 机器与工程\n\n先验证文件、哈希、完整解码、时长/画幅/帧率、声音需求、源引用、稳定对象、资源锁、版本及失败回滚。字体不缺字，路径不跨界，命令与依赖可复现。正式输出采用已约定规格，不能因为机器慢或编码失败降低要求。\n\n目标时长按视频有效帧及容器时长检查，允许必要编码尾差，不能允许实际内容少几秒。30fps 下重要时间编辑以帧精度记录；音画同步范围根据实际合同冻结，不在失败后放宽。预览抽样不足以证明全片无误，最终还需完整解码和播放过程证据。\n\n对比度和可读性检查评估文字真正应该可读的时段，避免把动画瞬时低透明度误判为长期失败。重要价格/条件/字幕长期不可读为硬缺陷；装饰、短暂转场和刻意叠层需实际画面判定。不能靠机器统一亮度阈值宣布商品拍摄效果合格。\n\n### B. 模型辅助复核\n\n依据真实帧/时间/声音能力提供问题定位、依据和局部修复，不空写“高级感”。每次修复确认指定问题减少且无关对象/声音不变。修复无进展转诊断，达到既有预算保留失败，不循环到输出漂亮分数。\n\n自动检查必须明确 unreviewed：无听音能力不能写已试听；无完整动作证据不能写动作连贯；没有权利材料不能说已商用授权。\n\n### C. 用户与独立人评\n\n沿用原目标：85/100，且与合格同输入参考的差距不超过5分；两位独立评审须是真人且实际看过绑定版本。若原冻结量表已有维度/权重，以原量表为准，不能另立宽松标准。没有量表时建议在评审前冻结：商品表达25、叙事20、视觉20、动效15、声音10、续改/交付10，总分100；无声音的合法任务按事前声明重分配，不拿免音轨当满分。\n\n硬违例优先于平均分：错商品/错价/不被支持的功效、漏用户要求、不可读必要条件、意外黑帧/截断、强制静音、错误修改无关内容，不能靠漂亮画面抵消。\n\n用户是最终签收者。正式人评未完成：可以并应该继续制作其他无硬阻塞任务，把全部成片准备好；状态仍是 awaiting_human。不得由 AI 代签，也不得因等待人评提前停在没有成片的位置。\n\n## 三、预算、独立性与失败处理\n\n使用现有 provider、账号、调用/费用/资源限制；安全与账单限制不可绕过。开发者定点重现与正式运行分别记录，既有实际预算不因清空文件或换 run ID 复位。\n\n两次独立生成可共享源媒体解码/转写等确定性分析缓存，但各自的创意规划与镜头决策不能复用另一条最终答案；记录 creative_attempt_id、阶段调用与 cache receipt。仅两个随机 UUID 不构成独立证据。\n\n外部阻塞需要原始错误、范围和最小解除动作。内部 Bug、没找到日志、尚未查过的素材都不是外部阻塞。物理没有某平台时保持其平台待验证，可推进当前支持平台成片；本地未授权推送也不能成为不交付本地产物的理由。\n\n保留全部尝试。冻结未见用例失败后被用于调试，应在报告标记该用例不再是最终版本的严格 holdout，不能隐瞒为从未见过。负例按预期行为判定，不统一要求视频文件。\n\n## 四、交付清单与检查器\n\n优先兼容已有台账，不增加运行平台。附带模板是**未冻结的起点**；`resolve_original`、`from_request`、缺源定义、空输入等必须由 Codex 从原本地资料解析，不能让检查器自动当通过。模板中的源码 `8e3e61a` 仅为审查参考，不要求回退本地。\n\n### 1. 冻结合同\n\n将 `delivery-contract.template.json` 按原定义落到实际合同文件：\n- 每个 case 保留原 ID/别名及 definition_source 的真实文件路径、sha256。\n- expected_outcome 只能是 video / behavior / engineering；负例通常是 behavior。\n- 视频的音频需求为 required / forbidden / optional，必须依据输入选择，不能为过测改成 optional。\n- 指定 duration_seconds；width/height 按原需求填写，缺画幅时按产品合法默认而非检查器默认。\n- required_checks 是该用例必须具备的机器/产品记录，不能删除难做项。\n- 读完原定义后 frozen=true；把 cases 数组按 `json.dumps(..., ensure_ascii=False, sort_keys=True, separators=(',', ':'))` UTF-8 的 sha256 填入 scope_sha256。首次冻结的完整合同哈希另存台账；后续非用户授权不得变更范围。\n\n### 2. 生成实际 manifest\n\n字段格式见 `DELIVERY_MANIFEST.template.json`。所有 path 相对指定的本地 video-agent 根目录，不允许越界或 symlink 指向外部。每个 artifact 是 `{kind, path, sha256}`。源文件 source_files 使用 `{path, sha256}`，至少覆盖实际改动和关键运行入口；workspace_fingerprint 是按路径排序后的 source_files 数组使用上述 canonical JSON 算法计算的 sha256。检查器复核文件内容，防止报告沿用旧代码哈希。复用旧产物时，workspace_fingerprint 表示本次复验所用实现；原生成指纹必须原样保留在 run_evidence，另记依赖影响分析与迁移/复验记录，不能涂改历史让旧片看起来由新代码生成。\n\n每个视频 case 必须有 final_video（实际 MP4）、native_document（JSON）、native_project（包或可携带的工程入口）、input、resource_receipts、run_evidence，以及 required_checks 对应记录。视频不在这里现场重新生成，检查器只核验结果。\n\nchecks 中每项格式：`{\"name\":\"browser_playback\",\"path\":\"...json\",\"sha256\":\"...\"}`。该 JSON 由对应真实测试输出或薄的规范化器从真实日志整理，应至少有：\n\n```json\n{\n  \"check\": \"browser_playback\",\n  \"status\": \"passed\",\n  \"case_id\": \"Q02-A\",\n  \"run_id\": \"实际run\",\n  \"revision_id\": \"实际revision\",\n  \"workspace_fingerprint\": \"源码清单指纹\",\n  \"evidence_paths\": [\"outputs/真实记录.json\"]\n}\n```\n\n`evidence_paths` 内文件也必须列进该 case.artifacts 以便哈希校验。不能生成空的同结构 JSON 冒充测试。薄规范化器不得把 failed/unreviewed 变为 passed。native_document 的 revisionId 必须与 case 关联。\n\n### 3. 调用方式（由 Codex 执行，不要求用户改用终端）\n\n```text\npython <本包目录>/verify_delivery.py --root <实际video-agent目录> \\\n  --contract <实际冻结合同.json> --manifest <实际DELIVERY_MANIFEST.json> \\\n  --ffprobe <当前已验证的ffprobe路径>\n```\n\n检查器只读，输出 JSON 到标准输出：退出码0只表示 `EVIDENCE_COMPLETE_AWAITING_ACCEPTANCE`；退出码1表示缺失/失配；退出码2是运行参数/环境错误。**退出0不等于人评通过、授权通过、日志真实性证明或项目商用完成。** 它不评审画面美感、不验证人类身份、不保证上传材料真实。其作用是阻止无文件、旧文件、错时长、漏音轨、错版本、缺测试记录仍意外被汇总成完成。\n\n需要新的测试记录由 Codex 在现有测试/结果链中接入，不允许从模板直接填 passed。checklist 不是结果，样例 JSON 不是证据。CI/测试适配完成后还要开真实浏览器，不能只跑本检查器收尾。\n\n## 五、最终交付内容\n\n优先展示一个实际打开验证过的结果入口，然后是全部必需视频、修改前后、原生工程、逐条请求完成情况和明确待人评/授权项。底层日志与测试置后。目标是用户能直接检查而不是自行在几十份文档和目录里找。\n\n“可执行交付齐备，待用户签收”仅在所有必需机器/产品结果已齐备时成立；若任一要求仍有内部错误或无产物，写任务未完成并继续修复。在全部剩余项真正外部受阻或宿主中断时保存接力，不能改口称基本完成。\n"
+    }
+  ],
+  "independent_groups": [
+    [
+      "Q02-A",
+      "Q02-B"
+    ]
+  ]
+}

@@ -17,7 +17,7 @@ export async function inspectKeyframe(document,sceneId,assets,outputDir,runHyper
   const native=structuredClone(document),scene=native.scenes.find(s=>s.id===sceneId),start=scene.startFrame;
   native.scenes=[{...scene,startFrame:0}];native.durationFrames=scene.durationFrames;native.transitions=[];native.audioGraph=[];native.captions=[];
   native.nodes=native.nodes.filter(n=>n.sceneId===sceneId).map(n=>({...n,startFrame:n.startFrame-start}));
-  native.sourceBundles=native.sourceBundles.filter(b=>b.sceneId===sceneId);
+  native.sourceBundles=native.sourceBundles.filter(b=>b.sceneId===sceneId).map(b=>({...b,contractVersion:b.contractVersion||2}));
   const at=atSeconds??Number((scene.durationFrames/FPS*.45).toFixed(3));
   insist(Number.isFinite(at)&&at>=0&&at<scene.durationFrames/FPS,'关键画面时点超出本镜头','KEYFRAME_TIME');
   insist(native.sourceBundles.every(b=>!b.timeline.trim()&&!b.motionTargets.length),'关键画面不能提前包含动画','KEYFRAME_CONTRACT');

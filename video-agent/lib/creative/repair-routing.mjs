@@ -1,6 +1,6 @@
 export function repairRoute(error){
   const code=String(error?.code||''),message=String(error?.message||'');
-  if(/^(?:HYPERFRAMES_(?:MEDIA_FRAME|PATH)|ISOLATION_UNAVAILABLE|ENOENT|EACCES|EPERM|CHECKPOINT_HASH|SCENE_HASH|PREVIEW_EVIDENCE_MISSING)$/.test(code)||/无法启动媒体工具|媒体处理失败|无法读取媒体|video frame injection failed|could not be extracted/i.test(message))return 'environment';
+  if(/^(?:HYPERFRAMES_(?:MEDIA_FRAME|PATH)|ISOLATION_[A-Z_]+|ENOENT|EACCES|EPERM|CHECKPOINT_HASH|SCENE_HASH|PREVIEW_EVIDENCE_MISSING)$/.test(code)||/无法启动媒体工具|媒体处理失败|无法读取媒体|video frame injection failed|could not be extracted/i.test(message))return 'environment';
   if(/TIMEOUT|CAPACITY|QUOTA|BUDGET/.test(code)||/超时|timed? out|quota/i.test(message))return 'resume';
   if(code==='KEYFRAME_SOURCE')return 'source-selection';
   if(code==='KEYFRAME_FACT')return 'fact-binding';

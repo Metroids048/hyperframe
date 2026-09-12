@@ -131,7 +131,7 @@ function renderScene(document, scene, assets) {
     const p = scene.effectParams || {};
     const width = Math.round((p.mediaWidth ?? .58) * 100);
     const left = firstMedia?.kind === 'image' ? `<div class="split-media media-entrance enter" data-layout-allow-overflow><div class="media-motion motion">${imageMarkup(assets[firstMedia.assetId], firstMedia)}</div></div>` : '<div></div>';
-    return `<div class="split" style="grid-template-columns:${width}% 1fr;column-gap:${Number(p.gap??40)}px">${left}<div class="split-copy">${commonCopy}</div></div></div>`;
+    return `<div class="split" style="grid-template-columns:${width}% 1fr;column-gap:${Number(p.gap??40)}px">${left}<div class="split-copy">${commonCopy}</div></div>`;
   }
   if (scene.effect === 'price-lockup') {
     const price = textEl(n.price, 'price');
@@ -164,7 +164,7 @@ function sceneTimeline(document, scene) {
   if(!incomingTransition)lines.push(`tl.set(${js(`${selector}, [data-scene-media="${scene.id}"]`)},{opacity:1},${start});`);
   if(scene.effect==='custom-native')return lines;
   if(scene.effect==='media-cut'&&sceneNodes(document,scene).text.length)lines.push(`tl.from(${js(`${selector} .copy-panel .enter`)},{opacity:0,x:18,duration:.4,ease:"power2.out",stagger:.08},${contentStart+.12});`);
-  if(scene.effect!=='media-cut'&&(sceneNodes(document,scene).text.length||sceneNodes(document,scene).media.some(n=>n.kind==='image')))lines.push(`tl.from(${js(`${selector} .enter`)},{opacity:0,y:${Number(scene.effectParams?.offsetY ?? 28)},duration:0.45,ease:"power3.out",stagger:${Number(scene.effectParams?.stagger??.07)}},${contentStart});`);
+  if(scene.effect!=='media-cut'&&(sceneNodes(document,scene).text.length||sceneNodes(document,scene).media.some(n=>n.kind==='image')))lines.push(`tl.from(${js(`${selector} .enter${scene.effect==='product-reveal'?':not(.media-entrance)':scene.effect==='detail-inset'?':not(.inset-card)':''}`)},{opacity:0,y:${Number(scene.effectParams?.offsetY ?? 28)},duration:0.45,ease:"power3.out",stagger:${Number(scene.effectParams?.stagger??.07)}},${contentStart});`);
   if(scene.effect==='keyword-emphasis')lines.push(`tl.from(${js(`${selector} .product-title`)},{scale:${Number(scene.effectParams?.accentScale??1.08)},duration:.6,ease:"power3.out"},${contentStart});`);
   if (['title-reveal','keyword-emphasis'].includes(scene.effect)) {
     const travel=Math.max(.6,duration-(scene===document.scenes.at(-1)?1.6:.6));
@@ -250,6 +250,7 @@ export function compileDocument(document, preparedAssets, {audioRefs={}}={}) {
     ${effectCss()}
     ${[...custom.values()].map(c=>c.css).join('\n')}
     ${document.scenes.map(s=>s.effect==='product-reveal'?`#${s.id} .media-frame,[data-scene-media="${s.id}"]{border-radius:${Number(s.effectParams?.radius??44)}px}`:s.effect==='detail-inset'?`#${s.id} .inset-card img{transform-origin:${pct(s.effectParams?.focusX??.5)} ${pct(s.effectParams?.focusY??.5)};object-position:${pct(s.effectParams?.focusX??.5)} ${pct(s.effectParams?.focusY??.5)}}`:'').join('')}
+    ${document.output.height>document.output.width?`.scene-split-detail .split{grid-template-columns:1fr!important;grid-template-rows:64% 36%;gap:0!important}.scene-split-detail .split-copy{padding:8%;align-items:center}.scene-split-detail .copy-panel{max-width:100%;width:100%}.scene-split-detail .product-subtitle{max-width:100%;font-size:52px;line-height:1.3}.product-subtitle{font-size:46px;line-height:1.3}.callout{font-size:44px}.cta{font-size:44px}`:''}
     .parallax-front{inset:18% 20%;overflow:hidden;border-radius:24px;box-shadow:0 18px 60px #0006}
     .callout-text{font:inherit;margin:0 0 10px}
     .step-graph{position:relative;width:88%;height:100px;margin-top:70px}

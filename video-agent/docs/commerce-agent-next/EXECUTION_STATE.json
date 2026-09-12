@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "baselineHead": "4848b72ec4584f9777f223e9537c52555bfec456",
-  "status": "paused_by_user_for_review",
+  "status": "running",
   "currentLoop": "03",
   "primaryCase": "Q02-moka60",
   "evidenceRoot": "outputs/commerce-next",
@@ -48,7 +48,7 @@
     "10 frozen holdout executions",
     "independent human review"
   ],
-  "next": "User requested wrapping up to review the current result. Do not automatically continue experiments. Preserve existing outputs and checkpoints; await next user direction.",
+  "next": "Complete current nova regression export and inspect MP4, then execute original Q02-A via WebUI; do not stop at fixture.",
   "constraints": {
     "hyperframes": "0.8.33",
     "commitOrPush": false,
@@ -120,5 +120,43 @@
     "L180 recoverable CUSTOM_HTML with timing checkpoint",
     "H03 mother revision rev-789f942d9e81e156 complete; export cancelled for user-requested wrap",
     "H01/H07/H09/H10/H06 not dispatched; queue stopped"
-  ]
+  ],
+  "resultCompletion": {
+    "authorization": "2026-09-12 user resume supersedes historical pause",
+    "contract": "docs/result-completion/02_ACCEPTANCE_CONTRACT.md",
+    "currentCase": "N0/N2 nova regression",
+    "isolationEvidence": "outputs/result-completion/isolation-test.log",
+    "baselineFailure": "outputs/result-completion/isolation-baseline/portable-job.log",
+    "modelCallsThisSession": 0,
+    "platforms": {
+      "darwin": "dynamic positive, boundary, cancellation and timeout tested",
+      "windows": "supervisor adapted, runtime unverified",
+      "linux": "unverified"
+    },
+    "pending": [
+      "freeze original Q/I/H definitions",
+      "30s actual MP4 visual review",
+      "two independent WebUI 60s runs",
+      "45/90/120/180s",
+      "10-14 edits",
+      "result entry",
+      "full delivery verification",
+      "human and rights acceptance"
+    ],
+    "latestRun": {
+      "projectId": "8005d346-869a-4123-9809-e0911c336907",
+      "runId": "2b63a92e-564a-408e-b3ff-7b58edcfa01a",
+      "status": "needs_user",
+      "reason": "Model repeatedly produced metadata-only blocking gap despite supplied instruction; no video published",
+      "modelCalls": 7,
+      "checkpoint": "story",
+      "next": "Resume after story blocking-gap policy fix; preserve prior observations and bounded inspection allocation."
+    },
+    "checker": {
+      "command": "docs/result-completion/verify_delivery.py",
+      "status": "failed_as_expected_template_incomplete",
+      "exitCode": 1,
+      "log": "outputs/result-completion/verify-delivery.log"
+    }
+  }
 }

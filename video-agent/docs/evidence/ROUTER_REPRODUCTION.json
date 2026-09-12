@@ -1,0 +1,38 @@
+{
+  "kind": "extracted-router-predicate-reproduction",
+  "commit": "c175ebae2d2a22e31277fb494160064959536f8d",
+  "source": "video-agent/lib/creative/service.mjs::planEdit",
+  "regex": "/(恢复|撤销).*(动效|动画|效果)/",
+  "runtime": "v22.16.0",
+  "scope": "仅运行实际源码中的快捷分支匹配条件；未运行真实WebUI、模型、撤销执行器或渲染，未修改仓库。",
+  "cases": [
+    {
+      "input": "撤销上次动效",
+      "expectedShortcut": true,
+      "reason": "单一肯定请求，可进入撤销候选",
+      "actualShortcut": true,
+      "mismatch": false
+    },
+    {
+      "input": "不要撤销动效，只把标题改成“新品上市”",
+      "expectedShortcut": false,
+      "reason": "否定了撤销，实际需要改标题",
+      "actualShortcut": true,
+      "mismatch": true
+    },
+    {
+      "input": "撤销上次动效，然后把标题改成“新品上市”",
+      "expectedShortcut": false,
+      "reason": "复合请求，不能只执行撤销后提前返回",
+      "actualShortcut": true,
+      "mismatch": true
+    },
+    {
+      "input": "不要恢复动画，也不要修改声音，只改第二幕标题",
+      "expectedShortcut": false,
+      "reason": "两个否定约束与一个局部修改",
+      "actualShortcut": true,
+      "mismatch": true
+    }
+  ]
+}

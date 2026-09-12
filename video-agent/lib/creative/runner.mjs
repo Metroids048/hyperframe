@@ -39,6 +39,9 @@ export async function runHyperFrames(outputDir, command, args = [], {signal,onPr
   await fs.access(cli).catch(() => { throw new Error('找不到 HyperFrames 0.8.33，请先在 video-agent 执行 npm install'); });
   const env = {...process.env, ...runtimeTools(VIDEO_AGENT_ROOT), HYPERFRAMES_NO_TELEMETRY: '1'};
   const workspace=await prepareHyperFramesWorkspace(VIDEO_AGENT_ROOT,outputDir);
+  const invocationFile=path.join(outputDir,`hyperframes-${command}-${Date.now()}-invocation.json`);
+  const invocation={command:process.execPath,args:[cli,command,...args],cwd:workspace.directory,platform:process.platform,arch:process.arch,tools:runtimeTools(VIDEO_AGENT_ROOT),startedAt:new Date().toISOString()};
+  await fs.writeFile(invocationFile,JSON.stringify(invocation,null,2));
   try{return await new Promise((resolve, reject) => {
     const child = spawn(process.execPath, [cli, command, ...args], {cwd: workspace.directory, env, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe']});
     let timedOut=false;
@@ -46,11 +49,11 @@ export async function runHyperFrames(outputDir, command, args = [], {signal,onPr
     const timer=setTimeout(()=>{timedOut=true;stop();},command==='render'?60*60*1000:120000);signal?.addEventListener('abort',stop,{once:true});
     const cleanup=()=>{clearTimeout(timer);signal?.removeEventListener('abort',stop);};
     let output = '',progress=null,lastProgressTime=0,progressError=null,progressWrites=Promise.resolve();
-    const receive=b=>{output=(output+b).slice(-24000);if(command!=='render')return;const next=renderFrameProgress(output,progress);if(!next)return;progress=next;if(Date.now()-lastProgressTime<1500&&next.completed!==next.total)return;lastProgressTime=Date.now();const record={...next,updatedAt:new Date().toISOString()};progressWrites=progressWrites.then(async()=>{await fs.writeFile(path.join(outputDir,'render-progress.json'),JSON.stringify(record));await onProgress?.(record);}).catch(error=>{progressError=error;});};
+    const receive=b=>{output=output+b;if(command!=='render')return;const next=renderFrameProgress(output,progress);if(!next)return;progress=next;if(Date.now()-lastProgressTime<1500&&next.completed!==next.total)return;lastProgressTime=Date.now();const record={...next,updatedAt:new Date().toISOString()};progressWrites=progressWrites.then(async()=>{await fs.writeFile(path.join(outputDir,'render-progress.json'),JSON.stringify(record));await onProgress?.(record);}).catch(error=>{progressError=error;});};
     child.stdout.on('data',receive);
     child.stderr.on('data',receive);
     child.on('error', error=>{cleanup();reject(error);});
-    child.on('close', async code => {cleanup();await progressWrites;if(progressError)output+='\n进度记录写入失败：'+progressError.message;const logFile=`hyperframes-${command}-${Date.now()}.log`;await fs.writeFile(path.join(outputDir,logFile),output).catch(()=>{});if(signal?.aborted)return reject(new Error('任务已取消'));if(timedOut)return reject(new Error('处理超时，输入和上一有效版本已保留'));if(code===0&&['snapshot','check'].includes(command)){try{assertHyperFramesCapture(output);}catch(error){error.logFile=logFile;reject(error);return;}}code === 0 ? resolve(output) : reject(Object.assign(new Error(`HyperFrames ${command} 失败 (${code})\n${output}`),{code:'HYPERFRAMES_CHECK',logFile}));});
+    child.on('close', async code => {cleanup();await fs.writeFile(invocationFile,JSON.stringify({...invocation,exitCode:code,timedOut,cancelled:!!signal?.aborted,completedAt:new Date().toISOString()},null,2));await progressWrites;if(progressError)output+='\n进度记录写入失败：'+progressError.message;const logFile=`hyperframes-${command}-${Date.now()}.log`;await fs.writeFile(path.join(outputDir,logFile),output).catch(()=>{});if(signal?.aborted)return reject(new Error('任务已取消'));if(timedOut)return reject(new Error('处理超时，输入和上一有效版本已保留'));if(code===0&&['snapshot','check'].includes(command)){try{assertHyperFramesCapture(output);}catch(error){error.logFile=logFile;reject(error);return;}}code === 0 ? resolve(output) : reject(Object.assign(new Error(`HyperFrames ${command} 失败 (${code})\n${output}`),{code:'HYPERFRAMES_CHECK',logFile}));});
   });}finally{await workspace.finish();}
 }
 

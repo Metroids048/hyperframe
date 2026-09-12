@@ -9,7 +9,7 @@ const safeId=s=>typeof s==='string'&&/^[a-zA-Z][a-zA-Z0-9_-]{0,63}$/.test(s);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const stringify=value=>JSON.stringify(value).replaceAll('<','\\u003c');
 const tags=new Set(['div','span','p','h1','h2','img','svg','g','path','circle','ellipse','rect','line','polyline','polygon','text','defs','clipPath','linearGradient','radialGradient','stop']);
-const attrs=new Set(['id','class','viewBox','width','height','x','y','x1','x2','y1','y2','cx','cy','r','rx','ry','d','points','fill','stroke','stroke-width','stroke-linecap','stroke-linejoin','stroke-dasharray','stroke-dashoffset','opacity','transform','preserveAspectRatio','clip-path','clipPathUnits','offset','stop-color','stop-opacity','gradientUnits','gradientTransform']);
+const attrs=new Set(['id','class','data-ref','data-media-ref','viewBox','width','height','x','y','x1','x2','y1','y2','cx','cy','r','rx','ry','d','points','fill','stroke','stroke-width','stroke-linecap','stroke-linejoin','stroke-dasharray','stroke-dashoffset','opacity','transform','preserveAspectRatio','clip-path','clipPathUnits','offset','stop-color','stop-opacity','gradientUnits','gradientTransform']);
 const cssProperties=new Set(['position','inset','top','right','bottom','left','width','height','max-width','max-height','min-width','min-height','display','align-items','justify-content','flex-direction','gap','padding','margin','box-sizing','background','background-color','color','border','border-color','border-width','border-style','border-radius','box-shadow','overflow','opacity','font-size','font-weight','line-height','letter-spacing','text-align','white-space','transform','transform-origin','fill','stroke','stroke-width','stroke-dasharray','stroke-dashoffset','clip-path','z-index','object-fit','object-position']);
 const animationProperties=new Set(['x','y','xPercent','yPercent','scale','scaleX','scaleY','rotation','rotationX','rotationY','opacity','autoAlpha','transformOrigin','strokeDashoffset','strokeDasharray','clipPath','borderRadius','backgroundColor','color','fill','stroke','duration','ease','delay','stagger','repeat','yoyo','immediateRender']);
 for(const property of ['flex-shrink','flex-grow','flex-basis','font-family','font-style','text-shadow','flex-wrap','flex','grid-template-columns','grid-template-rows','align-content','align-self','justify-self','overflow-wrap','word-break','aspect-ratio','border-left','border-right','border-top','border-bottom','padding-left','padding-right','padding-top','padding-bottom','margin-left','margin-right','margin-top','margin-bottom'])cssProperties.add(property);
@@ -37,7 +37,7 @@ export function compileCustomSource(bundle,{scene,nodes,assets={},params=scene.e
   const values={...customParameters(bundle,params),sceneSeconds:scene.durationFrames/30},prefix='custom-'+scene.id+'-',tree=parseFragment(bundle.html),ids=new Map();let count=0;
   const errors=[];parseFragment(bundle.html,{onParseError:e=>errors.push(e.code)});insist(errors.length===0,'自定义HTML语法错误','CUSTOM_HTML');
   function visit(parent){for(const node of parent.childNodes||[]){
-    if(node.nodeName==='#text'){insist(!node.value.trim(),'自定义文字必须来自原生文字对象','CUSTOM_TEXT');continue;}
+    if(node.nodeName==='#text'){continue;}
     insist(tags.has(node.tagName)&&++count<=160,'自定义HTML含不支持标签或过多元素','CUSTOM_HTML');
     for(const attr of node.attrs){insist(!attr.namespace&&attrs.has(attr.name)&&!/[<>\\]/.test(attr.value),'自定义HTML属性不支持','CUSTOM_HTML');insist(attr.value.length<=6000&&!/(?:url\s*\(|javascript:|data:|https?:|file:)/i.test(attr.value.replace(/^url\(#[a-zA-Z][a-zA-Z0-9_-]*\)$/,'')),'自定义HTML外部引用被禁止','CUSTOM_RESOURCE');}
     const id=node.attrs.find(a=>a.name==='id');if(id){insist(safeId(id.value)&&!ids.has(id.value),'自定义元素ID无效或重复','CUSTOM_HTML');ids.set(id.value,node);id.value=prefix+id.value;}
@@ -54,6 +54,7 @@ export function compileCustomSource(bundle,{scene,nodes,assets={},params=scene.e
     else if(native.kind==='video'){insist(element.tagName==='div'&&!element.childNodes?.some(n=>n.tagName),'视频须映射到空div，由引擎独立播放','CUSTOM_RESOURCE');videoBindings.add(mapping.elementId);element.attrs.push({name:'style',value:'display:none!important'});}
     else insist(['shape','component'].includes(native.kind),'自定义源码中不支持该媒体类型','CUSTOM_RESOURCE');
   }
+  function rejectUnmappedText(parent){for(const element of parent.childNodes||[]){if(element.nodeName==='#text'&&element.value.trim()&&element.parentNode?.attrs?.some(a=>a.name==='id'&&!mapped.has(a.value.replace(prefix,''))))insist(false,'自定义文字必须来自原生文字对象','CUSTOM_TEXT');rejectUnmappedText(element);}}rejectUnmappedText(tree);
   insist(nodes.filter(n=>!['audio','video'].includes(n.kind)).every(n=>nodeIds.has(n.id)),'自定义场景遗漏原生对象','CUSTOM_OBJECTS');
   for(const [id,element] of ids)if(element.tagName==='img')insist(mapped.has(id),'图片必须声明原生素材','CUSTOM_RESOURCE');
   const resolveId=id=>managedMedia&&videoBindings.has(id)?'media-wrap-'+objects.find(o=>o.elementId===id).nodeId:prefix+id;

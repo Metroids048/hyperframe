@@ -7,32 +7,61 @@ import {insist} from './contracts.mjs';
 import {compileCustomSource} from './custom-source.mjs';
 import {linkOrCopy} from '../edit/media.mjs';
 import {brandFontResources} from './brand-fonts.mjs';
+import {digest,validateReceipt,parseSupervisor} from './isolation-protocol.mjs';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 const verifiedProjects=new Map();
 export async function runSceneIsolation(directory,config,{signal,probe}={}){
  signal?.throwIfAborted();
 
  await fs.mkdir(directory,{recursive:true});const gate=path.join(directory,'assigned.gate'),workerConfig=path.join(directory,'worker.json'),jobConfig=path.join(directory,'job.json');
+ await fs.rm(gate,{force:true});
+ const runId=randomUUID(),receiptPath=path.join(directory,'receipt-'+runId+'.json');
+ const inputParts=await Promise.all(config.files.map(async file=>[file,digest(await fs.readFile(path.join(directory,file)))]));
+ const identity={runId,inputHash:digest(JSON.stringify({config,inputParts})),sceneIds:config.scenes.map(s=>s.id)};
  const profile=path.join(directory,'profile'),windows=process.platform==='win32',environment=windows?{SystemRoot:process.env.SystemRoot||'C:\\Windows',WINDIR:process.env.WINDIR||'C:\\Windows',PATH:path.dirname(process.execPath)+';'+path.join(process.env.SystemRoot||'C:\\Windows','System32'),TEMP:path.join(directory,'temp'),TMP:path.join(directory,'temp'),LOCALAPPDATA:path.join(profile,'AppData/Local'),APPDATA:path.join(profile,'AppData/Roaming'),USERPROFILE:profile,SystemDrive:path.parse(directory).root.replace(/[\\/]+$/,'')}:{PATH:path.dirname(process.execPath)+':/usr/bin:/bin',HOME:profile,TMPDIR:path.join(directory,'temp'),TEMP:path.join(directory,'temp'),TMP:path.join(directory,'temp')};
  for(const dir of [environment.TEMP,environment.TMPDIR,environment.LOCALAPPDATA,environment.APPDATA].filter(Boolean))await fs.mkdir(dir,{recursive:true});
- const limits={cpuSeconds:30,wallMs:45000,processMemoryBytes:1024**3,jobMemoryBytes:2*1024**3};if(probe==='timeout')limits.wallMs=1500;if(probe==='memory'){limits.processMemoryBytes=192*1024**2;limits.jobMemoryBytes=256*1024**2;}
+ const limits={cpuSeconds:30,wallMs:45000,processMemoryBytes:1024**3,jobMemoryBytes:2*1024**3};if(['timeout','browser-timeout'].includes(probe))limits.wallMs=1500;if(probe==='memory'){limits.processMemoryBytes=192*1024**2;limits.jobMemoryBytes=256*1024**2;}
  const defaultBrowser=process.platform==='win32'?'C:/Program Files/Google/Chrome/Application/chrome.exe':process.platform==='darwin'?'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome':'/usr/bin/google-chrome';
- await fs.writeFile(workerConfig,JSON.stringify({...config,directory,gate,probe,browser:process.env.HYPERFRAMES_BROWSER_PATH||defaultBrowser}));
+ await fs.writeFile(workerConfig,JSON.stringify({...config,directory,gate,probe,identity,receiptPath,browser:process.env.HYPERFRAMES_BROWSER_PATH||defaultBrowser}));
  await fs.writeFile(jobConfig,JSON.stringify({executable:process.execPath,arguments:['--max-old-space-size=192',path.join(root,'scripts/native-scene-worker.mjs'),workerConfig],directory,gate,environment,...limits}));
- let log='';const result=await new Promise((resolve,reject)=>{
+ let stdout='',stderr='',timedOut=false,aborted=false;
+ const command=windows?path.join(environment.SystemRoot,'System32/WindowsPowerShell/v1.0/powershell.exe'):process.execPath;
+ const args=windows?['-NoProfile','-NonInteractive','-File',path.join(root,'scripts/native-scene-job.ps1'),'-Config',jobConfig]:['--max-old-space-size=192',path.join(root,'scripts/native-scene-worker.mjs'),workerConfig];
+ await fs.writeFile(path.join(directory,'invocation.json'),JSON.stringify({command,args,cwd:directory,identity,limits,platform:process.platform},null,2));
+ let pid;
+ const result=await new Promise((resolve,reject)=>{
   signal?.throwIfAborted();
-  const command = windows ? path.join(environment.SystemRoot,'System32/WindowsPowerShell/v1.0/powershell.exe') : process.execPath;
-  const args = windows ? ['-NoProfile','-NonInteractive','-File',path.join(root,'scripts/native-scene-job.ps1'),'-Config',jobConfig] : ['--max-old-space-size=192',path.join(root,'scripts/native-scene-worker.mjs'),workerConfig];
-  const child=spawn(command,args,{cwd:directory,windowsHide:true,env:environment,stdio:['ignore','pipe','pipe']});
-  if(!windows) setTimeout(()=>fs.writeFile(gate,'assigned').catch(()=>{}),25);
-  const stop=()=>child.kill(),timer=setTimeout(stop,limits.wallMs+20000);signal?.addEventListener('abort',stop,{once:true});
-  child.stdout.on('data',b=>log=(log+b).slice(-24000));child.stderr.on('data',b=>log=(log+b).slice(-24000));child.on('error',reject);child.on('close',code=>{clearTimeout(timer);signal?.removeEventListener('abort',stop);resolve({code,log});});
+  const child=spawn(command,args,{cwd:directory,windowsHide:true,detached:!windows,env:environment,stdio:['ignore','pipe','pipe']});pid=child.pid;
+  let escalation;
+  const send=kind=>{try{if(windows)child.kill(kind);else process.kill(-pid,kind);}catch(error){if(error.code!=='ESRCH')throw error;}};
+  const stop=()=>{send('SIGTERM');escalation=setTimeout(()=>send('SIGKILL'),1500);};
+  const cancel=()=>{aborted=true;stop();};
+  const timer=setTimeout(()=>{timedOut=true;stop();},limits.wallMs+(windows?20000:0));
+  signal?.addEventListener('abort',cancel,{once:true});
+  const gateTimer=!windows?setTimeout(()=>fs.writeFile(gate,'assigned').catch(()=>{}),25):null;
+  child.stdout.on('data',b=>stdout+=b);child.stderr.on('data',b=>stderr+=b);
+  const clear=()=>{clearTimeout(timer);clearTimeout(escalation);clearTimeout(gateTimer);signal?.removeEventListener('abort',cancel);};
+  child.on('error',error=>{clear();reject(error);});
+  child.on('close',(code,exitSignal)=>{clear();resolve({code,exitSignal});});
  });
- await fs.writeFile(path.join(directory,windows?'windows-job.log':'portable-job.log'),log);let evidence;try{const lines=log.trim().split(/\r?\n/).reverse();evidence=JSON.parse(lines.find(line=>line.trim().startsWith('{'))||'');}catch{if(probe==='memory'||probe==='timeout'){evidence={status:'failed',timedOut:probe==='timeout',stderr:log.slice(-1500)};}else insist(false,'隔离启动失败：'+log.slice(-1500),'ISOLATION_FAILED');}
- await fs.writeFile(path.join(directory,windows?'windows-job.json':'portable-job.json'),JSON.stringify(evidence,null,2));signal?.throwIfAborted();
- if(probe==='timeout'||probe==='memory')return {...result,evidence};
- insist(result.code===0&&evidence.status==='passed'&&evidence.protocolVersion===1&&!evidence.timedOut,'自定义场景隔离检查未通过：'+JSON.stringify(evidence).slice(-1200),'CUSTOM_RUNTIME_FAILED');
- return {...result,evidence,runtime:JSON.parse(await fs.readFile(path.join(directory,'runtime-evidence.json'),'utf8'))};
+ // A close event proves the direct child exited. Verify its isolated process group too.
+ const alive=()=>{try{process.kill(windows?pid:-pid,0);return true;}catch(error){if(error.code==='ESRCH')return false;throw error;}};
+ if(!windows&&alive()){try{process.kill(-pid,'SIGKILL');}catch(error){if(error.code!=='ESRCH')throw error;}}
+ for(let i=0;i<100&&alive();i++)await new Promise(r=>setTimeout(r,50));
+ const cleanup={pid,childClosed:true,processGroupChecked:!windows,exited:!alive()};
+ await fs.writeFile(path.join(directory,'cleanup.json'),JSON.stringify(cleanup,null,2));
+ const log=stdout+'\n'+stderr;await fs.writeFile(path.join(directory,windows?'windows-job.log':'portable-job.log'),log);
+ let supervisor=windows?parseSupervisor(stdout):{type:'portable-supervisor',protocolVersion:1,exitCode:result.code,timedOut,aborted,cleanup,resourceLimits:{wallMs:limits.wallMs,nodeHeapMb:192,osCpuMemoryLimits:'not-enforced'}};
+ let evidence;try{evidence=JSON.parse(await fs.readFile(receiptPath,'utf8'));}catch{evidence=null;}
+ await fs.writeFile(path.join(directory,windows?'windows-job.json':'portable-job.json'),JSON.stringify({supervisor,worker:evidence},null,2));
+ signal?.throwIfAborted();
+ insist(cleanup.exited,'隔离子进程没有完成退出','ISOLATION_CLEANUP');
+ if(['timeout','browser-timeout','memory'].includes(probe))return {...result,log,evidence:{...supervisor,status:'failed'}};
+ insist(!supervisor.timedOut,'自定义场景检查超时','ISOLATION_TIMEOUT');
+ insist(evidence,'隔离工作进程没有返回有效回执：'+stderr.slice(-1500),'ISOLATION_PROTOCOL');
+ const runtime=validateReceipt(evidence,identity,await fs.readFile(path.join(directory,'runtime-evidence.json')));
+ insist(result.code===0&&supervisor.exitCode===0&&evidence.status==='passed','自定义场景隔离检查未通过：'+JSON.stringify(evidence).slice(-1200),evidence.errorCode||'CUSTOM_RUNTIME_FAILED');
+ return {...result,log,evidence:{...supervisor,...evidence},runtime};
 }
 export async function verifyCustomProject(outputDir,document,assets,{signal}={}){
  const scenes=document.scenes.filter(s=>s.effect==='custom-native');if(!scenes.length)return;
