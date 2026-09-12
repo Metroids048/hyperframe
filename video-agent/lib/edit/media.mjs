@@ -34,7 +34,7 @@ export function run(exe,args,{cwd=ROOT,signal,timeout=120000,log,onOutput,binary
   });
 }
 export async function probe(file,signal) {
-  let m;try{m=JSON.parse(await run(ffprobe,['-v','error','-show_streams','-show_format','-of','json',file],{signal,timeout:30000}));}catch(e){if(signal?.aborted)throw e;throw new EditError('无法读取媒体，请上传有效的 MP4、MOV、WebM 或音频文件',422);}
+  let m;try{const raw=await run(ffprobe,['-v','error','-show_streams','-show_format','-of','json',file],{signal,timeout:30000}),start=raw.indexOf('{'),end=raw.lastIndexOf('}');m=JSON.parse(raw.slice(start,end+1));}catch(e){if(signal?.aborted)throw e;throw new EditError('无法读取媒体，请上传有效的 MP4、MOV、WebM 或音频文件',422);}
   const v=m.streams.find(x=>x.codec_type==='video'&&x.disposition?.attached_pic!==1),a=m.streams.find(x=>x.codec_type==='audio');
   const d=Number(m.format.duration);insist(Number.isFinite(d)&&d>0&&d<=600.1,'素材时长必须不超过 10 分钟');
   const rotation=Number(v?.tags?.rotate||v?.side_data_list?.find(x=>x.rotation!==undefined)?.rotation||0);
@@ -205,3 +205,4 @@ export async function renderRevision(dir,t,signal,onOutput) {
   const release=await acquireRender({kind:'render',signal});try{await run(process.execPath,[path.join(ROOT,'node_modules/hyperframes/bin/hyperframes.mjs'),'render','--output','video.mp4','--fps','30','--quality','standard','--workers','1','--strict','--no-best-effort'],{cwd:dir,signal,timeout:Math.max(300000,d*45000),log:path.join(dir,'render.log'),onOutput});}finally{release();}
   const meta=await probe(path.join(dir,'video.mp4'),signal);insist(Math.abs(meta.duration-d)<=0.1&&meta.width===t.output.width&&meta.height===t.output.height,'实际输出规格与时间轴不一致');return meta;
 }
+
