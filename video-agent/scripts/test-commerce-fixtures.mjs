@@ -9,19 +9,19 @@ const fixtureDir = path.join(root, 'examples/commerce/fixtures');
 const cases = [
   {
     file: '01-premium-image.json',
-    effects: ['product-reveal', 'image-pan-zoom', 'detail-inset', 'feature-callout', 'end-card'],
+    effects: ['product-reveal', 'split-detail', 'detail-inset', 'feature-callout', 'end-card'],
     transition: 'dissolve-transition',
     duration: 20,
   },
   {
     file: '02-promotion-price.json',
-    effects: ['product-reveal', 'image-pan-zoom', 'detail-inset', 'feature-callout', 'price-lockup', 'end-card'],
+    effects: ['product-reveal', 'split-detail', 'detail-inset', 'feature-callout', 'price-lockup', 'end-card'],
     transition: 'directional-transition',
     duration: 15,
   },
   {
     file: '03-functional-single-image.json',
-    effects: ['product-reveal', 'image-pan-zoom', 'image-pan-zoom', 'split-detail', 'end-card'],
+    effects: ['product-reveal', 'split-detail', 'detail-inset', 'split-detail', 'end-card'],
     transition: 'directional-transition',
     duration: 10,
   },
@@ -46,6 +46,10 @@ for (const expected of cases) {
   const document = JSON.parse(await fs.readFile(path.join(outputDir, 'document.json'), 'utf8'));
   assert.deepEqual(document.scenes.map(scene => scene.effect), expected.effects, `${expected.file}: effect sequence`);
   assert.ok(document.transitions.every(transition => transition.effect === expected.transition), `${expected.file}: transition style`);
+  assert.equal(document.durationFrames, expected.duration * 30);
+  assert.ok(document.nodes.some(n => n.kind === 'image'), 'real product images must survive compilation');
+  assert.ok(document.nodes.filter(n => n.assetId).every(n => input.assets.some(a => a.id === n.assetId)), 'no invented media');
+  assert.equal(new Set(document.nodes.map(n => n.id)).size, document.nodes.length, 'stable objects must be unique');
   assert.equal(document.output.width, 1080);
   assert.equal(document.output.height, 1920);
   await Promise.all(['index.html', 'manifest.json', 'object-map.json', 'DESIGN.md', 'hyperframes.json', 'status.json'].map(name => fs.access(path.join(outputDir, name))));
@@ -57,3 +61,4 @@ for (const expected of cases) {
 }
 
 console.log(`PASS commerce fixtures: ${cases.length} conversational inputs compiled and verified`);
+
