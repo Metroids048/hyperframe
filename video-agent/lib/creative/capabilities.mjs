@@ -43,7 +43,13 @@ export class CapabilityCatalog {
   }
   async lockUsedResources(directory){
     const license=await this.read('LICENSE');const records=new Map([['LICENSE',{file:'LICENSE',sha256:license.sha256}]]);for(const name of await fs.readdir(path.join(directory,'receipts')).catch(()=>[])){if(!/^[a-zA-Z0-9_.-]+\.json$/.test(name))continue;const receipt=JSON.parse(await fs.readFile(path.join(directory,'receipts',name),'utf8'));for(const r of receipt.context||[])records.set(r.file,r);}
-    const files=[];for(const r of records.values()){const content=r.file.startsWith('prompts/commerce/')?await fs.readFile(path.join(this.root,r.file)):Buffer.from((await this.read(r.file)).content);insist(resourceHash(content)===r.sha256,'已用上下文在打包前变化','RESOURCE_HASH');const relative='resources/'+r.file+(/\.(?:html|js|mjs|py|sh)$/.test(r.file)?'.reference.txt':'');await fs.mkdir(path.dirname(path.join(directory,relative)),{recursive:true});await fs.writeFile(path.join(directory,relative),content);files.push({...r,packagePath:relative});}
+    const nativeReceipts=JSON.parse(await fs.readFile(path.join(directory,'resource-receipts.json'),'utf8').catch(e=>{if(e.code!=='ENOENT')throw e;return '[]';}));
+    for(const receipt of nativeReceipts){
+      for(const record of receipt.files||[])records.set(record.file,record);
+      if(receipt.adapterSourceSha256)records.set('lib/creative/native-recipes.mjs',{file:'lib/creative/native-recipes.mjs',sha256:receipt.adapterSourceSha256});
+    }
+    const files=[];for(const r of records.values()){const content=(r.file.startsWith('prompts/commerce/')||r.file==='lib/creative/native-recipes.mjs')?await fs.readFile(path.join(this.root,r.file)):Buffer.from((await this.read(r.file)).content);insist(resourceHash(content)===r.sha256,'已用上下文在打包前变化','RESOURCE_HASH');const relative='resources/'+r.file+(/\.(?:html|js|mjs|py|sh)$/.test(r.file)?'.reference.txt':'');await fs.mkdir(path.dirname(path.join(directory,relative)),{recursive:true});await fs.writeFile(path.join(directory,relative),content);files.push({...r,packagePath:relative});}
     const lock={runtime:'0.8.33',commit:this.snapshot.commit,files,execution:'reference files are inert; native bundles are the only executable adaptation',license:'upstream LICENSE; asset rights reviewed separately'};await fs.writeFile(path.join(directory,'resource-lock.json'),JSON.stringify(lock,null,2));return lock;
   }
 }
+
