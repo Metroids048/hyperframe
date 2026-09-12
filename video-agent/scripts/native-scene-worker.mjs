@@ -6,7 +6,7 @@ import {createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 const config=JSON.parse(await fs.readFile(process.argv[2],'utf8'));
 for(let i=0;i<150;i++){if(await fs.access(config.gate).then(()=>true).catch(()=>false))break;await new Promise(r=>setTimeout(r,100));}
-if(!await fs.access(config.gate).then(()=>true).catch(()=>false))throw Error('Windows isolation gate was not assigned');
+if(!await fs.access(config.gate).then(()=>true).catch(()=>false))throw Error('Isolation gate was not assigned');
 // Internal resource probes are invoked only by the engineering test harness.
 if(config.probe==='timeout'){while(true)Math.sqrt(Math.random());}
 if(config.probe==='memory'){const chunks=[];while(true)chunks.push(Buffer.alloc(32*1024**2,255));}
@@ -29,7 +29,7 @@ const server=http.createServer(async(req,res)=>{try{
  const stream=createReadStream(file,{start,end});stream.on('error',()=>res.destroy());res.on('close',()=>stream.destroy());stream.pipe(res);
 }catch{if(!res.headersSent)res.writeHead(404);res.end();}});
 await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const origin='http://127.0.0.1:'+server.address().port;
-let browser;const result={status:'running',environmentKeys:Object.keys(process.env),network:requests,errors:failures,samples:[],motion:[]};
+let browser;const result={protocolVersion:1,status:'running',platform:process.platform,assigned:process.platform==='win32',environmentKeys:Object.keys(process.env),network:requests,errors:failures,samples:[],motion:[]};
 try{
  const profileRoot=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../.cache/isolated-browser');await fs.mkdir(profileRoot,{recursive:true});
  const browserProfile=await fs.mkdtemp(path.join(profileRoot,'profile-'));result.browserProfile=browserProfile;

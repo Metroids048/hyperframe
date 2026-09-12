@@ -1,4 +1,4 @@
-import { existsSync } from "node:fs";
+import { existsSync, chmodSync, statSync } from "node:fs";
 import path from "node:path";
 import os from "node:os";
 import { fileURLToPath } from "node:url";
@@ -56,6 +56,13 @@ export function runtimeTools(
           : [path.join(root, 'node_modules/@ffprobe-installer/linux-x64/ffprobe')],
     ) ||
     "ffprobe";
+  // Some Darwin installer tarballs lose the executable mode during extraction.
+  // Repair only the managed local binaries before HyperFrames spawns them.
+  for (const tool of [ffmpeg, ffprobe]) {
+    try {
+      if (path.isAbsolute(tool) && statSync(tool).isFile()) chmodSync(tool, 0o755);
+    } catch {}
+  }
   const browser =
     env.HYPERFRAMES_BROWSER_PATH ||
     first(

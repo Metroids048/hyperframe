@@ -103,7 +103,12 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
   }
   async function planEdit(p,base,document,input,signal,evidence={}){
     if(input.operations)return {operations:input.operations,mode:'structured'};
-    if(/(?:恢复|撤销).*(?:动效|动画|效果)/.test(input.message)){
+    // The inverse shortcut is deliberately conservative: only an entire, positive
+    // restore request may take it.  Negated, quoted, conditional, or compound
+    // language must go through the full planner so no clause is dropped.
+    const restoreText=String(input.message||'').trim();
+    const restoreOnly=/^(?:请|帮我)?\s*(?:撤销|恢复)(?:上次|刚才的|最近的)?\s*(?:动效|动画|效果)(?:[。.!！?？\s]*)$/u;
+    if(restoreOnly.test(restoreText)){
       const number=sceneNumber(input.message),sceneIds=number?[document.scenes[number-1]?.id]:undefined;
       if(number)insist(sceneIds[0],'找不到要恢复的镜头','RESTORE_NOT_FOUND');
       let r=base;
