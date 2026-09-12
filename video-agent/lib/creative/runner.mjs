@@ -17,6 +17,7 @@ import {verifyCustomProject} from './isolation.mjs';
 import {produceDocument} from './production.mjs';
 import {reviewExport} from './media-review.mjs';
 import {renderFrameProgress} from './render-progress.mjs';
+import {runtimeTools} from '../runtime-tools.mjs';
 
 const moduleDir = path.dirname(fileURLToPath(import.meta.url));
 export const VIDEO_AGENT_ROOT = path.resolve(moduleDir, '../..');
@@ -36,13 +37,7 @@ export async function runHyperFrames(outputDir, command, args = [], {signal,onPr
   if(signal?.aborted)throw new Error('任务已取消');
   const cli = path.join(VIDEO_AGENT_ROOT, 'node_modules/hyperframes/bin/hyperframes.mjs');
   await fs.access(cli).catch(() => { throw new Error('找不到 HyperFrames 0.8.33，请先在 video-agent 执行 npm install'); });
-  const env = {...process.env, HYPERFRAMES_NO_TELEMETRY: '1'};
-  const ffmpeg = path.join(VIDEO_AGENT_ROOT, 'node_modules/@ffmpeg-installer/win32-x64/ffmpeg.exe');
-  const ffprobe = path.join(VIDEO_AGENT_ROOT, 'node_modules/@ffprobe-installer/win32-x64/ffprobe.exe');
-  if (process.platform === 'win32') {
-    if (await fs.access(ffmpeg).then(() => true).catch(() => false)) env.HYPERFRAMES_FFMPEG_PATH = ffmpeg;
-    if (await fs.access(ffprobe).then(() => true).catch(() => false)) env.HYPERFRAMES_FFPROBE_PATH = ffprobe;
-  }
+  const env = {...process.env, ...runtimeTools(VIDEO_AGENT_ROOT), HYPERFRAMES_NO_TELEMETRY: '1'};
   const workspace=await prepareHyperFramesWorkspace(VIDEO_AGENT_ROOT,outputDir);
   try{return await new Promise((resolve, reject) => {
     const child = spawn(process.execPath, [cli, command, ...args], {cwd: workspace.directory, env, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe']});
@@ -176,3 +171,4 @@ export async function renderCommerceProject(input, {root = VIDEO_AGENT_ROOT} = {
   await fs.writeFile(path.join(outputDir, 'status.json'), JSON.stringify(status, null, 2));
   return status;
 }
+
