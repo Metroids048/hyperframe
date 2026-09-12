@@ -4,6 +4,7 @@ import {assertNoUnknownFacts, validateDocument} from './document.mjs';
 import {EFFECTS, effectCss, validateEffect} from './effects.mjs';
 import {projectNativeCaptions} from './captions.mjs';
 import {compileCustomSource} from './custom-source.mjs';
+import {brandFontCSS,brandFontResources} from './brand-fonts.mjs';
 
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
 const js = value => JSON.stringify(String(value ?? '')).replaceAll('<','\\u003c');
@@ -55,7 +56,7 @@ function videoLayout(scene, order) {
   return 'inset:0;';
 }
 
-function externalVideoLayers(document, assets) {
+function externalVideoLayers(document, assets, custom=new Map()) {
   const layers = [];
   let track = 30;
   for (const scene of document.scenes) {
@@ -63,7 +64,8 @@ function externalVideoLayers(document, assets) {
     media.forEach((node, order) => {
       const asset = assets[node.assetId];
       const mediaStart = Number(node.params?.sourceStartSeconds ?? asset.sourceStartSeconds ?? 0);
-      layers.push(`<div id="media-wrap-${esc(node.id)}" data-scene-media="${esc(scene.id)}" class="video-layer media-entrance" data-layout-allow-overflow style="${videoLayout(scene, order)}z-index:${40 + document.scenes.indexOf(scene) * 2}"><div class="media-motion motion"><video id="obj-${esc(node.id)}" src="${esc(publicAsset(asset))}" muted playsinline preload="auto" style="object-fit:${node.params?.fit === 'contain' ? 'contain' : 'cover'}" data-start="${sec(node.startFrame)}" data-duration="${sec(node.durationFrames)}" data-media-start="${mediaStart}" data-playback-rate="${Number(node.params?.playbackRate??1)}" data-track-index="${track++}"></video></div></div>`);
+      const managed=custom.get(scene.id)?.managedVideoNodeIds?.includes(node.id);
+      layers.push(`${managed?`<div id="media-gate-${esc(node.id)}" style="position:absolute;inset:0;z-index:${40+document.scenes.indexOf(scene)*2};visibility:${node.startFrame===0?'visible':'hidden'}" data-layout-allow-overflow>`:''}<div id="media-wrap-${esc(node.id)}" data-object-id="${esc(node.id)}" data-scene-media="${esc(scene.id)}" class="video-layer media-entrance${managed?' managed-video':''}" data-layout-allow-overflow style="${managed?'':videoLayout(scene, order)}z-index:${40 + document.scenes.indexOf(scene) * 2}"><div class="media-motion motion"><video id="obj-${esc(node.id)}" src="${esc(publicAsset(asset))}" muted playsinline preload="auto" style="object-fit:${node.params?.fit === 'contain' ? 'contain' : 'cover'}" data-start="${sec(node.startFrame)}" data-duration="${sec(node.durationFrames)}" data-media-start="${mediaStart}" data-playback-rate="${Number(node.params?.playbackRate??1)}" data-track-index="${track++}"></video></div></div>${managed?'</div>':''}`);
     });
   }
   return layers.join('\n');
@@ -207,6 +209,8 @@ function transitionTimeline(document, transition) {
 
 export function compileDocument(document, preparedAssets, {audioRefs={}}={}) {
   const assets = Array.isArray(preparedAssets) ? Object.fromEntries(preparedAssets.map(a => [a.id, a])) : preparedAssets;
+  const fonts=brandFontResources(assets);
+  insist(JSON.stringify(document.fontResources||[])===JSON.stringify(fonts),'工程字体依赖缺失或已经变化','FONT_DEPENDENCY');
   validateDocument(document, assets);
   assertNoUnknownFacts(document);
   for (const scene of document.scenes) insist(EFFECTS[scene.effect]||scene.effect==='custom-native', `场景 ${scene.id} 的动效不存在`, 'UNKNOWN_EFFECT');
@@ -217,7 +221,7 @@ export function compileDocument(document, preparedAssets, {audioRefs={}}={}) {
   const captions=projectNativeCaptions(document);
   for(const cue of captions)objectMap[cue.id]={domId:cue.projectionId,semanticRole:'caption',kind:'text',anchor:'source-content'};
   const captionHtml=captions.map((c,i)=>`<div id="${esc(c.projectionId)}" data-object-id="${esc(c.id)}" class="clip caption" data-start="${sec(c.startFrame)}" data-duration="${sec(c.durationFrames)}" data-track-index="${300+i}"><div class="caption-content">${esc(c.text)}</div></div>`).join('\n');
-  const videoHtml = externalVideoLayers(document, assets);
+  const videoHtml = externalVideoLayers(document, assets,custom);
   const audioHtml = (document.audioGraph||[]).map((a,i)=>`<audio id="${esc(a.id)}" src="${esc(audioRefs[a.id]||publicAsset(assets[a.assetId]))}" data-start="${sec(a.startFrame)}" data-duration="${sec(a.durationFrames)}" data-media-start="${audioRefs[a.id]?0:Number(a.sourceStartSeconds||0)}" data-playback-rate="${audioRefs[a.id]?1:Number(a.playbackRate??1)}" data-volume="${Number(a.volume??1)}" data-track-index="${100+i}"></audio>`).join('\n');
   const sceneHtml = document.scenes.map((scene, index) => `<section id="${esc(scene.id)}" class="clip scene scene-${esc(scene.effect)}${hasVideo(scene, document) ? ' scene-has-video' : ''}" data-start="${sec(scene.startFrame)}" data-duration="${sec(scene.durationFrames)}" data-track-index="${1 + index % 2}" style="z-index:${41 + index * 2};opacity:${index === 0 ? 1 : 0}">${custom.get(scene.id)?.html??renderScene(document, scene, assets)}</section>`).join('\n');
   const timeline = [...document.scenes.flatMap(scene => [...sceneTimeline(document, scene),custom.get(scene.id)?.timeline||'']), ...document.transitions.flatMap(transition => transitionTimeline(document, transition)),...captions.map(c=>`tl.set(${js('#'+c.projectionId)},{opacity:1},${sec(c.startFrame)});tl.set(${js('#'+c.projectionId)},{opacity:0},${sec(c.startFrame+c.durationFrames)});`)].join('\n    ');
@@ -232,11 +236,13 @@ export function compileDocument(document, preparedAssets, {audioRefs={}}={}) {
     html,body{margin:0;width:100%;height:100%;overflow:hidden;background:${esc(d.background)}}
     @font-face{font-family:"PingFang SC";src:local("PingFang SC")}
     @font-face{font-family:"Microsoft YaHei";src:local("Microsoft YaHei")}
+    ${brandFontCSS(assets)}
     body{font-family:${d.fontFamily};text-rendering:geometricPrecision}
     [data-composition-id="commerce-root"]{position:relative;width:100%;height:100%;overflow:hidden;--bg:${esc(d.background)};--fg:${esc(d.foreground)};--panel:${esc(d.panel)};--accent:${esc(d.accent)};--accentContrast:${esc(d.accentContrast)}}
     .flash-overlay{position:absolute;inset:0;opacity:0;pointer-events:none;z-index:200}
     .scene.scene-has-video{background:transparent}
     .video-layer{position:absolute;overflow:hidden;pointer-events:none}
+    .video-layer.managed-video{inset:0}
     .video-layer .media-motion{position:absolute;inset:0;will-change:transform}
     .video-layer video{width:100%;height:100%;object-fit:cover;display:block}
     .caption{position:absolute;left:8%;width:84%;bottom:7%;z-index:400;opacity:0;text-align:center;pointer-events:auto}
@@ -271,6 +277,7 @@ export function compileDocument(document, preparedAssets, {audioRefs={}}={}) {
   <script>
     window.__timelines = window.__timelines || {};
     const tl = gsap.timeline({paused:true});
+    ${document.nodes.filter(n=>custom.get(n.sceneId)?.managedVideoNodeIds?.includes(n.id)).map(n=>`tl.set(${js('#media-gate-'+n.id)},{visibility:"visible"},${sec(n.startFrame)});tl.set(${js('#media-gate-'+n.id)},{visibility:"hidden"},${sec(n.startFrame+n.durationFrames)});`).join('\n')}
     ${timeline}
     window.__timelines["commerce-root"] = tl;
   </script>

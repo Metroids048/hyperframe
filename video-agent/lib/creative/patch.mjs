@@ -1,3 +1,5 @@
+import {rebaseTextStyles} from './rich-text.mjs';
+import {bindResourceChecks} from './resource-receipts.mjs';
 import {insist, stableId} from './contracts.mjs';
 import {cloneDocument, recomputeSceneStarts, validateDocument, solveSceneDurations} from './document.mjs';
 import {normalizeEffectParams, validateEffect, EFFECTS} from './effects.mjs';
@@ -47,7 +49,8 @@ export function applyDocumentPatch(input, operations, assets) {
     }
     if(op.type==='retime_document'){
       insist(Number.isInteger(op.durationFrames)&&op.durationFrames>=150&&op.durationFrames<=18000,'总时长必须为5—600秒','INVALID_DURATION');
-      const fixed=new Map(document.scenes.filter(s=>sceneLocks(s).timing||s.purpose==='price').map(s=>[s.id,s.purpose==='price'&&!sceneLocks(s).timing?90:s.durationFrames]));
+      const legacyPrice=s=>!document.production&&s.purpose==='price';
+      const fixed=new Map(document.scenes.filter(s=>sceneLocks(s).timing||legacyPrice(s)).map(s=>[s.id,legacyPrice(s)&&!sceneLocks(s).timing?90:s.durationFrames]));
       const flexible=document.scenes.filter(s=>!fixed.has(s.id)),gross=op.durationFrames+document.transitions.reduce((n,t)=>n+t.durationFrames,0),remaining=gross-[...fixed.values()].reduce((a,b)=>a+b,0);
       insist(flexible.length?remaining>=flexible.length*45:remaining===0,'锁定内容与目标时长冲突','LOCK_CONFLICT');
       const durations=flexible.length?solveSceneDurations(remaining,flexible.length,0,flexible.map(s=>s.durationFrames)):[];
@@ -58,6 +61,7 @@ export function applyDocumentPatch(input, operations, assets) {
       const node = document.nodes.find(n => n.id === op.nodeId);
       insist(node?.kind === 'text', '目标文字节点不存在', 'PATCH_TARGET_MISSING');
       insist(typeof op.text === 'string' && op.text.trim() && [...op.text].length <= 240, '文字必须为 1～240 字', 'INVALID_TEXT');
+      for(const bundle of document.sourceBundles||[])rebaseTextStyles(bundle,node.id,node.params.text,op.text.trim());
       node.params = {...node.params, text: op.text.trim()};
       if(node.semanticRole==='price')document.brief.price=op.text.trim();
     }
@@ -76,8 +80,8 @@ export function applyDocumentPatch(input, operations, assets) {
       const scene=document.scenes.find(s=>s.id===op.sceneId),index=document.sourceBundles?.findIndex(b=>b.sceneId===op.sceneId);
       insist(scene?.effect==='custom-native'&&index>=0,'目标原创场景不存在','PATCH_TARGET_MISSING');
       const params=op.params||{},keys=['html','css','timeline','parameters','objects','motionTargets'];
-      insist(keys.every(k=>Object.hasOwn(params,k))&&Object.keys(params).every(k=>keys.includes(k)||k==='values'),'原创场景需要完整的受控源码与对象图','CUSTOM_SOURCE');
-      const before=document.sourceBundles[index],bundle={...Object.fromEntries(keys.map(k=>[k,structuredClone(params[k])])),id:before.id,sceneId:scene.id};
+      insist(keys.every(k=>Object.hasOwn(params,k))&&Object.keys(params).every(k=>keys.includes(k)||['values','textStyles'].includes(k)),'原创场景需要完整的受控源码与对象图','CUSTOM_SOURCE');
+      const before=document.sourceBundles[index],bundle={...Object.fromEntries(keys.map(k=>[k,structuredClone(params[k])])),...(Object.hasOwn(params,'textStyles')?(Array.isArray(params.textStyles)&&!params.textStyles.length?{}:{textStyles:structuredClone(params.textStyles)}):before.textStyles?{textStyles:structuredClone(before.textStyles)}:{}),id:before.id,sceneId:scene.id,...(before.contractVersion?{contractVersion:before.contractVersion,tokens:before.tokens}: {})};
       insist(Array.isArray(bundle.parameters),'原创参数列表无效','CUSTOM_PARAMETERS');
       const kept=Object.fromEntries(bundle.parameters.filter(p=>Object.hasOwn(scene.effectParams,p.name)).map(p=>[p.name,scene.effectParams[p.name]]));
       scene.effectParams=customParameters(bundle,params.values??kept);
@@ -155,6 +159,9 @@ export function applyDocumentPatch(input, operations, assets) {
   alignSourceAudio(document);
   for(const {id,kind,before} of locks.values())insist(lockScope(document,id,kind)===before,`修改触及第 ${input.scenes.findIndex(s=>s.id===id)+1} 幕的${{content:'内容',layout:'布局',timing:'段内时长',absolute:'绝对位置'}[kind]}锁，上一版本已保留`,'LOCK_CONFLICT');
   document.revisionId = stableId('rev', input.revisionId, operations, document.scenes, document.nodes, document.transitions, document.output,document.audioGraph,document.sourceBundles);
+  bindResourceChecks(document);
+  if(document.quality){const invalidation=computeInvalidation(input,document);document.quality={status:'needs-review',engineering:'pending',revisionId:document.revisionId,priorReportRevisionId:input.quality.revisionId,fullPlayback:'pending',humanReview:'pending',rights:input.quality.rights||'requires-publisher-review',issues:[],invalidation};}
+  if(document.timingPlan)document.timingPlan={...document.timingPlan,durationFrames:document.durationFrames,scenes:document.scenes.map(s=>({id:s.id,startFrame:s.startFrame,durationFrames:s.durationFrames})),audioGraph:document.audioGraph,readingAndActionsReviewed:false};
   validateDocument(document, assets);
   return document;
 }
@@ -168,7 +175,8 @@ export function computeInvalidation(input, output) {
   }
   for (const scene of output.scenes) {
     const before = input.scenes.find(s => s.id === scene.id);
-    if (!before || JSON.stringify(before) !== JSON.stringify(scene)) changedScenes.add(scene.id);
+    const visual=({locks,locked,...s})=>s;
+    if (!before || JSON.stringify(visual(before)) !== JSON.stringify(visual(scene))) changedScenes.add(scene.id);
   }
   for(const source of output.sourceBundles||[])if(JSON.stringify(source)!==JSON.stringify(input.sourceBundles?.find(b=>b.sceneId===source.sceneId)))changedScenes.add(source.sceneId);
   return {

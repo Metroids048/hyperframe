@@ -5,6 +5,13 @@ export const FPS = 30;
 export const DOCUMENT_VERSION = 3;
 export const MAX_DURATION_SECONDS = 600;
 export const MAX_ASSETS = 30;
+// Execution budgets, not a narrative formula. Every scene needs a native object.
+export const MAX_NATIVE_NODES = 300;
+export const MAX_CONCURRENT_VIDEO = 4;
+export const MAX_NATIVE_SOURCE_BYTES = 2 * 1024 * 1024;
+export const MAX_SCENES = MAX_NATIVE_NODES;
+export const MAX_SCENE_MEDIA = 4;
+export const MAX_FACTS = 256;
 export const MAX_FILE_BYTES = 1024 ** 3;
 export const IMAGE_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.webp']);
 export const VIDEO_EXTENSIONS = new Set(['.mp4', '.mov', '.webm']);
@@ -35,6 +42,7 @@ export function assetKindFromName(name = '') {
   if (IMAGE_EXTENSIONS.has(ext)) return 'image';
   if (VIDEO_EXTENSIONS.has(ext)) return 'video';
   if (AUDIO_EXTENSIONS.has(ext)) return 'audio';
+  if (ext === '.woff2') return 'font';
   return null;
 }
 
@@ -61,7 +69,8 @@ export function validateOutput(output = {}) {
 
 export function normalizeFacts(facts = []) {
   insist(Array.isArray(facts), '商品卖点必须为数组', 'INVALID_FACTS');
-  return facts.slice(0, 12).map((fact, index) => {
+  insist(facts.length <= MAX_FACTS, '事实数量超过运行预算，请分段提供；未静默丢弃内容', 'FACT_BUDGET');
+  return facts.map((fact, index) => {
     if (typeof fact === 'string') return {id: `fact-${index + 1}`, text: fact.trim(), source: 'user', status: 'provided'};
     insist(fact && typeof fact.text === 'string', '商品卖点格式无效', 'INVALID_FACTS');
     return {
@@ -86,12 +95,13 @@ export function normalizeCommerceRequest(input = {}) {
     insist(!asset.id || /^[a-zA-Z0-9_-]{1,100}$/.test(asset.id), '素材 ID 无效', 'INVALID_ASSET_ID');
     const inferred = assetKindFromName(asset.path);
     const kind = asset.kind || inferred;
-    insist(['image', 'video', 'audio'].includes(kind), `不支持的素材类型：${asset.path}`, 'UNSUPPORTED_ASSET');
+    insist(['image', 'video', 'audio', 'font'].includes(kind), `不支持的素材类型：${asset.path}`, 'UNSUPPORTED_ASSET');
     insist(!asset.kind || !inferred || asset.kind === inferred, `素材类型与扩展名不一致：${asset.path}`, 'ASSET_KIND_MISMATCH');
     return {
       id: asset.id || `asset-${index + 1}`,
       path: asset.path,
       kind,
+      ...(kind==='font'?{name:path.basename(asset.name||asset.path)}:{}),
       role: asset.role || (index === 0 ? 'hero' : 'detail'),
       productId: asset.productId || 'product-1',
       rights: asset.rights || {status: 'unknown'},

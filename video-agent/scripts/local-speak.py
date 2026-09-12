@@ -39,7 +39,10 @@ def speak(text, output, voice='zf_xiaobei', speed=1.0):
     if not parts:
         raise ValueError('No speech was generated')
     audio = np.concatenate(parts)
-    sf.write(output, audio, sample_rate)
+    # Python handles extended Windows paths; libsndfile's filename API may not.
+    # A file object also keeps the application-selected output path authoritative.
+    with open(output, 'wb') as destination:
+        sf.write(destination, audio, sample_rate, format='WAV')
     return dict(duration=len(audio) / sample_rate, sampleRate=sample_rate, voice=voice, rate=speed,
                 phonemizer='misaki-zh', metrics=dict(ttsMs=round((time.monotonic() - started) * 1000)))
 

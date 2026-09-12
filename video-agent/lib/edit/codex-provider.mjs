@@ -8,7 +8,7 @@ import {ROOT} from '../workflow.mjs';
 import {EditError,insist,uid} from './timeline.mjs';
 import {hashFile} from './media.mjs';
 import {SpeechWorker,localPython} from './speech-worker.mjs';
-import {codexRequest,codexFailure} from './codex-command.mjs';
+import {codexRequest,codexFailure,modelTimeoutMs} from './codex-command.mjs';
 import {speakElevenLabs} from './adapters/optional-providers.mjs';
 
 export function subscriptionEnv() {
@@ -34,7 +34,7 @@ export function localVoice(voice,instructions=''){
   insist(legacy[voice],'本地配音不支持该音色，请使用列出的中文音色或配置云配音');return legacy[voice];
 }
 export class CodexProvider extends CloudProvider {
-  constructor({workerFactory=options=>new SpeechWorker(options),skipLoginCheck=false,cacheRoot}={}){super();this.bin=process.env.VIDEO_AGENT_CODEX_BIN||'codex';this.environment=subscriptionEnv();this.model=process.env.VIDEO_AGENT_CODEX_MODEL||process.env.VIDEO_AGENT_EDIT_MODEL||null;this.verifiedAt=null;this.loginCheckedAt=0;this.loggedIn=false;this.cacheRoot=cacheRoot||process.env.VIDEO_AGENT_CACHE_ROOT||path.join(ROOT,'data');this.asr=workerFactory({python:localPython(),env:this.environment});this.tts=workerFactory({python:localPython(),env:this.environment});if(!skipLoginCheck)void this.refreshLogin();}
+  constructor({workerFactory=options=>new SpeechWorker(options),skipLoginCheck=false,cacheRoot,reasoningEffort=process.env.VIDEO_AGENT_CODEX_REASONING_EFFORT||'low',timeoutMs=process.env.VIDEO_AGENT_MODEL_TIMEOUT_MS||180000,onInvocation}={}){super();this.timeoutMs=modelTimeoutMs(timeoutMs);this.reasoningEffort=reasoningEffort;this.onInvocation=onInvocation;this.bin=process.env.VIDEO_AGENT_CODEX_BIN||'codex';this.environment=subscriptionEnv();this.model=process.env.VIDEO_AGENT_CODEX_MODEL||process.env.VIDEO_AGENT_EDIT_MODEL||null;this.verifiedAt=null;this.loginCheckedAt=0;this.loggedIn=false;this.cacheRoot=cacheRoot||process.env.VIDEO_AGENT_CACHE_ROOT||path.join(ROOT,'data');this.asr=workerFactory({python:localPython(),env:this.environment});this.tts=workerFactory({python:localPython(),env:this.environment});if(!skipLoginCheck)void this.refreshLogin();}
   status(){return {configured:this.loggedIn,checkingLogin:!!this.loginPending,provider:'Codex subscription',model:this.model||'Codex 默认模型',auth:'ChatGPT subscription',verifiedAt:this.verifiedAt,transcriptionModel:(process.env.VIDEO_AGENT_ASR_ENGINE==='whisperx'?'WhisperX':'Whisper')+' '+(process.env.VIDEO_AGENT_WHISPER_MODEL||'small')+' · 本地',voiceModel:process.env.VIDEO_AGENT_TTS_ENGINE==='elevenlabs'?'ElevenLabs':'HyperFrames Kokoro · 本地中文',voices:process.env.VIDEO_AGENT_TTS_ENGINE==='elevenlabs'?{engine:'elevenlabs',minRate:0.7,maxRate:1.2}:{engine:'kokoro',ids:localVoices,default:'zf_xiaobei',minRate:0.5,maxRate:2,language:'zh',instructionSupport:'音色与语速；不支持任意情绪或音色克隆'},connectionMode:'subscription'};}
   async refreshLogin(){
     if(this.loginPending)return this.loginPending;
@@ -56,20 +56,23 @@ export class CodexProvider extends CloudProvider {
       if(c.type==='input_text')parts.push(c.text);
       else if(c.type==='input_image'){const match=/^data:image\/(jpeg|png);base64,(.+)$/s.exec(c.image_url);insist(match,'模型图片必须为本地抽帧');const f=path.join(dir,`frame-${images.length}.${match[1]}`);await fs.writeFile(f,Buffer.from(match[2],'base64'));images.push(f);parts.push(`【附图 ${images.length}】`);}
     }messages.push({role:item.role,content:parts.join('\n')});}
-    const {args,prompt}=codexRequest({model,schemaFile,output,images,instructions,messages});
+    const {args,prompt}=codexRequest({model,schemaFile,output,images,instructions,messages,reasoningEffort:this.reasoningEffort});
+    const invocation={model,timeoutMs:this.timeoutMs,reasoningEffort:this.reasoningEffort,attempt,imageCount:images.length,promptSha256:createHash('sha256').update(prompt).digest('hex'),schemaSha256:createHash('sha256').update(JSON.stringify(schema)).digest('hex'),directory:dir};
+    await fs.writeFile(path.join(dir,'prompt.txt'),prompt);
+    await this.onInvocation?.(invocation);
     try {
       await new Promise((resolve,reject)=>{
         if(signal?.aborted)return reject(new EditError('任务已取消'));
         const child=spawn(this.bin,args,{cwd:dir,env:this.environment,windowsHide:true,stdio:['pipe','pipe','pipe']});let tail='',timed=false;
         const kill=()=>{if(process.platform==='win32')spawnSync('taskkill',['/pid',String(child.pid),'/T','/F'],{windowsHide:true,stdio:'ignore'});else child.kill('SIGKILL');};
-        const timer=setTimeout(()=>{timed=true;kill();},180000);signal?.addEventListener('abort',kill,{once:true});
+        const timer=setTimeout(()=>{timed=true;kill();},this.timeoutMs);signal?.addEventListener('abort',kill,{once:true});
         child.stdin.on('error',()=>{});child.stdin.end(prompt);child.stdout.on('data',b=>tail=(tail+b).slice(-16000));child.stderr.on('data',b=>tail=(tail+b).slice(-16000));
         child.on('error',()=>{clearTimeout(timer);signal?.removeEventListener('abort',kill);reject(new EditError('Codex 无法启动，请检查本机安装',503));});
         child.on('close',code=>{clearTimeout(timer);signal?.removeEventListener('abort',kill);if(signal?.aborted)return reject(new EditError('任务已取消',409));if(code!==0||timed){const diagnostic=tail.replace(/sk-[a-zA-Z0-9_-]+/g,'[redacted]').replace(/Bearer\s+\S+/gi,'Bearer [redacted]'),capacity=!timed&&/Selected model is at capacity|model.*temporarily unavailable/i.test(tail),failure=codexFailure(tail,{timed}),error=Object.assign(new EditError(failure.message,503),{capacity,code:failure.code});void fs.writeFile(path.join(dir,'failure.log'),diagnostic).catch(()=>{}).finally(()=>reject(error));return;}resolve();});
       });
-      const result=JSON.parse(await fs.readFile(output,'utf8'));this.verifiedAt=new Date().toISOString();return {result,usage:null,model:model||'Codex 默认模型',...(attempt?{fallbackFrom:this.model}:{})};
+      const result=JSON.parse(await fs.readFile(output,'utf8'));this.verifiedAt=new Date().toISOString();return {result,usage:null,model:model||'Codex 默认模型',reasoningEffort:this.reasoningEffort,invocation,...(attempt?{fallbackFrom:this.model}:{})};
     }catch(error){if(error.capacity&&attempt+1<candidates.length&&!signal?.aborted)return await this.structured(instructions,input,schema,signal,attempt+1);if(error.capacity)error.message='可用模型当前都很繁忙，输入已保存，请稍后重试';throw error;}
-    finally {await fs.writeFile(path.join(dir,'request.json'),JSON.stringify({model,imageCount:images.length,completedAt:new Date().toISOString()})).catch(()=>{});}
+    finally {await fs.writeFile(path.join(dir,'request.json'),JSON.stringify({...invocation,completedAt:new Date().toISOString()})).catch(()=>{});}
   }
   async transcribe(file,signal) {
     if(signal?.aborted)throw new EditError('任务已取消',409);
@@ -102,7 +105,9 @@ export class CodexProvider extends CloudProvider {
     const digest=createHash('sha256').update(JSON.stringify({version:3,engine,text,voice:selectedVoice,rate,runtime,model:engine==='elevenlabs'?process.env.ELEVENLABS_MODEL_ID||'eleven_multilingual_v2':'kokoro-v1.0-misaki',configuredVoice:engine==='elevenlabs'?process.env.ELEVENLABS_VOICE_ID:null})).digest('hex');
     const dir=path.join(this.cacheRoot,'edit-voices','cache-'+digest);await fs.mkdir(dir,{recursive:true});const file=path.join(dir,'speech.wav');
     try{const cached=await fs.readFile(file);if(cached.length>44&&cached.toString('ascii',0,4)==='RIFF'){this.lastSpeechMetrics={cacheHit:true,engine,voice:selectedVoice,rate};return cached;}}catch(e){if(e.code!=='ENOENT')throw e;}
-    const pending=path.join(dir,'pending-'+uid()+'.wav');
+    // Native audio libraries may still use MAX_PATH even when Node supports long paths.
+    const pendingDir=process.platform==='win32'?path.join(ROOT,'outputs/speech-work'):dir;
+    await fs.mkdir(pendingDir,{recursive:true});const pending=path.join(pendingDir,'pending-'+uid()+'.wav');
     try{
       let metrics;
       if(engine==='elevenlabs'){await fs.writeFile(pending,await speakElevenLabs(text,selectedVoice,signal,{rate}));metrics={engine};}

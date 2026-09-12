@@ -7,9 +7,10 @@ import {pipeline} from 'node:stream/promises';
 import yazl from 'yazl';
 import yauzl from 'yauzl';
 import sharp from 'sharp';
-import {insist,assetKindFromName,MAX_ASSETS,MAX_FILE_BYTES} from './contracts.mjs';
+import {insist,assetKindFromName,MAX_ASSETS,MAX_FILE_BYTES,MAX_SCENES} from './contracts.mjs';
 import {readNativeProject,writeCompiledProject,runHyperFrames} from './runner.mjs';
 import {linkOrCopy,probe} from '../edit/media.mjs';
+import {inspectBrandFont} from './brand-fonts.mjs';
 
 export const MAX_PACKAGE_BYTES=80*1024**3;
 const MAX_ENTRIES=20000,MAX_JSON=16*1024**2;
@@ -28,6 +29,9 @@ function safeJSON(bytes){
 }
 async function dependencies(root){return {hyperframes:'0.8.33',gsap:'3.14.2',gsapSha256:await fileHash(path.join(root,'node_modules/gsap/dist/gsap.min.js')),runtimeSha256:await fileHash(path.join(root,'node_modules/hyperframes/dist/hyperframe-runtime.js')),fonts:{distribution:'system-only',families:['Microsoft YaHei','PingFang SC','Arial'],note:'不分发字体；重开使用目标系统字体，缺字或替代字体需重新检查。'}};}
 const recordNames=new Set(['document.json','manifest.json','object-map.json','DESIGN.md','STORYBOARD.md','ATTRIBUTION.md','index.html','edit.json','director-plan.json','model-plan.json','observations.json','evidence.json','caption-recognition.json','audio-processing.json','check.log','render.log','commerce-final.mp4']);
+for(const name of ['run-input.json','story-inspections.json','narration.json','narration-script.json','brief-plan.json','resource-plan.json','story-plan.json','timing-plan.json','transcripts.json','dense-evidence.json','production-run.json','resource-lock.json','resource-receipts.json','quality-report.json','media-review.json','media-review.log','render-progress.json','custom-isolation.json'])recordNames.add(name);
+const isProductionRecord=name=>/^(?:scene-\d+|quality-round-\d+(?:-batch-\d+)?|failed-shot-\d+-\d+|failed-brief-\d+|failed-observation-\d+|observation-invalidated-\d+|failed-story-\d+|brief-before-validation-repair-\d+|story-before-repair-\d+|story-repair-\d+|story-invalidated-\d+|keyframe-\d+|keyframe-review-\d+-\d+|failed-keyframe-\d+-\d+|assembly-failure-\d+|edit-quality-round-\d+|edit-failure-\d+|edit-before-repair-\d+)\.json$/.test(name)||/^(?:receipts|runs|source-history|stage-cache|implementations)\/[a-zA-Z0-9_.-]+\.json$/.test(name)||/^review-\d+\/(?:batch-\d+\/)?[a-zA-Z0-9_.-]+\.(?:png|jpe?g)$/.test(name)||/^keyframes\/[a-zA-Z0-9_-]+\/(?:verified\.json|document\.json|check\.log|frames\/[a-zA-Z0-9_.-]+\.png)$/.test(name)||/^edit-review-\d+\/batch-\d+\/(?:review\.json|[a-zA-Z0-9_.-]+\.png)$/.test(name)||/^resources\/(?:[a-zA-Z0-9_.-]+\/)*(?:LICENSE|[a-zA-Z0-9_.-]+\.(?:md|json|txt))$/.test(name);
+async function productionFiles(dir,prefix=''){const found=[];for(const entry of await fs.readdir(path.join(dir,prefix),{withFileTypes:true})){const name=prefix+entry.name;if(entry.isFile()&&isProductionRecord(name))found.push(name);else if(entry.isDirectory()&&(prefix||/^(?:resources|receipts|runs|source-history|stage-cache|implementations|keyframes|edit-review-\d+|review-\d+)$/.test(entry.name)))found.push(...await productionFiles(dir,name+'/'));}return found;}
 
 /** Immutable, content-addressed ZIP64 snapshot. Runtime scripts/fonts are dependencies, not imported code. */
 export async function exportCreativeHistory(root,projectDir,snapshot,selectedRevisionId,output,{signal}={}){
@@ -38,15 +42,16 @@ export async function exportCreativeHistory(root,projectDir,snapshot,selectedRev
     insist(idOK(revision.id),'版本ID无效','PACKAGE_INVALID');const dir=relativeFile(projectDir,revision.directory),files={};
     const {document}=await readNativeProject(dir);
     for(const name of await fs.readdir(dir))if(recordNames.has(name)&&!(name==='commerce-final.mp4'&&!revision.rendered&&revision.id!==selectedRevisionId))files[name]=await add(path.join(dir,name));
-    for(const name of await fs.readdir(path.join(dir,'assets')))if(/^[a-zA-Z0-9_.-]+\.(?:png|jpe?g|webp|mp4|mov|webm|wav|m4a|mp3)$/i.test(name))files['assets/'+name]=await add(path.join(dir,'assets',name));
+    for(const name of await fs.readdir(path.join(dir,'assets')))if(/^[a-zA-Z0-9_.-]+\.(?:png|jpe?g|webp|mp4|mov|webm|wav|m4a|mp3|woff2)$/i.test(name))files['assets/'+name]=await add(path.join(dir,'assets',name));
     for(const name of await fs.readdir(path.join(dir,'evidence')).catch(()=>[]))if(/^[a-zA-Z0-9_.-]+\.jpg$/.test(name))files['evidence/'+name]=await add(path.join(dir,'evidence',name));
-    revisions.push({...revision,directory:undefined,packaged:undefined,files,rendered:Boolean(files['commerce-final.mp4']),fontFamily:document.design.fontFamily});
+    for(const name of await productionFiles(dir))files[name]=await add(relativeFile(dir,name));
+    revisions.push({...revision,directory:undefined,packaged:undefined,files,rendered:Boolean(files['commerce-final.mp4']),fontFamily:document.design.fontFamily,...(document.fontResources?.length?{fontResources:document.fontResources}:{})});
   }
   const assets=[];
   for(const asset of snapshot.assets){const file=relativeFile(root,asset.path),extension=path.extname(file).toLowerCase();insist(assetKindFromName(file)===asset.kind,'素材类型无效','PACKAGE_INVALID');assets.push({...asset,path:undefined,blob:await add(file),extension});}
   const auditions=[];
   for(const voice of snapshot.auditions||[])auditions.push({...voice,path:undefined,blob:await add(relativeFile(projectDir,voice.path))});
-  const metadata={format:'hyperframe-creative-history',schemaVersion:1,capturedAt:new Date().toISOString(),selectedRevisionId,dependencies:await dependencies(root),project:{title:snapshot.title,createdAt:snapshot.createdAt,request:snapshot.request,messages:snapshot.messages,redo:snapshot.redo,jobs:snapshot.jobs.map(j=>({id:j.id,kind:j.kind,status:j.status,baseRevisionId:j.baseRevisionId,revisionId:j.revisionId,revisionIds:j.revisionIds,createdAt:j.createdAt,completedAt:j.completedAt,summary:j.summary,error:j.error,code:j.code,durationMs:j.durationMs})),sourceProjectId:snapshot.id,preset:snapshot.preset,confirmedVoice:snapshot.confirmedVoice?{...snapshot.confirmedVoice,path:undefined}:undefined},assets,auditions,revisions};
+  const metadata={format:'hyperframe-creative-history',schemaVersion:1,capturedAt:new Date().toISOString(),selectedRevisionId,dependencies:await dependencies(root),project:{title:snapshot.title,createdAt:snapshot.createdAt,request:snapshot.request,messages:snapshot.messages,redo:snapshot.redo,jobs:snapshot.jobs.map(j=>({id:j.id,kind:j.kind,status:j.status,baseRevisionId:j.baseRevisionId,revisionId:j.revisionId,revisionIds:j.revisionIds,createdAt:j.createdAt,completedAt:j.completedAt,summary:j.summary,error:j.error,code:j.code,durationMs:j.durationMs,runId:j.runId,checkpoints:j.checkpoints,modelCalls:j.modelCalls,qualitySummary:j.qualitySummary})),sourceProjectId:snapshot.id,preset:snapshot.preset,confirmedVoice:snapshot.confirmedVoice?{...snapshot.confirmedVoice,path:undefined}:undefined},assets,auditions,revisions};
   const data=Buffer.from(JSON.stringify(metadata,null,2));insist(data.length<=MAX_JSON&&blobs.size<MAX_ENTRIES,'工程历史过大','PACKAGE_LIMIT');
   const uniqueBytes=[...blobs.values()].reduce((sum,b)=>sum+b.size,0);insist(uniqueBytes+data.length<MAX_PACKAGE_BYTES,'工程包超过80 GiB受控范围','PACKAGE_LIMIT');
   const temp=output+'.'+randomUUID()+'.partial',zip=new yazl.ZipFile();
@@ -89,13 +94,14 @@ export async function unpackCreativeHistory(file,directory,{signal}={}){
 function validateImportedDocument(document,assets){
   const safeID=x=>insist(idOK(x),'工程对象ID无效','PACKAGE_INVALID');
   safeID(document.revisionId);document.scenes.forEach(safe=>safeID(safe.id));document.nodes.forEach(n=>safeID(n.id));document.transitions.forEach(t=>safeID(t.id));
-  insist(!document.sourceBundles||Array.isArray(document.sourceBundles)&&document.sourceBundles.length<=12,'自定义场景源码数量无效','PACKAGE_SOURCE_UNSUPPORTED');
+  insist(!document.sourceBundles||Array.isArray(document.sourceBundles)&&document.sourceBundles.length<=MAX_SCENES,'自定义场景源码数量无效','PACKAGE_SOURCE_UNSUPPORTED');
   for(const key of ['background','foreground','panel','accent','accentContrast'])insist(/^#[a-fA-F0-9]{3,8}$/.test(document.design[key]),'工程颜色声明无效','PACKAGE_INVALID');
   insist(/^[\p{L}\p{N}\s,\-"']{1,180}$/u.test(document.design.fontFamily),'工程字体声明无效','PACKAGE_INVALID');
-  for(const asset of assets)insist(/^assets\/[a-zA-Z0-9_.-]+\.(?:png|jpe?g|webp|mp4|mov|webm|wav|m4a|mp3)$/i.test(asset.ref),'工程素材引用越界','PACKAGE_PATH');
+  for(const asset of assets)insist(/^assets\/[a-zA-Z0-9_.-]+\.(?:png|jpe?g|webp|mp4|mov|webm|wav|m4a|mp3|woff2)$/i.test(asset.ref),'工程素材引用越界','PACKAGE_PATH');
 }
 
 async function verifyImportedMedia(file,kind,signal){
+  if(kind==='font')return inspectBrandFont(file);
   if(kind==='image'){const decoder=sharp(file,{failOn:'error',limitInputPixels:48_000_000}),metadata=await decoder.metadata();insist(['jpeg','png','webp'].includes(metadata.format),'工程图片格式无效','PACKAGE_MEDIA');await decoder.stats();return {width:metadata.width,height:metadata.height,hasAlpha:metadata.hasAlpha};}
   insist(['audio','video'].includes(kind),'工程媒体类型无效','PACKAGE_MEDIA');const metadata=await probe(file,signal);insist(metadata.kind===kind,'工程媒体声明与真实文件不一致','PACKAGE_MEDIA');return metadata;
 }
@@ -118,8 +124,8 @@ export async function restoreCreativeHistory(root,targetDir,id,unpacked,{signal,
     if(r.files['index.html'])await fs.copyFile(blob(r.files['index.html']),path.join(dir,'original-index.html.evidence'));
     insist(document.revisionId===r.id&&manifest.revisionId===r.id,'版本描述不一致','PACKAGE_INVALID');validateImportedDocument(document,manifest.assets);document.projectId=id;
     for(const [name,hash] of Object.entries(r.files)){
-      const isAsset=/^assets\/[a-zA-Z0-9_.-]+\.(?:png|jpe?g|webp|mp4|mov|webm|wav|m4a|mp3)$/i.test(name);
-      insist(isAsset||recordNames.has(name)||/^evidence\/[a-zA-Z0-9_.-]+\.jpg$/.test(name),'版本含不支持的文件','PACKAGE_PATH');
+      const isAsset=/^assets\/[a-zA-Z0-9_.-]+\.(?:png|jpe?g|webp|mp4|mov|webm|wav|m4a|mp3|woff2)$/i.test(name);
+      insist(isAsset||recordNames.has(name)||isProductionRecord(name)||/^evidence\/[a-zA-Z0-9_.-]+\.jpg$/.test(name),'版本含不支持的文件','PACKAGE_PATH');
       if(isAsset||!['index.html','document.json','manifest.json','object-map.json','DESIGN.md','ATTRIBUTION.md'].includes(name))await linkOrCopy(blob(hash),relativeFile(dir,name));
     }
     for(const asset of manifest.assets){insist(r.files[asset.ref],'缺少版本媒体文件','PACKAGE_MISSING');const actual=await verifyBlob(r.files[asset.ref],asset.kind);asset.mediaMetadata={...asset.mediaMetadata,...actual};}

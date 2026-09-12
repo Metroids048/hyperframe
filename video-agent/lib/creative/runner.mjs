@@ -1,3 +1,4 @@
+import {prepareHyperFramesWorkspace,assertHyperFramesCapture} from './hf-workspace.mjs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -13,6 +14,9 @@ import {planWithModel,repairPlannedDocument} from './model-director.mjs';
 import {prepareNativeAudio} from './audio.mjs';
 import {writeAttribution} from './rights.mjs';
 import {verifyCustomProject} from './isolation.mjs';
+import {produceDocument} from './production.mjs';
+import {reviewExport} from './media-review.mjs';
+import {renderFrameProgress} from './render-progress.mjs';
 
 const moduleDir = path.dirname(fileURLToPath(import.meta.url));
 export const VIDEO_AGENT_ROOT = path.resolve(moduleDir, '../..');
@@ -28,7 +32,7 @@ async function copyGsap(outputDir) {
   await fs.copyFile(source, path.join(outputDir, 'assets/gsap.min.js'));
 }
 
-export async function runHyperFrames(outputDir, command, args = [], {signal} = {}) {
+export async function runHyperFrames(outputDir, command, args = [], {signal,onProgress} = {}) {
   if(signal?.aborted)throw new Error('任务已取消');
   const cli = path.join(VIDEO_AGENT_ROOT, 'node_modules/hyperframes/bin/hyperframes.mjs');
   await fs.access(cli).catch(() => { throw new Error('找不到 HyperFrames 0.8.33，请先在 video-agent 执行 npm install'); });
@@ -39,18 +43,20 @@ export async function runHyperFrames(outputDir, command, args = [], {signal} = {
     if (await fs.access(ffmpeg).then(() => true).catch(() => false)) env.HYPERFRAMES_FFMPEG_PATH = ffmpeg;
     if (await fs.access(ffprobe).then(() => true).catch(() => false)) env.HYPERFRAMES_FFPROBE_PATH = ffprobe;
   }
-  return await new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [cli, command, ...args], {cwd: outputDir, env, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe']});
+  const workspace=await prepareHyperFramesWorkspace(VIDEO_AGENT_ROOT,outputDir);
+  try{return await new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, [cli, command, ...args], {cwd: workspace.directory, env, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe']});
     let timedOut=false;
     const stop=()=>{if(child.pid&&process.platform==='win32')spawnSync('taskkill',['/pid',String(child.pid),'/T','/F'],{windowsHide:true,stdio:'ignore'});else child.kill('SIGKILL');};
     const timer=setTimeout(()=>{timedOut=true;stop();},command==='render'?60*60*1000:120000);signal?.addEventListener('abort',stop,{once:true});
     const cleanup=()=>{clearTimeout(timer);signal?.removeEventListener('abort',stop);};
-    let output = '';
-    child.stdout.on('data', b => output = (output + b).slice(-24000));
-    child.stderr.on('data', b => output = (output + b).slice(-24000));
+    let output = '',progress=null,lastProgressTime=0,progressError=null,progressWrites=Promise.resolve();
+    const receive=b=>{output=(output+b).slice(-24000);if(command!=='render')return;const next=renderFrameProgress(output,progress);if(!next)return;progress=next;if(Date.now()-lastProgressTime<1500&&next.completed!==next.total)return;lastProgressTime=Date.now();const record={...next,updatedAt:new Date().toISOString()};progressWrites=progressWrites.then(async()=>{await fs.writeFile(path.join(outputDir,'render-progress.json'),JSON.stringify(record));await onProgress?.(record);}).catch(error=>{progressError=error;});};
+    child.stdout.on('data',receive);
+    child.stderr.on('data',receive);
     child.on('error', error=>{cleanup();reject(error);});
-    child.on('close', code => {cleanup();if(signal?.aborted)return reject(new Error('任务已取消'));if(timedOut)return reject(new Error('处理超时，输入和上一有效版本已保留'));code === 0 ? resolve(output) : reject(new Error(`HyperFrames ${command} 失败 (${code})\n${output.slice(-3000)}`));});
-  });
+    child.on('close', async code => {cleanup();await progressWrites;if(progressError)output+='\n进度记录写入失败：'+progressError.message;const logFile=`hyperframes-${command}-${Date.now()}.log`;await fs.writeFile(path.join(outputDir,logFile),output).catch(()=>{});if(signal?.aborted)return reject(new Error('任务已取消'));if(timedOut)return reject(new Error('处理超时，输入和上一有效版本已保留'));if(code===0&&['snapshot','check'].includes(command)){try{assertHyperFramesCapture(output);}catch(error){error.logFile=logFile;reject(error);return;}}code === 0 ? resolve(output) : reject(Object.assign(new Error(`HyperFrames ${command} 失败 (${code})\n${output}`),{code:'HYPERFRAMES_CHECK',logFile}));});
+  });}finally{await workspace.finish();}
 }
 
 export async function buildCommerceProject(input, {root = VIDEO_AGENT_ROOT} = {}) {
@@ -68,7 +74,8 @@ export async function buildCommerceProject(input, {root = VIDEO_AGENT_ROOT} = {}
   }
   await copyGsap(outputDir);
   await writeAttribution(outputDir,prepared);
-  let document = input.planning === 'model' ? await planWithModel(request,prepared,{root,outputDir,signal:input.signal,provider:input.provider,onStage:input.onStage}) : planCommerceDocument(request, prepared);
+  const staged=input.planning==='model'&&process.env.VIDEO_AGENT_CREATIVE_WORKFLOW!=='legacy';
+  let document = staged ? await produceDocument(request,prepared,{root,outputDir,signal:input.signal,provider:input.provider,onStage:input.onStage,onRun:input.onRun,resumeRunId:input.resumeRunId,runHyperFrames}) : input.planning === 'model' ? await planWithModel(request,prepared,{root,outputDir,signal:input.signal,provider:input.provider,onStage:input.onStage}) : planCommerceDocument(request, prepared);
   const audioRefs=await prepareNativeAudio(outputDir,document,prepared,{signal:input.signal});
   for(;;){try{
   await input.onStage?.('编译原生场景与对象');
@@ -83,7 +90,7 @@ export async function buildCommerceProject(input, {root = VIDEO_AGENT_ROOT} = {}
   await verifyCustomProject(outputDir,document,prepared,{signal:input.signal});
   break;
   }catch(error){
-    if(input.planning!=='model'||!error.code?.startsWith('CUSTOM_')||input.signal?.aborted||(document.customRepairCount||0)>=2)throw error;
+    if(staged||input.planning!=='model'||!error.code?.startsWith('CUSTOM_')||input.signal?.aborted||(document.customRepairCount||0)>=2)throw error;
     const attempt=(document.customRepairCount||0)+1,failed=path.join(outputDir,'failed-source-attempt-'+attempt);await fs.mkdir(failed,{recursive:true});
     for(const name of ['index.html','document.json','object-map.json','manifest.json'])await fs.copyFile(path.join(outputDir,name),path.join(failed,name)).catch(()=>{});
     document=await repairPlannedDocument(request,prepared,{outputDir,error,signal:input.signal,attempt,onStage:input.onStage});
@@ -96,6 +103,7 @@ export async function buildCommerceProject(input, {root = VIDEO_AGENT_ROOT} = {}
     const video = 'commerce-final.mp4';
     const renderLog = await runHyperFrames(outputDir, 'render', ['--output', video, '--fps', '30', '--quality', 'standard', '--workers', '1', '--strict']);
     await fs.writeFile(path.join(outputDir, 'render.log'), renderLog);
+    status.mediaReview=await reviewExport(root,outputDir,document,video,{signal:input.signal});
     status.state = 'rendered'; status.rendered = true; status.video = video;
     await fs.writeFile(path.join(outputDir, 'status.json'), JSON.stringify(status, null, 2));
   }
@@ -159,9 +167,12 @@ export async function renderCommerceProject(input, {root = VIDEO_AGENT_ROOT} = {
   const checkLog = await runHyperFrames(outputDir, 'check', [], {signal:input.signal});
   await fs.writeFile(path.join(outputDir, 'check.log'), checkLog);
   const video = input.video || 'commerce-final.mp4';
-  const renderLog = await runHyperFrames(outputDir, 'render', ['--output', video, '--fps', '30', '--quality', input.quality || 'standard', '--workers', '1', '--strict'], {signal:input.signal});
+  const renderLog = await runHyperFrames(outputDir, 'render', ['--output', video, '--fps', '30', '--quality', input.quality || 'standard', '--workers', '1', '--strict'], {signal:input.signal,onProgress:input.onProgress});
   await fs.writeFile(path.join(outputDir, 'render.log'), renderLog);
+  await input.onStage?.('检查实际导出文件');
+  const mediaReview=await reviewExport(root,outputDir,document,video,{signal:input.signal});
   const status = {state: 'rendered', projectId: document.projectId, outputDir: path.relative(root, outputDir).split(path.sep).join('/'), document: documentSummary(document), rendered: true, video};
+  status.mediaReview=mediaReview;
   await fs.writeFile(path.join(outputDir, 'status.json'), JSON.stringify(status, null, 2));
   return status;
 }

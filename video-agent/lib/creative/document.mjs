@@ -1,4 +1,5 @@
-import {DOCUMENT_VERSION, FPS, CreativeError, insist, stableId} from './contracts.mjs';
+import {DOCUMENT_VERSION, FPS, CreativeError, insist, stableId, MAX_SCENES, MAX_NATIVE_NODES, MAX_CONCURRENT_VIDEO, MAX_NATIVE_SOURCE_BYTES} from './contracts.mjs';
+import {brandFontResources} from './brand-fonts.mjs';
 
 const allowedNodeKinds = new Set(['image', 'video', 'text', 'shape', 'component', 'composition', 'audio']);
 const allowedAnchors = new Set(['scene-local', 'source-content', 'project-absolute', 'project-end']);
@@ -6,7 +7,7 @@ const allowedRoles = new Set(['hero', 'detail', 'title', 'feature', 'price', 'ct
 
 export function solveSceneDurations(targetFrames, count, overlapFrames = 9, weights = []) {
   insist(Number.isInteger(targetFrames) && targetFrames > 0, '目标帧数无效', 'INVALID_DURATION');
-  insist(Number.isInteger(count) && count >= 1 && count <= 12, '场景数量无效', 'INVALID_SCENE_COUNT');
+  insist(Number.isInteger(count) && count >= 1 && count <= MAX_SCENES, '场景数量超出对象预算', 'INVALID_SCENE_COUNT');
   insist(Number.isInteger(overlapFrames) && overlapFrames >= 0 && overlapFrames <= 30, '转场重叠无效', 'INVALID_TRANSITION');
   const overlapTotal = overlapFrames * Math.max(0, count - 1);
   const gross = targetFrames + overlapTotal;
@@ -57,6 +58,7 @@ export function createNativeDocument({projectId, output, brief, design, assets, 
     audioGraph: [],
     transitions,
     sourceBundles,
+    ...(assets.some(a=>a.kind==='font')?{fontResources:brandFontResources(assets)}:{}),
     dependencyLock: {hyperframes: '0.8.33', gsap: '3.14.2', schema: 'commerce-v3.1'},
   };
   recomputeSceneStarts(document);
@@ -68,8 +70,8 @@ export function validateDocument(document, assets = {}) {
   insist(document?.schemaVersion === DOCUMENT_VERSION, '原生工程版本必须为 3', 'INVALID_DOCUMENT_VERSION');
   insist(document.fps === FPS, '当前原生工程必须为 30fps', 'INVALID_FPS');
   insist(Number.isInteger(document.output?.width) && Number.isInteger(document.output?.height), '输出尺寸无效', 'INVALID_OUTPUT');
-  insist(Array.isArray(document.scenes) && document.scenes.length >= 1 && document.scenes.length <= 12, '场景数量必须为 1～12', 'INVALID_SCENES');
-  insist(Array.isArray(document.nodes) && document.nodes.length >= 1 && document.nodes.length <= 300, '节点数量必须为 1～300', 'INVALID_NODES');
+  insist(Array.isArray(document.scenes) && document.scenes.length >= 1 && document.scenes.length <= MAX_SCENES, '场景数量超出对象预算', 'INVALID_SCENES');
+  insist(Array.isArray(document.nodes) && document.nodes.length >= 1 && document.nodes.length <= MAX_NATIVE_NODES, '节点数量必须为 1～'+MAX_NATIVE_NODES, 'INVALID_NODES');
   insist(Array.isArray(document.transitions), '转场列表无效', 'INVALID_TRANSITIONS');
   const sceneIds = new Set();
   for (const scene of document.scenes) {
@@ -98,6 +100,8 @@ export function validateDocument(document, assets = {}) {
     if (node.kind === 'text') insist(typeof node.params?.text === 'string' && node.params.text.trim(), `文字节点 ${node.id} 不能为空`, 'INVALID_TEXT');
   }
   const pairs = new Set();
+  const decoderEvents=document.nodes.filter(n=>n.kind==='video').flatMap(n=>[[n.startFrame,1],[n.startFrame+n.durationFrames,-1]]).sort((a,b)=>a[0]-b[0]||a[1]-b[1]);let decoding=0;for(const [,change]of decoderEvents){decoding+=change;insist(decoding<=MAX_CONCURRENT_VIDEO,'同时解码视频超过'+MAX_CONCURRENT_VIDEO+'路预算','VIDEO_DECODE_BUDGET');}
+  insist(Buffer.byteLength(JSON.stringify(document.sourceBundles||[]))<=MAX_NATIVE_SOURCE_BYTES,'整片原创源码超过受管预算','SOURCE_BUDGET');
   for (const transition of document.transitions) {
     const pair = `${transition.fromSceneId}:${transition.toSceneId}`;
     insist(!pairs.has(pair), '相邻场景只能有一个转场', 'DUPLICATE_TRANSITION');

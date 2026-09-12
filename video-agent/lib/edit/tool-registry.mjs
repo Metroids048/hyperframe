@@ -20,7 +20,7 @@ export class ToolRegistry {
 
 export function createCoreToolRegistry(adapters = {}) {
   const registry = new ToolRegistry();
-  const add = (name, key) => registry.register(name, adapters[key] || (() => ({ status: 'not_implemented', tool: name })));
+  const add = (name, key) => { if (typeof adapters[key] === 'function') registry.register(name, adapters[key]); };
   for (const [name, key] of [
     ['project.status','projectStatus'], ['project.open','projectOpen'], ['project.save','projectSave'],
     ['assets.inspect','assetInspect'], ['assets.find','assetFind'], ['speech.transcribe','transcribe'],

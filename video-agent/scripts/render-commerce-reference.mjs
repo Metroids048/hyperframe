@@ -1,0 +1,10 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import {runHyperFrames} from '../lib/creative/runner.mjs';
+import {reviewExport} from '../lib/creative/media-review.mjs';
+import {resourceHash} from '../lib/creative/capabilities.mjs';
+const revision=process.argv[2]||'A1';if(!['A1','A2'].includes(revision))throw Error('Unknown reference revision');const directory=path.resolve('outputs/commerce-next/reference',revision),plan=JSON.parse(await fs.readFile(path.join(directory,'reference-plan.json'),'utf8'));
+const doc={format:'native-hyperframes-html-reference',revisionId:'A-'+resourceHash(await fs.readFile(path.join(directory,'index.html'))).slice(0,16),durationFrames:1800,output:{width:1920,height:1080},audioGraph:plan.shots.map(s=>({id:'audio-'+s.id})),nodes:plan.shots.map(s=>({id:s.id,kind:'video',assetId:'source',startFrame:s.start*30,durationFrames:s.duration*30,params:{sourceStartSeconds:s.source,playbackRate:1}}))};
+await fs.writeFile(path.join(directory,'reference-document.json'),JSON.stringify(doc,null,2));await fs.copyFile('assets/commerce-showcase/sources.json',path.join(directory,'source-attribution.json'));
+await fs.writeFile(path.join(directory,'render.log'),await runHyperFrames(directory,'render',['--output','reference-'+revision+'.mp4','--fps','30','--quality','standard','--workers','1','--strict']));
+console.log(await reviewExport(process.cwd(),directory,doc,'reference-'+revision+'.mp4'));

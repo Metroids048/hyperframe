@@ -1,5 +1,5 @@
-// One final render and one interactive preview may run in parallel.
-const pools={preview:{active:false,waiters:[]},render:{active:false,waiters:[]}};
+// Bound final render, interactive preview, and shot authoring independently.
+const pools={preview:{active:false,waiters:[]},render:{active:false,waiters:[]},author:{active:false,waiters:[]}};
 const cancelled=()=>Object.assign(new Error('任务已取消'),{status:409});
 export function acquireRender({kind='render',signal}={}) {
   if(!pools[kind])throw new TypeError('Unknown render pool');

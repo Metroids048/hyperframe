@@ -1,4 +1,9 @@
 // Codex is used as a bounded planning function, not an unrestricted editor.
+export function modelTimeoutMs(value=180000){
+  const ms=Number(value);
+  if(!Number.isInteger(ms)||ms<1000||ms>600000)throw new RangeError('VIDEO_AGENT_MODEL_TIMEOUT_MS 必须为1000—600000毫秒');
+  return ms;
+}
 export function codexRequest({
   model,
   schemaFile,
@@ -6,6 +11,7 @@ export function codexRequest({
   images = [],
   instructions,
   messages,
+  reasoningEffort = 'low',
 }) {
   const args = [
     "exec",
@@ -22,7 +28,7 @@ export function codexRequest({
     "-c",
     "features.shell_tool=false",
     "-c",
-    'model_reasoning_effort="low"',
+    'model_reasoning_effort="'+(['low','medium','high','xhigh'].includes(reasoningEffort)?reasoningEffort:'low')+'"',
     "--output-schema",
     schemaFile,
     "--output-last-message",
@@ -45,7 +51,7 @@ export function codexFailure(text, { timed = false } = {}) {
     return {
       code: "CODEX_TIMEOUT",
       message:
-        "Codex 理解超时，视频和指令已保留；可以重试或先用明确的秒数指令剪辑。",
+        "模型响应超时，输入和已完成的工作已保留；有检查点的任务可恢复，其余任务可以重试。",
     };
   if (
     /(?:model.{0,80}(?:not found|does not exist|not supported|not available|unsupported)|unsupported.{0,40}model)/i.test(

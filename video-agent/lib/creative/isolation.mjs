@@ -2,11 +2,13 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {spawn} from 'node:child_process';
-import {randomUUID} from 'node:crypto';
+import {randomUUID,createHash} from 'node:crypto';
 import {insist} from './contracts.mjs';
 import {compileCustomSource} from './custom-source.mjs';
 import {linkOrCopy} from '../edit/media.mjs';
+import {brandFontResources} from './brand-fonts.mjs';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
+const verifiedProjects=new Map();
 export async function runSceneIsolation(directory,config,{signal,probe}={}){
  signal?.throwIfAborted();
  insist(process.platform==='win32','当前自定义源码隔离仅在已验证的Windows环境可用','ISOLATION_UNAVAILABLE');
@@ -30,11 +32,14 @@ export async function runSceneIsolation(directory,config,{signal,probe}={}){
 }
 export async function verifyCustomProject(outputDir,document,assets,{signal}={}){
  const scenes=document.scenes.filter(s=>s.effect==='custom-native');if(!scenes.length)return;
- const directory=path.join(outputDir,'isolated',randomUUID()),files=['index.html','assets/gsap.min.js'];
+ const html=await fs.readFile(path.join(outputDir,'index.html')),inputHash=createHash('sha256').update(html).update(JSON.stringify({document,assets})).digest('hex'),cacheKey=path.resolve(outputDir)+':'+inputHash;
+ signal?.throwIfAborted();if(verifiedProjects.has(cacheKey))return verifiedProjects.get(cacheKey);
+ // PowerShell Add-Type and Chromium still encounter MAX_PATH in deeply nested jobs.
+ const directory=path.join(root,'outputs','native-isolation',randomUUID()),files=['index.html','assets/gsap.min.js'];
  const byId=Object.fromEntries(assets.map(a=>[a.id,a]));
  const targets=scenes.map(scene=>{const compiled=compileCustomSource(document.sourceBundles.find(b=>b.sceneId===scene.id),{scene,nodes:document.nodes.filter(n=>n.sceneId===scene.id),assets:byId});return {id:scene.id,startFrame:scene.startFrame,durationFrames:scene.durationFrames,targets:compiled.motionTargets,sampleTimes:compiled.sampleTimes};});
  for(const asset of assets){const ref=asset.compiledRef||asset.ref;insist(/^assets\/[a-zA-Z0-9_.-]+$/.test(ref),'隔离素材路径无效','CUSTOM_RESOURCE');files.push(ref);}
- for(const file of new Set(files))await linkOrCopy(path.join(outputDir,file),path.join(directory,file));
- const result=await runSceneIsolation(directory,{files:[...new Set(files)],output:document.output,scenes:targets},{signal});
- await fs.writeFile(path.join(outputDir,'custom-isolation.json'),JSON.stringify({status:'passed',directory:path.relative(outputDir,directory).replaceAll('\\','/'),windows:result.evidence,motion:result.runtime.motion},null,2));return result;
+ const results=[];for(const [i,target]of targets.entries()){signal?.throwIfAborted();const sceneDirectory=path.join(directory,String(i+1));for(const file of new Set(files))await linkOrCopy(path.join(outputDir,file),path.join(sceneDirectory,file));results.push(await runSceneIsolation(sceneDirectory,{files:[...new Set(files)],fonts:brandFontResources(assets),output:document.output,scenes:[target]},{signal}));}
+ const result={evidence:results[0].evidence,runtime:{motion:results.flatMap(r=>r.runtime.motion)},scenes:results.map((r,i)=>({sceneId:targets[i].id,evidence:r.evidence,runtime:r.runtime}))};
+ await fs.writeFile(path.join(outputDir,'custom-isolation.json'),JSON.stringify({status:'passed',inputHash,directory:path.relative(outputDir,directory).replaceAll('\\','/'),windows:result.evidence,motion:result.runtime.motion,scenes:result.scenes},null,2));verifiedProjects.set(cacheKey,result);if(verifiedProjects.size>32)verifiedProjects.delete(verifiedProjects.keys().next().value);return result;
 }

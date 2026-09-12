@@ -1,14 +1,11 @@
 import {CreativeError, insist} from './contracts.mjs';
 
 const chineseNumbers = new Map([['一',1],['二',2],['两',2],['三',3],['四',4],['五',5],['六',6],['七',7],['八',8],['九',9],['十',10]]);
-function sceneNumber(message) {
-  const match = String(message).match(/第\s*([0-9]+|[一二两三四五六七八九十]+)\s*(?:幕|段|个?场景)/);
+export function sceneNumber(message) {
+  const match = String(message).match(/第\s*([0-9]+|[零一二两三四五六七八九十百]+)\s*(?:幕|段|个?场景)/);
   if (!match) return null;
   if (/^\d+$/.test(match[1])) return Number(match[1]);
-  if (match[1].length === 2 && match[1][0] === '十') return 10 + chineseNumbers.get(match[1][1]);
-  if (match[1].startsWith('十')) return 10;
-  if (match[1].length === 2 && match[1][1] === '十') return chineseNumbers.get(match[1][0]) * 10;
-  return chineseNumbers.get(match[1]) || null;
+  let total=0,digit=0;for(const char of match[1]){if(char==='十'||char==='百'){total+=(digit||1)*(char==='十'?10:100);digit=0;}else digit=char==='零'?0:chineseNumbers.get(char)||0;}return total+digit||null;
 }
 
 function targetScene(document, message) {

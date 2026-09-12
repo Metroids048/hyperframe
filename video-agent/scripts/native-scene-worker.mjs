@@ -17,8 +17,8 @@ const server=http.createServer(async(req,res)=>{try{
  const name=decodeURIComponent(new URL(req.url,'http://localhost').pathname).slice(1)||'index.html';
  if(req.method!=='GET'||!allowed.has(name)){res.writeHead(403);res.end();return;}
  const file=path.join(config.directory,name),stat=await fs.stat(file);
- const type={'.html':'text/html; charset=utf-8','.js':'text/javascript','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.mp4':'video/mp4','.webm':'video/webm','.wav':'audio/wav','.mp3':'audio/mpeg','.m4a':'audio/mp4'}[path.extname(name)]||'application/octet-stream';
- const headers={'Content-Type':type,'Content-Security-Policy':`default-src 'none'; script-src 'self' ${scripts.join(' ')}; style-src 'unsafe-inline'; img-src 'self'; media-src 'self'; font-src 'none'; connect-src 'none'; worker-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'`,'Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Accept-Ranges':'bytes'};
+ const type={'.woff2':'font/woff2','.html':'text/html; charset=utf-8','.js':'text/javascript','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.mp4':'video/mp4','.webm':'video/webm','.wav':'audio/wav','.mp3':'audio/mpeg','.m4a':'audio/mp4'}[path.extname(name)]||'application/octet-stream';
+ const headers={'Content-Type':type,'Content-Security-Policy':`default-src 'none'; script-src 'self' ${scripts.join(' ')}; style-src 'unsafe-inline'; img-src 'self'; media-src 'self'; font-src 'self'; connect-src 'none'; worker-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'`,'Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Accept-Ranges':'bytes'};
  let start=0,end=stat.size-1,status=200;
  if(req.headers.range){const match=/^bytes=(\d+)-(\d*)$/.exec(req.headers.range);if(!match){res.writeHead(416,{'Content-Range':`bytes */${stat.size}`});res.end();return;}
   start=Number(match[1]);end=match[2]?Math.min(Number(match[2]),end):end;
@@ -42,6 +42,7 @@ try{
  // Range-streamed videos can keep connections open after the composition is ready.
  await page.goto(origin+'/index.html',{waitUntil:'domcontentloaded',timeout:15000});
  await page.waitForFunction(()=>Boolean(window.__timelines?.['commerce-root'])&&[...document.images].every(i=>i.complete&&i.naturalWidth>0),{timeout:15000});
+ result.fonts=await page.evaluate(async fonts=>{const records=[];for(const f of fonts){const faces=await document.fonts.load('32px "'+f.family+'"');if(!faces.length||faces.some(face=>face.status!=='loaded'))throw Error('本地字体未通过浏览器解码：'+f.family);records.push({family:f.family,sha256:f.sha256,status:'browser-decoded'});}return records;},config.fonts||[]);
  await page.evaluate(()=>document.fonts.ready);
  if(config.probe==='network'){
   result.boundaryProbe=await page.evaluate(async()=>{const failed={};for(const [key,url] of [['outside','https://example.com/'],['otherProject','http://127.0.0.1:3022/api/commerce-projects'],['file','file:///C:/Windows/win.ini'],['traversal','../secret.txt']]){try{const r=await fetch(url);failed[key]=!r.ok;}catch{failed[key]=true;}}failed.worker=await new Promise(resolve=>{let worker;const timer=setTimeout(()=>{worker?.terminate();resolve(false);},1000);try{worker=new Worker('data:text/javascript,postMessage(1)');worker.onerror=e=>{e.preventDefault();clearTimeout(timer);worker.terminate();resolve(true);};worker.onmessage=()=>{clearTimeout(timer);worker.terminate();resolve(false);};}catch{clearTimeout(timer);resolve(true);}});return failed;});

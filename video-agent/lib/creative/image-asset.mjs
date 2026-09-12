@@ -6,6 +6,7 @@ import sharp from 'sharp';
 import {probe,prepareAsset,linkOrCopy} from '../edit/media.mjs';
 import {MAX_FILE_BYTES, CreativeError, insist, safeRelativePath} from './contracts.mjs';
 import {sourceRights} from './rights.mjs';
+import {inspectBrandFont} from './brand-fonts.mjs';
 
 async function hashFile(file) {
   const hash = createHash('sha256');
@@ -21,6 +22,12 @@ export async function prepareCreativeAsset(root, asset, targetDir,{signal}={}) {
   await fs.mkdir(targetDir, {recursive: true});
   const sha256 = await hashFile(source);
   asset={...asset,rights:await sourceRights(root,sha256,asset.rights)};
+
+  if(asset.kind==='font'){
+    const mediaMetadata=await inspectBrandFont(source),output=path.join(targetDir,asset.id+'.woff2');
+    await linkOrCopy(source,output);
+    return {...asset,sha256,bytes:stat.size,status:'ready',normalizedRef:path.relative(root,output).split(path.sep).join('/'),mediaMetadata};
+  }
 
   if (asset.kind === 'image') {
     const output = path.join(targetDir, `${asset.id}.png`);
