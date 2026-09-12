@@ -31,6 +31,8 @@ const commands =
         "test-revision-history",
         "test-workspace-context",
         "test-skill-routing",
+        "test-isolation-protocol",
+        "test-delivery-entry",
       ]
     : [
         "build-web",
@@ -41,6 +43,7 @@ const commands =
         "test-upgrade-loudness",
         "test-upgrade-generation",
         "test-conversation-media",
+        "test-creative-custom",
       ];
 const report = {
   group,

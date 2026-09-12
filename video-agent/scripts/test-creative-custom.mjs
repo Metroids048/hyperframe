@@ -69,3 +69,56 @@ test('portable timeout and cancellation verify the worker process group has exit
  try{await assert.rejects(running,{name:'AbortError'});}finally{clearInterval(timer);}
  assert.equal(JSON.parse(await fs.readFile(path.join(cancelDir,'cleanup.json'),'utf8')).exited,true);
 });
+
+test('compiler static visibility contract runs through production parent and browser',async()=>{
+ for(const hidden of [false,true]){
+  const source={...bundle,contractVersion:2,timeline:'',motionTargets:[],css:bundle.css+(hidden?'#headline{opacity:0}':'')};
+  const doc={...document,sourceBundles:[source]},compiled=compileCustomSource(source,{scene,nodes,assets:{}});
+  assert.equal(compiled.validationRequirements.mode,'static');
+  const dir=await fixture(hidden?'blank-static':'valid-static');
+  await fs.writeFile(path.join(dir,'index.html'),compileDocument(doc,[]).html);
+  const input={...config(),scenes:[{...scene,targets:compiled.validationRequirements.motionTargets,visibleTargets:compiled.validationRequirements.visibleTargets}]};
+  if(hidden)await assert.rejects(runSceneIsolation(dir,input),{code:'CUSTOM_RUNTIME_FAILED'});
+  else{const result=await runSceneIsolation(dir,input);assert.equal(result.runtime.status,'passed');assert.deepEqual(result.runtime.motion,[]);}
+ }
+});
+
+test('opaque overlay cannot satisfy required product visibility',async()=>{
+ const dir=await fixture('occluded');
+ const html=compileDocument(document,[]).html.replace('</body>','<div style="position:absolute;inset:0;z-index:99999;background:black"></div></body>');
+ await fs.writeFile(path.join(dir,'index.html'),html);
+ await assert.rejects(runSceneIsolation(dir,{...config(),scenes:[{...scene,targets:[],visibleTargets:['custom-scene-01-headline']}]}),{code:'CUSTOM_RUNTIME_FAILED'});
+});
+
+test('mixed static and dynamic scenes pass through the production project verifier',async()=>{
+ const {verifyCustomProject}=await import('../lib/creative/isolation.mjs');
+ const second={...scene,id:'scene-02',startFrame:240},secondNodes=nodes.map(n=>({...n,id:n.id+'-second',sceneId:second.id}));
+ const secondSource={...bundle,id:'source-02',sceneId:second.id,contractVersion:2,timeline:'',motionTargets:[],objects:bundle.objects.map(o=>({...o,nodeId:o.nodeId+'-second'}))};
+ const mixed=createNativeDocument({projectId:'mixed-isolation',output:document.output,brief:document.brief,design:document.design,assets:[],scenes:[scene,second],nodes:[...nodes,...secondNodes],sourceBundles:[bundle,secondSource]});
+ const dir=await fixture('mixed-production');await fs.writeFile(path.join(dir,'index.html'),compileDocument(mixed,[]).html);
+ const result=await verifyCustomProject(dir,mixed,[]);assert.equal(result.scenes.length,2);assert(result.scenes.every(s=>s.runtime.status==='passed'));assert.equal(result.scenes[1].runtime.motion.length,0);
+});
+test('motion in one interval does not hide a false second interval',async()=>{
+ const source={...bundle,timeline:'tl.fromTo("#dot",{x:0},{x:300,duration:2},0);tl.to("#dot",{x:300,duration:2},4);'};
+ const compiled=compileCustomSource(source,{scene,nodes,assets:{}}),dir=await fixture('false-interval');await fs.writeFile(path.join(dir,'index.html'),compileDocument({...document,sourceBundles:[source]},[]).html);
+ await assert.rejects(runSceneIsolation(dir,{...config(),scenes:[{...scene,targets:compiled.motionTargets,visibleTargets:compiled.validationRequirements.visibleTargets,motionIntervals:compiled.validationRequirements.motionIntervals,sampleTimes:compiled.sampleTimes}]}),{code:'CUSTOM_RUNTIME_FAILED'});
+});
+
+test('static overlays preserve actual HyperFrames video source-time progression',async()=>{
+ const {verifyCustomProject}=await import('../lib/creative/isolation.mjs');
+ const asset={id:'video-source',kind:'video',compiledRef:'assets/footage.mp4',mediaMetadata:{duration:30,width:1920,height:1080,hasAudio:true}};
+ const mediaNode={id:'native-footage',kind:'video',sceneId:scene.id,semanticRole:'hero',assetId:asset.id,anchor:'scene-local',localStartFrame:0,localDurationFrames:240,durationFrames:240,params:{sourceStartSeconds:2,playbackRate:1,fit:'contain'}};
+ const source={...bundle,contractVersion:2,timeline:'',motionTargets:[]};
+ const doc=createNativeDocument({projectId:'static-footage',output:document.output,brief:document.brief,design:document.design,assets:[asset],scenes:[scene],nodes:[...nodes,mediaNode],sourceBundles:[source]});
+ const dir=await fixture('video-static');await fs.copyFile(path.join(ROOT,'assets/edit-samples/coffee.mp4'),path.join(dir,'assets/footage.mp4'));await fs.writeFile(path.join(dir,'index.html'),compileDocument(doc,[asset]).html);
+ const result=await verifyCustomProject(dir,doc,[asset]),samples=result.scenes[0].runtime.samples;
+ assert(samples.every(s=>s.media.length===1&&Math.abs(s.media[0].currentTime-s.media[0].expected)<.037));
+ assert(samples.at(-1).media[0].currentTime-samples[0].media[0].currentTime>6);
+});
+
+test('finite chained GSAP calls normalize without accepting arbitrary call roots',()=>{
+ const timeline='tl.fromTo("#dot",{x:0},{x:300,duration:2},0).to("#dot",{x:500,duration:2},4);';
+ const result=compileCustomSource({...bundle,timeline},{scene,nodes,assets:{}});
+ assert.match(result.timeline,/;\ntl.to/);assert.equal(result.validationRequirements.motionIntervals.length,2);
+ for(const timeline of ['fetch("/secret").to("#dot",{x:300,duration:2},0);','other.to("#dot",{x:300,duration:2},0).to("#dot",{x:0,duration:1},4);','tl.to("#dot",{x:300,duration:2},0)["to"]("#dot",{x:0,duration:1},4);'])assert.throws(()=>compileCustomSource({...bundle,timeline},{scene,nodes,assets:{}}),{code:'CUSTOM_SCRIPT'});
+});

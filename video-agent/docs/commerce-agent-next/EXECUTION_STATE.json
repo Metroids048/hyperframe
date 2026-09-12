@@ -48,14 +48,14 @@
     "10 frozen holdout executions",
     "independent human review"
   ],
-  "next": "Complete current nova regression export and inspect MP4, then execute original Q02-A via WebUI; do not stop at fixture.",
+  "next": "继续同一 Q02-A run 的剩余镜头/导出与真实 WebUI 验收；第四幕素材缺失阻塞已纠正。",
   "constraints": {
     "hyperframes": "0.8.33",
     "commitOrPush": false,
     "paidProviders": false,
     "humanAcceptance": "pending"
   },
-  "updatedAt": "2026-09-12T05:32:08.3420559Z",
+  "updatedAt": "2026-09-12T17:20:17.408669+00:00",
   "failedAttempts": [
     {
       "case": "C2",
@@ -114,7 +114,19 @@
       "reason": "360s model wait also timed out at third static shot; first two shot checkpoints preserved"
     }
   ],
-  "active": [],
+  "active": [
+    {
+      "case": "Q02-A",
+      "projectId": "8005d346-869a-4123-9809-e0911c336907",
+      "jobId": "job-c2c88cb0-d8ad-4da3-a3a8-3f09a4baf525",
+      "runId": "2b63a92e-564a-408e-b3ff-7b58edcfa01a",
+      "status": "recoverable",
+      "stage": "shot-3 / fourth-scene static source gap",
+      "modelCalls": 43,
+      "server": "http://127.0.0.1:3024",
+      "serverStatus": "stopped after closeout turn; artifacts preserved"
+    }
+  ],
   "pausedRuns": [
     "H02 recoverable timeout with shot-0 and shot-1",
     "L180 recoverable CUSTOM_HTML with timing checkpoint",
@@ -122,41 +134,103 @@
     "H01/H07/H09/H10/H06 not dispatched; queue stopped"
   ],
   "resultCompletion": {
-    "authorization": "2026-09-12 user resume supersedes historical pause",
+    "authorization": "2026-09-12 final-closeout user execution request",
     "contract": "docs/result-completion/02_ACCEPTANCE_CONTRACT.md",
-    "currentCase": "N0/N2 nova regression",
+    "currentCase": "Q02-A",
     "isolationEvidence": "outputs/result-completion/isolation-test.log",
     "baselineFailure": "outputs/result-completion/isolation-baseline/portable-job.log",
-    "modelCallsThisSession": 0,
+    "modelCallsThisSession": 31,
     "platforms": {
       "darwin": "dynamic positive, boundary, cancellation and timeout tested",
       "windows": "supervisor adapted, runtime unverified",
       "linux": "unverified"
     },
     "pending": [
-      "freeze original Q/I/H definitions",
-      "30s actual MP4 visual review",
-      "two independent WebUI 60s runs",
-      "45/90/120/180s",
-      "10-14 edits",
-      "result entry",
-      "full delivery verification",
-      "human and rights acceptance"
+      "Q02-A complete film, scoped edits/export/reopen and AI review",
+      "independent Q02-B",
+      "original Q01/Q03/Q04/Q05 materials and 45/90/120/180s films",
+      "frozen Q/I/H remaining positive and negative cases",
+      "10-14 continuous modifications",
+      "final WebUI and per-film validation",
+      "human, actual listening and rights acceptance"
     ],
     "latestRun": {
       "projectId": "8005d346-869a-4123-9809-e0911c336907",
+      "jobId": "job-c2c88cb0-d8ad-4da3-a3a8-3f09a4baf525",
       "runId": "2b63a92e-564a-408e-b3ff-7b58edcfa01a",
-      "status": "needs_user",
-      "reason": "Model repeatedly produced metadata-only blocking gap despite supplied instruction; no video published",
-      "modelCalls": 7,
-      "checkpoint": "story",
-      "next": "Resume after story blocking-gap policy fix; preserve prior observations and bounded inspection allocation."
+      "status": "recoverable",
+      "stage": "shot-3",
+      "modelCalls": 43,
+      "checkpoints": [
+        "brief",
+        "observe",
+        "resources",
+        "narration",
+        "story",
+        "timing",
+        "shot-0",
+        "shot-1",
+        "direction-preview",
+        "shot-2"
+      ],
+      "reason": "Scene 3 source mismatch was corrected and scene 3 passed. Scene 4 independently failed source evidence twice: no scale/injection action in available footage; source-replan budget exhausted. Run is recoverable with all prior checkpoints.",
+      "next": "Do not retry scene 4 without new source evidence or a changed user request. Preserve run; finish non-dependent regression checks and report material gap."
     },
     "checker": {
       "command": "docs/result-completion/verify_delivery.py",
       "status": "failed_as_expected_template_incomplete",
       "exitCode": 1,
       "log": "outputs/result-completion/verify-delivery.log"
-    }
+    },
+    "closeoutEvidence": {
+      "instructions": "docs/hyperframe-final-closeout/FINAL_CLOSEOUT.md",
+      "baseHead": "44cf87d55070d28d84430f2f81782b843a937b2f",
+      "service": "http://127.0.0.1:3024",
+      "core": "outputs/result-completion/closeout-core.log",
+      "isolation": "outputs/result-completion/closeout-final-targeted.log",
+      "scope": "frozen unchanged",
+      "notClosed": [
+        "full static/dynamic edit through formal WebUI version",
+        "all formal long videos and I/H cases",
+        "per-film AI review and native package reopen",
+        "full sound playback: standalone host AudioContext also stalls; no listened claim",
+        "original Q01 photos/confirmed facts and Q04 approved speech/script location awaiting user",
+        "Q02-A scene 4 lacks evidence for required weighing/injection action; run recoverable at shot-3",
+        "rerun browser conversation suite after cleanup timeout fix; prior standalone recheck passed core assertions"
+      ],
+      "protocol": "outputs/result-completion/closeout-protocol-delivery-latest.log",
+      "productionRouting": "outputs/result-completion/closeout-production-routing.log",
+      "mediaHttp": "outputs/result-completion/closeout-media-http.json",
+      "fixturePlayback": "outputs/result-completion/closeout-fixture-playback.json",
+      "webuiResume": "outputs/result-completion/q02-webui-resume-latest.json",
+      "hostAudioClock": "outputs/result-completion/host-audio-clock.json",
+      "browserFinal": "outputs/result-completion/closeout-browser-final.log",
+      "browserFinalStatus": "interrupted_after_stuck_test_process",
+      "targeted": "outputs/result-completion/closeout-final-targeted.log",
+      "targetedStatus": "47 passed / 0 failed / 1 skipped (48 tests)"
+    },
+    "cumulativeModelCalls": 43
+  },
+  "historicalVerificationNotice": "verified entries above are inherited historical records, not freshly revalidated local delivery claims. Current final-closeout evidence is below.",
+  "correctedBlocker": {
+    "case": "Q02-A",
+    "status": "corrected_agent_blocker",
+    "runId": "2b63a92e-564a-408e-b3ff-7b58edcfa01a",
+    "stage": "shot-4",
+    "modelCalls": 54,
+    "evidence": [
+      "failed-keyframe-3-0.json",
+      "failed-keyframe-3-1.json"
+    ],
+    "finding": "两次失败选段不能证明素材不存在；已有素材覆盖可观察注液动作。当前恢复路径采用中性“注入液体”，未宣称用户硬要求，R6 issues=[]。",
+    "nextAction": "继续同一 run 的剩余镜头与导出；若预算封顶保存精确 checkpoint。",
+    "userRequestHasWeighingInjection": false,
+    "requirementSource": "Agent story-plan 自行安排，原始用户请求未要求称量或注液",
+    "existingEvidence": [
+      "observations.json:105.750–145.750秒电子秤与注液",
+      "dense-evidence.json:105–150秒",
+      "evidence/detail-contact-3.jpg"
+    ],
+    "updatedAt": "2026-09-12T17:20:17.407907+00:00"
   }
 }

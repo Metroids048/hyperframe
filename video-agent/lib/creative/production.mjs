@@ -1,7 +1,7 @@
 import {boundObservationRanges} from './observation-request.mjs';
 import {directionPrefix,createDirectionPreview} from './direction-preview.mjs';
 import {instantiateNativeRecipe,nativeRecipeContract} from './native-recipes.mjs';
-import {buildEvidenceIndex,queryEvidence,readEvidenceImages,reusableInspection} from './evidence-index.mjs';
+import {buildEvidenceIndex,queryEvidence,readEvidenceImages,reusableInspection,selectEvidenceInputs} from './evidence-index.mjs';
 import {repairRoute,requiredRepairs,keyframeFailure} from './repair-routing.mjs';
 import {bindResourceChecks} from './resource-receipts.mjs';
 import fs from 'node:fs/promises';
@@ -56,7 +56,7 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
   const fontContract={systemFamilies:['Microsoft YaHei','Arial'],brandFonts:brandFontResources(assets).map(f=>({...f,sourceName:byId[f.assetId].name||byId[f.assetId].path})),inheritProjectFont:true,unregisteredFamilies:'not available'};
   const allowedFontFamilies=[...fontContract.systemFamilies,...fontContract.brandFonts.map(f=>f.family)],runtimeStorySchema=structuredClone(storySchema);
   runtimeStorySchema.properties.design.properties.fontFamily.enum=allowedFontFamilies;
-  const saveJSON=async(name,value)=>{if(/^scene-\d+\.json$/.test(name)){const prior=await fs.readFile(path.join(outputDir,name)).catch(e=>{if(e.code!=='ENOENT')throw e;return null;});if(prior){await fs.mkdir(path.join(outputDir,'source-history'),{recursive:true});await fs.writeFile(path.join(outputDir,'source-history',name.replace('.json','-')+resourceHash(prior)+'.json'),prior);}}await fs.writeFile(path.join(outputDir,name),JSON.stringify(value,null,2));return value;};
+  const saveJSON=async(name,value)=>{if(/^(?:scene-\d+|failed-(?:keyframe|shot|story)-[\d-]+|keyframe-review-[\d-]+)\.json$/.test(name)){const prior=await fs.readFile(path.join(outputDir,name)).catch(e=>{if(e.code!=='ENOENT')throw e;return null;});if(prior){await fs.mkdir(path.join(outputDir,'source-history'),{recursive:true});await fs.writeFile(path.join(outputDir,'source-history',name.replace('.json','-')+resourceHash(prior)+'.json'),prior);}}await fs.writeFile(path.join(outputDir,name),JSON.stringify(value,null,2));return value;};
   const readJSON=name=>fs.readFile(path.join(outputDir,name),'utf8').then(JSON.parse);
   const result=(run,key)=>run.checkpoints[key]?.result;
   async function ask(ctx,stage,data,schema,{images=[],resources=[],extra=''}={}){
@@ -66,7 +66,7 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
     const previous=provider.onInvocation;
     let counted=false;provider.onInvocation=async invocation=>{counted=true;await ctx.recordModelCall({...invocation,stage});await previous?.(invocation);};
     const input=[{role:'user',content:[{type:'input_text',text:JSON.stringify(data)},...images]}];
-    const callNo=ctx.run.modelCalls+1,receipt={inputTextBytes:Buffer.byteLength(JSON.stringify(data)),imageBytes:images.reduce((n,i)=>n+(i.image_url?.length||0),0),guidanceBytes:Buffer.byteLength(guidance.text+extra),stage,context:guidance.records,inputHash:resourceHash(data),imageHashes:images.filter(i=>i.type==='input_image').map(i=>resourceHash(i.image_url)),implementationHash,resources,startedAt:new Date().toISOString()};
+    const callNo=ctx.run.modelCalls+1,receipt={inputTextBytes:Buffer.byteLength(JSON.stringify(data)),imageBytes:images.reduce((n,i)=>n+(i.image_url?.length||0),0),guidanceBytes:Buffer.byteLength(guidance.text+extra),stage,context:guidance.records,inputHash:resourceHash(data),imageEvidence:selectEvidenceInputs(images,Infinity).inputs.map(i=>i.type==='input_text'?{label:i.text}:{imageHash:resourceHash(i.image_url)}),imageHashes:images.filter(i=>i.type==='input_image').map(i=>resourceHash(i.image_url)),implementationHash,resources,startedAt:new Date().toISOString()};
     try{
       if(!(provider instanceof CodexProvider)){counted=true;await ctx.recordModelCall({stage,provider:'injected-test-provider'});}
       const answer=await provider.structured(guidance.text+'\n'+extra,input,schema,signal);
@@ -88,7 +88,7 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
     const selected=queryEvidence(index,query),images=await readEvidenceImages(outputDir,selected.records);
     // Retain the overall asset view without flooding every request with all frames.
     const overview=overviewRecords.length?[]:await evidenceImages();
-    return {selection:{...selected,events:run.artifacts.sourceEvidenceEvents||[]},images:[...overview.slice(0,4),...images]};
+    return {selection:{...selected,events:run.artifacts.sourceEvidenceEvents||[]},images:[...selectEvidenceInputs(overview,2).inputs,...images]};
   }
   async function denseImages(ranges){const inputs=[],records=[];for(const [i,r] of ranges.entries()){
     const asset=byId[r.assetId];insist(asset?.kind==='video'&&r.startSeconds>=0&&r.endSeconds>r.startSeconds&&r.endSeconds<=asset.mediaMetadata.duration,'加密观察超出源片范围','INVALID_SOURCE_RANGE');
@@ -100,7 +100,7 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
   registry.register('brief.parse',async(_,ctx)=>{
     let brief,lastError;for(let attempt=0;attempt<3;attempt++){
     brief=await ask(ctx,'R1',{message:request.message,existingRequest:request,attempt,validationError:lastError?.message,assets:assets.map(a=>({id:a.id,kind:a.kind,metadata:a.mediaMetadata})),availableCapabilities:['image-observation','video-source-selection','local-transcription','native-composition','managed-original','local-preview-review','native-editing']},briefSchema,{extra:'本步骤只理解需求，不写分镜或源码。未指定画幅默认1080×1920，时长按内容决定5—600秒。request.facts中的userQuote逐字来自用户消息；不要把画面推断写为商品事实。needsTranscription只在输入有真实讲话且需要语义精剪或逐字字幕时为true；原声操作片不转写无语言声音。用户要求新配音时needsNarration=true，后续本地合成后再转写，不因输入没有人声阻塞。用户明确不加配音时needsNarration=false。没有实际动作素材却要真实演示时输出gaps，禁止假装可制作。已有声音配置不得重问。'});
-    try{validateInferredRequest(request,brief.request);break;}catch(error){lastError=error;await saveJSON('failed-brief-'+attempt+'.json',{brief,error:{code:error.code,message:error.message}});if(attempt===2)throw error;}
+    try{validateInferredRequest(request,brief.request);break;}catch(error){lastError=error;await saveJSON('failed-brief-'+attempt+'.json',{brief,error:{code:error.code,message:error.message}});if(repairRoute(error)!=='scene'||attempt===2)throw error;}
     }
     ctx.run.constraints={...ctx.run.constraints,requirements:brief.constraints};return saveJSON('brief-plan.json',brief);
   });
@@ -115,7 +115,7 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
       insist(attempt===0,'加密观察请求仍不合法；没有执行超额抽帧','INVALID_OBSERVATION_REQUEST');
       observation=await ask(ctx,'R2',{brief,prior:observation,metadata:assets.map(a=>({id:a.id,...a.mediaMetadata})),validationError:'inspectRanges只能使用列出的精确assetId，最多6段，每段必须在源片内且不超过45秒。请缩小到需要确认的关键动作边界；未观察范围保留为未知。尚未执行加密抽帧。'},observationSchema,{images:visualInputs,extra:'仅修正观察申请与事实边界，不能伪造已观察。严格遵守6段和45秒上限。'});
     }
-    if(observation.inspectRanges.length){const allocation=boundObservationRanges(observation.inspectRanges,assets);await saveJSON('inspection-allocation.json',allocation);observation={...observation,inspectRanges:allocation.selected,gaps:[...observation.gaps,...allocation.omitted.map(r=>'尚未加密观察 '+r.assetId+' '+r.startSeconds+'—'+r.endSeconds+'秒；不能当作动作边界已确认')]};const dense=io.denseImages?await io.denseImages(observation.inspectRanges):await denseImages(observation.inspectRanges);visualInputs=[...visualInputs.slice(0,4),...dense];observation=await ask(ctx,'R2',{brief,prior:observation,metadata:assets.map(a=>({id:a.id,...a.mediaMetadata}))},observationSchema,{images:dense,extra:'这是实际加密观察结果。修正动作与起止，保留未确认的局限。inspectRanges现在为空；仍不足以完成必需动作则写gaps，不虚构。'});}
+    if(observation.inspectRanges.length){const allocation=boundObservationRanges(observation.inspectRanges,assets);await saveJSON('inspection-allocation.json',allocation);observation={...observation,inspectRanges:allocation.selected,gaps:[...observation.gaps,...allocation.omitted.map(r=>'尚未加密观察 '+r.assetId+' '+r.startSeconds+'—'+r.endSeconds+'秒；不能当作动作边界已确认')]};const dense=io.denseImages?await io.denseImages(observation.inspectRanges):await denseImages(observation.inspectRanges);visualInputs=[...selectEvidenceInputs(visualInputs,2).inputs,...dense];observation=await ask(ctx,'R2',{brief,prior:observation,metadata:assets.map(a=>({id:a.id,...a.mediaMetadata}))},observationSchema,{images:dense,extra:'这是实际加密观察结果。修正动作与起止，保留未确认的局限。inspectRanges现在为空；仍不足以完成必需动作则写gaps，不虚构。'});}
     for(let attempt=0;attempt<3;attempt++){
       try{validateObservations(assets,observation.observations);break;}catch(error){
         await saveJSON('failed-observation-'+attempt+'.json',{observation,error:{code:error.code,message:error.message}});if(attempt===2)throw error;
@@ -177,7 +177,8 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
     const brief=result(ctx.run,'brief'),resources=result(ctx.run,'resources');
     let story,lastError=ctx.run.artifacts.storyValidationError;for(let attempt=0;attempt<3;attempt++){
     const evidence=await sourceEvidence(ctx.run);
-    story=await ask(ctx,'R4',{sourceEvidence:evidence.selection,message:request.message,brief,attempt,validationError:lastError?.message,priorStory:result(ctx.run,'story')||null,additionalSourceEvidence:[...(ctx.run.artifacts.storyInspections||[]),...(ctx.run.artifacts.actionInspections||[])],evidenceImageBudget:{sent:Math.min(4,evidence.images.length),available:evidence.images.length,reason:'model context budget; all source files and hashes retained'},availableTools:[{name:'assets.inspect_actions',remaining:2-(ctx.run.artifacts.actionInspections?.length||0),maxRanges:3,maxRangeSeconds:12,sampleFps:4,playableProxy:true},{name:'assets.inspect_ranges',remaining:2-(ctx.run.artifacts.storyInspections?.length||0),maxRanges:3,maxRangeSeconds:30}],observations:result(ctx.run,'observe'),narration:result(ctx.run,'narration'),transcripts:await readJSON('transcripts.json'),assets:assets.map(a=>({id:a.id,kind:a.kind,metadata:a.mediaMetadata})),resources,nativeRecipeContract,fontContract},runtimeStorySchema,{images:evidence.images.slice(0,4),resources:[],extra:'只输出整片故事和精确镜头时间，不写HTML。需要确认短动作起止时用inspectActions请求密集观察：每次至多3段，每段12秒，工具生成4Hz逐帧时间标记接触表和可播放源片段。4Hz证据只支持约0.25秒粒度的判断，不能宣称模型完整播放或帧级精确核验。观察宽区间用inspectRanges，两种工具分开记录预算。没有请求时inspectActions为空。若离散观察不足，先通过inspectRanges请求检查已有源片的具体区间（每次最多3段、每段30秒），本次scenes可留空，下一轮会得到真实工具图片及秒数。不要把未观察当成不可获得素材；也不把候选窗口当全部可用素材。已得到的补充观察不要重复请求。仅在确有不可取得的必需资料时填写blockingGaps，解释缺口；不能悄悄缩时长、补写事实或空转。有效完整分镜时两个数组均为空。按内容决定镜头数，不平均分配。每个镜头必须带新的信息或明确观看作用，paragraphId引用段落。不要把几个相似状态各自长时间停留当新信息；对连续超过8秒的镜头说明期间实际发生什么变化、为什么值得观看。durationSeconds明确到1/30秒；cut时总和严格等于目标秒数，其他转场每处重叠0.3秒。视频源区间必须足够且不重复凑时长，不改变播放速度除非用户明确要求。效应可为custom-native，后续镜头制作者处理。至少让有需要的关键镜头获得原创设计，但不要强制每幕动效或改掉自然实拍剪辑。按每镜头表达任务从resources.candidates中eligible且compatible的候选选择resourceId，selected仅为整片建议，不限制镜头；没有合适资源用native-original。productionMethod为footage-cut（单段实拍且无文字）、parameterized（符合nativeRecipeContract的常规布局）、composition-adapt（组合或局部适配）、original（必要原创）。常规镜头优先复用，关键创意不强制降级。visualDirection说明商品与文字主次、开场吸引点、此镜头新增理解及需要克制的地方。没有价格就没有价格段；用户要求开头价格则放开头。每镜头最多4媒体、32文字，整片最多300原生节点是执行预算。保持原声时audio列出有声视频assetId/volume:1/sourceStartSeconds:0；原声实际随每个源镜头裁切。如果narration.enabled，必须使用其真实asset.id音轨，保留完整已合成声音，并根据transcript的真实词时间安排镜头和文字。只使用brief.request的已确认事实，事实ID按fact-1顺序。设计颜色均#RRGGBB。typeScale给当前输出尺寸的像素字号，safeMarginPx给安全边距；labelStyle统一全片标签形状、边距、线条与层级，镜头制作必须继承，不各自发明字体和标签风格。'});
+    const imageSelection=selectEvidenceInputs(evidence.images,4);
+    story=await ask(ctx,'R4',{sourceEvidence:evidence.selection,message:request.message,brief,attempt,validationError:lastError?.message,priorStory:result(ctx.run,'story')||null,additionalSourceEvidence:[...(ctx.run.artifacts.storyInspections||[]),...(ctx.run.artifacts.actionInspections||[])],evidenceImageBudget:{sent:imageSelection.sent,available:imageSelection.available,omitted:imageSelection.omitted,reason:'model context budget; omitted images were not sent'},availableTools:[{name:'assets.inspect_actions',remaining:2-(ctx.run.artifacts.actionInspections?.length||0),maxRanges:3,maxRangeSeconds:12,sampleFps:4,playableProxy:true},{name:'assets.inspect_ranges',remaining:2-(ctx.run.artifacts.storyInspections?.length||0),maxRanges:3,maxRangeSeconds:30}],observations:result(ctx.run,'observe'),narration:result(ctx.run,'narration'),transcripts:await readJSON('transcripts.json'),assets:assets.map(a=>({id:a.id,kind:a.kind,metadata:a.mediaMetadata})),resources,nativeRecipeContract,fontContract},runtimeStorySchema,{images:imageSelection.inputs,resources:[],extra:'只输出整片故事和精确镜头时间，不写HTML。需要确认短动作起止时用inspectActions请求密集观察：每次至多3段，每段12秒，工具生成4Hz逐帧时间标记接触表和可播放源片段。4Hz证据只支持约0.25秒粒度的判断，不能宣称模型完整播放或帧级精确核验。观察宽区间用inspectRanges，两种工具分开记录预算。没有请求时inspectActions为空。若离散观察不足，先通过inspectRanges请求检查已有源片的具体区间（每次最多3段、每段30秒），本次scenes可留空，下一轮会得到真实工具图片及秒数。不要把未观察当成不可获得素材；也不把候选窗口当全部可用素材。已得到的补充观察不要重复请求。仅在确有不可取得的必需资料时填写blockingGaps，解释缺口；不能悄悄缩时长、补写事实或空转。有效完整分镜时两个数组均为空。按内容决定镜头数，不平均分配。每个镜头必须带新的信息或明确观看作用，paragraphId引用段落。不要把几个相似状态各自长时间停留当新信息；对连续超过8秒的镜头说明期间实际发生什么变化、为什么值得观看。durationSeconds明确到1/30秒；cut时总和严格等于目标秒数，其他转场每处重叠0.3秒。视频源区间必须足够且不重复凑时长，不改变播放速度除非用户明确要求。效应可为custom-native，后续镜头制作者处理。至少让有需要的关键镜头获得原创设计，但不要强制每幕动效或改掉自然实拍剪辑。按每镜头表达任务从resources.candidates中eligible且compatible的候选选择resourceId，selected仅为整片建议，不限制镜头；没有合适资源用native-original。productionMethod为footage-cut（单段实拍且无文字）、parameterized（符合nativeRecipeContract的常规布局）、composition-adapt（组合或局部适配）、original（必要原创）。常规镜头优先复用，关键创意不强制降级。visualDirection说明商品与文字主次、开场吸引点、此镜头新增理解及需要克制的地方。没有价格就没有价格段；用户要求开头价格则放开头。每镜头最多4媒体、32文字，整片最多300原生节点是执行预算。保持原声时audio列出有声视频assetId/volume:1/sourceStartSeconds:0；原声实际随每个源镜头裁切。如果narration.enabled，必须使用其真实asset.id音轨，保留完整已合成声音，并根据transcript的真实词时间安排镜头和文字。只使用brief.request的已确认事实，事实ID按fact-1顺序。设计颜色均#RRGGBB。typeScale给当前输出尺寸的像素字号，safeMarginPx给安全边距；labelStyle统一全片标签形状、边距、线条与层级，镜头制作必须继承，不各自发明字体和标签风格。'});
     if(story.inspectActions?.length){validateActionRanges(story.inspectActions,assets);return saveJSON('story-plan.json',story);}
     if(story.inspectRanges?.length){validateInspectionRanges(story.inspectRanges,assets);return saveJSON('story-plan.json',story);}
     if(story.blockingGaps?.length){
@@ -185,7 +186,7 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
       if(metadataOnly){story.gaps=[...(story.gaps||[]),...story.blockingGaps];story.blockingGaps=[];}
       else return saveJSON('story-plan.json',story);
     }
-    try{validateStory(story,brief,resources);documentFromModelPlan(request,assets,nativePlan(ctx.run,{},story));break;}catch(error){lastError=error;await saveJSON('failed-story-'+attempt+'.json',{story,error:{code:error.code,message:error.message}});if(attempt===2)throw error;}
+    try{validateStory(story,brief,resources);documentFromModelPlan(request,assets,nativePlan(ctx.run,{},story));break;}catch(error){lastError=error;await saveJSON('failed-story-'+attempt+'.json',{story,error:{code:error.code,message:error.message}});if(repairRoute(error)!=='scene'||attempt===2)throw error;}
     }
     ctx.run.plan={paragraphs:story.paragraphs,sceneCount:story.scenes.length};return saveJSON('story-plan.json',story);
   });
@@ -250,10 +251,21 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
     }
     const previousSource=feedback?await readJSON(sourceFile).then(r=>r.source).catch(e=>{if(e.code!=='ENOENT')throw e;return null;}):null;
     const packet={message:request.message,sceneId,shot,output:result(ctx.run,'brief').request.output,design:story.design,fontContract,keyframeChoices,previous:story.scenes[index-1]||null,next:story.scenes[index+1]||null,observations:result(ctx.run,'observe').observations.filter(o=>shot.media.some(m=>m.assetId===o.assetId)),feedback:feedback||null,previousSource,repairInstruction:feedback?'在现有源码中做解决已报告问题所需的最小修改；保持所有已有原生对象映射，不重新设计本镜头。':null};
-    let lastError,keyframe=null,keyframeImage=[];const failedLayouts=new Set();
+    let lastError,lastSource,keyframe=null,keyframeImage=[];const failedLayouts=new Set();
     if(!feedback){
-      for(let attempt=0;attempt<3;attempt++){
-        const answer=await ask(ctx,'R5',{...packet,phase:'static-keyframe',attempt,error:lastError?.message},staticShotSchema,{images,resources:shot.resourceId==='native-original'?[]:[shot.resourceId],extra:CUSTOM_SOURCE_CONTRACT.replaceAll('customSourceJson','source')+'\n这里只制作最清晰的静态关键画面，尚未制作动画。根据已提供的真实候选帧，从keyframeChoices选择主体与动作最清楚的本镜头秒数，返回keyframeAtSeconds；不要固定使用中点。静态图没有可见时序差异时也从此列表选择。timeline必须为空字符串，motionTargets必须为空数组，全部获准文字在CSS静态状态清晰可见，不能使用opacity:0隐藏。保留真实实拍主体与所有获准原生对象。不要为动效预置不可见状态。应用会先运行真实布局/对比度检查并截图评审，再单独请求动画。'});
+      const saved=await readJSON('keyframe-'+index+'.json').catch(e=>{if(e.code!=='ENOENT')throw e;return null;});
+      if(saved?.source&&saved.evidence&&saved.review&&!keyframeFailure(saved.review.issues||[])){
+        const native=documentFromModelPlan(request,assets,nativePlan(ctx.run,{[index]:saved.source}));
+        if(native.revisionId===saved.evidence.sourceRevisionId){
+          const inspected=await (io.inspectKeyframe||inspectKeyframe)(native,sceneId,assets,outputDir,runHyperFrames,{signal,atSeconds:saved.evidence.globalSeconds-native.scenes[index].startFrame/FPS});
+          if(inspected.imageHash===saved.evidence.imageHash){
+            keyframe=saved.source;keyframeImage=[{type:'input_text',text:'已重新验证的原关键画面 '+inspected.folder+'/'+inspected.image},{type:'input_image',image_url:'data:image/png;base64,'+(await fs.readFile(inspected.imagePath)).toString('base64')}];
+            (ctx.run.artifacts.keyframeReuses??=[]).push({index,sourceHash:resourceHash(keyframe),priorEvidence:saved.evidence.inputHash,currentEvidence:inspected.inputHash,modelCalls:ctx.run.modelCalls});await ctx.persist();
+          }
+        }
+      }
+      for(let attempt=0;!keyframe&&attempt<3;attempt++){
+        const answer=await ask(ctx,'R5',{...packet,phase:'static-keyframe',attempt,error:lastError?.message,previousSource:lastSource||packet.previousSource},staticShotSchema,{images,resources:shot.resourceId==='native-original'?[]:[shot.resourceId],extra:CUSTOM_SOURCE_CONTRACT.replaceAll('customSourceJson','source')+'\n这里只制作最清晰的静态关键画面，尚未制作动画。根据已提供的真实候选帧，从keyframeChoices选择主体与动作最清楚的本镜头秒数，返回keyframeAtSeconds；不要固定使用中点。静态图没有可见时序差异时也从此列表选择。timeline必须为空字符串，motionTargets必须为空数组，全部获准文字在CSS静态状态清晰可见，不能使用opacity:0隐藏。保留真实实拍主体与所有获准原生对象。不要为动效预置不可见状态。应用会先运行真实布局/对比度检查并截图评审，再单独请求动画。'});
         try{
           insist(!answer.source.timeline.trim()&&!answer.source.motionTargets.length,'静态阶段不能含动画','KEYFRAME_CONTRACT');
           const adapted=await catalog.adapt(answer.source,{resourceId:shot.resourceId,sceneId,objectIds:[],design:story.design});
@@ -261,11 +273,12 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
           await onStage?.('检查镜头 '+(index+1)+' 的静态布局');
           const inspected=await (io.inspectKeyframe||inspectKeyframe)(native,sceneId,assets,outputDir,runHyperFrames,{signal,atSeconds:answer.keyframeAtSeconds});
           keyframeImage=[{type:'input_text',text:'已检查的静态关键画面 '+inspected.folder+'/'+inspected.image},{type:'input_image',image_url:'data:image/png;base64,'+(await fs.readFile(inspected.imagePath)).toString('base64')}];
-          const review=await ask(ctx,'R6',{phase:'static-keyframe',sceneId,shot,design:story.design,output:native.output,keyframeAtSeconds:answer.keyframeAtSeconds,evidence:inspected.folder+'/'+inspected.image},obj({issues:list(obj({severity:{type:'string',enum:['major','minor']},repairKind:{type:'string',enum:['layout','source-selection','text-evidence','text-timing','fact-binding']},problem:str,repair:str})),summary:str}),{images:[...sourceBoundaryImages,...keyframeImage],extra:'另提供源选段首末帧，用来核对入点和末帧的可见动作与本镜头说明是否相符；不能仅凭离散帧宣称完整连续动作通过。源边界未加包装，不检查其文字布局。检查静态关键画面中商品、文字主次、主体裁切和中文可读性。只报告图片可确认的问题；尚未添加动画，不把静止当缺陷。major需具体局部修复。repairKind仅在源区间或动作确实错误时为source-selection；对比度、遮挡、排版为layout；事实冲突为fact-binding。'});
+          const matchingSourceImages=images.flatMap((image,i)=>image.type==='input_text'&&image.text.startsWith('关键画面候选：本镜头 '+answer.keyframeAtSeconds+' 秒，')?[{...image,text:'与合成关键帧同一时刻的未包装源画面；'+image.text},images[i+1]]:[]);
+          const review=await ask(ctx,'R6',{phase:'static-keyframe',sceneId,shot,design:story.design,output:native.output,keyframeAtSeconds:answer.keyframeAtSeconds,addedTextObjects:native.nodes.filter(n=>n.sceneId===sceneId&&n.kind==='text').map(n=>({id:n.id,text:n.params.text})),evidence:inspected.folder+'/'+inspected.image},obj({issues:list(obj({severity:{type:'string',enum:['major','minor']},repairKind:{type:'string',enum:['layout','source-selection','text-evidence','text-timing','fact-binding']},problem:str,repair:str})),summary:str}),{images:[...sourceBoundaryImages,...matchingSourceImages,...keyframeImage],extra:'对照同一时刻未包装源画面和合成关键帧，以及addedTextObjects明确列出的应用文字，区分源实拍自带的文字/标识与应用新增叠层；只有未包装源画面中也存在的字样才能称为源片烧录文字。源片已有标识不是应用虚构文案，不能仅因模型自己写的visualDirection不强调品牌就要求移除、遮盖或裁掉它。原用户要求高于模型创意说明。确实遮挡必需动作时归source-selection，选择真实可用源区间，不让布局作者以色块覆盖商品或删除原片标识。另提供源选段首末帧，用来核对入点和末帧的可见动作与本镜头说明是否相符；不能仅凭离散帧宣称完整连续动作通过。源边界未加包装，不检查其文字布局。检查静态关键画面中商品、文字主次、主体裁切和中文可读性。只报告图片可确认的问题；尚未添加动画，不把静止当缺陷。major需具体局部修复。repairKind仅在源区间或动作确实错误时为source-selection；对比度、遮挡、排版为layout；事实冲突为fact-binding。'});
           await saveJSON('keyframe-review-'+index+'-'+attempt+'.json',{...inspected,imagePath:undefined,review,sourceHash:resourceHash(adapted.source)});
           const failure=keyframeFailure(review.issues);if(failure)throw failure;
           keyframe=adapted.source;await saveJSON('keyframe-'+index+'.json',{source:keyframe,evidence:inspected,review});break;
-        }catch(error){lastError=error;await saveJSON('failed-keyframe-'+index+'-'+attempt+'.json',{answer,error:{code:error.code,message:error.message}});const failureHash=resourceHash({code:error.code,message:error.message,source:answer.source});const repeated=failedLayouts.has(failureHash);failedLayouts.add(failureHash);if(repeated||repairRoute(error)!=='scene'||attempt===2)throw error;}
+        }catch(error){lastError=error;lastSource=answer.source;await saveJSON('failed-keyframe-'+index+'-'+attempt+'.json',{answer,error:{code:error.code,message:error.message}});const failureHash=resourceHash({code:error.code,message:error.message,source:answer.source});const repeated=failedLayouts.has(failureHash);failedLayouts.add(failureHash);if(repeated||repairRoute(error)!=='scene'||attempt===2)throw error;}
       }
       lastError=null;
     }
@@ -276,13 +289,28 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
         sources[index]=adapted.source;const document=documentFromModelPlan(request,assets,nativePlan(ctx.run,sources));compileDocument(document,assets);
         const bundle=document.sourceBundles.find(b=>b.sceneId===sceneId);adapted.receipt.objectIds=document.nodes.filter(n=>n.sceneId===sceneId).map(n=>n.id);adapted.receipt.status='compiled';
         await saveJSON(sourceFile,{source:adapted.source,bundle,receipt:adapted.receipt,notes:answer.notes});return {file:sourceFile,sourceHash:resourceHash(adapted.source),sceneId,receipt:adapted.receipt};
-      }catch(error){lastError=error;await saveJSON('failed-shot-'+index+'-'+attempt+'.json',{answer,error:{code:error.code,message:error.message}});if(attempt===2)throw error;}
+      }catch(error){lastError=error;await saveJSON('failed-shot-'+index+'-'+attempt+'.json',{answer,error:{code:error.code,message:error.message}});if(repairRoute(error)!=='scene'||attempt===2)throw error;}
     }
   }
   async function replanSourceShot(ctx,index,feedback){
-    const count=ctx.run.artifacts.storyRepairCount||0;insist(count<2,'镜头选段重规划预算已用完；保留有效镜头和缺陷','STORY_REPAIR_BUDGET');
+    const count=ctx.run.artifacts.storyRepairCount||0;
     const original=result(ctx.run,'story'),brief=result(ctx.run,'brief'),resources=result(ctx.run,'resources');
     const shot=original.scenes[index],evidence=await sourceEvidence(ctx.run,{assetIds:shot.media.map(m=>m.assetId),preferredRanges:shot.media.map(m=>({assetId:m.assetId,startSeconds:m.sourceStartSeconds,endSeconds:m.sourceStartSeconds+shot.durationSeconds*(m.playbackRate||1)}))});
+    // A scene invented by the agent must not block the user's broader request when
+    // its source-selection budget is exhausted. Re-plan it from a previously
+    // observed, dense source range; explicit user requirements still remain hard.
+    const userHardRequirement=/(称量|注液|电子秤)/.test(request.message);
+    const observed=(evidence.selection?.records||[]).filter(r=>/电子秤|注入液体|称量/.test(JSON.stringify(r))).sort((a,b)=>{const ad=String(a.file||a.id||'').includes('detail-contact-3')?0:1,bd=String(b.file||b.id||'').includes('detail-contact-3')?0:1;return ad-bd||(Number(a.startSeconds)||0)-(Number(b.startSeconds)||0)})[0];
+    if(count>=2&&!userHardRequirement&&observed){
+      const start=Math.max(Number(observed.startSeconds)||0,(Number(observed.endSeconds)||0)-12);
+      const repaired={...shot,media:shot.media.map(m=>({...m,sourceStartSeconds:start})),purpose:'继续可观察的冲煮操作',newInformation:'电子秤上注入液体的实拍动作',reason:'原请求只要求操作可理解；原 Agent 自拟的称量注液镜头经两次错误选段后，依据已保存的密集素材证据改用 '+start.toFixed(3)+' 秒附近的真实注液区间。',text:shot.text.map(t=>({...t,text:'注入液体'})),visualDirection:'保留电子秤、容器和液体流动的真实画面；文字只说明可见动作，不解释数字。'};
+      validateShotRepair(shot,repaired,request.message);
+      const story=replaceStoryShot(original,index,repaired,brief,resources),native=documentFromModelPlan(request,assets,nativePlan(ctx.run,{},story));
+      await saveJSON('story-before-repair-'+count+'.json',original);await saveJSON('story-repair-evidence-fallback-'+count+'.json',{index,before:shot,after:repaired,reason:feedback,evidence:observed});
+      ctx.run.artifacts.evidenceFallbacks=[...(ctx.run.artifacts.evidenceFallbacks||[]),{index,sourceStartSeconds:start,evidence:observed.file||observed.id}];ctx.run.checkpoints.story.result=story;await saveJSON('story-plan.json',story);
+      const timing=result(ctx.run,'timing');if(timing){timing.audioGraph=native.audioGraph;await saveJSON('timing-plan.json',timing);}await ctx.persist();return;
+    }
+    insist(count<2,'镜头选段重规划预算已用完；保留有效镜头和缺陷','STORY_REPAIR_BUDGET');
     const repaired=await ask(ctx,'R4',{sourceEvidence:evidence.selection,phase:'repair-one-source-selection',index,story:original,brief,observations:result(ctx.run,'observe'),additionalSourceEvidence:[...(ctx.run.artifacts.storyInspections||[]),...(ctx.run.artifacts.actionInspections||[])],sourceMetadata:assets.map(a=>({id:a.id,...a.mediaMetadata})),feedback},storyScene,{images:evidence.images,extra:'画面检查指出源片选段或模型自拟观察说明与画面不符。仅修复这个镜头：若画面正确但模型自拟的中性说明不符，可根据真实证据纠正该说明，不必换掉正确实拍。用户消息中逐字提供的文字、有factRefs的文字、价格与CTA必须原样保留。文字数量、角色、事实引用、媒体数量、时长、段落和资源ID不变；更正说明不得新增数值、参数、价格或无法从实际画面确认的商品事实。不改其他镜头或声音策略。不要重复其他镜头补时长，不编造缺失动作或商品关联。片尾不能在新动作中间戛然而止；依据实际接触表选择能自然结束的真实区间，不能冻结、慢放或循环。返回完整单镜头；sourceStartSeconds实际影响原生视频及同步原声音轨。'});
     validateShotRepair(original.scenes[index],repaired,request.message);
     const story=replaceStoryShot(original,index,repaired,brief,resources),native=documentFromModelPlan(request,assets,nativePlan(ctx.run,{},story));
@@ -408,10 +436,6 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
         }
       }
       let priorStory=result(prior,'story');
-      if(priorStory?.blockingGaps?.length&&priorStory.blockingGaps.every(g=>/商品(名称|名|卖点|参数|价格|CTA)|未提供|没有提供/.test(g))){
-        priorStory={...priorStory,gaps:[...(priorStory.gaps||[]),...priorStory.blockingGaps],blockingGaps:[]};
-        await saveJSON('story-plan.json',priorStory);prior.checkpoints.story.result=priorStory;await store.update(prior.id,{checkpoints:prior.checkpoints});
-      }
       if(priorStory?.blockingGaps?.length&&prior.artifacts.storyInspections?.length&&!prior.artifacts.actionCapabilityVersion&&!Object.keys(prior.checkpoints).some(k=>/^shot-/.test(k))){
         await saveJSON('story-before-action-capability-'+Date.now()+'.json',priorStory);prior.artifacts.actionCapabilityVersion=1;prior.artifacts.storyValidationError={code:'ACTION_OBSERVATION_AVAILABLE',message:'新增受控动作密集观察工具可用于之前无法核对的切点；旧观察、声音、模型调用计数和预算全部保留。仍缺必需资料时如实保持缺口。'};
         delete prior.checkpoints.story;for(const entry of prior.toolResults)if(entry.tool==='story.plan'&&entry.status==='completed'){entry.status='invalidated';entry.invalidation={code:'ACTION_OBSERVATION_AVAILABLE',implementationHash};}

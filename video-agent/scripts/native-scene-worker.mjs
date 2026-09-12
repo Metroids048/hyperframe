@@ -4,7 +4,7 @@ import path from 'node:path';
 import http from 'node:http';
 import {createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
-import {workerReceipt,digest} from '../lib/creative/isolation-protocol.mjs';
+import {workerReceipt,digest,measureMotion} from '../lib/creative/isolation-protocol.mjs';
 const config=JSON.parse(await fs.readFile(process.argv[2],'utf8'));
 for(let i=0;i<150;i++){if(await fs.access(config.gate).then(()=>true).catch(()=>false))break;await new Promise(r=>setTimeout(r,100));}
 if(!await fs.access(config.gate).then(()=>true).catch(()=>false))throw Error('Isolation gate was not assigned');
@@ -45,6 +45,7 @@ try{
  // Range-streamed videos can keep connections open after the composition is ready.
  await page.goto(origin+'/index.html',{waitUntil:'domcontentloaded',timeout:15000});
  await page.waitForFunction(()=>Boolean(window.__timelines?.['commerce-root'])&&[...document.images].every(i=>i.complete&&i.naturalWidth>0),{timeout:15000});
+ if(config.runtimeMedia)await page.waitForFunction(()=>window.__renderReady&&(window.__player?.renderSeek||window.__hf?.seek),{timeout:15000});
  result.fonts=await page.evaluate(async fonts=>{const records=[];for(const f of fonts){const faces=await document.fonts.load('32px "'+f.family+'"');if(!faces.length||faces.some(face=>face.status!=='loaded'))throw Error('本地字体未通过浏览器解码：'+f.family);records.push({family:f.family,sha256:f.sha256,status:'browser-decoded'});}return records;},config.fonts||[]);
  await page.evaluate(()=>document.fonts.ready);
  if(config.probe==='network'){
@@ -54,16 +55,26 @@ try{
  for(const scene of config.scenes){
   const times=[...new Set([...[.03,.18,.38,.58,.78,.97].map(f=>scene.startFrame/30+scene.durationFrames/30*f),...(scene.sampleTimes||[])])].sort((a,b)=>a-b);
   for(const time of times){
-   const sample=await page.evaluate(({time,targets})=>{window.__timelines['commerce-root'].seek(time,false);return {time,objects:targets.map(id=>{const e=document.getElementById(id),r=e.getBoundingClientRect(),s=getComputedStyle(e),stroke=e instanceof SVGGraphicsElement&&s.stroke!=='none'?parseFloat(s.strokeWidth)||0:0;return {id,x:r.x,y:r.y,width:r.width,height:r.height,opacity:Number(s.opacity),transform:s.transform,strokeDashoffset:s.strokeDashoffset,clipPath:s.clipPath,visible:Math.max(r.width,stroke)>0&&Math.max(r.height,stroke)>0&&r.bottom+stroke/2>0&&r.right+stroke/2>0&&r.left-stroke/2<innerWidth&&r.top-stroke/2<innerHeight&&Number(s.opacity)>.01};})};},{time,targets:scene.targets});result.samples.push(sample);
+   const sample=await page.evaluate(async({time,targets,runtimeMedia})=>{
+    if(runtimeMedia){const player=window.__player,hf=window.__hf;if(player?.renderSeek)player.renderSeek(time);else if(hf?.seek)hf.seek(time);else throw Error('媒体运行时未就绪');await window.__hfWaitForSeekCompletion?.();}
+    else window.__timelines['commerce-root'].seek(time,false);
+    const media=[];
+    if(runtimeMedia)for(const video of document.querySelectorAll('video')){const start=Number(video.dataset.start||0),duration=Number(video.dataset.duration);if(time<start||time>=start+duration)continue;const expected=Number(video.dataset.mediaStart||0)+(time-start)*Number(video.dataset.playbackRate||1),deadline=performance.now()+3500;while(video.seeking||video.readyState<2||Math.abs(video.currentTime-expected)>1/30+.003){if(video.error)throw Error('媒体解码失败：'+video.id);if(performance.now()>deadline)throw Error('媒体未在目标帧就绪：'+video.id);await new Promise(r=>setTimeout(r,15));}media.push({id:video.id,currentTime:video.currentTime,expected});}
+    return {time,media,objects:targets.map(id=>{const e=document.getElementById(id);if(!e)return {id,visible:false};const r=e.getBoundingClientRect(),s=getComputedStyle(e),stroke=e instanceof SVGGraphicsElement&&s.stroke!=='none'?parseFloat(s.strokeWidth)||0:0;const blockers=new Set();const exposed=[[.5,.5],[.2,.2],[.8,.2],[.2,.8],[.8,.8]].some(([fx,fy])=>{const x=r.x+r.width*fx,y=r.y+r.height*fy;if(x<0||y<0||x>=innerWidth||y>=innerHeight)return false;for(const top of document.elementsFromPoint(x,y)){if(top===e||e.contains(top))return true;if(top.contains(e))continue;const style=getComputedStyle(top),color=style.backgroundColor,alpha=color.startsWith('rgba')?Number(color.match(/,\s*([\d.]+)\)$/)?.[1]||0):color==='transparent'?0:1;if(Number(style.opacity)>.95&&(alpha>.95||['IMG','VIDEO','CANVAS'].includes(top.tagName))){blockers.add(top.id||top.tagName);return false;}}return true;});return {id,exposed,blockedBy:[...blockers],x:r.x,y:r.y,width:r.width,height:r.height,opacity:Number(s.opacity),transform:s.transform,strokeDashoffset:s.strokeDashoffset,clipPath:s.clipPath,color:s.color,backgroundColor:s.backgroundColor,fill:s.fill,borderRadius:s.borderRadius,visible:exposed&&e.checkVisibility({checkOpacity:true,checkVisibilityCSS:true})&&(!(e instanceof HTMLImageElement)||e.complete&&e.naturalWidth>0)&&(!(e instanceof HTMLVideoElement)||e.readyState>=2)&&Math.max(r.width,stroke)>0&&Math.max(r.height,stroke)>0&&r.bottom+stroke/2>0&&r.right+stroke/2>0&&r.left-stroke/2<innerWidth&&r.top-stroke/2<innerHeight&&Number(s.opacity)>.01};})};},{time,targets:[...new Set([...(scene.visibleTargets||scene.targets),...scene.targets])],runtimeMedia:config.runtimeMedia});sample.sceneId=scene.id;result.samples.push(sample);
    await page.screenshot({path:path.join(config.directory,scene.id+'-'+Math.round(time*1000)+'.jpg'),type:'jpeg',quality:85});
   }
-  for(const id of scene.targets){const samples=result.samples.flatMap(s=>s.objects.filter(o=>o.id===id)),visible=samples.filter(s=>s.visible),first=visible[0];const moved=visible.length>=2&&visible.some(s=>Math.abs(s.x-first.x)>2||Math.abs(s.y-first.y)>2||Math.abs(s.width-first.width)>2||Math.abs(s.height-first.height)>2||s.transform!==first.transform||s.strokeDashoffset!==first.strokeDashoffset||s.clipPath!==first.clipPath||Math.abs(s.opacity-first.opacity)>.02);result.motion.push({id,visibleSamples:visible.length,moved});if(!moved)throw Error('目标没有可见运动：'+id);}
+  for(const id of scene.visibleTargets||scene.targets)if(!result.samples.filter(s=>s.sceneId===scene.id).some(s=>s.objects.some(o=>o.id===id&&o.visible))){const blocked=[...new Set(result.samples.filter(s=>s.sceneId===scene.id).flatMap(s=>s.objects.filter(o=>o.id===id).flatMap(o=>o.blockedBy||[])))].map(value=>value.replace('custom-'+scene.id+'-',''));throw Error('必要对象不可见：'+id+(blocked.length?'；不透明遮挡对象：'+blocked.map(id=>'#'+id).join(',')+'。视频在独立底层，请将这些覆盖实拍的全画幅容器背景设为transparent，仅保留局部文字标签背景。':''));}
+  const sceneSamples=result.samples.filter(s=>s.sceneId===scene.id);
+  for(const id of scene.targets){const measured=measureMotion(sceneSamples,id);result.motion.push({sceneId:scene.id,...measured});if(!measured.moved)throw Error('目标没有可见运动：'+id);}
+  for(const interval of scene.motionIntervals||[]){const measured=measureMotion(sceneSamples,interval.id,interval);(result.motionIntervals??=[]).push({sceneId:scene.id,...measured});if(!measured.moved)throw Error('目标没有可见运动：'+interval.id+' '+interval.start+'—'+interval.end);}
+
  }
  if(failures.length)throw Error(failures.join(';'));result.status='passed';
-}catch(error){result.status='failed';result.error=error.message;result.errorCode=/目标没有可见运动/.test(error.message)?'CUSTOM_RUNTIME_FAILED':'ISOLATION_BROWSER';process.exitCode=1;}
+}catch(error){result.status='failed';result.error=error.message;result.errorCode=/媒体解码失败|媒体未在目标帧就绪|媒体运行时/.test(error.message)?'ISOLATION_MEDIA':/目标没有可见运动|必要对象不可见/.test(error.message)?'CUSTOM_RUNTIME_FAILED':'ISOLATION_BROWSER';process.exitCode=1;}
 finally{
  try{await browser?.close();}catch(error){result.status='failed';result.error='Browser cleanup failed: '+error.message;process.exitCode=1;}
  server.closeAllConnections();await new Promise(resolve=>server.close(resolve));
+ if(result.browserProfile)await fs.rm(result.browserProfile,{recursive:true,force:true}).catch(error=>{result.cleanupWarning=error.message;});
  const bytes=JSON.stringify(result,null,2);await fs.writeFile(path.join(config.directory,'runtime-evidence.json'),bytes);
  const receipt=workerReceipt(config.identity,result,digest(bytes));
  await fs.writeFile(config.receiptPath+'.tmp',JSON.stringify(receipt));await fs.rename(config.receiptPath+'.tmp',config.receiptPath);

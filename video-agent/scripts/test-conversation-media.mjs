@@ -363,7 +363,12 @@ try {
   );
   throw error;
 } finally {
-  await browser?.close().catch(() => {});
+  if(browser){
+    const ownedProcess=browser.process();let timer;
+    try{await Promise.race([browser.close(),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Browser close timeout')),5000);})]);}
+    catch(error){browser.disconnect();if(ownedProcess&&ownedProcess.exitCode===null&&ownedProcess.signalCode===null)ownedProcess.kill('SIGKILL');await fs.writeFile(path.join(out,'browser-cleanup.json'),JSON.stringify({warning:error.message,pid:ownedProcess?.pid,exitCode:ownedProcess?.exitCode,signal:ownedProcess?.signalCode}));}
+    finally{clearTimeout(timer);browser.disconnect();}
+  }
   if (child) {
     child.kill("SIGTERM");
     await new Promise((resolve) => {

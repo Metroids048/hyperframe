@@ -202,3 +202,23 @@ test('failed media extraction is an engineering failure and short workspaces pre
 });
 
 test('model wait limits are explicit bounded configuration without changing the legacy default',()=>{assert.equal(modelTimeoutMs(),180000);assert.equal(modelTimeoutMs('360000'),360000);for(const n of [0,NaN,'unlimited',600001])assert.throws(()=>modelTimeoutMs(n),RangeError);});
+
+test('production keyframe environment failures preserve checkpoints without creative retries',async()=>{
+ for(const code of ['ISOLATION_PROTOCOL','ISOLATION_BROWSER','ISOLATION_MEDIA','ENOENT']){
+  const directory=await fs.mkdtemp(path.join(os.tmpdir(),'commerce-env-'));
+  try{
+   await fs.writeFile(path.join(directory,'evidence.json'),JSON.stringify({assets:[]}));await fs.mkdir(path.join(directory,'evidence'));
+   const brief={request:inferred,needsTranscription:false,needsCaptions:false,keepOriginalAudio:false,capabilities:[],gaps:[],constraints:['60秒']};
+   const source={contractVersion:2,html:'<h1 id="title"></h1>',css:'#title{font-size:64px}',timeline:'',parameters:[],objects:[{elementId:'title',ref:'title'}],motionTargets:[],tokens:design};
+   const answers=[brief,{observations:[],candidates:[],inspectRanges:[],gaps:[]},{selected:[],originalNeeds:['文字'],gaps:[]},{...plan,summary:'内容',paragraphs:[{id:'p',purpose:'介绍',information:'信息'}],scenes:[{...scene(60),paragraphId:'p',newInformation:'介绍',resourceId:'native-original',visualDirection:'标题'}]},{source,keyframeAtSeconds:12,notes:'test'}];let calls=0,inspections=0,runId;
+   const provider={structured:async()=>{assert(calls<answers.length,'environment failure must not request creative repair');return {model:'test-only',result:answers[calls++]};},close:async()=>{}};
+   const io={catalog:{snapshot:{commit:'test'},context:async()=>({text:'runtime',records:[]}),candidates:()=>[],adapt:async source=>({source,receipt:{}})},collectEvidence:async()=>({records:[],inputs:[]}),inspectKeyframe:async()=>{inspections++;throw Object.assign(Error('injected '+code),{code});}};
+   await assert.rejects(()=>produceDocument(request,[],{root,outputDir:directory,provider,io,onRun:r=>{runId=r.id}}),{code});
+   assert.equal(calls,5);assert.equal(inspections,1);
+   const before=JSON.parse(await fs.readFile(path.join(directory,'production-run.json'),'utf8'));
+   await assert.rejects(()=>produceDocument(request,[],{root,outputDir:directory,provider,io,resumeRunId:runId}),{code});
+   const after=JSON.parse(await fs.readFile(path.join(directory,'production-run.json'),'utf8'));
+   assert.equal(calls,5);assert.equal(inspections,2);assert.equal(after.modelCalls,5);assert.equal(after.repairCount,before.repairCount);assert.deepEqual(after.checkpoints.story,before.checkpoints.story);assert(!after.checkpoints['shot-0']);
+  }finally{await fs.rm(directory,{recursive:true,force:true})}
+ }
+});

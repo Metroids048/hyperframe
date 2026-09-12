@@ -48,3 +48,11 @@ export async function readEvidenceImages(directory,records){
 export function reusableInspection(batches,ranges){
   return batches.find(b=>ranges.every(r=>(b.records||[]).some(e=>e.assetId===r.assetId&&e.startSeconds<=r.startSeconds&&e.endSeconds>=r.endSeconds)));
 }
+
+/** Keep each image together with its immediately preceding provenance text. */
+export function selectEvidenceInputs(inputs,maxImages){
+ const groups=[];let pending=[];
+ for(const item of inputs){if(item.type==='input_image'){groups.push([...pending,item]);pending=[];}else pending.push(item);}
+ const selected=groups.slice(0,maxImages),omitted=groups.slice(maxImages);
+ return {inputs:selected.flat(),sent:selected.length,available:groups.length,omitted:omitted.map(group=>({labels:group.filter(i=>i.type==='input_text').map(i=>i.text),imageHash:resourceHash(group.find(i=>i.type==='input_image').image_url)}))};
+}
