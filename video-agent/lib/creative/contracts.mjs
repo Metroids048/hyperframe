@@ -129,6 +129,8 @@ export function normalizeCommerceRequest(input = {}) {
     requestId: input.requestId || stableId('request', normalizedAssets.map(a => ({id:a.id,path:a.path,kind:a.kind,role:a.role,sourceStartSeconds:a.sourceStartSeconds,sourceDurationSeconds:a.sourceDurationSeconds})), normalizedProduct, message, style, output),
     projectId: input.projectId || stableId('commerce', normalizedProduct.name || 'product', normalizedAssets.map(a => a.path)),
     message,
+    businessGoal: [...new Set((Array.isArray(input.businessGoal)?input.businessGoal:[]).filter(g=>['launch','detail','demo','promotion'].includes(g)))],
+    inputMode: normalizedAssets.some(a=>a.kind==='video')?(normalizedAssets.some(a=>a.kind==='image')?'mixed':'footage'):normalizedAssets.some(a=>a.kind==='image')?'images':null,
     inferRequest:input.inferRequest===true,
     creativeMode: ['text','image','video','mixed'].includes(input.creativeMode) ? input.creativeMode : normalizedAssets.some(a=>a.kind==='video')?(normalizedAssets.some(a=>a.kind==='image')?'mixed':'video'):normalizedAssets.some(a=>a.kind==='image')?'image':'text',
     style,

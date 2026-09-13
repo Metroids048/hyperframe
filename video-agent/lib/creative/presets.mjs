@@ -5,6 +5,11 @@ import {createReadStream} from 'node:fs';
 import {insist,safeRelativePath} from './contracts.mjs';
 import {readNativeProject} from './runner.mjs';
 
+export function presetInputMode(p){
+  const kinds=new Set((p.originalAssets||p.assets||p.inputs||[]).map(a=>a.kind));
+  return kinds.has('video')?(kinds.has('image')?'mixed':'footage'):kinds.has('image')?'images':null;
+}
+
 async function originalInputs(root,entry){
   if(!entry.sourceProject)return null;
   const realRoot=await fs.realpath(root);
@@ -41,4 +46,4 @@ export async function readCreativePresets(root){
   }
   return ready;
 }
-export const publicPreset=p=>({id:p.id,title:p.title,sourceProjectId:p.document.projectId,previewUrl:`/api/commerce/${p.document.projectId}/revisions/${p.document.revisionId}/preview.html`,videoUrl:`/api/commerce/${p.document.projectId}/revisions/${p.document.revisionId}/commerce-final.mp4`,input:p.input,note:p.note,sha256:p.sha256,durationSeconds:p.document.durationFrames/30,output:p.document.output,category:p.category||'基础示例',reviewStatus:p.reviewStatus||'ready',description:p.description||p.note,capabilities:p.capabilities||[],process:p.process||[],credits:p.credits||[],poster:p.poster||null,evidenceNote:p.evidenceNote||'',assetCount:(p.originalAssets||p.assets).length,inputs:(p.originalAssets||[]).map(a=>({id:a.id,name:a.name,kind:a.kind,sha256:a.sha256})),inputProvenance:p.originalAssets?'original-uploads':'historical-normalized',beats:p.document.scenes.map((scene,i)=>({startSeconds:scene.startFrame/30,endSeconds:(scene.startFrame+scene.durationFrames)/30,title:p.document.nodes.find(n=>n.sceneId===scene.id&&n.kind==='text'&&n.semanticRole==='title')?.params.text||'第 '+(i+1)+' 幕'}))});
+export const publicPreset=p=>({id:p.id,title:p.title,sourceProjectId:p.document.projectId,previewUrl:`/api/commerce/${p.document.projectId}/revisions/${p.document.revisionId}/preview.html`,videoUrl:`/api/commerce/${p.document.projectId}/revisions/${p.document.revisionId}/commerce-final.mp4`,input:p.input,inputMode:p.inputMode||presetInputMode(p),businessGoal:Array.isArray(p.businessGoal)?p.businessGoal:[],note:p.note,sha256:p.sha256,durationSeconds:p.document.durationFrames/30,output:p.document.output,category:p.category||'基础示例',reviewStatus:p.reviewStatus||'ready',description:p.description||p.note,capabilities:p.capabilities||[],process:p.process||[],credits:p.credits||[],poster:p.poster||null,evidenceNote:p.evidenceNote||'',assetCount:(p.originalAssets||p.assets).length,inputs:(p.originalAssets||[]).map(a=>({id:a.id,name:a.name,kind:a.kind,sha256:a.sha256})),inputProvenance:p.originalAssets?'original-uploads':'historical-normalized',beats:p.document.scenes.map((scene,i)=>({startSeconds:scene.startFrame/30,endSeconds:(scene.startFrame+scene.durationFrames)/30,title:p.document.nodes.find(n=>n.sceneId===scene.id&&n.kind==='text'&&n.semanticRole==='title')?.params.text||'第 '+(i+1)+' 幕'}))});

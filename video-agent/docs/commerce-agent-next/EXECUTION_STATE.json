@@ -938,7 +938,7 @@
     }
   },
   "liveAudit": {
-    "checkedAt": "2026-09-13T15:45:15.354Z",
+    "checkedAt": "2026-09-13T16:35:34.909903+00:00",
     "previousEstimate": {
       "window": "2026-09-13 23:20 to 2026-09-14 00:00 Asia/Shanghai",
       "status": "withdrawn",
@@ -949,7 +949,7 @@
       "lastEffectiveProductionAt": "2026-09-13T15:43:27.082Z",
       "revision": "rev-178e717adb7e7ea9",
       "finding": "45s 1920x1080 silent; fresh export fullDecode passed; repeatedSource [], blackIntervals [], freezeIntervals []; reviewed actual corrected frame shows full portrait video and plate in left margin",
-      "action": "Actual final MP4 browser playback in progress; original versions retained",
+      "action": "Actual 45-second MP4 played to ended at 1x in browser; original versions retained; human acceptance pending",
       "completedRepair": {
         "modelCalls": 2,
         "startedAt": "2026-09-13T15:27:17.822Z",
@@ -966,10 +966,12 @@
       }
     },
     "S3": {
-      "status": "exported-content-review-pending",
-      "lastEffectiveProductionAt": "2026-09-13T13:01:27.102Z",
-      "revision": "rev-a3db4e5b49edb4b8",
-      "finding": "60s landscape current version; prior portrait version and two failed edits retained; MP4 hash matches media report; HTTP206"
+      "status": "scoped-image-fit-repair-exported-media-pending-human",
+      "lastEffectiveProductionAt": "2026-09-13T16:19:13.988Z",
+      "revision": "rev-39db3c6fdadec695",
+      "finding": "60s 1920x1080 1800 frames; actual contact sheet shows complete bottle top and pink letterbox; no audio; full visual/human review pending",
+      "currentJob": "job-f5df63f0-2e53-4d9a-bea5-02d1a0c2b096",
+      "exportJob": "job-65dda14b-b4c7-46fa-a6bb-b939962e113c"
     },
     "B3": {
       "status": "scoped-style-edit-verified",
@@ -978,12 +980,80 @@
       "evidence": "Only node-f84f69df199eff11 color changed; actual frame reviewed; scenes/audio unchanged; 900 frames; earlier B1 text retained"
     },
     "B6": {
-      "status": "clean-directory-import-passed-edit-pending",
+      "status": "clean-import-edit-undo-redo-export-passed-browser-download-pending",
       "root": "/tmp/hf-b6-20260913",
       "projectId": "65b8817d-f61b-48ef-bb7b-f0bf235ee16f",
       "port": 3038,
       "download": "Browser click performed but saved file unverified; exact HTTP download hash verified, browser-download acceptance remains pending",
-      "revisions": 3
+      "revisions": 4,
+      "revision": "rev-b453420345cfd1b9",
+      "lastEffectiveProductionAt": "2026-09-13T16:09:31.671Z",
+      "exportJob": "job-91314b17-5a29-4fda-817d-bd11ec301a19",
+      "mediaEvidence": {
+        "schemaVersion": 1,
+        "revisionId": "rev-b453420345cfd1b9",
+        "documentHash": "a2984345b416fc07d449dcda480beae28d3ee7865c09ed33fad236a5e566e6ab",
+        "video": "commerce-final.mp4",
+        "sha256": "743eb07416ad210373dd0e837d4d8d737d5abc6c98cd9bd49e0c954a93cc541e",
+        "checks": {
+          "dimensions": true,
+          "fps": true,
+          "frames": true,
+          "duration": true,
+          "audioPresence": true
+        },
+        "status": "media-contract-passed",
+        "frames": 1350,
+        "seconds": 45,
+        "width": 1920,
+        "height": 1080,
+        "fps": "30/1",
+        "audio": {
+          "present": false,
+          "meanVolume": null
+        },
+        "blackIntervals": [],
+        "repeatedSource": [],
+        "fullDecode": "passed",
+        "subtitles": "pending-visual-review",
+        "actionContinuity": "pending-human-review",
+        "humanAcceptance": "pending",
+        "rights": "separate-review",
+        "promptContext": [
+          {
+            "file": "prompts/commerce/R0.md",
+            "sha256": "b253f55c56fe3b45ef85dd40958034c3ee7cbfefd01572fc835f776d480aa306"
+          },
+          {
+            "file": "prompts/commerce/R8.md",
+            "sha256": "b74be4d615f9fdccbd98d9babbc8bd41163027ce6ae429e89325c001227ee129"
+          }
+        ],
+        "reviewedAt": "2026-09-13T16:09:30.268Z",
+        "freezeIntervals": [],
+        "freezeInterpretation": "Static intervals may be intentional reading or natural stillness; this detector does not establish padding or creative quality."
+      },
+      "packageEvidence": {
+        "files": 472,
+        "logicalBytes": 303405230,
+        "uniqueBytes": 205628461,
+        "bytes": 205827816,
+        "revisions": 4,
+        "selectedRevisionId": "rev-b453420345cfd1b9",
+        "sha256": "bb1648c224149fc109d0e7751d6446012019fcd27dbf6b341d02f0aa2d1d47f4"
+      },
+      "fixedFailure": {
+        "job": "job-b8761e11-1ccf-418c-a478-67d6f03188d2",
+        "reason": "Application-root validation rejected owned external project directory",
+        "fix": "Owned project boundary for rendering and packaging; sibling project files rejected"
+      }
+    },
+    "B2": {
+      "status": "running-real-webui",
+      "project": "e86e3d64-04c5-46c8-9a41-be92bba6acac",
+      "job": "job-418de001-6d46-4db0-82c9-16121e8f3761",
+      "lastEffectiveProductionAt": null,
+      "note": "Uploaded keyboard-replacement.jpg through page; model edit active"
     }
   }
 }

@@ -8,7 +8,17 @@ import {applyDocumentPatch} from '../lib/creative/patch.mjs';
 import {prepareNativeAudio} from '../lib/creative/audio.mjs';
 import {run,ffmpeg,probe,hashFile} from '../lib/edit/media.mjs';
 import {projectNativeCaptions} from '../lib/creative/captions.mjs';
-import {detailCropGeometry} from '../lib/creative/compiler.mjs';
+import {detailCropGeometry,compileDocument} from '../lib/creative/compiler.mjs';
+
+test('full product image preserves explicit contain and the design background, while cover remains available',()=>{
+ const asset={id:'photo',kind:'image',compiledRef:'assets/photo.jpg',mediaMetadata:{width:1080,height:1920}};
+ for(const fit of ['contain','cover']){
+  const doc=createNativeDocument({projectId:'photo-fit',output:{width:1920,height:1080},brief:{facts:[]},design:{background:'#E8C9D2'},assets:[asset],scenes:[{id:'scene-01',purpose:'hero',effect:'media-cut',durationFrames:240}],nodes:[{id:'photo-node',sceneId:'scene-01',kind:'image',assetId:'photo',semanticRole:'hero',anchor:'scene-local',localStartFrame:0,localDurationFrames:240,params:{fit}}]});
+  const {html}=compileDocument(doc,[asset]);
+  assert.match(html,new RegExp('<img[^>]*id="obj-photo-node"[^>]*object-fit:'+fit));
+  assert.match(html,/html,body\{[^}]*background:#E8C9D2/);
+ }
+});
 
 test('product detail magnifies relative to the main photo and centres the source focal point',()=>{
  const crop=detailCropGeometry({width:1080,height:1080},{mediaMetadata:{width:1920,height:1440}},{params:{fit:'contain'}},{insetSize:.28,focusX:.665,focusY:.645});

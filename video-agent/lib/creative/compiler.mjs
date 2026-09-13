@@ -19,7 +19,7 @@ function publicAsset(asset) {
 }
 
 function imageMarkup(asset, node, className = '') {
-  return `<img id="obj-${esc(node.id)}" class="${esc(className)}" data-start="${sec(node.startFrame)}" data-duration="${sec(node.durationFrames)}" style="object-fit:${asset.kind === 'image' ? 'cover' : (node.params?.fit === 'contain' ? 'contain' : 'cover')}" src="${esc(publicAsset(asset))}" alt="" draggable="false">`;
+  return `<img id="obj-${esc(node.id)}" class="${esc(className)}" data-start="${sec(node.startFrame)}" data-duration="${sec(node.durationFrames)}" style="object-fit:${node.params?.fit === 'contain' ? 'contain' : 'cover'}" src="${esc(publicAsset(asset))}" alt="" draggable="false">`;
 }
 
 function sceneNodes(document, scene) {

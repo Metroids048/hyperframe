@@ -42,7 +42,7 @@ async function refresh(){if(!project)return;const id=project.id,prior=project.cu
 async function openProject(id){const sequence=++openSequence;opening=true;clearTimeout(poll);project=null;input.value='';files=[];thumbnails();clearPreview();draw();try{const result=await api('/api/commerce/'+id);if(sequence!==openSequence)return;project=result.project;selected=project.currentRevisionId;history.replaceState(null,'','/?project='+id);draw();await listProjects();await refresh();}finally{if(sequence===openSequence){opening=false;draw();}}}
 async function action(data){$('#error').hidden=true;try{const result=await post({...data,projectId:project.id,baseRevisionId:project.currentRevisionId,idempotencyKey:crypto.randomUUID()});if(result.project){if(project.currentRevisionId!==result.project.currentRevisionId)selected=result.project.currentRevisionId;project=result.project;}await refresh();return true;}catch(e){showError(e);return false;}}
 async function uploadFiles(){if(files.length+project.assets.length>30)throw Error('每个工程最多30个素材');if(files.some(f=>f.size>1024**3))throw Error('每个素材最多1 GiB');for(const [i,f] of files.entries()){$('#send').textContent=`上传 ${i+1}/${files.length}`;await api('/api/commerce/'+project.id+'/assets',{method:'POST',headers:{'x-file-name':encodeURIComponent(f.name)},body:f});}}
-composer.onsubmit=async e=>{e.preventDefault();if(busy())return;const message=input.value.trim();if(!message&&!files.length)return;$('#error').hidden=true;posting=true;draw();try{if(project?.currentRevisionId){await uploadFiles();if(await action({action:'patch',message,selectedNodeId:selectedNode})){input.value='';files=[];thumbnails();}}else{if(!project)project=(await post({action:'draft',request:{message,inferRequest:true}})).project;selected=null;rememberProject(project.id);history.replaceState(null,'','/?project='+project.id);draw();await uploadFiles();await post({action:'generate',projectId:project.id,message,idempotencyKey:crypto.randomUUID()});input.value='';files=[];thumbnails();await refresh();await listProjects();}}catch(err){showError(err);}finally{posting=false;draw();}};
+composer.onsubmit=async e=>{e.preventDefault();if(busy())return;const message=input.value.trim();if(!message&&!files.length)return;$('#error').hidden=true;posting=true;draw();try{if(project?.currentRevisionId){await uploadFiles();if(await action({action:'patch',message,selectedNodeId:selectedNode})){input.value='';files=[];thumbnails();}}else{if(!project)project=(await post({action:'draft',request:{message,inferRequest:true,businessGoal:creationInputs[selectedBusinessGoal]?[selectedBusinessGoal]:[]}})).project;selected=null;rememberProject(project.id);history.replaceState(null,'','/?project='+project.id);draw();await uploadFiles();await post({action:'generate',projectId:project.id,message,idempotencyKey:crypto.randomUUID()});input.value='';files=[];thumbnails();await refresh();await listProjects();}}catch(err){showError(err);}finally{posting=false;draw();}};
 async function loadPreset(preset){if(busy())return;++openSequence;posting=true;draw();try{project=(await post({action:'preset',presetId:preset.id})).project;selected=project.currentRevisionId;history.replaceState(null,'','/?project='+project.id);input.value=preset.input;files=[];thumbnails();draw();await listProjects();}catch(e){showError(e);}finally{posting=false;draw();}}
 $('#regenerate').onclick=async()=>{if(busy()||!project?.preset)return;let prepared=false;posting=true;draw();try{const source=project;files=await Promise.all(source.assets.map(async a=>{const r=await fetch('/api/commerce/'+source.id+'/input-assets/'+a.id);if(!r.ok)throw Error('预设输入素材读取失败');return new File([await r.blob()],a.name,{type:r.headers.get('content-type')||'application/octet-stream'});}));input.value=source.request.message;clearTimeout(poll);project=null;selected=null;nativeDocument=null;documentRevision=null;$('#messages').replaceChildren();$('#preset-notice').hidden=true;$('#revision-tools').hidden=true;$('#object-tools').hidden=true;$('#details').hidden=true;$('#jobs').replaceChildren();$('#download').hidden=true;$('#package').hidden=true;$('#player').pause?.();$('#player').hidden=true;$('#empty').hidden=false;history.replaceState(null,'','/');thumbnails();input.focus();prepared=true;}catch(e){showError(e);}finally{posting=false;draw();}if(prepared)composer.requestSubmit();};
 $('#new-project').onclick=()=>{location.href='/';};$('#projects').onchange=e=>{if(e.target.value==='__toggle_all__'){showAllProjects=!showAllProjects;void listProjects();}else if(e.target.value)openProject(e.target.value).catch(showError);};$('#objects').onchange=e=>chooseObject(e.target.value,true);$('#revisions').onchange=e=>{selected=e.target.value;draw();};$('#restore').onclick=()=>action({action:'restore',revisionId:selected});$('#undo').onclick=()=>action({action:'undo'});$('#redo').onclick=()=>action({action:'redo'});$('#export').onclick=()=>action({action:'export',revisionId:selected});
@@ -81,19 +81,26 @@ const initial=new URLSearchParams(location.search).get('project');if(initial)ope
 function drawVoices(){const voices=project?.auditions||[],key=voices.map(a=>a.id).join('|');if(key===shownVoices)return;shownVoices=key;$('#voice-results').hidden=!voices.length;$('#voice-results').replaceChildren(...voices.map((a,i)=>{const card=document.createElement('div'),label=document.createElement('p'),audio=document.createElement('audio'),button=document.createElement('button');label.textContent='试听 '+(i+1)+' · '+(a.voice.startsWith('zf_')?'女声':'男声');audio.controls=true;audio.preload='metadata';audio.src=a.url;button.type='button';button.className='quiet';button.textContent='选择这个声音';button.onclick=()=>{input.value='确认使用第'+(i+1)+'个声音。';input.focus();};card.append(label,audio,button);return card;}));}
 
 const creationInputs={
- images:{category:'商品图做视频',hint:'添加商品整体与细节图片，以及已有说明；不知道的品牌、价格和参数可以不填。',message:'用这些商品图做30秒竖屏介绍，清爽简洁，展示整体和有真实图片支持的细节，不编造参数，不加声音。'},
- footage:{category:'实拍自动剪辑',hint:'添加多段实拍，说明重点和原声要求；应用会观察动作并选择合适片段。',message:'把这些实拍做45秒横屏使用展示，去掉等待，让动作看得懂，适当加提示，保留已有原声，不加音乐和配音。'},
- mixed:{category:'图文实拍混合',hint:'添加同款商品的图片、实拍及已有说明，用图片解释细节，用实拍展示动作。',message:'用这些图片和实拍做60秒介绍，让第一次看的人看明白商品与已有细节，图文和动作配合，不机械列卡片，保留已有原声，不加音乐或配音。'}
+ launch:{hint:'添加商品素材与已确认的重点，时长、画幅和声音可自由描述。',message:'做一条上新介绍，让观众先看清商品，再认识有素材依据的特点。'},
+ detail:{hint:'添加能支持说明的整体与细节素材，不确定的参数可以不填。',message:'重点解释这些商品的卖点与结构细节，画面和说明要对应，不编造参数。'},
+ demo:{hint:'添加连续实拍与操作顺序，说明原声要求；没有拍到的步骤不能虚构。',message:'做一条使用演示，保留完整操作，让第一次看的人理解步骤。'},
+ promotion:{hint:'提供已确认的价格、条件和行动提示；缺少的活动信息会保留待确认。',message:'做一条活动推广视频，清楚展示商品、已确认的活动条件与行动提示。'}
 };
+let selectedBusinessGoal=new URLSearchParams(location.search).get('creation');
+function useCreationEntry(kind){
+ const entry=creationInputs[kind];if(!entry)return;
+ selectedBusinessGoal=kind;
+ if(!input.value.trim())input.value=entry.message;
+ $('#input-guidance').textContent=entry.hint;input.focus();
+ const example=presetCatalog.find(p=>(p.businessGoal||[]).includes(kind));if(example)chooseExample(example.id);
+}
 for(const button of document.querySelectorAll('[data-creation]'))button.onclick=()=>{
  if(busy())return;
- const entry=creationInputs[button.dataset.creation];
- if(project){location.href='/?creation='+button.dataset.creation;return;}
- input.value=entry.message;$('#input-guidance').textContent=entry.hint;input.focus();
- const example=presetCatalog.find(p=>p.category===entry.category);if(example)chooseExample(example.id);
+ if(project){$('#input-guidance').textContent='当前作品可以直接描述修改需求；新制作请使用“新建”。';return;}
+ useCreationEntry(button.dataset.creation);
 };
 const entry=creationInputs[new URLSearchParams(location.search).get('creation')];
-if(entry&&!initial){input.value=entry.message;$('#input-guidance').textContent=entry.hint;}
+if(entry&&!initial)useCreationEntry(selectedBusinessGoal);
 
 function drawCreationSummary(doc){
  const names={'comparison-split':'双区细节说明','grid-card-assemble':'信息分组','video-text-pivot':'实拍配合说明','lt-mask-reveal':'实拍文字标注','titlecard-reveal':'分层标题','native-original':'定制布局'};
@@ -105,6 +112,8 @@ function drawCreationSummary(doc){
 
 $('#example-own').onclick=()=>{
  if(busy())return;
- const kind=Object.keys(creationInputs).find(k=>creationInputs[k].category===chosenPreset?.category)||'images';
- location.href='/?creation='+kind;
+ const mode=chosenPreset?.inputMode;
+ $('#input-guidance').textContent=mode==='footage'?'添加自己的实拍，并说明时长、画幅与原声要求。':mode==='mixed'?'添加自己的图片和实拍，并说明输出要求。':mode==='images'?'添加自己的商品图，并说明输出要求。':'添加自己的素材，自由描述需求；素材类型由实际上传识别。';
+ if(!project){const goal=chosenPreset?.businessGoal?.[0];if(goal)useCreationEntry(goal);attachments.click();}
+ else $('#input-guidance').textContent+=' 当前正查看作品，点击“新建”后使用自己的素材。';
 };

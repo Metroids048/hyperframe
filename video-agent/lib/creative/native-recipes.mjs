@@ -10,8 +10,8 @@ export const nativeRecipeContract={version:2,resources:['lt-mask-reveal','titlec
 export function instantiateNativeRecipe(shot,design,output,assets){
   const method=shot.productionMethod==='composition-adapt'?'parameterized':shot.productionMethod;
   if(!['footage-cut','parameterized'].includes(method))return null;
-  const layout=commerceLayoutSource(shot,design,output,assets);
-  if(layout)return {source:layout,method,adapterId:shot.resourceId,adapterVersion:2,parameterHash:resourceHash({shot,design,output}),implementationHash:resourceHash(commerceLayoutSource.toString()),sourceFiles:['lib/creative/native-recipes.mjs','lib/creative/commerce-layouts.mjs']};
+  const layout=commerceLayoutSource({...shot,productionMethod:method},design,output,assets);
+  if(layout)return {source:layout,requestedMethod:shot.productionMethod,method,adapterId:shot.resourceId,adapterVersion:3,parameterHash:resourceHash({shot,design,output}),implementationHash:resourceHash(commerceLayoutSource.toString()),sourceFiles:['lib/creative/native-recipes.mjs','lib/creative/commerce-layouts.mjs']};
   if(commerceLayoutResources.includes(shot.resourceId))return null;
   if(shot.media.length>1||shot.text.length>2||shot.text.some(t=>[...t.text].length>80)||shot.durationSeconds<2)return null;
   if(method==='footage-cut'&&(shot.media.length!==1||shot.text.length||assets.find(a=>a.id===shot.media[0].assetId)?.kind!=='video'))return null;
