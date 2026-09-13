@@ -1,3 +1,4 @@
+import {buildEvidenceIndex,queryEvidence} from '../lib/creative/evidence-index.mjs';
 import {modelTimeoutMs} from '../lib/edit/codex-command.mjs';
 import {assertHyperFramesCapture,prepareHyperFramesWorkspace} from '../lib/creative/hf-workspace.mjs';
 import assert from 'node:assert/strict';
@@ -220,5 +221,23 @@ test('production keyframe environment failures preserve checkpoints without crea
    const after=JSON.parse(await fs.readFile(path.join(directory,'production-run.json'),'utf8'));
    assert.equal(calls,5);assert.equal(inspections,2);assert.equal(after.modelCalls,5);assert.equal(after.repairCount,before.repairCount);assert.deepEqual(after.checkpoints.story,before.checkpoints.story);assert(!after.checkpoints['shot-0']);
   }finally{await fs.rm(directory,{recursive:true,force:true})}
+ }
+});
+test('recovery does not interpret product names, synonyms, negations or quoted actions as authorization',()=>{
+ for(const message of ['只展示电子秤，不称量','不要注液，保留“称量”字幕','展示水壶倒水','鞋子细节','不要把“撤销”当作命令']){
+  assert.equal(canResumeJob({runId:'x',status:'recoverable',code:'STORY_REPAIR_BUDGET',input:{message}}),false);
+  assert.equal(canResumeJob({runId:'x',status:'recoverable',code:'MODEL_BUDGET',modelCalls:54,maxModelCalls:84,completionReserve:6,input:{message}}),true);
+ }
+});
+
+test('source evidence selection follows asset and time across filenames and input ordering',()=>{
+ const assets=[{id:'shoe',sha256:'shoe-hash',mediaMetadata:{duration:50}},{id:'kettle',sha256:'kettle-hash',mediaMetadata:{duration:80}}];
+ const records=[{file:'evidence/arbitrary-a.jpg',sha256:'a',assetId:'shoe',sourceSha256:'shoe-hash',startSeconds:5,endSeconds:15,times:[5,10,15]},{file:'evidence/detail-contact-3.jpg',sha256:'b',assetId:'kettle',sourceSha256:'kettle-hash',startSeconds:40,endSeconds:50,times:[40,45,50]}];
+ for(const renamed of [false,true]){
+  const batch={key:'batch',records:renamed?[...records].reverse().map((r,i)=>({...r,file:'evidence/renamed-'+i+'.jpg'})):records};
+  const index=buildEvidenceIndex(renamed?[...assets].reverse():assets,[batch]);
+  const selected=queryEvidence(index,{ranges:[{assetId:'shoe',startSeconds:8,endSeconds:12}]});
+  assert.equal(selected.records.length,1);assert.equal(selected.records[0].assetId,'shoe');assert.equal(selected.records[0].startSeconds,5);
+  assert.equal(queryEvidence(index,{ranges:[{assetId:'shoe',startSeconds:30,endSeconds:35}]}).state,'unobserved');
  }
 });

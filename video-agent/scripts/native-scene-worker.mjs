@@ -30,10 +30,11 @@ const server=http.createServer(async(req,res)=>{try{
  const stream=createReadStream(file,{start,end});stream.on('error',()=>res.destroy());res.on('close',()=>stream.destroy());stream.pipe(res);
 }catch{if(!res.headersSent)res.writeHead(404);res.end();}});
 await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const origin='http://127.0.0.1:'+server.address().port;
-let browser;const result={protocolVersion:1,status:'running',platform:process.platform,assigned:process.platform==='win32',environmentKeys:Object.keys(process.env),network:requests,errors:failures,samples:[],motion:[]};
+let browser,ownedProfile;const result={protocolVersion:1,status:'running',platform:process.platform,assigned:process.platform==='win32',environmentKeys:Object.keys(process.env),network:requests,errors:failures,samples:[],motion:[]};
 try{
- const profileRoot=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../.cache/isolated-browser');await fs.mkdir(profileRoot,{recursive:true});
- const browserProfile=await fs.mkdtemp(path.join(profileRoot,'profile-'));result.browserProfile=browserProfile;
+ const browserProfile=config.browserProfile||(ownedProfile=await fs.mkdtemp(path.join(process.platform==='win32'?process.env.TEMP:'/tmp','hf-')));
+ if(!path.isAbsolute(browserProfile||''))throw Error('Parent must assign a private browser profile');
+ await fs.mkdir(browserProfile,{recursive:true,mode:0o700});result.browserProfile=browserProfile;
  browser=await puppeteer.launch({executablePath:config.browser,headless:true,userDataDir:browserProfile,defaultViewport:config.output,dumpio:true,args:['--disable-background-networking','--disable-component-update','--no-first-run','--enable-logging=stderr'],env:process.env});
  await fs.writeFile(path.join(config.directory,'browser-started.json'),JSON.stringify({pid:browser.process().pid,runId:config.identity.runId}));
  if(config.probe==='browser-timeout')await new Promise(()=>{});

@@ -1,3 +1,4 @@
+import os from 'node:os';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -18,11 +19,15 @@ export async function runSceneIsolation(directory,config,{signal,probe}={}){
  const runId=randomUUID(),receiptPath=path.join(directory,'receipt-'+runId+'.json');
  const inputParts=await Promise.all(config.files.map(async file=>[file,digest(await fs.readFile(path.join(directory,file)))]));
  const identity={runId,inputHash:digest(JSON.stringify({config,inputParts})),sceneIds:config.scenes.map(s=>s.id),requirements:config.scenes.map(s=>({id:s.id,visibleTargets:s.visibleTargets||s.targets,motionTargets:s.targets,motionIntervals:s.motionIntervals||[],media:s.media||[]}))};
- const profile=path.join(directory,'profile'),windows=process.platform==='win32',environment=windows?{SystemRoot:process.env.SystemRoot||'C:\\Windows',WINDIR:process.env.WINDIR||'C:\\Windows',PATH:path.dirname(process.execPath)+';'+path.join(process.env.SystemRoot||'C:\\Windows','System32'),TEMP:path.join(directory,'temp'),TMP:path.join(directory,'temp'),LOCALAPPDATA:path.join(profile,'AppData/Local'),APPDATA:path.join(profile,'AppData/Roaming'),USERPROFILE:profile,SystemDrive:path.parse(directory).root.replace(/[\\/]+$/,'')}:{PATH:path.dirname(process.execPath)+':/usr/bin:/bin',HOME:profile,TMPDIR:path.join(directory,'temp'),TEMP:path.join(directory,'temp'),TMP:path.join(directory,'temp')};
+ const windows=process.platform==='win32';
+ const tempBase=await fs.realpath(windows?os.tmpdir():'/tmp');
+ const privateRoot=await fs.mkdtemp(path.join(tempBase,'hf-'));await fs.chmod(privateRoot,0o700);
+ try{
+ const profile=path.join(privateRoot,'p'),environment=windows?{SystemRoot:process.env.SystemRoot||'C:\\Windows',WINDIR:process.env.WINDIR||'C:\\Windows',PATH:path.dirname(process.execPath)+';'+path.join(process.env.SystemRoot||'C:\\Windows','System32'),TEMP:path.join(privateRoot,'t'),TMP:path.join(privateRoot,'t'),LOCALAPPDATA:path.join(profile,'AppData/Local'),APPDATA:path.join(profile,'AppData/Roaming'),USERPROFILE:profile,SystemDrive:path.parse(directory).root.replace(/[\\/]+$/,'')}:{PATH:path.dirname(process.execPath)+':/usr/bin:/bin',HOME:profile,TMPDIR:path.join(privateRoot,'t'),TEMP:path.join(privateRoot,'t'),TMP:path.join(privateRoot,'t')};
  for(const dir of [environment.TEMP,environment.TMPDIR,environment.LOCALAPPDATA,environment.APPDATA].filter(Boolean))await fs.mkdir(dir,{recursive:true});
  const limits={cpuSeconds:30,wallMs:45000,processMemoryBytes:1024**3,jobMemoryBytes:2*1024**3};if(['timeout','browser-timeout'].includes(probe))limits.wallMs=1500;if(probe==='memory'){limits.processMemoryBytes=192*1024**2;limits.jobMemoryBytes=256*1024**2;}
  const defaultBrowser=process.platform==='win32'?'C:/Program Files/Google/Chrome/Application/chrome.exe':process.platform==='darwin'?'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome':'/usr/bin/google-chrome';
- await fs.writeFile(workerConfig,JSON.stringify({...config,directory,gate,probe,identity,receiptPath,browser:process.env.HYPERFRAMES_BROWSER_PATH||defaultBrowser}));
+ await fs.writeFile(workerConfig,JSON.stringify({...config,directory,gate,probe,identity,receiptPath,browserProfile:path.join(privateRoot,'b'),browser:process.env.HYPERFRAMES_BROWSER_PATH||defaultBrowser}));
  await fs.writeFile(jobConfig,JSON.stringify({executable:process.execPath,arguments:['--max-old-space-size=192',path.join(root,'scripts/native-scene-worker.mjs'),workerConfig],directory,gate,environment,...limits}));
  let stdout='',stderr='',timedOut=false,aborted=false;
  const command=windows?path.join(environment.SystemRoot,'System32/WindowsPowerShell/v1.0/powershell.exe'):process.execPath;
@@ -48,7 +53,7 @@ export async function runSceneIsolation(directory,config,{signal,probe}={}){
  const alive=()=>{try{process.kill(windows?pid:-pid,0);return true;}catch(error){if(error.code==='ESRCH')return false;throw error;}};
  if(!windows&&alive()){try{process.kill(-pid,'SIGKILL');}catch(error){if(error.code!=='ESRCH')throw error;}}
  for(let i=0;i<100&&alive();i++)await new Promise(r=>setTimeout(r,50));
- const cleanup={pid,childClosed:true,processGroupChecked:!windows,exited:!alive()};
+ const cleanup={privateRoot,pid,childClosed:true,processGroupChecked:!windows,exited:!alive()};
  await fs.writeFile(path.join(directory,'cleanup.json'),JSON.stringify(cleanup,null,2));
  const log=stdout+'\n'+stderr;await fs.writeFile(path.join(directory,windows?'windows-job.log':'portable-job.log'),log);
  let supervisor=windows?parseSupervisor(stdout):{type:'portable-supervisor',protocolVersion:1,exitCode:result.code,timedOut,aborted,cleanup,resourceLimits:{wallMs:limits.wallMs,nodeHeapMb:192,osCpuMemoryLimits:'not-enforced'}};
@@ -63,6 +68,7 @@ export async function runSceneIsolation(directory,config,{signal,probe}={}){
  const runtime=validateReceipt(evidence,identity,await fs.readFile(path.join(directory,'runtime-evidence.json')));
  insist(result.code===0&&supervisor.exitCode===0&&evidence.status==='passed','自定义场景隔离检查未通过：'+String(evidence.error||'worker exited without success'),evidence.errorCode||'CUSTOM_RUNTIME_FAILED');
  return {...result,log,evidence:{...supervisor,...evidence},runtime};
+ }finally{await fs.rm(privateRoot,{recursive:true,force:true});}
 }
 export async function verifyCustomProject(outputDir,document,assets,{signal}={}){
  const scenes=document.scenes.filter(s=>s.effect==='custom-native');if(!scenes.length)return;

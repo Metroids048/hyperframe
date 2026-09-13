@@ -55,6 +55,9 @@ try {
  [IO.File]::WriteAllText($jobConfig.gate,'assigned')
  $timedOut=-not $workerProcess.WaitForExit([int]$jobConfig.wallMs)
  if($timedOut){[void][NativeSceneJob]::TerminateJobObject($jobHandle,124);$workerProcess.WaitForExit()}
+ # A renderer may retain the worker's output pipes after its resource termination.
+ # Close all descendants before waiting for ReadToEndAsync.
+ [void][NativeSceneJob]::TerminateJobObject($jobHandle,124)
  $result=[NativeSceneJob]::Read($jobHandle)
  $receipt=[ordered]@{protocolVersion=1;type='windows-job';assigned=$true;pid=$workerProcess.Id;exitCode=$workerProcess.ExitCode;timedOut=$timedOut;limitFlags=$result.Basic.Flags;cpuRate=5000;cpuSeconds=$jobConfig.cpuSeconds;processMemoryBytes=$result.ProcessMemory.ToUInt64();jobMemoryBytes=$result.JobMemory.ToUInt64();peakProcessMemoryBytes=$result.PeakProcessMemory.ToUInt64();peakJobMemoryBytes=$result.PeakJobMemory.ToUInt64();stdout=$stdoutTask.Result;stderr=$stderrTask.Result} | ConvertTo-Json -Compress
  Write-Output ('HF_SCENE_SUPERVISOR ' + $receipt)

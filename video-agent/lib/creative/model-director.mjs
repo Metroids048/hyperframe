@@ -177,7 +177,7 @@ export function documentFromModelPlan(request,assets,plan){
         if(node&&['image','video'].includes(node.kind))mappedMedia.add(node.id);
         if(/^text-\d+$/.test(mapping.ref))node=nodes.filter(n=>n.sceneId===id&&n.kind==='text')[Number(mapping.ref.slice(5))-1];
         if(/^label-\d+$/.test(mapping.ref)){insist(typeof mapping.text==='string'&&mapping.text.trim()&&mapping.text.length<=240&&(/^(?:0?[1-9]|[1-9]\d)$/.test(mapping.text)||request.message.includes(mapping.text)),'额外标签必须引用用户文字或简单编号','CUSTOM_TEXT');node={id:stableId('node',request.projectId,id,mapping.ref),sceneId:id,kind:'text',semanticRole:'feature',anchor:'scene-local',localStartFrame:0,localDurationFrames:durations[i],durationFrames:durations[i],params:{text:mapping.text,factRefs:[]}};nodes.push(node);}
-        if(/^decoration-\d+$/.test(mapping.ref)){node={id:stableId('node',request.projectId,id,mapping.ref),sceneId:id,kind:'shape',semanticRole:'decoration',anchor:'scene-local',localStartFrame:0,localDurationFrames:durations[i],durationFrames:durations[i],params:{}};nodes.push(node);}insist(node,'自定义对象引用不存在','CUSTOM_OBJECTS');return {elementId:mapping.elementId,nodeId:node.id};});
+        if(/^decoration-\d+$/.test(mapping.ref)){node={id:stableId('node',request.projectId,id,mapping.ref),sceneId:id,kind:'shape',semanticRole:'decoration',anchor:'scene-local',localStartFrame:0,localDurationFrames:durations[i],durationFrames:durations[i],params:{}};nodes.push(node);}insist(node,'自定义对象引用不存在：'+mapping.ref+'；本镜头只有 '+s.text.length+' 个文字、'+s.media.length+' 个媒体对象；源片自带标识不可新增为文字对象','CUSTOM_OBJECTS');return {elementId:mapping.elementId,nodeId:node.id};});
       sourceBundles.push({...source,id:'source-'+id,sceneId:id});
     }
   });

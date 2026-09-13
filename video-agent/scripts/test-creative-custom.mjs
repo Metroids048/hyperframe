@@ -122,3 +122,13 @@ test('finite chained GSAP calls normalize without accepting arbitrary call roots
  assert.match(result.timeline,/;\ntl.to/);assert.equal(result.validationRequirements.motionIntervals.length,2);
  for(const timeline of ['fetch("/secret").to("#dot",{x:300,duration:2},0);','other.to("#dot",{x:300,duration:2},0).to("#dot",{x:0,duration:1},4);','tl.to("#dot",{x:300,duration:2},0)["to"]("#dot",{x:0,duration:1},4);'])assert.throws(()=>compileCustomSource({...bundle,timeline},{scene,nodes,assets:{}}),{code:'CUSTOM_SCRIPT'});
 });
+test('deep workspace uses a short private browser temp root and removes only that root',async()=>{
+ const dir=await fixture('deep/'+('nested-'.repeat(14))+'/'+('nested-'.repeat(14)));
+ const result=await runSceneIsolation(dir,config());
+ assert.equal(result.runtime.status,'passed');
+ const worker=JSON.parse(await fs.readFile(path.join(dir,'worker.json'),'utf8'));
+ assert(!worker.browserProfile.startsWith(dir));
+ if(process.platform!=='win32')assert(Buffer.byteLength(worker.browserProfile)<80);
+ await assert.rejects(fs.stat(path.dirname(worker.browserProfile)),{code:'ENOENT'});
+ assert((await fs.stat(path.join(dir,'runtime-evidence.json'))).size>0);
+});

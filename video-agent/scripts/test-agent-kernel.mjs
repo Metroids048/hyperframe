@@ -24,3 +24,21 @@ const interrupted=await resumableKernel.start({userRequest:'resume',inputFingerp
 await assert.rejects(()=>resumableKernel.resume(interrupted.id,{inputFingerprint:'different'}),/输入/);
 assert.equal((await resumableKernel.resume(interrupted.id,{inputFingerprint:'same'})).status,'completed');assert.equal(attempted,1);
 console.log('agent kernel tests passed');
+// Budget authorization survives process reconstruction and concurrent clicks.
+const budgetStore=new AgentRunStore(dir),budgetRegistry=new ToolRegistry();
+let issued=0;
+budgetRegistry.register('model.step',async(input,ctx)=>{await ctx.recordModelCall({stage:'test'});issued++;return {step:input.step};});
+const budgetPlanner=async({run})=>run.modelCalls>=3?{kind:'complete'}:{kind:'tool',tool:'model.step',checkpoint:'step-'+run.modelCalls,input:{step:run.modelCalls}};
+const budgetKernel=new AgentKernel({registry:budgetRegistry,store:budgetStore,planner:budgetPlanner,maxModelCalls:1});
+const paused=await budgetKernel.start({userRequest:'bounded'});assert.equal(paused.code,'MODEL_BUDGET');assert.equal(issued,1);
+const restarted=new AgentKernel({registry:budgetRegistry,store:budgetStore,planner:budgetPlanner,maxModelCalls:128});
+assert.equal((await restarted.resume(paused.id)).modelCalls,1);assert.equal(issued,1);
+const approval={maxModelCalls:3,authorizationId:'approve-once',source:'controlled-test'};
+await Promise.all([budgetStore.authorizeBudget(paused.id,approval),budgetStore.authorizeBudget(paused.id,approval)]);
+assert.equal((await budgetStore.get(paused.id)).budgetAuthorizations.length,1);
+const resumed=await Promise.allSettled([restarted.resume(paused.id),restarted.resume(paused.id)]);
+assert.equal(resumed.filter(r=>r.status==='rejected'&&r.reason.code==='RUN_BUSY').length,1);
+assert.equal((await budgetStore.get(paused.id)).modelCalls,3);assert.equal(issued,3);
+const legacy={...paused,id:'legacy-budget'};delete legacy.maxModelCalls;await budgetStore.open(legacy);
+assert.equal((await restarted.resume(legacy.id)).modelCalls,1);
+console.log('budget persistence, authorization, legacy guard and double-resume tests passed');

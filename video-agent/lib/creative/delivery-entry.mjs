@@ -9,7 +9,10 @@ export async function deliveryRoutes(root,req,res,url,{file,json,creative}){
  for(const entry of entries){
   if(entry.projectId&&creative?.has(entry.projectId)){
    const project=creative.get(entry.projectId),job=project.jobs.at(-1),revision=project.revisions.find(r=>r.id===project.currentRevisionId);
-   Object.assign(entry,{request:project.request.message,updatedAt:project.updatedAt,jobId:job?.id,runId:job?.runId,revisionId:revision?.id,review:`累计模型调用 ${project.jobs.reduce((n,j)=>n+(j.modelCalls||0),0)} 次；${job?.error||'作品质量与完整交付仍需按绑定版本复核'}`,status:job?job.status+' · '+(job.stage||job.error||job.kind):'尚未制作'});
+   const runs=new Map();for(const j of project.jobs)if(j.runId){try{const r=JSON.parse(await fs.readFile(path.join(creative.versionDirectory(project,{directory:'versions/'+j.id}),'runs',j.runId+'.json')));runs.set(r.id,r);}catch{runs.set(j.runId,{modelCalls:Math.max(runs.get(j.runId)?.modelCalls||0,j.modelCalls||0)});}}
+   const standaloneJobs=new Map(project.jobs.filter(j=>!j.runId).map(j=>[j.id,j]));
+   const totalCalls=[...runs.values(),...standaloneJobs.values()].reduce((n,r)=>n+(r.modelCalls||0),0);
+   Object.assign(entry,{request:project.request.message,updatedAt:project.updatedAt,jobId:job?.id,runId:job?.runId,revisionId:revision?.id,review:`累计模型调用 ${totalCalls} 次；${job?.error||'作品质量与完整交付仍需按绑定版本复核'}`,status:job?job.status+' · '+(job.stage||job.error||job.kind):'尚未制作'});
    entry.artifacts=(entry.artifacts||[]).filter(a=>['before_video'].includes(a.kind));
    if(revision){const directory=creative.versionDirectory(project,revision);entry.artifacts.push(...[['native_document','document.json'],...(revision.rendered?[['final_video','commerce-final.mp4']]:[]),...(revision.historyPackaged?[['native_project','history.zip']]:[])].map(([kind,name])=>({kind,path:path.relative(root,path.join(directory,name)),revisionId:revision.id})));}
   }

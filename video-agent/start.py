@@ -27,6 +27,12 @@ import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
+# Optional project-local runtime selection; contains paths only, never credentials.
+LOCAL_CONFIG = ROOT / "config/start.local.json"
+SETTINGS = json.loads(LOCAL_CONFIG.read_text(encoding="utf-8")) if LOCAL_CONFIG.exists() else {}
+for key, setting in [("VIDEO_AGENT_NODE", "node"), ("VIDEO_AGENT_PORT", "port"), ("VIDEO_AGENT_CREATIVE_DATA_DIR", "creativeDataDir")]:
+    if setting in SETTINGS:
+        os.environ.setdefault(key, str(SETTINGS[setting]))
 OUTPUTS = ROOT / "outputs"
 PID_FILE = OUTPUTS / "server.pid"
 LOG_FILE = OUTPUTS / "server.log"
@@ -39,10 +45,24 @@ WORKBENCH = f"{BASE}/"
 
 def node_bin() -> str:
     exe = "node.exe" if os.name == "nt" else "node"
-    found = shutil_which(exe)
+    configured = os.environ.get("VIDEO_AGENT_NODE")
+    cached = Path.home() / ".cache/codex-runtimes/codex-primary-runtime/dependencies/node" / ("node.exe" if os.name == "nt" else "bin/node")
+    found = configured or shutil_which(exe) or (str(cached) if cached.is_file() else None)
     if not found:
-        raise SystemExit("未找到 Node.js。请先安装 Node 22+，并确保 node 在 PATH 中。")
-    return found
+        raise SystemExit("未找到 Node 22+；可通过 VIDEO_AGENT_NODE 指定现有运行时。")
+    check = subprocess.run([found, "-p", "JSON.stringify({path:process.execPath,major:Number(process.versions.node.split('.')[0])})"], capture_output=True, text=True, check=True)
+    runtime = json.loads(check.stdout)
+    if runtime["major"] < 22:
+        raise SystemExit("此项目需要 Node 22+。")
+    # Change only this launcher and its children, never the system environment.
+    path_key = next((k for k in os.environ if k.lower() == "path"), "PATH")
+    original = os.environ.get(path_key, "")
+    if os.name == "nt":
+        for key in list(os.environ):
+            if key.lower() == "path":
+                del os.environ[key]
+    os.environ["PATH"] = str(Path(runtime["path"]).parent) + os.pathsep + original
+    return runtime["path"]
 
 
 def shutil_which(name: str) -> str | None:
@@ -107,6 +127,7 @@ def port_in_use() -> bool:
 
 
 def build_frontend() -> None:
+    subprocess.run([node_bin(), str(ROOT / "scripts/workspace-context.mjs"), "--fetch-soft"], cwd=ROOT, check=True)
     print(f"构建前端 -> {ROOT / 'web-dist'}")
     result = subprocess.run(
         [node_bin(), str(ROOT / "scripts" / "build-web.mjs")],

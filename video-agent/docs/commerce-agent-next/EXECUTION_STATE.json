@@ -120,11 +120,34 @@
       "projectId": "8005d346-869a-4123-9809-e0911c336907",
       "jobId": "job-c2c88cb0-d8ad-4da3-a3a8-3f09a4baf525",
       "runId": "2b63a92e-564a-408e-b3ff-7b58edcfa01a",
-      "status": "recoverable",
-      "stage": "shot-3 / fourth-scene static source gap",
-      "modelCalls": 43,
-      "server": "http://127.0.0.1:3024",
-      "serverStatus": "stopped after closeout turn; artifacts preserved"
+      "status": "running",
+      "runStatus": "running",
+      "stage": "assemble",
+      "modelCalls": 70,
+      "maxModelCalls": 84,
+      "completionReserve": 6,
+      "checkpoints": [
+        "brief",
+        "observe",
+        "resources",
+        "narration",
+        "story",
+        "timing",
+        "shot-0",
+        "shot-1",
+        "direction-preview",
+        "shot-2",
+        "shot-3",
+        "shot-4",
+        "shot-5"
+      ],
+      "completedShots": 6,
+      "reason": null,
+      "currentRevisionId": null,
+      "source": "data/result-completion-projects/8005d346-869a-4123-9809-e0911c336907/versions/job-c2c88cb0-d8ad-4da3-a3a8-3f09a4baf525/runs/2b63a92e-564a-408e-b3ff-7b58edcfa01a.json",
+      "updatedAt": "2026-09-13T03:59:26.691Z",
+      "next": "等待当前正式任务完成；保留累计计数",
+      "server": "http://127.0.0.1:3024"
     }
   ],
   "pausedRuns": [
@@ -155,12 +178,16 @@
       "human, actual listening and rights acceptance"
     ],
     "latestRun": {
+      "case": "Q02-A",
       "projectId": "8005d346-869a-4123-9809-e0911c336907",
       "jobId": "job-c2c88cb0-d8ad-4da3-a3a8-3f09a4baf525",
       "runId": "2b63a92e-564a-408e-b3ff-7b58edcfa01a",
-      "status": "recoverable",
-      "stage": "shot-3",
-      "modelCalls": 43,
+      "status": "running",
+      "runStatus": "running",
+      "stage": "assemble",
+      "modelCalls": 70,
+      "maxModelCalls": 84,
+      "completionReserve": 6,
       "checkpoints": [
         "brief",
         "observe",
@@ -171,10 +198,18 @@
         "shot-0",
         "shot-1",
         "direction-preview",
-        "shot-2"
+        "shot-2",
+        "shot-3",
+        "shot-4",
+        "shot-5"
       ],
-      "reason": "Scene 3 source mismatch was corrected and scene 3 passed. Scene 4 independently failed source evidence twice: no scale/injection action in available footage; source-replan budget exhausted. Run is recoverable with all prior checkpoints.",
-      "next": "Do not retry scene 4 without new source evidence or a changed user request. Preserve run; finish non-dependent regression checks and report material gap."
+      "completedShots": 6,
+      "reason": null,
+      "currentRevisionId": null,
+      "source": "data/result-completion-projects/8005d346-869a-4123-9809-e0911c336907/versions/job-c2c88cb0-d8ad-4da3-a3a8-3f09a4baf525/runs/2b63a92e-564a-408e-b3ff-7b58edcfa01a.json",
+      "updatedAt": "2026-09-13T03:59:26.691Z",
+      "next": "等待当前正式任务完成；保留累计计数",
+      "server": "http://127.0.0.1:3024"
     },
     "checker": {
       "command": "docs/result-completion/verify_delivery.py",
@@ -183,54 +218,526 @@
       "log": "outputs/result-completion/verify-delivery.log"
     },
     "closeoutEvidence": {
-      "instructions": "docs/hyperframe-final-closeout/FINAL_CLOSEOUT.md",
-      "baseHead": "44cf87d55070d28d84430f2f81782b843a937b2f",
-      "service": "http://127.0.0.1:3024",
-      "core": "outputs/result-completion/closeout-core.log",
-      "isolation": "outputs/result-completion/closeout-final-targeted.log",
-      "scope": "frozen unchanged",
-      "notClosed": [
-        "full static/dynamic edit through formal WebUI version",
-        "all formal long videos and I/H cases",
-        "per-film AI review and native package reopen",
-        "full sound playback: standalone host AudioContext also stalls; no listened claim",
-        "original Q01 photos/confirmed facts and Q04 approved speech/script location awaiting user",
-        "Q02-A scene 4 lacks evidence for required weighing/injection action; run recoverable at shot-3",
-        "rerun browser conversation suite after cleanup timeout fix; prior standalone recheck passed core assertions"
-      ],
-      "protocol": "outputs/result-completion/closeout-protocol-delivery-latest.log",
-      "productionRouting": "outputs/result-completion/closeout-production-routing.log",
-      "mediaHttp": "outputs/result-completion/closeout-media-http.json",
-      "fixturePlayback": "outputs/result-completion/closeout-fixture-playback.json",
-      "webuiResume": "outputs/result-completion/q02-webui-resume-latest.json",
-      "hostAudioClock": "outputs/result-completion/host-audio-clock.json",
-      "browserFinal": "outputs/result-completion/closeout-browser-final.log",
-      "browserFinalStatus": "interrupted_after_stuck_test_process",
-      "targeted": "outputs/result-completion/closeout-final-targeted.log",
-      "targetedStatus": "47 passed / 0 failed / 1 skipped (48 tests)"
+      "historicalReference": "history:pre-release-closeout-stale-state"
     },
-    "cumulativeModelCalls": 43
+    "cumulativeModelCalls": 70
   },
   "historicalVerificationNotice": "verified entries above are inherited historical records, not freshly revalidated local delivery claims. Current final-closeout evidence is below.",
-  "correctedBlocker": {
-    "case": "Q02-A",
-    "status": "corrected_agent_blocker",
-    "runId": "2b63a92e-564a-408e-b3ff-7b58edcfa01a",
-    "stage": "shot-4",
-    "modelCalls": 54,
-    "evidence": [
-      "failed-keyframe-3-0.json",
-      "failed-keyframe-3-1.json"
+  "releaseCloseout": {
+    "startedAt": "2026-09-13T03:26:52.711864+00:00",
+    "status": "in-progress",
+    "delta": [
+      {
+        "file": "start.py",
+        "functions": [
+          "node_bin",
+          "build_frontend",
+          "start_backend"
+        ],
+        "reason": "Verified Node exists outside PATH; reuse same validated runtime and preflight."
+      },
+      {
+        "file": "lib/edit/agent-kernel.mjs",
+        "functions": [
+          "AgentRunStore.authorizeBudget",
+          "AgentKernel.start",
+          "AgentKernel.run"
+        ],
+        "reason": "Persist bounded authorization, reject implicit legacy budget increases, reserve final review calls."
+      },
+      {
+        "file": "lib/creative/service.mjs",
+        "functions": [
+          "startup job sync",
+          "authorizeBudget",
+          "resume",
+          "onRun"
+        ],
+        "reason": "Read actual run state; expose budget authorization and same-run recovery."
+      },
+      {
+        "file": "web/commerce.js",
+        "functions": [
+          "drawJob"
+        ],
+        "reason": "Show actual budget and actionable authorization."
+      },
+      {
+        "file": "lib/creative/production.mjs",
+        "functions": [
+          "planner",
+          "replanSourceShot"
+        ],
+        "reason": "Remove estimate overwrite and sample-specific fallback; preserve validated shots."
+      },
+      {
+        "file": "lib/creative/isolation.mjs; scripts/native-scene-worker.mjs; scripts/native-scene-job.ps1",
+        "functions": [
+          "runSceneIsolation",
+          "browser launch",
+          "Windows supervisor receipt"
+        ],
+        "reason": "Deep workspace TMPDIR/profile can exceed Unix socket limit; terminate descendants before waiting on inherited output pipes."
+      },
+      {
+        "file": "lib/creative/model-director.mjs; lib/creative/production.mjs",
+        "functions": [
+          "documentFromModelPlan mapping error",
+          "buildShot packet"
+        ],
+        "reason": "Q02-A shot-5 adds nonexistent text-2 from source branding; three identical CUSTOM_OBJECTS failures need explicit allowed refs, not looser validation."
+      },
+      {
+        "file": "lib/creative/custom-source.mjs; lib/creative/production.mjs",
+        "functions": [
+          "finite GSAP validation error",
+          "buildShot animation instructions"
+        ],
+        "reason": "Q02-A scene 6 returned bare fromTo without tl after malformed chained calls. Clarify accepted syntax and offending expression; do not allow arbitrary JS."
+      },
+      {
+        "file": "lib/creative/production.mjs",
+        "functions": [
+          "boundedQualitySchema",
+          "preview.review frame labels"
+        ],
+        "reason": "Actual R6 response paired scene-02 with scene-01 node; bind schema branches and each image timestamp to its scene, preserving rejection of invalid references."
+      }
     ],
-    "finding": "两次失败选段不能证明素材不存在；已有素材覆盖可观察注液动作。当前恢复路径采用中性“注入液体”，未宣称用户硬要求，R6 issues=[]。",
-    "nextAction": "继续同一 run 的剩余镜头与导出；若预算封顶保存精确 checkpoint。",
-    "userRequestHasWeighingInjection": false,
-    "requirementSource": "Agent story-plan 自行安排，原始用户请求未要求称量或注液",
-    "existingEvidence": [
-      "observations.json:105.750–145.750秒电子秤与注液",
-      "dense-evidence.json:105–150秒",
-      "evidence/detail-contact-3.jpg"
+    "authorization": {
+      "runId": "2b63a92e-564a-408e-b3ff-7b58edcfa01a",
+      "alreadyConsumed": 54,
+      "additionalMaximum": 30,
+      "totalMaximum": 84,
+      "completionReserve": 6,
+      "source": "User explicitly approved Q02-A additional up to 30 calls in current conversation"
+    },
+    "verified": {
+      "startup": {
+        "node": "v24.19.0 darwin arm64",
+        "port": 3024,
+        "pid": 42177,
+        "dataDir": "data/result-completion-projects"
+      },
+      "Q02-A": {
+        "modelCalls": 54,
+        "completedShots": 4,
+        "stage": "shot-4",
+        "status": "MODEL_BUDGET"
+      }
+    },
+    "inputInventory": [
+      {
+        "id": "H01",
+        "input": {
+          "id": "H01",
+          "files": [
+            "assets/commerce-showcase/moka-brewing.webm"
+          ],
+          "message": "把提供材料讲清楚，60秒，只用已有信息。输出横屏1080p。"
+        },
+        "files": [
+          {
+            "path": "assets/commerce-showcase/moka-brewing.webm",
+            "exists": true,
+            "sha256": "c7416059f082eec0e406d5b4a4ed3c1d0d65af30a08e4dc874ffdc63a7d1062c"
+          }
+        ],
+        "status": "available"
+      },
+      {
+        "id": "H02",
+        "input": {
+          "id": "H02",
+          "files": [
+            "assets/creative-observation/01.jpg",
+            "assets/creative-observation/02.jpg",
+            "assets/creative-observation/04.jpg"
+          ],
+          "message": "用这三张器具照片做45秒观察介绍，照片并未确认为同款，分别说明可见的外观与部件，不编造使用实拍或性能。文字和图片要有层级。横屏1080p，静音。",
+          "scope": "Existing photos are observation test material, not approved marketing assets."
+        },
+        "files": [
+          {
+            "path": "assets/creative-observation/01.jpg",
+            "exists": true,
+            "sha256": "a9a0b7ea6c80d3338baa7fff46742aba726971dc6d43ce504590331db50df201"
+          },
+          {
+            "path": "assets/creative-observation/02.jpg",
+            "exists": true,
+            "sha256": "d597c7c2b77f2af8945fe9c517e4dfd47e3019cb7e1ddbf268e24a535429a17a"
+          },
+          {
+            "path": "assets/creative-observation/04.jpg",
+            "exists": true,
+            "sha256": "5dadf46e6afcf20e354dce0d0c0323b307006efe7095008b14f0a7252961bd12"
+          }
+        ],
+        "status": "available"
+      },
+      {
+        "id": "H03",
+        "input": {
+          "id": "H03",
+          "files": [
+            "assets/commerce-showcase/moka-brewing.webm"
+          ],
+          "message": "用操作片做45秒介绍，保留动作和原声。不编造参数，不加配音或价格。横屏1080p。"
+        },
+        "files": [
+          {
+            "path": "assets/commerce-showcase/moka-brewing.webm",
+            "exists": true,
+            "sha256": "c7416059f082eec0e406d5b4a4ed3c1d0d65af30a08e4dc874ffdc63a7d1062c"
+          }
+        ],
+        "status": "available"
+      },
+      {
+        "id": "H04",
+        "input": {
+          "id": "H04",
+          "files": [],
+          "message": "做15秒纯文字排版功能测试，保留全部以下演示文案，不添加照片。第一秒显示“演示样例 · ¥199”。条件：“仅限指定款式；活动有效期以店铺页面为准；优惠不可与其他活动叠加；实际支付金额请以结算页面为准。”最后显示“下单前请核对款式与适用条件”。中文较长时重新排版，横屏1080p，静音。",
+          "scope": "Synthetic typography fixture, not an actual offer."
+        },
+        "files": [],
+        "status": "available"
+      },
+      {
+        "id": "H05",
+        "input": {
+          "id": "H05",
+          "files": [
+            "assets/creative-observation/01.jpg",
+            "assets/creative-observation/02.jpg",
+            "assets/creative-observation/04.jpg"
+          ],
+          "message": "只介绍第二张照片里出现的器具，其他照片没有确认是同型号，不要凭相似外观混用。做15秒静音横屏展示，只写照片能够证明的内容。",
+          "scope": "Observation correctness fixture, not marketing approval."
+        },
+        "files": [
+          {
+            "path": "assets/creative-observation/01.jpg",
+            "exists": true,
+            "sha256": "a9a0b7ea6c80d3338baa7fff46742aba726971dc6d43ce504590331db50df201"
+          },
+          {
+            "path": "assets/creative-observation/02.jpg",
+            "exists": true,
+            "sha256": "d597c7c2b77f2af8945fe9c517e4dfd47e3019cb7e1ddbf268e24a535429a17a"
+          },
+          {
+            "path": "assets/creative-observation/04.jpg",
+            "exists": true,
+            "sha256": "5dadf46e6afcf20e354dce0d0c0323b307006efe7095008b14f0a7252961bd12"
+          }
+        ],
+        "status": "available"
+      },
+      {
+        "id": "H06",
+        "input": {
+          "id": "H06",
+          "files": [
+            "assets/creative-observation/02.jpg"
+          ],
+          "message": "只有一张照片和足量批准说明，做90秒解释型视频。",
+          "status": "blocked-input",
+          "blocker": "No approved long-form product copy was supplied. Do not invent it to satisfy the duration."
+        },
+        "files": [
+          {
+            "path": "assets/creative-observation/02.jpg",
+            "exists": true,
+            "sha256": "d597c7c2b77f2af8945fe9c517e4dfd47e3019cb7e1ddbf268e24a535429a17a"
+          }
+        ],
+        "status": "missing"
+      },
+      {
+        "id": "H07",
+        "input": {
+          "id": "H07",
+          "files": [
+            "assets/commerce-showcase/moka-brewing.webm"
+          ],
+          "message": "从这段长视频里找完整操作，剪成一分钟。保留原声，少量中文提示，横屏1080p；不能把其他器具当同一商品，不加配音。"
+        },
+        "files": [
+          {
+            "path": "assets/commerce-showcase/moka-brewing.webm",
+            "exists": true,
+            "sha256": "c7416059f082eec0e406d5b4a4ed3c1d0d65af30a08e4dc874ffdc63a7d1062c"
+          }
+        ],
+        "status": "available"
+      },
+      {
+        "id": "H08",
+        "input": {
+          "id": "H08",
+          "files": [],
+          "message": "制作15秒静音字体测试。逐字保留“演示品牌 DEMO STUDIO”和“观察 · 理解 · 制作 / Observe · Understand · Create”，把中文和英文排成清晰层级，统一字体；这是排版样例，不声明真实商标。1920×1080。",
+          "scope": "Synthetic bilingual typography fixture."
+        },
+        "files": [],
+        "status": "available"
+      },
+      {
+        "id": "H09",
+        "input": {
+          "id": "H09",
+          "files": [
+            "assets/commerce-showcase/moka-brewing.webm"
+          ],
+          "message": "把这些资料做成60秒静音视频，不加音乐和配音。操作过程看得懂，适量文字，不能虚构价格参数，也不要重复片段填时间。1920×1080。"
+        },
+        "files": [
+          {
+            "path": "assets/commerce-showcase/moka-brewing.webm",
+            "exists": true,
+            "sha256": "c7416059f082eec0e406d5b4a4ed3c1d0d65af30a08e4dc874ffdc63a7d1062c"
+          }
+        ],
+        "status": "available"
+      },
+      {
+        "id": "H10",
+        "input": {
+          "id": "H10",
+          "files": [],
+          "package": "data/commerce-next-current/4b4696cc-a5fb-488a-a218-764e6cfedc83/versions/job-0edc7207-bb55-47c5-8623-75cf7968fc2f/history.zip",
+          "message": "只把第三段“整理粉面”改为“整理咖啡粉面”，素材、声音、其他文字和时长保持。",
+          "kind": "edit"
+        },
+        "files": [
+          {
+            "path": "data/commerce-next-current/4b4696cc-a5fb-488a-a218-764e6cfedc83/versions/job-0edc7207-bb55-47c5-8623-75cf7968fc2f/history.zip",
+            "exists": false,
+            "sha256": null
+          }
+        ],
+        "status": "missing"
+      },
+      {
+        "id": "Q01",
+        "status": "missing-confirmed-input",
+        "detail": "Existing observation photos are not confirmed same-product marketing inputs; no matching approved facts found in referenced project inputs."
+      },
+      {
+        "id": "Q03",
+        "status": "missing-confirmed-input",
+        "detail": "No confirmed mixed product specifications/copy mapped to original Q03."
+      },
+      {
+        "id": "Q04",
+        "status": "missing-approved-speech-or-script",
+        "detail": "Original approved narration or sufficiently long authorized talking-head input not found in project references."
+      },
+      {
+        "id": "Q05",
+        "status": "needs-original-long-materials",
+        "detail": "The Q02 source exists; sufficiency and approved supporting content for the original 180-second task have not been established."
+      },
+      {
+        "id": "Q06",
+        "status": "missing-confirmed-offer",
+        "detail": "Confirmed product price, currency, dates and terms are not supplied; H04 synthetic copy cannot substitute."
+      }
     ],
-    "updatedAt": "2026-09-12T17:20:17.407907+00:00"
-  }
+    "current": [
+      {
+        "case": "Q02-A",
+        "projectId": "8005d346-869a-4123-9809-e0911c336907",
+        "jobId": "job-c2c88cb0-d8ad-4da3-a3a8-3f09a4baf525",
+        "runId": "2b63a92e-564a-408e-b3ff-7b58edcfa01a",
+        "status": "running",
+        "runStatus": "running",
+        "stage": "assemble",
+        "modelCalls": 70,
+        "maxModelCalls": 84,
+        "completionReserve": 6,
+        "checkpoints": [
+          "brief",
+          "observe",
+          "resources",
+          "narration",
+          "story",
+          "timing",
+          "shot-0",
+          "shot-1",
+          "direction-preview",
+          "shot-2",
+          "shot-3",
+          "shot-4",
+          "shot-5"
+        ],
+        "completedShots": 6,
+        "reason": null,
+        "currentRevisionId": null,
+        "source": "data/result-completion-projects/8005d346-869a-4123-9809-e0911c336907/versions/job-c2c88cb0-d8ad-4da3-a3a8-3f09a4baf525/runs/2b63a92e-564a-408e-b3ff-7b58edcfa01a.json",
+        "updatedAt": "2026-09-13T03:59:26.691Z",
+        "next": "等待当前正式任务完成；保留累计计数",
+        "server": "http://127.0.0.1:3024"
+      }
+    ],
+    "updatedAt": "2026-09-13T03:59:31.080Z",
+    "startupCommand": "python3 start.py backend",
+    "startupConfig": "config/start.local.json",
+    "platformEvidence": {
+      "darwin": "outputs/release-closeout/isolation-tests.log",
+      "deepWorkspace": "outputs/release-closeout/deep-workspace.log",
+      "windows": "not verified; remote job log API returned 403 requiring repository admin rights",
+      "linux": "not verified on Linux; remote job remains failure"
+    },
+    "preservedArtifacts": [
+      {
+        "path": "data/result-completion-projects/8005d346-869a-4123-9809-e0911c336907/versions/job-c2c88cb0-d8ad-4da3-a3a8-3f09a4baf525/run-input.json",
+        "sha256": "fec941a41d03ee6ce1a12d019951580dd36cce022748d3e7c9491746a6470485"
+      },
+      {
+        "path": "data/result-completion-projects/8005d346-869a-4123-9809-e0911c336907/versions/job-c2c88cb0-d8ad-4da3-a3a8-3f09a4baf525/story-plan.json",
+        "sha256": "92aa01b8dd54d65827e0aba3b13853ee65c23e39c8a07812e6218c5dcab82798"
+      },
+      {
+        "path": "data/result-completion-projects/8005d346-869a-4123-9809-e0911c336907/versions/job-c2c88cb0-d8ad-4da3-a3a8-3f09a4baf525/timing-plan.json",
+        "sha256": "ac7c9721f00b6d50bc8d37b5ba217be4d6b9abace5c1f518ae89bc9b2bac7bda"
+      },
+      {
+        "path": "data/result-completion-projects/8005d346-869a-4123-9809-e0911c336907/versions/job-c2c88cb0-d8ad-4da3-a3a8-3f09a4baf525/scene-001.json",
+        "sha256": "a935f35d7b8e4195bed09d860451174b2a1848656daabcedd1623ec060403f2c"
+      },
+      {
+        "path": "data/result-completion-projects/8005d346-869a-4123-9809-e0911c336907/versions/job-c2c88cb0-d8ad-4da3-a3a8-3f09a4baf525/scene-002.json",
+        "sha256": "9748265be57c81fa117fc3aa0b61fe01af5499192a15d2ba31d3bf29c22e1c80"
+      },
+      {
+        "path": "data/result-completion-projects/8005d346-869a-4123-9809-e0911c336907/versions/job-c2c88cb0-d8ad-4da3-a3a8-3f09a4baf525/scene-003.json",
+        "sha256": "177d447c0885ae5e8ad1db314d68c39a42314173087a204e659c32525ba0eba5"
+      },
+      {
+        "path": "data/result-completion-projects/8005d346-869a-4123-9809-e0911c336907/versions/job-c2c88cb0-d8ad-4da3-a3a8-3f09a4baf525/scene-004.json",
+        "sha256": "1d079afe6e7830f6797b98bda3edb76ef837e6425e45b237e00f1d1e27f5f05f"
+      },
+      {
+        "path": "data/result-completion-projects/8005d346-869a-4123-9809-e0911c336907/versions/job-c2c88cb0-d8ad-4da3-a3a8-3f09a4baf525/scene-005.json",
+        "sha256": "d5e6cb254b427d2610231d56c1090a7c34c408cb97b4cbfa2b515d7d053a06a4"
+      }
+    ],
+    "verification": {
+      "core": "outputs/release-closeout/core.log",
+      "browser": "outputs/release-closeout/browser.log",
+      "isolation": "outputs/release-closeout/isolation-tests.log",
+      "sourceRecovery": "outputs/release-closeout/source-recovery-tests.log",
+      "budget": "scripts/test-agent-kernel.mjs",
+      "delivery": "outputs/release-closeout/targeted.log"
+    },
+    "webuiEvidence": {
+      "surface": "Codex in-app browser; real local WebUI",
+      "projectId": "8005d346-869a-4123-9809-e0911c336907",
+      "actions": [
+        "opened existing project at 3024",
+        "clicked explicit total budget 84 with reserve 6",
+        "clicked same-run resume",
+        "observed fifth scene completed",
+        "restarted through start.py after diagnosed model output failures",
+        "observed persisted budgets 58/84 and 67/84 after restart",
+        "resumed without database state injection"
+      ],
+      "runId": "2b63a92e-564a-408e-b3ff-7b58edcfa01a",
+      "latestStatusEvidence": "outputs/release-closeout/current-status.json",
+      "visualScreenshots": "Tool conversation screenshot at five completed scenes; later final screenshots pending"
+    }
+  },
+  "history": [
+    {
+      "kind": "pre-release-closeout-stale-state",
+      "archivedAt": "2026-09-13T03:45:56.450Z",
+      "active": [
+        {
+          "case": "Q02-A",
+          "projectId": "8005d346-869a-4123-9809-e0911c336907",
+          "jobId": "job-c2c88cb0-d8ad-4da3-a3a8-3f09a4baf525",
+          "runId": "2b63a92e-564a-408e-b3ff-7b58edcfa01a",
+          "status": "recoverable",
+          "stage": "shot-3 / fourth-scene static source gap",
+          "modelCalls": 43,
+          "server": "http://127.0.0.1:3024",
+          "serverStatus": "stopped after closeout turn; artifacts preserved"
+        }
+      ],
+      "latestRun": {
+        "projectId": "8005d346-869a-4123-9809-e0911c336907",
+        "jobId": "job-c2c88cb0-d8ad-4da3-a3a8-3f09a4baf525",
+        "runId": "2b63a92e-564a-408e-b3ff-7b58edcfa01a",
+        "status": "recoverable",
+        "stage": "shot-3",
+        "modelCalls": 43,
+        "checkpoints": [
+          "brief",
+          "observe",
+          "resources",
+          "narration",
+          "story",
+          "timing",
+          "shot-0",
+          "shot-1",
+          "direction-preview",
+          "shot-2"
+        ],
+        "reason": "Scene 3 source mismatch was corrected and scene 3 passed. Scene 4 independently failed source evidence twice: no scale/injection action in available footage; source-replan budget exhausted. Run is recoverable with all prior checkpoints.",
+        "next": "Do not retry scene 4 without new source evidence or a changed user request. Preserve run; finish non-dependent regression checks and report material gap."
+      },
+      "correctedBlocker": {
+        "case": "Q02-A",
+        "status": "corrected_agent_blocker",
+        "runId": "2b63a92e-564a-408e-b3ff-7b58edcfa01a",
+        "stage": "shot-4",
+        "modelCalls": 54,
+        "evidence": [
+          "failed-keyframe-3-0.json",
+          "failed-keyframe-3-1.json"
+        ],
+        "finding": "两次失败选段不能证明素材不存在；已有素材覆盖可观察注液动作。当前恢复路径采用中性“注入液体”，未宣称用户硬要求，R6 issues=[]。",
+        "nextAction": "继续同一 run 的剩余镜头与导出；若预算封顶保存精确 checkpoint。",
+        "userRequestHasWeighingInjection": false,
+        "requirementSource": "Agent story-plan 自行安排，原始用户请求未要求称量或注液",
+        "existingEvidence": [
+          "observations.json:105.750–145.750秒电子秤与注液",
+          "dense-evidence.json:105–150秒",
+          "evidence/detail-contact-3.jpg"
+        ],
+        "updatedAt": "2026-09-12T17:20:17.407907+00:00"
+      },
+      "closeoutEvidence": {
+        "instructions": "docs/hyperframe-final-closeout/FINAL_CLOSEOUT.md",
+        "baseHead": "44cf87d55070d28d84430f2f81782b843a937b2f",
+        "service": "http://127.0.0.1:3024",
+        "core": "outputs/result-completion/closeout-core.log",
+        "isolation": "outputs/result-completion/closeout-final-targeted.log",
+        "scope": "frozen unchanged",
+        "notClosed": [
+          "full static/dynamic edit through formal WebUI version",
+          "all formal long videos and I/H cases",
+          "per-film AI review and native package reopen",
+          "full sound playback: standalone host AudioContext also stalls; no listened claim",
+          "original Q01 photos/confirmed facts and Q04 approved speech/script location awaiting user",
+          "Q02-A scene 4 lacks evidence for required weighing/injection action; run recoverable at shot-3",
+          "rerun browser conversation suite after cleanup timeout fix; prior standalone recheck passed core assertions"
+        ],
+        "protocol": "outputs/result-completion/closeout-protocol-delivery-latest.log",
+        "productionRouting": "outputs/result-completion/closeout-production-routing.log",
+        "mediaHttp": "outputs/result-completion/closeout-media-http.json",
+        "fixturePlayback": "outputs/result-completion/closeout-fixture-playback.json",
+        "webuiResume": "outputs/result-completion/q02-webui-resume-latest.json",
+        "hostAudioClock": "outputs/result-completion/host-audio-clock.json",
+        "browserFinal": "outputs/result-completion/closeout-browser-final.log",
+        "browserFinalStatus": "interrupted_after_stuck_test_process",
+        "targeted": "outputs/result-completion/closeout-final-targeted.log",
+        "targetedStatus": "47 passed / 0 failed / 1 skipped (48 tests)"
+      }
+    }
+  ]
 }
