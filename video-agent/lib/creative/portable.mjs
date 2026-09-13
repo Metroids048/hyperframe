@@ -34,7 +34,11 @@ const isProductionRecord=name=>/^(?:scene-\d+|quality-round-\d+(?:-batch-\d+)?|f
 async function productionFiles(dir,prefix=''){const found=[];for(const entry of await fs.readdir(path.join(dir,prefix),{withFileTypes:true})){const name=prefix+entry.name;if(entry.isFile()&&isProductionRecord(name))found.push(name);else if(entry.isDirectory()&&(prefix||/^(?:resources|receipts|runs|source-history|stage-cache|implementations|keyframes|edit-review-\d+|review-\d+)$/.test(entry.name)))found.push(...await productionFiles(dir,name+'/'));}return found;}
 
 /** Immutable, content-addressed ZIP64 snapshot. Runtime scripts/fonts are dependencies, not imported code. */
-export async function exportCreativeHistory(root,projectDir,snapshot,selectedRevisionId,output,{signal}={}){
+export function historyAssetFile(root,assetRoot,name){
+  insist(typeof name==='string'&&!path.isAbsolute(name),'输入素材路径无效','PACKAGE_PATH');
+  return relativeFile(assetRoot,path.relative(assetRoot,path.resolve(root,name)).replaceAll('\\','/'));
+}
+export async function exportCreativeHistory(root,projectDir,snapshot,selectedRevisionId,output,{signal,assetRoot=root}={}){
   const blobs=new Map();let logicalBytes=0;
   async function add(file){check(signal);const st=await regular(file),hash=await fileHash(file,signal);logicalBytes+=st.size;if(!blobs.has(hash))blobs.set(hash,{file,size:st.size});return hash;}
   const revisions=[];
@@ -48,7 +52,7 @@ export async function exportCreativeHistory(root,projectDir,snapshot,selectedRev
     revisions.push({...revision,directory:undefined,packaged:undefined,files,rendered:Boolean(files['commerce-final.mp4']),fontFamily:document.design.fontFamily,...(document.fontResources?.length?{fontResources:document.fontResources}:{})});
   }
   const assets=[];
-  for(const asset of snapshot.assets){const file=relativeFile(root,asset.path),extension=path.extname(file).toLowerCase();insist(assetKindFromName(file)===asset.kind,'素材类型无效','PACKAGE_INVALID');assets.push({...asset,path:undefined,blob:await add(file),extension});}
+  for(const asset of snapshot.assets){const file=historyAssetFile(root,assetRoot,asset.path),extension=path.extname(file).toLowerCase();insist(assetKindFromName(file)===asset.kind,'素材类型无效','PACKAGE_INVALID');assets.push({...asset,path:undefined,blob:await add(file),extension});}
   const auditions=[];
   for(const voice of snapshot.auditions||[])auditions.push({...voice,path:undefined,blob:await add(relativeFile(projectDir,voice.path))});
   const metadata={format:'hyperframe-creative-history',schemaVersion:1,capturedAt:new Date().toISOString(),selectedRevisionId,dependencies:await dependencies(root),project:{title:snapshot.title,createdAt:snapshot.createdAt,request:snapshot.request,messages:snapshot.messages,redo:snapshot.redo,jobs:snapshot.jobs.map(j=>({id:j.id,kind:j.kind,status:j.status,baseRevisionId:j.baseRevisionId,revisionId:j.revisionId,revisionIds:j.revisionIds,createdAt:j.createdAt,completedAt:j.completedAt,summary:j.summary,error:j.error,code:j.code,durationMs:j.durationMs,runId:j.runId,checkpoints:j.checkpoints,modelCalls:j.modelCalls,qualitySummary:j.qualitySummary})),sourceProjectId:snapshot.id,preset:snapshot.preset,confirmedVoice:snapshot.confirmedVoice?{...snapshot.confirmedVoice,path:undefined}:undefined},assets,auditions,revisions};

@@ -28,3 +28,6 @@ S2 completed generation at 19:57:52 CST, export/package at 20:00:33 CST. S3 land
 S1/S2/S3 current MP4s serve HTTP206 and match recorded SHA256. Fresh S2 full decode passed; source overlap 1.5s across scenes 2/3 confirmed. Scoped repair submitted via real WebUI; no new revision yet, so last effective production timestamps remain unchanged.
 
 S2 latest effective edit progress: 2026-09-13 23:29:30 CST, R7 returned four valid scoped source/timing operations; candidate inspected, source overlap removed, 45s landscape and no audio preserved. R6 visual review pending. Latest check: 2026-09-13T15:32:18.496Z. Submission/check time is not substituted for progress time.
+
+## 2026-09-13 23:43:27 Asia/Shanghai — S2 revised MP4 delivered
+S2 current rev-178e717adb7e7ea9: 45s 1920x1080, 1350 frames, no audio. Source overlap removed, scene1/3 plates moved to left margin without changing media/timing from prior repair. Export full decode passed; no black/freeze/repeated-source intervals. Original versions retained. Full actual MP4 browser playback and remaining acceptance continue; no human review claimed.

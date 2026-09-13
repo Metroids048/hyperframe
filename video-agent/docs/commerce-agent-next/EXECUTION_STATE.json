@@ -938,24 +938,52 @@
     }
   },
   "liveAudit": {
-    "checkedAt": "2026-09-13T15:32:18.494Z",
+    "checkedAt": "2026-09-13T15:45:15.354Z",
     "previousEstimate": {
       "window": "2026-09-13 23:20 to 2026-09-14 00:00 Asia/Shanghai",
       "status": "withdrawn",
       "reason": "Prior report used stale ledger; S2 and S3 were already exported."
     },
     "S2": {
-      "status": "exported-content-review-and-scoped-repair",
-      "lastEffectiveProductionAt": "2026-09-13T15:29:30.523Z",
-      "revision": "rev-26d9d6f067b10442",
-      "finding": "45s 1920x1080 MP4 hash matches media report; HTTP206; fresh full decode passed; 1.5s source overlap across scenes2/3",
-      "action": "R7 returned 4 scoped operations; candidate preserves scenes1/2, empty audio, 1920x1080 and1350 frames; R6 running, no new published revision yet"
+      "status": "exported-two-scoped-repairs-media-passed",
+      "lastEffectiveProductionAt": "2026-09-13T15:43:27.082Z",
+      "revision": "rev-178e717adb7e7ea9",
+      "finding": "45s 1920x1080 silent; fresh export fullDecode passed; repeatedSource [], blackIntervals [], freezeIntervals []; reviewed actual corrected frame shows full portrait video and plate in left margin",
+      "action": "Actual final MP4 browser playback in progress; original versions retained",
+      "completedRepair": {
+        "modelCalls": 2,
+        "startedAt": "2026-09-13T15:27:17.822Z",
+        "completedAt": "2026-09-13T15:32:10.575Z",
+        "exportDurationMs": 112319,
+        "exportedAt": "2026-09-13T15:34:45.083Z"
+      },
+      "secondRepair": {
+        "jobId": "job-7d0c0427-19ac-4fdb-a531-f55553e35cec",
+        "completedAt": "2026-09-13T15:41:09.829Z",
+        "modelCalls": 2,
+        "exportJobId": "job-ae5eb173-d072-44e3-83b0-07c719e74a72",
+        "exportedAt": "2026-09-13T15:43:27.082Z"
+      }
     },
     "S3": {
       "status": "exported-content-review-pending",
       "lastEffectiveProductionAt": "2026-09-13T13:01:27.102Z",
       "revision": "rev-a3db4e5b49edb4b8",
       "finding": "60s landscape current version; prior portrait version and two failed edits retained; MP4 hash matches media report; HTTP206"
+    },
+    "B3": {
+      "status": "scoped-style-edit-verified",
+      "revision": "rev-64a6ae7c071e9a5a",
+      "completedAt": "2026-09-13T15:51:33.203Z",
+      "evidence": "Only node-f84f69df199eff11 color changed; actual frame reviewed; scenes/audio unchanged; 900 frames; earlier B1 text retained"
+    },
+    "B6": {
+      "status": "clean-directory-import-passed-edit-pending",
+      "root": "/tmp/hf-b6-20260913",
+      "projectId": "65b8817d-f61b-48ef-bb7b-f0bf235ee16f",
+      "port": 3038,
+      "download": "Browser click performed but saved file unverified; exact HTTP download hash verified, browser-download acceptance remains pending",
+      "revisions": 3
     }
   }
 }

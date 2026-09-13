@@ -237,10 +237,10 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
         }
       }else if(job.kind==='export'){
         const r=revision(p,job.baseRevisionId),dir=versionDirectory(p,r);job.stage='导出所选版本';await save(p);
-        const release=await acquireRender({signal});try{const result=await renderCommerceProject({outputDir:path.relative(root,dir).replaceAll('\\','/'),signal,onProgress:async progress=>{job.renderProgress={...progress,revisionId:r.id};job.stage='渲染画面 '+progress.percent+'%（'+progress.completed+'/'+progress.total+' 帧）';await save(p);},onStage:async stage=>{job.stage=stage;await save(p);}},{root});r.mediaReview=result.mediaReview;job.qualitySummary=result.mediaReview;}finally{release();}
+        const release=await acquireRender({signal});try{const result=await renderCommerceProject({outputDir:r.directory,signal,onProgress:async progress=>{job.renderProgress={...progress,revisionId:r.id};job.stage='渲染画面 '+progress.percent+'%（'+progress.completed+'/'+progress.total+' 帧）';await save(p);},onStage:async stage=>{job.stage=stage;await save(p);}},{root,outputRoot:directory(p)});r.mediaReview=result.mediaReview;job.qualitySummary=result.mediaReview;}finally{release();}
         r.rendered=true;job.revisionId=r.id;
         job.stage='打包素材与完整历史';await save(p);
-        job.packageEvidence=await exportCreativeHistory(root,directory(p),job.snapshot||structuredClone(p),r.id,path.join(dir,'history.zip'),{signal});r.historyPackaged=true;
+        job.packageEvidence=await exportCreativeHistory(root,directory(p),job.snapshot||structuredClone(p),r.id,path.join(dir,'history.zip'),{signal,assetRoot:directory(p)});r.historyPackaged=true;
       }
       job.status='complete';delete job.code;delete job.error;job.completedAt=now();p.messages.push({role:'assistant',text:job.kind==='export'?'已导出指定版本。':job.summary||'预览检查通过，新版本已保存。',revisionId:job.revisionId,time:now()});
     }catch(e){job.status=signal.aborted?'cancelled':e.code==='NEEDS_INPUT'?'needs_user':job.runId?'recoverable':'failed';job.error=signal.aborted?'已取消，上一有效版本保留':e.message;job.code=e.code||'CREATIVE_JOB_FAILED';job.gaps=e.gaps||job.gaps;job.completedAt=now();p.messages.push({role:'assistant',text:job.error,time:now()});}

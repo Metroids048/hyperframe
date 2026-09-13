@@ -159,8 +159,9 @@ export async function patchCommerceProject(input, {root = VIDEO_AGENT_ROOT} = {}
   return {...status, previousRevisionId};
 }
 
-export async function renderCommerceProject(input, {root = VIDEO_AGENT_ROOT} = {}) {
-  const outputDir = await resolveOutputDir(root, input.outputDir);
+export async function renderCommerceProject(input, {root = VIDEO_AGENT_ROOT, outputRoot = root} = {}) {
+  // The service supplies the owned project root; application resources still use root.
+  const outputDir = await resolveOutputDir(outputRoot, input.outputDir);
   const {document} = await readNativeProject(outputDir);
   const checkLog = await runHyperFrames(outputDir, 'check', [], {signal:input.signal});
   await fs.writeFile(path.join(outputDir, 'check.log'), checkLog);
