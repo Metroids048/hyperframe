@@ -1,3 +1,4 @@
+import {validateTextStyle} from './text-style.mjs';
 import {rebaseTextStyles} from './rich-text.mjs';
 import {bindResourceChecks} from './resource-receipts.mjs';
 import {insist, stableId} from './contracts.mjs';
@@ -8,7 +9,7 @@ import {cutNativeScene} from './cuts.mjs';
 import {customParameters,compileCustomSource} from './custom-source.mjs';
 import {alignSourceAudio} from './source-audio.mjs';
 
-const allowed = new Set(['update_text', 'update_effect_params', 'set_scene_effect', 'replace_asset', 'set_scene_duration', 'reorder_scenes', 'set_transition', 'change_output','lock_scene','unlock_scene','update_media','retime_document']);
+const allowed = new Set(['update_text_style','update_text', 'update_effect_params', 'set_scene_effect', 'replace_asset', 'set_scene_duration', 'reorder_scenes', 'set_transition', 'change_output','lock_scene','unlock_scene','update_media','retime_document']);
 for(const type of ['add_audio','update_audio','remove_audio','split_scene','trim_scene','update_caption','set_captions','update_custom_source'])allowed.add(type);
 
 export function applyDocumentPatch(input, operations, assets) {
@@ -56,6 +57,11 @@ export function applyDocumentPatch(input, operations, assets) {
       const durations=flexible.length?solveSceneDurations(remaining,flexible.length,0,flexible.map(s=>s.durationFrames)):[];
       for(const scene of document.scenes){const old=scene.durationFrames;scene.durationFrames=fixed.get(scene.id)??durations[flexible.indexOf(scene)];for(const node of document.nodes.filter(n=>n.sceneId===scene.id))if(node.localDurationFrames===old)node.localDurationFrames=scene.durationFrames;}
       for(const audio of document.audioGraph||[])audio.durationFrames=Math.min(audio.durationFrames,op.durationFrames-audio.startFrame);
+    }
+    if(op.type==='update_text_style'){
+      const node=document.nodes.find(n=>n.id===op.nodeId);insist(node?.kind==='text','目标文字节点不存在','PATCH_TARGET_MISSING');
+      validateTextStyle(op.params);insist(Object.keys(op.params||{}).length>0,'文字样式不能为空','INVALID_TEXT_STYLE');
+      node.params={...node.params,style:{...node.params.style,...op.params}};
     }
     if (op.type === 'update_text') {
       const node = document.nodes.find(n => n.id === op.nodeId);
@@ -153,6 +159,15 @@ export function applyDocumentPatch(input, operations, assets) {
       insist(Number.isInteger(width) && Number.isInteger(height) && width >= 64 && height >= 64 && width <= 1920 && height <= 1920 && Math.min(width, height) <= 1080 && width % 2 === 0 && height % 2 === 0, '输出尺寸无效', 'INVALID_OUTPUT');
       document.output = {...document.output, width, height};
       document.design = {...document.design, output: {width, height}};
+      // Managed video is rendered in an independent layer. Preserve any
+      // declared local text panels, but never let a full-canvas scene plate
+      // hide that video after an aspect-ratio change.
+      for (const bundle of document.sourceBundles || []) {
+        const scene = document.scenes.find(s => s.id === bundle.sceneId);
+        if (scene && document.nodes.some(n => n.sceneId === scene.id && n.kind === 'video')) {
+          bundle.css = String(bundle.css || '').replace(/(#scene-bg\{[^}]*?)background:(?!transparent)[^;}]*(;?)/, '$1background:transparent$2');
+        }
+      }
     }
   }
   recomputeSceneStarts(document);

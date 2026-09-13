@@ -123,7 +123,10 @@ export function validateInferredRequest(request,inferred){
   for(const [i,fact] of inferred.facts.entries())insist(fact.userQuote&&request.message.includes(fact.userQuote)&&fact.userQuote.includes(fact.text),`fact-${i+1} 的 text 与 userQuote 必须逐字摘自用户消息；不要把制作约束改写成商品事实`,'UNKNOWN_FACT');
   insist(!inferred.price||request.message.includes(inferred.price),'价格没有用户输入依据','UNKNOWN_FACT');
   insist(!inferred.cta||request.message.includes(inferred.cta),'结尾文案没有用户输入依据','UNKNOWN_FACT');
-  validateOutput(inferred.output);return inferred;
+  const output=validateOutput(inferred.output),message=request.message;
+  if(/横屏|宽屏|landscape/i.test(message))insist(output.width>output.height,'用户要求横屏，导演输出必须为宽大于高','OUTPUT_ORIENTATION');
+  if(/竖屏|portrait/i.test(message))insist(output.height>output.width,'用户要求竖屏，导演输出必须为高大于宽','OUTPUT_ORIENTATION');
+  inferred.output=output;return inferred;
 }
 
 export function validateObservations(assets,observations,{requiredAssetIds=[]}={}){
@@ -131,7 +134,7 @@ export function validateObservations(assets,observations,{requiredAssetIds=[]}={
   insist(Array.isArray(observations)&&observations.length<=Math.max(1,assets.length)*12&&requiredAssetIds.every(id=>observations.some(o=>o.assetId===id)),'每个被使用的素材都需要真实观察记录；未获准使用的素材可以不观察','MISSING_OBSERVATION');
   for(const observation of observations){
     insist(byId[observation.assetId]&&Number.isFinite(observation.confidence)&&observation.confidence>=0&&observation.confidence<=1,'观察来源或置信度无效','INVALID_OBSERVATION');
-    for(const key of ['subjectBox','safeCrop']){const box=observation[key];insist(Array.isArray(box)&&(box.length===0||box.length===4&&box.every(v=>Number.isFinite(v)&&v>=0&&v<=1)&&box[2]>0&&box[3]>0&&box[0]+box[2]<=1.001&&box[1]+box[3]<=1.001),'观察取景框必须为有效的归一化[x,y,width,height]，不是[x1,y1,x2,y2]','INVALID_OBSERVATION');}
+    for(const key of ['subjectBox','safeCrop']){const box=observation[key];insist(Array.isArray(box)&&(box.length===0||box.length===4&&box.every(v=>Number.isFinite(v)&&v>=0&&v<=1)&&box[2]>0&&box[3]>0&&box[0]+box[2]<=1.001&&box[1]+box[3]<=1.001),`观察 ${observation.assetId}.${key}=${JSON.stringify(box)} 必须为归一化[x,y,width,height]：width>0、height>0、x+width<=1、y+height<=1。当前右边界=${box?.[0]+box?.[2]}，下边界=${box?.[1]+box?.[3]}。例如左上(0.4,0.25)、右下(0.63,0.73)应输出[0.4,0.25,0.23,0.48]；无法确认可输出[]，不得猜测。`,'INVALID_OBSERVATION');}
     insist([...observation.sameProductAs,...observation.differentProductFrom].every(id=>byId[id]&&id!==observation.assetId),'商品关系引用了未知素材','INVALID_OBSERVATION');
   }
 }

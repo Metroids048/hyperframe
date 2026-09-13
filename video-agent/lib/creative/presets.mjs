@@ -25,7 +25,7 @@ async function originalInputs(root,entry){
 }
 export async function readCreativePresets(root){
   const definitions=JSON.parse(await fs.readFile(path.join(root,'examples/commerce/presets.json'),'utf8'));
-  const ready=[];
+  const ready=[];ready.unavailable=[];
   for(const entry of definitions){
     const directory=safeRelativePath(root,entry.directory);
     try{
@@ -37,7 +37,7 @@ export async function readCreativePresets(root){
       if(entry.poster){const posterPath=safeRelativePath(root,entry.poster);poster='data:image/jpeg;base64,'+(await fs.readFile(posterPath)).toString('base64');}
       const originalAssets=await originalInputs(root,entry);
       ready.push({...entry,poster,directory,document,assets,originalAssets,sha256:hash.digest('hex')});
-    }catch(error){console.warn(`演示预设 ${entry.id} 暂不可用：${error.message}`);}
+    }catch(error){ready.unavailable.push({id:entry.id,title:entry.title,category:entry.category||'基础示例',status:'unavailable',reason:error.code==='ENOENT'?'本机缺少示例工程或原始素材，请准备对应示例包。':error.message});console.warn(`演示预设 ${entry.id} 暂不可用：${error.message}`);}
   }
   return ready;
 }

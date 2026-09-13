@@ -74,6 +74,25 @@ test('animation-only output cannot rewrite approved static layout or object mapp
  for(const k of ['html','css','objects'])assert.deepEqual(animated[k],keyframe[k]);assert.equal(keyframe.timeline,'');
  assert.throws(()=>animateKeyframe(keyframe,{timeline:'',css:'#a{opacity:0}'}),{code:'KEYFRAME_CHANGED'});
 });
+test('two delayed action captions retain valid independent animation statements',()=>{
+ const keyframe={contractVersion:2,html:'<h1 id="first"></h1><h2 id="second"></h2>',css:'#first{font-size:64px}#second{font-size:48px}',objects:[{elementId:'first',ref:'text-1'},{elementId:'second',ref:'text-2'}],timeline:'',motionTargets:[],parameters:[],tokens:design};
+ const animation={timeline:'tl.fromTo("#first",{opacity:0,y:24},{opacity:1,y:0,duration:0.5},7.2);tl.fromTo("#second",{opacity:0,y:20},{opacity:1,y:0,duration:0.5},10.8);',parameters:[],motionTargets:['first','second']};
+ const animated=animateKeyframe(keyframe,animation);
+ const staged={...plan,scenes:[nativeScenePlan({...scene(60),text:[text('涂抹'),{role:'feature',text:'操作提示',factRefs:[]}]},animated)]};
+ assert.doesNotThrow(()=>compileDocument(documentFromModelPlan(request,[],staged),[]));
+ assert.equal(animated.timeline,animation.timeline);
+ assert.deepEqual(animated.motionTargets,animation.motionTargets);
+});
+test('text style edits affect one node, compile safely, preserve timing and honor layout locks',()=>{
+ const styledPlan={...plan,scenes:[{...scene(60),effect:'title-reveal'}]};
+ const before=documentFromModelPlan(request,[],styledPlan),target=before.nodes.find(n=>n.kind==='text');
+ const after=applyDocumentPatch(before,[{type:'update_text_style',nodeId:target.id,params:{color:'#B8E6D0'}}],{});
+ assert.deepEqual(after.nodes.find(n=>n.id===target.id).params.style,{color:'#B8E6D0'});
+ assert.equal(after.durationFrames,before.durationFrames);assert.deepEqual(after.audioGraph,before.audioGraph);assert.deepEqual(after.scenes,before.scenes);
+ assert.match(compileDocument(after,[]).html,/style="color:#B8E6D0"/);
+ for(const params of [{color:'red;display:none'},{fontSize:0},{fontWeight:1000},{position:'fixed'}])assert.throws(()=>applyDocumentPatch(before,[{type:'update_text_style',nodeId:target.id,params}],{}),{code:'INVALID_TEXT_STYLE'});
+ const locked=structuredClone(before);locked.scenes[0].locks={layout:true};assert.throws(()=>applyDocumentPatch(locked,[{type:'update_text_style',nodeId:target.id,params:{color:'#ffffff'}}],{}));
+});
 test('only approved selected photos require observations and malformed crop boxes fail early',()=>{
  const assets=['first','second','third'].map(id=>({id,kind:'image',compiledRef:'assets/'+id+'.jpg'}));
  const observation={assetId:'second',confidence:1,subjectBox:[],safeCrop:[],sameProductAs:[],differentProductFrom:[]};
@@ -240,4 +259,15 @@ test('source evidence selection follows asset and time across filenames and inpu
   assert.equal(selected.records.length,1);assert.equal(selected.records[0].assetId,'shoe');assert.equal(selected.records[0].startSeconds,5);
   assert.equal(queryEvidence(index,{ranges:[{assetId:'shoe',startSeconds:30,endSeconds:35}]}).state,'unobserved');
  }
+});
+
+
+test('story fact schema allows neutral descriptions without inventing fact IDs',async()=>{
+ const {withKnownFacts}=await import('../lib/creative/story-validation.mjs');
+ const original={type:'object',properties:{text:{type:'array',items:{type:'object',properties:{factRefs:{type:'array',items:{type:'string'}}}}}}};
+ const empty=withKnownFacts(original,[]).properties.text.items.properties.factRefs;
+ assert.equal(empty.maxItems,0);
+ const known=withKnownFacts(original,[{text:'原文'}]).properties.text.items.properties.factRefs;
+ assert.deepEqual(known.items.enum,['fact-1']);
+ assert.equal(original.properties.text.items.properties.factRefs.maxItems,undefined);
 });

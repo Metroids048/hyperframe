@@ -367,7 +367,13 @@ try {
     const ownedProcess=browser.process();let timer;
     try{await Promise.race([browser.close(),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Browser close timeout')),5000);})]);}
     catch(error){browser.disconnect();if(ownedProcess&&ownedProcess.exitCode===null&&ownedProcess.signalCode===null)ownedProcess.kill('SIGKILL');await fs.writeFile(path.join(out,'browser-cleanup.json'),JSON.stringify({warning:error.message,pid:ownedProcess?.pid,exitCode:ownedProcess?.exitCode,signal:ownedProcess?.signalCode}));}
-    finally{clearTimeout(timer);browser.disconnect();}
+    finally{
+      clearTimeout(timer);browser.disconnect();
+      // macOS Chrome crashpad/updater may retain inherited stderr after the
+      // owned browser exits. Release our pipes, not unrelated OS processes.
+      for(const stream of ownedProcess?.stdio||[])stream?.destroy?.();
+      ownedProcess?.unref?.();
+    }
   }
   if (child) {
     child.kill("SIGTERM");

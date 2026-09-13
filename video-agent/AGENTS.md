@@ -1,5 +1,13 @@
 # HyperFrames Composition Project
 
+## Persistent task execution
+
+- Read the active task specification and existing execution ledger before resuming. Preserve local edits, media, revisions and checkpoints; inspect live jobs before starting or restarting work.
+- Keep durable progress in the active task ledger. Record each original task separately, its actual last progress time (distinct from check time), job/revision identifiers, evidence, remaining work and next action.
+- A running service, delegated task, generated file or passing unit test does not prove delivery. Verify the requested media, native project, scoped edits and real WebUI flow against the final revision.
+- Report meaningful progress and failures while continuing dependent work. After the same failure twice, diagnose and change the approach before retrying. Do not declare completion until every current-scope acceptance requirement has evidence.
+- Save precise checkpoints for actual external blockers. Do not imply work continues after a turn unless a verified mechanism and its identifier are available. Deferred historical scope remains deferred, never passed.
+
 ## Skills — USE THESE FIRST
 
 **Always invoke the relevant skill before writing or modifying compositions.** Skills encode framework-specific patterns (e.g., `window.__timelines` registration, `data-*` attribute semantics, shader-compatible CSS rules) that are NOT in generic web docs. Skipping them produces broken compositions.

@@ -25,7 +25,9 @@ export async function inspectActionRanges(directory,assets,ranges,{signal}={}){
   for(const [i,r]of ranges.entries()){
     const asset=assets.find(a=>a.id===r.assetId),source=path.join(directory,asset.compiledRef),duration=r.endSeconds-r.startSeconds;
     const prefix=`action-${key}-${i}-`,pattern=path.join(directory,'evidence',prefix+'%03d.jpg');
-    const log=await run(ffmpeg,['-y','-v','info','-ss',String(r.startSeconds),'-i',source,'-t',String(duration),'-vf',"select='isnan(prev_selected_t)+gte(t-prev_selected_t,0.25)',showinfo,scale=320:180:force_original_aspect_ratio=decrease,pad=320:180:(ow-iw)/2:(oh-ih)/2",'-vsync','vfr','-q:v','3',pattern],{signal,timeout:60000});
+    // The process runner retains only a diagnostic tail; timestamps require the full bounded stream.
+    let log="";
+    await run(ffmpeg,['-y','-v','info','-ss',String(r.startSeconds),'-i',source,'-t',String(duration),'-vf',"select='isnan(prev_selected_t)+gte(t-prev_selected_t,0.25)',showinfo,scale=320:180:force_original_aspect_ratio=decrease,pad=320:180:(ow-iw)/2:(oh-ih)/2",'-vsync','vfr','-q:v','3',pattern],{signal,timeout:60000,onOutput:chunk=>{log+=chunk;}});
     const sampledTimes=[...log.matchAll(/\bn:\s*\d+\s+pts:\s*-?\d+\s+pts_time:([\d.]+)/g)].map(m=>r.startSeconds+Number(m[1])).filter(t=>t<r.endSeconds);
     const names=(await fs.readdir(path.join(directory,'evidence'))).filter(n=>n.startsWith(prefix)&&n.endsWith('.jpg')).sort();
     insist(names.length>0&&names.length<=48,'动作观察帧数量超出预算','OBSERVATION_BUDGET');

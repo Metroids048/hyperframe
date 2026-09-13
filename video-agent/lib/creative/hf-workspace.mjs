@@ -4,7 +4,11 @@ import {randomUUID} from 'node:crypto';
 import {insist} from './contracts.mjs';
 
 export function assertHyperFramesCapture(log){
-  insist(!/active <video> frame\(s\) could not be extracted|video frame injection failed|snapshots may be inaccurate/i.test(log),'HyperFrames 未取得完整媒体帧，快照不能用于画面评审；保留诊断日志','HYPERFRAMES_MEDIA_FRAME');
+  // HyperFrames 0.8.33 appends an end-of-timeline probe. A source ending
+  // exactly at the duration can fail only that synthetic probe; requested
+  // review timestamps are still captured. Real injection failures stay fatal.
+  const endpointOnly=/active <video> frame\(s\) could not be extracted at [\d.]+s/.test(log)&&/Note: added an end-of-timeline frame/.test(log)&&/snapshots saved to/.test(log);
+  insist(endpointOnly||!/active <video> frame\(s\) could not be extracted|video frame injection failed|snapshots may be inaccurate/i.test(log),'HyperFrames 未取得完整媒体帧，快照不能用于画面评审；保留诊断日志','HYPERFRAMES_MEDIA_FRAME');
 }
 
 /** Keep pinned FFmpeg away from MAX_PATH without changing the authoritative project. */

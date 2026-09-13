@@ -1,3 +1,4 @@
+import {validateTextStyle} from './text-style.mjs';
 import {DOCUMENT_VERSION, FPS, CreativeError, insist, stableId, MAX_SCENES, MAX_NATIVE_NODES, MAX_CONCURRENT_VIDEO, MAX_NATIVE_SOURCE_BYTES} from './contracts.mjs';
 import {brandFontResources} from './brand-fonts.mjs';
 
@@ -97,6 +98,7 @@ export function validateDocument(document, assets = {}) {
       insist(Number.isFinite(rate)&&rate>=.1&&rate<=5,'视频播放速度必须为0.1—5倍','INVALID_PLAYBACK_RATE');
       insist(Number.isFinite(start)&&start>=0&&start+node.durationFrames/FPS*rate<=asset.mediaMetadata.duration+1/FPS, `视频节点 ${node.id} 超出真实素材时长`, 'INVALID_SOURCE_RANGE');
     }
+    if(node.kind==='text'&&node.params?.style!==undefined)validateTextStyle(node.params.style);
     if (node.kind === 'text') insist(typeof node.params?.text === 'string' && node.params.text.trim(), `文字节点 ${node.id} 不能为空`, 'INVALID_TEXT');
   }
   const pairs = new Set();

@@ -1,3 +1,4 @@
+import {textStyleCSS} from './text-style.mjs';
 import path from 'node:path';
 import {FPS, CreativeError, insist} from './contracts.mjs';
 import {assertNoUnknownFacts, validateDocument} from './document.mjs';
@@ -18,7 +19,7 @@ function publicAsset(asset) {
 }
 
 function imageMarkup(asset, node, className = '') {
-  return `<img id="obj-${esc(node.id)}" class="${esc(className)}" data-start="${sec(node.startFrame)}" data-duration="${sec(node.durationFrames)}" style="object-fit:${node.params?.fit === 'contain' ? 'contain' : 'cover'}" src="${esc(publicAsset(asset))}" alt="" draggable="false">`;
+  return `<img id="obj-${esc(node.id)}" class="${esc(className)}" data-start="${sec(node.startFrame)}" data-duration="${sec(node.durationFrames)}" style="object-fit:${asset.kind === 'image' ? 'cover' : (node.params?.fit === 'contain' ? 'contain' : 'cover')}" src="${esc(publicAsset(asset))}" alt="" draggable="false">`;
 }
 
 function sceneNodes(document, scene) {
@@ -36,7 +37,7 @@ function sceneNodes(document, scene) {
 
 function textEl(node, className) {
   if (!node) return '';
-  return `<div id="obj-${esc(node.id)}" class="${esc(className)} enter">${esc(node.params.text)}</div>`;
+  return `<div id="obj-${esc(node.id)}" class="${esc(className)} enter"${node.params.style?` style="${textStyleCSS(node.params.style)}"`:""}>${esc(node.params.text)}</div>`;
 }
 
 function internalImageMedia(media, assets, className = '') {

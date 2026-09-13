@@ -33,3 +33,17 @@ export function validateShotRepair(original,repaired,message){
     if(after.text!==before.text)insist(!/[0-9¥￥$%]/.test(after.text),'修正观察说明不能新增参数、数值或价格','REPLAN_SCOPE');
   }
 }
+
+// Bind factual references to this request before asking the model. Visual
+// descriptions may use [], but cannot invent fact IDs when no facts exist.
+export function withKnownFacts(schema,facts=[]){
+  const bound=structuredClone(schema),ids=facts.map((_,i)=>'fact-'+(i+1));
+  function visit(node){
+    if(!node||typeof node!=='object')return;
+    if(node.properties?.factRefs){
+      node.properties.factRefs=ids.length?{type:'array',items:{type:'string',enum:ids}}:{type:'array',items:{type:'string'},maxItems:0};
+    }
+    for(const value of Object.values(node))if(value&&typeof value==='object')visit(value);
+  }
+  visit(bound);return bound;
+}
