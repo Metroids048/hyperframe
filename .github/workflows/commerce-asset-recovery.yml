@@ -5,6 +5,7 @@ on:
     paths:
       - '.github/workflows/commerce-asset-recovery.yml'
       - 'video-agent/scripts/fetch-commerce-focus-assets.mjs'
+      - 'video-agent/scripts/fetch-commerce-focus-assets-system.mjs'
       - 'video-agent/scripts/test-material-acquisition.mjs'
       - 'video-agent/docs/commerce-focus-v1/assets.resolved-downloads.json'
 permissions:
@@ -27,11 +28,10 @@ jobs:
         with:
           node-version: '22'
       - run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
-      - run: npm ci --no-audit --no-fund
       - run: node scripts/workspace-context.mjs --fetch-soft
       - run: node --test scripts/test-material-acquisition.mjs
       - name: Acquire nine verified public source links (not production approval)
-        run: node scripts/fetch-commerce-focus-assets.mjs --ids=A01,A02,A03,A04,A05,A06,B01,B04,B05
+        run: node scripts/fetch-commerce-focus-assets-system.mjs --ids=A01,A02,A03,A04,A05,A06,B01,B04,B05
       - uses: actions/upload-artifact@v4
         if: always()
         with:
