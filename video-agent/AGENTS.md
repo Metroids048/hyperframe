@@ -113,3 +113,7 @@ Fix all errors before presenting the result. Warnings should be reviewed before 
 ## Verified local launch (2026-09-14)
 
 When `node` is absent from PATH, use `python3 start.py frontend` / `python3 start.py backend`. The existing launcher resolves and executes Node from `config/start.local.json`; use its `node_bin()` via Python for bootstrap and CLI commands. Verified on macOS arm64 with an intentionally Node-free PATH: bootstrap, frontend build and backend on port 3024 succeed. Preserve configured data directory and port; do not start an empty replacement project. Startup is a prerequisite, not completion of production scope.
+
+## Commerce focus v1
+
+电商工作读取 codex.md、agent.md 和 docs/commerce-focus-v1/03-IMPLEMENTATION_SPEC.zh-CN.md。候选可以审阅；技术通过不等于当前最终文件的视觉、动作、听感和真人认可。模型不得代签人评。

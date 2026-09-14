@@ -24,9 +24,9 @@ function fixture() {
   return {request, prepared};
 }
 
-test('effect registry exposes fourteen executable effects including plain media cuts', () => {
+test('effect registry exposes fifteen executable effects including plain media cuts', () => {
   const effects = listEffects();
-  assert.equal(effects.length, 14);
+  assert.equal(effects.length, 15);
   assert.ok(effects.every(x => x.deterministic));
 });
 

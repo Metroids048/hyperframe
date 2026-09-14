@@ -30,6 +30,8 @@ export function recomputeSceneStarts(document) {
     const scene = document.scenes[i];
     scene.startFrame = cursor;
     const transition = document.transitions.find(t => t.fromSceneId === scene.id && t.toSceneId === document.scenes[i + 1]?.id);
+    // A music bed does not change the overlap between visual scenes.
+    // The same scene/transition graph must retain its duration after an audio edit.
     cursor += scene.durationFrames - (transition?.durationFrames || 0);
   }
   document.durationFrames = document.scenes.length ? document.scenes.at(-1).startFrame + document.scenes.at(-1).durationFrames : 0;

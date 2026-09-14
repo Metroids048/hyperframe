@@ -10,6 +10,7 @@ export async function reviewExport(root,directory,document,video,{signal}={}){
   const probe=JSON.parse(await run(ffprobe,['-v','error','-count_frames','-show_streams','-show_format','-of','json',file],{signal,timeout:Math.max(120000,document.durationFrames/FPS*2000)}));
   const v=probe.streams.find(s=>s.codec_type==='video'),a=probe.streams.find(s=>s.codec_type==='audio'),fps=v?.avg_frame_rate?.split('/').map(Number),frames=Number(v?.nb_read_frames??v?.nb_frames),seconds=Number(v?.duration??probe.format.duration);
   const checks={dimensions:v?.width===document.output.width&&v?.height===document.output.height,fps:fps?.[0]/fps?.[1]===FPS,frames:Number.isFinite(frames)&&Math.abs(frames-document.durationFrames)<=1,duration:Math.abs(seconds-document.durationFrames/FPS)<=1/FPS+.001,audioPresence:!((document.audioGraph||[]).length||Object.values(document.audioRequirements||{}).some(Boolean))||Boolean(a)};
+  if(document.businessContract?.audio==='silent')checks.silence=!a;
   for(const role of ['music','original'])if(document.audioRequirements?.[role])checks[role+'Track']=document.audioGraph.some(t=>t.role===role&&t.volume>0);
   const args=['-hide_banner','-nostats','-i',file,'-vf','blackdetect=d=0.1:pix_th=0.05,freezedetect=n=-55dB:d=2'];if(a)args.push('-af','volumedetect');args.push('-f','null','-');
   const log=await run(ffmpeg,args,{signal,timeout:Math.max(120000,document.durationFrames/FPS*3000)});await fs.writeFile(path.join(directory,'media-review.log'),log);
@@ -21,5 +22,7 @@ export async function reviewExport(root,directory,document,video,{signal}={}){
   const report={schemaVersion:1,revisionId:document.revisionId,documentHash:resourceHash(document),video,sha256:await hashFile(file),checks,status:Object.values(checks).every(Boolean)?'media-contract-passed':'failed',frames,seconds,width:v?.width,height:v?.height,fps:v?.avg_frame_rate,audio:{present:Boolean(a),codec:a?.codec_name,meanVolume:log.match(/mean_volume: ([^\r\n]+)/)?.[1]||null},blackIntervals,repeatedSource,fullDecode:'passed',subtitles:'pending-visual-review',actionContinuity:'pending-human-review',humanAcceptance:'pending',rights:'separate-review',promptContext:guidance.records,reviewedAt:new Date().toISOString()};
   report.freezeIntervals=freezeIntervals;report.freezeInterpretation='Static intervals may be intentional reading or natural stillness; this detector does not establish padding or creative quality.';
   await fs.writeFile(path.join(directory,'media-review.json'),JSON.stringify(report,null,2));
-  insist(Object.values(checks).every(Boolean),'导出文件的时长、帧数、尺寸、帧率或声音未满足工程合同','MEDIA_CONTRACT');return report;
+  insist(Object.values(checks).every(Boolean),'导出文件的时长、帧数、尺寸、帧率或声音未满足工程合同','MEDIA_CONTRACT');
+  if(document.businessContract){const {reviewFinalQuality}=await import('./final-quality.mjs');try{await reviewFinalQuality(root,directory,document,{signal});}catch(error){await fs.writeFile(path.join(directory,'final-review-error.json'),JSON.stringify({code:error.code||'FINAL_REVIEW_FAILED',message:error.message,coverage:'pending',humanAcceptance:'pending'}));}}
+  return report;
 }

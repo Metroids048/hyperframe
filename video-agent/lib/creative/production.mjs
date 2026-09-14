@@ -1,3 +1,5 @@
+import {commerceResourceContext} from './commerce-components.mjs';
+import {assertProductionAdmission,businessContract} from './commerce-focus.mjs';
 import {boundObservationRanges} from './observation-request.mjs';
 import {directionPrefix,createDirectionPreview} from './direction-preview.mjs';
 import {instantiateNativeRecipe,nativeRecipeContract} from './native-recipes.mjs';
@@ -54,12 +56,14 @@ const loadedImplementation=await captureRuntimeBuild(path.resolve(import.meta.di
 
 /** One durable run, native document and provider. No hidden shell tools in the model. */
 export async function produceDocument(request,assets,{root,outputDir,signal,provider,runHyperFrames,onStage,onRun,resumeRunId,io={}}={}){
+  let currentContract=request.businessContract;
+  if(resumeRunId&&request.commerceProfile==='commerce-focus-v1'){const contract=JSON.parse(await fs.readFile(path.join(outputDir,'business-contract.json'),'utf8'));insist(contract.originalRequest===request.message,'恢复合同已变化','CONTRACT_CHANGED');await assertProductionAdmission(root,contract,assets);currentContract=contract;}
   const catalog=io.catalog||await CapabilityCatalog.open(root),own=!provider;
   provider??=new CodexProvider({cacheRoot:path.join(outputDir,'model-calls')});
   const store=new AgentRunStore(path.join(outputDir,'runs'));
   const implementation=loadedImplementation;
   const implementationHash=resourceHash(implementation);await fs.mkdir(path.join(outputDir,'implementations'),{recursive:true});await fs.writeFile(path.join(outputDir,'implementations',implementationHash+'.json'),JSON.stringify(implementation,null,2));
-  const fingerprintInput={request,assets:assets.map(a=>[a.id,a.sha256]),resources:catalog.snapshot?.commit,prompts:await fs.readFile(path.join(root,'prompts/commerce/manifest.json'),'utf8'),pipeline:1,model:provider.model||null,reasoningEffort:provider.reasoningEffort||'low'},fingerprint=productionFingerprint(fingerprintInput);
+  const fingerprintInput={request,assets:assets.map(a=>[a.id,a.sha256]),resources:catalog.snapshot?.commit,prompts:await fs.readFile(path.join(root,'prompts/commerce/manifest.json'),'utf8'),pipeline:1,implementationHash,model:provider.model||null,reasoningEffort:provider.reasoningEffort||'low'},fingerprint=productionFingerprint(fingerprintInput);
   if(!resumeRunId)await fs.writeFile(path.join(outputDir,'run-input.json'),JSON.stringify(fingerprintInput,null,2),{flag:'wx'});
   const byId=Object.fromEntries(assets.map(a=>[a.id,a]));let visualInputs=[];
   const fontContract={systemFamilies:['Microsoft YaHei','Arial'],brandFonts:brandFontResources(assets).map(f=>({...f,sourceName:byId[f.assetId].name||byId[f.assetId].path})),inheritProjectFont:true,unregisteredFamilies:'not available'};
@@ -69,6 +73,7 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
   const readJSON=name=>fs.readFile(path.join(outputDir,name),'utf8').then(JSON.parse);
   const result=(run,key)=>run.checkpoints[key]?.result;
   async function ask(ctx,stage,data,schema,{images=[],resources=[],extra=''}={}){
+    if(currentContract)data={...data,businessContract:currentContract,scenarioResources:commerceResourceContext(currentContract)};
     const guidance=await catalog.context(stage,resources);
     const cacheKey=resourceHash({stage,data,schema,context:guidance.records,extra,images:images.map(i=>resourceHash(i)),model:provider.model||null,reasoning:provider.reasoningEffort||'low'}),cacheFile=path.join(outputDir,'stage-cache',cacheKey+'.json');
     try{const cached=JSON.parse(await fs.readFile(cacheFile,'utf8'));insist(cached.outputHash===resourceHash(cached.result),'模型阶段缓存被修改','CHECKPOINT_HASH');(ctx.run.cacheHits??=[]).push({stage,key:cacheKey,time:new Date().toISOString()});await ctx.persist();return cached.result;}catch(error){if(error.code!=='ENOENT')throw error;}
@@ -108,9 +113,10 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
   const registry=new ToolRegistry();
   registry.register('brief.parse',async(_,ctx)=>{
     let brief,lastError;for(let attempt=0;attempt<3;attempt++){
-    brief=await ask(ctx,'R1',{message:request.message,existingRequest:request,attempt,validationError:lastError?.message,priorBrief:brief||null,assets:assets.map(a=>({id:a.id,kind:a.kind,metadata:a.mediaMetadata})),availableCapabilities:['image-observation','video-source-selection','local-transcription','native-composition','managed-original','local-preview-review','native-editing']},briefSchema,{extra:'本步骤只理解需求，不写分镜或源码。未指定画幅默认1080×1920，时长按内容决定5—600秒。request.facts的text和userQuote都必须是用户原文的连续子串，且userQuote.includes(text)必须为true。最安全是text与userQuote完全相同，直接复制原文，不添加主语、连接词、标点，不改写。只有商品事实进入facts；风格、禁区、未知信息和制作要求放constraints。没有已提供商品事实时facts可为空，真实可见信息交给R2观察。不要把画面推断写为商品事实。缺少可选品牌、价格、CTA不构成gaps。用户未明确要求的动作不构成gaps，不能因只有图片而要求补拍Agent自己设想的动作。needsTranscription只在输入有真实讲话且需要语义精剪或逐字字幕时为true；原声操作片不转写无语言声音。用户要求新配音时needsNarration=true，后续本地合成后再转写，不因输入没有人声阻塞。用户明确不加配音时needsNarration=false。没有实际动作素材却要真实演示时输出gaps，禁止假装可制作。已有声音配置不得重问。'});
+    brief=await ask(ctx,'R1',{message:request.message,existingRequest:request,attempt,validationError:lastError?.message,priorBrief:brief||null,assets:assets.map(a=>({id:a.id,kind:a.kind,metadata:a.mediaMetadata})),availableCapabilities:['image-observation','video-source-selection','local-transcription','native-composition','managed-original','local-preview-review','native-editing']},request.commerceProfile==='commerce-focus-v1'?obj({...briefSchema.properties,scenarioId:{type:'string',enum:['product_launch','product_howto','unsupported']}}):briefSchema,{extra:'本步骤只理解需求，不写分镜或源码。未指定画幅默认1080×1920，时长按内容决定5—600秒。request.facts的text和userQuote都必须是用户原文的连续子串，且userQuote.includes(text)必须为true。最安全是text与userQuote完全相同，直接复制原文，不添加主语、连接词、标点，不改写。只有商品事实进入facts；风格、禁区、未知信息和制作要求放constraints。没有已提供商品事实时facts可为空，真实可见信息交给R2观察。不要把画面推断写为商品事实。缺少可选品牌、价格、CTA不构成gaps。用户未明确要求的动作不构成gaps，不能因只有图片而要求补拍Agent自己设想的动作。needsTranscription只在输入有真实讲话且需要语义精剪或逐字字幕时为true；原声操作片不转写无语言声音。用户要求新配音时needsNarration=true，后续本地合成后再转写，不因输入没有人声阻塞。用户明确不加配音时needsNarration=false。没有实际动作素材却要真实演示时输出gaps，禁止假装可制作。已有声音配置不得重问。'});
     try{validateInferredRequest(request,brief.request);break;}catch(error){lastError=error;await saveJSON('failed-brief-'+attempt+'.json',{brief,error:{code:error.code,message:error.message}});if(repairRoute(error)!=='scene'||attempt===2)throw error;}
     }
+    if(request.commerceProfile==='commerce-focus-v1'){insist(brief.scenarioId!=='unsupported','本轮仅支持单品上新与操作演示','SCENARIO_UNSUPPORTED');currentContract={...businessContract({...request,scenarioId:request.scenarioId||request.businessContract?.scenarioId||brief.scenarioId}),output:brief.request.output,product:{...request.product,name:brief.request.name,price:brief.request.price||null,cta:brief.request.cta,facts:brief.request.facts}};await saveJSON('business-contract.json',currentContract);}
     ctx.run.constraints={...ctx.run.constraints,requirements:brief.constraints};return saveJSON('brief-plan.json',brief);
   });
   registry.register('assets.observe',async(_,ctx)=>{
@@ -135,6 +141,7 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
     await saveJSON('transcripts.json',transcripts);return saveJSON('observations.json',observation);
   });
   registry.register('resources.plan',async(_,ctx)=>{
+    if(request.commerceProfile==='commerce-focus-v1')await assertProductionAdmission(root,currentContract,assets,outputDir);
     const candidates=catalog.candidates({message:request.message+' '+result(ctx.run,'brief').capabilities.join(' '),assets});
     const usable=candidates.filter(c=>c.eligible&&c.compatible);
     const contracts=await catalog.context('R3',[]);
@@ -328,7 +335,7 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
       const prior=result(ctx.run,'shot-'+i).receipt;
       assemblyReceipts[i]={...prior,sourceHash:resourceHash(sources[i]),checkpointSourceHash:resourceHash(record.source),execution:'validated-checkpoint-source',status:'assembled-awaiting-project-checks'};
     }
-    const document=documentFromModelPlan(request,assets,nativePlan(ctx.run,sources));document.storyPlan={paragraphs:result(ctx.run,'story').paragraphs,scenes:result(ctx.run,'story').scenes.map((s,i)=>({sceneId:document.scenes[i].id,paragraphId:s.paragraphId,newInformation:s.newInformation,visualDirection:s.visualDirection}))};document.timingPlan=result(ctx.run,'timing');document.production={runId:ctx.run.id,inputFingerprint:fingerprint,workflowVersion:1};document.dependencyLock={...document.dependencyLock,resources:catalog.snapshot?.commit,prompts:resourceHash(await fs.readFile(path.join(root,'prompts/commerce/manifest.json'),'utf8'))};document.resourceReceipts=Object.keys(sources).map(i=>assemblyReceipts[i]);
+    const document=documentFromModelPlan(request,assets,nativePlan(ctx.run,sources));if(currentContract)document.businessContract=currentContract;document.storyPlan={paragraphs:result(ctx.run,'story').paragraphs,scenes:result(ctx.run,'story').scenes.map((s,i)=>({sceneId:document.scenes[i].id,paragraphId:s.paragraphId,newInformation:s.newInformation,visualDirection:s.visualDirection}))};document.timingPlan=result(ctx.run,'timing');document.production={runId:ctx.run.id,inputFingerprint:fingerprint,workflowVersion:1};document.dependencyLock={...document.dependencyLock,resources:catalog.snapshot?.commit,prompts:resourceHash(await fs.readFile(path.join(root,'prompts/commerce/manifest.json'),'utf8'))};document.resourceReceipts=Object.keys(sources).map(i=>assemblyReceipts[i]);
     if(result(ctx.run,'brief').needsCaptions)document.captions=await recognizeNativeCaptions(document,assets,outputDir,{signal,provider});
     const audioRefs=await prepareNativeAudio(outputDir,document,assets,{signal});const compiled=compileDocument(document,assets,{audioRefs});await fs.writeFile(path.join(outputDir,'index.html'),compiled.html);await saveJSON('document.json',document);await saveJSON('object-map.json',compiled.objectMap);await saveJSON('manifest.json',compiled.manifest);await fs.writeFile(path.join(outputDir,'DESIGN.md'),designMarkdown(document));await fs.writeFile(path.join(outputDir,'STORYBOARD.md'),'# Storyboard\n\n'+result(ctx.run,'story').summary+'\n\n'+document.storyPlan.scenes.map(s=>s.sceneId+' · '+s.newInformation).join('\n'));
     await saveJSON('resource-receipts.json',document.resourceReceipts);

@@ -1,3 +1,5 @@
+import {commerceComponentReceipt} from './commerce-components.mjs';
+import {businessContract,assertProductionAdmission,assertRequiredActions,FOCUS_PROFILE} from './commerce-focus.mjs';
 import {prepareHyperFramesWorkspace,assertHyperFramesCapture} from './hf-workspace.mjs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -70,10 +72,15 @@ export async function buildCommerceProject(input, {root = VIDEO_AGENT_ROOT} = {}
     item.compiledRef = `assets/${path.basename(item.normalizedRef)}`;
     prepared.push(item);
   }
+  request.commerceProfile=FOCUS_PROFILE;request.businessContract=businessContract(request);
+  await fs.writeFile(path.join(outputDir,'business-contract.json'),JSON.stringify(request.businessContract,null,2));
+  if(input.planning!=='model'||process.env.VIDEO_AGENT_CREATIVE_WORKFLOW==='legacy')await assertProductionAdmission(root,request.businessContract,prepared,outputDir);
   await copyGsap(outputDir);
   await writeAttribution(outputDir,prepared);
   const staged=input.planning==='model'&&process.env.VIDEO_AGENT_CREATIVE_WORKFLOW!=='legacy';
   let document = staged ? await produceDocument(request,prepared,{root,outputDir,signal:input.signal,provider:input.provider,onStage:input.onStage,onRun:input.onRun,resumeRunId:input.resumeRunId,runHyperFrames}) : input.planning === 'model' ? await planWithModel(request,prepared,{root,outputDir,signal:input.signal,provider:input.provider,onStage:input.onStage}) : planCommerceDocument(request, prepared);
+  if(request.businessContract){document.businessContract??=request.businessContract;document.commerceResourceReceipt=commerceComponentReceipt(document);await fs.writeFile(path.join(outputDir,'commerce-resource-receipt.json'),JSON.stringify(document.commerceResourceReceipt,null,2));}
+  if(document.businessContract)assertRequiredActions(document,JSON.parse(await fs.readFile(path.join(outputDir,'production-admission.json'),'utf8')));
   const audioRefs=await prepareNativeAudio(outputDir,document,prepared,{signal:input.signal});
   for(;;){try{
   await input.onStage?.('编译原生场景与对象');
@@ -129,6 +136,7 @@ export async function readNativeProject(outputDir) {
 }
 
 export async function writeCompiledProject(outputDir, document, assets, {invalidation = null,signal} = {}) {
+  if(document.businessContract){const admission=await assertProductionAdmission(VIDEO_AGENT_ROOT,document.businessContract,assets,outputDir);assertRequiredActions(document,admission);}
   validateDocument(document,Object.fromEntries(assets.map(a=>[a.id,a])));
   const audioRefs=await prepareNativeAudio(outputDir,document,assets,{signal});
   const compiled = compileDocument(document, assets,{audioRefs});
@@ -162,7 +170,8 @@ export async function patchCommerceProject(input, {root = VIDEO_AGENT_ROOT} = {}
 export async function renderCommerceProject(input, {root = VIDEO_AGENT_ROOT, outputRoot = root} = {}) {
   // The service supplies the owned project root; application resources still use root.
   const outputDir = await resolveOutputDir(outputRoot, input.outputDir);
-  const {document} = await readNativeProject(outputDir);
+  const {document,assets} = await readNativeProject(outputDir);
+  if(document.businessContract){const admission=await assertProductionAdmission(root,document.businessContract,assets,outputDir);assertRequiredActions(document,admission);}
   const checkLog = await runHyperFrames(outputDir, 'check', [], {signal:input.signal});
   await fs.writeFile(path.join(outputDir, 'check.log'), checkLog);
   const video = input.video || 'commerce-final.mp4';

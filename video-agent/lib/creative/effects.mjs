@@ -1,6 +1,7 @@
 import {CreativeError, insist} from './contracts.mjs';
 
 const definitions = [
+  ['editorial-display', 'layout', ['image','text'], ['variant','palette']],
   ['media-cut', 'editing', ['image'], []],
   ['product-reveal', 'product', ['image'], ['scale', 'offsetY', 'radius']],
   ['image-pan-zoom', 'product', ['image'], ['scaleFrom', 'scaleTo', 'panX', 'panY']],
@@ -46,6 +47,7 @@ export function validateEffect(effectId, context = {}) {
       insist(available > 0, `${effectId} 需要 ${required} 素材或文字节点`, 'EFFECT_REQUIREMENT_UNMET');
     }
   }
+  if(effectId==='editorial-display'&&Array.isArray(context.nodeKinds))insist(context.nodeKinds.includes('image')&&!context.nodeKinds.includes('video'),'编辑式图文布局需要图片素材','EFFECT_REQUIREMENT_UNMET');
   if (effectId === 'layered-parallax') {
     insist((context.assetCount || 0) >= 2, 'layered-parallax 需要至少两张可分层素材', 'EFFECT_REQUIREMENT_UNMET');
   }
@@ -60,6 +62,7 @@ export function normalizeEffectParams(effectId, params = {}) {
     return value;
   };
   switch (effectId) {
+    case 'editorial-display': return {variant:Math.round(number('variant',0,0,3)),palette:Math.round(number('palette',0,0,3))};
     case 'product-reveal': return {scale: number('scale', 1.08, 1, 1.4), offsetY: number('offsetY', 50, -400, 400), radius: number('radius', 44, 0, 160)};
     case 'image-pan-zoom': return {scaleFrom: number('scaleFrom', 1.04, 1, 1.5), scaleTo: number('scaleTo', 1.14, 1, 1.6), panX: number('panX', 24, -240, 240), panY: number('panY', -10, -240, 240)};
     case 'detail-inset': return {insetX: number('insetX', .56, 0, .8), insetY: number('insetY', .55, 0, .8), insetSize: number('insetSize', .34, .18, .55), focusX: number('focusX', .5, 0, 1), focusY: number('focusY', .5, 0, 1)};

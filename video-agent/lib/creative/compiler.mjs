@@ -1,3 +1,4 @@
+import {editorialDisplay,editorialCSS} from './editorial-display.mjs';
 import {textStyleCSS} from './text-style.mjs';
 import path from 'node:path';
 import {FPS, CreativeError, insist} from './contracts.mjs';
@@ -97,6 +98,7 @@ function renderScene(document, scene, assets) {
     nodeKinds: document.nodes.filter(n => n.sceneId === scene.id).map(n => n.kind),
   });
   const n = sceneNodes(document, scene);
+  if(scene.effect==='editorial-display')return editorialDisplay(document,scene,n,assets,imageMarkup,textEl);
   const title = textEl(n.title, 'product-title');
   const feature = textEl(n.feature, 'product-subtitle');
   const firstMedia = n.media[0];
@@ -164,6 +166,10 @@ function sceneTimeline(document, scene) {
   const lines = [];
   if(!incomingTransition)lines.push(`tl.set(${js(`${selector}, [data-scene-media="${scene.id}"]`)},{opacity:1},${start});`);
   if(scene.effect==='custom-native')return lines;
+  if(scene.effect==='editorial-display'){
+    lines.push(`tl.from(${js(`${selector} .ed-rule`)},{scaleX:0,duration:1.1,ease:"power2.inOut"},${contentStart});`);
+    lines.push(`tl.fromTo(${js(`${selector} .ed-photo .motion`)},{scale:1.055},{scale:1,duration:${Math.max(.5,duration-1)},ease:"power1.out"},${contentStart+.3});`);
+  }
   if(scene.effect==='media-cut'&&sceneNodes(document,scene).text.length)lines.push(`tl.from(${js(`${selector} .copy-panel .enter`)},{opacity:0,x:18,duration:.4,ease:"power2.out",stagger:.08},${contentStart+.12});`);
   if(scene.effect!=='media-cut'&&(sceneNodes(document,scene).text.length||sceneNodes(document,scene).media.some(n=>n.kind==='image')))lines.push(`tl.from(${js(`${selector} .enter${scene.effect==='product-reveal'?':not(.media-entrance)':scene.effect==='detail-inset'?':not(.inset-card)':''}`)},{opacity:0,y:${Number(scene.effectParams?.offsetY ?? 28)},duration:0.45,ease:"power3.out",stagger:${Number(scene.effectParams?.stagger??.07)}},${contentStart});`);
   if(scene.effect==='keyword-emphasis')lines.push(`tl.from(${js(`${selector} .product-title`)},{scale:${Number(scene.effectParams?.accentScale??1.08)},duration:.6,ease:"power3.out"},${contentStart});`);
@@ -249,6 +255,7 @@ export function compileDocument(document, preparedAssets, {audioRefs={}}={}) {
     .caption{position:absolute;left:8%;width:84%;bottom:7%;z-index:400;opacity:0;text-align:center;pointer-events:auto}
     .caption-content{display:inline-block;max-width:100%;box-sizing:border-box;color:#ffffff;background:rgba(0,0,0,.88);font-size:46px;line-height:1.4;padding:12px 22px;border-radius:8px;overflow-wrap:anywhere}
     ${effectCss()}
+    ${editorialCSS}
     ${[...custom.values()].map(c=>c.css).join('\n')}
     ${document.scenes.map(s=>s.effect==='product-reveal'?`#${s.id} .media-frame,[data-scene-media="${s.id}"]{border-radius:${Number(s.effectParams?.radius??44)}px}`:s.effect==='detail-inset'?`#${s.id} .inset-card img{transform-origin:${pct(s.effectParams?.focusX??.5)} ${pct(s.effectParams?.focusY??.5)};object-position:${pct(s.effectParams?.focusX??.5)} ${pct(s.effectParams?.focusY??.5)}}`:'').join('')}
     ${document.output.height>document.output.width?`.scene-split-detail .split{grid-template-columns:1fr!important;grid-template-rows:64% 36%;gap:0!important}.scene-split-detail .split-copy{padding:8%;align-items:center}.scene-split-detail .copy-panel{max-width:100%;width:100%}.scene-split-detail .product-subtitle{max-width:100%;font-size:52px;line-height:1.3}.product-subtitle{font-size:46px;line-height:1.3}.callout{font-size:44px}.cta{font-size:44px}`:''}

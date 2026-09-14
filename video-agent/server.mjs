@@ -1,3 +1,4 @@
+import {formalVideoSnapshot} from './lib/creative/delivery-gate.mjs';
 import {deliveryRoutes} from './lib/creative/delivery-entry.mjs';
 import {planShots,validateShots} from './lib/multishot.mjs';
 import {createEditService,editRoutes} from './lib/edit/service.mjs';
@@ -75,6 +76,11 @@ function json(res,data,status=200){res.writeHead(status,{'Content-Type':'applica
 const commerceId=/^[a-zA-Z0-9_-]{1,100}$/;
 function commerceOutputDir(id){if(!commerceId.test(id))throw new InputError('商品工程 ID 无效');return path.join(ROOT,'data/commerce-runs',id);}
 async function file(req,res,target,type,download){
+ const requestedFormal=new URL(req.url||'/',`http://${req.headers.host||'localhost'}`).searchParams.get('delivery')==='formal';
+ const approvedSnapshot=path.dirname(path.resolve(target))===path.join(ROOT,'.state/commerce-deliveries')&&/^[a-f0-9]{64}\.mp4$/.test(path.basename(target));
+ if(requestedFormal&&!approvedSnapshot)throw new InputError('此文件尚未通过正式交付门禁',409);
+ if(type==='video/mp4'){res.setHeader('X-Delivery-Status',requestedFormal?'accepted':'candidate');if(download)download=(requestedFormal?'accepted-':'candidate-')+path.basename(target);}
+
  const stat=await fs.stat(target).catch(e=>{if(e.code==='ENOENT')throw new InputError('文件不存在',404);throw e;});const headers={'Content-Type':type,'Content-Length':stat.size,'Accept-Ranges':'bytes','X-Content-Type-Options':'nosniff','Cache-Control':'no-store'};if(download)headers['Content-Disposition']=`attachment; filename="${download}"`;
  const range=req.headers.range;let start=0,end=stat.size-1,status=200;
  if(range){const m=/^bytes=(\d*)-(\d*)$/.exec(range);if(!m||(!m[1]&&!m[2])){res.writeHead(416,{'Content-Range':`bytes */${stat.size}`});res.end();return;}if(m[1]){start=Number(m[1]);end=m[2]?Math.min(Number(m[2]),end):end;}else start=Math.max(0,stat.size-Number(m[2]));if(start>end||start>=stat.size){res.writeHead(416,{'Content-Range':`bytes */${stat.size}`});res.end();return;}status=206;headers['Content-Range']=`bytes ${start}-${end}/${stat.size}`;headers['Content-Length']=end-start+1;}
@@ -123,7 +129,8 @@ const server=http.createServer(async(req,res)=>{
    const dir=commerceOutputDir(commerceFile[1]),kind=commerceFile[2];
    const targets={status:['status.json','application/json; charset=utf-8'],document:['document.json','application/json; charset=utf-8'],preview:['index.html','text/html; charset=utf-8'],video:['commerce-final.mp4','video/mp4']};
    const [name,type]=targets[kind];if(kind==='video'&&!(await fs.access(path.join(dir,name)).then(()=>true).catch(()=>false)))throw new InputError('商品视频尚未导出',409);
-   return await file(req,res,path.join(dir,name),type,kind==='video'?`commerce-${commerceFile[1]}.mp4`:null);
+   let servedPath=path.join(dir,name);if(kind==='video'){if(url.searchParams.get('delivery')==='formal')servedPath=await formalVideoSnapshot(ROOT,dir);else res.setHeader('X-Delivery-Status','candidate');}
+   return await file(req,res,servedPath,type,kind==='video'?`candidate-${commerceFile[1]}.mp4`:null);
   }
   if(['GET','HEAD'].includes(req.method)&&route==='/editor-player.js')return await file(req,res,path.join(ROOT,'node_modules/hyperframes/dist/hyperframes-player.global.js'),'text/javascript; charset=utf-8');
   if(req.method==='GET'&&route==='/api/health')return json(res,{ok:true,version:'0.7.0-conversation',activeProjectId:active,studioProjectId:studioProject});

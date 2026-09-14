@@ -3,8 +3,8 @@ import path from 'node:path';
 import {ROOT} from '../lib/workflow.mjs';
 import {ffmpeg,run} from '../lib/edit/media.mjs';
 
-const projectId='7c2a6fd3-86d2-43ff-8fdc-dcd62e196443',projectDir=path.join(ROOT,'data/creative-validation',projectId),project=JSON.parse(await fs.readFile(path.join(projectDir,'native-project.json'),'utf8'));
-const revision=project.revisions.find(r=>r.id==='rev-86a270ca9d3489c3');
+const projectId='e573a155-78a9-4bfb-a21b-b44750728e25',projectDir=path.join(ROOT,'data/result-completion-projects',projectId),project=JSON.parse(await fs.readFile(path.join(projectDir,'native-project.json'),'utf8'));
+const revision=project.revisions.at(-1);
 if(!revision?.rendered)throw Error('The reviewed Moka revision has not completed export');
 const directory=path.join(projectDir,revision.directory),poster='examples/commerce/covers/moka-story.jpg';
 await run(ffmpeg,['-y','-v','error','-threads','2','-ss','14.5','-i',path.join(directory,'commerce-final.mp4'),'-frames:v','1','-vf','scale=960:-2',path.join(ROOT,poster)]);
