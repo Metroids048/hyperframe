@@ -1,0 +1,39 @@
+name: Fetch additional continuous-operation candidates
+on:
+  push:
+    branches: [agent/material-acquisition-fix-20260914]
+    paths:
+      - '.github/workflows/commerce-tutorial-material.yml'
+      - 'video-agent/scripts/fetch-commerce-tutorial-candidates.mjs'
+      - 'video-agent/docs/commerce-focus-v1/tutorial-candidates.json'
+permissions:
+  contents: read
+jobs:
+  acquire:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    defaults:
+      run:
+        working-directory: video-agent
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+      - run: node scripts/workspace-context.mjs --fetch-soft
+      - run: node --test scripts/test-material-acquisition.mjs
+      - run: node scripts/fetch-commerce-tutorial-candidates.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tutorial-footage-candidates-not-approved
+          retention-days: 1
+          compression-level: 0
+          if-no-files-found: error
+          path: |
+            video-agent/assets/commerce-focus-v1/candidates/gift-*/**/*.mp4
+            video-agent/assets/commerce-focus-v1/tutorial-download-results.json
+            video-agent/docs/commerce-focus-v1/tutorial-candidates.json
