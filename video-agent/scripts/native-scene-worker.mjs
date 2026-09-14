@@ -35,7 +35,7 @@ try{
  const browserProfile=config.browserProfile||(ownedProfile=await fs.mkdtemp(path.join(process.platform==='win32'?process.env.TEMP:'/tmp','hf-')));
  if(!path.isAbsolute(browserProfile||''))throw Error('Parent must assign a private browser profile');
  await fs.mkdir(browserProfile,{recursive:true,mode:0o700});result.browserProfile=browserProfile;
- browser=await puppeteer.launch({executablePath:config.browser,headless:true,userDataDir:browserProfile,defaultViewport:config.output,dumpio:true,args:['--disable-background-networking','--disable-component-update','--no-first-run','--enable-logging=stderr'],env:process.env});
+ browser=await puppeteer.launch({executablePath:config.browser,headless:true,userDataDir:browserProfile,defaultViewport:config.output,dumpio:true,args:['--disable-background-networking','--disable-component-update','--no-first-run','--disable-gpu','--enable-logging=stderr'],env:process.env});
  await fs.writeFile(path.join(config.directory,'browser-started.json'),JSON.stringify({pid:browser.process().pid,runId:config.identity.runId}));
  if(config.probe==='browser-timeout')await new Promise(()=>{});
  result.browserArgs=browser.process().spawnargs.filter(a=>!a.includes('user-data-dir')&&!a.includes('remote-debugging'));

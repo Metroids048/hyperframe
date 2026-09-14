@@ -18,7 +18,7 @@ const dataDir=path.join(run,'projects'),port=process.env.VIDEO_AGENT_TEST_PORT?N
 await fs.mkdir(dataDir,{recursive:true});
 const checks=[],errors=[];let server,browser,log='';
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
-async function check(name,fn){try{await fn();checks.push({name,passed:true});console.log('PASS '+name);}catch(e){checks.push({name,passed:false,error:e.message});throw e;}}
+async function check(name,fn){console.log('START '+name);await fs.writeFile(path.join(run,'active-step.json'),JSON.stringify({step:name,pid:process.pid,serverPid:server?.pid,browserPid:browser?.process()?.pid,startedAt:new Date().toISOString()}));try{await fn();checks.push({name,passed:true});console.log('PASS '+name);}catch(e){checks.push({name,passed:false,error:e.message});throw e;}}
 async function api(route,options={},status=200){const r=await fetch(base+route,{signal:AbortSignal.timeout(15000),...options});const b=await r.json();assert.equal(r.status,status,JSON.stringify(b));return b;}
 const json=(body,method='POST')=>({method,headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
 async function start(){
@@ -69,7 +69,7 @@ try{
  await check('浏览器完整流程无未捕获 JavaScript 异常',()=>assert.deepEqual(errors,[]));
 }catch(e){console.error(e.stack);process.exitCode=1;}
 finally{
- if(browser)await browser.close();await stop();await fs.writeFile(path.join(run,'server.log'),log);
+ for(const [step,close] of [['browser.close',()=>browser?.close()],['server.stop',()=>stop()]]){await fs.writeFile(path.join(run,'active-step.json'),JSON.stringify({step,pid:process.pid,serverPid:server?.pid,browserPid:browser?.process()?.pid,startedAt:new Date().toISOString()}));let timer;try{await Promise.race([close(),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error(step+' timeout')),30000)})]);}catch(error){checks.push({name:step,passed:false,error:error.message});process.exitCode=1;}finally{clearTimeout(timer);}}await fs.writeFile(path.join(run,'server.log'),log);
  const report={date:new Date().toISOString(),scope:'isolated API + real Chrome + real HyperFrames render',passed:checks.filter(x=>x.passed).length,failed:checks.filter(x=>!x.passed).length,checks,browserErrors:errors,run};
  await fs.writeFile(path.join(run,'report.json'),JSON.stringify(report,null,2));await fs.writeFile(path.join(ROOT,'outputs/acceptance-latest.json'),JSON.stringify(report,null,2));console.log(JSON.stringify({passed:report.passed,failed:report.failed,run}));
 }
