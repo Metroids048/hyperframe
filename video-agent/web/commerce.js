@@ -130,12 +130,12 @@ $('#example-own').onclick=()=>{
 
 function drawBusinessCases(presets){
  const goals=[['launch','新品首发与品牌亮相','商品整体图与已确认重点'],['detail','商品详情与卖点图解','支持说明的整体与细节素材'],['demo','开箱／安装／使用教程','连续实拍与操作顺序'],['style','穿搭／组合／系列展示','同款或系列关系明确的照片'],['promotion','活动促销／直播预告','确认的价格、条件与行动提示'],['faq','选购说明／场景问答','具体问题与能够支持回答的资料'],['recut','已有视频精剪与包装','原始实拍与需要保留的动作'],['versions','一稿多版／开头／画幅调整','已有原生工程与新的传播目的']];
- $('#business-cases').replaceChildren(...goals.filter(([goal])=>presets.some(p=>(p.businessGoal||[]).includes(goal))).map(([goal,title,need])=>{
+ $('#business-cases').replaceChildren(...goals.slice(0,6).map(([goal,title,need])=>{
   const p=presets.find(p=>(p.businessGoal||[]).includes(goal)),card=document.createElement('article');card.className='business-case';
   const heading=document.createElement('h2');heading.textContent=title;card.append(heading);
   if(p?.poster){const img=document.createElement('img');img.src=p.poster;img.alt=p.title+'实际成片帧';card.append(img);}
-  const value=document.createElement('p');value.textContent=p?p.description:'对应的新作品尚未通过验收；可以先使用自己的素材。';card.append(value);
-  const meta=document.createElement('small');meta.textContent=p?'预生成样片 · '+p.durationSeconds+'秒 · '+({images:'图片',footage:'实拍',mixed:'混合'}[p.inputMode]||'待识别')+(p.reviewStatus==='verified'?' · 已完成内容复核':p.reviewStatus==='reviewed'?' · 已更新画面与音轨':' · 预设成片'):'示例待就绪';card.append(meta);
+  const value=document.createElement('p');value.textContent=p?.description||({'launch':'把商品实拍组织成有吸引力的首发短片，突出一到两个可信重点。','detail':'把整体、细节和说明对应起来，让消费者看清商品结构与卖点。','demo':'按真实步骤剪成看得懂、能照做的操作教程。','style':'组织多款商品的搭配、差异与系列关系。','promotion':'讲清商品、优惠条件、时间与下一步行动。','faq':'用问题、证据和结论回答具体选购疑问。'}[goal]||'使用自己的素材开始创作。');card.append(value);
+  const meta=document.createElement('small');meta.textContent=p?'历史样片 · '+(p.durationSeconds||'')+'秒 · '+(p.reviewStatus==='verified'?'已完成当前版本验收':'候选待审'):'样片待制作';card.append(meta);
   const inputs=document.createElement('p');inputs.textContent='输入：'+need;card.append(inputs);
   const watch=document.createElement('button');watch.type='button';watch.textContent='看已生成示例';watch.disabled=!p;watch.onclick=()=>{chooseExample(p.id);};card.append(watch);
   const edit=document.createElement('button');edit.type='button';edit.className='quiet';edit.textContent='打开派生工程编辑';edit.disabled=!p;edit.onclick=()=>{if((input.value.trim()||files.length)&&!confirm('打开案例将替换当前输入。确认继续？'))return;loadPreset(p);};card.append(edit);
