@@ -280,7 +280,7 @@ export async function creativeRoutes(service,req,res,url,{json,jsonBody,file}){
   const route=url.pathname;
   if(route==='/api/commerce-import'&&req.method==='POST'){const p=await service.importPackage(req);json(res,{ok:true,project:service.view(p)},202);return true;}
   if(route==='/api/commerce-demos'&&req.method==='GET'){json(res,{presets:await service.presets(),unavailable:await service.unavailablePresets()});return true;}
-  if(route==='/api/commerce-projects'&&req.method==='GET'){json(res,{projects:service.list()});return true;}
+  if(route==='/api/commerce-projects'&&req.method==='GET'){let historyProjectIds=[];try{historyProjectIds=JSON.parse(await fs.readFile(path.join(ROOT,'examples/commerce/history-projects.json'),'utf8')).projectIds||[];}catch(error){if(error.code!=='ENOENT')throw error;}json(res,{projects:service.list(),historyProjectIds});return true;}
   if(route==='/api/commerce-chat'&&req.method==='POST'&&(req.headers['content-type']||'').includes('application/json')){
     const input=await jsonBody(req,256000,'创作请求');
     if(input.action==='preset'){const p=await service.loadPreset(input.presetId);json(res,{ok:true,project:service.view(p)},201);return true;}

@@ -134,3 +134,31 @@ test('story model request includes earlier broad frames together with newer acti
   await assert.rejects(()=>produceDocument(request,[asset],{root,outputDir:dir,provider,io}),/stop after evidence assertion/);
   assert.equal(calls,6);
 });
+
+for(const recipe of [false,true,'resume'])test('real project.assemble preserves checked image source and local repairs; recipe='+recipe,async()=>{
+  const dir=await fs.mkdtemp(path.join(os.tmpdir(),'image-source-assembly-'));
+  await fs.mkdir(path.join(dir,'evidence'));await fs.writeFile(path.join(dir,'evidence.json'),JSON.stringify({assets:[]}));
+  const photo={...asset,id:'photo',kind:'image',compiledRef:'assets/photo.png',mediaMetadata:{width:1200,height:800}};
+  const source={html:'<img id="photo"><div id="title"></div><div id="anchor"></div>',css:'#photo{position:absolute;left:700px;top:100px;width:1000px;height:800px;object-fit:contain}#title{position:absolute;left:100px;top:200px;width:500px;font-size:70px}#anchor{position:absolute;left:100px;top:900px;width:1600px;height:4px;background:#D7A77A}',timeline:'tl.from("#anchor",{scaleX:0,duration:0.8,ease:"power3.out"},0.2);',parameters:[],objects:[{elementId:'photo',ref:'media-1'},{elementId:'title',ref:'text-1'},{elementId:'anchor',ref:'decoration-1'}],motionTargets:['anchor'],textStyles:[]};
+  const shot={...scene,durationSeconds:24,resourceId:recipe?'titlecard-reveal':'native-original',productionMethod:recipe==='resume'?'composition-adapt':recipe?'parameterized':'original',media:[{assetId:'photo',sourceStartSeconds:0,playbackRate:1,fit:'contain'}]};
+  const brief={request:inferred,needsTranscription:false,needsNarration:false,needsCaptions:false,keepOriginalAudio:false,capabilities:[],constraints:[],gaps:[]};
+  const answers=[brief,{observations:[{...observation,assetId:'photo'}],candidates:[],inspectRanges:[],gaps:[]},{selected:[],gaps:[],blockingGaps:[]},{...plan,audio:[],scenes:[shot],summary:'source preservation',paragraphs:[{id:'p'}],inspectRanges:[],inspectActions:[],blockingGaps:[]}];
+  let authorCount=0,reviewCount=0;
+  const io={catalog:{snapshot:{commit:'test'},context:async()=>({text:'test',records:[]}),candidates:()=>[{id:'titlecard-reveal',eligible:true,compatible:true}]},collectEvidence:async()=>({records:[],inputs:[]}),buildShot:async()=>{authorCount++;await fs.writeFile(path.join(dir,'checked.json'),JSON.stringify({source}));return {file:'checked.json',sceneId:'scene-01',sourceHash:resourceHash(source),receipt:{resourceId:shot.resourceId,sourceHash:resourceHash(source),method:recipe==='resume'&&authorCount===1?'parameterized':shot.productionMethod}};},verifyCustomProject:async()=>{},review:async()=>{reviewCount++;if(recipe==='resume'&&reviewCount===1)throw Error('test recovery');return {revisionId:'test'}}};
+  const options={root,outputDir:dir,provider:{structured:async()=>({result:answers.shift(),model:'test-only'})},runHyperFrames:async()=>'',io};
+  if(recipe==='resume'){
+    await assert.rejects(()=>produceDocument(request,[photo],options),/test recovery/);
+    const before=JSON.parse(await fs.readFile(path.join(dir,'production-run.json')));
+    await produceDocument(request,[photo],{...options,resumeRunId:before.id});
+    const after=JSON.parse(await fs.readFile(path.join(dir,'production-run.json')));
+    assert.equal(after.id,before.id);assert.equal(after.modelCalls,before.modelCalls);assert.equal(after.maxModelCalls,before.maxModelCalls);assert.equal(authorCount,2);assert(after.artifacts.checkpointMigrations.length);
+  }else await produceDocument(request,[photo],options);
+  const doc=JSON.parse(await fs.readFile(path.join(dir,'document.json')));
+  assert.equal(doc.scenes[0].effect,'custom-native');
+  assert.equal(doc.sourceBundles.length,1);
+  assert.equal(doc.nodes.filter(n=>n.kind==='image').length,1);
+  assert.equal(doc.nodes.filter(n=>n.kind==='text').length,1);
+  assert.equal(doc.nodes.length,3);
+  assert.match(doc.sourceBundles[0].timeline,/scaleX/);
+  assert.match(await fs.readFile(path.join(dir,'index.html'),'utf8'),/1600px/);
+});

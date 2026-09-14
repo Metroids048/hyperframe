@@ -54,3 +54,23 @@ S2 current rev-178e717adb7e7ea9: 45s 1920x1080, 1350 frames, no audio. Source ov
 - Isolation browser startup failure was reproduced with exact stderr and PID in `outputs/native-isolation/2d803fa3-1da6-4ce3-bfd6-d212bc92fdcd/1/portable-job.log`: locked desktop Chrome launch failed. Added `--disable-gpu` only to isolated worker; this remains to be rechecked on a fresh import.
 - Visual evidence: actual contact sheets `outputs/demo-closeout/S2-contact.jpg`, `S3-contact.jpg`, `S4-contact.jpg`; comparison artifacts in `outputs/demo-closeout/comparisons/`. S2 has a real same-material before/after export pair. S4-vs-S1 is explicitly labeled same-material/different-business-goal, not a fake base/upgrade pair.
 - Remaining: P1 run needs a new external/model capacity result; clean import needs recheck after worker flag; B2 revised S1 output is not yet exported; B4 and a completed P1 price-edit/undo flow remain open. Headless card probe and acceptance are not a substitute for those.
+
+## 2026-09-14 — V2 scope replacement recorded
+- User-directed replacement is active: legacy cosmetics/skincare, keyboard and coffee equipment demos exit default presentation; history remains archived.
+- New frozen input manifest: `docs/commerce-rebuild-v2/material-freeze.json`; four product groups N1–N4 and derivatives N5/N6.
+- New concept assets are visibly labeled `CONCEPT DEMO / V2`; factual claims are limited to visible structure. These are input studies pending G2 reference comparison, not completed films.
+- Runtime note: `node` is unavailable in this shell, so workspace-context bootstrap and HyperFrames execution are currently blocked until the bundled runtime is located.
+
+## 2026-09-14 V2 correction and runtime recovery
+- Prior G1 completion/freeze claim is withdrawn: the eight SVGs are abstract text placeholders, not product assets. Existing files retained; manifest corrected to incomplete. No verified product facts can be taken from them.
+- Existing start.py resolved `/Users/a1234/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node` (v24.19.0 arm64). Bootstrap succeeded at a8c8cf9, dirty local work retained, HyperFrames 0.8.33.
+- Fresh subprocess with PATH=/usr/bin:/bin:/usr/sbin:/sbin completed frontend bootstrap/build and started correct backend PID 7648, port 3024, existing result-completion-projects data.
+- Next: verify actual page/projects and obtain observable new product assets plus three official reference videos. G2–G5 remain incomplete.
+
+## 2026-09-14 V2 continuing execution
+- Node-free PATH launch regression covers stale configuration and old PATH Node fallback; browser/core verification and 20/20 acceptance pass. The missing Codex executable path was repaired in existing local configuration; account login remains intact.
+- Three official reference MP4s actually decoded and played at rate 1; reference-review.md records visible mechanisms and license separation.
+- Direct calibration A rendered and checked; final playback continuing. Application B real WebUI project d10732b4-bbdf-4dbb-b527-9a5451b4b31a, same run 262dd99b-5a6d-4464-864e-819648f56994: brief/observation/resource checkpoints recorded, storyboard active at 6 cumulative calls. One real model-capacity failure retained; no budget reset.
+- Confirmed visual loss: project.assemble discarded all-image custom source; fix preserves reviewed source and independent decoration. Before/after actual diagnostic renders prove loss. This is engineering evidence, not application B acceptance.
+- N1 real matching headphone photos ready; N2 same-bag photos acquired, N3 real cravat source with audio undergoing action review, N4 same-pair photo review continuing. Placeholder freeze claim remains withdrawn. G2 gate and six final films are NOT complete.
+- B修复前实际组装证据：outputs/commerce-rebuild-v2/B-before-fix/B-before.mp4 与 contact.jpg，sourceBundles=0；修复版恢复同一 run 后，shot-1 已重新进入制作，累计调用17–19，尚未形成新 final revision。不能把静态检查或这份对照当 G2 通过。

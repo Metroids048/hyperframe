@@ -17,9 +17,9 @@ const post=data=>api('/api/commerce-chat',{method:'POST',headers:{'Content-Type'
 function thumbnails(){objectUrls.splice(0).forEach(URL.revokeObjectURL);$('#thumbs').replaceChildren(...files.map((f,i)=>{const chip=document.createElement('div');chip.className='file-chip';if(f.type.startsWith('image/')){const img=document.createElement('img');img.src=URL.createObjectURL(f);img.alt=f.name;objectUrls.push(img.src);chip.append(img);}const name=document.createElement('span'),remove=document.createElement('button');name.textContent=f.name;remove.textContent='×';remove.type='button';remove.setAttribute('aria-label','移除 '+f.name);remove.onclick=()=>{files.splice(i,1);thumbnails();};chip.append(name,remove);return chip;}));}
 attachments.onchange=()=>{files.push(...attachments.files);attachments.value='';thumbnails();};
 async function listProjects(){
- const data=await api('/api/commerce-projects');projectSummaries=data.projects;const commerceIds=new Set(presetCatalog.map(p=>p.id)),sourceIds=new Set(presetCatalog.map(p=>p.sourceProjectId||data.projects.find(source=>!source.preset&&source.currentRevisionId&&source.request.message===p.input)?.id)),seenPresets=new Set();
- const visible=data.projects.filter(p=>{if(p.id===project?.id)return true;if(showAllProjects)return true;if(!p.currentRevisionId)return false;if(p.preset){if(!commerceIds.has(p.preset.id)||seenPresets.has(p.preset.id))return false;seenPresets.add(p.preset.id);return !data.projects.some(other=>other.id===project?.id&&other.preset?.id===p.preset.id);}return p.visibility!=='test'&&p.testOnly!==true||rememberedProjects.has(p.id);});
- $('#projects').replaceChildren(new Option(showAllProjects?'全部工程':'我的作品',''),...visible.map(p=>new Option((p.title||'未命名作品')+(!p.currentRevisionId?'（尚无成片）':''),p.id)),new Option(showAllProjects?'只看创作与商品示例':'查看全部工程（含测试）','__toggle_all__'));$('#projects').value=project?.id||'';
+ const data=await api('/api/commerce-projects'),historyIds=new Set(data.historyProjectIds||[]);projectSummaries=data.projects;const commerceIds=new Set(presetCatalog.map(p=>p.id)),sourceIds=new Set(presetCatalog.map(p=>p.sourceProjectId||data.projects.find(source=>!source.preset&&source.currentRevisionId&&source.request.message===p.input)?.id)),seenPresets=new Set();
+ const visible=data.projects.filter(p=>{if(p.id===project?.id)return true;if(showAllProjects)return true;if(historyIds.has(p.id))return false;if(!p.currentRevisionId)return false;if(p.preset){if(!commerceIds.has(p.preset.id)||seenPresets.has(p.preset.id))return false;seenPresets.add(p.preset.id);return !data.projects.some(other=>other.id===project?.id&&other.preset?.id===p.preset.id);}return p.visibility!=='test'&&p.testOnly!==true||rememberedProjects.has(p.id);});
+ $('#projects').replaceChildren(new Option(showAllProjects?'全部工程':'我的作品',''),...visible.map(p=>new Option((p.title||'未命名作品')+(!p.currentRevisionId?'（尚无成片）':''),p.id)),new Option(showAllProjects?'只看创作与商品示例':'查看历史与全部工程（含测试）','__toggle_all__'));$('#projects').value=project?.id||'';
 }
 function clearPreview(){
  selected=null;selectedNode=null;nativeDocument=null;documentRevision=null;const old=$('#player');old.pause?.();if(old.getAttribute('src')){const player=document.createElement('hyperframes-player');player.id='player';player.setAttribute('controls','');player.hidden=true;old.replaceWith(player);}else old.hidden=true;
@@ -83,6 +83,10 @@ const initial=new URLSearchParams(location.search).get('project');if(initial)ope
 function drawVoices(){const voices=project?.auditions||[],key=voices.map(a=>a.id).join('|');if(key===shownVoices)return;shownVoices=key;$('#voice-results').hidden=!voices.length;$('#voice-results').replaceChildren(...voices.map((a,i)=>{const card=document.createElement('div'),label=document.createElement('p'),audio=document.createElement('audio'),button=document.createElement('button');label.textContent='试听 '+(i+1)+' · '+(a.voice.startsWith('zf_')?'女声':'男声');audio.controls=true;audio.preload='metadata';audio.src=a.url;button.type='button';button.className='quiet';button.textContent='选择这个声音';button.onclick=()=>{input.value='确认使用第'+(i+1)+'个声音。';input.focus();};card.append(label,audio,button);return card;}));}
 
 const creationInputs={
+ style:{hint:'提供同款或系列关系明确的素材，展示风格与搭配，不推断性能。',message:'用这些素材做一条风格展示，突出商品形状、材质与搭配关系。'},
+ faq:{hint:'提供具体选购问题与能回答它的素材。',message:'用这些素材回答一个具体选购问题，结论必须有画面或资料依据。'},
+ recut:{hint:'添加原视频并指出要删的等待或需要补充的说明。',message:'整理这段实拍的节奏，删掉等待、保留动作和原意，并添加必要说明。'},
+ versions:{hint:'打开已有工程后描述新目的或画幅；原版本会保留。',message:'基于同一组素材调整传播目的和画幅，保留原作品并制作新版本。'},
  launch:{hint:'添加商品素材与已确认的重点，时长、画幅和声音可自由描述。',message:'做一条上新介绍，让观众先看清商品，再认识有素材依据的特点。'},
  detail:{hint:'添加能支持说明的整体与细节素材，不确定的参数可以不填。',message:'重点解释这些商品的卖点与结构细节，画面和说明要对应，不编造参数。'},
  demo:{hint:'添加连续实拍与操作顺序，说明原声要求；没有拍到的步骤不能虚构。',message:'做一条使用演示，保留完整操作，让第一次看的人理解步骤。'},
@@ -121,13 +125,13 @@ $('#example-own').onclick=()=>{
 };
 
 function drawBusinessCases(presets){
- const goals=[['launch','上新种草','demo-S1','商品整体图与已确认重点'],['detail','卖点与细节','demo-S4','支持说明的整体与细节素材'],['demo','使用演示','demo-S2','连续实拍与操作顺序'],['promotion','活动促销','demo-P1','确认的价格、条件与行动提示']];
- $('#business-cases').replaceChildren(...goals.map(([goal,title,id,need])=>{
-  const p=presets.find(p=>p.id===id),card=document.createElement('article');card.className='business-case';
+ const goals=[['launch','新品首发与品牌亮相','商品整体图与已确认重点'],['detail','商品详情与卖点图解','支持说明的整体与细节素材'],['demo','开箱／安装／使用教程','连续实拍与操作顺序'],['style','穿搭／组合／系列展示','同款或系列关系明确的照片'],['promotion','活动促销／直播预告','确认的价格、条件与行动提示'],['faq','选购说明／场景问答','具体问题与能够支持回答的资料'],['recut','已有视频精剪与包装','原始实拍与需要保留的动作'],['versions','一稿多版／开头／画幅调整','已有原生工程与新的传播目的']];
+ $('#business-cases').replaceChildren(...goals.map(([goal,title,need])=>{
+  const p=presets.find(p=>(p.businessGoal||[]).includes(goal)),card=document.createElement('article');card.className='business-case';
   const heading=document.createElement('h2');heading.textContent=title;card.append(heading);
   if(p?.poster){const img=document.createElement('img');img.src=p.poster;img.alt=p.title+'实际成片帧';card.append(img);}
-  const value=document.createElement('p');value.textContent=p?p.description:'P1 促销派生版待完成，当前无可播放结果。';card.append(value);
-  const meta=document.createElement('small');meta.textContent=p?'预生成样片 · '+p.durationSeconds+'秒 · '+({images:'图片',footage:'实拍',mixed:'混合'}[p.inputMode]||'待识别')+' · 内容待审阅':'待就绪';card.append(meta);
+  const value=document.createElement('p');value.textContent=p?p.description:'对应的新作品尚未通过验收；可以先使用自己的素材。';card.append(value);
+  const meta=document.createElement('small');meta.textContent=p?'预生成样片 · '+p.durationSeconds+'秒 · '+({images:'图片',footage:'实拍',mixed:'混合'}[p.inputMode]||'待识别')+(p.reviewStatus==='verified'?' · 已完成内容复核':' · 内容待复核'):'示例待就绪';card.append(meta);
   const inputs=document.createElement('p');inputs.textContent='输入：'+need;card.append(inputs);
   const watch=document.createElement('button');watch.type='button';watch.textContent='看已生成示例';watch.disabled=!p;watch.onclick=()=>{chooseExample(p.id);};card.append(watch);
   const edit=document.createElement('button');edit.type='button';edit.className='quiet';edit.textContent='打开派生工程编辑';edit.disabled=!p;edit.onclick=()=>{if((input.value.trim()||files.length)&&!confirm('打开案例将替换当前输入。确认继续？'))return;loadPreset(p);};card.append(edit);

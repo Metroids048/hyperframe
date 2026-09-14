@@ -32,6 +32,7 @@ export async function readCreativePresets(root){
   const definitions=JSON.parse(await fs.readFile(path.join(root,'examples/commerce/presets.json'),'utf8'));
   const ready=[];ready.unavailable=[];
   for(const entry of definitions){
+    if(entry.archived)continue;
     const directory=safeRelativePath(root,entry.directory);
     try{
       const {document,assets}=await readNativeProject(directory),video=path.join(directory,'commerce-final.mp4');

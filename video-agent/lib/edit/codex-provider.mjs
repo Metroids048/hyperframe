@@ -38,18 +38,18 @@ export class CodexProvider extends CloudProvider {
   status(){return {configured:this.loggedIn,checkingLogin:!!this.loginPending,provider:'Codex subscription',model:this.model||'Codex 默认模型',auth:'ChatGPT subscription',verifiedAt:this.verifiedAt,transcriptionModel:(process.env.VIDEO_AGENT_ASR_ENGINE==='whisperx'?'WhisperX':'Whisper')+' '+(process.env.VIDEO_AGENT_WHISPER_MODEL||'small')+' · 本地',voiceModel:process.env.VIDEO_AGENT_TTS_ENGINE==='elevenlabs'?'ElevenLabs':'HyperFrames Kokoro · 本地中文',voices:process.env.VIDEO_AGENT_TTS_ENGINE==='elevenlabs'?{engine:'elevenlabs',minRate:0.7,maxRate:1.2}:{engine:'kokoro',ids:localVoices,default:'zf_xiaobei',minRate:0.5,maxRate:2,language:'zh',instructionSupport:'音色与语速；不支持任意情绪或音色克隆'},connectionMode:'subscription'};}
   async refreshLogin(){
     if(this.loginPending)return this.loginPending;
-    this.environment=subscriptionEnv();
+    this.environment=subscriptionEnv();this.loginError=null;
     this.loginPending=new Promise(resolve=>{
       const child=spawn(this.bin,['login','status'],{env:this.environment,windowsHide:true,stdio:['ignore','pipe','pipe']});let output='',settled=false;
       const finish=code=>{if(settled)return;settled=true;clearTimeout(timer);this.loggedIn=code===0&&/ChatGPT/i.test(output);this.loginCheckedAt=Date.now();resolve(this.loggedIn);};
       const timer=setTimeout(()=>{if(child.pid&&process.platform==='win32')spawnSync('taskkill',['/pid',String(child.pid),'/T','/F'],{windowsHide:true,stdio:'ignore'});else child.kill('SIGKILL');finish(-1);},10000);
-      child.stdout.on('data',b=>output=(output+b).slice(-4000));child.stderr.on('data',b=>output=(output+b).slice(-4000));child.on('error',()=>finish(-1));child.on('close',finish);
+      child.stdout.on('data',b=>output=(output+b).slice(-4000));child.stderr.on('data',b=>output=(output+b).slice(-4000));child.on('error',error=>{this.loginError=error.code==='ENOENT'?'Codex 可执行文件未找到，请检查 VIDEO_AGENT_CODEX_BIN 或启动环境 PATH':'Codex 登录检查无法启动（'+(error.code||'unknown')+'），请检查可执行文件权限';finish(-1);});child.on('close',finish);
     }).finally(()=>{this.loginPending=null;});return this.loginPending;
   }
   async structured(instructions,input,schema,signal,attempt=0) {
     const candidates=[...new Set([this.model,...(process.env.VIDEO_AGENT_CODEX_FALLBACK_MODELS||'').split(',').map(x=>x.trim()).filter(Boolean)])],model=candidates[attempt]||this.model;
     if(this.loginPending||!this.loggedIn||Date.now()-this.loginCheckedAt>30000)await this.refreshLogin();
-    insist(this.loggedIn,'本机 Codex 尚未使用 ChatGPT 登录，请先完成 Codex 登录');
+    insist(this.loggedIn,this.loginError||'本机 Codex 尚未使用 ChatGPT 登录，请先完成 Codex 登录');
     const dir=path.join(this.cacheRoot,'edit-engine',uid());await fs.mkdir(dir,{recursive:true});const schemaFile=path.join(dir,'schema.json'),output=path.join(dir,'result.json');await fs.writeFile(schemaFile,JSON.stringify(schema));
     const images=[],messages=[];
     for(const item of input){const parts=[];for(const c of (Array.isArray(item.content)?item.content:[{type:'input_text',text:item.content}])) {

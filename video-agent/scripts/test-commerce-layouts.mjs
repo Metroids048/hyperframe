@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {instantiateNativeRecipe} from '../lib/creative/native-recipes.mjs';
 import {commerceLayoutSource,commerceLayoutResources} from '../lib/creative/commerce-layouts.mjs';
 import {CapabilityCatalog} from '../lib/creative/capabilities.mjs';
 import {normalizeCommerceRequest} from '../lib/creative/contracts.mjs';
@@ -41,4 +42,14 @@ test('media adaptation corrects only empty image placeholders without weakening 
  assert.equal(result.changes.length,3);assert(source.html.startsWith('<div'));
  const nested={...source,html:'<div id="photo"><span>not a media placeholder</span></div>'};
  assert.equal(normalizeMediaBindings(nested,['image']).changes.length,0);
+ const decorated={...source,html:'<div id=\"scene02-root\"><div id=\"scene02-bg\"></div><div id=\"scene02-media\"></div></div>',css:'#scene02-root{background-color:#F6F3EF}#scene02-bg{background:#F6F3EF}',objects:[{elementId:'scene02-media',ref:'media-1'}]};
+ const transparent=normalizeMediaBindings(decorated,['image']).source.css;assert.match(transparent,/#scene02-root\{background:transparent/);assert.match(transparent,/#scene02-bg\{background:transparent/);
+});
+
+
+test('composition adaptation is never silently replaced by a basic parameterized recipe',()=>{
+ const photo={id:'p',kind:'image',mediaMetadata:{width:1920,height:1080}};
+ const shot={resourceId:'grid-card-assemble',productionMethod:'composition-adapt',durationSeconds:4,media:[{assetId:'p'}],text:[{role:'feature',text:'真实局部'},{role:'feature',text:'引导位置'}],visualDirection:'真实局部引导线与跨段联系'};
+ assert.equal(instantiateNativeRecipe(shot,design,{width:1920,height:1080},[photo]),null);
+ assert(instantiateNativeRecipe({...shot,productionMethod:'parameterized'},design,{width:1920,height:1080},[photo]));
 });

@@ -47,13 +47,25 @@ def node_bin() -> str:
     exe = "node.exe" if os.name == "nt" else "node"
     configured = os.environ.get("VIDEO_AGENT_NODE")
     cached = Path.home() / ".cache/codex-runtimes/codex-primary-runtime/dependencies/node" / ("node.exe" if os.name == "nt" else "bin/node")
-    found = configured or shutil_which(exe) or (str(cached) if cached.is_file() else None)
-    if not found:
-        raise SystemExit("未找到 Node 22+；可通过 VIDEO_AGENT_NODE 指定现有运行时。")
-    check = subprocess.run([found, "-p", "JSON.stringify({path:process.execPath,major:Number(process.versions.node.split('.')[0])})"], capture_output=True, text=True, check=True)
-    runtime = json.loads(check.stdout)
-    if runtime["major"] < 22:
-        raise SystemExit("此项目需要 Node 22+。")
+    candidates = list(dict.fromkeys(p for p in [configured, shutil_which(exe), str(cached)] if p))
+    failures = []
+    runtime = None
+    for candidate in candidates:
+        try:
+            check = subprocess.run([candidate, "-p", "JSON.stringify({path:process.execPath,major:Number(process.versions.node.split('.')[0])})"], capture_output=True, text=True, check=True, timeout=15)
+            probe = json.loads(check.stdout)
+            if probe["major"] < 22:
+                raise ValueError("需要 Node 22+，当前主版本 " + str(probe["major"]))
+            if not Path(probe["path"]).is_absolute():
+                raise ValueError("运行时未返回绝对执行路径")
+            runtime = probe
+            break
+        except (OSError, subprocess.SubprocessError, ValueError, KeyError) as error:
+            failures.append(f"{candidate}: {type(error).__name__}: {error}")
+    if runtime is None:
+        raise SystemExit("未找到可执行的 Node 22+；已验证候选：\n" + "\n".join(failures))
+    if failures:
+        print("Node 候选验证失败，已使用后续有效运行时：\n" + "\n".join(failures), file=sys.stderr)
     # Change only this launcher and its children, never the system environment.
     path_key = next((k for k in os.environ if k.lower() == "path"), "PATH")
     original = os.environ.get(path_key, "")

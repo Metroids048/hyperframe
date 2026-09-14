@@ -109,3 +109,7 @@ Fix all errors before presenting the result. Warnings should be reviewed before 
 4. Videos use `muted` with a separate `<audio>` element for the audio track
 5. Sub-compositions use `data-composition-src="compositions/file.html"` to reference other HTML files
 6. Only deterministic logic — no `Date.now()`, no `Math.random()`, no network fetches
+
+## Verified local launch (2026-09-14)
+
+When `node` is absent from PATH, use `python3 start.py frontend` / `python3 start.py backend`. The existing launcher resolves and executes Node from `config/start.local.json`; use its `node_bin()` via Python for bootstrap and CLI commands. Verified on macOS arm64 with an intentionally Node-free PATH: bootstrap, frontend build and backend on port 3024 succeed. Preserve configured data directory and port; do not start an empty replacement project. Startup is a prerequisite, not completion of production scope.

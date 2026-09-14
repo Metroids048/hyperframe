@@ -45,7 +45,7 @@ export function normalizeMediaBindings(source,mediaKinds=[]){
     // A native scene may put its full-canvas plate on a separate #scene-bg
     // selector. It must be transparent whenever managed video is underneath;
     // local text panels remain opaque and are intentionally left untouched.
-    css=css.replace(/(#scene-bg\{[^}]*?)background:(?!transparent)[^;}]*(;?)/, '$1background:transparent$2');
+    css=css.replace(/(#[a-zA-Z][a-zA-Z0-9_-]*(?:root|bg)\{[^}]*?)background(?:-color)?:((?!transparent)[^;}]*)/g, '$1background:transparent');
     const additions=mediaIds.map(id=>`#${id}{background:transparent;opacity:1;z-index:1}`).join('\n');
     normalizedSource={...normalizedSource,css:css+'\n'+additions};
     changes.push(...mediaIds.map(elementId=>({elementId,reason:'transparent native media surface'})));

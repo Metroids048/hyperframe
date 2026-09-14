@@ -37,7 +37,7 @@ const storyScene=obj(Object.fromEntries(Object.entries({...sceneProperties,parag
 const storySchema=obj({inspectActions:list(range),inspectRanges:list(range),blockingGaps:list(str),summary:str,transition:creationSchema.properties.transition,design:obj({...creationSchema.properties.design.properties,fontFamily:{type:'string',enum:['Microsoft YaHei','Arial']},typeScale:obj({title:num,body:num,label:num}),safeMarginPx:num,labelStyle:str}),scenes:list(storyScene),audio:creationSchema.properties.audio,omitted:creationSchema.properties.omitted,paragraphs:list(obj({id:str,purpose:str,information:str}))});
 const shotSchema=obj({source:obj({html:str,css:str,timeline:str,parameters:list(obj({name:str,value:num,min:num,max:num})),objects:list(obj({elementId:str,ref:str})),motionTargets:list(str),textStyles:list(obj({elementId:str,match:str,fontSize:num,fontWeight:num,color:str}))}),notes:str});
 const animationSchema=obj({animation:obj(Object.fromEntries(['timeline','parameters','motionTargets'].map(k=>[k,shotSchema.properties.source.properties[k]]))),notes:str});
-const qualitySchema=obj({summary:str,issues:list(obj({severity:{type:'string',enum:['blocker','major','minor']},repairKind:{type:'string',enum:['layout','source-selection','text-timing','text-evidence']},sceneId:str,startSeconds:num,endSeconds:num,nodeIds:list(str),evidence:list(str),problem:str,repair:str})),unreviewed:list(str)});
+const qualitySchema=obj({summary:str,issues:list(obj({severity:{type:'string',enum:['blocker','major','minor']},repairKind:{type:'string',enum:['layout','source-selection','text-timing','text-evidence','motion-design']},sceneId:str,startSeconds:num,endSeconds:num,nodeIds:list(str),evidence:list(str),problem:str,repair:str})),unreviewed:list(str)});
 function boundedQualitySchema(ids,nodes,frames){
  const s=structuredClone(qualitySchema);
  s.properties.issues.items={anyOf:[...ids].map(id=>{
@@ -292,7 +292,7 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
       lastError=null;
     }
     for(let attempt=0;attempt<3;attempt++){
-      const answer=await ask(ctx,'R5',{...packet,phase:feedback?'local-repair':'animate-checked-keyframe',checkedKeyframe:keyframe,attempt,error:lastError?.message},keyframe?animationSchema:shotSchema,{images:[...images,...keyframeImage],resources:shot.resourceId==='native-original'?[]:[shot.resourceId],extra:CUSTOM_SOURCE_CONTRACT.replaceAll('customSourceJson','source')+'\n制作本镜头。若提供checkedKeyframe，只返回animation对象，包含timeline、parameters、motionTargets；应用会直接保留已检查的HTML/CSS/objects，不要求复制它们。只有local-repair阶段返回完整source。用tl.from/tl.fromTo设置入场初态。语法示例（仅示范格式，目标和参数须按当前镜头选择）：tl.fromTo("#headline",{opacity:0},{opacity:1,duration:0.5},0.2); 每条调用都必须以tl.开头，并以分号分隔；不允许裸fromTo(...)、链式.to(...)、变量声明或代码围栏。真实视频本身已提供运动，无需无意义动画；无获准文字时允许空时间线。文字必须全部留空绑定。返回本镜头source结构化对象，不使用嵌套JSON字符串，不双重转义引号。不要加大面积装饰遮挡实拍。每条文字可按语义先后出现。用已有的title/feature等ref或text-1序号映射，不把用户文案拆成未经声明的内联字串。选择了蓝图则说明适配其哪个结构，保持用户动作连续性优先于蓝图的清屏或切换。最终场景时长='+shot.durationSeconds+'秒，使用params.sceneSeconds。'});
+      const answer=await ask(ctx,'R5',{...packet,phase:feedback?'local-repair':'animate-checked-keyframe',checkedKeyframe:keyframe,attempt,error:lastError?.message},keyframe?animationSchema:shotSchema,{images:[...images,...keyframeImage],resources:shot.resourceId==='native-original'?[]:[shot.resourceId],extra:CUSTOM_SOURCE_CONTRACT.replaceAll('customSourceJson','source')+'\n制作本镜头。若提供checkedKeyframe，只返回animation对象，包含timeline、parameters、motionTargets；应用会直接保留已检查的HTML/CSS/objects。每个将被动画触及的引导线、形状或文字ID必须已经出现在checkedKeyframe.objects，并映射到合法decoration-N或text-N；如果静态关键帧没有声明该对象，先不要在animation里引用它，不能凭CSS中存在ID就当作可验证运动目标，不要求复制它们。只有local-repair阶段返回完整source。用tl.from/tl.fromTo设置入场初态。语法示例（仅示范格式，目标和参数须按当前镜头选择）：tl.fromTo("#headline",{clipPath:"inset(0 100% 0 0)"},{clipPath:"inset(0 0% 0 0)",duration:0.7,ease:"power3.inOut"},0.2); 若本次要求遮罩揭示，须使用真实clipPath等遮罩机制，opacity与小位移不能代替；若要求持续锚点，跨幕采用对应位置、形状与进入/退出状态，不能每幕重置成无关布局。语法例子不是每幕都要使用的效果。每条调用都必须以tl.开头，并以分号分隔；不允许裸fromTo(...)、链式.to(...)、变量声明或代码围栏。真实视频本身已提供运动，无需无意义动画；无获准文字时允许空时间线。文字必须全部留空绑定。返回本镜头source结构化对象，不使用嵌套JSON字符串，不双重转义引号。不要加大面积装饰遮挡实拍。每条文字可按语义先后出现。用已有的title/feature等ref或text-1序号映射，不把用户文案拆成未经声明的内联字串。选择了蓝图则说明适配其哪个结构，保持用户动作连续性优先于蓝图的清屏或切换。最终场景时长='+shot.durationSeconds+'秒，使用params.sceneSeconds。'});
       try{
         let source=keyframe?animateKeyframe(keyframe,answer.animation):answer.source;
         const adapted=await catalog.adapt(source,{resourceId:shot.resourceId,sceneId,objectIds:[],design:story.design,mediaKinds:shot.media.map(m=>byId[m.assetId].kind)});
@@ -322,12 +322,11 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
       await replanSourceShot(ctx,index,error.issues||[{problem:error.message,repairKind:'source-selection'}]);
     }}
   });
-  async function assemble(ctx){const sources={},assemblyReceipts={};for(const [i,shot] of result(ctx.run,'story').scenes.entries()){const record=await readJSON(result(ctx.run,'shot-'+i).file);insist(resourceHash(record.source)===result(ctx.run,'shot-'+i).sourceHash,'镜头检查点内容变更','SCENE_HASH');const kinds=shot.media.map(m=>byId[m.assetId].kind),native=instantiateNativeRecipe(shot,result(ctx.run,'story').design,result(ctx.run,'brief').request.output,assets);sources[i]=kinds.every(k=>k==='image')?null:(native?.source||normalizeMediaBindings(record.source,kinds).source);
-      // Assembly instantiates current native adapters again. Bind the receipt to
-      // that executed implementation, retaining the original checkpoint receipt
-      // as provenance instead of packaging stale hashes as current execution.
+  async function assemble(ctx){const sources={},assemblyReceipts={};for(const [i,shot] of result(ctx.run,'story').scenes.entries()){const record=await readJSON(result(ctx.run,'shot-'+i).file);insist(resourceHash(record.source)===result(ctx.run,'shot-'+i).sourceHash,'镜头检查点内容变更','SCENE_HASH');const kinds=shot.media.map(m=>byId[m.assetId].kind);sources[i]=normalizeMediaBindings(record.source,kinds).source;
+      // The checked source is authoritative, including local repairs. Re-instantiating
+      // a recipe here would discard those repairs and make preview and export differ.
       const prior=result(ctx.run,'shot-'+i).receipt;
-      assemblyReceipts[i]=native?{...prior,tool:'resources.instantiate_native',requestedMethod:native.requestedMethod||prior.requestedMethod||native.method,method:native.method,adapterId:native.adapterId,adapterVersion:native.adapterVersion,implementationHash:native.implementationHash,parameterHash:native.parameterHash,sourceHash:resourceHash(native.source),adapterSourceSha256:implementation.files['lib/creative/native-recipes.mjs'],adapterSources:(native.sourceFiles||['lib/creative/native-recipes.mjs']).map(file=>({file,sha256:implementation.files[file]})),priorCheckpointReceipt:prior,status:'assembled-awaiting-project-checks'}:prior;
+      assemblyReceipts[i]={...prior,sourceHash:resourceHash(sources[i]),checkpointSourceHash:resourceHash(record.source),execution:'validated-checkpoint-source',status:'assembled-awaiting-project-checks'};
     }
     const document=documentFromModelPlan(request,assets,nativePlan(ctx.run,sources));document.storyPlan={paragraphs:result(ctx.run,'story').paragraphs,scenes:result(ctx.run,'story').scenes.map((s,i)=>({sceneId:document.scenes[i].id,paragraphId:s.paragraphId,newInformation:s.newInformation,visualDirection:s.visualDirection}))};document.timingPlan=result(ctx.run,'timing');document.production={runId:ctx.run.id,inputFingerprint:fingerprint,workflowVersion:1};document.dependencyLock={...document.dependencyLock,resources:catalog.snapshot?.commit,prompts:resourceHash(await fs.readFile(path.join(root,'prompts/commerce/manifest.json'),'utf8'))};document.resourceReceipts=Object.keys(sources).map(i=>assemblyReceipts[i]);
     if(result(ctx.run,'brief').needsCaptions)document.captions=await recognizeNativeCaptions(document,assets,outputDir,{signal,provider});
@@ -344,7 +343,7 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
     const sources={},completed=[];
     for(const [i]of result(ctx.run,'story').scenes.entries()){
       const checkpoint=result(ctx.run,'shot-'+i);if(!checkpoint)break;
-      const record=await readJSON(checkpoint.file);insist(resourceHash(record.source)===checkpoint.sourceHash,'方向预览的镜头检查点已变化','SCENE_HASH');const shot=result(ctx.run,'story').scenes[i],kinds=shot.media.map(m=>byId[m.assetId].kind),native=instantiateNativeRecipe(shot,result(ctx.run,'story').design,result(ctx.run,'brief').request.output,assets);sources[i]=native?.source||normalizeMediaBindings(record.source,kinds).source;completed.push(checkpoint.sceneId);
+      const record=await readJSON(checkpoint.file);insist(resourceHash(record.source)===checkpoint.sourceHash,'方向预览的镜头检查点已变化','SCENE_HASH');const shot=result(ctx.run,'story').scenes[i],kinds=shot.media.map(m=>byId[m.assetId].kind);sources[i]=normalizeMediaBindings(record.source,kinds).source;completed.push(checkpoint.sceneId);
     }
     const document=documentFromModelPlan(request,assets,nativePlan(ctx.run,sources));
     const record=await createDirectionPreview(document,completed,assets,outputDir,root,runHyperFrames,{signal,binding:{runId:ctx.run.id,inputFingerprint:fingerprint,storyHash:resourceHash(result(ctx.run,'story')),timingHash:resourceHash(result(ctx.run,'timing')),implementationHash,sourceHashes:Object.fromEntries(Object.keys(sources).map(i=>[i,result(ctx.run,'shot-'+i).sourceHash]))}});
@@ -375,7 +374,7 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
         insist(images.length,'没有实际预览帧，不能评审通过','PREVIEW_EVIDENCE_MISSING');
         const {sourceBundles,...reviewDocument}=document;reviewDocument.scenes=scenes;reviewDocument.nodes=document.nodes.filter(n=>ids.has(n.sceneId));
         const sourceTimeline=document.scenes.map(scene=>({sceneId:scene.id,purpose:scene.purpose,startSeconds:scene.startFrame/FPS,endSeconds:(scene.startFrame+scene.durationFrames)/FPS,text:document.nodes.filter(n=>n.sceneId===scene.id&&n.kind==='text').map(n=>n.params.text),media:document.nodes.filter(n=>n.sceneId===scene.id&&n.kind==='video').map(n=>({nodeId:n.id,assetId:n.assetId,sourceStartSeconds:n.params.sourceStartSeconds||0,sourceEndSeconds:(n.params.sourceStartSeconds||0)+n.durationFrames/FPS*(n.params.playbackRate||1)}))}));
-        const reviewed=await ask(ctx,'R6',{message:request.message,document:reviewDocument,sourceTimeline,animationEvidence:sourceBundles.filter(b=>ids.has(b.sceneId)).map(b=>({sceneId:b.sceneId,timeline:b.timeline,objects:b.objects})),frameTimes,evidence:names.map(n=>folder+'/'+n),round,batch:offset/3,limits:{sceneRepairs:2,wholeFilmReviews:2}},boundedQualitySchema(ids,reviewDocument.nodes,frameTimes),{images,extra:'先逐图确认可见主体与操作，再检查字幕是否准确描述该画面，最后检查布局动效；不能用故事中的reason代替图片证据。空画面、失焦、主体消失而字幕仍宣称动作正在发生，必须明确定位。sourceTimeline给出全片实际源区间，用它核对重复内容和操作先后关系，不能只看单幕排版。源区间重叠只作核对线索，若用户要求回顾或对比可合理复用；不要无证据禁止复用。本批只检查给定镜头，其他镜头另批处理。每张图的标签含实际sceneId与seconds，严格按该标签归属证据，不能把另一时刻的文字误当本帧残留。文档nodes列出应用新增的全部文字；源片自带标识不是应用新增文字。指出多镜头切点问题时，每条issue只引用目标镜头自身的nodeIds和该镜头证据，必要时分条记录。只根据实际图片与时间/源区间检查结果评价；没有试听/全片运动证据则把该项列入unreviewed。问题必须有本批有效sceneId和实际证据文件名。major/blocker必须给具体可执行的局部修复。repairKind必须准确区分：源画面选错/动作不完整/片尾在新动作中截断用source-selection，由导演重选原生媒体区间；构图遮挡用layout；文字退出时点用text-timing；模型自拟说明本身与实拍证据不符用text-evidence，由导演纠正中性说明，不能改变用户原文或事实。不要要求镜头CSS编写器改变原生视频选段。不要把增加动画数量当质量。'});
+        const reviewed=await ask(ctx,'R6',{message:request.message,document:reviewDocument,sourceTimeline,animationEvidence:sourceBundles.filter(b=>ids.has(b.sceneId)).map(b=>({sceneId:b.sceneId,timeline:b.timeline,objects:b.objects})),frameTimes,evidence:names.map(n=>folder+'/'+n),round,batch:offset/3,limits:{sceneRepairs:2,wholeFilmReviews:2}},boundedQualitySchema(ids,reviewDocument.nodes,frameTimes),{images,extra:'先逐图确认可见主体与操作，再检查字幕是否准确描述该画面，最后检查布局动效；不能用故事中的reason代替图片证据。空画面、失焦、主体消失而字幕仍宣称动作正在发生，必须明确定位。sourceTimeline给出全片实际源区间，用它核对重复内容和操作先后关系，不能只看单幕排版。源区间重叠只作核对线索，若用户要求回顾或对比可合理复用；不要无证据禁止复用。本批只检查给定镜头，其他镜头另批处理。每张图的标签含实际sceneId与seconds，严格按该标签归属证据，不能把另一时刻的文字误当本帧残留。文档nodes列出应用新增的全部文字；源片自带标识不是应用新增文字。指出多镜头切点问题时，每条issue只引用目标镜头自身的nodeIds和该镜头证据，必要时分条记录。只根据实际图片与时间/源区间检查结果评价；没有试听/全片运动证据则把该项列入unreviewed。问题必须有本批有效sceneId和实际证据文件名。major/blocker必须给具体可执行的局部修复。repairKind必须准确区分：源画面选错/动作不完整/片尾在新动作中截断用source-selection，由导演重选原生媒体区间；构图遮挡用layout；文字退出时点用text-timing；模型自拟说明本身与实拍证据不符用text-evidence，由导演纠正中性说明，不能改变用户原文或事实。不要要求镜头CSS编写器改变原生视频选段。不要把增加动画数量当质量。对照用户明确要求、storyPlan.visualDirection、animationEvidence和实际帧：明确要求的遮罩被普通淡入替代、细节线未指向真实结构、跨幕锚点没有对应关系时，作为motion-design记录具体未实现机制和最小修复；不因主观偏好要求所有片都增加特效。源码能确认某机制缺失，但不能凭源码宣称实际运动好看或已试听。'});
         for(const issue of reviewed.issues){insist(ids.has(issue.sceneId)&&issue.nodeIds.every(id=>document.nodes.some(n=>n.id===id&&n.sceneId===issue.sceneId)),'评审对象不存在或不属于目标镜头','REVIEW_TARGET');insist(issue.startSeconds>=0&&issue.endSeconds>=issue.startSeconds&&issue.endSeconds<=document.durationFrames/FPS&&issue.evidence.length&&issue.evidence.every(f=>frameTimes.some(t=>t.file===f)),'评审必须定位实际时间与本轮预览文件','REVIEW_EVIDENCE');}
         await saveJSON(`quality-round-${round}-batch-${offset/3}.json`,{...reviewed,frameTimes});batches.push(reviewed);
       }
@@ -440,6 +439,35 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
           for(const entry of prior.toolResults)if(['assets.observe','resources.plan','story.plan','timing.verify'].includes(entry.tool)&&entry.status==='completed'){entry.status='invalidated';entry.invalidation={code:error.code,message:error.message,implementationHash};}
           await store.update(prior.id,{checkpoints:prior.checkpoints,toolResults:prior.toolResults});
         }
+      }
+      // Repair only checkpoints whose executed method contradicted the director.
+      // Keep source files and receipts as evidence, and keep the original run budget.
+      const downgraded=(result(prior,'story')?.scenes||[]).flatMap((shot,index)=>{
+        const receipt=result(prior,'shot-'+index)?.receipt;
+        return shot.productionMethod==='composition-adapt'&&receipt?.method==='parameterized'?['shot-'+index]:[];
+      });
+      // Old checkpoints may carry adapter hashes for a recipe that assembly no
+      // longer executes. Preserve those receipts as history, but do not package
+      // stale implementation dependencies as if they were current execution.
+      const staleAdapterReceipts=[];
+      for(const entry of prior.toolResults){
+        const receipt=entry.result?.receipt;
+        if(receipt?.adapterSourceSha256||receipt?.adapterSources){staleAdapterReceipts.push({tool:entry.tool,idempotencyKey:entry.idempotencyKey,receipt:structuredClone(receipt)});delete receipt.adapterSourceSha256;delete receipt.adapterSources;delete receipt.implementationHash;}
+      }
+      if(staleAdapterReceipts.length){
+        await saveJSON('stale-adapter-receipts-preserved-'+Date.now()+'.json',{reason:'checkpoint provenance; adapter no longer executed during assembly',receipts:staleAdapterReceipts,implementationHash});
+        for(const checkpoint of Object.values(prior.checkpoints)){const receipt=checkpoint.result?.receipt;if(receipt){delete receipt.adapterSourceSha256;delete receipt.adapterSources;delete receipt.implementationHash;}}
+        await store.update(prior.id,{toolResults:prior.toolResults,checkpoints:prior.checkpoints});
+      }
+      if(downgraded.length){
+        const keys=[...downgraded,'direction-preview','assemble','quality'];
+        const evidence={code:'COMPOSITION_ADAPT_METHOD_RESTORED',implementationHash,checkpoints:Object.fromEntries(keys.filter(k=>prior.checkpoints[k]).map(k=>[k,prior.checkpoints[k]])),modelCalls:prior.modelCalls,maxModelCalls:prior.maxModelCalls};
+        await saveJSON('method-checkpoints-invalidated-'+Date.now()+'.json',evidence);
+        const ids=new Set(Object.values(evidence.checkpoints).map(c=>c.idempotencyKey));
+        for(const key of keys)delete prior.checkpoints[key];
+        for(const entry of prior.toolResults)if(ids.has(entry.idempotencyKey)&&entry.status==='completed'){entry.status='invalidated';entry.invalidation={code:evidence.code,implementationHash};}
+        (prior.artifacts.checkpointMigrations??=[]).push({code:evidence.code,keys,implementationHash,modelCalls:prior.modelCalls});
+        await store.update(prior.id,{checkpoints:prior.checkpoints,toolResults:prior.toolResults,artifacts:prior.artifacts});
       }
       let priorStory=result(prior,'story');
       if(priorStory?.blockingGaps?.length&&prior.artifacts.storyInspections?.length&&!prior.artifacts.actionCapabilityVersion&&!Object.keys(prior.checkpoints).some(k=>/^shot-/.test(k))){

@@ -1,0 +1,35 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><style>@font-face{font-family:"PingFang SC";src:local("PingFang SC")}
+*{box-sizing:border-box}html,body{margin:0;width:1920px;height:1080px;overflow:hidden;background:#F8F7F4;color:#17161B;font-family:'Helvetica Neue','PingFang SC',sans-serif}#film{position:relative;width:1920px;height:1080px;overflow:hidden}.clip{position:absolute;inset:0}#world{position:absolute;width:5760px;height:1080px;left:0;top:0}.region{position:absolute;top:0;width:1920px;height:1080px;overflow:hidden}#r1{left:0}#r2{left:1920px}#r3{left:3840px}.kicker{position:absolute;left:100px;top:100px;font-size:25px;letter-spacing:5px;font-weight:600}.mask{overflow:hidden;position:absolute;left:100px;top:265px;width:800px;height:180px}.headline{font-size:112px;line-height:1.1;font-weight:800;letter-spacing:-4px}.sub{position:absolute;left:108px;top:648px;font-size:35px;letter-spacing:2px}.english{position:absolute;left:106px;top:468px;font:italic 50px Georgia,serif;color:#6653D9}.media{position:absolute;overflow:hidden}.media img{width:100%;height:100%;object-fit:contain}#hero{left:900px;top:190px;width:960px;height:755px;mix-blend-mode:multiply}#detail{left:900px;top:130px;width:920px;height:790px;overflow:hidden;mix-blend-mode:multiply}#detail img{position:absolute;width:1500px;height:2250px;max-width:none;left:-240px;top:-1270px;object-fit:contain}#front{left:1040px;top:80px;width:770px;height:880px;mix-blend-mode:multiply}#front img{object-fit:cover;object-position:50% 88%}#baseline{position:absolute;left:104px;top:936px;width:1712px;height:3px;background:#6653D9;transform-origin:left center}#cursor{position:absolute;left:104px;top:927px;width:21px;height:21px;border-radius:50%;background:#6653D9}#footer{position:absolute;left:104px;top:964px;height:70px;line-height:1.5;font-size:24px;color:#625F6C}#edition{position:absolute;right:104px;top:964px;height:70px;line-height:1.5;font-size:24px;letter-spacing:3px}#callout{position:absolute;left:920px;top:390px;width:620px;height:280px}#callout svg{position:absolute;inset:0}#callout-label{position:absolute;left:10px;top:225px;font-size:28px;background:#F8F7F4;padding:6px 12px}#r2 .headline,#r3 .headline{font-size:112px}#r2 .mask{width:730px}#r3 .mask{width:900px}#closing-rail{position:absolute;left:106px;top:752px;width:550px;height:3px;background:#17161B;transform-origin:left center}.mini{position:absolute;left:106px;top:796px;font-size:27px;color:#625F6C}
+</style></head><body><div id="film" data-composition-id="headphone-form" data-width="1920" data-height="1080" data-duration="12">
+<div id="world" class="clip" data-start="0" data-duration="12" data-track-index="1" data-layout-allow-overflow>
+<section id="r1" class="region"><div id="k1" class="kicker">FORM STUDY / 01</div><div id="hero" class="media"><img src="assets/angle.jpg" alt="黑色耳机整体"></div><div class="mask"><div id="t1" class="headline">听见，形状。</div></div><div id="en1" class="english">A closer look.</div><div id="s1" class="sub">黑色轮廓 · 弧形头梁</div></section>
+<section id="r2" class="region"><div id="k2" class="kicker">DETAIL STUDY / 02</div><div id="detail" class="media"><img src="assets/front.jpg" alt="同款照片耳垫细节"></div><div class="mask"><div id="t2" class="headline">靠近，细节。</div></div><div id="en2" class="english">Follow the curve.</div><div id="s2" class="sub">耳垫轮廓，清楚可见。</div><div id="callout"><svg viewBox="0 0 620 280"><path d="M35 228H210L365 60" stroke="#6653D9" stroke-width="3" fill="none"/><circle cx="365" cy="60" r="35" fill="none" stroke="#6653D9" stroke-width="3"/></svg><span id="callout-label">耳垫边缘</span></div></section>
+<section id="r3" class="region"><div id="k3" class="kicker">ONE OBJECT / TWO VIEWS</div><div id="front" class="media"><img src="assets/front.jpg" alt="同款耳机正面"></div><div class="mask"><div id="t3" class="headline">看见，全貌。</div></div><div id="en3" class="english">One continuous form.</div><div id="s3" class="sub">从整体到细节，再回到整体。</div><div id="closing-rail"></div><div id="note" class="mini">素材演示 · 非品牌广告</div></section>
+</div><div id="baseline"></div><div id="cursor"></div><div id="footer">实拍照片 / Caleb Oquendo · Pexels</div><div id="edition">HEADPHONE / FORM</div>
+<audio id="pulse-track" src="assets/pulse.wav" data-start="0" data-duration="12" data-track-index="2" data-volume="1"></audio></div>
+<script src="assets/gsap.min.js"></script><script>
+window.__timelines=window.__timelines||{};const tl=gsap.timeline({paused:true});
+tl.from('#hero',{scale:.82,y:80,duration:1.1,ease:'power3.out'},.2);
+tl.from('#t1',{y:180,duration:.8,ease:'expo.out'},.35);
+tl.from('#en1',{x:-65,opacity:0,duration:.7,ease:'sine.out'},.8);
+tl.from('#s1',{y:36,opacity:0,duration:.55,ease:'power2.out'},1.25);
+tl.from('#k1',{opacity:0,duration:.4},.2);
+tl.from('#baseline',{scaleX:0,duration:1.6,ease:'power3.inOut'},.2);
+tl.from('#cursor',{scale:0,duration:.4,ease:'back.out(1.4)'},.3);
+tl.to('#world',{x:-1920,duration:.8,ease:'power3.inOut'},3.8);
+tl.to('#cursor',{x:850,duration:.8,ease:'power3.inOut'},3.8);
+tl.from('#t2',{y:180,duration:.75,ease:'expo.out'},4.2);
+tl.from('#en2',{x:-65,opacity:0,duration:.7,ease:'sine.out'},4.6);
+tl.from('#s2',{y:36,opacity:0,duration:.55,ease:'power2.out'},5.1);
+tl.from('#callout',{scale:.65,opacity:0,duration:.6,ease:'power3.out'},5.6);
+tl.from('#k2',{opacity:0,duration:.4},4.2);
+tl.to('#world',{x:-3840,duration:.8,ease:'power3.inOut'},7.8);
+tl.to('#cursor',{x:1690,duration:.8,ease:'power3.inOut'},7.8);
+tl.from('#t3',{y:180,duration:.75,ease:'expo.out'},8.2);
+tl.from('#en3',{x:-65,opacity:0,duration:.7,ease:'sine.out'},8.6);
+tl.from('#s3',{y:36,opacity:0,duration:.55,ease:'power2.out'},9.1);
+tl.from('#closing-rail',{scaleX:0,duration:.7,ease:'power3.inOut'},9.6);
+tl.from('#note',{opacity:0,duration:.5,ease:'sine.out'},10);
+tl.from('#k3',{opacity:0,duration:.4},8.2);
+window.__timelines['headphone-form']=tl;
+</script></body></html>

@@ -8,7 +8,7 @@ export const nativeRecipeContract={version:2,resources:['lt-mask-reveal','titlec
  * Unrepresentable requests keep the original authoring route.
  */
 export function instantiateNativeRecipe(shot,design,output,assets){
-  const method=shot.productionMethod==='composition-adapt'?'parameterized':shot.productionMethod;
+  const method=shot.productionMethod;
   if(!['footage-cut','parameterized'].includes(method))return null;
   const layout=commerceLayoutSource({...shot,productionMethod:method},design,output,assets);
   if(layout)return {source:layout,requestedMethod:shot.productionMethod,method,adapterId:shot.resourceId,adapterVersion:3,parameterHash:resourceHash({shot,design,output}),implementationHash:resourceHash(commerceLayoutSource.toString()),sourceFiles:['lib/creative/native-recipes.mjs','lib/creative/commerce-layouts.mjs']};
