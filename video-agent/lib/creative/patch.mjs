@@ -39,8 +39,10 @@ export function applyDocumentPatch(input, operations, assets) {
     if(['add_audio','update_audio','remove_audio'].includes(op.type)){
       document.audioGraph??=[];const index=document.audioGraph.findIndex(a=>a.id===op.nodeId);
       if(op.type!=='add_audio')insist(index>=0,'目标音轨不存在','PATCH_TARGET_MISSING');
-      if(op.type==='remove_audio'){document.audioGraph.splice(index,1);continue;}
-      const params=op.params||{};insist(Object.keys(params).every(k=>['startFrame','durationFrames','sourceStartSeconds','playbackRate','volume','fadeInFrames','fadeOutFrames','ducking','role'].includes(k)),'不支持的音轨参数','INVALID_PATCH');
+      if(op.type==='remove_audio'){const [removed]=document.audioGraph.splice(index,1);if(document.audioRequirements&&removed.role&&!document.audioGraph.some(t=>t.role===removed.role))document.audioRequirements[removed.role]=false;continue;}
+      const params=op.params||{};insist(Object.keys(params).every(k=>['startFrame','durationFrames','sourceStartSeconds','playbackRate','volume','fadeInFrames','fadeOutFrames','ducking','role','sourceNodeId'].includes(k)),'不支持的音轨参数','INVALID_PATCH');
+      if(params.sourceNodeId)insist(document.nodes.some(n=>n.id===params.sourceNodeId&&n.kind==='video'&&n.assetId===(op.assetId||document.audioGraph[index]?.assetId)),'原声必须绑定同一真实视频对象','INVALID_AUDIO_ASSET');
+      if(op.type==='add_audio'&&['music','original'].includes(params.role))document.audioRequirements={...document.audioRequirements,[params.role]:true};
       if(op.type==='add_audio'){insist(assets[op.assetId]?.mediaMetadata?.hasAudio,'素材没有可用声音','INVALID_AUDIO_ASSET');document.audioGraph.push({id:stableId('audio',input.revisionId,op,document.audioGraph.length),assetId:op.assetId,startFrame:0,sourceStartSeconds:0,playbackRate:1,volume:1,...params});}
       else {
         document.audioGraph[index]={...document.audioGraph[index],...params};

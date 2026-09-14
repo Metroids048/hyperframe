@@ -338,8 +338,10 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
   }
   registry.register('project.direction_preview',async(_,ctx)=>{
     if(io.directionPreview)return io.directionPreview(ctx);
-    const allImages=result(ctx.run,'story').scenes.every(scene=>scene.media.every(m=>byId[m.assetId]?.kind==='image'));
-    if(allImages){const skipped={status:'skipped',reason:'纯图片镜头不使用跨镜头叠加方向预览；母工程仍执行完整编译、隔离与质量检查。',completed:result(ctx.run,'story').scenes.map(s=>s.id)};ctx.run.artifacts.directionPreview=skipped;await ctx.persist();return saveJSON('direction-preview.json',skipped);}
+    // Image-led films still need an early adjacent-scene handoff check. The
+    // preview is intentionally built from the same checked source bundles as
+    // the final mother composition so a layout/anchor loss is visible before
+    // the remaining scenes are authored.
     const sources={},completed=[];
     for(const [i]of result(ctx.run,'story').scenes.entries()){
       const checkpoint=result(ctx.run,'shot-'+i);if(!checkpoint)break;

@@ -1,0 +1,15 @@
+import fs from 'node:fs/promises';import {setTimeout as delay} from 'node:timers/promises';
+const base='http://127.0.0.1:3024',recordFile='outputs/commerce-rebuild-v2/webui-registration.json';
+const registry=JSON.parse(await fs.readFile(recordFile));
+async function api(url,body){const r=await fetch(base+url,body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{});const d=await r.json();if(!r.ok)throw Error(JSON.stringify(d));return d;}
+async function wait(id,job){for(;;){const p=(await api('/api/commerce/'+id)).project,j=p.jobs.find(j=>j.id===job);if(!['running','queued'].includes(j.status)){if(j.status!=='complete')throw Error(JSON.stringify(j));return p;}await delay(3000);}}
+for(const w of registry.works){
+ let p=(await api('/api/commerce/'+w.projectId)).project;let r=p.revisions.find(r=>r.id===p.currentRevisionId);let doc=await api(r.documentUrl);const operations=[];
+ if(['N1','N4','N5'].includes(w.id)&&!doc.audioGraph.length){const asset=p.assets.find(a=>a.kind==='audio');operations.push({type:'add_audio',assetId:asset.id,params:{startFrame:0,durationFrames:doc.durationFrames,sourceStartSeconds:0,volume:.3,fadeInFrames:15,fadeOutFrames:30,role:'music'}});}
+ if(w.id==='N3'&&!doc.audioGraph.length){const vids=doc.nodes.filter(n=>n.kind==='video');for(const [i,n] of vids.entries()){operations.push({type:'update_media',nodeId:n.id,params:{sourceStartSeconds:12+n.startFrame/30}});operations.push({type:'add_audio',assetId:n.assetId,params:{sourceNodeId:n.id,startFrame:n.startFrame,durationFrames:n.durationFrames,sourceStartSeconds:12+n.startFrame/30,volume:1,role:'original',fadeInFrames:i?10:0,fadeOutFrames:i<vids.length-1?10:0}});}}
+ if(operations.length){const result=await api('/api/commerce-chat',{action:'patch',projectId:p.id,baseRevisionId:p.currentRevisionId,idempotencyKey:'six-audio-v1-'+w.id,message:w.id==='N3'?'保留原声，与真实视频源12—57秒逐幕同步；不改变布局和时长。':'补入上传原创配乐，保留全部视觉、文字和时长。',operations});p=await wait(p.id,result.jobId);console.log(w.id,'audio revision',p.currentRevisionId);}
+ r=p.revisions.find(r=>r.id===p.currentRevisionId);
+ if(!r.historyPackaged){const result=await api('/api/commerce-chat',{action:'export',projectId:p.id,baseRevisionId:p.currentRevisionId,revisionId:p.currentRevisionId,idempotencyKey:'six-export-'+p.currentRevisionId});p=await wait(p.id,result.jobId);}
+ r=p.revisions.find(r=>r.id===p.currentRevisionId);w.revisionId=r.id;w.directory='data/result-completion-projects/'+p.id+'/'+r.directory;w.videoUrl=base+r.videoUrl;w.packageUrl=base+r.packageUrl;w.mediaReview=r.mediaReview;await fs.writeFile(recordFile,JSON.stringify(registry,null,2));
+ const catalog=JSON.parse(await fs.readFile('examples/commerce/presets.json'));const entry=catalog.find(e=>e.id==='demo-'+w.id);entry.directory=w.directory;entry.description='可播放预览 · '+(['N1','N3','N4','N5'].includes(w.id)?'音轨已修复，待试听；':'静音；')+'视觉待复核';await fs.writeFile('examples/commerce/presets.json',JSON.stringify(catalog,null,2));console.log(w.id,'exported',r.id,r.mediaReview?.audio);
+}

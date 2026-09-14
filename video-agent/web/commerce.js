@@ -18,8 +18,8 @@ function thumbnails(){objectUrls.splice(0).forEach(URL.revokeObjectURL);$('#thum
 attachments.onchange=()=>{files.push(...attachments.files);attachments.value='';thumbnails();};
 async function listProjects(){
  const data=await api('/api/commerce-projects'),historyIds=new Set(data.historyProjectIds||[]);projectSummaries=data.projects;const commerceIds=new Set(presetCatalog.map(p=>p.id)),sourceIds=new Set(presetCatalog.map(p=>p.sourceProjectId||data.projects.find(source=>!source.preset&&source.currentRevisionId&&source.request.message===p.input)?.id)),seenPresets=new Set();
- const visible=data.projects.filter(p=>{if(p.id===project?.id)return true;if(showAllProjects)return true;if(historyIds.has(p.id))return false;if(!p.currentRevisionId)return false;if(p.preset){if(!commerceIds.has(p.preset.id)||seenPresets.has(p.preset.id))return false;seenPresets.add(p.preset.id);return !data.projects.some(other=>other.id===project?.id&&other.preset?.id===p.preset.id);}return p.visibility!=='test'&&p.testOnly!==true||rememberedProjects.has(p.id);});
- $('#projects').replaceChildren(new Option(showAllProjects?'全部工程':'我的作品',''),...visible.map(p=>new Option((p.title||'未命名作品')+(!p.currentRevisionId?'（尚无成片）':''),p.id)),new Option(showAllProjects?'只看创作与商品示例':'查看历史与全部工程（含测试）','__toggle_all__'));$('#projects').value=project?.id||'';
+ const visible=data.projects.filter(p=>p.currentRevisionId&&p.revisions.some(r=>r.id===p.currentRevisionId&&r.rendered)&&!historyIds.has(p.id)&&(!p.preset||sourceIds.has(p.id)||p.id===project?.id)&&(p.visibility!=='test'&&p.testOnly!==true));
+ $('#projects').replaceChildren(new Option('已导出作品',''),...visible.map(p=>new Option(p.title||'未命名作品',p.id)));$('#projects').value=project?.id||'';
 }
 function clearPreview(){
  selected=null;selectedNode=null;nativeDocument=null;documentRevision=null;const old=$('#player');old.pause?.();if(old.getAttribute('src')){const player=document.createElement('hyperframes-player');player.id='player';player.setAttribute('controls','');player.hidden=true;old.replaceWith(player);}else old.hidden=true;
@@ -49,19 +49,21 @@ $('#new-project').onclick=()=>{location.href='/';};$('#projects').onchange=e=>{i
 $('#open-package').onclick=()=>$('#package-file').click();
 $('#direction-preview').onclick=()=>{const player=$('#player'),range=nativeDocument?.previewRange;if(!range)return;player.pause?.();player.seek?.(range.startFrame/30);const stop=()=>{if(player.currentTime>=range.endFrame/30){player.pause?.();player.removeEventListener('timeupdate',stop);}};player.addEventListener('timeupdate',stop);player.play?.();};
 $('#package-file').onchange=async()=>{const file=$('#package-file').files[0];if(!file)return;$('#package-file').value='';$('#error').hidden=true;$('#open-package').disabled=true;try{const result=await api('/api/commerce-import',{method:'POST',headers:{'Content-Type':'application/zip'},body:file});await openProject(result.project.id);}catch(error){showError(error);}finally{$('#open-package').disabled=false;}};
-function chooseExample(id){
+function chooseExample(id,display=true){
  chosenPreset=presetCatalog.find(p=>p.id===id)||null;$('#example-card').hidden=!chosenPreset;if(!chosenPreset)return;
  const p=chosenPreset;$('#example-select').value=p.id;$('#example-category').textContent=p.category+' · '+p.durationSeconds+' 秒 · '+(p.reviewStatus==='draft'?'预览草稿':'预设样片');$('#example-title').textContent=p.title;$('#example-description').textContent=p.description;
  $('#example-tags').replaceChildren(...p.capabilities.map(text=>{const tag=document.createElement('span');tag.textContent=text;return tag;}));$('#example-poster').hidden=!p.poster;if(p.poster)$('#example-poster').src=p.poster;$('#example-load').dataset.presetId=p.id;$('#example-load').disabled=Boolean(busy());
- if(!project)void showLandingExample(p);
+ if(display)void showLandingExample(p);
 }
 async function showLandingExample(p){
- if(!project&&!posting&&!opening){$('#case-view').hidden=false;$('#case-film').src=p.videoUrl;$('#case-film').poster=p.poster||'';$('#case-label').textContent='预生成样片 · '+p.title+' · '+p.durationSeconds+'秒 · 内容待审阅';$('#case-input').textContent=p.input;$('#player').hidden=true;$('#empty').hidden=true;return;}
-
- if(!projectSummaries.length)await listProjects();if(project||posting||opening||chosenPreset?.id!==p.id)return;
- const source=projectSummaries.find(item=>item.preset?.id===p.id)||projectSummaries.find(item=>item.currentRevisionId&&item.request.message===p.input),revision=source?.revisions.find(r=>r.id===source.currentRevisionId),url=p.previewUrl||revision?.previewUrl;if(!url)return;
- const old=$('#player');old.pause?.();const player=preserveLastFrame(document.createElement('hyperframes-player'));player.id='player';player.setAttribute('controls','');player.setAttribute('src',url);player.style.aspectRatio=p.output.width+'/'+p.output.height;player.addEventListener('ready',()=>{queueMicrotask(()=>player.seek?.(Math.min(2,p.durationSeconds*.15)));},{once:true});old.replaceWith(player);$('#empty').hidden=true;
+ if(!project)history.replaceState(null,'','/?demo='+encodeURIComponent(p.id));
+ $('#case-view').hidden=false;const film=$('#case-film');film.pause();film.src=p.videoUrl+'?v='+p.sha256;film.poster=p.poster||'';film.load();
+ $('#case-label').textContent=p.title+' · '+p.durationSeconds+'秒 · '+p.description;
+ $('#case-input').textContent=p.input+'\n'+p.note;$('#player').hidden=true;$('#empty').hidden=true;
+ $('#case-download').href=p.videoUrl+'?download=1&v='+p.sha256;
+ $('#case-fullscreen').onclick=()=>film.requestFullscreen().catch(showError);
 }
+
 function drawExampleEvidence(){
  $('#example-load').disabled=Boolean(busy());const p=presetCatalog.find(p=>p.id===project?.preset?.id||(p.sourceProjectId===project?.id&&project?.revisions.some(r=>r.id===selected&&r.previewUrl===p.previewUrl)));$('#example-evidence').hidden=!p;if(!p){shownEvidence='';return;}
  const key=project.id+':'+p.id;if(key===shownEvidence)return;shownEvidence=key;
@@ -74,7 +76,7 @@ function drawExampleEvidence(){
 }
 $('#example-select').onchange=e=>chooseExample(e.target.value);$('#example-load').onclick=()=>{if(chosenPreset)loadPreset(chosenPreset);};
 async function refreshExamples(){
- try{const data=await api('/api/commerce-demos'),next=data.presets.filter(p=>p.category&&p.category!=='基础示例'),signature=JSON.stringify(next);drawBusinessCases(next);if(signature!==JSON.stringify(presetCatalog)){const previous=chosenPreset?.id;presetCatalog=next;$('#example-select').replaceChildren(new Option('选择一个商品场景',''),...presetCatalog.map(p=>new Option(p.title+' · '+p.category,p.id)));if(presetCatalog.length)chooseExample(presetCatalog.some(p=>p.id===previous)?previous:project?.preset?.id||presetCatalog[0].id);shownEvidence='';drawExampleEvidence();void listProjects();}$('#examples-loading').hidden=Boolean(presetCatalog.length)&&!data.unavailable?.filter(p=>p.category!=='基础示例').length;$('#examples-loading').textContent=data.unavailable?.length?data.unavailable.filter(p=>p.category!=='基础示例').map(p=>p.title+'：'+p.reason).join('；'):'本轮示范尚未完成。可以先上传自己的素材开始创作。';}catch(error){if(!presetCatalog.length)$('#examples-loading').textContent='示例暂时无法读取，你仍可输入需求开始创作。';}
+ try{const data=await api('/api/commerce-demos'),next=data.presets.filter(p=>p.category&&p.category!=='基础示例'),signature=JSON.stringify(next);drawBusinessCases(next);if(signature!==JSON.stringify(presetCatalog)){const previous=chosenPreset?.id||new URLSearchParams(location.search).get('demo');presetCatalog=next;$('#example-select').replaceChildren(new Option('选择一个商品场景',''),...presetCatalog.map(p=>new Option(p.title+' · '+p.category,p.id)));if(presetCatalog.length)chooseExample(presetCatalog.some(p=>p.id===previous)?previous:project?.preset?.id||presetCatalog[0].id,!project);shownEvidence='';drawExampleEvidence();void listProjects();}$('#examples-loading').hidden=Boolean(presetCatalog.length)&&!data.unavailable?.filter(p=>p.category!=='基础示例').length;$('#examples-loading').textContent=data.unavailable?.length?data.unavailable.filter(p=>p.category!=='基础示例').map(p=>p.title+'：'+p.reason).join('；'):'本轮示范尚未完成。可以先上传自己的素材开始创作。';}catch(error){if(!presetCatalog.length)$('#examples-loading').textContent='示例暂时无法读取，你仍可输入需求开始创作。';}
  if(presetCatalog.filter(p=>p.reviewStatus!=='draft').length<3)setTimeout(refreshExamples,10000);
 }
 void refreshExamples();
@@ -101,6 +103,7 @@ function useCreationEntry(kind){
  const example=presetCatalog.find(p=>(p.businessGoal||[]).includes(kind));if(example)chooseExample(example.id);
 }
 for(const button of document.querySelectorAll('[data-creation]'))button.onclick=()=>{
+ const example=presetCatalog.find(p=>(p.businessGoal||[]).includes(button.dataset.creation)||button.dataset.creation==='recut'&&p.businessGoal.includes('demo')||button.dataset.creation==='versions'&&p.businessGoal.includes('promotion'));if(example){chooseExample(example.id);return;}
  if(busy())return;
  if(project){$('#input-guidance').textContent='当前作品可以直接描述修改需求；新制作请使用“新建”。';return;}
  useCreationEntry(button.dataset.creation);
@@ -126,12 +129,12 @@ $('#example-own').onclick=()=>{
 
 function drawBusinessCases(presets){
  const goals=[['launch','新品首发与品牌亮相','商品整体图与已确认重点'],['detail','商品详情与卖点图解','支持说明的整体与细节素材'],['demo','开箱／安装／使用教程','连续实拍与操作顺序'],['style','穿搭／组合／系列展示','同款或系列关系明确的照片'],['promotion','活动促销／直播预告','确认的价格、条件与行动提示'],['faq','选购说明／场景问答','具体问题与能够支持回答的资料'],['recut','已有视频精剪与包装','原始实拍与需要保留的动作'],['versions','一稿多版／开头／画幅调整','已有原生工程与新的传播目的']];
- $('#business-cases').replaceChildren(...goals.map(([goal,title,need])=>{
+ $('#business-cases').replaceChildren(...goals.filter(([goal])=>presets.some(p=>(p.businessGoal||[]).includes(goal))).map(([goal,title,need])=>{
   const p=presets.find(p=>(p.businessGoal||[]).includes(goal)),card=document.createElement('article');card.className='business-case';
   const heading=document.createElement('h2');heading.textContent=title;card.append(heading);
   if(p?.poster){const img=document.createElement('img');img.src=p.poster;img.alt=p.title+'实际成片帧';card.append(img);}
   const value=document.createElement('p');value.textContent=p?p.description:'对应的新作品尚未通过验收；可以先使用自己的素材。';card.append(value);
-  const meta=document.createElement('small');meta.textContent=p?'预生成样片 · '+p.durationSeconds+'秒 · '+({images:'图片',footage:'实拍',mixed:'混合'}[p.inputMode]||'待识别')+(p.reviewStatus==='verified'?' · 已完成内容复核':' · 内容待复核'):'示例待就绪';card.append(meta);
+  const meta=document.createElement('small');meta.textContent=p?'预生成样片 · '+p.durationSeconds+'秒 · '+({images:'图片',footage:'实拍',mixed:'混合'}[p.inputMode]||'待识别')+(p.reviewStatus==='verified'?' · 已完成内容复核':' · 未完成预览'):'示例待就绪';card.append(meta);
   const inputs=document.createElement('p');inputs.textContent='输入：'+need;card.append(inputs);
   const watch=document.createElement('button');watch.type='button';watch.textContent='看已生成示例';watch.disabled=!p;watch.onclick=()=>{chooseExample(p.id);};card.append(watch);
   const edit=document.createElement('button');edit.type='button';edit.className='quiet';edit.textContent='打开派生工程编辑';edit.disabled=!p;edit.onclick=()=>{if((input.value.trim()||files.length)&&!confirm('打开案例将替换当前输入。确认继续？'))return;loadPreset(p);};card.append(edit);

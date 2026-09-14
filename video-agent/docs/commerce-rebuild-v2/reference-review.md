@@ -27,3 +27,15 @@ lib/creative/production.mjs project.assemble对全图片镜头原先设置source
 B的story-plan.json第二幕明确productionMethod=composition-adapt，visualDirection要求引导线分别指向头梁和耳垫。实际scene-002.json却来自resources.instantiate_native：固定图卡、三条0.5秒淡入及18px位移，没有引导线。原因是native-recipes.mjs强制把composition-adapt转为parameterized。修复保留导演方法，parameterized仍可明确选择，composition-adapt进入实际受限源码制作。
 
 同时停止在最终组装/方向预览重建模板源码：被检查和局部修过的源码作为权威，保留原始来源收据并标记validated-checkpoint-source；最终仍重新编译和隔离验证。恢复迁移只使发生方法降级的镜头及依赖组装失效，保留旧源码/收据，预算和run保持。14项相关测试包含真实project.assemble、明确parameterized模式下局部源码不被模板覆盖、同一run恢复前后调用数/预算不变。
+
+
+## 2026-09-14 WebUI交付后的视觉复核（未通过高级标准）
+
+连续播放证据见 browser-delivery/report.json。以下为实际播放期间截帧可见的问题，非官方质量通过。六条采用同一基础参数化布局序列，sourceBundles为空；不应描述为弧线接力、源坐标导航或节拍杂志已实现。
+
+- N1 `rev-e7a84d122046deb8`，7.2–15.0 / 21.7–28.7秒：左右分栏的短标签过小且换行，局部镜头裁切过紧；最小修复范围为第2/4幕图片取景与文字排版。 实际证据：`outputs/commerce-rebuild-v2/browser-delivery/N1-contact.jpg` 及同目录带实际播放时间的截图。
+- N2 `rev-06757d88e977e20d`，0–40秒：没有贯穿整体位置参照与可验证移动放大镜；当前为普通分区与局部图卡，不能判结构导航通过。 实际证据：`outputs/commerce-rebuild-v2/browser-delivery/N2-contact.jpg` 及同目录带实际播放时间的截图。
+- N3 `rev-1f8c49c25af67f90`，0–9.6 / 9.3–28.2秒：标题下仍有制作要求式文字，中段为“场景展示/细节近看”，未形成随动作变化的步骤图解；最小修复范围为对应文字对象和时间。 实际证据：`outputs/commerce-rebuild-v2/browser-delivery/N3-contact.jpg` 及同目录带实际播放时间的截图。
+- N4 `rev-fae7fc5853efb6f8`，0–30秒：图片与基本淡入布局重复，未看到杂志式文字与形状匹配主机制。 实际证据：`outputs/commerce-rebuild-v2/browser-delivery/N4-contact.jpg` 及同目录带实际播放时间的截图。
+- N5 `rev-ef53679b0e8432ea`，0–15秒：耳机整体被竖屏cover裁切，价格与条件没有参与独立海报式构图。 实际证据：`outputs/commerce-rebuild-v2/browser-delivery/N5-contact.jpg` 及同目录带实际播放时间的截图。
+- N6 `rev-d23656aef98b4594`，0–20秒：问题文案存在，但没有贯穿问题—证据的路径对象；不能将通用细节图卡视为路径推演。 实际证据：`outputs/commerce-rebuild-v2/browser-delivery/N6-contact.jpg` 及同目录带实际播放时间的截图。
