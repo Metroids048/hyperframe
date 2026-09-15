@@ -3,6 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {buildCommerceProject} from '../lib/creative/runner.mjs';
+import {compileCommerceFixture} from './compile-commerce-fixture.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const fixtureDir = path.join(root, 'examples/commerce/fixtures');
@@ -38,7 +39,8 @@ for (const expected of cases) {
   } catch (error) {
     if (error.code !== 'EBUSY' && error.code !== 'EPERM') throw error;
   }
-  const status = await buildCommerceProject(input);
+  await assert.rejects(buildCommerceProject(input),error=>error.code==='COMMERCE_MATERIALS_BLOCKED','synthetic images must not pass production admission');
+  const status = await compileCommerceFixture(input);
   assert.equal(status.state, 'composed', `${expected.file}: build should compose`);
   assert.equal(status.rendered, false, `${expected.file}: fixture test does not require a render`);
   assert.equal(status.document.durationSeconds, expected.duration);

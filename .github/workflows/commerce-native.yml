@@ -7,6 +7,7 @@ on:
       - 'video-agent/lib/creative/**'
       - 'video-agent/scripts/commerce-agent*.mjs'
       - 'video-agent/scripts/prepare-commerce-fixtures.mjs'
+      - 'video-agent/scripts/compile-commerce-fixture.mjs'
       - 'video-agent/scripts/test-commerce*.mjs'
       - 'video-agent/lib/edit/agent-kernel.mjs'
       - 'video-agent/prompts/commerce/**'
@@ -55,9 +56,10 @@ jobs:
       - name: Verify conversational commerce fixtures
         run: npm run test:commerce:fixtures
       - run: node scripts/test-skill-routing.mjs
-      - name: Host-agent create and continued edit
+      - name: Production admission rejection and native fixture continued edit
         run: node scripts/test-commerce-agent-tool.mjs
-      - run: npm run commerce:build
+      - name: Compile synthetic native renderer fixture (not production approval)
+        run: node scripts/compile-commerce-fixture.mjs
       - name: HyperFrames structure check
         run: |
           cd data/commerce-runs/nova-demo
