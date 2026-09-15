@@ -7,7 +7,7 @@ import {CodexProvider} from '../edit/codex-provider.mjs';
 
 /** Deliberately a separate context reading exported frames, not preview self-scores. */
 export async function reviewFinalQuality(root,directory,document,{signal,provider}={}){
-  const binding=await currentBinding(root,directory),media=JSON.parse(await fs.readFile(path.join(directory,'media-review.json'),'utf8'));
+  const binding=await currentBinding(root,directory,{candidate:true}),media=JSON.parse(await fs.readFile(path.join(directory,'media-review.json'),'utf8'));
   const admission=JSON.parse(await fs.readFile(path.join(directory,'production-admission.json'),'utf8'));
   const duration=document.durationFrames/30;
   const times=new Set([0,Math.max(0,duration-1/30)]);
@@ -27,7 +27,7 @@ export async function reviewFinalQuality(root,directory,document,{signal,provide
     evidence.push({path:file,sha256:await hashFile(path.join(directory,file)),seconds:t});
     content.push({type:'input_text',text:`最终文件 ${file}，实际成片 ${t.toFixed(3)} 秒`},{type:'input_image',image_url:'data:image/jpeg;base64,'+(await fs.readFile(path.join(directory,file))).toString('base64')});
   }
-  const report={schemaVersion:1,recordType:'runtime_quality_report',binding,origin:document.production?.runId?'agent_generated':'scripted_runner',dimensions:{materials:admission.status==='pass'?'pass':'fail',technical:media.status==='media-contract-passed'?'pass':'fail',visual:'pending',actionContinuity:'pending',audioPerception:document.businessContract.audio==='silent'?'not_applicable':'pending',rights:admission.status==='pass'?'pass':'pending'},coverage:{method:'keyframes_keyframes_with_scene_tail',evidenceRefs:evidence.map(e=>e.path),videoRangesObserved:[],audioRangesObserved:[]},evidenceIndex:evidence,issues:[],unreviewed:['连续动作、节奏与完整观看','实际听感与音画同步',...(selected.length>40?['预算外时间点需分批审查']:[])],scenarioAssessment:{status:'pending',summary:''},humanAcceptance:{status:'pending',eventId:null,actorContext:null,revisionId:document.revisionId,submittedAt:null},deliveryDecision:{computedBy:'backend-commerce-focus-v1',status:'awaiting_review',reasonCodes:['HUMAN_CONFIRMATION_PENDING']}};
+  const report={schemaVersion:1,recordType:'runtime_quality_report',binding,origin:document.production?.runId?'agent_generated':'scripted_runner',dimensions:{materials:admission.status==='pass'?'pass':'fail',technical:media.status==='media-contract-passed'?'pass':'fail',visual:'pending',actionContinuity:'pending',audioPerception:document.businessContract.audio==='silent'?'not_applicable':'pending',rights:admission.status==='pass'?'pass':'pending'},coverage:{method:'keyframes_keyframes_with_scene_tail',evidenceRefs:evidence.map(e=>e.path),videoRangesObserved:[],audioRangesObserved:[]},evidenceIndex:evidence,issues:[],unreviewed:['连续动作、节奏与完整观看','实际听感与音画同步',...(selected.length>40?['预算外时间点需分批审查']:[])],score:{total:null,max:100,components:{subject:null,shots:null,story:null,editing:null,motion:null,typography:null,audio:null,finish:null},status:'not_scored_until_full_video_and_human_review'},scenarioAssessment:{status:'pending',summary:''},humanAcceptance:{status:'pending',eventId:null,actorContext:null,revisionId:document.revisionId,submittedAt:null},deliveryDecision:{computedBy:'backend-commerce-focus-v1',status:'awaiting_review',reasonCodes:['HUMAN_CONFIRMATION_PENDING']}};
   const file=path.join(directory,'final-quality-report.json');await fs.writeFile(file,JSON.stringify(report,null,2));
   const own=!provider;provider??=new CodexProvider({cacheRoot:path.join(directory,'final-review/model-calls')});
   try{

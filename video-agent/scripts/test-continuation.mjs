@@ -90,6 +90,13 @@ try {
       true,
     );
   });
+  await test("HTTPS transport keeps subscription auth without overriding built-in provider", () => {
+    const args = codexRequest({schemaFile:"s",output:"o",instructions:"i",messages:[],transport:"https"}).args;
+    assert.ok(args.includes('model_providers.subscription-http.requires_openai_auth=true'));
+    assert.ok(args.includes('model_providers.subscription-http.supports_websockets=false'));
+    assert.ok(!args.some(a=>a.startsWith('model_providers.openai.')));
+    assert.throws(()=>codexRequest({transport:"unknown"}));
+  });
   await test("Codex errors distinguish unavailable model, old CLI, login, quota and timeout", () => {
     for (const [text, code] of [
       ["model abc is not supported", "CODEX_MODEL_UNAVAILABLE"],
@@ -220,6 +227,28 @@ try {
     await fs.rm(path.join(a.dir, "media.bin"));
     assert.equal((await cachedBundle("fixtures", "media", build)).hit, false);
     assert.equal(builds, 2);
+  });
+  await test("bundle cache repairs nonempty same-size corruption", async () => {
+    const before = builds;
+    const a = await cachedBundle("fixtures", "corrupt-content", build);
+    const file = path.join(a.dir, "media.bin");
+    const original = await fs.readFile(file);
+    await fs.writeFile(file, Buffer.alloc(original.length, 120));
+    const rebuilt = await cachedBundle("fixtures", "corrupt-content", build);
+    assert.equal(rebuilt.hit, false);
+    assert.equal(builds, before + 2);
+    assert.equal((await cachedBundle("fixtures", "corrupt-content", build)).hit, true);
+  });
+  await test("cache rebuild never overwrites media linked by an existing revision", async () => {
+    const a = await cachedBundle("fixtures", "linked-revision", build);
+    const oldMedia = await fs.readFile(path.join(a.dir,"media.bin"));
+    const revisionFile = path.join(tmp,"revision-media.bin");
+    await fs.link(path.join(a.dir,"media.bin"),revisionFile);
+    await fs.writeFile(path.join(a.dir,"cache.json"),"{}");
+    const rebuilt = await cachedBundle("fixtures","linked-revision",build);
+    assert.equal(rebuilt.hit,false);
+    assert.deepEqual(await fs.readFile(revisionFile),oldMedia);
+    assert.notDeepEqual(await fs.readFile(path.join(rebuilt.dir,"media.bin")),oldMedia);
   });
   await test("bundle cache refuses corrupt/traversing or empty artifacts", async () => {
     for (const [key, files] of [

@@ -5,18 +5,20 @@
 <header><a href="/">视频创作</a><div class="header-actions"><select id="projects" aria-label="打开作品"><option value="">我的作品</option></select><button id="open-package" class="quiet" type="button">打开工程</button><input id="package-file" type="file" accept=".zip" aria-label="选择原生工程包" hidden><button id="new-project" class="quiet" type="button">新建</button></div></header>
 <main>
 <section class="chat" aria-label="创作对话">
-<div class="intro"><h1>电商视频创作工作台</h1><p>上传商品资料，制作视频，再用对话修改。</p></div>
+<div class="intro"><h1>你想制作什么？</h1><p>选择场景，描述目标，把素材交给 Agent。</p></div>
 <section id="creation-paths" aria-label="创作起点">
 <button type="button" class="quiet" data-creation="launch">单品上新／种草</button>
 <button type="button" class="quiet" data-creation="demo">单品操作演示</button>
 <p id="input-guidance">上传真实商品视频，选择目标或直接描述需求。图片可辅助，缺关键动作时会说明素材缺口。</p>
 </section>
-<section id="business-cases" aria-label="历史业务样例"></section>
+<label for="material-root">素材目录</label><select id="material-root" aria-label="素材目录"><option value="">上传我的素材</option></select><p id="material-count">也可以上传自己的视频和图片。</p>
+<details id="history-examples"><summary>查看历史样例（非本次结果）</summary><section id="business-cases" aria-label="历史业务样例"></section>
 <section id="presets" aria-label="电商演示预设">
 <div class="example-picker"><label for="example-select">电商示例</label><select id="example-select" aria-label="选择电商示例"><option value="">选择一个商品场景</option></select></div>
 <article id="example-card" hidden><img id="example-poster" alt="示例成片画面" hidden><div class="example-copy"><p id="example-category"></p><h2 id="example-title"></h2><p id="example-description"></p><div id="example-tags"></div><button id="example-load" type="button">▷ 查看已生成样片</button><button id="example-own" type="button" class="quiet">使用我的素材</button></div></article>
 <p id="examples-loading" class="example-loading">正在读取可播放的商品示例…</p>
 </section>
+</details>
 <div id="messages" class="messages" aria-live="polite"></div>
 <div id="voice-results" hidden></div>
 <div id="preset-notice" class="preset-notice" hidden><span>正在查看预设演示</span><button id="regenerate" class="quiet" type="button">用这些素材重新生成</button></div>
@@ -27,6 +29,7 @@
 <div class="composer-footer"><label class="attachment">＋ 添加素材<input id="images" type="file" accept="image/png,image/jpeg,image/webp,video/mp4,video/quicktime,video/webm,audio/mpeg,audio/wav,audio/mp4,.woff2" multiple></label><span id="composer-hint">素材可不填</span><button id="send" type="submit">生成视频</button></div>
 <p id="error" class="error" hidden></p>
 </form>
+<label class="scene-picker" for="business-scene">场景</label><select id="business-scene" aria-label="业务场景"><option value="auto">自动判断</option><option value="product_launch">单品上新</option><option value="product_demo">商品使用演示</option></select>
 </section>
 <section class="preview" aria-label="作品预览">
 <div id="empty"><div class="empty-icon">▷</div><p>作品会出现在这里</p></div>

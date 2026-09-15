@@ -1,0 +1,3 @@
+用户提供的本地素材，源文件：/Users/a1234/Desktop/hyperframe-main/素材/Video_of_a_complete_use_session_with_a_gyroscopic_exercise_tool.webm
+用途：当前内部候选使用演示视频制作与审查。商业授权未由模型确认。
+素材说明：文件名标注为完整使用过程；Agent 仍须以画面证据确认具体步骤，不得从文件名推断未看到的动作或功能。

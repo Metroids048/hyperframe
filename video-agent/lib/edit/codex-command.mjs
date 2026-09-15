@@ -12,6 +12,7 @@ export function codexRequest({
   instructions,
   messages,
   reasoningEffort = 'low',
+  transport = process.env.VIDEO_AGENT_CODEX_TRANSPORT || 'auto',
 }) {
   const args = [
     "exec",
@@ -21,6 +22,14 @@ export function codexRequest({
     "--sandbox",
     "read-only",
   ];
+  if(!['auto','https'].includes(transport))throw new RangeError('VIDEO_AGENT_CODEX_TRANSPORT 必须为auto或https');
+  if(transport==='https')for(const value of [
+    'model_provider="subscription-http"',
+    'model_providers.subscription-http.name="OpenAI subscription HTTPS"',
+    'model_providers.subscription-http.requires_openai_auth=true',
+    'model_providers.subscription-http.supports_websockets=false',
+    'model_providers.subscription-http.wire_api="responses"',
+  ])args.push('-c',value);
   if (model) args.push("-m", model);
   args.push(
     "-c",

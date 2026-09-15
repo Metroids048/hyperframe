@@ -1,3 +1,4 @@
+import {discoverMaterialRoots,resolveMaterialRoot} from './material-roots.mjs';
 import {humanReviewRoute} from './human-review.mjs';
 import {deliveryDecision,formalVideoSnapshot} from './delivery-gate.mjs';
 import {businessContract,FOCUS_PROFILE} from './commerce-focus.mjs';
@@ -96,6 +97,13 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
       if(kind==='font'){insist(size<=MAX_FONT_BYTES,'字体最大 10 MiB','FONT_INVALID');await inspectBrandFont(target);}
       const asset={id,kind,name:path.basename(name),path:path.relative(root,target).replaceAll('\\','/'),bytes:size,rights:{status:'user-provided'}};p.assets.push(asset);await save(p);return asset;
     }catch(e){p.assets=p.assets.filter(a=>a.id!==id);await fs.unlink(target).catch(()=>{});throw e;}finally{uploads.delete(key);}
+  }
+  async function attachMaterialRoot(p,id){
+    insist(!p.currentRevisionId&&!p.jobs.some(active),'制作中不能更换素材目录','PROJECT_BUSY');
+    const selected=await resolveMaterialRoot(root,id);
+    insist(p.assets.length+selected.files.length<=MAX_ASSETS,'素材超过工程上限，请选择更具体的目录','ASSET_LIMIT');
+    for(const file of selected.files)await upload(p,createReadStream(file),path.basename(file));
+    p.request={...p.request,pipelineVersion:3,materialRoot:{id:selected.id,label:selected.label}};await save(p);return p;
   }
   async function importPackage(req){
     const p=await create({}),target=path.join(directory(p),'import.zip');let bytes=0;
@@ -276,10 +284,11 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
     syncRun(job,run);await save(p);return view(p);
   }
   async function resume(p,id){const job=p.jobs.find(j=>j.id===id);insist(canResumeJob(job),budgetExhausted(job)?'本轮修复预算已耗尽，已保留检查点和缺陷；不能重复恢复同一轮':'任务没有可恢复检查点','INVALID_RESUME');insist(!p.jobs.some(j=>active(j)&&j.kind!=='export'),'项目已有任务在执行','PROJECT_BUSY');insist(p.currentRevisionId===job.baseRevisionId,'基准版本已变化，保留旧任务但不能覆盖新版本','REVISION_CONFLICT');job.resumeRunId=job.runId;job.status='queued';delete job.error;delete job.code;delete job.completedAt;await save(p);void execute(p,job).catch(error=>{job.status='recoverable';job.error=error.message;});return view(p);}
-  return {get,has:id=>projects.has(id),view,create,loadPreset,presets:async()=>(await refreshPresets()).map(publicPreset),unavailablePresets:async()=>(await refreshPresets()).unavailable||[],upload,importPackage,enqueue,navigate,cancel,resume,authorizeBudget,revision,versionDirectory,list:()=>[...projects.values()].map(view).sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt))};
+  return {materialRoots:async()=>(await discoverMaterialRoots(root)).map(({directory,files,...r})=>r),attachMaterialRoot,get,has:id=>projects.has(id),view,create,loadPreset,presets:async()=>(await refreshPresets()).map(publicPreset),unavailablePresets:async()=>(await refreshPresets()).unavailable||[],upload,importPackage,enqueue,navigate,cancel,resume,authorizeBudget,revision,versionDirectory,list:()=>[...projects.values()].map(view).sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt))};
 }
 
 export async function creativeRoutes(service,req,res,url,{json,jsonBody,file}){
+  if(req.method==='GET'&&url.pathname==='/api/commerce-material-roots'){json(res,{ok:true,roots:await service.materialRoots()});return true;}
   if(await humanReviewRoute(ROOT,service,req,res,url,{json,jsonBody}))return true;
   const route=url.pathname;
   if(route==='/api/commerce-import'&&req.method==='POST'){const p=await service.importPackage(req);json(res,{ok:true,project:service.view(p)},202);return true;}
@@ -289,6 +298,7 @@ export async function creativeRoutes(service,req,res,url,{json,jsonBody,file}){
   if(route==='/api/commerce-chat'&&req.method==='POST'&&(req.headers['content-type']||'').includes('application/json')){
     const input=await jsonBody(req,256000,'创作请求');
     if(input.action==='preset'){const p=await service.loadPreset(input.presetId);json(res,{ok:true,project:service.view(p)},201);return true;}
+    if(input.action==='material-root'){const p=service.get(input.projectId);await service.attachMaterialRoot(p,input.materialRootId);json(res,{ok:true,project:service.view(p)});return true;}
     if(input.action==='draft'){const request={...input.request,commerceProfile:FOCUS_PROFILE};request.businessContract=businessContract(request);const p=await service.create(request);json(res,{ok:true,project:service.view(p)},201);return true;}
     if(!service.has(input.projectId)){
       insist(/^[a-zA-Z0-9_-]{1,100}$/.test(input.projectId||''),'项目 ID 无效','INVALID_PROJECT');

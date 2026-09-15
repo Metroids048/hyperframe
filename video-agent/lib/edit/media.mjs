@@ -47,7 +47,7 @@ export async function prepareAsset(dir,asset,signal,progress=()=>{}) {
   const started=performance.now(),original=path.join(dir,asset.original),info=await probe(original,signal),sha256=await hashFile(original);
   progress('正在准备可播放素材');
   const bundle=await cachedBundle('prepared',sha256,async cached=>{
-    const metadata={...info,sha256,normalizationVersion:MEDIA_CACHE_VERSION},timeout=Math.max(120000,info.duration*10000),files=[];
+    const metadata={...info,sha256,normalizationVersion:MEDIA_CACHE_VERSION},timeout=Math.max(180000,Math.min(900000,info.duration*20000)),files=[];
     if(info.kind==='video'){
       const factor=Math.min(1,1920/info.width,1920/info.height,1080/Math.min(info.width,info.height));
       metadata.width=Math.max(64,Math.floor(info.width*factor/2)*2);metadata.height=Math.max(64,Math.floor(info.height*factor/2)*2);

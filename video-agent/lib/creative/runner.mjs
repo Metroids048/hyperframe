@@ -1,5 +1,5 @@
 import {commerceComponentReceipt} from './commerce-components.mjs';
-import {businessContract,assertProductionAdmission,assertRequiredActions,FOCUS_PROFILE} from './commerce-focus.mjs';
+import {businessContract,candidateAdmission,assertProductionAdmission,assertRequiredActions,FOCUS_PROFILE} from './commerce-focus.mjs';
 import {prepareHyperFramesWorkspace,assertHyperFramesCapture} from './hf-workspace.mjs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -136,7 +136,7 @@ export async function readNativeProject(outputDir) {
 }
 
 export async function writeCompiledProject(outputDir, document, assets, {invalidation = null,signal} = {}) {
-  if(document.businessContract){const admission=await assertProductionAdmission(VIDEO_AGENT_ROOT,document.businessContract,assets,outputDir);assertRequiredActions(document,admission);}
+  if(document.businessContract){const admission=await candidateAdmission(VIDEO_AGENT_ROOT,document.businessContract,assets,outputDir,document);assertRequiredActions(document,admission);}
   validateDocument(document,Object.fromEntries(assets.map(a=>[a.id,a])));
   const audioRefs=await prepareNativeAudio(outputDir,document,assets,{signal});
   const compiled = compileDocument(document, assets,{audioRefs});
@@ -171,7 +171,7 @@ export async function renderCommerceProject(input, {root = VIDEO_AGENT_ROOT, out
   // The service supplies the owned project root; application resources still use root.
   const outputDir = await resolveOutputDir(outputRoot, input.outputDir);
   const {document,assets} = await readNativeProject(outputDir);
-  if(document.businessContract){const admission=await assertProductionAdmission(root,document.businessContract,assets,outputDir);assertRequiredActions(document,admission);}
+  if(document.businessContract){const admission=await candidateAdmission(root,document.businessContract,assets,outputDir,document);assertRequiredActions(document,admission);}
   const checkLog = await runHyperFrames(outputDir, 'check', [], {signal:input.signal});
   await fs.writeFile(path.join(outputDir, 'check.log'), checkLog);
   const video = input.video || 'commerce-final.mp4';

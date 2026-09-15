@@ -9,7 +9,7 @@ import {productionAdmission} from './commerce-focus.mjs';
 
 const read=async file=>JSON.parse(await fs.readFile(file,'utf8'));
 const hashPattern=/^[a-f0-9]{64}$/;
-export async function currentBinding(root,directory){
+export async function currentBinding(root,directory,{candidate=false}={}){
   const document=await read(path.join(directory,'document.json'));
   const contract=document.businessContract||await read(path.join(directory,'business-contract.json'));
   const admission=await read(path.join(directory,'production-admission.json'));
@@ -17,7 +17,7 @@ export async function currentBinding(root,directory){
   const files=[];const base=await fs.realpath(directory);
   for(const asset of manifest.assets||[]){const target=await fs.realpath(path.resolve(directory,asset.ref));if(!target.startsWith(base+path.sep))throw new CreativeError('素材路径超出当前工程','ASSET_BOUNDARY');files.push([asset.id,await hashFile(target)]);}
   const currentAdmission=await productionAdmission(root,contract,manifest.assets||[]);
-  if(currentAdmission.status!=='pass'||digest(currentAdmission.assets)!==digest(admission.assets))throw new CreativeError('素材或用途审核已变化','ADMISSION_CHANGED');
+  if(!(candidate&&document.scenePackage&&admission.status==='candidate_only')&&(currentAdmission.status!=='pass'||digest(currentAdmission.assets)!==digest(admission.assets)))throw new CreativeError('素材或用途审核已变化','ADMISSION_CHANGED');
   const resource=await fs.readFile(path.join(directory,'resource-lock.json'));
   const policy=await fs.readFile(path.join(root,'prompts/commerce/manifest.json'));
   // Validate actual rules, not just the manifest's claims.
@@ -40,7 +40,7 @@ export function evaluateDelivery({binding,report,media,human,contract,admission,
   const coverage=report?.coverage;
   if(coverage?.method!=='full_video'&&human?.fullVideoObserved!==true)reasons.push('CONTINUITY_UNREVIEWED');
   if(contract?.audio!=='silent'&&human?.audioObserved!==true)reasons.push('AUDIO_UNREVIEWED');
-  if(contract?.scenarioId==='product_howto'&&report?.dimensions?.actionContinuity!=='pass'&&human?.fullVideoObserved!==true)reasons.push('ACTIONS_UNREVIEWED');
+  if(['product_howto','product_demo'].includes(contract?.scenarioId)&&report?.dimensions?.actionContinuity!=='pass'&&human?.fullVideoObserved!==true)reasons.push('ACTIONS_UNREVIEWED');
   // Report-supplied humanAcceptance is deliberately ignored.
   if(!human||human.status!=='accepted'||human.source!=='local-review-ui'||!human.actorContext||!human.feedback||!human.submittedAt||human.bindingHash!==digest(binding))reasons.push('HUMAN_CONFIRMATION_PENDING');
   return {computedBy:'backend-commerce-focus-v1',status:reasons.length?'awaiting_review':'accepted',reasonCodes:[...new Set(reasons)],candidateAllowed:true};
