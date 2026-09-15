@@ -15,13 +15,16 @@ def restore(all_files=False):
         return
     records = json.loads(manifest.read_text(encoding="utf-8"))["files"]
     selected = [r for r in records if all_files or r["runtime"]]
+    # Publish state files after their media. An interrupted restore remains
+    # resumable and is never advertised by the service as a complete project.
+    selected.sort(key=lambda r: Path(r["path"]).name in {"native-project.json", "project.json"})
     # A local project is an indivisible unit; never mix a shipped snapshot into it.
     existing_projects = set()
     for record in selected:
         parts = Path(record["path"]).parts
         if len(parts) > 3 and parts[:2] == ("video-agent", "data"):
             project = ROOT.joinpath(*parts[:4])
-            if project.is_dir():
+            if (project / "native-project.json").exists() or (project / "project.json").exists():
                 existing_projects.add(tuple(parts[:4]))
     restored = 0
     for record in selected:
