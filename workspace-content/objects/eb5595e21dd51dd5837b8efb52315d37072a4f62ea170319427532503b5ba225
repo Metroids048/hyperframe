@@ -1,0 +1,39 @@
+"""Technical evidence only; correlation does not certify listening or visual quality."""
+import hashlib, json, pathlib, subprocess, sys
+import numpy as np
+
+root = pathlib.Path(__file__).resolve().parents[2]
+ffmpeg = root / 'node_modules/@ffmpeg-installer/win32-x64/ffmpeg.exe'
+ffprobe = root / 'node_modules/@ffprobe-installer/win32-x64/ffprobe.exe'
+source, target = map(pathlib.Path, sys.argv[1:3])
+def run(args):
+    return subprocess.run([str(a) for a in args], capture_output=True, check=True)
+def probe(file):
+    return json.loads(run([ffprobe,'-v','error','-show_format','-show_streams','-of','json',file]).stdout)
+def pcm(file):
+    return np.frombuffer(run([ffmpeg,'-v','error','-i',file,'-map','0:a:0','-ac','1','-ar','8000','-f','f32le','-']).stdout,dtype='<f4').astype(np.float64)
+report={'source':str(source.resolve()),'target':str(target.resolve()),
+        'sourceSha256':hashlib.file_digest(source.open('rb'),'sha256').hexdigest(),
+        'targetSha256':hashlib.file_digest(target.open('rb'),'sha256').hexdigest(),
+        'metadata':probe(target),'coverage':'technical_only; no listening or continuous visual approval'}
+run([ffmpeg,'-v','error','-i',target,'-f','null','-'])
+report['fullDecode']=True
+if any(x['codec_type']=='audio' for x in report['metadata']['streams']):
+    a,b=pcm(source),pcm(target)
+    def corr(x,y):
+        x=x-x.mean();y=y-y.mean();den=np.linalg.norm(x)*np.linalg.norm(y)
+        return float(np.dot(x,y)/den) if den>1e-12 else None
+    candidates=[]
+    # First 20 seconds establish alignment without assuming AAC/Opus delay.
+    for lag in range(-800,801,8):
+        i,j=max(0,lag),max(0,-lag);n=min(len(a)-i,len(b)-j,160000)
+        c=corr(a[i:i+n],b[j:j+n])
+        if c is not None:candidates.append((c,lag))
+    _,lag=max(candidates);i,j=max(0,lag),max(0,-lag);n=min(len(a)-i,len(b)-j)
+    report['audio']={'sourceSeconds':len(a)/8000,'targetSeconds':len(b)/8000,
+      'alignmentSeconds':lag/8000,'correlation':corr(a[i:i+n],b[j:j+n]),
+      'blocks':[{'startSeconds':k/8000,'correlation':corr(a[i+k:i+min(k+40000,n)],b[j+k:j+min(k+40000,n)])} for k in range(0,n,40000)],
+      'peak':float(np.max(np.abs(b))),'reviewRequired':True}
+out=pathlib.Path(__file__).with_name('media-verification.json')
+out.write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
+print(out)

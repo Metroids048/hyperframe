@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en" data-resolution="square">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=720, height=720">
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      /* HeyGen brand faces — non-system family names so the renderer can't alias them */
+      @font-face { font-family: "HGSans"; src: url("assets/fonts/TTNormsPro-Regular.woff2") format("woff2");  font-weight: 400; font-display: block; }
+      @font-face { font-family: "HGSans"; src: url("assets/fonts/TTNormsPro-Medium.woff2") format("woff2");   font-weight: 500; font-display: block; }
+      @font-face { font-family: "HGSans"; src: url("assets/fonts/TTNormsPro-SemiBold.woff2") format("woff2"); font-weight: 600; font-display: block; }
+      @font-face { font-family: "HGSans"; src: url("assets/fonts/TTNormsPro-Bold.woff2") format("woff2");     font-weight: 700; font-display: block; }
+      @font-face { font-family: "HGDisplay"; src: url("assets/fonts/ABCSolarDisplay-Bold.woff2") format("woff2"); font-weight: 700; font-display: block; }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { margin: 0; width: 720px; height: 720px; overflow: hidden; background: #f2f4f7; }
+      body { font-family: "HGSans", sans-serif; font-kerning: none; -webkit-font-smoothing: antialiased; }
+      #root { background: #f2f4f7; position: relative; width: 720px; height: 720px; }
+      .scene { position: absolute; inset: 0; }
+
+      /* ---------- A : HeyGen lockup (symbol + wordmark, counter-bouncing) ------- */
+      #a-logo {
+        position: absolute; left: 210.35px; top: 330.8px;
+        width: 299.3px; height: 66.4px; transform-origin: 50% 50%;
+      }
+      #a-word { position: absolute; left: 0;     top: 10.1px; width: 221.6px; height: 55.2px; }
+      #a-sym  { position: absolute; left: 227px; top: -5.8px; width: 78px;    height: 78px; }
+      #a-logo img { display: block; width: 100%; height: 100%; }
+
+      /* ---------- sign-in card (B small / C zoomed) ---------- */
+      .card {
+        position: absolute; left: 0; top: 0; width: 432px; height: 466px;
+        background: #fff; border-radius: 20px;
+        box-shadow: 0 18px 44px rgba(16,26,44,0.10), 0 2px 6px rgba(16,26,44,0.05);
+        transform-origin: 0 0;
+      }
+      .card .brandrow {
+        position: absolute; left: 0; top: 32px; width: 100%;
+        display: flex; align-items: center; justify-content: center;
+      }
+      .card .brandrow img { width: 34px; height: 34px; display: block; }
+      .card .ttl {
+        position: absolute; left: 0; top: 76px; width: 100%; text-align: center;
+        font-size: 30px; font-weight: 700; letter-spacing: -0.7px; color: #10121a;
+      }
+      .card .fld {
+        position: absolute; left: 30px; width: 372px;
+        border: 1.5px solid #d5d9e0; border-radius: 12px; background: #fbfcfd;
+        display: flex; align-items: center; padding-left: 17px;
+        font-size: 16px; font-weight: 500; color: #10121a;
+        overflow: hidden; white-space: nowrap;
+      }
+      .card .fld.empty::before { content: "Password"; color: #9aa1ad; font-weight: 400; }
+      .card .f1 { top: 132px; height: 62px; }
+      .card .f2 { top: 208px; height: 62px; }
+      .card .btn {
+        position: absolute; left: 30px; width: 372px; height: 52px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 18px; font-weight: 600; border-radius: 26px;
+      }
+      .card .login { top: 292px; background: #10121a; color: #fff; overflow: hidden; }
+      .card .signup {
+        top: 360px; height: 52px; background: #fff;
+        border: 1.5px solid #d5d9e0; color: #10121a;
+      }
+      #b-shine {
+        position: absolute; top: -30%; left: 0; width: 62px; height: 160%;
+        background: linear-gradient(90deg,
+          rgba(0,195,255,0) 0%, rgba(0,195,255,0.5) 42%,
+          rgba(150,238,255,0.9) 54%, rgba(0,195,255,0) 100%);
+        transform: skewX(-24deg); pointer-events: none;
+      }
+
+      /* ---------- D : usage card ---------- */
+      #d-stage { position: absolute; left: 0; top: 0; width: 518px; height: 391px; transform-origin: 0 0; }
+      #d-card {
+        position: absolute; left: 0; top: 0; width: 518px; height: 294px;
+        background: #fff; border-radius: 26px; box-shadow: 0 14px 36px rgba(16,26,44,0.08);
+      }
+      #d-chip {
+        position: absolute; left: 20px; top: 13px; width: 45px; height: 45px;
+        background: #eef0f4; border-radius: 15px;
+        display: flex; align-items: center; justify-content: center;
+      }
+      #d-chip img { width: 32px; height: 32px; display: block; }
+      #d-lbl { position: absolute; left: 75px; top: 33px; font-size: 15px; font-weight: 500; color: #7c8089; }
+      #d-amt {
+        position: absolute; left: 27px; top: 70px;
+        font-family: "HGDisplay", sans-serif;
+        font-size: 62px; font-weight: 700; letter-spacing: -2px; color: #10121a;
+        font-variant-numeric: tabular-nums; white-space: nowrap;
+      }
+      #d-tail { filter: url(#vsmear); }
+      #d-sub { position: absolute; left: 28px; top: 243px; font-size: 15px; font-weight: 500; color: #23252b; }
+      .d-pill {
+        position: absolute; top: 331px; height: 60px; width: 230px;
+        background: #10121a; border-radius: 30px; color: #fff;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 21px; font-weight: 500;
+      }
+      #d-primary { left: 7px; }
+      #d-secondary { left: 280px; background: #fff; color: #10121a; border: 1.5px solid #d5d9e0; }
+
+      /* ---------- E : nav ---------- */
+      #e-stage { position: absolute; inset: 0; transform-origin: 360px 350px; }
+      .navrow {
+        position: absolute; left: 0; display: flex; align-items: center; height: 56px;
+        font-size: 45px; font-weight: 500; letter-spacing: -1.4px;
+        color: #10121a; white-space: nowrap;
+      }
+      .navrow .ico { width: 40px; margin-left: 33px; margin-right: 32px; flex: none; }
+      .navrow .ico svg { width: 40px; height: 40px; display: block; }
+      /* Brand cyan carrying dark type. Because the label stays dark on the
+         highlight, the rows need no second white copy clipped to the pill. */
+      #e-pill {
+        position: absolute; left: -34px; top: 148px; height: 78px; width: 300px;
+        background: #00c3ff; border-radius: 39px; opacity: 0;
+      }
+
+      /* ---------- F : create + menu ---------- */
+      #f-stage { position: absolute; inset: 0; transform-origin: 0 0; }
+      #f-btn {
+        position: absolute; left: 237.5px; top: 323.8px;
+        width: 244px; height: 71.3px; background: #10121a; border-radius: 36px;
+        display: flex; align-items: center; justify-content: center; gap: 26px;
+        transform-origin: 50% 50%;
+      }
+      #f-btn .plus { width: 31px; height: 31px; flex: none; }
+      #f-btn .lbl { font-size: 31px; font-weight: 600; color: #fff; letter-spacing: -0.7px; }
+      #f-menu {
+        position: absolute; left: 355px; top: 346px;
+        width: 318px; height: 299.5px; background: #fff; border-radius: 22px;
+        box-shadow: 0 16px 36px rgba(16,26,44,0.14), 0 2px 8px rgba(16,26,44,0.07);
+        transform-origin: 0 0; opacity: 0;
+      }
+      .mrow {
+        position: absolute; left: 0; width: 100%; height: 54px;
+        display: flex; align-items: center;
+        font-size: 18px; font-weight: 500; color: #10121a; white-space: nowrap;
+      }
+      .mrow .mico { width: 33px; margin-left: 14px; margin-right: 26px; flex: none; }
+      .mrow .mico svg { width: 33px; height: 33px; display: block; }
+      #f-hl {
+        position: absolute; left: 5px; top: 20.2px; width: 303px; height: 54px;
+        border: 2px solid #00c3ff; border-radius: 9px;
+        background: rgba(0,195,255,0.08); opacity: 0;
+      }
+      #f-cursor {
+        position: absolute; left: -31.3px; top: -30.9px;
+        width: 119.2px; height: 119.2px; opacity: 0;
+      }
+      #f-cursor img { width: 100%; height: 100%; display: block; }
+
+      /* ---------- G : "Made with" endcard — two parts, same counter-bounce ----- */
+      #g-logo {
+        position: absolute; left: 195px; top: 276px;
+        width: 330px; height: 146.3px; transform-origin: 50% 50%;
+      }
+      #g-made {
+        position: absolute; left: 0; top: 0; width: 100%; height: 30px;
+        text-align: center; line-height: 30px;
+        font-size: 25px; font-weight: 500; letter-spacing: -0.3px; color: #7c8089;
+      }
+      /* two words, not one label — each carries the bounce on its own beat */
+      #g-made span { display: inline-block; }
+      #g-made .w2 { margin-left: 9px; }
+      #g-lock { position: absolute; left: 15px; top: 56px; width: 300px; height: 90.3px; }
+      #g-lock img { width: 100%; height: 100%; display: block; }
+      /* the shimmer is clipped to the lockup's own glyphs, so it lights the type
+         and flashes the gradient symbol without touching the ground */
+      #g-mask {
+        position: absolute; inset: 0; overflow: hidden; pointer-events: none;
+        -webkit-mask: url("assets/hf-lockup.svg") center / contain no-repeat;
+        mask: url("assets/hf-lockup.svg") center / contain no-repeat;
+      }
+      #g-shine {
+        position: absolute; top: -50%; left: 0; width: 78px; height: 200%;
+        background: linear-gradient(90deg,
+          rgba(0,195,255,0) 0%, rgba(0,195,255,0.55) 28%,
+          rgba(215,250,255,0.98) 50%, rgba(0,195,255,0.55) 72%, rgba(0,195,255,0) 100%);
+        transform: skewX(-18deg); pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+      <filter id="vsmear" x="-20%" y="-40%" width="140%" height="180%">
+        <fegaussianblur stdDeviation="0 2.1" />
+      </filter>
+    </svg>
+
+    <div id="root" data-composition-id="main" data-start="0" data-duration="10.8333" data-width="720" data-height="720">
+
+      <div id="sA" class="clip scene" data-start="0" data-duration="1.166" data-track-index="1">
+        <div id="a-logo">
+          <div id="a-word"><img src="assets/hg-word-text.svg" alt=""></div>
+          <div id="a-sym"><img src="assets/hg-symbol.svg" alt=""></div>
+        </div>
+      </div>
+
+      <div id="sB" class="clip scene" data-layout-allow-overflow data-start="1.166" data-duration="1.2333" data-track-index="2">
+        <div id="b-card" class="card">
+          <div class="brandrow"><img src="assets/hg-symbol.svg" alt=""></div>
+          <div class="ttl">Sign in to HeyGen</div>
+          <div class="fld f1"></div>
+          <div class="fld f2 empty"></div>
+          <div class="btn login" data-layout-allow-overflow>Continue<span id="b-shine" data-layout-allow-overflow></span></div>
+          <div class="btn signup">Create account</div>
+        </div>
+      </div>
+
+      <div id="sC" class="clip scene" data-layout-allow-overflow data-start="2.3993" data-duration="1.3667" data-track-index="1">
+        <div id="c-card" class="card">
+          <div class="brandrow"><img src="assets/hg-symbol.svg" alt=""></div>
+          <div class="ttl">Sign in to HeyGen</div>
+          <div class="fld f1"><span id="c-mail"></span></div>
+          <div class="fld f2 empty"></div>
+          <div class="btn login">Continue</div>
+          <div class="btn signup">Create account</div>
+        </div>
+      </div>
+
+      <div id="sD" class="clip scene" data-start="3.766" data-duration="1.3666" data-track-index="2">
+        <div id="d-stage">
+          <div id="d-card">
+            <div id="d-chip"><img src="assets/hg-symbol.svg" alt=""></div>
+            <div id="d-lbl">Videos created</div>
+            <div id="d-amt"><span id="d-head"></span><span id="d-tail">0</span></div>
+            <div id="d-sub">Across 42 avatars</div>
+          </div>
+          <div id="d-primary" class="d-pill">New video</div>
+          <div id="d-secondary" class="d-pill">Share</div>
+        </div>
+      </div>
+
+      <div id="sE" class="clip scene" data-layout-allow-overflow data-layout-allow-overlap data-start="5.1326" data-duration="1.8333" data-track-index="1">
+        <div id="e-stage">
+          <div id="e-pill" data-layout-allow-overflow></div>
+          <div id="e-rows"></div>
+        </div>
+      </div>
+
+      <div id="sF" class="clip scene" data-layout-allow-overflow data-layout-allow-occlusion data-start="6.9659" data-duration="3.1666" data-track-index="2">
+        <div id="f-stage">
+          <div id="f-btn">
+            <svg class="plus" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M12 3.6v16.8M3.6 12h16.8" /></svg>
+            <span class="lbl">Create</span>
+          </div>
+          <div id="f-menu"><div id="f-hl"></div></div>
+        </div>
+        <div id="f-cursor"><img src="assets/cursor-point.svg" alt=""></div>
+      </div>
+
+      <div id="sG" class="clip scene" data-start="10.1325" data-duration="0.7008" data-track-index="1">
+        <div id="g-logo">
+          <div id="g-made"><span class="w1">Made</span><span class="w2">with</span></div>
+          <div id="g-lock">
+            <img src="assets/hf-lockup.svg" alt="">
+            <div id="g-mask"><div id="g-shine"></div></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <script>
+      /* =====================================================================
+         HeyGen UI sting — 720x720, 30fps, 325 frames (10.833s).
+
+         Seven scenes, cut on exact frame boundaries. Two rules hold the whole
+         thing together:
+
+           1. ONE EASE FAMILY. Everything decelerating uses EO below; everything
+              accelerating uses EI. Nothing overshoots, nothing is linear.
+           2. MATCHED VECTORS AT EVERY CUT. The outgoing scene is still moving
+              when the cut lands, and the incoming one picks up the same axis and
+              direction at a similar speed. See ledger.json for the seam table.
+
+         Times are written as F(n) — frame n of 325 — so every number in here
+         reads against the storyboard instead of against a float.
+         ===================================================================== */
+      const FPS = 30;
+      const F = (f) => (f - 1) / FPS;
+      const S = (f) => F(f) - 0.008;
+      const tl = gsap.timeline({ paused: true });
+      const $ = (s) => document.querySelector(s);
+      // Passed as functions on purpose: GSAP's built-in "expo.in"/"expo.out" are
+      // a different polynomial, and swapping these for the named strings shifts
+      // every exit by 5-14px. If you retime anything, keep these.
+      const EO = (p) => (p >= 1 ? 1 : 1 - Math.pow(2, -10 * p));
+      const EI = (p) => (p <= 0 ? 0 : Math.pow(2, 10 * (p - 1)));
+
+      /* ---------- icons: HeyGen product surfaces ---------- */
+      const ICO = {
+        home: '<path d="M4 17.2V9.4L12 3.1l8 6.3v7.8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z"/>',
+        projects: '<rect x="3.2" y="5.2" width="17.6" height="13.6" rx="2.4"/><path d="m10.2 9.6 5 2.6-5 2.6z"/>',
+        avatars: '<circle cx="12" cy="8.6" r="3.9"/><path d="M4.8 20.2a7.2 7.2 0 0 1 14.4 0"/>',
+        templates:
+          '<rect x="3.4" y="3.8" width="7.2" height="7.2" rx="1.7"/><rect x="13.4" y="3.8" width="7.2" height="7.2" rx="1.7"/>' +
+          '<rect x="3.4" y="13.4" width="7.2" height="7.2" rx="1.7"/><rect x="13.4" y="13.4" width="7.2" height="7.2" rx="1.7"/>',
+        brand:
+          '<path d="M12 3.4a8.6 8.6 0 1 0 0 17.2c1.4 0 2.1-.9 2.1-1.8 0-1.6-1.4-1.7-1.4-3 0-1 .8-1.7 1.8-1.7h1.6a4.5 4.5 0 0 0 4.5-4.5c0-3.5-3.6-6.2-8.6-6.2Z"/>' +
+          '<circle cx="7.7" cy="11.3" r="1.15"/><circle cx="11" cy="7.6" r="1.15"/><circle cx="15.5" cy="8.8" r="1.15"/>',
+        avatarvid:
+          '<rect x="2.6" y="4.8" width="13.2" height="14.4" rx="2.2"/><circle cx="9.2" cy="10.3" r="2.3"/>' +
+          '<path d="M5.5 17.4a4 4 0 0 1 7.4 0"/><path d="m18.1 9.6 3.2-1.8v8.4l-3.2-1.8z"/>',
+        photo:
+          '<rect x="2.8" y="5.8" width="18.4" height="13.2" rx="2.2"/><circle cx="12" cy="12.4" r="3.5"/>' +
+          '<path d="M8.3 5.8 9.6 3.6h4.8l1.3 2.2"/>',
+        agent:
+          '<rect x="4.2" y="7.6" width="15.6" height="11.2" rx="3"/><circle cx="9.3" cy="12.8" r="1.35"/>' +
+          '<circle cx="14.7" cy="12.8" r="1.35"/><path d="M12 3.6v4M8.5 18.8v1.6M15.5 18.8v1.6"/>',
+        translate:
+          '<path d="M3.2 5.8h9M7.7 3.6v2.2M9.9 5.8c-.7 4.1-3 7-6.7 8.6"/><path d="M5.5 10.4c1.4 2 3.4 3.5 6 4.3"/>' +
+          '<path d="m12.7 20.4 4-9.4 4 9.4M14.1 17.5h5.2"/>',
+      };
+      const svgIco = (k, sw) =>
+        '<svg viewBox="0 0 24 24" fill="none" stroke="#10121a" stroke-width="' +
+        (sw || 1.7) + '" stroke-linecap="round" stroke-linejoin="round">' + ICO[k] + "</svg>";
+
+      /* ---------- E : nav rows ---------------------------------------------
+         cy = row centre. The spacing is deliberately uneven — an even pitch
+              reads mechanical at this scale.
+         w  = the row's rendered text width, used for its off-screen start.
+         pw = where the highlight pill rests on that row (text width + 46).
+         Change a label -> render once -> re-measure w and pw -> paste them back.
+         Nothing here is computed at runtime: measuring text in the browser races
+         font loading and returns fallback metrics. */
+      const NAV = [
+        { t: "Home",                i: "home",      cy: 188,   w: 223, pw: 269 },
+        { t: "Projects",            i: "projects",  cy: 264,   w: 262, pw: 308 },
+        { t: "Avatars & Voices",    i: "avatars",   cy: 344.5, w: 423, pw: 469 },
+        { t: "Templates for teams", i: "templates", cy: 433,   w: 494 },
+        { t: "Brand Kit",           i: "brand",     cy: 521,   w: 285 },
+      ];
+      $("#e-rows").innerHTML = NAV.map(
+        (r, k) =>
+          '<div class="navrow" data-layout-allow-overlap data-layout-allow-overflow id="nrow' + k +
+          '" style="top:' + (r.cy - 28) + 'px">' +
+          '<span class="ico">' + svgIco(r.i) + "</span>" + r.t + "</div>"
+      ).join("");
+      const rows = [...$("#e-rows").children];
+
+      /* ---------- F : create menu ---------- */
+      const MENU = [
+        { t: "Avatar video", i: "avatarvid" },
+        { t: "Photo avatar", i: "photo" },
+        { t: "Video Agent",  i: "agent" },
+        { t: "Translate",    i: "translate" },
+      ];
+      $("#f-menu").insertAdjacentHTML("beforeend",
+        MENU.map((r, k) =>
+          '<div class="mrow" style="top:' + (47.2 + k * 64.6 - 27) + 'px">' +
+          '<span class="mico">' + svgIco(r.i, 1.6) + "</span>" + r.t + "</div>").join(""));
+
+      /* ===================== A — lockup + counter-bounce ==================== */
+      for (let f = 4; f <= 34; f++) {
+        const t = (f - 4) / FPS;
+        const A = 30.3 * Math.exp(-t / 0.279) * Math.sin((2 * Math.PI * t) / 0.5);
+        tl.set("#a-sym", { y: A }, S(f));
+        tl.set("#a-word", { y: -A }, S(f));
+      }
+      tl.set(["#a-sym", "#a-word"], { y: 0 }, S(35));
+
+      tl.fromTo("#a-logo", { opacity: 0 }, { opacity: 1, duration: 0.1, ease: "power1.out" }, F(2))
+        .fromTo("#a-logo", { scale: 188.7 / 299.3 }, { scale: 1, duration: 2.254, ease: EO }, F(2))
+        .fromTo("#a-logo", { y: 0 }, { y: -10, duration: 0.4, ease: EO }, F(9))
+        .to("#a-logo", { y: -5805, duration: 1.152, ease: EI }, F(22))
+        .to("#a-logo", { filter: "blur(4px)", duration: 0.3, ease: EI }, F(29));
+
+      /* ===================== B — card in from below, out left =============== */
+      tl.fromTo("#b-card", { x: 144, y: 198.7 }, { y: 125.8, duration: 0.751, ease: EO }, F(36))
+        .to("#b-card", { x: -1745.8, duration: 1.152, ease: EI }, F(53))
+        .fromTo("#b-card", { filter: "blur(0px)" },
+          { filter: "blur(8px)", duration: 0.34, ease: EI }, F(66));
+      tl.fromTo("#b-shine", { x: -90 }, { x: 400, duration: 0.44, ease: "power1.inOut" }, F(43));
+
+      /* ===================== C — zoomed card, email types in ================ */
+      const CS = 660 / 432;
+      tl.fromTo("#c-card", { x: 222.1, y: 138.8, scale: CS, filter: "blur(6px)" },
+        { x: 24.3, duration: 1.119, ease: EO }, F(73))
+        .to("#c-card", { filter: "blur(0px)", duration: 0.2, ease: "power2.out" }, F(73))
+        .to("#c-card", { y: -4772, duration: 1.302, ease: EI }, F(96))
+        .to("#c-card", { filter: "blur(9px)", duration: 0.32, ease: EI }, F(105));
+
+      // One character per frame with three deliberate double-frames (77/78,
+      // 87/88, 98/99) — perfectly even typing reads like a machine.
+      const MAIL = "rik.fernandes@heygen.com";
+      const TYPE = [1,2,3,4,4,5,6,7,8,9,10,11,12,13,13,14,15,16,17,18,19,20,21,22,23,23,24];
+      tl.set("#c-mail", { innerText: "" }, F(73));
+      TYPE.forEach((n, k) => tl.set("#c-mail", { innerText: MAIL.slice(0, n) }, S(74 + k)));
+
+      /* ===================== D — usage card + odometer ====================== */
+      tl.fromTo("#d-stage", { x: 101, y: 244.3 }, { y: 157.8, duration: 1.252, ease: EO }, F(114))
+        .to("#d-stage", { x: 1878, duration: 1.235, ease: EI }, F(137))
+        .fromTo("#d-stage", { filter: "blur(0px)" },
+          { filter: "blur(7px)", duration: 0.32, ease: EI }, F(146));
+
+      const AMT = [0,116,248,381,513,645,778,910,1042,1175,1307,1440,1572,1704,1837,
+        1969,2101,2234,2366,2499,2631,2763,2896,3028,3160,3293,3425,3558,3690,3822,
+        3955,4087,4219,4352,4484,4616,4749,4881,5014,5146,5278];
+      AMT.forEach((n, k) => {
+        const v = n.toLocaleString("en-US");
+        tl.set("#d-head", { innerText: v.slice(0, -1) }, S(114 + k));
+        tl.set("#d-tail", { innerText: v.slice(-1) }, S(114 + k));
+      });
+
+      /* ===================== E — nav waterfall + cyan highlight ============= */
+      NAV.forEach((r, k) => {
+        const start = F(155) + (k - 2) * (5 / FPS) - (k >= 3 ? 1.5 / FPS : 0);
+        tl.fromTo(rows[k], { x: -(r.w + 70) }, { x: 0, duration: 0.9, ease: EO }, start);
+        tl.fromTo(rows[k], { opacity: 0.1, filter: "blur(10px)" },
+          { opacity: 1, filter: "blur(0px)", duration: 0.5, ease: "power1.out" }, start);
+      });
+
+      /* The highlight is ONE continuous move from the first row to the third,
+         resizing to each label as it passes and never coming to rest on the
+         middle one — it slows through it and keeps going. Stamped per frame
+         because it is choreography, not a curve. */
+      const PILL = [
+        [162,148,34],[163,148,69],[164,148,104],[165,148,138],[166,148,172],[167,148,207],
+        [168,148,241],[169,148,260],[170,148,264],[171,148,266],[172,148,267],[173,148,267],
+        [174,148,266],[175,148,265],[176,150,264],[177,160,268],[178,177,273],[179,200,280],
+        [180,226,288],[181,231,292],[182,236,298],[183,241,306],[184,247,315],[185,253,325],
+        [186,260,337],[187,268,351],[188,276,366],[189,287,383],[190,298,400],[191,307,411],
+        [192,308,413],[193,309,414],[194,309,414],[195,308,413],[196,308,412],[197,307,411],
+        [198,306,410],[199,306,410],[200,306,409],[201,306,409],[202,306,409],[203,306,409],
+        [204,307,409],[205,308,409],[206,308,409],[207,309,408],[208,310,407],[209,312,406],
+      ];
+      // The track above is authored against these three resting widths; the
+      // remap re-anchors it onto whatever your labels measure, so relabelling
+      // the nav never touches the timing.
+      const PW = [267, 306, 409];
+      const HW = [NAV[0].pw, NAV[1].pw, NAV[2].pw];
+      const remap = (v) =>
+        v <= PW[0] ? (v / PW[0]) * HW[0]
+        : v <= PW[1] ? HW[0] + ((v - PW[0]) / (PW[1] - PW[0])) * (HW[1] - HW[0])
+        : HW[1] + ((v - PW[1]) / (PW[2] - PW[1])) * (HW[2] - HW[1]);
+      tl.set("#e-pill", { opacity: 0 }, F(155));
+      tl.set("#e-pill", { opacity: 1 }, S(162));
+      PILL.forEach(([f, top, right]) =>
+        tl.set("#e-pill", { top: top, width: remap(right) + 34 }, S(f)));
+
+      tl.to("#e-stage", { scale: 0.72, duration: 0.6, ease: "power3.in" }, F(198))
+        .fromTo("#e-stage", { filter: "blur(0px)" },
+          { filter: "blur(7px)", duration: 0.28, ease: EI }, F(205));
+
+      /* ===================== F — Create, cursor, click, menu ================ */
+      tl.fromTo("#f-btn", { scale: 380.8 / 244 }, { scale: 1, duration: 2.622, ease: EO }, F(210))
+        .fromTo("#f-btn", { filter: "blur(5px)" },
+          { filter: "blur(0px)", duration: 0.2, ease: "power2.out" }, F(210))
+        .fromTo("#f-btn .plus", { rotate: 90 }, { rotate: 0, duration: 0.233, ease: "none" }, F(210));
+
+      tl.set("#f-cursor", { opacity: 0, x: 305.6, y: 704.4 }, F(210));
+      tl.set("#f-cursor", { opacity: 1 }, S(230));
+      tl.fromTo("#f-cursor", { x: 305.6, y: 704.4 },
+        { x: 364.6, y: 342.4, duration: 0.97, ease: EO }, F(230));
+
+      tl.to("#f-btn", { scale: 0.845, duration: 0.167, ease: "power2.inOut" }, F(253))
+        .to("#f-btn", { scale: 1, duration: 0.1, ease: "power2.out" }, F(258));
+      tl.to("#f-cursor", { y: 348.4, duration: 0.167, ease: "power2.inOut" }, F(253))
+        .to("#f-cursor", { y: 342.4, duration: 0.1, ease: "power2.out" }, F(258));
+
+      tl.set("#f-menu", { opacity: 0, scale: 0.05 }, F(210));
+      tl.set("#f-menu", { opacity: 1 }, S(259));
+      tl.to("#f-menu", { scale: 1, duration: 0.5, ease: EO }, F(259));
+
+      const NUDGE = [0,0.027,0.054,0.095,0.136,0.190,0.245,0.316,0.388,0.469,0.551,
+        0.619,0.687,0.738,0.789,0.826,0.864,0.891,0.918,0.935,0.952,0.962,0.973,
+        0.983,0.993,0.996,1];
+      const nudgeEase = (p) => {
+        if (p <= 0) return 0;
+        if (p >= 1) return 1;
+        const i = p * (NUDGE.length - 1), a = Math.floor(i);
+        return NUDGE[a] + (NUDGE[Math.min(a + 1, NUDGE.length - 1)] - NUDGE[a]) * (i - a);
+      };
+      tl.fromTo("#f-stage", { x: 0, y: 0, scale: 1 },
+        { x: -134.6, y: -125.9, scale: 0.965, duration: 26 / FPS, ease: nudgeEase }, F(268));
+
+      tl.to("#f-cursor", { x: 576, duration: 0.4, ease: "power1.out" }, F(268));
+      tl.to("#f-cursor", { y: -160, duration: 1.058, ease: "power2.inOut" }, F(268));
+      tl.set("#f-cursor", { opacity: 0 }, S(292));
+
+      // the highlight steps down to Video Agent — the beat this cut is selling
+      tl.set("#f-hl", { opacity: 0, y: 0 }, F(210));
+      tl.set("#f-hl", { opacity: 1 }, S(263));
+      tl.to("#f-hl", { y: 64.6, duration: 0.05, ease: "power2.out" }, F(281));
+      tl.to("#f-hl", { y: 129.2, duration: 0.05, ease: "power2.out" }, F(293));
+
+      tl.to("#f-stage", { scale: 0.742, duration: 0.24, ease: "power3.in" }, F(299))
+        .fromTo("#f-stage", { filter: "blur(0px)" },
+          { filter: "blur(6px)", duration: 0.18, ease: EI }, F(301));
+
+      /* ===================== G — "Made with" endcard =========================
+         Same three techniques the film already uses: a Z-negative arrival, the
+         two-part counter-bounce from scene A (halved — the parts are stacked and
+         much closer together), and a shimmer clipped to the mark's own glyphs. */
+      tl.fromTo("#g-logo", { scale: 248.7 / 181.4 }, { scale: 1, duration: 1.052, ease: EO }, F(305))
+        .fromTo("#g-logo", { filter: "blur(7px)" },
+          { filter: "blur(0px)", duration: 0.18, ease: "power2.out" }, F(305));
+
+      // the same damped spring the opening lockup uses
+      const spring = (t) =>
+        t <= 0 ? 0 : 19 * Math.exp(-t / 0.279) * Math.sin((2 * Math.PI * t) / 0.5);
+      // "Made" and "with" ride it on their own beats — a 2-frame stagger, the
+      // same trick the nav rows use, so the label has life instead of sliding
+      // as one block. The lockup takes the opposite sign: the landing kicks the
+      // pair apart, then everything settles back together.
+      for (let f = 306; f <= 325; f++) {
+        const t = (f - 306) / FPS;
+        tl.set("#g-made .w1", { y: -spring(t) }, S(f));
+        tl.set("#g-made .w2", { y: -spring(t - 2 / FPS) }, S(f));
+        tl.set("#g-lock", { y: spring(t - 1 / FPS) }, S(f));
+      }
+
+      tl.fromTo("#g-shine", { x: -90, opacity: 0 }, { opacity: 1, duration: 0.06, ease: "none" }, F(309))
+        .to("#g-shine", { x: 390, duration: 0.47, ease: "power1.inOut" }, F(309))
+        .to("#g-shine", { opacity: 0, duration: 0.08, ease: "none" }, F(322));
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

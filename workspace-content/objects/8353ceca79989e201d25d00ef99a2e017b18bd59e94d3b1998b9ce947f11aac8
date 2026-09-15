@@ -1,0 +1,748 @@
+<template>
+  <div data-hf-id="hf-ix65" id="s2" data-composition-id="s2" data-start="0" data-duration="12.20" data-width="1080" data-height="1080" style="position: relative; width: 1080px; height: 1080px; overflow: hidden; background: #F3F4ED;">
+    <style>
+      /* =====================================================================
+         S2 (K5-K8) — the Claude Design UI, entered by MORPH from S1.
+           K5 S2a  chat view + square Meridian video playing in the canvas
+           K6 S2b  at 50% playback the video morphs to fill the frame,
+                   the chrome falls away, one whisper-thin progress line survives
+           K7 S2c  playback ends on the wordmark; chrome reveals OVER the video;
+                   cursor -> Share -> Send to HyperFrames
+           K8 S2d  video dims, the import card lands (carrier for the S3 seam)
+         t=0 is pixel-identical to S1's last frame. The plan block below uses
+         S1's EXACT metrics; if S1's plan CSS changes, change it here too.
+         plan scale = 386/912 = 0.42325
+         player morph scale = 1080/520 = 2.07692
+         ===================================================================== */
+      /* Anthropic's house serif, lifted from the Claude paper launch
+         (projects/active/claude-paper/fonts). Times-adjacent but not Times, which is
+         what the serif register here was reaching for with Georgia. Book is the only
+         weight we have (usWeightClass 500, italicAngle 0) — the 400-700 range is
+         declared deliberately so the renderer never SYNTHESISES a bold or an oblique
+         off it. That synthesis is exactly what got TT Norms Pro thrown out of this
+         project. Self-hosted so preview == render (Georgia was being aliased to
+         EB Garamond by the renderer). */
+      @font-face { font-family: "Copernicus"; src: url("assets/fonts/GalaxieCopernicus-Book.woff2") format("woff2");
+                   font-weight: 400 700; font-style: normal; font-display: block; }
+      @font-face { font-family: "RefSans"; src: url("assets/fonts/refsans-medium.ttf") format("truetype");
+                   font-weight: 400 700; font-display: block; }
+
+      #s2 .ground { position: absolute; inset: 0; background: #F3F4ED; }
+
+      /* --- app chrome --- */
+      /* overflow: hidden so the Share pill can slide down OUT OF the bar's top edge —
+         the bar itself no longer moves (Jake: "just the share button should come down"),
+         so the pill needs the bar edge to emerge from or it floats over the paper. */
+      /* transparent, no border: the bar itself is gone. overflow: hidden is KEPT — it is
+         what the Share pill slides down out of, so the pill now reads as dropping in from
+         off-frame top rather than popping in at rest. */
+      #s2 .topbar { position: absolute; left: 0; top: 0; width: 1080px; height: 64px;
+        display: flex; align-items: center; padding: 0 22px; opacity: 0; overflow: hidden;
+        font-family: "RefSans", "Helvetica Neue", sans-serif; font-size: 20px; color: #35332C; }
+      #s2 .proj { display: flex; align-items: center; gap: 10px; }
+      #s2 .cdot { width: 9px; height: 9px; border-radius: 50%; background: #D87756; }
+      #s2 .tabs { position: absolute; left: 50%; margin-left: -104px; display: flex; gap: 6px; }
+      #s2 .tab { padding: 7px 20px; border-radius: 11px; font-size: 19px; color: #6E6A5E; }
+      #s2 .tab.on { background: #ECEBE5; color: #262521; }
+      /* parked hidden in CSS, not in a tl.set — a zero-duration set at position 0 does
+         not render on frame 0, and anything visible before its own tween starts is the
+         "double reveal" trap this file has been bitten by four times. */
+      #s2 .share { margin-left: auto; display: flex; align-items: center; gap: 9px;
+        padding: 8px 18px; border: 1.5px solid #DCDBD5; border-radius: 13px; font-size: 19px;
+        opacity: 0; }
+
+      #s2 .railbg { position: absolute; left: 0; top: 64px; width: 430px; height: 1016px;
+        background: #F7F6F1; border-right: 1.5px solid rgba(38,37,33,.09); opacity: 0; }
+      #s2 .canvas { position: absolute; left: 430px; top: 64px; width: 650px; height: 1016px;
+        overflow: hidden; opacity: 0; }
+      #s2 .dots { position: absolute; inset: 0;
+        background-image: radial-gradient(rgba(38,37,33,.14) 1.6px, transparent 1.6px);
+        background-size: 34px 34px; }
+
+      /* --- the Meridian video. A sibling of .canvas (NOT a child) so growing it to
+             full frame is never clipped by the canvas's overflow. --- */
+      #s2 .player { position: absolute; left: 495px; top: 300px; width: 520px; height: 520px;
+        border-radius: 14px; overflow: hidden; background: #0E1524; opacity: 0;
+        transform-origin: 0 0; box-shadow: 0 18px 44px rgba(10,12,20,0.18); z-index: 8; }
+      /* FULL STRENGTH. The plate used to sit at opacity .42 over the player's #0E1524,
+         which is the wash Jake asked to remove — it was muting the gradient into a flat
+         navy. The video now reads at its own values. The #0E1524 under it stays as the
+         ground so a not-yet-decoded first frame can never flash. */
+      #s2 .plate { position: absolute; inset: 0; width: 520px; height: 520px;
+        object-fit: cover; opacity: 1; }
+      /* ============ THE VIDEO OUTPUT — a 10s Meridian brand promo, 3 scenes ============
+         Replaces the old label + count-up + sub, which was carrying 6.5s of screen time on
+         a number ticking. Design pass: design-pass/p1..p6.html + shots-promo/contact-sheet.
+         EVERYTHING here is authored in PLAYER space (520 square) and viewed through the
+         full-frame morph's x2.07692, exactly like S4's slot392 at x2.755. Divide any value
+         from the 1080 design pass by 2.07692 to land here — that is why the wordmark is
+         58px and not 120px. Video time maps to screen time as local = 1.72 + video*0.648
+         (10s of video across the 6.48s playback window), same compression the counter had. */
+      #s2 .pscene { position: absolute; inset: 0; display: flex; flex-direction: column;
+        align-items: center; justify-content: center; opacity: 0; }
+      /* -- scene 1: one hairline cell per glyph. Cells are glyph-width (inline-flex + padding),
+            NOT fixed 104px boxes, so when the borders fade what is left is a properly tracked
+            wordmark rather than a monospaced grid. No mark, no pill — Jake's note. -- */
+      #s2 .pcells { display: flex; gap: 5px; }
+      #s2 .pcellwrap { position: relative; display: inline-block; }
+      #s2 .pcell { display: inline-flex; align-items: center; justify-content: center;
+        padding: 10px 6px; position: relative;
+        font-family: "Copernicus", Georgia, serif; font-size: 46px; line-height: 1; color: #F3F4ED; }
+      #s2 .pcell i { display: block; font-style: normal; }
+      /* the border is a REAL sibling element, not a :before — GSAP cannot tween a pseudo-
+         element, and the border has to fade independently of the glyph it contains. */
+      #s2 .pbox { position: absolute; inset: 0; border-radius: 6px;
+        border: 1px solid rgba(243,244,237,.42); pointer-events: none; }
+      /* -- scene 2: the product, three-quarter, bleeding off the RIGHT and BOTTOM edges.
+            568x512 anchored at (46,83) in a 520 box, so it runs past both — that overflow
+            IS the composition, hence data-layout-allow-overflow on the node. -- */
+      #s2 .pui { position: absolute; left: 46px; top: 83px; width: 568px; height: 512px;
+        border-radius: 12px; background: #0F1826; border: 1px solid rgba(243,244,237,.10);
+        overflow: hidden; display: flex; box-shadow: -14px -9px 38px rgba(4,8,14,.55); opacity: 0; }
+      #s2 .pside { width: 114px; flex: 0 0 114px; border-right: 1px solid rgba(243,244,237,.10);
+        padding: 13px 10px; background: #132033; }
+      #s2 .pbrand { display: flex; align-items: center; gap: 5px; font-size: 9px; font-weight: 700;
+        letter-spacing: .02em; margin-bottom: 16px; color: #F3F4ED; }
+      #s2 .pbrand i { width: 12px; height: 12px; border-radius: 4px; background: #E9E6DA; flex: 0 0 12px; }
+      #s2 .pnav { display: flex; flex-direction: column; gap: 3px; }
+      #s2 .pnav span { font-size: 7.7px; color: rgba(243,244,237,.62); padding: 5px 6px; border-radius: 5px; }
+      #s2 .pnav span.on { background: rgba(243,244,237,.09); color: #F3F4ED; }
+      #s2 .pbody { flex: 1; padding: 13px 14px; min-width: 0; }
+      #s2 .phrow { display: flex; align-items: flex-end; gap: 8px; margin-bottom: 13px; }
+      #s2 .phrow h2 { font-family: "Copernicus", Georgia, serif; font-size: 21px; line-height: 1;
+        font-weight: 500; color: #F3F4ED; }
+      #s2 .ppill { font-size: 6.7px; color: #D97756; border: 1px solid rgba(217,119,86,.45);
+        border-radius: 999px; padding: 2px 6px; }
+      #s2 .pstats { display: flex; gap: 8px; margin-bottom: 13px; }
+      /* opacity 0 in CSS: #s2-p2 turns visible at 3.534 but these are not tweened until
+         3.86, so at rest they showed for 8 frames and then snapped back to animate in —
+         the §5.1 double reveal. Same reason for .prow, .ptb, .pbrands span and .pui. */
+      #s2 .pstat { flex: 1; background: rgba(243,244,237,.05); border: 1px solid rgba(243,244,237,.10);
+        border-radius: 7px; padding: 8px 9px; opacity: 0; }
+      #s2 .pstat b { display: block; font-family: "Copernicus", Georgia, serif; font-size: 19px;
+        line-height: 1.05; font-weight: 500; color: #F3F4ED; }
+      #s2 .pstat span { font-size: 6.7px; color: rgba(243,244,237,.62); }
+      #s2 .pchart { height: 144px; background: rgba(243,244,237,.04);
+        border: 1px solid rgba(243,244,237,.10); border-radius: 8px; position: relative; overflow: hidden; }
+      #s2 .pchart svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+      /* parked UNDRAWN in CSS, not by the fromTo's from-state — an immediateRender:false
+         fromTo leaves the path fully drawn until its tween starts (§5.1, and it bit the S4
+         ease curve for three frames). */
+      #s2 .pchart .pline { stroke: #D97756; stroke-width: 2.5; fill: none;
+        stroke-dasharray: 900; stroke-dashoffset: 900; }
+      #s2 .pchart .pfill { fill: rgba(217,119,86,.16); stroke: none; opacity: 0; }
+      #s2 .prows { margin-top: 11px; display: flex; flex-direction: column; gap: 6px; }
+      #s2 .prow { display: flex; align-items: center; gap: 7px; font-size: 7.7px;
+        color: rgba(243,244,237,.62); opacity: 0; }
+      #s2 .prow i { width: 4px; height: 4px; border-radius: 50%; background: #4FC3B0; flex: 0 0 4px; }
+      #s2 .prow b { color: #F3F4ED; font-weight: 500; }
+      #s2 .prow u { margin-left: auto; text-decoration: none;
+        font-family: ui-monospace, Menlo, monospace; font-size: 6.7px; color: rgba(243,244,237,.34); }
+      /* -- scene 3: trusted by. Wordmarks, not fake logos. -- */
+      #s2 .ptb { letter-spacing: .34em; font-size: 9px; color: rgba(243,244,237,.62);
+        margin-bottom: 21px; opacity: 0; }
+      #s2 .pbrands { display: flex; align-items: center; gap: 22px; }
+      /* THIS is the one Jake caught double-revealing: the CSS rest opacity was .92, so all
+         three names were fully up from 6.126 and only started animating at 6.30. */
+      #s2 .pbrands span { font-size: 18px; letter-spacing: .06em; color: #F3F4ED; opacity: 0; }
+      #s2 .pbrands i { width: 2.5px; height: 2.5px; border-radius: 50%;
+        background: rgba(243,244,237,.34); display: block; }
+      #s2 .vend { position: absolute; inset: 0; display: flex; flex-direction: column;
+        align-items: center; justify-content: center; opacity: 0; }
+      /* 84px -> 58px. Measured off Copernicus's own advances: "MERIDIAN" at 84px with
+         0.04em tracking is 556.0px inside the player, and the full-frame morph scales the
+         player by 2.07692, so it rendered 1154.8px on a 1080 frame — clipping the M and the
+         N off both edges. Copernicus is much wider than the Georgia this replaced, which is
+         what introduced the overflow. 58px gives 797px, i.e. 141px clear each side.
+         S3's #dock .kick is matched to this across the S2->S3 match cut — change both. */
+      #s2 .vword { font-family: "Copernicus", Georgia, serif; font-size: 58px; letter-spacing: .04em;
+        color: #F3F4ED; }
+      #s2 .vwsub { font-family: "RefSans", "Helvetica Neue", sans-serif; font-size: 17px;
+        color: rgba(243,244,237,.62); margin-top: 18px; }
+      #s2 .dim { position: absolute; inset: 0; background: #0A0E18; opacity: 0; }
+
+      /* the in-player scrub (chat view) and the frame-bottom line (full frame).
+         Both are driven from ONE progress proxy so the hand-off cannot drift. */
+      #s2 .scrub { position: absolute; left: 0; bottom: 0; height: 4px; width: 100%;
+        background: rgba(243,244,237,.16); }
+      #s2 .scrubfill { position: absolute; left: 0; top: 0; bottom: 0; width: 0%; background: #D87756; }
+      #s2 .fscrub { position: absolute; left: 0; bottom: 0; width: 1080px; height: 3px;
+        background: rgba(243,244,237,.14); opacity: 0; z-index: 12; }
+      #s2 .fscrubfill { position: absolute; left: 0; top: 0; bottom: 0; width: 0%; background: #D87756; }
+
+      /* --- rail content --- */
+      #s2 .rlab { position: absolute; left: 22px; font-size: 16px; color: #8A867A; opacity: 0;
+        font-family: "RefSans", "Helvetica Neue", sans-serif; }
+      #s2 .uprompt { position: absolute; left: 22px; top: 122px; width: 396px; opacity: 0;
+        font-family: "RefSans", "Helvetica Neue", sans-serif; }
+      #s2 .reply { position: absolute; left: 22px; top: 664px; width: 396px; opacity: 0;
+        font-family: "RefSans", "Helvetica Neue", sans-serif; }
+      /* one mask box per line so each slides up out of its own clip */
+      #s2 .rline { height: 29px; overflow: hidden; }
+      #s2 .rline span { display: block; font-size: 18px; line-height: 29px; color: #262521;
+        white-space: nowrap; }
+      #s2 .acts { display: flex; align-items: center; gap: 20px; margin-top: 18px; opacity: 0; }
+      #s2 .acts svg { width: 19px; height: 19px; stroke: #8A867A; fill: none;
+        stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+      #s2 .composer { position: absolute; left: 22px; top: 934px; width: 386px; height: 96px;
+        border: 1.5px solid rgba(38,37,33,.13); border-radius: 16px; background: #FCFCF9;
+        opacity: 0; font-family: "RefSans", "Helvetica Neue", sans-serif; }
+      #s2 .cph { position: absolute; left: 26px; top: 15px; font-size: 17px; color: #9A968A;
+        display: flex; }
+      #s2 .chw { display: inline-block; height: 24px; overflow: hidden; }
+      #s2 .chi { display: inline-block; line-height: 24px; }
+      #s2 .ccar { position: absolute; left: 16px; top: 15px; width: 2px; height: 21px;
+        background: #1A1A18; opacity: 0; }
+      #s2 .crow { position: absolute; left: 13px; right: 13px; bottom: 12px;
+        display: flex; align-items: center; gap: 8px; }
+      #s2 .cbtn { width: 30px; height: 30px; border: 1.5px solid #DCDBD5; border-radius: 9px;
+        display: flex; align-items: center; justify-content: center; }
+      #s2 .cbtn svg { width: 14px; height: 14px; stroke: #6E6A5E; fill: none; stroke-width: 1.7; }
+      #s2 .csend { margin-left: auto; width: 34px; height: 30px; border-radius: 9px;
+        background: #E4C7BA; display: flex; align-items: center; justify-content: center; }
+      #s2 .csend svg { width: 15px; height: 15px; stroke: #fff; fill: none;
+        stroke-width: 1.9; stroke-linejoin: round; }
+
+      /* --- K7: the chrome that reveals OVER the full-frame video --- */
+      /* no background: the gradient scrim read as a menu bar over the full-frame video.
+         The row is now an invisible 96px-tall flex track whose only job is to park the
+         Share pill top-right at the SAME centre (995,48) the cursor is measured against. */
+      #s2 .ovl { position: absolute; left: 0; top: 0; width: 1080px; height: 96px; opacity: 0;
+        z-index: 14; display: flex; align-items: center; padding: 0 30px;
+        font-family: "RefSans", "Helvetica Neue", sans-serif; }
+      #s2 .obrand { display: flex; align-items: center; gap: 11px; font-size: 21px;
+        color: rgba(243,244,237,.95); }
+      #s2 .obrand img { width: 25px; height: 25px; }
+      #s2 .ochip { margin-left: 16px; padding: 6px 14px; border-radius: 9px; font-size: 17px;
+        background: rgba(243,244,237,.14); color: rgba(243,244,237,.86); }
+      #s2 .otabs { position: absolute; left: 50%; margin-left: -96px; display: flex; gap: 5px; }
+      #s2 .otab { padding: 6px 18px; border-radius: 10px; font-size: 18px;
+        color: rgba(243,244,237,.62); }
+      #s2 .otab.on { background: rgba(243,244,237,.18); color: #F3F4ED; }
+      #s2 .oshare { margin-left: auto; display: flex; align-items: center; gap: 9px;
+        padding: 8px 18px; border: 1.5px solid rgba(243,244,237,.34); border-radius: 12px;
+        font-size: 18px; color: #F3F4ED; }
+
+      /* the Share menu */
+      #s2 .menu { position: absolute; right: 30px; top: 92px; width: 336px; opacity: 0;
+        background: #FCFCF9; border: 1.5px solid rgba(38,37,33,.10); border-radius: 15px;
+        padding: 12px 0; z-index: 16; transform-origin: 92% 0;
+        box-shadow: 0 22px 52px rgba(6,10,18,.34);
+        font-family: "RefSans", "Helvetica Neue", sans-serif; }
+      #s2 .mhead { padding: 7px 20px 9px; font-size: 14px; letter-spacing: .11em; color: #9A968A; }
+      #s2 .mrow { display: flex; align-items: center; gap: 13px; padding: 11px 20px;
+        font-size: 19px; color: #35332C; }
+      #s2 .mrow svg { width: 19px; height: 19px; stroke: #6E6A5E; fill: none; stroke-width: 1.7; }
+      #s2 .msep { height: 1.5px; background: rgba(38,37,33,.09); margin: 9px 0; }
+      /* NOT pre-hovered: neutral like its neighbours until the cursor reaches it.
+         OPAQUE at the menu's own #FCFCF9, never `transparent`. GSAP treats transparent as
+         rgba(0,0,0,0) and interpolates the ALPHA up from a black base, so a tween from
+         transparent to any warm tint passes through visible grey on the way — that is the
+         "grey hover then orange hover" Jake saw. Opaque-to-opaque has no such midpoint.
+         Same family as §5.10. */
+      #s2 .mrow.hot { background: #FCFCF9; color: #35332C; }
+      #s2 .s2mi { opacity: 0; }
+      #s2 .crow > * { opacity: 0; }
+      #s2 .orb22 { width: 22px; height: 22px; border-radius: 6px; object-fit: cover; flex: 0 0 22px; }
+      #s2 .orb30 { width: 30px; height: 30px; border-radius: 8px; object-fit: cover;
+        flex: 0 0 30px; margin-right: 12px; }
+
+      /* --- K8: the import card --- */
+      #s2 .imp { position: absolute; left: 240px; top: 404px; width: 600px; opacity: 0;
+        background: #FCFCF9; border: 1.5px solid rgba(38,37,33,.10); border-radius: 18px;
+        z-index: 18; box-shadow: 0 26px 60px rgba(6,10,18,.36);
+        font-family: "RefSans", "Helvetica Neue", sans-serif; }
+      #s2 .impbar { display: flex; align-items: center; padding: 17px 22px;
+        border-bottom: 1.5px solid rgba(38,37,33,.08); font-size: 17px; color: #55524B; }
+      #s2 .impok { margin-left: auto; display: flex; align-items: center; gap: 7px;
+        font-size: 16px; color: #4E7A3E; opacity: 0; }
+      #s2 .impok svg { width: 15px; height: 15px; stroke: #4E7A3E; fill: none; stroke-width: 2.6; }
+      #s2 .impbody { display: flex; align-items: center; gap: 20px; padding: 22px; }
+      #s2 .impthumb { width: 118px; height: 118px; border-radius: 11px; background: #0E1524;
+        flex: 0 0 118px; display: flex; align-items: center; justify-content: center;
+        font-family: "Copernicus", Georgia, serif; font-size: 34px; color: #F3F4ED; }
+      #s2 .impname { font-size: 24px; color: #201F1B; margin-bottom: 7px; }
+      #s2 .impmeta { font-size: 17px; color: #8A867A; margin-bottom: 15px; }
+      #s2 .impcta { font-size: 19px; color: #C4643C; }
+
+      /* --- cursor (same rig + art as S1) --- */
+      /* base measured, not guessed: Share rect is (940, 27.5, 110x41) -> centre (995, 48);
+         tip sits at (54, 35) in the 140px art, so left/top = 941 / 13. */
+      #s2 .cur-swing { position: absolute; left: 941px; top: 13px; width: 140px; height: 140px;
+        z-index: 24; pointer-events: none; opacity: 0; will-change: transform; }
+      #s2 .cur-rise { width: 140px; height: 140px; will-change: transform; }
+      #s2 .cur { display: block; width: 140px; height: 140px; will-change: transform;
+        filter: drop-shadow(0 2px 5px rgba(6,10,18,.46)); }
+
+      /* --- the surviving plan: S1's exact metrics, in its FINAL state --- */
+      #s2 .resp { position: absolute; left: 84px; top: 70px; width: 912px;
+        font-family: "RefSans", "Helvetica Neue", sans-serif; }
+      #s2 .who { font-size: 40px; line-height: 1.05; color: #3A382F; margin-bottom: 46px; }
+      #s2 .pill { height: 62px; border: 1.5px solid rgba(38,37,33,.10); border-radius: 14px;
+        background: #FCFCF9; display: flex; align-items: center; gap: 18px; padding: 0 22px 0 40px;
+        font-size: 38px; color: #35332C; margin-bottom: 56px; }
+      #s2 .pill svg { width: 28px; height: 28px; stroke: #6E6A5E; fill: none; stroke-width: 1.6; }
+      #s2 .card2 { border: 1.5px solid rgba(38,37,33,.07); border-radius: 16px; background: #F0EFE9;
+        padding: 22px 26px 26px 34px; margin-top: -18px; }
+      #s2 .hdr { display: flex; align-items: center; gap: 18px; font-size: 38px; color: #35332C;
+        margin-bottom: 58px; }
+      #s2 .hdr svg { width: 28px; height: 28px; stroke: #6E6A5E; fill: none; stroke-width: 1.6; }
+      #s2 .it { display: flex; align-items: flex-start; gap: 24px; height: 74px; font-size: 38px;
+        color: #262521; line-height: 1.05; }
+      #s2 .bx { width: 32px; height: 32px; border-radius: 8px; border: 2px solid #B9B7AE;
+        flex: 0 0 32px; margin-top: 5px; position: relative; }
+      #s2 .bx .fill { position: absolute; inset: -2px; border-radius: 8px; background: #6A8E59;
+        display: flex; align-items: center; justify-content: center; }
+      #s2 .bx .fill svg { width: 21px; height: 21px; stroke: #fff; fill: none; stroke-width: 3; }
+      #s2 .lbl { position: relative; display: inline-block; }
+      #s2 .lbl .strike { position: absolute; left: 0; top: 52%; height: 2.5px; width: 100%;
+        background: #9A978E; }
+    </style>
+
+    <div data-hf-id="hf-8hug" id="s2-main" class="clip" data-start="0" data-duration="12.20" data-track-index="0">
+      <div data-hf-id="hf-ygft" class="ground"></div>
+      <!-- THE CAMERA. S1 ends mid-pull-back; this carries the other half of that same
+           move out to identity, which is what reveals the full UI. Wraps everything
+           EXCEPT .ground — the ground stays a flat un-scaled fill so the frame is always
+           painted (the opaque stage-ground guard) and can never under-cover. -->
+      <div data-hf-id="hf-s2cm" id="s2-cam" data-layout-allow-overflow="" style="position:absolute; inset:0; transform-origin:0 0;">
+
+      <div data-hf-id="hf-i6ng" id="s2-railbg" class="railbg"></div>
+      <div data-hf-id="hf-0q12" id="s2-canvas" class="canvas"><div data-hf-id="hf-zx1w" class="dots"></div></div>
+
+      <!-- same note, applied to the light app bar: the project name and the Design/Code
+           picker are gone and the bar itself is transparent, so the ONLY thing that comes
+           on is the Share button. -->
+      <div data-hf-id="hf-109u" id="s2-topbar" class="topbar">
+        <span data-hf-id="hf-ij0x" id="s2-share" class="share">Share
+          <svg data-hf-id="hf-n0ba" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6E6A5E" stroke-width="2"><path data-hf-id="hf-i2cu" d="m5 9 7 7 7-7" /></svg>
+        </span>
+      </div>
+
+      <div data-hf-id="hf-mr6n" id="s2-youlab" class="rlab" style="top:94px;">You</div>
+      <div data-hf-id="hf-omc7" id="s2-uprompt" class="uprompt">
+          <div data-hf-id="hf-qzrl" class="rline"><span data-hf-id="hf-35pa">Make a 10-second launch animation for</span></div>
+          <div data-hf-id="hf-re2m" class="rline"><span data-hf-id="hf-oris">Meridian — dark navy, big serif numerals,</span></div>
+          <div data-hf-id="hf-tdlr" class="rline"><span data-hf-id="hf-qhz8">count the 2.4M signals/sec stat up.</span></div>
+        </div>
+
+      <div data-hf-id="hf-5twe" id="s2-reply" class="reply">
+        <div data-hf-id="hf-vo5o" class="rline"><span data-hf-id="hf-ehqe">Your five-scene launch animation is built.</span></div>
+        <div data-hf-id="hf-qlgk" class="rline"><span data-hf-id="hf-wyoh">It opens on the Meridian wordmark, counts</span></div>
+        <div data-hf-id="hf-pejh" class="rline"><span data-hf-id="hf-x0t1">the 2.4M signals/sec stat up, and resolves</span></div>
+        <div data-hf-id="hf-psui" class="rline"><span data-hf-id="hf-we1e">on the dark navy end card.</span></div>
+        <div data-hf-id="hf-rsdn" class="rline"><span data-hf-id="hf-89i6">Ten seconds at 24fps — press play, or tell</span></div>
+        <div data-hf-id="hf-s6oo" class="rline"><span data-hf-id="hf-f5fv">me what to adjust.</span></div>
+        <div data-hf-id="hf-s5hz" class="acts">
+          <svg data-hf-id="hf-y9f5" viewBox="0 0 24 24"><rect data-hf-id="hf-h88n" x="9" y="9" width="12" height="12" rx="2.4" /><path data-hf-id="hf-0xej" d="M6 15H4.6A1.6 1.6 0 0 1 3 13.4V4.6A1.6 1.6 0 0 1 4.6 3h8.8A1.6 1.6 0 0 1 15 4.6V6" /></svg>
+          <svg data-hf-id="hf-svtx" viewBox="0 0 24 24"><path data-hf-id="hf-hnf2" d="M11 5 6.5 9H3v6h3.5L11 19V5Z" /><path data-hf-id="hf-rp0b" d="M15.4 8.6a5 5 0 0 1 0 6.8M18.2 5.8a9 9 0 0 1 0 12.4" /></svg>
+          <svg data-hf-id="hf-u2r0" viewBox="0 0 24 24"><circle data-hf-id="hf-0p15" cx="5.5" cy="12" r="1.3" /><circle data-hf-id="hf-cuju" cx="12" cy="12" r="1.3" /><circle data-hf-id="hf-i1z3" cx="18.5" cy="12" r="1.3" /></svg>
+        </div>
+      </div>
+
+      <div data-hf-id="hf-uxpy" id="s2-composer" class="composer">
+        <span data-hf-id="hf-cngd" id="s2-cph" class="cph">Reply to Claude…</span>
+        <span data-hf-id="hf-aqif" id="s2-ccar" class="ccar"></span>
+        <div data-hf-id="hf-z5x9" class="crow">
+          <span data-hf-id="hf-c11w" class="cbtn"><svg data-hf-id="hf-tofz" viewBox="0 0 24 24"><path data-hf-id="hf-tke8" d="M20 11.5 12.6 19a4.6 4.6 0 0 1-6.6-6.6L13.5 5a3 3 0 0 1 4.3 4.3L10.4 16.6a1.5 1.5 0 0 1-2.1-2.1l6.8-6.8" /></svg></span>
+          <span data-hf-id="hf-8xv0" class="cbtn"><svg data-hf-id="hf-uvd2" viewBox="0 0 24 24"><circle data-hf-id="hf-rmyi" cx="12" cy="12" r="3.1" /><path data-hf-id="hf-7plo" d="M12 2.9v2.5M12 18.6v2.5M2.9 12h2.5M18.6 12h2.5" /></svg></span>
+          <span data-hf-id="hf-qq9q" class="csend"><svg data-hf-id="hf-uh21" viewBox="0 0 24 24"><path data-hf-id="hf-5ml0" d="M4 5.5 20 12 4 18.5l2.4-6.5L4 5.5ZM6.4 12H20" /></svg></span>
+        </div>
+      </div>
+
+      <!-- the Meridian video -->
+      <div data-hf-id="hf-jbzi" id="s2-player" class="player" data-layout-allow-overlap="" data-layout-allow-occlusion="">
+        <video data-hf-id="hf-tu9a" id="s2-plate" class="clip plate" data-start="1.72" data-duration="6.48" data-track-index="2" src="assets/navy-bg.mp4" muted playsinline></video>
+        <!-- pre-roll: frame 0 of the plate, so the player is never a dead flat navy
+             before playback; the video takes over at 1.72 on this exact frame -->
+        <img data-hf-id="hf-jxes" id="s2-platestart" class="plate" src="assets/navy-start.png" alt="" style="opacity:0">
+        <!-- playback ends at 8.20 = 6.48s into the plate; this is that exact frame,
+             so the gradient reads as PAUSED (not gone) through the Share beat. -->
+        <img data-hf-id="hf-qazl" id="s2-plateheld" class="plate" src="assets/navy-paused.png" alt="" style="opacity:0">
+        <div data-hf-id="hf-twcm" id="s2-p1" class="pscene">
+          <div data-hf-id="hf-pc" class="pcells"><span data-hf-id="hf-pc0" class="pcellwrap"><i data-hf-id="hf-27ld" class="pbox s2pbox"></i><span data-hf-id="hf-fsdb" class="pcell"><i data-hf-id="hf-1bhf">M</i></span></span><span data-hf-id="hf-pc1" class="pcellwrap"><i data-hf-id="hf-bx7p" class="pbox s2pbox"></i><span data-hf-id="hf-l87z" class="pcell"><i data-hf-id="hf-y517">E</i></span></span><span data-hf-id="hf-pc2" class="pcellwrap"><i data-hf-id="hf-d44s" class="pbox s2pbox"></i><span data-hf-id="hf-ktwy" class="pcell"><i data-hf-id="hf-2iei">R</i></span></span><span data-hf-id="hf-pc3" class="pcellwrap"><i data-hf-id="hf-cptr" class="pbox s2pbox"></i><span data-hf-id="hf-kflx" class="pcell"><i data-hf-id="hf-zq9b">I</i></span></span><span data-hf-id="hf-pc4" class="pcellwrap"><i data-hf-id="hf-dwqu" class="pbox s2pbox"></i><span data-hf-id="hf-n7r4" class="pcell"><i data-hf-id="hf-yjc8">D</i></span></span><span data-hf-id="hf-pc5" class="pcellwrap"><i data-hf-id="hf-dift" class="pbox s2pbox"></i><span data-hf-id="hf-mtg3" class="pcell"><i data-hf-id="hf-eyfj">I</i></span></span><span data-hf-id="hf-pc6" class="pcellwrap"><i data-hf-id="hf-epcw" class="pbox s2pbox"></i><span data-hf-id="hf-mf52" class="pcell"><i data-hf-id="hf-wjt3">A</i></span></span><span data-hf-id="hf-pc7" class="pcellwrap"><i data-hf-id="hf-eb1v" class="pbox s2pbox"></i><span data-hf-id="hf-m0u1" class="pcell"><i data-hf-id="hf-0x6e">N</i></span></span></div>
+        </div>
+        <div data-hf-id="hf-pui0" id="s2-p2" class="pscene">
+          <div data-hf-id="hf-pui1" class="pui" data-layout-allow-overflow="" data-layout-allow-occlusion="">
+            <div data-hf-id="hf-pui2" class="pside">
+              <div data-hf-id="hf-pui3" class="pbrand"><i data-hf-id="hf-wt6k"></i>MERIDIAN</div>
+              <div data-hf-id="hf-pui4" class="pnav"><span data-hf-id="hf-349b" class="on">Signals</span><span data-hf-id="hf-fo9q">Streams</span><span data-hf-id="hf-3dz2">Regions</span><span data-hf-id="hf-n742">Alerts</span><span data-hf-id="hf-6erw">Settings</span></div>
+            </div>
+            <div data-hf-id="hf-pui5" class="pbody">
+              <div data-hf-id="hf-pui6" class="phrow"><h2 data-hf-id="hf-hvp9">Live throughput</h2><span data-hf-id="hf-0men" class="ppill">realtime</span></div>
+              <div data-hf-id="hf-pui7" class="pstats">
+                <div data-hf-id="hf-aohi" class="pstat s2ps"><b data-hf-id="hf-3806">2.4M</b><span data-hf-id="hf-cmva">signals / sec</span></div>
+                <div data-hf-id="hf-0mhm" class="pstat s2ps"><b data-hf-id="hf-2dal">99.98%</b><span data-hf-id="hf-659h">uptime</span></div>
+                <div data-hf-id="hf-10sn" class="pstat s2ps"><b data-hf-id="hf-gcvq">41ms</b><span data-hf-id="hf-sl4w">p50 latency</span></div>
+              </div>
+              <div data-hf-id="hf-pui8" class="pchart"><svg data-hf-id="hf-rrz7" viewBox="0 0 830 300" preserveAspectRatio="none"><path data-hf-id="hf-vh2i" id="s2-pfill" class="pfill" d="M0 250 C 120 240, 190 200, 300 205 S 470 150, 570 120 S 720 96, 830 58 L 830 300 L 0 300 Z" /><path data-hf-id="hf-no1r" id="s2-pline" class="pline" d="M0 250 C 120 240, 190 200, 300 205 S 470 150, 570 120 S 720 96, 830 58" /></svg></div>
+              <div data-hf-id="hf-pui9" class="prows">
+                <div data-hf-id="hf-cu9p" class="prow s2pr"><i data-hf-id="hf-zeb8"></i><b data-hf-id="hf-r6px">eu-west</b><u data-hf-id="hf-8fsg">12,481</u></div>
+                <div data-hf-id="hf-9lxt" class="prow s2pr"><i data-hf-id="hf-y7e5"></i><b data-hf-id="hf-t8w9">us-east</b><u data-hf-id="hf-u4i2">38,902</u></div>
+                <div data-hf-id="hf-asuw" class="prow s2pr"><i data-hf-id="hf-ylp6"></i><b data-hf-id="hf-2c2k">ap-south</b><u data-hf-id="hf-xvu1">7,246</u></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div data-hf-id="hf-ptb0" id="s2-p3" class="pscene">
+          <div data-hf-id="hf-ptb1" class="ptb">TRUSTED BY</div>
+          <div data-hf-id="hf-ptb2" class="pbrands"><span data-hf-id="hf-2i7j" class="s2pb">NORTHVANE</span><i data-hf-id="hf-0l8b"></i><span data-hf-id="hf-d7r4" class="s2pb">CASSIA</span><i data-hf-id="hf-0zjc"></i><span data-hf-id="hf-6ur4" class="s2pb">HALDEN</span></div>
+        </div>
+        <div data-hf-id="hf-lod4" id="s2-vend" class="vend">
+          <div data-hf-id="hf-ite1" class="vword">MERIDIAN</div>
+          <div data-hf-id="hf-f614" class="vwsub">NORTHVANE · CASSIA · HALDEN</div>
+        </div>
+        <div data-hf-id="hf-3vfi" id="s2-dim" class="dim"></div>
+        <div data-hf-id="hf-lh0i" id="s2-scrubwrap" class="scrub"><div data-hf-id="hf-yhxd" id="s2-scrub" class="scrubfill"></div></div>
+      </div>
+      <div data-hf-id="hf-gc7g" id="s2-fscrub" class="fscrub"><div data-hf-id="hf-psym" id="s2-fscrubfill" class="fscrubfill"></div></div>
+
+      <!-- K7 chrome over the video -->
+      <!-- Share and NOTHING else. The Claude Design lockup, the meridian-launch chip and
+           the Design/Code picker were all removed on Jake's note ("we only want it to be
+           the share button that comes on... not any of that stuff"), and .ovl's dark scrim
+           went with them — that scrim WAS the "menu bar" still showing over the full-frame
+           Meridian. The pill keeps its own border, which reads fine on the dark video. -->
+      <div data-hf-id="hf-vb8m" id="s2-ovl" class="ovl">
+        <span data-hf-id="hf-mfk8" id="s2-oshare" class="oshare">Share
+          <svg data-hf-id="hf-iggm" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F3F4ED" stroke-width="2"><path data-hf-id="hf-ea9e" d="m5 9 7 7 7-7" /></svg>
+        </span>
+      </div>
+
+      <div data-hf-id="hf-8pag" id="s2-menu" class="menu">
+        <div data-hf-id="hf-j09p" class="mhead">EXPORT</div>
+        <div data-hf-id="hf-z7z5" class="mrow s2mi"><svg data-hf-id="hf-vnz4" viewBox="0 0 24 24"><path data-hf-id="hf-9d7m" d="M12 3v11M7.5 10.5 12 15l4.5-4.5M4 19h16" /></svg>Download HTML</div>
+        <div data-hf-id="hf-dtpo" class="mrow s2mi"><svg data-hf-id="hf-v9o3" viewBox="0 0 24 24"><rect data-hf-id="hf-1n0b" x="3.5" y="3.5" width="17" height="17" rx="4" /><circle data-hf-id="hf-kysq" cx="12" cy="12" r="4" /></svg>Export to Canva</div>
+        <div data-hf-id="hf-6isc" class="mrow s2mi"><svg data-hf-id="hf-q3oq" viewBox="0 0 24 24"><path data-hf-id="hf-01qg" d="M6 2.5h8l4 4V21a.5.5 0 0 1-.5.5h-11A.5.5 0 0 1 6 21V2.5ZM14 2.5v4h4" /></svg>PDF / PowerPoint</div>
+        <div data-hf-id="hf-335f" class="msep"></div>
+        <div data-hf-id="hf-6ln7" class="mhead">CONNECTORS</div>
+        <div data-hf-id="hf-x493" id="s2-mhf" class="mrow s2mi hot"><img data-hf-id="hf-s3gt" class="orb22" src="ORB.svg" alt="">Send to HyperFrames</div>
+      </div>
+
+      <!-- K8 the import card -->
+      <div data-hf-id="hf-fbp2" id="s2-imp" class="imp">
+        <div data-hf-id="hf-1l49" class="impbar">
+          <img data-hf-id="hf-jf9w" class="orb30" src="ORB.svg" alt="">import-claude-design-from-url
+          <span data-hf-id="hf-ha69" id="s2-impok" class="impok"><svg data-hf-id="hf-ymfj" viewBox="0 0 24 24"><path data-hf-id="hf-2rq2" d="m5 12.5 5 5 9-11" /></svg>Imported</span>
+        </div>
+        <div data-hf-id="hf-vwda" class="impbody">
+          <div data-hf-id="hf-w9m5" class="impthumb">2.4M</div>
+          <div data-hf-id="hf-yeow">
+            <div data-hf-id="hf-gmqc" class="impname">meridian-launch</div>
+            <div data-hf-id="hf-3puk" class="impmeta">HyperFrames project · draft</div>
+            <div data-hf-id="hf-r0op" class="impcta">Open in HyperFrames →</div>
+          </div>
+        </div>
+      </div>
+
+      <div data-hf-id="hf-zomi" id="s2-cur-swing" class="cur-swing">
+        <div data-hf-id="hf-elra" id="s2-cur-rise" class="cur-rise">
+          <img data-hf-id="hf-wo1w" id="s2-cur" class="cur" src="assets/pointinghand.svg" alt="">
+        </div>
+      </div>
+
+      <!-- the plan, at S1's exact metrics -->
+      <div data-hf-id="hf-tw5t" id="s2-planmorph" style="position:absolute; inset:0; transform-origin:0 0; z-index:6;">
+        <div data-hf-id="hf-2rvq" class="resp">
+          <div data-hf-id="hf-krq2" class="who">Claude</div>
+          <div data-hf-id="hf-bu26" class="pill"><svg data-hf-id="hf-z0qk" viewBox="0 0 24 24"><path data-hf-id="hf-ampn" d="M12 3v3M12 10.5v3M12 18v3M5 6.5h14M5 14h14" /><circle data-hf-id="hf-l4hz" cx="9" cy="6.5" r="1.6" /><circle data-hf-id="hf-dt46" cx="15" cy="14" r="1.6" /></svg>Plan</div>
+          <div data-hf-id="hf-vlkj" class="pill"><svg data-hf-id="hf-xtth" viewBox="0 0 24 24"><path data-hf-id="hf-ztc0" d="M6 2.5h8l4 4V21a.5.5 0 0 1-.5.5h-11A.5.5 0 0 1 6 21V2.5ZM14 2.5v4h4" /></svg>write_file</div>
+          <div data-hf-id="hf-a9ms" class="card2">
+            <div data-hf-id="hf-y4q6" class="hdr"><svg data-hf-id="hf-y84i" viewBox="0 0 24 24"><path data-hf-id="hf-wlzj" d="M4 6.5h3M4 12h3M4 17.5h3M10 6.5h10M10 12h10M10 17.5h10" /></svg>Progress 5/5</div>
+            <div data-hf-id="hf-9frr" class="it"><span data-hf-id="hf-aedr" class="bx"><span data-hf-id="hf-s5oi" class="fill"><svg data-hf-id="hf-07nn" viewBox="0 0 24 24"><path data-hf-id="hf-pd6m" d="m5 12.5 5 5 9-11" /></svg></span></span><span data-hf-id="hf-1ndj" class="lbl">Read the Meridian brand files<span data-hf-id="hf-2svb" class="strike"></span></span></div>
+            <div data-hf-id="hf-zhnb" class="it"><span data-hf-id="hf-dab3" class="bx"><span data-hf-id="hf-ngva" class="fill"><svg data-hf-id="hf-0lyo" viewBox="0 0 24 24"><path data-hf-id="hf-prhn" d="m5 12.5 5 5 9-11" /></svg></span></span><span data-hf-id="hf-ui24" class="lbl">Build the five-scene timeline<span data-hf-id="hf-tt8n" class="strike"></span></span></div>
+            <div data-hf-id="hf-z3ca" class="it"><span data-hf-id="hf-cw02" class="bx"><span data-hf-id="hf-nv6b" class="fill"><svg data-hf-id="hf-zf1l" viewBox="0 0 24 24"><path data-hf-id="hf-q5so" d="m5 12.5 5 5 9-11" /></svg></span></span><span data-hf-id="hf-mh9q" class="lbl">Animate the 2.4M counter<span data-hf-id="hf-texm" class="strike"></span></span></div>
+            <div data-hf-id="hf-yp19" class="it"><span data-hf-id="hf-chp1" class="bx"><span data-hf-id="hf-o9hc" class="fill"><svg data-hf-id="hf-ztcm" viewBox="0 0 24 24"><path data-hf-id="hf-ndnh" d="m5 12.5 5 5 9-11" /></svg></span></span><span data-hf-id="hf-o17k" class="lbl">Resolve the wordmark ending<span data-hf-id="hf-t0ml" class="strike"></span></span></div>
+            <div data-hf-id="hf-1h6g" class="it"><span data-hf-id="hf-f9u8" class="bx"><span data-hf-id="hf-lhc5" class="fill"><svg data-hf-id="hf-vfzb" viewBox="0 0 24 24"><path data-hf-id="hf-nryi" d="m5 12.5 5 5 9-11" /></svg></span></span><span data-hf-id="hf-0atq" class="lbl">Polish easing and timing<span data-hf-id="hf-vsrs" class="strike"></span></span></div>
+          </div>
+        </div>
+      </div>
+      </div><!-- /#s2-cam -->
+    </div>
+
+    <script>
+      (function () {
+        window.__timelines = window.__timelines || {};
+        var tl = gsap.timeline({ paused: true });
+
+        /* cursor parked off-frame at parse: revealing it with a tl.set and only THEN
+           applying a fromTo's from-state flashes it at its resting position (on Share)
+           for one frame first. */
+        gsap.set("#s2-cur-rise", { x: 210, y: 470 });
+
+        /* ---- THE CAMERA — the rest of S1's pull-back ----
+           S1 makes one move in to the plan, holds, then starts pulling back at master
+           15.20. That pull is ONE move spanning the seam; S1 renders its first 0.4413s and
+           this renders the remaining 0.8587s, both evaluating the SAME ease over the SAME
+           window. That is deliberate, not stylistic: the seam is not frame-aligned
+           (15.6413 x 24 = 375.4), so S1's last frame is master 15.625 and this comp's first
+           is 15.6667. Anything that merely "starts where S1 ended" reverses by one frame's
+           worth of easing and reads as a hitch.
+
+           The window runs to master 16.50 = local 0.8587 ON PURPOSE. It used to end at
+           local 0.32, so the zoom-out finished and THEN the UI assembled — Jake read that
+           as a "stepped" zoom-out. Now the camera is still pulling back while the rail,
+           topbar, canvas and player arrive (0.34-1.20) and while the plan shrinks into the
+           rail (0.06-0.92), so it is one continuous motion into the full UI. Everything
+           shrinks together, which is the same Z sign on both sides of the cut per the
+           vector law.
+
+           KEEP IN SYNC WITH s1-square.html: PULL_T0, PULL_D and pullEase live there too. */
+        var PULL_T0 = 15.20, PULL_D = 1.30, S1_END = 15.6413;
+        var PULL_DONE = PULL_D - (S1_END - PULL_T0);   /* 0.8587s left to run here */
+        function pullEase(u) {
+          u = u < 0 ? 0 : u > 1 ? 1 : u;
+          return u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
+        }
+        /* q is 1 by the time we get here — the move in is complete, so the held state is
+           baked in and only the release is left to animate. */
+        var CAM = { k: S1_END - PULL_T0 };
+        var camEl = document.getElementById("s2-cam");
+        function paintCam() {
+          var a = 1 - pullEase(CAM.k / PULL_D);
+          /* MUST match s1-square.html's paintCam held state exactly: scale 1.48, and x
+             derived from the scale (-(s-1)*118) so the checkbox column stays pinned. */
+          camEl.style.transform = "translate3d(" + (-0.48 * 118 * a).toFixed(3) + "px," +
+            (-263.20 * a).toFixed(3) + "px,0) scale(" + (1 + 0.48 * a).toFixed(5) + ")";
+        }
+        paintCam();   /* frame 0 must already BE the zoomed state, so paint at parse */
+        tl.to(CAM, { k: PULL_D, duration: PULL_DONE, ease: "none", onUpdate: paintCam }, 0);
+        /* Share pill parked above the bar's clipped top edge, at parse for the same
+           reason. Travel is 30px against a ~42px pill, so it emerges from behind the
+           edge rather than popping in at rest. */
+        gsap.set("#s2-share", { y: -30 });
+
+        /* per-character mask boxes for the composer placeholder, built once at parse */
+        (function () {
+          var cph = document.getElementById("s2-cph");
+          var txt = cph.textContent;
+          cph.textContent = "";
+          for (var i = 0; i < txt.length; i++) {
+            var outer = document.createElement("span"); outer.className = "chw";
+            var inner = document.createElement("span"); inner.className = "chi";
+            inner.textContent = txt.charAt(i) === " " ? "\u00A0" : txt.charAt(i);
+            outer.appendChild(inner); cph.appendChild(outer);
+          }
+        })();
+
+        /* park everything that reveals from behind a mask, at t=0 */
+        tl.set("#s2 .rline span", { yPercent: 100 }, 0);
+        tl.set("#s2 .chi", { yPercent: 100 }, 0);
+        /* .crow children and .s2mi rows are hidden in CSS, not by a tl.set at 0 —
+           a zero-duration set at position 0 does not render on frame 0. The menu rows
+           being hidden up front is also what stops them revealing TWICE: previously they
+           were visible through the container's fade, then snapped to 0 and faded again. */
+        tl.set("#s2 .s2mi", { y: 10 }, 0);
+
+        /* ================= K5 · S2a — the morph in from S1 ================= */
+        /* t=0 is identity, so this frame equals S1's last frame exactly. */
+        tl.fromTo("#s2-planmorph", { scale: 1, x: 0, y: 0 },
+          { scale: 0.42325, x: -13.55, y: 250.37, duration: 0.86, ease: "power3.inOut" }, 0.06);
+
+        tl.fromTo("#s2-railbg", { opacity: 0, x: -46 },
+          { opacity: 1, x: 0, duration: 0.52, ease: "power3.out", immediateRender: false }, 0.34);
+        /* The BAR no longer drops — it just resolves in place with the rest of the chrome
+           (rail, canvas, player). Only the Share pill comes down, out of the bar's top
+           edge. Binary opacity via tl.set per cut-the-curve §6 (arrivals never fade in;
+           a fade fights the snap), power4.out, and it ignites at 0.72 — 43% through the
+           bar's own fade, so the two reads overlap instead of queueing. */
+        tl.fromTo("#s2-topbar", { opacity: 0 },
+          { opacity: 1, duration: 0.46, ease: "power3.out", immediateRender: false }, 0.52);
+        tl.set("#s2-share", { opacity: 1 }, 0.72);
+        tl.to("#s2-share", { y: 0, duration: 0.30, ease: "power4.out" }, 0.72);
+        tl.fromTo("#s2-canvas", { opacity: 0, x: 40 },
+          { opacity: 1, x: 0, duration: 0.58, ease: "power3.out", immediateRender: false }, 0.60);
+        tl.set("#s2-platestart", { opacity: 1 }, 0.62);
+        /* same hazard at the other end: this hand-off is to the video's gate turning ON at
+           1.72, so the pre-roll still is faded out ACROSS that boundary rather than switched
+           off on it. Overlapping briefly is ~4% too bright for two frames; a gap would be a
+           black flash. */
+        tl.to("#s2-platestart", { opacity: 0, duration: 0.0834, ease: "none" }, 1.72);
+        tl.fromTo("#s2-player", { opacity: 0, x: 40 },
+          { opacity: 1, x: 0, duration: 0.58, ease: "power3.out", immediateRender: false }, 0.62);
+
+        tl.fromTo("#s2-youlab", { opacity: 0, y: 12 },
+          { opacity: 1, y: 0, duration: 0.34, ease: "power2.out", immediateRender: false }, 0.86);
+        tl.set("#s2-uprompt", { opacity: 1 }, 0.92);
+        tl.to("#s2-uprompt .rline span", { yPercent: 0, duration: 0.44, ease: "power3.out",
+          stagger: 0.075 }, 0.92);
+        tl.fromTo("#s2-composer", { opacity: 0, y: 22 },
+          { opacity: 1, y: 0, duration: 0.44, ease: "power3.out", immediateRender: false }, 1.06);
+        /* the placeholder rises letter by letter out of its mask */
+        tl.to("#s2 .chi", { yPercent: 0, duration: 0.34, ease: "power3.out",
+          stagger: 0.022 }, 1.22);
+        /* the attach / + / send buttons get the same overshoot the file chips got */
+        tl.fromTo("#s2 .crow > *", { opacity: 0, y: 26 },
+          { opacity: 1, y: 0, duration: 0.46, ease: "back.out(1.7)", stagger: 0.09,
+            immediateRender: false }, 1.26);
+        tl.to("#s2-ccar", { opacity: 1, duration: 0.01 }, 1.44);
+        tl.to("#s2-ccar", { opacity: 0, duration: 0.5, ease: "steps(1)", yoyo: true, repeat: 7 }, 1.46);
+        /* the reply reveals LINE BY LINE, each sliding up out of its own mask */
+        tl.set("#s2-reply", { opacity: 1 }, 1.62);
+        tl.to("#s2-reply .rline span", { yPercent: 0, duration: 0.46, ease: "power3.out",
+          stagger: 0.075 }, 1.62);
+        tl.fromTo("#s2 .acts", { opacity: 0, y: 10 },
+          { opacity: 1, y: 0, duration: 0.30, ease: "power2.out", immediateRender: false }, 2.06);
+
+        /* ---- playback: ONE progress proxy drives BOTH scrubs, so the swap at the
+                morph-out cannot drift. Runs 1.72 -> 8.20 (6.48s). ---- */
+        var pb = { p: 0 };
+        var sIn = document.getElementById("s2-scrub");
+        var sOut = document.getElementById("s2-fscrubfill");
+        function paintScrub() {
+          var w = (pb.p * 100).toFixed(3) + "%";
+          sIn.style.width = w; sOut.style.width = w;
+        }
+        tl.fromTo(pb, { p: 0 }, { p: 1, duration: 6.48, ease: "none",
+          onUpdate: paintScrub, immediateRender: false }, 1.72);
+
+        /* ================= THE VIDEO OUTPUT — 3-scene Meridian promo =================
+           Video time -> screen time is local = 1.72 + video * 0.648 (10s of video across the
+           6.48s playback window). Boundaries, from the approved design pass:
+             scene 1  logo build   video 0.0-2.7  -> local 1.720-3.470
+             scene 2  the product  video 2.8-6.6  -> local 3.534-5.997
+             scene 3  trusted by   video 6.8-8.3  -> local 6.126-7.098
+             held end (.vend)      video 8.3-10.0 -> local 7.40 onward (unchanged)
+           Scene changes ride the film's current: cut-the-curve LEFT, partial travel ~12% of
+           the player (62px at 520), mirrored power4.in / power4.out. The full-frame morph at
+           4.96 lands INSIDE scene 2, so the product grows to fill the frame mid-beat — the
+           reason that beat is the one that owns the morph. */
+
+        /* ---- scene 1: the glyph cells land, then the borders leave ----
+           §6 waterfall entry: binary opacity via tl.set (arrivals never fade), y from below,
+           power4.out, and the stagger runs from the CENTRE out so the wordmark builds
+           outward from its middle rather than reading left to right like typing. */
+        tl.set("#s2-p1", { opacity: 1 }, 1.72);
+        gsap.set("#s2 .pcellwrap", { y: 34, opacity: 0 });
+        tl.to("#s2 .pcellwrap", { y: 0, opacity: 1, duration: 0.30, ease: "power4.out",
+          stagger: { each: 0.055, from: "center" } }, 1.72);
+        /* the borders fade off and leave a properly tracked wordmark — the cells were
+           glyph-width, not a fixed grid, so nothing has to reflow to get there */
+        tl.to("#s2 .s2pbox", { opacity: 0, duration: 0.34, ease: "power2.inOut",
+          stagger: { each: 0.030, from: "center" } }, 2.42);
+        /* exit LEFT, mid-motion, and the incoming product picks the vector up */
+        tl.to("#s2-p1", { x: -62, opacity: 0, duration: 0.26, ease: "power4.in" }, 3.40);
+
+        /* ---- scene 2: the product arrives three-quarter and then comes alive ---- */
+        tl.set("#s2-p2", { opacity: 1 }, 3.534);
+        tl.fromTo("#s2 .pui", { x: 62, opacity: 0.35 },
+          { x: 0, opacity: 1, duration: 0.42, ease: "power4.out", immediateRender: false }, 3.534);
+        /* staged reveals, not a static hero shot: stats, then the curve, then the regions */
+        tl.fromTo("#s2 .s2ps", { opacity: 0, y: 12 },
+          { opacity: 1, y: 0, duration: 0.30, ease: "power3.out", stagger: 0.085,
+            immediateRender: false }, 3.86);
+        tl.to("#s2-pline", { strokeDashoffset: 0, duration: 1.15, ease: "power2.inOut" }, 4.14);
+        tl.to("#s2-pfill", { opacity: 1, duration: 0.70, ease: "none" }, 4.52);
+        tl.fromTo("#s2 .s2pr", { opacity: 0, x: -10 },
+          { opacity: 1, x: 0, duration: 0.26, ease: "power2.out", stagger: 0.13,
+            immediateRender: false }, 5.10);
+        tl.to("#s2-p2", { x: -62, opacity: 0, duration: 0.26, ease: "power4.in" }, 5.94);
+
+        /* ---- scene 3: trusted by. Three names, one at a time. ---- */
+        tl.set("#s2-p3", { opacity: 1 }, 6.126);
+        tl.fromTo("#s2 .ptb", { opacity: 0, y: 14 },
+          { opacity: 1, y: 0, duration: 0.28, ease: "power3.out", immediateRender: false }, 6.126);
+        tl.fromTo("#s2 .s2pb", { opacity: 0, y: 20 },
+          { opacity: 0.92, y: 0, duration: 0.30, ease: "power4.out", stagger: 0.155,
+            immediateRender: false }, 6.30);
+        tl.to("#s2-p3", { x: -62, opacity: 0, duration: 0.26, ease: "power4.in" }, 7.06);
+
+        /* ================= K6 · S2b — the morph-out at 50% playback =================
+           Playback midpoint is 1.72 + 6.48/2 = 4.96; the grow starts there and the
+           chrome leaves on the SAME frame, so the video's own growth is the cause.
+           scale 1080/520 = 2.07692, transform-origin 0 0. The player already sits at
+           CSS left/top (495,300), so the translate is relative to THAT corner, not to
+           the frame: x = -495, y = -300 puts its top-left on (0,0) and 520*2.07692
+           = 1080 fills the frame exactly. (Scaling the offsets by s as well — the
+           convention the inset:0 plan wrapper uses — pushes it 533px off-frame left.) */
+        tl.to("#s2-player", { scale: 2.07692, x: -495, y: -300, borderRadius: 0,
+          boxShadow: "0 0px 0px rgba(10,12,20,0)", duration: 0.94, ease: "power3.inOut" }, 4.96);
+
+        /* the chrome falls away as it grows — staggered, all mid-grow */
+        tl.to("#s2-canvas", { opacity: 0, duration: 0.40, ease: "power2.in" }, 4.96);
+        tl.to("#s2-topbar", { opacity: 0, y: -22, duration: 0.42, ease: "power2.in" }, 5.00);
+        tl.to(["#s2-railbg", "#s2-planmorph", "#s2-uprompt", "#s2-youlab", "#s2-reply", "#s2-composer"],
+          { opacity: 0, x: -54, duration: 0.50, ease: "power2.in", stagger: 0.035 }, 5.04);
+
+        /* the in-player scrub hands off to the whisper-thin frame-bottom line */
+        tl.to("#s2-scrubwrap", { opacity: 0, duration: 0.22, ease: "none" }, 5.40);
+        tl.to("#s2-fscrub", { opacity: 1, duration: 0.26, ease: "none" }, 5.44);
+
+        /* THE PAUSED PLATE. The still of the plate's last frame takes over so the gradient
+           reads as paused rather than disappearing.
+
+           This used to be a zero-duration `tl.set` at 8.20, the same frame the video clip's
+           own gate ends on — and it dropped ONE frame. Measured: local 8.150/8.172/8.192 and
+           8.234 onward all read a full mean of (23,53,76), but 8.212 reads (18.5,25.1,39.6):
+           for exactly one frame the video was already gated out and the set had not landed,
+           so the player showed bare #0E1524. That is the dark flash Jake saw behind the
+           paused Meridian.
+
+           Fixed by never relying on the gate OR on a zero-duration set at a boundary: the
+           video is faded out and the still faded in over the SAME two frames, so exactly one
+           of them is always painted. They are the same image content at the same opacity, so
+           the crossfade is invisible apart from a ~4% compositing dip at its midpoint, and it
+           completes at 8.2034 — the frame the video was showing at 8.20, which is exactly
+           what navy-paused.png was extracted from (plate time 6.48). */
+        tl.to("#s2-plate",     { opacity: 0,    duration: 0.0834, ease: "none" }, 8.12);
+        tl.to("#s2-plateheld", { opacity: 1, duration: 0.0834, ease: "none" }, 8.12);
+
+        /* ================= K7 · S2c — playback ends on the wordmark ================= */
+        /* (the old vstack cross-fade lived here; scene 3 exits on its own curve at 7.06) */
+        tl.fromTo("#s2-vend", { opacity: 0, scale: 1.07 },
+          { opacity: 1, scale: 1, duration: 0.62, ease: "power3.out",
+            transformOrigin: "50% 50%", immediateRender: false }, 7.40);
+
+        /* the chrome reveals OVER the video */
+        tl.fromTo("#s2-ovl", { opacity: 0, y: -18 },
+          { opacity: 1, y: 0, duration: 0.46, ease: "power3.out", immediateRender: false }, 8.42);
+
+        /* cursor -> Share. Base (941,13) puts the measured tip on the Share centre (995,48). */
+        tl.set("#s2-cur-swing", { opacity: 1 }, 9.10);
+        tl.to("#s2-cur-rise", { x: 0, y: 0, duration: 0.82, ease: "power2.inOut" }, 9.12);
+        tl.to("#s2-cur", { scale: 0.90, duration: 0.10, ease: "power2.in",
+          transformOrigin: "38.6% 25%" }, 10.12);
+        tl.to("#s2-cur", { scale: 1, duration: 0.20, ease: "power2.out",
+          transformOrigin: "38.6% 25%" }, 10.22);
+        tl.to("#s2-oshare", { backgroundColor: "rgba(243,244,237,0.20)",
+          duration: 0.12, ease: "power1.out" }, 10.22);
+
+        /* the menu opens on the click frame */
+        tl.fromTo("#s2-menu", { opacity: 0, scale: 0.94, y: -10 },
+          { opacity: 1, scale: 1, y: 0, duration: 0.34, ease: "back.out(1.5)",
+            immediateRender: false }, 10.22);
+        tl.to("#s2 .s2mi", { opacity: 1, y: 0, duration: 0.26, ease: "power2.out",
+          stagger: 0.045 }, 10.28);
+
+        /* cursor -> Send to HyperFrames (diagonal), then the click.
+           Measured row rect (715.5, 326, 333x45); aiming the tip at (880, 348) means
+           a delta of (880-995, 348-48) = (-115, +300) from the Share position. */
+        tl.to("#s2-cur-rise", { x: -115, y: 300, duration: 0.56, ease: "power2.inOut" }, 10.74);
+        tl.to("#s2-cur", { scale: 0.90, duration: 0.10, ease: "power2.in",
+          transformOrigin: "38.6% 25%" }, 11.36);
+        tl.to("#s2-cur", { scale: 1, duration: 0.20, ease: "power2.out",
+          transformOrigin: "38.6% 25%" }, 11.46);
+        /* Hover lands just before the click, then the press deepens it. NEUTRAL, not orange —
+           Jake asked for the orange hover to go (it was #FBEDE6 with #B5522F text, deepening
+           to #F6DFD3). The row now warms only in value, the way its neighbours would, and the
+           ink colour does not change at all. fromTo with an explicit opaque start so there is
+           no transparent-to-tint interpolation and therefore no grey midpoint. */
+        tl.fromTo("#s2-mhf", { backgroundColor: "#FCFCF9" },
+          { backgroundColor: "#F0EFE9", duration: 0.16, ease: "power1.out",
+            immediateRender: false }, 11.18);
+        tl.to("#s2-mhf", { backgroundColor: "#E7E5DD", duration: 0.10, ease: "power1.out" }, 11.46);
+
+        /* ================= hand-off to S3 =================
+           K8 (dim + import card) now belongs to S3, whose k0 is a clean full-frame
+           Meridian. So the chrome and the progress line leave and S2 ends on that
+           exact picture — the join is a match cut, not a transition. */
+        tl.to("#s2-menu", { opacity: 0, scale: 0.96, duration: 0.22, ease: "power2.in" }, 11.60);
+        tl.to("#s2-cur-swing", { opacity: 0, duration: 0.22, ease: "power2.in" }, 11.62);
+        tl.to("#s2-ovl", { opacity: 0, y: -14, duration: 0.34, ease: "power2.in" }, 11.74);
+        tl.to("#s2-fscrub", { opacity: 0, duration: 0.30, ease: "power2.in" }, 11.78);
+
+        window.__timelines["s2"] = tl;
+      })();
+    </script>
+  </div>
+</template>

@@ -1,0 +1,230 @@
+{
+  "message": "在重开的工程中制作同素材基础对照版。保留当前全部素材、源区间、镜头顺序与长度、三句画面文字、位置字号配色、字幕显示窗口、30秒1080×1920和静音。只把第一个转场改为9帧普通淡化，第二个原9帧淡化不变；去掉标题、结尾和字幕的渐变包装，文字在原显示窗口直接出现和消失，画面与可编辑对象保持。不得换模板、裁切商品、生成素材或声音。",
+  "baseRevisionId": "rev-fc2150f90243a259",
+  "operations": [
+    {
+      "type": "set_transition",
+      "effect": "dissolve-transition",
+      "durationFrames": 9,
+      "fromSceneId": "scene-01",
+      "toSceneId": "scene-02",
+      "params": {
+        "durationFrames": 9
+      }
+    },
+    {
+      "type": "update_custom_source",
+      "sceneId": "scene-01",
+      "params": {
+        "html": "<div id=\"scene01-background\"></div><div id=\"scene01-overlay\"><h1 id=\"scene01-title\"></h1><div id=\"scene01-rule\"></div></div><img id=\"scene01-media\" />",
+        "css": "#scene01-background { position: absolute; inset: 0; width: 1080px; height: 1920px; background-color: var(--brand-background); z-index: 0; }\n#scene01-overlay { position: absolute; inset: 0; width: 1080px; height: 1920px; background: transparent; z-index: 2; }\n#scene01-title { position: absolute; left: 72px; top: 480px; width: 936px; height: 95px; margin: 0; padding: 0; color: var(--brand-foreground); font-family: Microsoft YaHei; font-size: 76px; font-weight: 600; line-height: 1.25; text-align: left; white-space: nowrap; }\n#scene01-rule { position: absolute; left: 72px; top: 599px; width: 64px; height: 2px; background-color: var(--brand-accent); }\n#scene01-media { position: absolute; left: 0; top: 656px; width: 1080px; height: 608px; object-fit: contain; object-position: center; z-index: 1; }\n#scene01-media{background:transparent;opacity:1;z-index:1}\n#scene01-media{background:transparent;opacity:1;z-index:1}\n#scene01-media{background:transparent;opacity:1;z-index:1}",
+        "timeline": "tl.set(\"#scene01-title\",{opacity:1},0);\ntl.set(\"#scene01-rule\",{opacity:1},0);\ntl.set(\"#scene01-title\",{opacity:0},params.sceneSeconds);\ntl.set(\"#scene01-rule\",{opacity:0},params.sceneSeconds);\ntl.to(\"#scene01-media\",{opacity:0,duration:params.sceneSeconds*9/52,ease:\"none\"},params.sceneSeconds*43/52);",
+        "parameters": [],
+        "objects": [
+          {
+            "elementId": "scene01-background",
+            "nodeId": "node-96641cf21da75535"
+          },
+          {
+            "elementId": "scene01-title",
+            "nodeId": "node-0a853c77bed0bdb3"
+          },
+          {
+            "elementId": "scene01-rule",
+            "nodeId": "node-e80f1170efcbb387"
+          },
+          {
+            "elementId": "scene01-media",
+            "nodeId": "node-f59a295e78d207ce"
+          }
+        ],
+        "motionTargets": [
+          "scene01-media"
+        ],
+        "textStyles": []
+      }
+    },
+    {
+      "type": "update_custom_source",
+      "sceneId": "scene-02",
+      "params": {
+        "html": "<div id=\"scene02-layout\"><div id=\"scene02-top\"></div><div id=\"scene02-bottom\"></div><div id=\"scene02-video\"></div><div id=\"scene02-rule\"></div><div id=\"scene02-feature\"></div></div>",
+        "css": "#scene02-layout{position:absolute;inset:0;width:1080px;height:1920px;background:transparent;}#scene02-top{position:absolute;left:0;top:0;width:1080px;height:656px;background:var(--brand-background);}#scene02-bottom{position:absolute;left:0;top:1264px;width:1080px;height:656px;background:var(--brand-background);}#scene02-video{position:absolute;left:0;top:656px;width:1080px;height:608px;object-fit:contain;overflow:hidden;}#scene02-rule{position:absolute;left:72px;top:1334px;width:64px;height:2px;background:var(--brand-accent);}#scene02-feature{position:absolute;left:72px;top:1450px;width:936px;height:82px;padding:0;margin:0;font-family:Microsoft YaHei;font-size:54px;font-weight:500;line-height:1.25;color:var(--brand-foreground);text-align:left;white-space:nowrap;}\n#scene02-video{background:transparent;opacity:1;z-index:1}\n#scene02-video{background:transparent;opacity:1;z-index:1}\n#scene02-video{background:transparent;opacity:1;z-index:1}",
+        "timeline": "tl.set(\"#scene02-feature\",{opacity:0},0);\ntl.set(\"#scene02-rule\",{opacity:0},0);\ntl.set(\"#scene02-feature\",{opacity:1},params.sceneSeconds*160/754);\ntl.set(\"#scene02-rule\",{opacity:1},params.sceneSeconds*160/754);\ntl.set(\"#scene02-feature\",{opacity:0},params.sceneSeconds*232/754);\ntl.set(\"#scene02-rule\",{opacity:0},params.sceneSeconds*232/754);",
+        "parameters": [],
+        "objects": [
+          {
+            "elementId": "scene02-top",
+            "nodeId": "node-a29aea57c3f093db"
+          },
+          {
+            "elementId": "scene02-bottom",
+            "nodeId": "node-7c8305170bcb18d2"
+          },
+          {
+            "elementId": "scene02-video",
+            "nodeId": "node-6600299004af8f47"
+          },
+          {
+            "elementId": "scene02-rule",
+            "nodeId": "node-b17ed578930bd7ad"
+          },
+          {
+            "elementId": "scene02-feature",
+            "nodeId": "node-664f03c2683684e2"
+          }
+        ],
+        "motionTargets": [],
+        "textStyles": []
+      }
+    },
+    {
+      "type": "update_custom_source",
+      "sceneId": "scene-03",
+      "params": {
+        "html": "<img id=\"media\"><div id=\"text1\"></div>",
+        "css": "#media{position:absolute;left:0;top:656px;width:1080px;height:608px;object-fit:contain;object-position:center;background:transparent;opacity:1;z-index:1}\n#text1{position:absolute;left:72px;top:1360px;width:936px;padding:0;margin:0;font-family:Microsoft YaHei;font-size:76px;font-weight:800;line-height:1.25;color:#242329;background:transparent;text-align:left;z-index:2}\n#media{background:transparent;opacity:1;z-index:1}\n#media{background:transparent;opacity:1;z-index:1}",
+        "timeline": "tl.set(\"#text1\",{opacity:1},0);\ntl.set(\"#text1\",{opacity:0},params.sceneSeconds);",
+        "parameters": [],
+        "objects": [
+          {
+            "elementId": "media",
+            "nodeId": "node-e91f1b07c2b53786"
+          },
+          {
+            "elementId": "text1",
+            "nodeId": "node-59e52dfd4a901a0a"
+          }
+        ],
+        "motionTargets": [],
+        "textStyles": []
+      }
+    }
+  ],
+  "alternatives": [],
+  "summary": "拟将首个转场改为9帧普通淡化，标题、结尾文字和结构说明及配套短线改为原窗口内直接显隐。保留全部原生对象、素材与源区间、镜头顺序和长度、文字及样式、第二个转场、30秒1080×1920和静音。三幕源码需重新编译，复验文字窗口及两处转场；本次仅输出修改计划，尚未执行或验证。",
+  "mode": "model",
+  "model": "Codex 默认模型",
+  "promptContext": [
+    {
+      "file": "prompts/commerce/R0.md",
+      "sha256": "b253f55c56fe3b45ef85dd40958034c3ee7cbfefd01572fc835f776d480aa306"
+    },
+    {
+      "file": "prompts/commerce/R7.md",
+      "sha256": "3623b3e577f460da76b997d1942089f36b3268af1867129b585b2280061383a6"
+    },
+    {
+      "file": "agent.md",
+      "sha256": "8f3d115c447d56d17b64f4c7a6d26f408a9b0404d28d1eebb4b5cf513affdaf3"
+    },
+    {
+      "file": "prompts/commerce/commerce-focus.md",
+      "sha256": "77261ad2be8f78a706f6d37b309694aea02e8d78ee4cfc77f0b839a73bca86ba"
+    },
+    {
+      "file": "docs/commerce-focus-v1/scenario-registry.spec.json",
+      "sha256": "d8c28def4a22ab875c65642942a7fa1417b8b7f62dbeaca74bd0007feed8c430"
+    }
+  ],
+  "requestedOperations": [
+    {
+      "type": "set_transition",
+      "effect": "dissolve-transition",
+      "durationFrames": 9,
+      "fromSceneId": "scene-01",
+      "toSceneId": "scene-02",
+      "params": {
+        "durationFrames": 9
+      }
+    },
+    {
+      "type": "update_custom_source",
+      "sceneId": "scene-01",
+      "params": {
+        "html": "<div id=\"scene01-background\"></div><div id=\"scene01-overlay\"><h1 id=\"scene01-title\"></h1><div id=\"scene01-rule\"></div></div><img id=\"scene01-media\" />",
+        "css": "#scene01-background { position: absolute; inset: 0; width: 1080px; height: 1920px; background-color: var(--brand-background); z-index: 0; }\n#scene01-overlay { position: absolute; inset: 0; width: 1080px; height: 1920px; background: transparent; z-index: 2; }\n#scene01-title { position: absolute; left: 72px; top: 480px; width: 936px; height: 95px; margin: 0; padding: 0; color: var(--brand-foreground); font-family: Microsoft YaHei; font-size: 76px; font-weight: 600; line-height: 1.25; text-align: left; white-space: nowrap; }\n#scene01-rule { position: absolute; left: 72px; top: 599px; width: 64px; height: 2px; background-color: var(--brand-accent); }\n#scene01-media { position: absolute; left: 0; top: 656px; width: 1080px; height: 608px; object-fit: contain; object-position: center; z-index: 1; }\n#scene01-media{background:transparent;opacity:1;z-index:1}\n#scene01-media{background:transparent;opacity:1;z-index:1}\n#scene01-media{background:transparent;opacity:1;z-index:1}",
+        "timeline": "tl.set(\"#scene01-title\",{opacity:1},0);\ntl.set(\"#scene01-rule\",{opacity:1},0);\ntl.set(\"#scene01-title\",{opacity:0},params.sceneSeconds);\ntl.set(\"#scene01-rule\",{opacity:0},params.sceneSeconds);\ntl.to(\"#scene01-media\",{opacity:0,duration:params.sceneSeconds*9/52,ease:\"none\"},params.sceneSeconds*43/52);",
+        "parameters": [],
+        "objects": [
+          {
+            "elementId": "scene01-background",
+            "nodeId": "node-96641cf21da75535"
+          },
+          {
+            "elementId": "scene01-title",
+            "nodeId": "node-0a853c77bed0bdb3"
+          },
+          {
+            "elementId": "scene01-rule",
+            "nodeId": "node-e80f1170efcbb387"
+          },
+          {
+            "elementId": "scene01-media",
+            "nodeId": "node-f59a295e78d207ce"
+          }
+        ],
+        "motionTargets": [
+          "scene01-media"
+        ],
+        "textStyles": []
+      }
+    },
+    {
+      "type": "update_custom_source",
+      "sceneId": "scene-02",
+      "params": {
+        "html": "<div id=\"scene02-layout\"><div id=\"scene02-top\"></div><div id=\"scene02-bottom\"></div><div id=\"scene02-video\"></div><div id=\"scene02-rule\"></div><div id=\"scene02-feature\"></div></div>",
+        "css": "#scene02-layout{position:absolute;inset:0;width:1080px;height:1920px;background:transparent;}#scene02-top{position:absolute;left:0;top:0;width:1080px;height:656px;background:var(--brand-background);}#scene02-bottom{position:absolute;left:0;top:1264px;width:1080px;height:656px;background:var(--brand-background);}#scene02-video{position:absolute;left:0;top:656px;width:1080px;height:608px;object-fit:contain;overflow:hidden;}#scene02-rule{position:absolute;left:72px;top:1334px;width:64px;height:2px;background:var(--brand-accent);}#scene02-feature{position:absolute;left:72px;top:1450px;width:936px;height:82px;padding:0;margin:0;font-family:Microsoft YaHei;font-size:54px;font-weight:500;line-height:1.25;color:var(--brand-foreground);text-align:left;white-space:nowrap;}\n#scene02-video{background:transparent;opacity:1;z-index:1}\n#scene02-video{background:transparent;opacity:1;z-index:1}\n#scene02-video{background:transparent;opacity:1;z-index:1}",
+        "timeline": "tl.set(\"#scene02-feature\",{opacity:0},0);\ntl.set(\"#scene02-rule\",{opacity:0},0);\ntl.set(\"#scene02-feature\",{opacity:1},params.sceneSeconds*160/754);\ntl.set(\"#scene02-rule\",{opacity:1},params.sceneSeconds*160/754);\ntl.set(\"#scene02-feature\",{opacity:0},params.sceneSeconds*232/754);\ntl.set(\"#scene02-rule\",{opacity:0},params.sceneSeconds*232/754);",
+        "parameters": [],
+        "objects": [
+          {
+            "elementId": "scene02-top",
+            "nodeId": "node-a29aea57c3f093db"
+          },
+          {
+            "elementId": "scene02-bottom",
+            "nodeId": "node-7c8305170bcb18d2"
+          },
+          {
+            "elementId": "scene02-video",
+            "nodeId": "node-6600299004af8f47"
+          },
+          {
+            "elementId": "scene02-rule",
+            "nodeId": "node-b17ed578930bd7ad"
+          },
+          {
+            "elementId": "scene02-feature",
+            "nodeId": "node-664f03c2683684e2"
+          }
+        ],
+        "motionTargets": [],
+        "textStyles": []
+      }
+    },
+    {
+      "type": "update_custom_source",
+      "sceneId": "scene-03",
+      "params": {
+        "html": "<img id=\"media\"><div id=\"text1\"></div>",
+        "css": "#media{position:absolute;left:0;top:656px;width:1080px;height:608px;object-fit:contain;object-position:center;background:transparent;opacity:1;z-index:1}\n#text1{position:absolute;left:72px;top:1360px;width:936px;padding:0;margin:0;font-family:Microsoft YaHei;font-size:76px;font-weight:800;line-height:1.25;color:#242329;background:transparent;text-align:left;z-index:2}\n#media{background:transparent;opacity:1;z-index:1}\n#media{background:transparent;opacity:1;z-index:1}",
+        "timeline": "tl.set(\"#text1\",{opacity:1},0);\ntl.set(\"#text1\",{opacity:0},params.sceneSeconds);",
+        "parameters": [],
+        "objects": [
+          {
+            "elementId": "media",
+            "nodeId": "node-e91f1b07c2b53786"
+          },
+          {
+            "elementId": "text1",
+            "nodeId": "node-59e52dfd4a901a0a"
+          }
+        ],
+        "motionTargets": [],
+        "textStyles": []
+      }
+    }
+  ]
+}

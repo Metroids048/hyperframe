@@ -1,0 +1,202 @@
+<template>
+  <div data-hf-id="hf-08id" id="s1" data-composition-id="s1" data-start="0" data-duration="10" data-width="1920" data-height="1080" style="position: relative; width: 1920px; height: 1080px; overflow: hidden; background: #F3F4ED;">
+    <style>
+      /* =====================================================================
+         VERBATIM REPLICA — "Introducing Claude Design", first 5.0s
+         Reference: 3840x2160 @24fps native.  Target 1920x1080 => every value
+         below is a REF NATIVE MEASUREMENT / 2.  Nothing here is eyeballed.
+
+         face  : Helvetica Neue Medium, self-hosted as "RefSans" so the
+                 renderer's 'helvetica neue' -> Inter aliasing cannot fire.
+                 locked by dual constraint vs the ref wordmark:
+                 ink extent 945 vs 957 (-1.3%), INK COUNT 88011 vs 88526 (0.6%)
+         icon  : assets/palette.png  — true ink bbox 275x274 lifted from frame 0
+         cursor: assets/cursor.png   — lifted from t=1.00, tip at x-fraction 0.083
+         ===================================================================== */
+      @font-face { font-family: "RefSans"; src: url("assets/fonts/refsans-medium.ttf") format("truetype");
+                   font-weight: 400 700; font-display: block; }
+
+      #s1 .paper { position: absolute; inset: 0; background: #F3F4ED; }   /* ref (243,244,237) */
+      #s1 .night { position: absolute; inset: 0; background: #09090C; opacity: 0; } /* ref (9,9,12) */
+      /* APPROXIMATION: the reference carries a rendered 3D globe here. */
+      #s1 .globe { position: absolute; left: 50%; top: 50%; width: 1560px; height: 1560px;
+        margin: -780px 0 0 -780px; border-radius: 50%; opacity: 0;
+        background: radial-gradient(circle at 38% 32%, #16222B 0%, #101A22 42%, #0A1016 70%, #070C11 100%); }
+      #s1 .globe .lat { position: absolute; left: 0; right: 0; height: 1px; background: rgba(150,190,205,.055); }
+      #s1 .globe .lon { position: absolute; top: 0; bottom: 0; width: 1px; background: rgba(150,190,205,.045); }
+
+      #s1 .stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+
+      /* card: pill 948x334 r69 (229,230,218)  ->  box 1607x518 r58 white */
+      #s1 .card { position: relative; width: 948px; height: 334px; border-radius: 69px;
+        background: rgba(229, 230, 218, 0); }
+
+      /* lockup: palette ink 275sq | gap 126 | wordmark ink 957x306, cap 221  (all /2) */
+      #s1 .lockup { position: absolute; inset: 0; display: flex; align-items: center;
+        justify-content: center; gap: 63px; }
+      #s1 .lockup img { width: 143.5px; height: 143px; display: block; }
+      #s1 .word { display: flex; font-family: "RefSans", "Helvetica Neue", sans-serif;
+        font-size: 154px; line-height: 1; font-weight: 500; color: #14130F; }
+      #s1 .word span { display: inline-block; }
+
+      /* box interior: padding L71 R72 B72.5 ; placeholder ink top 376.5 abs */
+      #s1 .boxui { position: absolute; inset: 0; opacity: 0;
+        font-family: "RefSans", "Helvetica Neue", sans-serif; }
+      #s1 .chips { position: absolute; left: 75px; top: 40px; display: flex; gap: 34px; }
+      #s1 .chip { height: 116px; padding: 0 34px; border-radius: 28px; background: #ECEBE5;
+        display: flex; align-items: center; gap: 20px; font-size: 48px; color: #4A4740; white-space: nowrap; }
+      #s1 .chip svg { width: 44px; height: 44px; stroke: #6E6A5E; fill: none; stroke-width: 1.6; }
+      #s1 .ptext { position: absolute; left: 75px; top: 75px; right: 72px;
+        font-size: 74px; font-weight: 600; line-height: 1.26; color: #1A1A18; letter-spacing: -0.004em; }
+      #s1 .ph { position: absolute; left: 75px; top: 75px; font-size: 74px; font-weight: 600; line-height: 1.26;
+        color: #787875; }                                      /* ref (120,120,117) */
+      #s1 .caret { display: inline-block; width: 4px; height: 74px; background: #1A1A18;
+        vertical-align: -12px; opacity: 0; }
+      #s1 .prow { position: absolute; left: 71px; right: 72px; bottom: 72px;
+        display: flex; align-items: center; }
+      #s1 .ibtn { width: 144px; height: 139px; border: 2px solid #DCDBD5; border-radius: 38px;
+        display: flex; align-items: center; justify-content: center; margin-right: 16.5px; }
+      #s1 .ibtn svg { width: 52px; height: 52px; stroke: #6E6A5E; fill: none; stroke-width: 1.6; }
+      #s1 .import { width: 338px; height: 139px; border: 2px solid #DCDBD5; border-radius: 38px;
+        display: flex; align-items: center; justify-content: center; font-size: 60px; color: #55524B;
+        margin-left: 1.5px; }
+      #s1 .send { margin-left: auto; width: 373px; height: 139px; border-radius: 44px;
+        background: #E9AF9B; display: flex; align-items: center; justify-content: center; gap: 22px;
+        color: #fff; font-size: 62px; }                                    /* ref typed (216,119,86) */
+
+      /* cursor: ink 265x350 -> 132x175 ; tip sits 11px in from the left edge */
+      #s1 .cursor { position: absolute; left: 995.5px; top: 637.5px; width: 132px; height: 175px;
+        z-index: 20; pointer-events: none; will-change: transform; }
+    </style>
+
+    <div data-hf-id="hf-43n3" id="s1-main" class="clip" data-start="0" data-duration="10" data-track-index="0">
+      <div data-hf-id="hf-2ava" class="paper"></div>
+      <div data-hf-id="hf-ii3p" id="s1-night" class="night"></div>
+      <div data-hf-id="hf-zlj1" id="s1-globe" class="globe">
+        <i data-hf-id="hf-w7h8" class="lat" style="top:18%"></i><i data-hf-id="hf-mwos" class="lat" style="top:32%"></i><i data-hf-id="hf-73rk" class="lat" style="top:50%"></i>
+        <i data-hf-id="hf-m45n" class="lat" style="top:68%"></i><i data-hf-id="hf-zyqr" class="lat" style="top:82%"></i>
+        <i data-hf-id="hf-gmr2" class="lon" style="left:16%"></i><i data-hf-id="hf-3lco" class="lon" style="left:32%"></i><i data-hf-id="hf-xbo4" class="lon" style="left:50%"></i>
+        <i data-hf-id="hf-5zwv" class="lon" style="left:68%"></i><i data-hf-id="hf-gt51" class="lon" style="left:84%"></i>
+      </div>
+
+      <div data-hf-id="hf-tan6" class="stage">
+        <div data-hf-id="hf-ch8r" id="s1-card" class="card">
+          <div data-hf-id="hf-dlt7" id="s1-lockup" class="lockup">
+            <img data-hf-id="hf-cyni" id="s1-palette" src="assets/palette.png" alt="">
+            <div data-hf-id="hf-trrc" class="word"><span data-hf-id="hf-ksn3">D</span><span data-hf-id="hf-xwr0">e</span><span data-hf-id="hf-scgm">s</span><span data-hf-id="hf-wbiw">i</span><span data-hf-id="hf-x44y">g</span><span data-hf-id="hf-tjdp">n</span></div>
+          </div>
+
+          <div data-hf-id="hf-93r5" id="s1-boxui" class="boxui">
+            <div data-hf-id="hf-y7u0" id="s1-chips" class="chips" style="opacity:0">
+              <span data-hf-id="hf-0h0k" class="chip"><svg data-hf-id="hf-y9f5" viewBox="0 0 24 24"><path data-hf-id="hf-01qg" d="M6 2.5h8l4 4V21a.5.5 0 0 1-.5.5h-11A.5.5 0 0 1 6 21V2.5ZM14 2.5v4h4" /></svg>flows.docx</span>
+              <span data-hf-id="hf-bvu9" class="chip"><svg data-hf-id="hf-svtx" viewBox="0 0 24 24"><path data-hf-id="hf-or32" d="M3.5 3.5h17v17h-17zM3.5 9h17M3.5 15h17M9.5 3.5v17M15.5 3.5v17" /></svg>cities.xlsx</span>
+            </div>
+            <div data-hf-id="hf-j7au" id="s1-ph" class="ph">Describe what you want to create…</div>
+            <div data-hf-id="hf-n7eh" id="s1-ptext" class="ptext"><span data-hf-id="hf-xajh" id="s1-typed"></span><span data-hf-id="hf-2aeq" id="s1-caret" class="caret"></span></div>
+            <div data-hf-id="hf-txev" id="s1-prow" class="prow">
+              <span data-hf-id="hf-4d56" class="ibtn"><svg data-hf-id="hf-u2r0" viewBox="0 0 24 24"><circle data-hf-id="hf-rmyi" cx="12" cy="12" r="3.1" /><path data-hf-id="hf-dntw" d="M12 2.9v2.5M12 18.6v2.5M2.9 12h2.5M18.6 12h2.5M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M18.4 5.6l-1.8 1.8M7.4 16.6l-1.8 1.8" /></svg></span>
+              <span data-hf-id="hf-p4r2" class="ibtn"><svg data-hf-id="hf-tofz" viewBox="0 0 24 24"><path data-hf-id="hf-tke8" d="M20 11.5 12.6 19a4.6 4.6 0 0 1-6.6-6.6L13.5 5a3 3 0 0 1 4.3 4.3L10.4 16.6a1.5 1.5 0 0 1-2.1-2.1l6.8-6.8" /></svg></span>
+              <span data-hf-id="hf-pj23" class="ibtn"><svg data-hf-id="hf-uvd2" viewBox="0 0 24 24"><path data-hf-id="hf-bh2w" d="m4 20 1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19l-4 1Z" /></svg></span>
+              <span data-hf-id="hf-pik7" class="import">Import</span>
+              <span data-hf-id="hf-x86y" id="s1-send" class="send">
+                <svg data-hf-id="hf-m2bt" width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"><path data-hf-id="hf-5ml0" d="M4 5.5 20 12 4 18.5l2.4-6.5L4 5.5ZM6.4 12H20" /></svg>Send</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <img data-hf-id="hf-zpz1" id="s1-cursor" class="cursor" src="assets/cursor.png" alt="">
+    </div>
+
+    <script>
+      (function () {
+        window.__timelines = window.__timelines || {};
+        var tl = gsap.timeline({ paused: true });
+        var typedEl = document.getElementById("s1-typed");
+        var TXT = "Let's design an interactive, dark themed graphic showing how culture flows between cities. A rotating globe with the cities connected by glowing paths.";
+
+        /* ---- A. cursor arrives on the button; hover pill appears (ref: pill up by 0.42) ----
+           tip path measured at 1080p: (896.5,664) @0.50  ->  (1006.5,637.5) @1.00 */
+        /* measured tip trajectory (1920 scale): enters low-right, arcs UP+LEFT to
+           (881,650) by 0.375, then swings RIGHT to (1011,650) by 0.958.
+           The rise runs 0.10->0.75 and the swing starts at 0.50 => the two stages
+           OVERLAP by 39% of the rise, so composite speed never reaches zero
+           (keyframe-overlap doctrine). x and y are separate tweens on purpose. */
+        tl.fromTo("#s1-cursor", { y: 340 }, { y: 0, duration: 0.65, ease: "power3.out" }, 0.10);
+        tl.fromTo("#s1-cursor", { x: -45 }, { x: -130, duration: 0.21, ease: "power2.out",
+          immediateRender: false }, 0.167);
+        tl.to("#s1-cursor", { x: 70, duration: 0.58, ease: "power2.out" }, 0.54);  /* ref vx turns +ve at f13 = 0.542; +70px and slower per director */
+        tl.fromTo("#s1-card", { backgroundColor: "rgba(229,230,218,0)" },
+          { backgroundColor: "rgba(229,230,218,1)", duration: 0.10, ease: "power1.out", immediateRender: false }, 0.42);
+
+        /* click — ref cursor displaces at 1.25, recovers by 1.42 */
+        tl.to("#s1-cursor", { scale: 0.90, duration: 0.10, ease: "power2.in", transformOrigin: "8% 2%" }, 1.25);
+        tl.to("#s1-cursor", { scale: 1, duration: 0.20, ease: "power2.out", transformOrigin: "8% 2%", overwrite: "auto" }, 1.35);
+
+        /* ---- B. letters leave BEFORE the box lands (ref ink 1008 @1.50 -> 636 @1.58 -> gone ~1.72) ---- */
+        tl.to("#s1 .word span", { autoAlpha: 0, duration: 0.05, ease: "none", stagger: 0.034 }, 1.50);
+        tl.to("#s1-palette", { autoAlpha: 0, duration: 0.06, ease: "none" }, 1.60);
+
+        /* ---- C. THE MORPH — ref f39 (1.625) has no box, f40 (1.667) is already at 64%.
+           It SNAPS in one frame, then settles ~0.9s (f40 2744 -> f58 3216, /2). ---- */
+        tl.fromTo("#s1-card",
+          { width: 1370, height: 486, borderRadius: 60, y: 12,
+            backgroundColor: "rgba(255,255,255,1)", boxShadow: "0 18px 52px rgba(10,12,20,0.10)" },
+          { width: 1607, height: 518, borderRadius: 58, y: 0,
+            backgroundColor: "rgba(255,255,255,1)", boxShadow: "0 18px 52px rgba(10,12,20,0.10)",
+            duration: 0.90, ease: "power2.out", immediateRender: false }, 1.646);
+        tl.to("#s1-cursor", { y: 620, autoAlpha: 0, duration: 0.42, ease: "power2.in" }, 1.70);
+
+        /* ---- D. the box resolves its contents (ref: present by 2.13) ---- */
+        /* ref does NOT fade the interior in — it WIPES it left-to-right.
+           Solved from two frames: edge at x=450 @1.833 and the Send fill (x1691)
+           popping @2.125 => 4250 px/s, so x=157 @1.764 and x=1763 @2.142.
+           The "Send pops in one frame" reading falls out of this for free. */
+        tl.set("#s1-boxui", { opacity: 1 }, 1.764);
+        tl.fromTo("#s1-boxui", { clipPath: "inset(0px 1606px 0px 0px)" },
+          { clipPath: "inset(0px 0px 0px 0px)", duration: 0.378, ease: "none", immediateRender: false }, 1.764);
+        tl.fromTo("#s1-caret", { opacity: 0 }, { opacity: 1, duration: 0.05, immediateRender: false }, 3.05);
+        tl.to("#s1-caret", { opacity: 0, duration: 0.20, yoyo: true, repeat: 1, ease: "none" }, 3.16);
+
+        /* ---- E. typing — measured piecewise: 39 chars by 4.30, then ~33/sec ---- */
+        tl.to("#s1-ph", { autoAlpha: 0, duration: 0.10, ease: "power1.in" }, 3.66);
+        tl.to("#s1-send", { backgroundColor: "#D87756", duration: 0.18, ease: "power1.out" }, 3.76);
+        var st = { n: 0 };
+        function paint() { typedEl.textContent = TXT.slice(0, Math.round(st.n)); }
+        tl.fromTo(st, { n: 0 }, { n: 39, duration: 0.59, ease: "none", onUpdate: paint, immediateRender: false }, 3.71);
+        tl.to(st, { n: 72, duration: 1.00, ease: "none", onUpdate: paint }, 4.30);
+        /* box gains its second line the frame line 2 begins (ref 1035 -> 1184, /2) */
+        tl.to("#s1-card", { height: 594, y: 32, duration: 0.10, ease: "power2.out" }, 4.09);
+
+        /* ---- F. the ground flips (ref 4.45 -> 4.67, cream -> (9,9,12)) ---- */
+        tl.fromTo("#s1-night", { opacity: 0 }, { opacity: 1, duration: 0.22, ease: "power1.inOut", immediateRender: false }, 4.45);
+
+        /* ---- G. typing continues — piecewise-linear through MEASURED checkpoints
+           (chars on screen): 39@4.30, 84@5.50, 103@6.50, 143@7.20, 148@7.70 ---- */
+        tl.to(st, { n: 84,  duration: 1.20, ease: "none", onUpdate: paint }, 4.30);
+        tl.to(st, { n: 103, duration: 1.00, ease: "none", onUpdate: paint }, 5.50);
+        tl.to(st, { n: 143, duration: 0.70, ease: "none", onUpdate: paint }, 6.50);
+        tl.to(st, { n: 148, duration: 0.50, ease: "none", onUpdate: paint }, 7.20);
+
+        /* box grows a line at a time (ref white-bbox: 1188 @4.417, 1372 @5.333, /2) */
+        tl.to("#s1-card", { height: 687, y: 71, duration: 0.10, ease: "power2.out" }, 4.85);
+        tl.to("#s1-card", { height: 968, duration: 0.10, ease: "power2.out" }, 7.15);
+
+        /* the card yields the frame: ref 3088 -> 1992 = 0.645, 6.17 -> 7.75 */
+        tl.to("#s1-card", { scale: 0.645, y: 15, duration: 1.35, ease: "power3.out" }, 6.20);
+
+        /* the two file chips arrive on top of the prompt box at 7.12 (measured pop) */
+        tl.fromTo("#s1-chips", { opacity: 0, y: 14 },
+          { opacity: 1, y: 0, duration: 0.14, ease: "power2.out", immediateRender: false }, 6.92);
+        tl.to("#s1-card", { height: 875, duration: 0.16, ease: "power2.out" }, 6.92);
+        tl.to("#s1-ptext", { y: 146, duration: 0.14, ease: "power2.out" }, 6.92);
+
+        /* the globe resolves behind everything once the ground has flipped */
+        tl.fromTo("#s1-globe", { opacity: 0 }, { opacity: 1, duration: 1.6, ease: "power2.out",
+          immediateRender: false }, 5.30);
+
+        window.__timelines["s1"] = tl;
+      })();
+    </script>
+  </div>
+</template>

@@ -1,0 +1,19 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import {buildCommerceProject} from '../../lib/creative/runner.mjs';
+const root=path.resolve(import.meta.dirname,'../..');
+const projectId='aa071caf-fa7a-4f03-a5ff-b8794521ca8f';
+const jobId='job-3b713d80-34ff-4bfc-b7a6-84cfbed1ed8f';
+const p=JSON.parse(await fs.readFile(path.join(root,'data/commerce-runs',projectId,'native-project.json'),'utf8'));
+const job=p.jobs.find(j=>j.id===jobId);
+if(!job||['running','queued'].includes(job.status))throw Error('Service job must be paused before CLI continuation');
+const evidence=path.join(import.meta.dirname,'cli-continuation.json');
+const state={origin:'existing-product-agent-cli-continuation',projectId,jobId,runId:job.runId,startedAt:new Date().toISOString(),webuiStatus:'not claimed complete'};
+await fs.writeFile(evidence,JSON.stringify(state,null,2));
+try{
+  const result=await buildCommerceProject({...p.request,projectId,assets:p.assets,planning:'model',render:false,
+    outputDir:'data/commerce-runs/'+projectId+'/versions/'+jobId,resumeRunId:job.runId,
+    onStage:async stage=>{console.log(stage);state.stage=stage;state.progressAt=new Date().toISOString();await fs.writeFile(evidence,JSON.stringify(state,null,2));}});
+  Object.assign(state,{status:'complete',result});
+}catch(e){Object.assign(state,{status:'failed',error:e.message,code:e.code});process.exitCode=1;console.error(e.code,e.message);}
+finally{state.finishedAt=new Date().toISOString();await fs.writeFile(evidence,JSON.stringify(state,null,2));}

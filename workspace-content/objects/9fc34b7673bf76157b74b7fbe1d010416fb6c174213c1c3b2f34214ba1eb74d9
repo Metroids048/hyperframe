@@ -1,0 +1,18 @@
+PASS v1 stays readable, migration is non-mutating
+PASS multiple moves use base destinations even when earlier moved clips have later source times
+PASS insert/delete and two moves share immutable coordinates
+PASS speed remaps original speech, captions and end title
+PASS one-frame cuts remain exact at 0.1x, including speech and overlays
+PASS new tail can hold a result-anchored caption in the insertion transaction
+PASS transition explicitly overlaps frames and keeps later captions aligned
+PASS splitting before an existing transition preserves overlap and content duration
+PASS deleting an entire transition removes its overlap once and rejects ambiguous interior cuts
+PASS spoken captions keep their source-clip link across split and later edits
+PASS overlay rate/crop/rect and validation survive a structural cut
+PASS loudness-only output edits preserve dimensions and can be disabled
+PASS plain captions, source transcript corrections and styling never synthesize speech
+PASS explicit generated narration link updates text once and preserves voice choice
+PASS linked narration rejects overflow instead of truncating
+PASS linked narration text updates preserve the current timeline speed
+PASS preview can acquire during export; queued cancellation does not block later work
+17 upgrade timeline tests passed

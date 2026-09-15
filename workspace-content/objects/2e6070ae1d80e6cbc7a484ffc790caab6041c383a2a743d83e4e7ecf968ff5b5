@@ -1,0 +1,48 @@
+{
+  "inspectionVersion": 3,
+  "validationFiles": [
+    [
+      "lib/creative/custom-source.mjs",
+      "e74413317e9b372c6d0236d92d008307e0ff74c792948b0f2a619ada8e1900f4"
+    ],
+    [
+      "lib/creative/isolation.mjs",
+      "e4acfea62803eeecde8a8890b0890adc30b3080be9179f550584b436ac60e16e"
+    ],
+    [
+      "lib/creative/isolation-protocol.mjs",
+      "6c6cb71db7ef6d7d392692e24acf022383cbbd424a41a6f908ff78f9a2c50d9b"
+    ],
+    [
+      "scripts/native-scene-worker.mjs",
+      "7d6281f6e6e686d56e17fc4c5506aa408d21f1a739de65a70d399ea0d099c558"
+    ]
+  ],
+  "inputHash": "a6d0fc17977a4ace693dee10ca17d50f324d6907962de4758c5c581e5e2529a2",
+  "sceneId": "scene-02",
+  "sourceRevisionId": "rev-bbedc5f9c209398b",
+  "globalSeconds": 20.6,
+  "image": "frames/frame-00-at-16.8s.png",
+  "imageHash": "1bef8d3fe5da895868122ef8ce27a165a74cf3e3d8b246cb30472d291127f751",
+  "engineering": "static-frame-checked",
+  "checkScope": {
+    "kind": "static-keyframe",
+    "atSeconds": 16.8,
+    "fullTimeline": "pending-assembly",
+    "mediaExtraction": "checked"
+  },
+  "animation": "not-yet-authored",
+  "folder": "keyframes/scene-02-a6d0fc17977a4ace",
+  "review": {
+    "issues": [
+      {
+        "severity": "major",
+        "repairKind": "text-timing",
+        "problem": "scene-02本镜头16.8秒（成片20.6秒、源17.0秒）的合成关键帧仍显示应用文字“看看结构细节”（node-664f03c2683684e2）。附图3、4显示此时已佩戴耳机，并非指定的胸前结构展示窗口。该文字在同刻源画面中不存在。当前静态组合使观看提示与画面内容错位；实际播放时序尚未验证。",
+        "repair": "仅校正该文字对象的显示窗口：成片10.0—10.2秒淡入、10.2—12.2秒保持、12.2—12.4秒淡出，其余时间隐藏。保留原文、媒体区间、正常速度、布局及静音配置。若静态预览强制显示文字，则修正预览取样状态；重新检查成片11.0秒和20.6秒关键帧，并连续预览文字起止区间。"
+      }
+    ],
+    "summary": "仅审查所给源边界、同刻源帧和合成静态帧。中文清楚、对比充分，文字未遮挡商品；合成未新增源画面裁切。源帧自身存在头顶及手部边缘截断，不能凭离散帧判定必要动作缺失。完整动作、转场、全片节奏及静音未评，不代表成片通过或真人认可。"
+  },
+  "sourceHash": "014e7db92cfad41ba058b2261ee9f6e2aa093535694c2b8ad9d1974baf7a1c74"
+}

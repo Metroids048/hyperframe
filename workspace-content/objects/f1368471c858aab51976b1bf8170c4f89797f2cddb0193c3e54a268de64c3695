@@ -1,0 +1,36 @@
+PASS 90-second real film imports as unedited preview with no automatic speech/export
+PASS initial paused preview contains a decoded visible film frame (1322ms after ready)
+PASS real player plays advancing footage and seeks to requested time
+TURN 在第 2.033 秒到第 5 秒添加底部字幕「对话剪辑测试」 1369ms preview-ready
+TURN 把字幕「对话剪辑测试」改为「只改文字，不加配音」 1428ms preview-ready
+TURN 将原声音量调到50% 2216ms preview-ready
+TURN 删除开头3秒 3130ms preview-ready
+TURN 只保留第0秒到第12秒 1921ms preview-ready
+TURN 把全片设为1.25倍速 1577ms preview-ready
+TURN 在第3秒分割 2771ms preview-ready
+TURN 将原声音量调到80% 2930ms preview-ready
+TURN 把字幕「只改文字，不加配音」改为「修改完成」 1643ms preview-ready
+TURN 撤销 664ms preview-ready
+PASS ten real UI chat turns execute, refresh previews and retain history without a model
+PASS refresh restores current preview and conversation
+file:///C:/Users/admin/Desktop/hyperframe-r1-publish-20260915/video-agent/scripts/test-conversation-media.mjs:257
+      if (failed) throw Error(failed.error);
+                        ^
+
+Error: 媒体处理失败：ABLE; ffmpeg_failed=2]"}
+[INFO] [Render] Failure summary {"renderJobId":"0ee39cae-8e6a-4ff8-a441-36372263f256","failedStage":"Extracting video frames","error":"Video extraction failed for 2 source(s) [VIDEO_SOURCE_UNRENDERABLE; ffmpeg_failed=2]","elapsedMs":889,"stageTimings":{"compileOnlyMs":218,"browserProbeMs":7,"compileMs":230,"videoExtractMs":636},"isTimeout":false,"workers":1,"protocolTimeout":300000,"observedFailedPhase":"Extracting video frames","observedLastPhase":"Extracting video frames","observedLastStatus":"error","browserDiagnostics":{"total":0,"errors":0,"pageErrors":0,"requestFailed":0,"httpErrors":0,"navigationStarts":0,"navigationFailures":0,"consoleErrors":0,"consoleWarnings":0},"extraction":{"videoCount":2,"extractedVideoCount":0,"totalFramesExtracted":0,"maxFramesPerVideo":0,"vfrProbeMs":0,"vfrPreflightMs":0,"vfrPreflightCount":0,"cacheHits":0,"cacheMisses":2,"transientRetries":0,"minVideoFrameCoverageRatio":0,"authoredTimedClipCount":5},"browserConsoleErrors":[]}
+
+✗  Render failed
+
+   Video extraction failed for 2 source(s) [VIDEO_SOURCE_UNRENDERABLE; ffmpeg_failed=2]
+   Try --docker for containerized rendering
+
+[WARN] [Compiler] WARNING: Video "clip-ab00c47d-5608-4745-ba51-785e75c99a92" has sparse keyframes (max interval: 8.33s). This causes seek failures and frame freezing. Re-encode with: ffmpeg -i "assets/d274af48-6947-4b99-a3cc-31ce2fd61b96.mp4" -c:v libx264 -r 30 -g 30 -keyint_min 30 -movflags +faststart -c:a copy output.mp4
+[WARN] [Compiler] WARNING: Video "clip-p-921f4cd5c6ee3b7e86b9b24b8b31ba37" has sparse keyframes (max interval: 8.33s). This causes seek failures and frame freezing. Re-encode with: ffmpeg -i "assets/d274af48-6947-4b99-a3cc-31ce2fd61b96.mp4" -c:v libx264 -r 30 -g 30 -keyint_min 30 -movflags +faststart -c:a copy output.mp4
+
+    at file:///C:/Users/admin/Desktop/hyperframe-r1-publish-20260915/video-agent/scripts/test-conversation-media.mjs:257:25
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async deadline (file:///C:/Users/admin/Desktop/hyperframe-r1-publish-20260915/video-agent/scripts/test-conversation-media.mjs:27:19)
+    at async file:///C:/Users/admin/Desktop/hyperframe-r1-publish-20260915/video-agent/scripts/test-conversation-media.mjs:253:7
+
+Node.js v24.19.0

@@ -8,7 +8,7 @@ import http from 'node:http';
 import fs from 'node:fs/promises';
 import {createReadStream} from 'node:fs';
 import path from 'node:path';
-import {randomUUID} from 'node:crypto';
+import {randomUUID,createHash} from 'node:crypto';
 import sharp from 'sharp';
 import {optimizePrompt} from './lib/planner.mjs';
 import {cases,demoOptimize,validateSettings} from './lib/demo-planner.mjs';
@@ -18,6 +18,7 @@ import {createCreativeService,creativeRoutes} from './lib/creative/service.mjs';
 import {CreativeError} from './lib/creative/contracts.mjs';
 
 const PORT=Number(process.env.VIDEO_AGENT_PORT||3020),DATA=path.resolve(process.env.VIDEO_AGENT_DATA_DIR||path.join(ROOT,'data/projects')),WEB=path.join(ROOT,'web-dist');
+const workspaceId=createHash('sha256').update(process.platform==='win32'?ROOT.replaceAll('\\','/').toLowerCase():ROOT).digest('hex');
 const editor=await createEditService();
 const creative=await createCreativeService();
 const projects=new Map(),writes=new Map();let active=null,studioProject=null,studioBusy=false,accepting=true;
@@ -133,7 +134,7 @@ const server=http.createServer(async(req,res)=>{
    return await file(req,res,servedPath,type,kind==='video'?`candidate-${commerceFile[1]}.mp4`:null);
   }
   if(['GET','HEAD'].includes(req.method)&&route==='/editor-player.js')return await file(req,res,path.join(ROOT,'node_modules/hyperframes/dist/hyperframes-player.global.js'),'text/javascript; charset=utf-8');
-  if(req.method==='GET'&&route==='/api/health')return json(res,{ok:true,version:'0.7.0-conversation',activeProjectId:active,studioProjectId:studioProject});
+  if(req.method==='GET'&&route==='/api/health')return json(res,{ok:true,version:'0.7.0-conversation',workspaceId,workbench:'commerce',activeProjectId:active,studioProjectId:studioProject});
   if(req.method==='POST'&&route==='/api/optimize'){const input=await jsonBody(req,16000,'需求描述');if(input.mode==='live'&&process.env.VIDEO_AGENT_LIVE_CODEX!=='1')throw new InputError('实时 Codex 当前未启用：上次模型连接超时。请使用演示整理，或手动补充；输入已保留。',503);return json(res,input.mode==='live'?await optimizePrompt(input.text):demoOptimize(input.text));}
   if(req.method==='GET'&&route==='/api/cases')return json(res,await Promise.all(cases.map(async c=>({...c,ready:await fs.access(path.join(ROOT,'showcase',c.id,'media.json')).then(()=>true).catch(()=>false),imageUrl:`/cases/${c.id}/image`,videoUrl:`/cases/${c.id}/video`}))));
   const ce=/^\/api\/cases\/([a-z]+)\/edit$/.exec(route);
@@ -179,6 +180,5 @@ server.on('error',e=>{console.error(e.message);process.exit(1);});
 let closing=false;
 async function shutdown(){if(closing)return;closing=true;accepting=false;server.close();server.closeAllConnections?.();await editor.close();await Promise.allSettled([...writes.values()]);process.exit(0);}
 process.on('SIGINT',()=>void shutdown());process.on('SIGTERM',()=>void shutdown());
-
 
 

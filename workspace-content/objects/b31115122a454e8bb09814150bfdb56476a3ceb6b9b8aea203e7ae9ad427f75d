@@ -1,0 +1,480 @@
+<template>
+  <div data-hf-id="hf-wre2" id="s4" data-composition-id="s4" data-start="0" data-duration="8.16" data-width="1080" data-height="1080" style="position: relative; width: 1080px; height: 1080px; overflow: hidden; background: #F0EEE6;">
+    <style>
+      /* =====================================================================
+         S4 — the thesis, the character glitch, the hand-over to HyperFrames.
+           1) "Claude designs it. HyperFrames completes it." enters WORD BY WORD
+              on a cut-the-curve LEFT from S3 (no masks — a mask pins the leading
+              edge and turns the cut into a wipe). Black, heavy serif.
+           2) 0.8s after it lands the type GLITCHES as a CHARACTER SCRAMBLE —
+              each glyph cycles through a pool and resolves left to right. Under
+              it the world changes: paper -> the HyperFrames brand motion plate,
+              serif -> ABC Solar Display, ink -> light.
+           3) The top line leaves UPWARD word by word, the bottom line DOWNWARD,
+              both travelling fully off-frame (no opacity fade — the frame edge
+              does the hiding). The full HyperFrames preview expands from the
+              centre through the gap and plays the MCP explainer.
+
+         Seam: S3 exits at -137 still accelerating at 1058 px/s. Solve the entry
+         on the FRAME, not the derivative — mean velocity across frame 0 is
+         X*(1-(1-1/(24*0.46))^4)*24 = 7.584*X, so X = 139 gives 1054 px/s = 99.6%.
+
+         Editor markup/CSS and the explainer beats are lifted verbatim from
+         variants/s4-import-editor.html.bak (faithful to design-pass/k12.html).
+         ===================================================================== */
+      /* Anthropic's house serif, lifted from the Claude paper launch
+         (projects/active/claude-paper/fonts). Times-adjacent but not Times, which is
+         what the serif register here was reaching for with Georgia. Book is the only
+         weight we have (usWeightClass 500, italicAngle 0) — the 400-700 range is
+         declared deliberately so the renderer never SYNTHESISES a bold or an oblique
+         off it. That synthesis is exactly what got TT Norms Pro thrown out of this
+         project. Self-hosted so preview == render (Georgia was being aliased to
+         EB Garamond by the renderer). */
+      @font-face { font-family: "Copernicus"; src: url("assets/fonts/GalaxieCopernicus-Book.woff2") format("woff2");
+                   font-weight: 400 700; font-style: normal; font-display: block; }
+      @font-face { font-family: "RefSans"; src: url("assets/fonts/refsans-medium.ttf") format("truetype");
+                   font-weight: 400 700; font-display: block; }
+      @font-face { font-family: "ABCSolar"; src: url("assets/fonts/ABCSolarDisplay-Bold.woff2") format("woff2");
+                   font-weight: 700; font-style: normal; font-display: block; }
+
+      #s4 .paper { position: absolute; inset: 0;
+        background: radial-gradient(120% 90% at 50% 8%, #f4f2eb 0%, #f0eee6 55%, #eae7db 100%); }
+      /* PUBLIC BUILD: was a licensed liquid plate (assets/hf-brand-bg.mp4), now a CSS gradient so
+         the film ships with no third-party asset. Deliberately DARK rather than green: the
+         green plate put "completes" (#38D878) at only 2.19:1 against its own ground and 1.77:1
+         against the cream line beside it, so the word the scene is built to land stopped
+         landing. On this ground the green reads again. */
+      #s4 .brandbg { position: absolute; inset: 0; width: 1080px; height: 1080px; opacity: 0;
+        background:
+          radial-gradient(120% 100% at 22% 14%, rgba(56,216,120,.20) 0%, rgba(56,216,120,0) 58%),
+          radial-gradient(90% 80% at 82% 88%, rgba(30,120,180,.22) 0%, rgba(30,120,180,0) 62%),
+          linear-gradient(168deg, #0C1A16 0%, #0A1220 52%, #070D12 100%); }
+
+      #s4 .thesis { position: absolute; left: 0; right: 0; top: 50%; margin-top: -102px;
+        text-align: center; font-family: "Copernicus", Georgia, serif; font-size: 68px;
+        line-height: 1.34; color: #1A1A18; font-weight: 500; z-index: 8; }
+      #s4 .line { display: block; white-space: nowrap; }
+      /* NO overflow mask — it pins the leading edge and the cut becomes a wipe */
+      #s4 .w { display: inline-block; vertical-align: bottom; padding: 0 0 12px; margin: 0 10px; }
+      #s4 .wd { display: inline-block; font-style: normal; }
+
+      /* the whole preview expands from the centre */
+      #s4 .preview { position: absolute; inset: 0; opacity: 0; z-index: 12;
+        transform-origin: 50% 50%; background: #0A0A0A; }
+      /* the explainer sits in the editor's player slot at its native 392 */
+      /* transform-origin 0 0 — the full-frame zoom's offsets are this element's own
+         position negated, which only holds from the top-left corner */
+      #s4 .slot392 { position: absolute; left: 87.5px; top: 211px; width: 392px; height: 392px;
+        overflow: hidden; background: #EDECE2; transform-origin: 0 0; }
+#s4 .vbeat { position: absolute; inset: 0; display: flex; flex-direction: column;
+        align-items: center; justify-content: center; padding: 0 34px; text-align: center;
+        font-family: "RefSans", "Helvetica Neue", sans-serif; }
+      #s4 .vstep { font-size: 11px; letter-spacing: .2em; color: #A8907E; margin-bottom: 16px; }
+      /* the "HyperFrames adds" plate heads sit in the SERIF register too — as a
+         grotesque they read HeyGen-product, not Anthropic-paper, which is the note
+         Jake gave on these cards. The -0.01em tightening came with the sans and is
+         dropped: a book-weight serif at 38px wants its own default fit. */
+      #s4 .vhead { font-family: "Copernicus", Georgia, serif; font-size: 40px;
+        color: #262521; line-height: 1.16; }
+      #s4 .flat { width: 218px; height: 2px; background: #C9C4B6; margin-top: 30px; }
+      #s4 .bars { display: flex; align-items: flex-end; gap: 7px; height: 76px; margin-top: 28px; }
+      #s4 .bars i { width: 9px; background: #6A8E59; border-radius: 3px; height: 100%;
+        transform-origin: 50% 100%; }
+      /* SFX beat: three timeline TRACKS whose clips expand, not five tick marks.
+         Authored at the slot's native 392 — this plate is viewed through the 2.755x
+         full-frame zoom, so 5px reads as ~14px and the 1px lane rules survive.
+         Claude colorway throughout (clay #D97757 / deep clay #C4643C), which is the
+         accent this plate already carried; the olive on the Music plate is its pair. */
+      #s4 .tracks { width: 306px; margin-top: 34px; display: flex; flex-direction: column; gap: 8px; }
+      #s4 .trow { display: flex; align-items: center; gap: 8px; }
+      #s4 .tlab { width: 62px; flex: 0 0 62px; text-align: right;
+        font-family: ui-monospace, Menlo, monospace; font-size: 8px; letter-spacing: .13em;
+        color: #A8907E; }
+      /* the empty groove — a track exists before anything is on it */
+      #s4 .lane { position: relative; flex: 1; height: 26px; border-radius: 5px;
+        background: rgba(217,119,87,.10); box-shadow: inset 0 0 0 1px rgba(217,119,87,.16); }
+      /* the clip. Revealed with clip-path, NOT width or scaleX: width snaps to integer
+         device pixels under the seek-by-frame capture engine (lint: gsap_non_transform_motion),
+         and scaleX would squash the radius and the waveform along with it. */
+      #s4 .sclip { position: absolute; top: 3px; height: 20px; border-radius: 4px;
+        background: rgba(217,119,87,.20); box-shadow: inset 0 0 0 1px rgba(217,119,87,.42);
+        clip-path: inset(0px 100% 0px 0px); }
+      #s4 .sclip b { position: absolute; top: 50%; width: 1.6px; border-radius: 1px;
+        background: #C4643C; transform: translateY(-50%); }
+      #s4 .curve { margin-top: 24px; }
+      #s4 .curve path.g { stroke: #DFDACC; }
+      /* The eased curve is now present for the WHOLE beat and the reveal travels ALONG it
+         (Jake). So .c is the always-visible BASE at low contrast, and .cp is the same
+         geometry at full ink, dash-revealed from the puck's own clock. Nothing is parked
+         undrawn any more — the earlier §5.1 flash (path fully drawn for 3 frames before its
+         tween started) cannot happen because there is no longer a draw-in on .c at all.
+         .cp's dash IS still parked, but in JS at parse from its real getTotalLength. */
+      #s4 .curve path.c { stroke: rgba(38,37,33,.20); }
+      #s4 .curve path.cp { stroke: #262521; }
+      /* ---- the editor (faithful to design-pass/k12.html) ---- */
+      #s4 .hfd { position: absolute; inset: 0; color: #FAFAFA; z-index: 4;
+        /* the live capture is TT Norms Pro; that face is not on this machine, so the
+           film's self-hosted RefSans stands in and preview == render */
+        font-family: "RefSans", "Helvetica Neue", Arial, sans-serif; font-size: 13px; }
+      #s4 .bar { height: 50px; display: flex; align-items: center; gap: 9px; padding: 0 14px; }
+      #s4 .logo { display: flex; align-items: center; gap: 8px; }
+      #s4 .logo .wm { font-size: 11.5px; font-weight: 700; line-height: 1.08; }
+      #s4 .logo .wm span { display: block; font-weight: 400; }
+      #s4 .leaf { width: 20px; height: 13px; position: relative; }
+      #s4 .leaf i { position: absolute; width: 12px; height: 12px; background: #57E58C; border-radius: 50% 50% 50% 0; }
+      #s4 .leaf i:first-child { left: 0; transform: rotate(-20deg); opacity: .9; }
+      #s4 .leaf i:last-child { left: 8px; transform: rotate(40deg) scaleX(-1); }
+      /* the capture centres this absolutely, which works at 1920 but collides with the
+         right-hand toolbar in a 1080 square — so it sits in flow and takes the auto margin */
+      #s4 .etitle { margin: 0 auto 0 18px; font-size: 14px; font-weight: 600; }
+      #s4 .etitle span { opacity: .5; font-weight: 400; margin-left: 7px; }
+      #s4 .tbtn { height: 32px; padding: 0 12px; border-radius: 8px; display: flex; align-items: center;
+        gap: 6px; font-size: 12.5px; color: #E4E4E7; border: 1px solid rgba(255,255,255,.10); }
+      #s4 .tbtn.plain { border: none; color: #D4D4D8; }
+      #s4 .toggle { width: 30px; height: 30px; border-radius: 7px; background: #123B2A;
+        border: 1px solid rgba(87,229,140,.25); }
+      #s4 .export { height: 32px; padding: 0 14px; border-radius: 8px; background: #38D878;
+        color: #0A0A0A; display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; }
+      #s4 .cols { position: absolute; inset: 50px 0 0 0; display: flex; }
+      #s4 .tasks { width: 205px; flex: 0 0 205px; border-right: 1px solid rgba(255,255,255,.08); }
+      #s4 .tasks .tab { padding: 12px 0 10px; text-align: center; font-size: 13px;
+        border-bottom: 2px solid #FAFAFA; }
+      #s4 .tasks .empty { padding: 40px 24px; text-align: center; color: #71717A;
+        font-size: 12.5px; line-height: 1.55; }
+      #s4 .mid { flex: 1; display: flex; flex-direction: column;
+        border-right: 1px solid rgba(255,255,255,.08); min-width: 0; }
+      /* MUST be positioned: .slot392 is absolute inside it, and without this it
+         resolves against a distant ancestor and the player renders empty */
+      #s4 .stagewrap { flex: 1; background: #0D0D0D; position: relative; }
+      #s4 .prow { height: 44px; display: flex; align-items: center; gap: 10px; padding: 0 16px;
+        border-top: 1px solid rgba(255,255,255,.06); font-size: 12px; color: #D4D4D8; }
+      #s4 .scrub { flex: 1; height: 3px; background: rgba(255,255,255,.14); border-radius: 2px; position: relative; }
+      #s4 .scrub i { position: absolute; left: 0; top: 0; bottom: 0; width: 0%; background: #38D878; border-radius: 2px; }
+      #s4 .tl { height: 172px; border-top: 1px solid rgba(255,255,255,.08); padding: 8px 12px 0; position: relative; }
+      #s4 .tl-tools { display: flex; justify-content: flex-end; gap: 10px; color: #A1A1AA;
+        font-size: 11.5px; margin-bottom: 6px; }
+      #s4 .tl-tools .fit { background: #27272A; padding: 3px 9px; border-radius: 6px; color: #E4E4E7; }
+      #s4 .ruler { display: flex; color: #71717A; font-size: 9.5px;
+        border-bottom: 1px solid rgba(255,255,255,.07); padding-bottom: 3px; margin-left: 16px; }
+      #s4 .ruler span { flex: 1; }
+      #s4 .track-label { font-family: ui-monospace, Menlo, monospace; font-size: 9.5px;
+        color: #A1A1AA; margin: 7px 0 4px 16px; }
+      #s4 .scenes { display: flex; gap: 2px; height: 44px; margin-left: 16px; }
+      #s4 .scene { flex: 1; background: #1C1C1F; border: 1px solid rgba(255,255,255,.07);
+        border-radius: 4px; font-size: 9px; color: #A1A1AA; display: flex; align-items: flex-end; padding: 3px 5px; }
+      #s4 .playhead { position: absolute; left: 40px; top: 34px; bottom: 10px; width: 2px; background: #38D878; }
+      #s4 .hint { position: absolute; right: 12px; bottom: 8px; background: #18181B; border-radius: 6px;
+        padding: 4px 9px; font-size: 9.5px; color: #71717A; }
+      #s4 .hint b { background: #27272A; border-radius: 4px; padding: 1px 5px; color: #A1A1AA; margin-right: 4px; }
+      #s4 .chat { width: 308px; flex: 0 0 308px; display: flex; flex-direction: column; }
+      #s4 .chat-tabs { display: flex; }
+      #s4 .chat-tabs div { flex: 1; text-align: center; padding: 12px 0 10px; font-size: 13px;
+        color: #71717A; border-bottom: 1px solid rgba(255,255,255,.08); }
+      #s4 .chat-tabs div.on { color: #FAFAFA; border-bottom: 2px solid #FAFAFA; }
+      #s4 .chat-filter { display: flex; align-items: center; gap: 8px; padding: 10px 14px;
+        color: #71717A; font-size: 11px; font-family: ui-monospace, Menlo, monospace; }
+      #s4 .chat-body { flex: 1; padding: 2px 14px; display: flex; flex-direction: column;
+        gap: 12px; font-size: 12.5px; color: #D4D4D8; }
+      #s4 .status { display: flex; align-items: center; gap: 8px; opacity: 0; }
+      #s4 .status i { width: 7px; height: 7px; border-radius: 50%; background: #38D878; flex: 0 0 7px; }
+      #s4 .agentmsg { display: flex; gap: 9px; align-items: flex-start; opacity: 0; }
+      #s4 .agentmsg img { width: 24px; height: 24px; flex: 0 0 24px; }
+      #s4 .echips { padding: 0 14px 10px; display: flex; flex-direction: column; gap: 7px; align-items: flex-start; }
+      #s4 .echip { background: #18181B; border: 1px solid rgba(255,255,255,.06); color: #A1A1AA;
+        border-radius: 9999px; padding: 7px 13px; font-size: 12px; white-space: nowrap; opacity: 0; }
+      #s4 .ecomposer { margin: 0 14px 14px; background: #18181B; border: 1px solid rgba(255,255,255,.08);
+        border-radius: 12px; height: 46px; display: flex; align-items: center; padding: 0 6px 0 14px;
+        color: #71717A; font-size: 12.5px; }
+      #s4 .sendbtn2 { margin-left: auto; width: 34px; height: 34px; border-radius: 9px;
+        background: #38D878; color: #0A0A0A; display: flex; align-items: center; justify-content: center; font-size: 15px; }
+
+          </style>
+
+    <div data-hf-id="hf-j9vm" id="s4-main" class="clip" data-start="0" data-duration="8.16" data-track-index="0">
+      <div data-hf-id="hf-2ava" class="paper"></div>
+      <div id="s4-bg" class="brandbg"></div>
+
+      <div data-hf-id="hf-30ds" id="s4-thesis" class="thesis">
+        <span data-hf-id="hf-51m4" class="line" id="s4-l1">
+          <span data-hf-id="hf-fr20" class="w"><i data-hf-id="hf-m2j3" class="wd">Claude</i></span><span data-hf-id="hf-xths" class="w"><i data-hf-id="hf-5y7g" class="wd">designs</i></span><span data-hf-id="hf-wmkp" class="w"><i data-hf-id="hf-78nm" class="wd">it.</i></span>
+        </span>
+        <span data-hf-id="hf-dphz" class="line" id="s4-l2">
+          <span data-hf-id="hf-x0vq" class="w"><i data-hf-id="hf-mjib" class="wd">HyperFrames</i></span><span data-hf-id="hf-vtyn" class="w"><i data-hf-id="hf-790r" class="wd" id="s4-completes">completes</i></span><span data-hf-id="hf-w89o" class="w"><i data-hf-id="hf-2312" class="wd">it.</i></span>
+        </span>
+      </div>
+
+      <div data-hf-id="hf-new0" id="s4-preview" class="preview">
+<div data-hf-id="hf-rxl0" id="s4-hfd" class="hfd">
+          <div data-hf-id="hf-ufsv" class="bar">
+            <div data-hf-id="hf-e319" class="logo"><span data-hf-id="hf-ac4p" class="leaf"><i data-hf-id="hf-wt6k"></i><i data-hf-id="hf-zeb8"></i></span>
+              <div data-hf-id="hf-7jlc" class="wm">HeyGen<span data-hf-id="hf-j4xb">HyperFrames</span></div></div>
+            <div data-hf-id="hf-rynr" class="etitle">try-the-connection <span data-hf-id="hf-mz25">✎</span></div>
+            <span data-hf-id="hf-s8py" class="tbtn plain">＋</span>
+            <span data-hf-id="hf-izux" class="toggle"></span><span data-hf-id="hf-p6gt" class="toggle"></span>
+            <span data-hf-id="hf-5v7q" class="export">⬇ Export</span>
+            <span data-hf-id="hf-6zkj" class="tbtn">↑ Publish</span>
+            <span data-hf-id="hf-fmnq" class="tbtn">⬇ Download</span>
+            <span data-hf-id="hf-9x7k" class="tbtn">Private</span>
+            <span data-hf-id="hf-da4d" class="tbtn plain">↗ Draft</span>
+          </div>
+          <div data-hf-id="hf-6ra9" class="cols">
+            <div data-hf-id="hf-ytfq" class="tasks">
+              <div data-hf-id="hf-7gpp" class="tab">Tasks</div>
+              <div data-hf-id="hf-irft" class="empty">No tasks yet. The agent will create tasks as it works.</div>
+            </div>
+            <div data-hf-id="hf-wgyu" class="mid">
+              <div data-hf-id="hf-ap92" class="stagewrap"><div data-hf-id="hf-i46o" id="s4-slot392" class="slot392">
+          <div data-hf-id="hf-6gs9" id="s4-b1" class="vbeat">
+            <span data-hf-id="hf-l5xm" class="vstep">YOUR EXPORT ARRIVES</span>
+            <span data-hf-id="hf-ewd8" class="vhead">Silent.</span>
+            <span data-hf-id="hf-in28" class="flat"></span>
+          </div>
+          <div data-hf-id="hf-g4kb" id="s4-b2" class="vbeat" style="opacity:0">
+            <span data-hf-id="hf-np4z" class="vstep">HYPERFRAMES ADDS</span>
+            <span data-hf-id="hf-t1zi" class="vhead">Music</span>
+            <span data-hf-id="hf-41uz" class="bars"><i data-hf-id="hf-0l8b"></i><i data-hf-id="hf-0zjc"></i><i data-hf-id="hf-zsm9"></i><i data-hf-id="hf-06xa"></i><i data-hf-id="hf-26gf"></i><i data-hf-id="hf-2krg"></i><i data-hf-id="hf-oz7w"></i><i data-hf-id="hf-okwv"></i><i data-hf-id="hf-o6lu"></i></span>
+          </div>
+          <div data-hf-id="hf-rh0q" id="s4-b3" class="vbeat" style="opacity:0">
+            <span data-hf-id="hf-xev7" class="vstep">HYPERFRAMES ADDS</span>
+            <span data-hf-id="hf-dd48" class="vhead">Sound effects</span>
+          <span data-hf-id="hf-jxmd" class="tracks">
+            <span data-hf-id="hf-9zn1" class="trow"><span data-hf-id="hf-7s3y" class="tlab">WHOOSH</span><span data-hf-id="hf-2bxb" class="lane"><i data-hf-id="hf-v47w" class="sclip" id="s4-sfx1" style="left:0px;width:104px"><b data-hf-id="hf-mh4f" style="left:6.0px;height:15.2px"></b><b data-hf-id="hf-jaz0" style="left:11.3px;height:10.1px"></b><b data-hf-id="hf-5gxl" style="left:16.6px;height:9.0px"></b><b data-hf-id="hf-k75b" style="left:22.0px;height:10.7px"></b><b data-hf-id="hf-67zi" style="left:27.3px;height:12.6px"></b><b data-hf-id="hf-jv7o" style="left:32.6px;height:14.9px"></b><b data-hf-id="hf-t48l" style="left:37.9px;height:9.8px"></b><b data-hf-id="hf-o2fm" style="left:43.2px;height:10.7px"></b><b data-hf-id="hf-98fh" style="left:48.5px;height:6.1px"></b><b data-hf-id="hf-5hbm" style="left:53.9px;height:15.2px"></b><b data-hf-id="hf-c80c" style="left:59.2px;height:9.4px"></b><b data-hf-id="hf-rnur" style="left:64.5px;height:14.4px"></b><b data-hf-id="hf-f57a" style="left:69.8px;height:6.8px"></b><b data-hf-id="hf-sylo" style="left:75.1px;height:11.0px"></b><b data-hf-id="hf-x3pd" style="left:80.4px;height:11.8px"></b><b data-hf-id="hf-o2cx" style="left:85.8px;height:14.0px"></b><b data-hf-id="hf-ox0r" style="left:91.1px;height:13.3px"></b><b data-hf-id="hf-1wl4" style="left:96.4px;height:8.6px"></b></i></span></span>
+            <span data-hf-id="hf-ptnl" class="trow"><span data-hf-id="hf-reew" class="tlab">CLICK</span><span data-hf-id="hf-shgf" class="lane"><i data-hf-id="hf-krin" class="sclip" id="s4-sfx2" style="left:84px;width:78px"><b data-hf-id="hf-uheq" style="left:6.0px;height:6.1px"></b><b data-hf-id="hf-qvud" style="left:11.4px;height:15.2px"></b><b data-hf-id="hf-rrwi" style="left:16.7px;height:9.4px"></b><b data-hf-id="hf-62ed" style="left:22.1px;height:14.4px"></b><b data-hf-id="hf-yal7" style="left:27.5px;height:6.8px"></b><b data-hf-id="hf-ha1e" style="left:32.8px;height:11.0px"></b><b data-hf-id="hf-8j62" style="left:38.2px;height:11.8px"></b><b data-hf-id="hf-m5u5" style="left:43.6px;height:14.0px"></b><b data-hf-id="hf-l7ot" style="left:48.9px;height:13.3px"></b><b data-hf-id="hf-xcc3" style="left:54.3px;height:8.6px"></b><b data-hf-id="hf-el9e" style="left:59.7px;height:10.7px"></b><b data-hf-id="hf-l516" style="left:65.0px;height:9.3px"></b><b data-hf-id="hf-fxf9" style="left:70.4px;height:15.9px"></b></i></span></span>
+            <span data-hf-id="hf-r0ko" class="trow"><span data-hf-id="hf-33pu" class="tlab">IMPACT</span><span data-hf-id="hf-s35e" class="lane"><i data-hf-id="hf-hqi1" class="sclip" id="s4-sfx3" style="left:150px;width:86px"><b data-hf-id="hf-xcic" style="left:6.0px;height:15.9px"></b><b data-hf-id="hf-82m4" style="left:11.6px;height:8.1px"></b><b data-hf-id="hf-q171" style="left:17.1px;height:12.6px"></b><b data-hf-id="hf-v1h1" style="left:22.7px;height:5.0px"></b><b data-hf-id="hf-6jp9" style="left:28.3px;height:13.7px"></b><b data-hf-id="hf-objm" style="left:33.8px;height:11.9px"></b><b data-hf-id="hf-mj5y" style="left:39.4px;height:14.2px"></b><b data-hf-id="hf-s6k7" style="left:45.0px;height:10.6px"></b><b data-hf-id="hf-jhci" style="left:50.6px;height:7.7px"></b><b data-hf-id="hf-b8eb" style="left:56.1px;height:12.5px"></b><b data-hf-id="hf-674c" style="left:61.7px;height:11.5px"></b><b data-hf-id="hf-jvac" style="left:67.3px;height:15.3px"></b><b data-hf-id="hf-bsde" style="left:72.8px;height:7.5px"></b><b data-hf-id="hf-bf8s" style="left:78.4px;height:10.1px"></b></i></span></span>
+          </span>
+          </div>
+          <div data-hf-id="hf-pa1h" id="s4-b4" class="vbeat" style="opacity:0">
+            <span data-hf-id="hf-x0k6" class="vstep">HYPERFRAMES ADDS</span>
+            <span data-hf-id="hf-v2gy" class="vhead">Motion polish</span>
+            <svg data-hf-id="hf-r13m" class="curve" width="230" height="92" viewBox="0 0 230 92" fill="none">
+              <path data-hf-id="hf-xv39" class="g" d="M226 88 L4 4" stroke-width="2" stroke-dasharray="5 6" />
+              <path data-hf-id="hf-rbo4" id="s4-ease" class="c" d="M226 88 C 134 88, 110 4, 4 4" stroke-width="4" stroke-linecap="round" />
+              <path data-hf-id="hf-rbop" id="s4-eprog" class="cp" d="M226 88 C 134 88, 110 4, 4 4" stroke-width="4" stroke-linecap="round" />
+              <rect data-hf-id="hf-ibbg" id="s4-puck" x="-9" y="-9" width="18" height="18" rx="4" fill="#D97757" opacity="0" />
+            </svg>
+          </div>
+        </div></div>
+              <div data-hf-id="hf-sn86" class="prow">▶ <span data-hf-id="hf-c1ki">0:10 / 0:10</span>
+                <span data-hf-id="hf-cs5m" class="scrub"><i data-hf-id="hf-h1sr" id="s4-escrub"></i></span>
+                <span data-hf-id="hf-d3w2" style="opacity:.7;">◁))</span>
+                <span data-hf-id="hf-uqrw" style="background:#27272A; border-radius:5px; padding:2px 7px;">1x</span>
+                <span data-hf-id="hf-2o42" style="opacity:.5;">▭</span></div>
+              <div data-hf-id="hf-tgpc" class="tl">
+                <div data-hf-id="hf-p3c2" class="tl-tools"><span data-hf-id="hf-hj69" class="fit">Fit</span><span data-hf-id="hf-pted">⊖</span><span data-hf-id="hf-t7xs">Fit</span><span data-hf-id="hf-r0bg">⊕</span><span data-hf-id="hf-i3pb">⌄</span></div>
+                <div data-hf-id="hf-db9w" class="ruler"><span data-hf-id="hf-ylbn">0:00</span><span data-hf-id="hf-xspl">0:02</span><span data-hf-id="hf-x03j">0:04</span><span data-hf-id="hf-w7hh">0:06</span><span data-hf-id="hf-vevf">0:08</span><span data-hf-id="hf-411m">0:10</span></div>
+                <div data-hf-id="hf-vgpv" class="track-label">INSIDE: MAIN</div>
+                <div data-hf-id="hf-07e3" class="scenes">
+                  <div data-hf-id="hf-zjw0" class="scene">s1</div><div data-hf-id="hf-ycyx" class="scene">s2</div><div data-hf-id="hf-yr9y" class="scene">s3</div>
+                  <div data-hf-id="hf-xkcv" class="scene">s4</div><div data-hf-id="hf-xynw" class="scene">s5</div>
+                </div>
+                <div data-hf-id="hf-f580" id="s4-playhead" class="playhead"></div>
+                <div data-hf-id="hf-78lj" class="hint"><b data-hf-id="hf-3byf">Shift</b>+ drag/click to edit range</div>
+              </div>
+            </div>
+            <div data-hf-id="hf-vshe" class="chat">
+              <div data-hf-id="hf-34qb" class="chat-tabs"><div data-hf-id="hf-23at" class="on">Chat</div><div data-hf-id="hf-hwl5">Renders</div></div>
+              <div data-hf-id="hf-dzqe" class="chat-filter">▽ all &#160;3/3 <span data-hf-id="hf-bd4g" style="margin-left:auto;">⎋ copy</span></div>
+              <div data-hf-id="hf-h3wb" class="chat-body">
+                <div data-hf-id="hf-czeu" class="status s4st"><i data-hf-id="hf-y7e5"></i> Imported from Claude Design</div>
+                <div data-hf-id="hf-kvct" class="status s4st"><i data-hf-id="hf-ylp6"></i> Preview updated</div>
+                <div data-hf-id="hf-zbjt" id="s4-agent" class="agentmsg"><img data-hf-id="hf-1skp" src="ORB.svg" alt="">
+                  <span data-hf-id="hf-bk50">Sound design is in — six cues on the counter beats.<br data-hf-id="hf-x5px">
+                    <strong data-hf-id="hf-psxe" style="color:#FAFAFA;">Your video is ready.</strong></span></div>
+              </div>
+              <div data-hf-id="hf-xyi6" class="echips">
+                <span data-hf-id="hf-t7bl" class="echip s4chip">Add an energetic soundtrack</span>
+                <span data-hf-id="hf-oi2d" class="echip s4chip">Add sound effects on the key moments</span>
+                <span data-hf-id="hf-nkrs" class="echip s4chip">Add a whoosh as the title appears</span>
+                <span data-hf-id="hf-lvus" class="echip s4chip">Punch up the motion and tighten the pacing</span>
+              </div>
+              <div data-hf-id="hf-gdqd" class="ecomposer">Send a message <span data-hf-id="hf-72ah" class="sendbtn2">→</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        window.__timelines = window.__timelines || {};
+        var tl = gsap.timeline({ paused: true });
+
+        gsap.set("#s4 .wd", { x: 139, opacity: 0 });
+        gsap.set("#s4-preview", { scale: 0.24 });
+
+        /* ---- 1. word-by-word cut-the-curve LEFT ---- */
+        tl.to("#s4 .wd", { x: 0, opacity: 1, duration: 0.46, ease: "power4.out",
+          stagger: 0.085 }, 0);
+
+        /* ---- 2. the CHARACTER glitch: every glyph cycles through a pool and
+           resolves left to right, word by word. Pure function of progress — no
+           random, no accumulation — so a cold seek matches the render. ---- */
+        var WORDS = [].slice.call(document.querySelectorAll("#s4 .wd"));
+        var FINAL = WORDS.map(function (el) { return el.textContent; });
+        /* The pool is WIDTH-BOUNDED, measured off the font itself, not eyeballed.
+           Copernicus is far wider than the Georgia it replaced: "HyperFrames completes
+           it." runs 1087px at 80px and was clipping the final period off both ends of
+           the frame. Two things fix it together — 68px for the real line (938px, the SAME measure as the ABC Solar phase that
+           follows, so the mid-scramble typeface swap is not also a size jump), and
+           dropping every glyph whose advance exceeds 0.60em (W 1.148, @ 1.108, M 1.089,
+           %% 1.045, m 1.035 ... 48 glyphs cut) so a scrambled frame can never exceed the
+           real line by more than 0.8%%. Worst case is now 866px; the real line is the binding constraint, at 71px clear.
+           Still deterministic — a smaller pool, same hash, no random. */
+        var POOL = "IJcefgijlrstvxyz123578$*/[]{}~?!";
+        var STEPS = 22;
+        function hash(i) { var v = Math.sin(i * 127.1) * 43758.5453; return v - Math.floor(v); }
+        var GL = { p: 0 };
+        function paintGlitch() {
+          var step = Math.min(STEPS, Math.floor(GL.p * STEPS));
+          for (var w = 0; w < WORDS.length; w++) {
+            var t = FINAL[w], out = "";
+            /* each word resolves on its own slightly later schedule */
+            var res = (GL.p - w * 0.035) / 0.62;
+            for (var i = 0; i < t.length; i++) {
+              var ch = t.charAt(i);
+              if (ch === "." || ch === " ") { out += ch; continue; }
+              var settled = (i + 1) / t.length <= res;
+              out += settled ? ch
+                : POOL.charAt(Math.floor(hash(step * 31 + w * 17 + i * 7) * POOL.length));
+            }
+            WORDS[w].textContent = out;
+          }
+        }
+        tl.fromTo(GL, { p: 0 }, { p: 1, duration: 0.68, ease: "none",
+          onUpdate: paintGlitch, immediateRender: false }, 1.69);
+        /* the world changes UNDER the scramble */
+        /* mid-scramble the TYPE changes, still dark on paper */
+        tl.set("#s4-thesis", { fontFamily: "ABCSolar, sans-serif", color: "#1A1A18",
+          fontWeight: 700, fontSize: 74 }, 1.94);
+        /* "completes" is the word the film is built to land — it takes the HyperFrames
+           green the moment the brand identity does */
+        /* on cream the brand green is far too light, so this is the same hue darkened */
+        tl.set("#s4-completes", { color: "#2E9E5B" }, 1.94);
+        /* land it exactly on the real words */
+        tl.call(function () { WORDS.forEach(function (el, i) { el.textContent = FINAL[i]; }); },
+          null, 2.37);
+
+        /* ---- the world flips DURING the scramble, and is DONE before it resolves ----
+           It used to fire AT 2.37, the frame the scramble landed on, so the eye read two
+           sequential events (letters settle, THEN the world changes) with a dead frame
+           between them. Now it ignites on the SAME frame as the type change (1.94) — one
+           cause, one effect — and every part of it has landed by 2.12, a quarter second
+           before the glyphs stop cycling at 2.37. So the words resolve INTO the new world
+           instead of summoning it.
+           The plate's clip gate had to move with it: data-start was 2.30, which would have
+           held the video out of the document for the whole fade. It is now 1.94, exactly
+           its entry tween, with the duration extended to keep the same 6.30 out-point.
+           Order within the flip is unchanged — the ink inverts one frame after the plate
+           starts coming up so light type never sits on a still-light ground, and on the
+           dark plate the true brand green reads, so "completes" goes back to #38D878. */
+        tl.to("#s4-bg", { opacity: 1, duration: 0.16, ease: "none" }, 1.94);
+        tl.set("#s4-thesis", { color: "#F2FBF6" }, 1.98);
+        tl.set("#s4-completes", { color: "#38D878" }, 1.98);
+        tl.to("#s4 .paper", { opacity: 0, duration: 0.10, ease: "none" }, 2.02);
+
+        /* ---- 3. the lines leave: top UP, bottom DOWN, word by word, FULLY off
+           frame. No opacity — the frame edge hides them. ---- */
+        tl.to("#s4-l1 .wd", { y: -760, duration: 0.66, ease: "power3.in", stagger: 0.075 }, 2.75);
+        tl.to("#s4-l2 .wd", { y: 760, duration: 0.66, ease: "power3.in", stagger: 0.075 }, 2.75);
+
+        /* ...and the full preview opens from the centre through the gap */
+        tl.to("#s4-preview", { opacity: 1, scale: 1, duration: 0.78, ease: "power3.out" }, 3.27);
+
+        /* ---- 4. the video is about what HyperFrames ADDS: music, sfx, polish ----
+           DIRECTION REVERSED on Jake's note: the sections slide DOWN to each other, never
+           up. Each outgoing beat now exits to y:+150 and each incoming enters from y:-150,
+           so the whole run travels one way — downward — like a reel being advanced. It used
+           to be the mirror of this (exit up, enter from below). One direction per chain per
+           the vector law; keep any new beat on the same sign. */
+        gsap.set("#s4 .bars i", { scaleY: 0.08 });
+
+        tl.to("#s4-b1", { opacity: 0, y: 150, duration: 0.22, ease: "power2.in" }, 5.50);
+        tl.fromTo("#s4-b2", { opacity: 0, y: -150 },
+          { opacity: 1, y: 0, duration: 0.30, ease: "power3.out", immediateRender: false }, 5.64);
+        tl.to("#s4 .bars i", { scaleY: 1, duration: 0.30, ease: "back.out(2)",
+          stagger: { each: 0.035, from: "center" } }, 5.72);
+        tl.to("#s4 .bars i", { scaleY: 0.34, duration: 0.26, ease: "sine.inOut",
+          stagger: { each: 0.045, from: "edges" }, yoyo: true, repeat: 1 }, 6.06);
+
+        tl.to("#s4-b2", { opacity: 0, y: 150, duration: 0.22, ease: "power2.in" }, 6.38);
+        tl.fromTo("#s4-b3", { opacity: 0, y: -150 },
+          { opacity: 1, y: 0, duration: 0.30, ease: "power3.out", immediateRender: false }, 6.52);
+        /* the three clips expand left-to-right in their lanes. Hand-placed rather than
+           a uniform stagger so the gaps SHRINK (0.13 -> 0.11, x0.846) — an accelerating
+           cascade per cut-the-curve §6, not a metronome. power3.out because an expand is
+           an arrival; the last one lands 7.14, 0.12s before the beat leaves at 7.26. */
+        tl.to("#s4-sfx1", { clipPath: "inset(0px 0px 0px 0px)", duration: 0.26, ease: "power3.out" }, 6.64);
+        tl.to("#s4-sfx2", { clipPath: "inset(0px 0px 0px 0px)", duration: 0.26, ease: "power3.out" }, 6.77);
+        tl.to("#s4-sfx3", { clipPath: "inset(0px 0px 0px 0px)", duration: 0.26, ease: "power3.out" }, 6.88);
+
+        tl.to("#s4-b3", { opacity: 0, y: 150, duration: 0.22, ease: "power2.in" }, 7.26);
+        tl.fromTo("#s4-b4", { opacity: 0, y: -150 },
+          { opacity: 1, y: 0, duration: 0.30, ease: "power3.out", immediateRender: false }, 7.40);
+        /* (the base curve no longer draws in — it is there the whole beat. The reveal is
+           the .cp progress stroke below, driven from the puck's own clock so the puck always
+           sits at its leading edge.) */
+
+        tl.fromTo("#s4 .s4st", { opacity: 0, x: -10 },
+          { opacity: 1, x: 0, duration: 0.30, ease: "power2.out", stagger: 0.16,
+            immediateRender: false }, 4.16);
+        tl.fromTo("#s4-agent", { opacity: 0, y: 12 },
+          { opacity: 1, y: 0, duration: 0.40, ease: "power3.out", immediateRender: false }, 4.72);
+        tl.fromTo("#s4 .s4chip", { opacity: 0, y: 10 },
+          { opacity: 1, y: 0, duration: 0.28, ease: "power2.out", stagger: 0.075,
+            immediateRender: false }, 5.30);
+        tl.fromTo("#s4-escrub", { width: "0%" },
+          { width: "100%", duration: 4.30, ease: "none", immediateRender: false }, 4.10);
+        tl.fromTo("#s4-playhead", { x: 0 },
+          { x: 500, duration: 4.30, ease: "none", immediateRender: false }, 4.10);
+
+        /* ---- 5. the same move S2 makes: the video takes the whole frame.
+           Slot is 392 at (292.5, 261); 1080/392 = 2.75510, origin 0 0, so the offsets
+           are its own position negated. The chrome falls away as it grows. ---- */
+        tl.set("#s4-slot392", { zIndex: 40 }, 4.40);
+        tl.to("#s4-slot392", { scale: 2.75510, x: -292.5, y: -261,
+          duration: 0.96, ease: "power3.inOut" }, 4.40);
+        tl.to("#s4 .bar",    { opacity: 0, duration: 0.44, ease: "power2.in" }, 4.44);
+        tl.to("#s4 .tasks",  { opacity: 0, duration: 0.44, ease: "power2.in" }, 4.47);
+        tl.to("#s4 .chat",   { opacity: 0, duration: 0.44, ease: "power2.in" }, 4.50);
+        tl.to("#s4 .prow",   { opacity: 0, duration: 0.44, ease: "power2.in" }, 4.53);
+        tl.to("#s4 .tl",     { opacity: 0, duration: 0.44, ease: "power2.in" }, 4.56);
+
+        /* a block rides UP the eased curve — the easing demonstrated, not just drawn.
+           Parametric cubic through the same control points as the path, evaluated from
+           a linear proxy, so it traces the drawn line exactly.
+           INVERTED on Jake's note: mirrored about x=115 so the puck (and the stroke draw,
+           which follows path direction) travels RIGHT -> LEFT. That is the film's current —
+           the old left-to-right read was the one beat running against it, which is very
+           likely why it felt wrong. The rise is kept, so it still reads as polish. */
+        var PK = { p: 0 };
+        var puck = document.getElementById("s4-puck");
+        /* the progress stroke's dash comes from the path's REAL length, measured once at
+           parse — a guessed dasharray either under-reveals or finishes early. Guarded in
+           case getTotalLength is unavailable. */
+        var prog = document.getElementById("s4-eprog");
+        var PLEN = (prog.getTotalLength && prog.getTotalLength()) || 270;
+        prog.style.strokeDasharray = PLEN;
+        prog.style.strokeDashoffset = PLEN;
+        function bez(t, a, b, c, d) { var m = 1 - t;
+          return m*m*m*a + 3*m*m*t*b + 3*m*t*t*c + t*t*t*d; }
+        function paintPuck() {
+          var x = bez(PK.p, 226, 134, 110, 4), y = bez(PK.p, 88, 88, 4, 4);
+          puck.setAttribute("transform", "translate(" + x.toFixed(2) + " " + y.toFixed(2) + ")");
+          /* same clock as the puck, so the reveal's leading edge and the puck cannot drift
+             apart. (Parametric p is not exactly arc-length fraction, but on this gentle S the
+             error is a couple of percent and both sides share it.) */
+          prog.style.strokeDashoffset = (PLEN * (1 - PK.p)).toFixed(2);
+        }
+        tl.set("#s4-puck", { opacity: 1 }, 7.56);
+        /* 0.80 -> 0.62 so the ride lands 8.18, and the comp now ends at 8.16 — the cut to
+           the logo outro happens with the puck still travelling (96.8% through). That is
+           both what Jake asked for and more correct than before: the old 8.70 out-point
+           left 0.34s of dead hold after the puck had already settled. */
+        tl.fromTo(PK, { p: 0 }, { p: 1, duration: 0.62, ease: "none",
+          onUpdate: paintPuck, immediateRender: false }, 7.56);
+
+        window.__timelines["s4"] = tl;
+      })();
+    </script>
+
+</div></template>

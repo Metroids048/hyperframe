@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=3840, height=2160">
+<title>codex-five-hour-limit-replica</title>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<style>
+@font-face { font-family: 'Inter'; font-weight: 400; src: url(assets/fonts/Inter-400.ttf) format('truetype'); }
+@font-face { font-family: 'Inter'; font-weight: 500; src: url(assets/fonts/Inter-500.ttf) format('truetype'); }
+@font-face { font-family: 'Inter'; font-weight: 600; src: url(assets/fonts/Inter-600.ttf) format('truetype'); }
+@font-face { font-family: 'Heebo'; font-weight: 900; src: url(assets/fonts/Heebo-900.ttf) format('truetype'); }
+html, body { margin: 0; background: #000; }
+#root { position: relative; width: 3840px; height: 2160px; overflow: hidden; background: #ffffff; }
+.clip { position: absolute; inset: 0; }
+#fig { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; inset: auto; transform-origin: 0 0; }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="root" data-start="0" data-width="3840" data-height="2160" data-fps="60" data-duration="10.1475">
+  <div id="scene-lockup" class="clip" data-composition-id="lockup" data-composition-src="compositions/lockup.html" data-start="0" data-duration="3.533" data-track-index="1" data-width="3840" data-height="2160"></div>
+  <div id="scene-chat" class="clip" data-composition-id="chat" data-composition-src="compositions/chat.html" data-start="3.517" data-duration="6.633" data-track-index="2" data-width="3840" data-height="2160"></div>
+  <video id="fig" class="clip" src="assets/fig.webm" data-start="6.7783" data-duration="3.3700" data-track-index="3" muted playsinline preload="auto" width="1080" height="1920"></video>
+  <div id="scene-headline" class="clip" data-composition-id="headline" data-composition-src="compositions/headline.html" data-start="7.55" data-duration="2.6" data-track-index="4" data-width="3840" data-height="2160"></div>
+  <!-- silent by design: the source clip's audio is a third party's track and is not redistributed -->
+</div>
+<script>
+  // root timeline: the figure rises into frame (measured d(f), f407-437) while fading in
+  const tl = gsap.timeline({ paused: true });
+  gsap.set('#fig', { x: 1218, y: 1166.3, scale: 1.2, opacity: 0 });
+  tl.to('#fig', { keyframes: [{y: 1166.3, duration: 0}, {y: 1132.7, duration: 0.017}, {y: 1080.7, duration: 0.017}, {y: 975, duration: 0.033}, {y: 924.3, duration: 0.017}, {y: 819.3, duration: 0.033}, {y: 722.3, duration: 0.033}, {y: 677.8, duration: 0.017}, {y: 631.4, duration: 0.017}, {y: 500.6, duration: 0.05}, {y: 461.9, duration: 0.017}, {y: 426, duration: 0.017}, {y: 394.3, duration: 0.017}, {y: 367.3, duration: 0.017}, {y: 343.7, duration: 0.017}, {y: 322.7, duration: 0.017}, {y: 300.3, duration: 0.017}, {y: 281, duration: 0.017}, {y: 264.7, duration: 0.017}, {y: 251, duration: 0.017}, {y: 239.7, duration: 0.017}, {y: 231, duration: 0.017}, {y: 224.7, duration: 0.017}, {y: 220.3, duration: 0.017}, {y: 218, duration: 0.017}, {y: 217, duration: 0.017}], ease: 'none' }, 6.783);
+  tl.to('#fig', { keyframes: [{opacity: 0.17, duration: 0}, {opacity: 0.33, duration: 0.017}, {opacity: 0.5, duration: 0.017}, {opacity: 0.67, duration: 0.017}, {opacity: 0.83, duration: 0.017}, {opacity: 1, duration: 0.017}], ease: 'none' }, 6.783);
+  window.__timelines["root"] = tl;
+</script>
+</body>
+</html>

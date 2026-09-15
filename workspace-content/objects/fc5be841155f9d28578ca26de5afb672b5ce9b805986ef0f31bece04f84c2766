@@ -1,0 +1,98 @@
+{
+  "_": "Vector ledger: one row per cut. exit/entry must agree on axis and dir (x -1 = leftward, y -1 = upward, z -1 = shrinking). Keep them matched when you retime anything.",
+  "fps": 30,
+  "seams": [
+    {
+      "id": "logo → sign-in",
+      "cut": 1.16667,
+      "technique": "velocity-matched cut, upward",
+      "exit": {
+        "selector": "#a-logo",
+        "axis": "y",
+        "dir": -1
+      },
+      "entry": {
+        "selector": "#b-card",
+        "axis": "y",
+        "dir": -1
+      }
+    },
+    {
+      "id": "sign-in → zoomed card",
+      "cut": 2.4,
+      "technique": "velocity-matched cut, leftward",
+      "exit": {
+        "selector": "#b-card",
+        "axis": "x",
+        "dir": -1
+      },
+      "entry": {
+        "selector": "#c-card",
+        "axis": "x",
+        "dir": -1
+      }
+    },
+    {
+      "id": "zoomed card → counter",
+      "cut": 3.76667,
+      "technique": "velocity-matched cut, upward",
+      "exit": {
+        "selector": "#c-card",
+        "axis": "y",
+        "dir": -1
+      },
+      "entry": {
+        "selector": "#d-stage",
+        "axis": "y",
+        "dir": -1
+      }
+    },
+    {
+      "id": "counter → nav",
+      "cut": 5.13333,
+      "technique": "velocity-matched cut, rightward",
+      "exit": {
+        "selector": "#d-stage",
+        "axis": "x",
+        "dir": 1
+      },
+      "entry": {
+        "selector": "#nrow0",
+        "axis": "x",
+        "dir": 1
+      }
+    },
+    {
+      "id": "nav → create",
+      "cut": 6.96667,
+      "technique": "inverse zoom-through (both sides pull back)",
+      "exit": {
+        "selector": "#e-stage",
+        "axis": "z",
+        "dir": -1
+      },
+      "entry": {
+        "selector": "#f-btn",
+        "axis": "z",
+        "dir": -1,
+        "scanRoot": "#f-btn"
+      }
+    },
+    {
+      "id": "menu → endcard",
+      "cut": 10.13333,
+      "technique": "inverse zoom-through (both sides pull back)",
+      "exit": {
+        "selector": "#f-stage",
+        "axis": "z",
+        "dir": -1
+      },
+      "entry": {
+        "selector": "#g-logo",
+        "axis": "z",
+        "dir": -1,
+        "scanRoot": "#g-logo"
+      }
+    }
+  ]
+}

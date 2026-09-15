@@ -1,0 +1,34 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"></head>
+<body>
+<template>
+<style>
+#root { position: absolute; inset: 0; width: 3840px; height: 2160px; overflow: hidden; }
+.layer { position: absolute; left: 0; top: 0; width: 3840px; height: 2160px; overflow: visible; }
+
+@font-face { font-family: 'Heebo'; font-weight: 900; src: url(assets/fonts/Heebo-900.ttf) format('truetype'); }
+#hl text { font-family: Heebo; font-weight: 900; font-size: 268px; text-anchor: middle; fill: #fff; filter: drop-shadow(12px 9px 11px rgba(0,0,0,1.0)) drop-shadow(8px 6px 7px rgba(0,0,0,0.9)) drop-shadow(0px 0px 9px rgba(0,0,0,0.7)); }
+
+</style>
+<div id="root" data-composition-id="headline" data-width="3840" data-height="2160">
+<svg id="hl" class="layer" viewBox="0 0 3840 2160"><g class="hg" transform="translate(421.0 546.7) rotate(-15.46)"><g id="hl-0" class="pop"><text data-layout-allow-overlap>E</text></g></g><g class="hg" transform="translate(545.5 516.2) rotate(-14.17)"><g id="hl-1" class="pop"><text data-layout-allow-overlap>n</text></g></g><g class="hg" transform="translate(670.9 487.7) rotate(-12.85)"><g id="hl-2" class="pop"><text data-layout-allow-overlap>d</text></g></g><g class="hg" transform="translate(828.2 455.2) rotate(-11.18)"><g id="hl-3" class="pop"><text data-layout-allow-overlap>t</text></g></g><g class="hg" transform="translate(930.5 436.2) rotate(-10.08)"><g id="hl-4" class="pop"><text data-layout-allow-overlap>h</text></g></g><g class="hg" transform="translate(1055.6 415.4) rotate(-8.73)"><g id="hl-5" class="pop"><text data-layout-allow-overlap>e</text></g></g><g class="hg" transform="translate(1215.1 392.7) rotate(-7.00)"><g id="hl-6" class="pop"><text data-layout-allow-overlap>f</text></g></g><g class="hg" transform="translate(1287.9 383.9) rotate(-6.20)"><g id="hl-7" class="pop"><text data-layout-allow-overlap>i</text></g></g><g class="hg" transform="translate(1378.1 374.3) rotate(-5.21)"><g id="hl-8" class="pop"><text data-layout-allow-overlap>v</text></g></g><g class="hg" transform="translate(1499.1 363.9) rotate(-3.87)"><g id="hl-9" class="pop"><text data-layout-allow-overlap>e</text></g></g><g class="hg" transform="translate(1682.8 353.6) rotate(-1.84)"><g id="hl-10" class="pop"><text data-layout-allow-overlap>h</text></g></g><g class="hg" transform="translate(1811.3 350.6) rotate(-0.41)"><g id="hl-11" class="pop"><text data-layout-allow-overlap>o</text></g></g><g class="hg" transform="translate(1939.9 351.2) rotate(1.02)"><g id="hl-12" class="pop"><text data-layout-allow-overlap>u</text></g></g><g class="hg" transform="translate(2048.0 354.5) rotate(2.22)"><g id="hl-13" class="pop"><text data-layout-allow-overlap>r</text></g></g><g class="hg" transform="translate(2180.4 362.1) rotate(3.68)"><g id="hl-14" class="pop"><text data-layout-allow-overlap>l</text></g></g><g class="hg" transform="translate(2243.8 367.3) rotate(4.38)"><g id="hl-15" class="pop"><text data-layout-allow-overlap>i</text></g></g><g class="hg" transform="translate(2372.4 380.7) rotate(5.80)"><g id="hl-16" class="pop"><text data-layout-allow-overlap>m</text></g></g><g class="hg" transform="translate(2500.8 398.1) rotate(7.20)"><g id="hl-17" class="pop"><text data-layout-allow-overlap>i</text></g></g><g class="hg" transform="translate(2571.1 409.4) rotate(7.97)"><g id="hl-18" class="pop"><text data-layout-allow-overlap>t</text></g></g><g class="hg" transform="translate(2729.2 439.5) rotate(9.68)"><g id="hl-19" class="pop"><text data-layout-allow-overlap>n</text></g></g><g class="hg" transform="translate(2854.6 468.2) rotate(11.03)"><g id="hl-20" class="pop"><text data-layout-allow-overlap>o</text></g></g><g class="hg" transform="translate(2996.0 505.6) rotate(12.54)"><g id="hl-21" class="pop"><text data-layout-allow-overlap>w</text></g></g><g class="hg" transform="translate(3105.9 538.6) rotate(13.69)"><g id="hl-22" class="pop"><text data-layout-allow-overlap>!</text></g></g><g class="hg" transform="translate(3167.1 558.5) rotate(14.33)"><g id="hl-23" class="pop"><text data-layout-allow-overlap>!</text></g></g><g class="hg" transform="translate(3228.1 579.4) rotate(14.97)"><g id="hl-24" class="pop"><text data-layout-allow-overlap>!</text></g></g></svg>
+</div>
+<script>
+(function () {
+  const tl = gsap.timeline({ paused: true });
+  const ONSET = [453.58, 457.02, 460.48, 464.82, 467.64, 471.09, 475.5, 477.5, 480.0, 483.33, 488.4, 491.95, 495.5, 498.49, 502.14, 503.89, 507.44, 510.98, 512.92, 517.29, 520.75, 524.65, 527.68, 529.37, 531.05]; // frame of each glyph's ghost appearance (linear in x)
+  const POP = [{scaleX: 0.383, scaleY: 0.45, y: -10, rotation: 0, opacity: 0.55, duration: 0}, {scaleX: 0.51, scaleY: 0.6, y: -20, rotation: 5, opacity: 0.7, duration: 0.017}, {scaleX: 0.722, scaleY: 0.85, y: -35, rotation: 10, opacity: 0.85, duration: 0.017}, {scaleX: 0.977, scaleY: 1.15, y: -50, rotation: 14, opacity: 1.0, duration: 0.017}, {scaleX: 1.19, scaleY: 1.4, y: -55, rotation: 13, opacity: 1.0, duration: 0.017}, {scaleX: 1.232, scaleY: 1.45, y: -50, rotation: 10, opacity: 1.0, duration: 0.017}, {scaleX: 1.147, scaleY: 1.35, y: -40, rotation: 6, opacity: 1.0, duration: 0.017}, {scaleX: 1.02, scaleY: 1.2, y: -25, rotation: 3, opacity: 1.0, duration: 0.017}, {scaleX: 0.935, scaleY: 1.1, y: -12, rotation: 1, opacity: 1.0, duration: 0.017}, {scaleX: 0.884, scaleY: 1.04, y: -4, rotation: 0, opacity: 1.0, duration: 0.017}, {scaleX: 0.85, scaleY: 1, y: 0, rotation: 0, opacity: 1.0, duration: 0.017}];   // ghost (small, faint) -> 1.45x overshoot lifted with extra lean -> settle
+  const GREY = [{fill: 'rgb(175,175,175)', duration: 0}, {fill: 'rgb(200,200,200)', duration: 0.017}, {fill: 'rgb(235,235,235)', duration: 0.017}, {fill: 'rgb(255,255,255)', duration: 0.017}]; // grey ghost -> white
+  gsap.set('.pop', { opacity: 0, transformOrigin: '0px 0px' });
+  ONSET.forEach((f, i) => {
+    const t = (f - 453) / 60, el = '#hl-' + i;
+    tl.to(el, { keyframes: POP, ease: 'none' }, t);
+    tl.to(el + ' text', { keyframes: GREY, ease: 'none' }, t);
+  });
+  window.__timelines["headline"] = tl;
+})();
+</script>
+</template>
+</body>
+</html>

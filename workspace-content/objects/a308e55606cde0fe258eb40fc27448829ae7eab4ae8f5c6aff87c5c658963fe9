@@ -1,0 +1,229 @@
+{
+  "id": "ee4a59a8-e8ea-4ea0-a620-68cef3c584da",
+  "type": "video-edit",
+  "schemaVersion": 2,
+  "name": "fixture",
+  "initialText": "",
+  "assets": {
+    "79e45243-fc66-4ed6-80ae-6132f061375e": {
+      "id": "79e45243-fc66-4ed6-80ae-6132f061375e",
+      "name": "fixture.mp4",
+      "original": "original.mp4",
+      "status": "ready",
+      "size": 11,
+      "createdAt": "2026-09-15T12:06:32.273Z",
+      "kind": "video",
+      "frames": 300,
+      "duration": 10,
+      "width": 640,
+      "height": 360,
+      "hasAudio": true,
+      "work": "work.mp4",
+      "sha256": "mock-79e45243-fc66-4ed6-80ae-6132f061375e",
+      "thumbnails": [],
+      "speech": "speech.mp3",
+      "analysisFile": "analysis/79e45243-fc66-4ed6-80ae-6132f061375e-034c4440f8f3a40ab6ce.json"
+    }
+  },
+  "revisions": [
+    {
+      "id": "2c76fdfa-d47c-456f-8cce-5109a86b87ae",
+      "number": 1,
+      "parentId": null,
+      "description": "导入原视频",
+      "media": {
+        "duration": 10,
+        "width": 640,
+        "height": 360,
+        "hasAudio": true,
+        "cache": {}
+      },
+      "quality": {
+        "level": "preview",
+        "status": "passed"
+      },
+      "createdAt": "2026-09-15T12:06:32.282Z",
+      "render": {
+        "status": "pending"
+      }
+    },
+    {
+      "id": "6fbb3dd0-6b00-4ba2-878b-cbae2628bd2f",
+      "number": 2,
+      "parentId": "2c76fdfa-d47c-456f-8cce-5109a86b87ae",
+      "description": "精确编辑",
+      "media": {
+        "duration": 9.5,
+        "width": 640,
+        "height": 360,
+        "hasAudio": true,
+        "cache": {}
+      },
+      "quality": {
+        "level": "preview",
+        "status": "passed"
+      },
+      "createdAt": "2026-09-15T12:06:32.315Z",
+      "render": {
+        "status": "pending"
+      }
+    }
+  ],
+  "currentRevisionId": "6fbb3dd0-6b00-4ba2-878b-cbae2628bd2f",
+  "messages": [
+    {
+      "id": "eccbcee4-8e42-41c8-aa12-fea63eb73fb8",
+      "role": "assistant",
+      "text": "精确编辑",
+      "revisionId": "6fbb3dd0-6b00-4ba2-878b-cbae2628bd2f",
+      "jobId": "c806dc33-374f-42b6-8543-ecd9607345b1"
+    }
+  ],
+  "jobs": [
+    {
+      "id": "8ac1bf80-8719-4b21-be75-4bcce170e031",
+      "key": "import-ee4a59a8-e8ea-4ea0-a620-68cef3c584da",
+      "hash": "4a64b71c0b99a661fbd4874ba335024290b97499d1847750a195ea42880ff5ce",
+      "kind": "asset",
+      "payload": {
+        "assetId": "79e45243-fc66-4ed6-80ae-6132f061375e"
+      },
+      "afterJobId": null,
+      "status": "complete",
+      "stage": "已完成",
+      "progress": 100,
+      "createdAt": "2026-09-15T12:06:32.274Z",
+      "metrics": {
+        "stages": [
+          {
+            "name": "prepare_asset",
+            "startedAt": "2026-09-15T12:06:32.277Z",
+            "elapsedMs": 0,
+            "status": "complete"
+          },
+          {
+            "name": "compose",
+            "startedAt": "2026-09-15T12:06:32.280Z",
+            "elapsedMs": 2,
+            "status": "complete",
+            "cache": {}
+          },
+          {
+            "name": "preview_check",
+            "startedAt": "2026-09-15T12:06:32.282Z",
+            "elapsedMs": 0,
+            "status": "complete"
+          }
+        ],
+        "modelCalls": 0,
+        "cacheHits": 0,
+        "elapsedMs": 18
+      },
+      "startedAt": "2026-09-15T12:06:32.275Z",
+      "revisionId": "2c76fdfa-d47c-456f-8cce-5109a86b87ae",
+      "committedAt": "2026-09-15T12:06:32.287Z",
+      "completedAt": "2026-09-15T12:06:32.293Z"
+    },
+    {
+      "id": "c806dc33-374f-42b6-8543-ecd9607345b1",
+      "key": "cc8649d4-7853-4466-a228-0f35aa103f54",
+      "hash": "5acd38500924948ea9ecad181b8b4048dd4fde8c1b95a68165a0581602299fed",
+      "kind": "operations",
+      "payload": {
+        "baseRevisionId": "2c76fdfa-d47c-456f-8cce-5109a86b87ae",
+        "operations": [
+          {
+            "type": "delete_range",
+            "start": 0,
+            "end": 15
+          },
+          {
+            "type": "caption_transcript",
+            "language": "zh"
+          }
+        ]
+      },
+      "afterJobId": null,
+      "status": "complete",
+      "stage": "已完成",
+      "progress": 100,
+      "createdAt": "2026-09-15T12:06:32.301Z",
+      "metrics": {
+        "stages": [
+          {
+            "name": "prepare_speech",
+            "startedAt": "2026-09-15T12:06:32.305Z",
+            "elapsedMs": 1,
+            "status": "complete"
+          },
+          {
+            "name": "transcribe",
+            "startedAt": "2026-09-15T12:06:32.306Z",
+            "elapsedMs": 0,
+            "status": "complete"
+          },
+          {
+            "name": "translate_captions",
+            "startedAt": "2026-09-15T12:06:32.309Z",
+            "elapsedMs": 0,
+            "status": "complete"
+          },
+          {
+            "name": "compose",
+            "startedAt": "2026-09-15T12:06:32.311Z",
+            "elapsedMs": 2,
+            "status": "complete",
+            "cache": {}
+          },
+          {
+            "name": "preview_check",
+            "startedAt": "2026-09-15T12:06:32.315Z",
+            "elapsedMs": 0,
+            "status": "complete"
+          }
+        ],
+        "modelCalls": 1,
+        "cacheHits": 0,
+        "elapsedMs": 19
+      },
+      "startedAt": "2026-09-15T12:06:32.302Z",
+      "cloudVerifiedAt": "2026-09-15T12:06:32.309Z",
+      "translationUsage": [
+        {
+          "model": "mock-translation",
+          "usage": [
+            {
+              "output_tokens": 10
+            }
+          ],
+          "targetLanguage": "zh"
+        }
+      ],
+      "toolCalls": [
+        {
+          "tool": "translate_captions",
+          "inputHash": "4224bc9c0ed34b80adfc88f76a2cb2f19a4ca619844c00b1f963994a551e3efa",
+          "status": "completed",
+          "startedAt": "2026-09-15T12:06:32.309Z",
+          "durationMs": 0,
+          "resultSummary": {
+            "captionCount": 2,
+            "targetLanguage": "zh"
+          },
+          "error": null
+        }
+      ],
+      "revisionId": "6fbb3dd0-6b00-4ba2-878b-cbae2628bd2f",
+      "committedAt": "2026-09-15T12:06:32.318Z",
+      "completedAt": "2026-09-15T12:06:32.321Z"
+    }
+  ],
+  "createdAt": "2026-09-15T12:06:32.270Z",
+  "updatedAt": "2026-09-15T12:06:32.321Z",
+  "eventSequence": 16,
+  "originProjectId": null,
+  "originSourceHash": null,
+  "sampleId": null,
+  "sampleContext": null,
+  "storageVersion": 2
+}

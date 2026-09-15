@@ -1,0 +1,74 @@
+{
+  "message": "细节镜头提前，只在第一个转场使用色散，其他内容保持。当前细节属于第二幕的连续实拍：将第二幕整体提前1秒，方法是片头静图缩短30帧、片尾静图增加30帧；保留实拍源区间、正常速度、文字内容和其相对镜头的显示时序，不拆断动作。第一个转场精确使用 Chromatic Radial Split（chromatic-split），保持9帧；第二个转场仍为现有9帧淡化。总长900帧、1080×1920、静音，禁止生图、生视频及TTS。",
+  "baseRevisionId": "rev-5c114c9dd0b2f1be",
+  "operations": [
+    {
+      "type": "set_scene_duration",
+      "sceneId": "scene-01",
+      "durationFrames": 52
+    },
+    {
+      "type": "set_scene_duration",
+      "sceneId": "scene-03",
+      "durationFrames": 112
+    },
+    {
+      "type": "set_transition",
+      "effect": "chromatic-split",
+      "durationFrames": 9,
+      "fromSceneId": "scene-01",
+      "toSceneId": "scene-02",
+      "params": {
+        "durationFrames": 9
+      }
+    }
+  ],
+  "alternatives": [],
+  "summary": "计划将片头缩至52帧、片尾延至112帧，使第二幕整体提前30帧至第43帧开始；实拍754帧、源区间、正常速度及文字相对时序保持。首个转场改为9帧chromatic-split，第二个保留9帧淡化。总长900帧、1080×1920及静音不变。提交后需重新编译受影响时序与转场，检查两处衔接、文字显示及全片时长；本轮未执行或验证。",
+  "mode": "model",
+  "model": "Codex 默认模型",
+  "promptContext": [
+    {
+      "file": "prompts/commerce/R0.md",
+      "sha256": "b253f55c56fe3b45ef85dd40958034c3ee7cbfefd01572fc835f776d480aa306"
+    },
+    {
+      "file": "prompts/commerce/R7.md",
+      "sha256": "3623b3e577f460da76b997d1942089f36b3268af1867129b585b2280061383a6"
+    },
+    {
+      "file": "agent.md",
+      "sha256": "8f3d115c447d56d17b64f4c7a6d26f408a9b0404d28d1eebb4b5cf513affdaf3"
+    },
+    {
+      "file": "prompts/commerce/commerce-focus.md",
+      "sha256": "77261ad2be8f78a706f6d37b309694aea02e8d78ee4cfc77f0b839a73bca86ba"
+    },
+    {
+      "file": "docs/commerce-focus-v1/scenario-registry.spec.json",
+      "sha256": "d8c28def4a22ab875c65642942a7fa1417b8b7f62dbeaca74bd0007feed8c430"
+    }
+  ],
+  "requestedOperations": [
+    {
+      "type": "set_scene_duration",
+      "sceneId": "scene-01",
+      "durationFrames": 52
+    },
+    {
+      "type": "set_scene_duration",
+      "sceneId": "scene-03",
+      "durationFrames": 112
+    },
+    {
+      "type": "set_transition",
+      "effect": "chromatic-split",
+      "durationFrames": 9,
+      "fromSceneId": "scene-01",
+      "toSceneId": "scene-02",
+      "params": {
+        "durationFrames": 9
+      }
+    }
+  ]
+}

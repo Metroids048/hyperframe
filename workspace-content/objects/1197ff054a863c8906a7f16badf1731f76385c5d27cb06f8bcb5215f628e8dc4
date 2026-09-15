@@ -1,0 +1,99 @@
+{
+  "repo": "Metroids048/hyperframe",
+  "commit": "46c6ff6066fba063f18b0fd057180eece65994fc",
+  "executedAt": "2026-09-15T08:08:56.460Z",
+  "runtime": "v22.16.0",
+  "scope": "Source-level isolated reproductions. NOT full app tests, UI, paid provider, real media or visual acceptance.",
+  "originalSourceHashes": {
+    "resource-catalog.mjs": {
+      "gitBlobSha": "a9b848b686ca96e088fdd910f9e930f2aa5567a1",
+      "bytes": 3476
+    },
+    "runninghub.mjs": {
+      "gitBlobSha": "7a22c9718f468cff051fe40d5d8be8b37944e517",
+      "bytes": 9257
+    }
+  },
+  "findings": [
+    {
+      "id": "R01",
+      "scope": "unchanged resource planner with controlled catalog",
+      "request": "cinematic-zoom",
+      "expected": "exact resource or explicit missing-adapter result",
+      "actual": {
+        "requestedCanonicalId": null,
+        "status": "resolved",
+        "selected": [
+          "lt-mask-reveal"
+        ]
+      },
+      "defectReproduced": true
+    },
+    {
+      "id": "R02",
+      "scope": "unchanged resource planner with controlled catalog",
+      "request": "completely-unknown-effect",
+      "expected": "unresolved / no compatible adapter",
+      "actual": {
+        "status": "resolved",
+        "selected": []
+      },
+      "defectReproduced": true
+    },
+    {
+      "id": "R03",
+      "scope": "unchanged explicitResource",
+      "request": "Do not use chromatic split",
+      "expected": null,
+      "actual": "chromatic-radial-split",
+      "defectReproduced": true
+    },
+    {
+      "id": "G01",
+      "scope": "exact generation gate extracted from service.mjs",
+      "expected": "plan required assets by target and gaps; partial retry retains outstanding shots",
+      "actual": {
+        "ordinaryMarketingRequestEntersGeneration": false,
+        "explicitKeywordRequestEntersGeneration": true,
+        "afterOneVideoDownloadedEntersGeneration": false
+      },
+      "defectReproduced": true
+    },
+    {
+      "id": "P01",
+      "scope": "unchanged provider, concurrent calls, injected mock HTTP and isolated dependencies",
+      "expected": "one submission for identical request",
+      "actual": {
+        "simulatedSubmissions": 2,
+        "persistedRecords": 1
+      },
+      "defectReproduced": true,
+      "limitation": "Provider-level race; not evidence that the current single-process UI allows simultaneous same-project submissions."
+    },
+    {
+      "id": "P02",
+      "scope": "unchanged provider with injected mock HTTP",
+      "expected": "requested 1:1 preserved or rejected explicitly",
+      "actual": {
+        "requested": {
+          "width": 1080,
+          "height": 1080
+        },
+        "submittedAspect": "9:16"
+      },
+      "defectReproduced": true
+    },
+    {
+      "id": "P03",
+      "scope": "unchanged provider; locally constructed downloaded record, no real video",
+      "expected": "different output aspect changes generation identity",
+      "actual": {
+        "newRequestedAspect": "16:9",
+        "returnedOldCachedAsset": true,
+        "newSubmissions": 0
+      },
+      "defectReproduced": true
+    }
+  ],
+  "reproduced": 7
+}

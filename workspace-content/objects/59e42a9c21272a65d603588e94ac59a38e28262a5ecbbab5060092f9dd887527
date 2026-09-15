@@ -1,0 +1,51 @@
+◆  Checking reference-author
+
+Lint
+  ⚠ gsap_repeated_fromto_without_baseline: 3 tl.fromTo() calls target "#wipe-left" with no stable baseline. The last-authored fromTo "from" values become the element's resting state for any seek before the first tween actually runs, because GSAP applies fromTo from-values at authoring time (immediateRender), not at tween position.
+    C:\Users\admin\Desktop\hyperframe-main\video-agent\outputs\mijia-brand-test\reference-author\index.html #wipe-left t=0s
+    Fix: Add `immediateRender: false` to the destination vars of each future fromTo, or set a safe resting state with an earlier `tl.set("#wipe-left", { ... }, 0)`. Pre-first-tween seeks must not inherit whichever fromTo call happened to author last.
+  ⚠ gsap_repeated_fromto_without_baseline: 3 tl.fromTo() calls target "#wipe-right" with no stable baseline. The last-authored fromTo "from" values become the element's resting state for any seek before the first tween actually runs, because GSAP applies fromTo from-values at authoring time (immediateRender), not at tween position.
+    C:\Users\admin\Desktop\hyperframe-main\video-agent\outputs\mijia-brand-test\reference-author\index.html #wipe-right t=0s
+    Fix: Add `immediateRender: false` to the destination vars of each future fromTo, or set a safe resting state with an earlier `tl.set("#wipe-right", { ... }, 0)`. Pre-first-tween seeks must not inherit whichever fromTo call happened to author last.
+  ✗ gsap_exit_missing_hard_kill: GSAP exit on "#label-0" ends at the 3.00s clip start boundary without a matching tl.set hard kill. Non-linear seeking can land after the fade and leave stale visibility state.
+    C:\Users\admin\Desktop\hyperframe-main\video-agent\outputs\mijia-brand-test\reference-author\index.html #label-0 t=0s
+    Fix: "#label-0" is a clip element — the framework already manages its visibility. Wrap the scene's content in an inner non-clip <div>, move the exit tween and the hard kill (`tl.set("<inner-selector>", { opacity: 0 }, 3.00)`) onto that wrapper instead.
+  ✗ gsap_exit_missing_hard_kill: GSAP exit on "#label-5" ends at the 23.00s clip start boundary without a matching tl.set hard kill. Non-linear seeking can land after the fade and leave stale visibility state.
+    C:\Users\admin\Desktop\hyperframe-main\video-agent\outputs\mijia-brand-test\reference-author\index.html #label-5 t=0s
+    Fix: "#label-5" is a clip element — the framework already manages its visibility. Wrap the scene's content in an inner non-clip <div>, move the exit tween and the hard kill (`tl.set("<inner-selector>", { opacity: 0 }, 23.00)`) onto that wrapper instead.
+  ✗ gsap_exit_missing_hard_kill: GSAP exit on "#label-6" ends at the 28.00s clip start boundary without a matching tl.set hard kill. Non-linear seeking can land after the fade and leave stale visibility state.
+    C:\Users\admin\Desktop\hyperframe-main\video-agent\outputs\mijia-brand-test\reference-author\index.html #label-6 t=0s
+    Fix: "#label-6" is a clip element — the framework already manages its visibility. Wrap the scene's content in an inner non-clip <div>, move the exit tween and the hard kill (`tl.set("<inner-selector>", { opacity: 0 }, 28.00)`) onto that wrapper instead.
+  ✗ gsap_exit_missing_hard_kill: GSAP exit on "#label-7" ends at the 34.00s clip start boundary without a matching tl.set hard kill. Non-linear seeking can land after the fade and leave stale visibility state.
+    C:\Users\admin\Desktop\hyperframe-main\video-agent\outputs\mijia-brand-test\reference-author\index.html #label-7 t=0s
+    Fix: "#label-7" is a clip element — the framework already manages its visibility. Wrap the scene's content in an inner non-clip <div>, move the exit tween and the hard kill (`tl.set("<inner-selector>", { opacity: 0 }, 34.00)`) onto that wrapper instead.
+  ✗ gsap_css_transform_conflict: "#wipe-left,#wipe-right" has CSS `transform: scaleX(0)` and a GSAP tween animates scaleX. GSAP will overwrite the full CSS transform, discarding any translateX(-50%) centering or CSS scale value.
+    C:\Users\admin\Desktop\hyperframe-main\video-agent\outputs\mijia-brand-test\reference-author\index.html #wipe-left,#wipe-right t=0s
+    Fix: Remove the transform from CSS and use tl.fromTo('#wipe-left,#wipe-right', { xPercent: -50, x: -1000 }, { xPercent: -50, x: 0 }) so GSAP owns the full transform state. tl.fromTo is exempt from this rule.
+  ✗ gsap_css_transform_conflict: "#end-rule" has CSS `transform: scaleX(0)` and a GSAP tween animates scaleX. GSAP will overwrite the full CSS transform, discarding any translateX(-50%) centering or CSS scale value.
+    C:\Users\admin\Desktop\hyperframe-main\video-agent\outputs\mijia-brand-test\reference-author\index.html #end-rule t=0s
+    Fix: Remove the transform from CSS and use tl.fromTo('#end-rule', { xPercent: -50, x: -1000 }, { xPercent: -50, x: 0 }) so GSAP owns the full transform state. tl.fromTo is exempt from this rule.
+  ⚠ timeline_track_too_dense: Track 100 has 8 timed elements in this HTML file. Smaller sub-compositions keep timelines easier to read, iterate on, and diff.
+    C:\Users\admin\Desktop\hyperframe-main\video-agent\outputs\mijia-brand-test\reference-author\index.html [data-composition-id] t=0s
+    Fix: Move coherent scene groups into separate .html files under compositions/ and mount them from the parent with data-composition-src so the timeline stays easier to inspect, revise, and validate.
+  ✗ font_family_without_font_face: Font family used without @font-face declaration: microsoft yahei. These are not in the auto-resolved font list, so the renderer cannot supply them automatically. Text will fall back to a generic font, producing incorrect typography in the video.
+    C:\Users\admin\Desktop\hyperframe-main\video-agent\outputs\mijia-brand-test\reference-author\index.html [data-composition-id] t=0s
+    Fix: Add @font-face { font-family: '...'; src: url('capture/assets/fonts/...woff2'); } for each font family, pointing to the captured .woff2 files. For an OS-bundled system font (e.g. Hiragino Sans, Microsoft YaHei) that has no downloadable file, use src: local('Exact Font Name') instead — the declaration alone satisfies this check without needing a font file.
+  7 error(s), 3 warning(s), 0 info(s)
+
+Runtime
+  ◇ 0 errors, 0 warnings
+
+Layout
+  ◇ 0 issues across 0 sample(s)
+
+Motion
+  ◇ 0 errors, 0 warnings
+
+Contrast
+  ◇ 0/0 text checks pass WCAG AA
+
+Snapshots
+  ◇ disabled
+
+◇  Check failed

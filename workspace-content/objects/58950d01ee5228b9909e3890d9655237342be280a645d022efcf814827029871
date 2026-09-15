@@ -1,0 +1,43 @@
+PASS portable media paths retain explicit overrides
+PASS HyperFrames receives absolute PATH-resolved media executables
+PASS Codex uses stdin for complete instructions and no forced private model
+PASS HTTPS transport keeps subscription auth without overriding built-in provider
+PASS Codex errors distinguish unavailable model, old CLI, login, quota and timeout
+PASS Python falls back by platform and respects override
+PASS chat export works without model in Chinese and English
+PASS exact cuts retain frame precision and source mapping
+PASS prefix/suffix removal, keep and split are deterministic
+PASS speed, original volume and mute map only to explicit targets
+PASS unknown clauses, negations, selections and semantic intent never silently drop
+PASS invalid exact commands fail clearly without a model repair
+PASS whole-film speed with separate audio requires synchronization planning
+PASS bundle cache is reusable and repairs deleted artifacts
+PASS bundle cache repairs nonempty same-size corruption
+PASS cache rebuild never overwrites media linked by an existing revision
+PASS bundle cache refuses corrupt/traversing or empty artifacts
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
++ actual - expected
+
+  [
++   true,
+    false,
+-   true
+  ]
+
+    at file:///C:/Users/admin/Desktop/hyperframe-main/video-agent/scripts/test-continuation.mjs:282:12
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async test (file:///C:/Users/admin/Desktop/hyperframe-main/video-agent/scripts/test-continuation.mjs:19:3)
+    at async file:///C:/Users/admin/Desktop/hyperframe-main/video-agent/scripts/test-continuation.mjs:270:3 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: [ true, false ],
+  expected: [ false, true ],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.19.0

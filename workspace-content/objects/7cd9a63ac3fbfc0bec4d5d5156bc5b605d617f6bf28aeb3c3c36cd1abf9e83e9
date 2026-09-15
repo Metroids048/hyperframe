@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>电商视频创作工作台</title><link rel="stylesheet" href="/commerce.css"></head>
+<body>
+<header><a href="/">视频创作</a><div class="header-actions"><select id="projects" aria-label="打开作品"><option value="">我的作品</option></select><button id="open-package" class="quiet" type="button">打开工程</button><input id="package-file" type="file" accept=".zip" aria-label="选择原生工程包" hidden><button id="new-project" class="quiet" type="button">新建</button></div></header>
+<main>
+<section class="chat" aria-label="创作对话">
+<div class="intro"><h1>你想制作什么？</h1><p>选择场景，描述目标，把素材交给 Agent。</p></div>
+<section id="creation-paths" aria-label="创作起点">
+<button type="button" class="quiet" data-creation="launch">单品上新／种草</button>
+<button type="button" class="quiet" data-creation="demo">单品操作演示</button>
+<p id="input-guidance">上传真实商品视频，选择目标或直接描述需求。图片可辅助，缺关键动作时会说明素材缺口。</p>
+</section>
+<label for="material-root">素材目录</label><select id="material-root" aria-label="素材目录"><option value="">上传我的素材</option></select><p id="material-count">也可以上传自己的视频和图片。</p>
+<details id="history-examples"><summary>查看历史样例（非本次结果）</summary><section id="business-cases" aria-label="历史业务样例"></section>
+<section id="presets" aria-label="电商演示预设">
+<div class="example-picker"><label for="example-select">电商示例</label><select id="example-select" aria-label="选择电商示例"><option value="">选择一个商品场景</option></select></div>
+<article id="example-card" hidden><img id="example-poster" alt="示例成片画面" hidden><div class="example-copy"><p id="example-category"></p><h2 id="example-title"></h2><p id="example-description"></p><div id="example-tags"></div><button id="example-load" type="button">▷ 查看已生成样片</button><button id="example-own" type="button" class="quiet">使用我的素材</button></div></article>
+<p id="examples-loading" class="example-loading">正在读取可播放的商品示例…</p>
+</section>
+</details>
+<div id="messages" class="messages" aria-live="polite"></div>
+<div id="voice-results" hidden></div>
+<div id="preset-notice" class="preset-notice" hidden><span>正在查看预设演示</span><button id="regenerate" class="quiet" type="button">用这些素材重新生成</button></div>
+<details id="example-evidence" hidden><summary>这条视频是怎么做的</summary><div class="example-evidence-body"><p class="example-fixed-note">这是已经生成的固定样片。重新生成会再次理解输入、选材和制作。</p><h3>输入素材</h3><div id="example-assets"></div><h3>实际制作过程</h3><ol id="example-process"></ol><h3>查看分镜</h3><div id="example-beats"></div><p id="example-result"></p><div id="example-credits"></div></div></details>
+<form id="composer">
+<textarea id="message" name="message" rows="4" placeholder="想做一条怎样的视频？" aria-label="视频需求"></textarea>
+<div id="thumbs"></div>
+<label>目标 <select id="creation-target" aria-label="任务目标"><option value="marketing">营销成片</option><option value="image">商品图片</option><option value="video">原始镜头</option></select></label>
+<label>画幅 <select id="output-aspect" aria-label="输出画幅"><option value="9:16">9:16 竖屏</option><option value="16:9">16:9 横屏</option><option value="1:1">1:1 方形</option></select></label>
+<label>成片秒数 <input id="output-duration" aria-label="成片秒数" type="number" min="5" max="600" value="24"></label>
+<div id="generated-assets" aria-label="生成素材"></div>
+<div class="composer-footer"><label class="attachment">＋ 添加素材<input id="images" type="file" accept="image/png,image/jpeg,image/webp,video/mp4,video/quicktime,video/webm,audio/mpeg,audio/wav,audio/mp4,.woff2" multiple></label><span id="composer-hint">素材可不填</span><button id="send" type="submit">生成视频</button></div>
+<p id="error" class="error" hidden></p>
+</form>
+<label class="scene-picker" for="business-scene">场景</label><select id="business-scene" aria-label="业务场景"><option value="auto">自动判断</option><option value="product_launch">单品上新</option><option value="product_demo">商品使用演示</option></select>
+</section>
+<section class="preview" aria-label="作品预览">
+<div id="empty"><div class="empty-icon">▷</div><p>作品会出现在这里</p></div>
+<div id="case-view" hidden><p id="case-label"></p><video id="case-film" controls preload="metadata"></video><div class="actions"><button id="case-fullscreen" type="button">全屏观看</button><a id="case-download" download>下载视频</a></div><details><summary>查看原始需求与输入条件</summary><p id="case-input"></p></details></div>
+<hyperframes-player id="player" controls hidden></hyperframes-player>
+<div id="revision-tools" hidden><select id="revisions" aria-label="作品版本"></select><div class="toolbar"><button id="undo" class="quiet">撤销</button><button id="redo" class="quiet">重做</button><button id="restore" class="quiet">恢复此版</button><button id="export">导出</button></div></div>
+<div class="downloads"><a id="download" hidden>下载 MP4</a><a id="package" hidden>下载原生工程</a></div>
+<details id="creation-summary" hidden><summary>素材与可编辑内容</summary><p id="creation-summary-text"></p></details>
+<details id="object-tools" hidden><summary>选择修改对象</summary><select id="objects" aria-label="画面对象"><option value="">自动理解修改目标</option></select><p id="object-info"></p></details>
+<div id="jobs" aria-live="polite"></div>
+<div id="production-quality" hidden><button id="direction-preview" class="quiet" hidden>播放方向预览</button><p id="quality-summary"></p></div>
+<details id="details" hidden><summary>工程信息</summary><pre id="status"></pre></details>
+</section>
+</main>
+<script src="/editor-player.js"></script><script type="module" src="/commerce.js"></script>
+</body></html>

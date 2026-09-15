@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1080, height=1080">
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <!-- S5 (the ported logo outro) builds its flight arc with CustomEase -->
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { margin: 0; width: 1080px; height: 1080px; overflow: hidden; background: #000; }
+    </style>
+  </head>
+  <body>
+    <div data-hf-id="hf-p4gx" id="root" data-composition-id="main" data-start="0" data-duration="49.2763" data-width="1080" data-height="1080" style="position: relative; width: 1080px; height: 1080px; background: #F3F4ED; overflow: hidden;">
+      <!-- seam 1 @ 15.6413 — shared-element MORPH carried on a CONTINUOUS CAMERA PULL. S1 pushes in on the plan and starts pulling back at 15.32; S2 renders the second half of that same pull out to identity while shrinking the plan into the rail. Both sides evaluate one shared ease over one master-time window (see either comp's paintCam) because the seam is not frame-aligned. Scale only ever shrinks across the cut. -->
+      <div data-hf-id="hf-j9kv" id="sq-slot" class="clip" data-composition-id="sq" data-composition-src="compositions/s1-square.html" data-start="0" data-duration="15.6413" data-track-index="0"></div>
+      <div data-hf-id="hf-xzo8" id="s2-slot" class="clip" data-composition-id="s2" data-composition-src="compositions/s2-ui.html" data-start="15.6413" data-duration="12.20" data-track-index="1"></div>
+      <!-- seam 2 @ 27.8413 — match cut. S2 ends on a clean full-frame Meridian; S3's k0 is
+           the same picture, then its plane docks into the wall. -->
+      <div data-hf-id="hf-m2se" id="s3-slot" class="clip" data-composition-id="s3" data-composition-src="compositions/s3-flyover.html" data-start="27.8413" data-duration="8.375" data-track-index="2"></div>
+  <!-- seam 3 @ 36.2163 — cut-the-curve LEFT, WORD BY WORD. S3 exits at -137 still
+           accelerating (1058 px/s); S4's first word enters from +122 on power4.out, matched. -->
+      <div data-hf-id="hf-o2po" id="s4-slot" class="clip" data-composition-id="s4" data-composition-src="compositions/s4-thesis.html" data-start="36.2163" data-duration="8.16" data-track-index="3"></div>
+  <!-- seam 4 @ 44.3763 — match cut on a flat cream field (#EDECE2 both sides). -->
+      <div data-hf-id="hf-khdj" id="s5-slot" class="clip" data-composition-id="s5" data-composition-src="compositions/s5-outro.html" data-start="44.3763" data-duration="4.90" data-track-index="4"></div>
+      <!-- ================= SFX =================
+           Placed at the ROOT with ROOT-ABSOLUTE data-start (sub-comp start + comp-local
+           event time), which sidesteps sub-comp audio-offset ambiguity. Every clip has
+           its OWN id and its OWN track index so they layer instead of cutting each other
+           off — an <audio> without an id is silently dropped from renders.
+           Sources are the zero-onset ones: the workspace has several click/type files with
+           158ms and 394ms of leading silence baked in, which fire 4-9 frames late.
+           Click times are lifted from the cursor PRESS tweens (scale 0.90), so the sound
+           is on the press frame, not the release. -->
+      <audio data-hf-id="hf-sfxc0" id="sfx-click-1" src="assets/sfx/click.mp3" data-start="2.0913" data-duration="0.274" data-track-index="10" data-volume="0.30"></audio>  <!-- s1 design button -->
+      <audio data-hf-id="hf-sfxc1" id="sfx-click-2" src="assets/sfx/click.mp3" data-start="4.3113" data-duration="0.274" data-track-index="11" data-volume="0.30"></audio>  <!-- s1 into the field -->
+      <audio data-hf-id="hf-sfxc2" id="sfx-click-3" src="assets/sfx/click.mp3" data-start="10.6513" data-duration="0.274" data-track-index="12" data-volume="0.30"></audio>  <!-- s1 pick Animation -->
+      <audio data-hf-id="hf-sfxc3" id="sfx-click-4" src="assets/sfx/click.mp3" data-start="11.7913" data-duration="0.274" data-track-index="13" data-volume="0.30"></audio>  <!-- s1 Send -->
+      <audio data-hf-id="hf-sfxc4" id="sfx-click-5" src="assets/sfx/click.mp3" data-start="25.7613" data-duration="0.274" data-track-index="14" data-volume="0.30"></audio>  <!-- s2 Share -->
+      <audio data-hf-id="hf-sfxc5" id="sfx-click-6" src="assets/sfx/click.mp3" data-start="27.0013" data-duration="0.274" data-track-index="15" data-volume="0.30"></audio>  <!-- s2 Send to HF -->
+      <audio data-hf-id="hf-sfxc6" id="sfx-click-7" src="assets/sfx/click.mp3" data-start="35.3830" data-duration="0.274" data-track-index="16" data-volume="0.30"></audio>  <!-- s3 Share, project B -->
+      <audio data-hf-id="hf-sfxk0" id="sfx-keys" src="assets/sfx/keys.mp3" data-start="4.5913" data-duration="3.00" data-track-index="20" data-volume="0.20"></audio>  <!-- the prompt typing run: a continuous bed, not a tick per key. 110 chars over 3.0s
+           is ~37cps, far faster than a hand, so discrete ticks would read as a machine gun
+           and would need 110 tagged tracks. Trimmed past its 43ms lead-in and faded. -->
+    </div>
+    <script>
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = gsap.timeline({ paused: true });
+    </script>
+  </body>
+</html>

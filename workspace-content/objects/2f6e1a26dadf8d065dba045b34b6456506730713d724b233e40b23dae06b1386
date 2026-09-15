@@ -1,0 +1,5 @@
+import json,sys,time,os
+for line in sys.stdin:
+ r=json.loads(line)
+ time.sleep(r.get("delay",0))
+ print(json.dumps({"id":r["id"],"ok":True,"result":{"pid":os.getpid(),"value":r.get("value")}}),flush=True)

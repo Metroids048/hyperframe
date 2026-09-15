@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>Liquid Refraction — HyperFrames</title>
+    <link rel="stylesheet" href="compositions/liquid-refraction.css" />
+    <script src="assets/gsap.min.js"></script>
+  </head>
+  <body>
+    <div id="root" data-composition-id="liquid-refraction-hyperframes" data-start="0" data-duration="8" data-fps="30" data-width="1920" data-height="1080" data-switch-at="99">
+      <video id="texture-a" class="clip source-media" data-start="0" data-duration="8" data-track-index="10" data-aspect="1" src="assets/hyperframes-logo-animation.mp4" muted playsinline></video>
+      <video id="texture-b" class="clip source-media" data-start="0" data-duration="8" data-track-index="11" data-aspect="1.7777778" src="assets/heygen-prism-sting-8s.mp4" muted playsinline></video>
+      <audio id="sting-audio" class="clip" data-start="0" data-duration="8" data-track-index="22" data-volume="0.38" src="assets/heygen-prism-sting-8s.mp4"></audio>
+      <canvas id="liquid-hyperframes-canvas" class="clip liquid-canvas" data-start="0" data-duration="8" data-track-index="1"></canvas>
+      <div id="liquid-hyperframes-hud" class="clip shader-layer" data-start="0" data-duration="8" data-track-index="2">
+        <div class="frame-rule top"></div><div class="frame-rule right"></div><div class="frame-rule bottom"></div><div class="frame-rule left"></div>
+        <div class="meta top-left">Liquid optics / logo study</div>
+        <div class="optic-readout"><span>IOR</span><b>1.33</b><span>Thickness</span><b>1.50</b><span>Dispersion</span><b>1.00</b></div>
+        <div class="meta bottom-right">HyperFrames / refracted</div>
+        <div class="scanline" data-layout-allow-overflow="true"></div>
+        <div class="terminal-lockup"><span>HyperFrames</span> / render the impossible</div>
+        <div class="grain"></div>
+      </div>
+    </div>
+    <script>window.__timelines = window.__timelines || {}; window.__timelines["liquid-refraction-hyperframes"] = gsap.timeline({ paused: true });</script>
+    <script src="js/liquid-refraction.js"></script>
+    <script>window.initLiquidRefraction();</script>
+  </body>
+</html>
