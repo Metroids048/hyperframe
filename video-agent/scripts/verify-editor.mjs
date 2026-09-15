@@ -33,6 +33,9 @@ const commands =
         "test-skill-routing",
         "test-isolation-protocol",
         "test-delivery-entry",
+        "test-closeout-r1",
+        "test-creative-portable",
+        "test-finished-works",
       ]
     : [
         "build-web",
@@ -44,6 +47,7 @@ const commands =
         "test-upgrade-generation",
         "test-conversation-media",
         "test-creative-custom",
+        "test-finished-work-ui",
       ];
 const report = {
   group,

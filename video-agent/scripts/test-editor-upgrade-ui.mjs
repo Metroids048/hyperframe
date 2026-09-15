@@ -419,6 +419,7 @@ try {
   await page.reload({ waitUntil: "domcontentloaded" });
   assert.equal(await page.$eval("#prompt", (e) => e.value), "我的未发送草稿");
   pass("建议仅填入要求，刷新保留新项目草稿");
+  await page.waitForSelector('#sample-gallery [data-sample-id="tears-of-steel"]');
   await page.click('#sample-gallery [data-sample-id="tears-of-steel"]');
   await wait(() => !document.querySelector("#viewer").hidden);
   const p = projects.get(id);

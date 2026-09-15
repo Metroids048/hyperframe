@@ -125,8 +125,8 @@ test('story model request includes earlier broad frames together with newer acti
     if(call===0)return {result:brief};if(call===1)return {result:{observations:[observation],candidates:[],inspectRanges:[],gaps:[]}};
     if(call===2)return {result:{selected:[],gaps:[],blockingGaps:[]}};
     if(call===5){
-      assert.deepEqual(packet.sourceEvidence.records.map(r=>r.file),batches.map(b=>b.records[0].file));
-      assert.deepEqual(content.filter(i=>i.type==='input_image').map(i=>i.image_url),[0,1].map(i=>'data:image/jpeg;base64,'+Buffer.from('injected-frame-'+i).toString('base64')));
+      assert.deepEqual(packet.sourceEvidence.records.map(r=>r.file),[batches[1].records[0].file,batches[0].records[0].file]);
+      assert.deepEqual(content.filter(i=>i.type==='input_image').map(i=>i.image_url),[1,0].map(i=>'data:image/jpeg;base64,'+Buffer.from('injected-frame-'+i).toString('base64')));
     }
     return {result:stories[call-3]};
   }};

@@ -35,7 +35,9 @@ export async function cachedBundle(namespace,key,build) {
   try{const metadata=JSON.parse(await fs.readFile(manifest,'utf8'));if(await validBundle(dir,metadata))return {dir,metadata,hit:true};}catch{}
   if(pending.has(manifest)){await pending.get(manifest);const metadata=JSON.parse(await fs.readFile(manifest,'utf8'));if(!await validBundle(dir,metadata))throw Error('媒体缓存不完整；请重试导入');return {dir,metadata,hit:true};}
   const work=(async()=>{
-    const staging=dir+'.building-'+randomUUID(),retired=dir+'.replaced-'+randomUUID();
+    // Keep native-tool working paths short. The full content identity remains
+    // the final directory; only the unpublished sibling uses a compact name.
+    const staging=path.join(path.dirname(dir),'b-'+randomUUID().slice(0,12)),retired=path.join(path.dirname(dir),'r-'+randomUUID().slice(0,12));
     await fs.mkdir(staging,{recursive:true});
     let moved=false;
     try {

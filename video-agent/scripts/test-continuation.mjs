@@ -280,7 +280,9 @@ try {
     ]);
     assert.equal(calls, 1);
     assert.deepEqual(
-      hits.map((x) => x.hit),
+      // Either concurrent caller can acquire the filesystem lock first.
+      // Exactly one builds and one reuses; Promise input order is not lock order.
+      hits.map((x) => x.hit).sort(),
       [false, true],
     );
     await assert.rejects(

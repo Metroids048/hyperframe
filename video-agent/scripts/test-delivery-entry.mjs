@@ -27,7 +27,12 @@ test('delivery routes fail closed and derive current job and files',async()=>{
  assert.equal((await call('/delivery-assets/Q02-A/final_video?revision=old')).body,'old-version');
  assert.equal((await call('/delivery-assets/Q02-A/final_video?revision=missing')).status,404);
  assert.equal((await call('/delivery-assets/Q02-A/final_video?revision=r')).body,'test file');
- await fs.unlink(path.join(root,'commerce-final.mp4'));await fs.symlink('/etc/hosts',path.join(root,'commerce-final.mp4'));
- assert.equal((await call('/delivery-assets/Q02-A/final_video')).status,404);
+ const outside=await fs.mkdtemp(path.join(os.tmpdir(),'hf-delivery-outside-'));
+ try{
+  await fs.writeFile(path.join(outside,'commerce-final.mp4'),'must not be served');
+  await fs.symlink(outside,path.join(root,'escape'),process.platform==='win32'?'junction':'dir');
+  project.revisions[0].directory='escape';
+  assert.equal((await call('/delivery-assets/Q02-A/final_video')).status,404);
+ }finally{await fs.rm(outside,{recursive:true,force:true});}
  }finally{await fs.rm(root,{recursive:true,force:true});}
 });

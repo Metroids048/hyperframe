@@ -94,7 +94,10 @@ async function seekAndInspect(page,time,timeline) {
     await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
     const media=[...document.querySelectorAll('video,audio')],pending=media.filter(el=>{const start=Number(el.dataset.start||0),end=start+Number(el.dataset.duration||Infinity);return time>=start&&time<end;});
     await Promise.all(pending.map(el=>new Promise((resolve,reject)=>{
-      const target=Number(el.dataset.mediaStart||0)+(time-Number(el.dataset.start||0))*Number(el.dataset.playbackRate||1),deadline=performance.now()+3500;
+      // Concurrent export can occupy decoders longer than the old 3.5s window.
+      // Still require a decoded frame at the exact source time; never accept
+      // HAVE_METADATA as successful visual evidence.
+      const target=Number(el.dataset.mediaStart||0)+(time-Number(el.dataset.start||0))*Number(el.dataset.playbackRate||1),deadline=performance.now()+15000;
       const check=()=>{if(el.error)return reject(Error(`媒体解码失败：${el.id} (${el.error.code})`));if(el.readyState>=2&&!el.seeking&&Math.abs(el.currentTime-target)<=1/30+.003)return resolve();if(performance.now()>deadline)return reject(Error(`媒体未在目标帧就绪：${el.id}, expected=${target.toFixed(4)}, actual=${el.currentTime.toFixed(4)}, ready=${el.readyState}`));setTimeout(check,15);};check();
     })));
     await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));

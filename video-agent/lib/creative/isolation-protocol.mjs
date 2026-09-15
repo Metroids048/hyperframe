@@ -1,6 +1,15 @@
 import {createHash} from 'node:crypto';
 export const PROTOCOL_VERSION=1;
 export const SUPERVISOR_PREFIX='HF_SCENE_SUPERVISOR ';
+export function sceneIsolationLimits(config){
+ // Trusted compiler sampling density grows with the number of finite tweens.
+ // Keep every sample and interval; allocate a bounded CPU budget for that work.
+ const samples=(config.scenes||[]).reduce((count,scene)=>count+new Set([
+  ...[.03,.18,.38,.58,.78,.97].map(f=>scene.startFrame/30+scene.durationFrames/30*f),...(scene.sampleTimes||[])
+ ]).size,0);
+ const cpuSeconds=Math.min(120,Math.max(30,15+2*samples));
+ return {cpuSeconds,wallMs:Math.ceil(cpuSeconds*1500),processMemoryBytes:1024**3,jobMemoryBytes:2*1024**3};
+}
 export function digest(value){return createHash('sha256').update(value).digest('hex');}
 export function workerReceipt(identity,result,runtimeHash){return {protocolVersion:PROTOCOL_VERSION,type:'scene-worker',...identity,status:result.status,error:result.error,errorCode:result.errorCode,runtimeHash};}
 export function validateReceipt(receipt,identity,runtimeBytes){

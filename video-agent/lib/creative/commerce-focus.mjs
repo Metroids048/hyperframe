@@ -100,7 +100,7 @@ export function assertRequiredActions(document,admission){
 /** Candidate production can proceed with analysis; formal delivery still uses productionAdmission. */
 export async function candidateAdmission(root,contract,assets,directory,document){
   if(!document?.scenePackage)return assertProductionAdmission(root,contract,assets,directory);
-  const saved=JSON.parse(await fs.readFile(path.join(directory,'production-admission.json'),'utf8'));
+  const saved=JSON.parse(await fs.readFile(path.join(directory,'production-admission.json'),'utf8').catch(error=>{if(error.code!=='ENOENT')throw error;throw new CreativeError('工程缺少候选素材检查记录，请从原工程重新导出完整工程包','PACKAGE_ADMISSION_MISSING');}));
   if(saved.status!=='candidate_only')return assertProductionAdmission(root,contract,assets,directory);
   if(saved.contractHash!==digest(contract)||!Array.isArray(saved.assets)||saved.assets.length!==assets.length||saved.assets.some(a=>!assets.some(b=>b.id===a.assetId&&b.sha256===a.sha256)))throw new CreativeError('候选素材或合同改变，需要重新分析','CANDIDATE_CHANGED');
   return saved;

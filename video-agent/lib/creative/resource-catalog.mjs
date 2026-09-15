@@ -2,19 +2,44 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
 const hash=x=>createHash('sha256').update(typeof x==='string'||Buffer.isBuffer(x)?x:JSON.stringify(x)).digest('hex');
-export function explicitResource(need){
- const text=typeof need==='string'?need:JSON.stringify(need);
- const named=/chromatic(?:[- ]radial)?[- ]split|色散/i.test(text);
- if(!named||/(?:不要|禁止|不用)[^。！,，]{0,8}(?:色散|chromatic)/i.test(text))return null;
- return 'chromatic-radial-split';
+const canonical=r=>r.canonicalId||r.name||r.id;
+const compact=s=>String(s).toLowerCase().replace(/[^a-z0-9\u4e00-\u9fff]/g,'');
+const needText=need=>typeof need==='string'?need:need.message||need.name||need.id||JSON.stringify(need);
+export function resourceRequests(need,resources=[]){
+ const text=needText(need),entries=[...resources,{name:'chromatic-radial-split',aliases:['chromatic-split','chromatic split','ChromaticRadialSplit','色散']}];
+ const requests=new Map();let previous=[];
+ for(const clause of text.split(/[，,。;；！!]/)){
+  let hits=entries.filter(r=>[r.id,r.name,r.canonicalId,r.displayName,r.url,r.sourceUrl,...(r.aliases||[])].filter(Boolean).some(n=>compact(n).length>=(/[\u4e00-\u9fff]/.test(n)?2:4)&&compact(clause).includes(compact(n))));
+  if(!hits.length&&/只在|only.*(?:first|transition)/i.test(clause))hits=previous;
+  if(!hits.length)continue;previous=hits;
+  const denied=/(?:不要|禁止|不用|不使用|do\s+not|don't|never|without)/i.test(clause);
+  const scoped=/只在|仅在|only/i.test(clause);const ordinal=clause.match(/第([一二三四五六七八九十\d]+)(?:个)?转场|(?:the\s+)?(first|second|third)\s+transition/i);
+  const numbers={'一':1,'二':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9,'十':10,first:1,second:2,third:3};
+  const token=ordinal?.[1]||ordinal?.[2]?.toLowerCase();const scope=ordinal?{kind:'transition',index:(numbers[token]||Number(token))-1}:scoped?{kind:'unresolved'}:{kind:'all'};
+  for(const r of hits){const id=canonical(r);requests.set(id,{canonicalId:id,negated:denied,scope,clause});}
+ }
+ return [...requests.values()];
 }
+export function explicitResource(need,resources=[]){return resourceRequests(need,resources).find(r=>!r.negated)?.canonicalId||null;}
 export class HyperFramesResourceCatalog {
  constructor(root,data){this.root=root;this.data=data;this.resources=Object.values(data.groups).flat();}
  static async open(root){const d=JSON.parse(await fs.readFile(path.join(root,'config/hyperframes/catalog.generated.json'),'utf8'));if(d.provenance.runtimeVersion!=='0.8.33'||hash({commit:d.provenance.commit,groups:d.groups,files:d.files})!==d.contentHash)throw Error('Catalog version/hash mismatch');return new this(root,d);}
- search(need,{limit=12}={}){const exact=explicitResource(need);const text=(JSON.stringify(need)+(exact?' '+exact:'')).toLowerCase();const terms=text.split(/[^a-z0-9\u4e00-\u9fff]+/).filter(t=>t.length>2);return this.resources.map(r=>({...r,score:[...new Set(terms)].reduce((sum,t)=>sum+((r.name+' '+r.tags.join(' ')+' '+r.description).toLowerCase().includes(t)?1:0),0)})).filter(r=>r.score>0).sort((a,b)=>b.score-a.score||a.id.localeCompare(b.id)).slice(0,limit);}
+ search(need,{limit=12}={}){const exact=explicitResource(need,this.resources);const text=(JSON.stringify(need)+(exact?' '+exact:'')).toLowerCase();const terms=text.split(/[^a-z0-9\u4e00-\u9fff]+/).filter(t=>t.length>2);return this.resources.map(r=>({...r,score:[...new Set(terms)].reduce((sum,t)=>sum+((r.name+' '+r.tags.join(' ')+' '+r.description).toLowerCase().includes(t)?1:0),0)})).filter(r=>r.score>0).sort((a,b)=>b.score-a.score||a.id.localeCompare(b.id)).slice(0,limit);}
  async context(resources,{maxCharacters=12000}={}){let text='',records=[];for(const r of resources){if(!this.resources.some(x=>x.id===r.id&&x.sha256===r.sha256))throw Error('Unknown resource');const file=path.resolve(this.root,'..',r.path);if(!file.startsWith(path.resolve(this.root,'../third_party')+path.sep))throw Error('Resource path escapes mirror');const content=await fs.readFile(file,'utf8');if(hash(content)!==r.sha256)throw Error('Upstream resource changed: '+r.id);if(text.length+content.length>maxCharacters)continue;text+='\n<reference path="'+r.path+'">'+content+'</reference>\n';records.push({file:r.path,sha256:r.sha256,id:r.id,execution:'reference_only'});}return {text,records,budget:{maxCharacters,usedCharacters:text.length}};}
 }
 export class HyperFramesResourcePlanner {
  constructor(catalog,adapters=[]){this.catalog=catalog;this.adapters=adapters;}
- plan(need){const exact=explicitResource(need);const found=this.catalog.search(need,{limit:20});const adapters=this.adapters.filter(a=>a.compatible&&a.eligible);const selected=adapters.filter(a=>!exact||[exact,'chromatic-split'].includes(a.id)).map(a=>{const sources=found.filter(r=>r.name===a.id||(a.id==='chromatic-split'&&r.name==='chromatic-radial-split'));return {...a,discoveryScore:sources.reduce((s,r)=>s+r.score,0),sourceFiles:sources.map(r=>({path:r.path,sha256:r.sha256,commit:r.sourceCommit}))};}).sort((a,b)=>b.discoveryScore-a.discoveryScore||b.score-a.score).slice(0,5);return {need,requestedCanonicalId:exact,status:exact&&!selected.length?'pending_adapter':'resolved',catalogHash:this.catalog.data.contentHash,selected,alternatives:found,whySelected:'Match business/visual purpose, then constrain execution to verified native adapters',whyRejected:found.filter(r=>!selected.some(a=>a.id===r.name)).map(r=>({id:r.id,reason:'Reference discovery only: no reviewed compatible execution adapter selected'})),compatibility:'0.8.33',adapterStatus:'local allowlist; each produced bundle still requires check and render'};}
+ plan(need){
+  const requests=resourceRequests(need,this.catalog.resources||[]),positive=requests.filter(r=>!r.negated),denied=new Set(requests.filter(r=>r.negated).map(r=>r.canonicalId));
+  const exact=positive[0]?.canonicalId||null,found=this.catalog.search(need,{limit:20});
+  // Alias/URL matches must carry the exact catalog record even when the
+  // descriptive keyword search ranks it outside its bounded shortlist.
+  for(const r of this.catalog.resources||[])if(positive.some(q=>q.canonicalId===canonical(r))&&!found.some(f=>f.id===r.id))found.push({...r,score:1});
+  const runtimeCanonical=a=>a.canonicalId||(a.id==='chromatic-split'?'chromatic-radial-split':a.id);
+  const selected=this.adapters.filter(a=>a.compatible&&a.eligible&&!denied.has(runtimeCanonical(a))&&(!positive.length||positive.some(r=>r.canonicalId===runtimeCanonical(a)))).map(a=>{
+   const sources=found.filter(r=>canonical(r)===runtimeCanonical(a));return {...a,canonicalId:runtimeCanonical(a),scope:positive.find(r=>r.canonicalId===runtimeCanonical(a))?.scope||null,discoveryScore:sources.reduce((s,r)=>s+(r.score||0),0),sourceFiles:sources.map(r=>({path:r.path,sha256:r.sha256,commit:r.sourceCommit}))};
+  }).filter(a=>positive.length||a.discoveryScore>0).sort((a,b)=>b.discoveryScore-a.discoveryScore||(b.score||0)-(a.score||0)).slice(0,5);
+  const missing=positive.filter(r=>!selected.some(a=>a.canonicalId===r.canonicalId));
+  return {need,requests,requestedCanonicalId:exact,status:missing.length?'pending_adapter':positive.some(r=>r.scope.kind==='unresolved')?'unresolved_scope':selected.length?'resolved':requests.length&&!positive.length?'excluded':'unresolved',catalogHash:this.catalog.data.contentHash,selected,alternatives:found,unresolved:missing,whySelected:'Exact requests constrain the compatible executor; discovery is not execution',whyRejected:found.filter(r=>!selected.some(a=>a.canonicalId===canonical(r))).map(r=>({id:r.id,reason:'No matching compatible executor selected'})),compatibility:'0.8.33',adapterStatus:'requires actual bundle and render verification'};
+ }
 }

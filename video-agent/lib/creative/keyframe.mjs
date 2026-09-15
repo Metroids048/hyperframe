@@ -6,6 +6,8 @@ import {linkOrCopy} from '../edit/media.mjs';
 import {resourceHash} from './capabilities.mjs';
 import {insist,FPS} from './contracts.mjs';
 
+export const ANIMATION_SOURCE_CONTRACT='已检查静态画面不可改写。只返回animation:{timeline,parameters,motionTargets}和notes；不返回source、HTML或CSS。所有动画目标必须是checkedKeyframe.objects中已有elementId。每条语句只可用tl.to/from/fromTo/set，选择器必须是单个"#id"字符串，不能用数组；每条语句以分号结束，不链式调用，不声明变量、函数、回调、循环，不控制视频播放。GSAP视觉属性可用opacity、x/y、scale、rotation、clipPath；不得修改文字、src、left/top。数值为字面量或params.name的+-*/算式。params.sceneSeconds是内置镜头时长，不得放进parameters；其他参数必须带name/value/min/max。时间是本镜头秒数；全片时间需减sceneStartSeconds。时序必须有限、可重复seek且结束不超sceneSeconds。需要延迟出现的对象先tl.set("#id",{opacity:0},0)，再在指定窗口淡入/退出。motionTargets列出确有动画的既有对象ID。保留真实视频自然推进，不额外加动效填时长。按shot.visualDirection和timingFeedback落实文字范围，指定遮罩不能换成普通淡入。返回标准JSON，timeline不含代码围栏。';
+
 export function animateKeyframe(source,animation){
   insist(animation&&Object.keys(animation).every(k=>['timeline','parameters','motionTargets'].includes(k)),'动画步骤只能提交时间线和运动参数','KEYFRAME_CHANGED');
   return {...structuredClone(source),...structuredClone(animation)};

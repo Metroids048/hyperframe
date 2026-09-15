@@ -5,4 +5,10 @@ export const budgetExhausted = job => {
   if(job?.code==='MODEL_BUDGET')return !(Number.isSafeInteger(job.maxModelCalls)&&job.modelCalls<job.maxModelCalls-(job.completionReserve||0));
   return exhausted.has(job?.code)&&!(job.code==='OBSERVATION_BUDGET'&&job.error==='加密观察超过预算');
 };
-export const canResumeJob = job => Boolean(job?.runId) && !budgetExhausted(job) && ['recoverable', 'cancelled', 'failed', 'needs_user'].includes(job.status);
+export const canResumeJob = job => Boolean(job?.runId || job?.kind==='create') && !budgetExhausted(job) && ['recoverable', 'cancelled', 'failed', 'needs_user'].includes(job.status);
+export const shotCheckpointMismatch = (shot,checkpoint) => {
+ const receipt=checkpoint?.receipt;
+ if(!receipt)return false;
+ return Boolean((receipt.resourceId&&receipt.resourceId!==shot.resourceId)||
+   (['composition-adapt','original'].includes(shot.productionMethod)&&receipt.method==='parameterized'));
+};

@@ -1,3 +1,5 @@
+import {resourceRequests} from './resource-catalog.mjs';
+import {fullOriginalAudioGraph} from './observation-audio.mjs';
 import {createHash} from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -186,6 +188,8 @@ export function documentFromModelPlan(request,assets,plan){
   });
   const transitions=overlap?scenes.slice(1).map((s,i)=>({id:`transition-${i+1}`,fromSceneId:scenes[i].id,toSceneId:s.id,effect:design.transition,durationFrames:overlap,params:normalizeEffectParams(design.transition,{durationFrames:overlap})})):[];
   const document=createNativeDocument({projectId:request.projectId,output:request.output,brief:buildProductBrief({...request,assets}),design,assets,scenes,nodes,transitions,sourceBundles});
+  for(const named of resourceRequests(request.message)){if(named.canonicalId!=='chromatic-radial-split'||named.negated)continue;const targets=named.scope.kind==='transition'?[transitions[named.scope.index]]:transitions;insist(targets.length&&targets.every(Boolean),'指定色散切点不存在','RESOURCE_SCOPE');for(const t of targets)t.effect='chromatic-split';document.resourceRequests=[named];}
+
   for(const scene of scenes.filter(s=>s.effect==='custom-native'))compileCustomSource(sourceBundles.find(b=>b.sceneId===scene.id),{scene,nodes:nodes.filter(n=>n.sceneId===scene.id),assets:byId});
   document.observations=plan.observations;document.omitted=plan.omitted;
   document.audioGraph=(plan.audio||[]).flatMap((a,i)=>{
@@ -194,6 +198,7 @@ export function documentFromModelPlan(request,assets,plan){
     if(asset.kind==='video')return document.nodes.filter(n=>n.kind==='video'&&n.assetId===asset.id).map((n,j)=>({id:`audio-${i+1}-${j+1}`,assetId:asset.id,sceneId:n.sceneId,sourceNodeId:n.id,startFrame:n.startFrame,sourceStartSeconds:n.params.sourceStartSeconds,playbackRate:n.params.playbackRate??1,durationFrames:n.durationFrames,volume:a.volume}));
     return {id:`audio-${i+1}`,assetId:a.assetId,startFrame:0,sourceStartSeconds:a.sourceStartSeconds,durationFrames:Math.min(target,Math.floor((asset.mediaMetadata.duration-a.sourceStartSeconds)*FPS)),volume:a.volume};
   });
+  document.audioGraph=fullOriginalAudioGraph(request.message,assets,target)||document.audioGraph;
   document.revisionId=stableId('rev',request.projectId,document.scenes,document.nodes,document.design,document.audioGraph,document.sourceBundles);
   assertNoUnknownFacts(document);return document;
 }

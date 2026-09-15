@@ -3,6 +3,11 @@ import fs from 'node:fs/promises';
 import {CodexProvider} from '../edit/codex-provider.mjs';
 import {insist,stableId} from './contracts.mjs';
 
+// Display copy belongs to native text nodes. Only a speech workflow may run ASR.
+export function needsSpeechCaptions(brief){
+  return Boolean(brief.needsCaptions&&(brief.needsTranscription||brief.needsNarration));
+}
+
 export function projectNativeCaptions(document){
   const result=[];
   for(const cue of document.captions||[])for(const track of document.audioGraph||[]){

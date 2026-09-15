@@ -1,8 +1,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {digest,workerReceipt,validateReceipt,parseSupervisor} from '../lib/creative/isolation-protocol.mjs';
+import {digest,workerReceipt,validateReceipt,parseSupervisor,sceneIsolationLimits} from '../lib/creative/isolation-protocol.mjs';
 const identity={runId:'run-current',inputHash:digest('input'),sceneIds:['scene-1']},bytes=Buffer.from(JSON.stringify({status:'passed',samples:[{}],motion:[{moved:true}]}));
 const receipt=workerReceipt(identity,{status:'passed'},digest(bytes));
+test('dense finite animation checks have enough CPU while memory and worst-case budgets remain bounded',()=>{
+ const scene={startFrame:0,durationFrames:900};
+ const simple=sceneIsolationLimits({scenes:[scene]});
+ const dense=sceneIsolationLimits({scenes:[{...scene,sampleTimes:Array.from({length:22},(_,i)=>i)}]});
+ const extreme=sceneIsolationLimits({scenes:[{...scene,sampleTimes:Array.from({length:10000},(_,i)=>i/1000)}]});
+ assert(dense.cpuSeconds>simple.cpuSeconds);
+ assert.equal(dense.processMemoryBytes,simple.processMemoryBytes);assert.equal(dense.jobMemoryBytes,simple.jobMemoryBytes);
+ assert(extreme.cpuSeconds<=120&&extreme.wallMs<=180000);
+});
 test('receipt binds version, run, input, scenes and actual runtime bytes',()=>{
  assert.equal(validateReceipt(receipt,identity,bytes).status,'passed');
  for(const patch of [{protocolVersion:2},{protocolVersion:undefined},{runId:'stale'},{inputHash:'stale'},{sceneIds:[]},{runtimeHash:undefined},{status:'running'}])assert.throws(()=>validateReceipt({...receipt,...patch},identity,bytes),{code:'ISOLATION_PROTOCOL'});

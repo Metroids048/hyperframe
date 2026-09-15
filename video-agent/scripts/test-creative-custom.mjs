@@ -89,6 +89,14 @@ test('opaque overlay cannot satisfy required product visibility',async()=>{
  await fs.writeFile(path.join(dir,'index.html'),html);
  await assert.rejects(runSceneIsolation(dir,{...config(),scenes:[{...scene,targets:[],visibleTargets:['custom-scene-01-headline']}]}),{code:'CUSTOM_RUNTIME_FAILED'});
 });
+test('a translucent parent during a dissolve does not falsely occlude an animated object',async()=>{
+ const dir=await fixture('translucent-parent');
+ const html=compileDocument(document,[]).html.replace('</body>','<div style="position:absolute;inset:0;z-index:99999;opacity:0.2"><div style="position:absolute;inset:0;background:black"></div></div></body>');
+ await fs.writeFile(path.join(dir,'index.html'),html);
+ const result=await runSceneIsolation(dir,config());
+ assert.equal(result.runtime.status,'passed');
+ assert(result.runtime.motion.every(m=>m.moved));
+});
 
 test('mixed static and dynamic scenes pass through the production project verifier',async()=>{
  const {verifyCustomProject}=await import('../lib/creative/isolation.mjs');
@@ -132,3 +140,15 @@ test('deep workspace uses a short private browser temp root and removes only tha
  await assert.rejects(fs.stat(path.dirname(worker.browserProfile)),{code:'ENOENT'});
  assert((await fs.stat(path.join(dir,'runtime-evidence.json'))).size>0);
 });
+
+test('discrete caption visibility is valid without inventing motion, hidden content still fails',async()=>{
+ for(const hidden of [false,true]){
+  const source={...bundle,contractVersion:2,motionTargets:[],timeline:'tl.set("#headline",{opacity:0},0);'+(hidden?'':'tl.set("#headline",{opacity:1},2);tl.set("#headline",{opacity:0},4);')};
+  const doc={...document,sourceBundles:[source]},compiled=compileCustomSource(source,{scene,nodes,assets:{}});assert.equal(compiled.validationRequirements.mode,'discrete');
+  const output=await fixture(hidden?'hidden-discrete':'visible-discrete');await fs.writeFile(path.join(output,'index.html'),compileDocument(doc,[]).html);
+  if(hidden)await assert.rejects(verifyCustomProject(output,doc,[]),{code:'CUSTOM_RUNTIME_FAILED'});else assert.equal((await verifyCustomProject(output,doc,[])).scenes[0].runtime.status,'passed');
+ }
+ assert.throws(()=>compileCustomSource({...bundle,contractVersion:2,motionTargets:[]},{scene,nodes,assets:{}}),{code:'CUSTOM_MOTION'});
+});
+
+import {verifyCustomProject} from '../lib/creative/isolation.mjs';

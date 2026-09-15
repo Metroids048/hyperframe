@@ -2,12 +2,17 @@ import {readFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import {insist} from './contracts.mjs';
 const sourcePath='third_party/hyperframes/registry/blocks/chromatic-radial-split/chromatic-radial-split.html';
-const source=readFileSync(new URL('../../../'+sourcePath,import.meta.url),'utf8');
+function loadShader(){
+let source;
+try { source=readFileSync(new URL('../../../'+sourcePath,import.meta.url),'utf8'); }
+catch { insist(false,'缺少固定版本官方 Chromatic Radial Split 资源；请恢复 third_party 子模块','SHADER_SOURCE'); }
 // Exact fragment program from the pinned local official blueprint. Its demo
 // labels and canvas text capture are deliberately not an execution source.
 const fragment=source.match(/"(void main\(\)\{vec2 c=v_uv-\.5;[^"\n]+)"/)?.[1];
 insist(fragment,'官方色散着色器实现缺失','SHADER_SOURCE');
 const sourceSha256=createHash('sha256').update(source).digest('hex');
+return {fragment,sourceSha256};
+}
 function runtime(configs,fragment){
  const root=document.getElementById('commerce-root');
  const states=configs.map(c=>{
@@ -29,12 +34,12 @@ function runtime(configs,fragment){
    canvas.style.opacity=p>0&&p<1?'1':'0';if(p<=0||p>=1)return;
    gl.useProgram(program);gl.viewport(0,0,canvas.width,canvas.height);
    for(let i=0;i<2;i++){
-    const m=media[i],w=m.videoWidth||m.naturalWidth,h=m.videoHeight||m.naturalHeight;if(!w||!h)return;
+    const m=media[i],replacement=m.nextElementSibling,frame=replacement?.classList.contains('__render_frame__')&&replacement.complete&&replacement.naturalWidth?replacement:m,w=frame.videoWidth||frame.naturalWidth,h=frame.videoHeight||frame.naturalHeight;if(!w||!h)return;
     ctx.fillStyle=c.background;ctx.fillRect(0,0,surface.width,surface.height);
     const b=m.getBoundingClientRect(),r=root.getBoundingClientRect(),sx=surface.width/r.width,sy=surface.height/r.height;
     const x=(b.left-r.left)*sx,y=(b.top-r.top)*sy,bw=b.width*sx,bh=b.height*sy,fit=getComputedStyle(m).objectFit;
     const scale=fit==='contain'?Math.min(bw/w,bh/h):Math.max(bw/w,bh/h);
-    ctx.save();ctx.beginPath();ctx.rect(x,y,bw,bh);ctx.clip();ctx.drawImage(m,x+(bw-w*scale)/2,y+(bh-h*scale)/2,w*scale,h*scale);ctx.restore();
+    ctx.save();ctx.beginPath();ctx.rect(x,y,bw,bh);ctx.clip();ctx.drawImage(frame,x+(bw-w*scale)/2,y+(bh-h*scale)/2,w*scale,h*scale);ctx.restore();
     gl.activeTexture(i===0?gl.TEXTURE0:gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,textures[i]);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,surface);gl.uniform1i(gl.getUniformLocation(program,i===0?'u_from':'u_to'),i);
    }
    gl.uniform1f(gl.getUniformLocation(program,'u_progress'),p*p*(3-2*p));gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
@@ -43,9 +48,19 @@ function runtime(configs,fragment){
   return draw;
  });
  const timeline=window.__timelines['commerce-root'];timeline.eventCallback('onUpdate',()=>states.forEach(draw=>draw()));
+ // The pinned renderer invokes this hook after every exact-frame batch has
+ // decoded. Preserve its existing color-grading work, then sample those frames.
+ const wrapped=new WeakSet();
+ const bindRenderHook=()=>{const grading=window.__hf?.colorGrading;if(!grading||wrapped.has(grading))return;wrapped.add(grading);const priorRedraw=grading.redraw;grading.redraw=function(...args){priorRedraw?.apply(this,args);states.forEach(draw=>draw());};};
+ bindRenderHook();
+ // The engine installs its runtime after author scripts, so bind again when
+ // its first exact-frame sibling is inserted, before that batch decodes.
+ new MutationObserver(bindRenderHook).observe(root,{childList:true,subtree:true});
+ document.addEventListener('load',event=>{if(event.target?.classList?.contains('__render_frame__'))states.forEach(draw=>draw());},true);
  states.forEach(draw=>draw());
 }
 export function compileChromatic(document,objectMap){
+ const {fragment,sourceSha256}=document.transitions.some(t=>t.effect==='chromatic-split')?loadShader():{};
  const configs=document.transitions.filter(t=>t.effect==='chromatic-split').map(t=>{
   const nodes=[t.fromSceneId,t.toSceneId].map(id=>document.nodes.find(n=>n.sceneId===id&&['image','video'].includes(n.kind)));
   insist(nodes.every(Boolean),'色散转场必须绑定相邻真实媒体','SHADER_MEDIA');

@@ -27,12 +27,18 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    env:
+      GIT_CONFIG_COUNT: '1'
+      GIT_CONFIG_KEY_0: core.autocrlf
+      GIT_CONFIG_VALUE_0: 'false'
     timeout-minutes: 20
     defaults:
       run:
         working-directory: video-agent
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
       - uses: actions/setup-node@v4
         with:
           node-version: '22'

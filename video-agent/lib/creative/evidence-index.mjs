@@ -21,11 +21,11 @@ export function buildEvidenceIndex(assets,batches=[],observations=[]){
   return {version:1,assets:assets.map(a=>({assetId:a.id,sourceSha256:a.sha256,duration:a.mediaMetadata?.duration})),entries:[...new Map(entries.map(e=>[e.id,e])).values()]};
 }
 
-export function queryEvidence(index,{ranges=[],preferredRanges=[],assetIds=[],limit=12}={}){
+export function queryEvidence(index,{ranges=[],preferredRanges=[],preferredBatchKeys=[],assetIds=[],limit=12}={}){
   insist(Number.isInteger(limit)&&limit>0&&limit<=24,'证据查询超过图片预算','OBSERVATION_BUDGET');
   const relevant=index.entries.filter(e=>(!assetIds.length||assetIds.includes(e.assetId))&&(!ranges.length||ranges.some(r=>r.assetId===e.assetId&&(!(e.times||[]).length||(e.times||[]).some(t=>t>=r.startSeconds-.25&&t<=r.endSeconds+.25)))));
   const preferred=e=>preferredRanges.some(r=>r.assetId===e.assetId&&(e.times||[]).some(t=>t>=r.startSeconds-.25&&t<=r.endSeconds+.25));
-  relevant.sort((a,b)=>Number(preferred(b))-Number(preferred(a)));
+  relevant.sort((a,b)=>Number(preferredBatchKeys.includes(b.batchKey))-Number(preferredBatchKeys.includes(a.batchKey))||Number(preferred(b))-Number(preferred(a)));
   // Round robin across source intervals/batches: latest observations cannot
   // evict every older observation simply because they were produced last.
   const groups=new Map();for(const e of relevant){const k=[e.assetId,e.batchKey,e.startSeconds,e.endSeconds].join(':');if(!groups.has(k))groups.set(k,[]);groups.get(k).push(e);}

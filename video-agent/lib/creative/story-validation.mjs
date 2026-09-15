@@ -7,7 +7,8 @@ export function nativeScenePlan(scene,source){
 }
 
 export function validateStory(story,brief,resources,{original,index}={}){
-  insist(story.scenes.length>0&&story.scenes.length<=MAX_SCENES,'镜头数量超过资源预算','INVALID_SCENES');
+  insist(story.scenes.length>0,'尚未形成有效分镜，请检查素材证据是否已送达','INVALID_SCENES');
+  insist(story.scenes.length<=MAX_SCENES,'镜头数量超过资源预算','INVALID_SCENES');
   const total=story.scenes.reduce((sum,s)=>sum+Math.round(s.durationSeconds*FPS),0)-(story.transition==='cut'?0:9*(story.scenes.length-1));
   insist(total===Math.round(brief.request.output.durationSeconds*FPS),'镜头时间必须精确匹配需求；重新选择有内容的区间，不能延长停留补齐','INVALID_SCENE_TIME');
   for(const s of story.scenes){insist(s.newInformation.trim()&&story.paragraphs.some(p=>p.id===s.paragraphId),'镜头缺少信息作用或段落','STORY_INFORMATION');insist(s.resourceId==='native-original'||resources.selected.some(r=>r.id===s.resourceId)||(resources.candidates||[]).some(r=>r.id===s.resourceId&&r.eligible&&r.compatible),'镜头使用未选择资源','RESOURCE_UNKNOWN');}

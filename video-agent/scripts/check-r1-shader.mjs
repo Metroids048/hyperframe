@@ -1,0 +1,23 @@
+// Engineering fixture using the same product source, never a user deliverable.
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
+import {createNativeDocument} from '../lib/creative/document.mjs';
+import {prepareCreativeAsset} from '../lib/creative/image-asset.mjs';
+import {writeCompiledProject,runHyperFrames} from '../lib/creative/runner.mjs';
+const root=path.resolve(import.meta.dirname,'..'),dir=path.join(root,'outputs/r1-shader');await fs.mkdir(path.join(dir,'assets'),{recursive:true});
+const asset=await prepareCreativeAsset(root,{id:'headphones',kind:'video',path:'assets/r1-headphones/source.mp4',rights:{status:'user-provided'}},path.join(dir,'assets'));
+asset.compiledRef='assets/'+path.basename(asset.normalizedRef);
+await fs.copyFile(path.join(root,'node_modules/gsap/dist/gsap.min.js'),path.join(dir,'assets/gsap.min.js'));
+await fs.copyFile(path.join(root,'node_modules/hyperframes/dist/hyperframe-runtime.js'),path.join(dir,'assets/runtime.js'));
+const scenes=[0,1].map(i=>({id:'scene-'+i,effect:'media-cut',effectParams:{},purpose:'same-product shader engineering check',startFrame:0,durationFrames:96}));
+const nodes=scenes.map((s,i)=>({id:'video-'+i,sceneId:s.id,kind:'video',semanticRole:'hero',assetId:asset.id,anchor:'scene-local',localStartFrame:0,localDurationFrames:96,durationFrames:96,params:{sourceStartSeconds:i?12:0,playbackRate:1,fit:'contain'}}));
+const document=createNativeDocument({projectId:'r1-shader-engineering',output:{width:1080,height:1920},brief:{name:'同款耳机：着色器工程检查',facts:[]},design:{background:'#101418',foreground:'#FFFFFF',panel:'#151A20',accent:'#BFCBD2',accentContrast:'#101418',fontFamily:'Arial',description:'engineering fixture',motionIntensity:'medium',easingFamily:'none',transition:'dissolve-transition'},assets:[asset],scenes,nodes,transitions:[{id:'split',fromSceneId:'scene-0',toSceneId:'scene-1',effect:'chromatic-split',durationFrames:9,params:{durationFrames:9}}]});
+await writeCompiledProject(dir,document,[asset]);await fs.writeFile(path.join(dir,'hyperframes.json'),JSON.stringify({version:1,entry:'index.html'}));
+await fs.writeFile(path.join(dir,'check.log'),await runHyperFrames(dir,'check'));
+for(const [name,times] of [['forward','2.8,2.96,3.05,3.19,3.4'],['repeat','3.4,3.05,2.8,3.05']])await fs.writeFile(path.join(dir,name+'.log'),await runHyperFrames(dir,'snapshot',['--at',times,'--output',name,'--describe','false']));
+const frame=async folder=>(await fs.readdir(path.join(dir,folder))).find(n=>/at-3\.05s/.test(n));const a=await frame('forward'),b=await frame('repeat');assert(a&&b,'requested midpoint frames missing');
+const digest=b=>createHash('sha256').update(b).digest('hex');const first=digest(await fs.readFile(path.join(dir,'forward',a))),second=digest(await fs.readFile(path.join(dir,'repeat',b)));assert.equal(first,second,'same timestamp must render identical shader/media pixels');
+for(const name of (await fs.readdir(path.join(dir,'repeat'))).filter(n=>/at-3\.05s/.test(n)))assert.equal(digest(await fs.readFile(path.join(dir,'repeat',name))),first,'every repeated midpoint must match');
+await fs.writeFile(path.join(dir,'evidence.json'),JSON.stringify({kind:'engineering-fixture',notFinalFilm:true,sourceAssetId:asset.id,sourceSha256:asset.sha256,documentRevision:document.revisionId,midpointSha256:first,repeatSeekIdentical:true,times:[2.8,2.96,3.05,3.19,3.4],note:'Full final product revision still requires its own shader and media review.'},null,2));console.log(dir);
