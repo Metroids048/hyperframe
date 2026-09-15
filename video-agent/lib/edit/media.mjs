@@ -1,5 +1,6 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import os from 'node:os';
 import {spawn,spawnSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {createReadStream} from 'node:fs';
@@ -12,8 +13,20 @@ export {closePreviewChecks} from './preview-check.mjs';
 
 export const ffmpeg=runtimeEnv().HYPERFRAMES_FFMPEG_PATH;
 export const ffprobe=runtimeEnv().HYPERFRAMES_FFPROBE_PATH;
-export function run(exe,args,{cwd=ROOT,signal,timeout=120000,log,onOutput,binary=false,env={}}={}) {
-  return new Promise((resolve,reject)=>{
+export async function run(exe,args,{cwd=ROOT,signal,timeout=120000,log,onOutput,binary=false,env={}}={}) {
+  // Some Windows FFmpeg builds still use MAX_PATH even though Node can read
+  // the same file. Preserve the actual file identity and use Win32 long paths.
+  if(process.platform==='win32'&&(exe===ffmpeg||exe===ffprobe))args=args.map(value=>typeof value==='string'&&path.isAbsolute(value)&&value.length>=240?path.toNamespacedPath(value):value);
+  // HyperFrames launches its own FFmpeg processes. Give it a short alias to
+  // the same project so its internal frame extraction also avoids MAX_PATH.
+  let aliasRoot,alias;
+  if(process.platform==='win32'&&cwd.length>150&&exe===process.execPath&&args[0]===path.join(ROOT,'node_modules/hyperframes/bin/hyperframes.mjs')){
+    aliasRoot=await fs.mkdtemp(path.join(os.tmpdir(),'hf-native-'));
+    alias=path.join(aliasRoot,'project');
+    try{await fs.symlink(path.resolve(cwd),alias,'junction');}catch(error){await fs.rmdir(aliasRoot);throw error;}
+    cwd=alias;
+  }
+  try{return await new Promise((resolve,reject)=>{
     if(signal?.aborted)return reject(new EditError('任务已取消',409));
     const child=spawn(exe,args,{cwd,env:{...runtimeEnv(),...env},windowsHide:true,stdio:['ignore','pipe','pipe']});
     let stdout=[],stderr='',size=0,reason=null;
@@ -31,7 +44,7 @@ export function run(exe,args,{cwd=ROOT,signal,timeout=120000,log,onOutput,binary
       if(code!==0||reason||!binary&&/Render failed|Check failed:/.test(out.toString()+stderr))return reject(new EditError(reason||`媒体处理失败：${((binary?'':out.toString())+'\n'+stderr).slice(-1800)}`,422));
       resolve(binary?out:out.toString()+stderr);
     });
-  });
+  });}finally{if(alias){await fs.unlink(alias);await fs.rmdir(aliasRoot);}}
 }
 export async function probe(file,signal) {
   let m;try{const raw=await run(ffprobe,['-v','error','-show_streams','-show_format','-of','json',file],{signal,timeout:30000}),start=raw.indexOf('{'),end=raw.lastIndexOf('}');m=JSON.parse(raw.slice(start,end+1));}catch(e){if(signal?.aborted)throw e;throw new EditError('无法读取媒体，请上传有效的 MP4、MOV、WebM 或音频文件',422);}

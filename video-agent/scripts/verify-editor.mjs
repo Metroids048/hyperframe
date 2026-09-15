@@ -41,6 +41,7 @@ const commands =
         "build-web",
         "test-editor-upgrade-ui",
         "test-upgrade-media",
+        "test-media-long-path",
         "test-upgrade-preview",
         "test-upgrade-edge-media",
         "test-upgrade-loudness",
