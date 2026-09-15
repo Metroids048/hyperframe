@@ -123,6 +123,13 @@ for (const name of commands) {
   await save();
   if (item.status !== "passed") {
     failed = true;
+    // Keep the failed suite visible in the check result even when artifact/log
+    // downloads require a separate GitHub login. These suites use no paid keys.
+    if (process.env.GITHUB_ACTIONS === "true") {
+      const detail = `${name}: exit=${result.code}, signal=${result.signal}, timedOut=${timedOut}\n${log.slice(-6000)}`;
+      const escaped = detail.replaceAll("%", "%25").replaceAll("\r", "%0D").replaceAll("\n", "%0A");
+      console.error(`::error title=Verification suite failed::${escaped}`);
+    }
     if (group === "core") break;
   }
 }
