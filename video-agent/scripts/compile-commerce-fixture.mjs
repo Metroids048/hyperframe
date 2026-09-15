@@ -5,7 +5,7 @@ import {fileURLToPath} from 'node:url';
 import {normalizeCommerceRequest,safeRelativePath,insist} from '../lib/creative/contracts.mjs';
 import {prepareCreativeAsset} from '../lib/creative/image-asset.mjs';
 import {planCommerceDocument} from '../lib/creative/director.mjs';
-import {writeCompiledProject,VIDEO_AGENT_ROOT as root} from '../lib/creative/runner.mjs';
+import {writeCompiledProject,renderCommerceProject,VIDEO_AGENT_ROOT as root} from '../lib/creative/runner.mjs';
 export async function compileCommerceFixture(input){
  const request=normalizeCommerceRequest(input);
  insist(/^data\/commerce-runs\/(fixture-(premium|promotion|functional)|tool-ci|nova-demo)$/.test(request.outputDir||''),'Only named regression fixture directories are allowed');
@@ -20,5 +20,6 @@ export async function compileCommerceFixture(input){
 }
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){
  const input=JSON.parse(await fs.readFile(path.join(root,'examples/commerce/request.sample.json'),'utf8'));
- console.log(JSON.stringify(await compileCommerceFixture(input)));
+ const composed=await compileCommerceFixture(input);
+ console.log(JSON.stringify(process.argv.includes('--render')?await renderCommerceProject({outputDir:input.outputDir}):composed));
 }
