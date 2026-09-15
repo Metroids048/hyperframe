@@ -1,6 +1,7 @@
 import hashlib
 import importlib.util
 import json
+import os
 import shutil
 from pathlib import Path
 import tempfile
@@ -20,7 +21,9 @@ class DeliveryTests(unittest.TestCase):
     def test_restore_integrity_and_existing_project_preservation(self):
         module = load("content", SCRIPTS / "workspace-content.py")
         with tempfile.TemporaryDirectory(prefix="hf-delivery-", ignore_cleanup_errors=True) as temp:
-            module.ROOT = Path(temp)
+            # Hosted Windows runners can supply RUNNER~1-style TEMP paths.
+            # Match the production root, which is canonicalized via __file__.
+            module.ROOT = Path(temp).resolve()
             def cleanup():
                 target = Path(temp).resolve()
                 self.assertEqual(target.parent, Path(tempfile.gettempdir()).resolve())
@@ -61,4 +64,9 @@ class DeliveryTests(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main()
+    result = unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(DeliveryTests))
+    if os.environ.get("GITHUB_ACTIONS") == "true":
+        for case, detail in result.failures + result.errors:
+            message = (case.id() + "\n" + detail).replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+            print("::error title=Workspace delivery regression::" + message)
+    raise SystemExit(0 if result.wasSuccessful() else 1)
