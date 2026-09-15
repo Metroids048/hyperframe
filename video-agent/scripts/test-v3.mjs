@@ -1,6 +1,9 @@
+// Historical prototype compatibility only; NOT commerce pipelineVersion=3 acceptance.
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
-const base='http://127.0.0.1:3020',results=[];
+import {withCurrentService} from './service-lifecycle.mjs';
+await withCurrentService(async({base})=>{
+const results=[];
 function ok(name,test){test();results.push(name);console.log('PASS '+name);}
 const health=await fetch(base+'/api/health').then(r=>r.json());ok('v0.3 服务在线',()=>assert.equal(health.version,'0.4.0-demo'));
 const cases=await fetch(base+'/api/cases').then(r=>r.json());ok('四个案例成片就绪',()=>{assert.equal(cases.length,4);assert(cases.every(c=>c.ready));});
@@ -17,3 +20,5 @@ ok('优化结果进入分镜',()=>assert.equal(p.storyboard[0].headline,planned.
 const saved=await fetch(base+'/api/projects/'+p.id).then(r=>r.json());ok('需求与设置可恢复',()=>{assert.equal(saved.description,c.description);assert.equal(saved.requestedSettings.aspect,'9:16');});
 await fs.writeFile('outputs/v3-tests.json',JSON.stringify({passed:results.length,results,projectId:p.id,time:new Date().toISOString()},null,2));
 console.log('PASS TOTAL '+results.length);
+
+});

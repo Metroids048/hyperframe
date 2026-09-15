@@ -17,6 +17,7 @@ export async function currentBinding(root,directory,{candidate=false}={}){
   const files=[];const base=await fs.realpath(directory);
   for(const asset of manifest.assets||[]){const target=await fs.realpath(path.resolve(directory,asset.ref));if(!target.startsWith(base+path.sep))throw new CreativeError('素材路径超出当前工程','ASSET_BOUNDARY');files.push([asset.id,await hashFile(target)]);}
   const currentAdmission=await productionAdmission(root,contract,manifest.assets||[]);
+  if(!candidate&&contract.scenarioId==='product_launch'){const last=document.scenes.at(-1);if(!document.nodes.some(n=>n.sceneId===last?.id&&n.kind==='text'&&['cta','title'].includes(n.semanticRole)&&(n.params?.text||n.content?.text||n.text||'').trim()))throw new CreativeError('当前剪辑工程缺完整收尾文字','ENDING_MISSING');}
   if(!(candidate&&document.scenePackage&&admission.status==='candidate_only')&&(currentAdmission.status!=='pass'||digest(currentAdmission.assets)!==digest(admission.assets)))throw new CreativeError('素材或用途审核已变化','ADMISSION_CHANGED');
   const resource=await fs.readFile(path.join(directory,'resource-lock.json'));
   const policy=await fs.readFile(path.join(root,'prompts/commerce/manifest.json'));

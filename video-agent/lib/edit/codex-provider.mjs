@@ -13,6 +13,13 @@ import {speakElevenLabs} from './adapters/optional-providers.mjs';
 
 export function subscriptionEnv() {
   const env={...process.env};
+  // The desktop follows macOS system proxy settings; a standalone child CLI
+  // needs the same already-enabled loopback proxy in its own environment.
+  if(process.platform==='darwin'&&!env.HTTPS_PROXY&&!env.https_proxy){
+    const result=spawnSync('/usr/sbin/scutil',['--proxy'],{encoding:'utf8',timeout:3000});
+    const text=result.stdout||'',host=/HTTPSProxy\s*:\s*(\S+)/.exec(text)?.[1],port=/HTTPSPort\s*:\s*(\d+)/.exec(text)?.[1];
+    if(/HTTPSEnable\s*:\s*1\b/.test(text)&&['127.0.0.1','localhost','::1'].includes(host)&&Number(port)>0&&Number(port)<65536){env.HTTPS_PROXY=`http://${host==='::1'?'[::1]':host}:${port}`;env.HTTP_PROXY??=env.HTTPS_PROXY;env.NO_PROXY??='localhost,127.0.0.1,::1';}
+  }
   // Reuse the user's enabled Windows proxy, just as desktop apps do. Never read auth.json.
   if(process.platform==='win32'&&!env.HTTPS_PROXY) {
     const r=spawnSync('reg',['query','HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings'],{encoding:'utf8',windowsHide:true});

@@ -51,7 +51,7 @@ export async function productionAdmission(root,contract,assets){
   catch(e){if(e.code!=='ENOENT')issues.push('素材审核登记损坏');}
   const admitted=[];
   for(const asset of assets.filter(a=>['video','image'].includes(a.kind))){
-    const record=registry.assets?.find(r=>r.sha256===asset.sha256) || (asset.generated ? {status:'approved',sourcePage:'runninghub',rights:{basis:'provider-output',allowedUses:['commerce']},identityStatus:'verified',productIdentity:contract?.product?.name||'generated-product',fullObservation:true,evidence:[{type:'generated-output'}],coverage:['product_identity']} : null);
+    const record=registry.assets?.find(r=>r.sha256===asset.sha256);
     if(!record||record.status!=='approved'||!record.sourcePage||!record.rights?.basis||!record.rights?.allowedUses?.includes('commerce')){issues.push(`${asset.id}：缺本次用途的素材审核与权利依据`);continue;}
     if(record.identityStatus!=='verified'||!record.productIdentity)issues.push(`${asset.id}：同款身份未核验`);
     if(record.fullObservation!==true||!record.evidence?.length)issues.push(`${asset.id}：尚未完整观察素材`);
@@ -62,7 +62,7 @@ export async function productionAdmission(root,contract,assets){
   if(identities.size>1)issues.push('主体素材属于不同商品，不能混用');
   if(contract?.audio==='original'&&!videos.some(a=>a.mediaMetadata?.hasAudio))issues.push('要求保留原声，但原片没有音轨');
   const coverage=new Set(admitted.flatMap(r=>r.coverage||[]));
-  const required=['product_howto','product_demo'].includes(contract?.scenarioId)?['preparation','necessary_actions','result']:contract?.scenarioId==='product_launch'?['product_identity','real_usage_or_effective_demonstration','supported_details','complete_ending']:['product_identity'];
+  const required=['product_howto','product_demo'].includes(contract?.scenarioId)?['preparation','necessary_actions','result']:contract?.scenarioId==='product_launch'?['product_identity','real_usage_or_effective_demonstration','supported_details']:['product_identity'];
   for(const role of required)if(!coverage.has(role))issues.push('素材缺少：'+role);
   if(['product_howto','product_demo'].includes(contract?.scenarioId)){
     const steps=admitted.flatMap(r=>(r.steps||[]).map(s=>({...s,assetId:r.assetId}))),ids=new Set(steps.map(s=>s.id));
@@ -102,6 +102,6 @@ export async function candidateAdmission(root,contract,assets,directory,document
   if(!document?.scenePackage)return assertProductionAdmission(root,contract,assets,directory);
   const saved=JSON.parse(await fs.readFile(path.join(directory,'production-admission.json'),'utf8'));
   if(saved.status!=='candidate_only')return assertProductionAdmission(root,contract,assets,directory);
-  if(saved.contractHash!==digest(contract)||saved.assets.some(a=>!assets.some(b=>b.id===a.assetId&&b.sha256===a.sha256)))throw new CreativeError('候选素材或合同改变，需要重新分析','CANDIDATE_CHANGED');
+  if(saved.contractHash!==digest(contract)||!Array.isArray(saved.assets)||saved.assets.length!==assets.length||saved.assets.some(a=>!assets.some(b=>b.id===a.assetId&&b.sha256===a.sha256)))throw new CreativeError('候选素材或合同改变，需要重新分析','CANDIDATE_CHANGED');
   return saved;
 }

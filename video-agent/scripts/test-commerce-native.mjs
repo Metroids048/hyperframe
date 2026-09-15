@@ -24,9 +24,10 @@ function fixture() {
   return {request, prepared};
 }
 
-test('effect registry exposes fifteen executable effects including plain media cuts', () => {
+test('effect registry retains existing executable effects and adds chromatic split', () => {
   const effects = listEffects();
-  assert.equal(effects.length, 15);
+  assert.equal(effects.length, 16);
+  assert.ok(effects.some(e=>e.id==='chromatic-split'));
   assert.ok(effects.every(x => x.deterministic));
 });
 

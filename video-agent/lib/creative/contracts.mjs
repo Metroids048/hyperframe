@@ -129,6 +129,7 @@ export function normalizeCommerceRequest(input = {}) {
     requestId: input.requestId || stableId('request', normalizedAssets.map(a => ({id:a.id,path:a.path,kind:a.kind,role:a.role,sourceStartSeconds:a.sourceStartSeconds,sourceDurationSeconds:a.sourceDurationSeconds})), normalizedProduct, message, style, output),
     projectId: input.projectId || stableId('commerce', normalizedProduct.name || 'product', normalizedAssets.map(a => a.path)),
     message,
+    target:['image','video','marketing'].includes(input.target)?input.target:'marketing',
     commerceProfile: input.commerceProfile || null,
     pipelineVersion: input.pipelineVersion === 3 ? 3 : 1,
     scenarioId: input.scenarioId || null,

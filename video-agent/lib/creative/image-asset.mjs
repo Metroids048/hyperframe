@@ -7,6 +7,7 @@ import {probe,prepareAsset,linkOrCopy} from '../edit/media.mjs';
 import {MAX_FILE_BYTES, CreativeError, insist, safeRelativePath} from './contracts.mjs';
 import {sourceRights} from './rights.mjs';
 import {inspectBrandFont} from './brand-fonts.mjs';
+import {trustedAssetProvenance} from './asset-provenance.mjs';
 
 async function hashFile(file) {
   const hash = createHash('sha256');
@@ -21,7 +22,8 @@ export async function prepareCreativeAsset(root, asset, targetDir,{signal}={}) {
   insist(stat.size > 0 && stat.size <= MAX_FILE_BYTES, `素材大小无效：${asset.path}`, 'INVALID_ASSET_SIZE');
   await fs.mkdir(targetDir, {recursive: true});
   const sha256 = await hashFile(source);
-  asset={...asset,rights:await sourceRights(root,sha256,asset.rights)};
+  const {generated,provider,providerTaskId,provenance,...untrusted}=asset;
+  asset={...untrusted,...await trustedAssetProvenance(root,asset.id,sha256),rights:await sourceRights(root,sha256,asset.rights)};
 
   if(asset.kind==='font'){
     const mediaMetadata=await inspectBrandFont(source),output=path.join(targetDir,asset.id+'.woff2');

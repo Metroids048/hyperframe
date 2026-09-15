@@ -35,6 +35,8 @@ export function codexRequest({
     "-c",
     "project_doc_max_bytes=0",
     "-c",
+    "features.apps=false",
+    "-c",
     "features.shell_tool=false",
     "-c",
     'model_reasoning_effort="'+(['low','medium','high','xhigh'].includes(reasoningEffort)?reasoningEffort:'low')+'"',

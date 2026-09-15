@@ -29,12 +29,16 @@ import {replaceFileAtomically} from '../edit/project-store.mjs';
 import {creativeVoiceInteraction} from './voice.mjs';
 import {recognizeNativeCaptions} from './captions.mjs';
 import {assertOpeningOnly} from './branches.mjs';
+import {scopedCommerceEdit} from './r3-intents.mjs';
+import {commerceIntake} from './intake.mjs';
+import {generateCommerceAsset} from './runninghub.mjs';
 import {exportCreativeHistory,unpackCreativeHistory,restoreCreativeHistory,MAX_PACKAGE_BYTES} from './portable.mjs';
 
 const active=j=>['queued','running'].includes(j.status);
 const now=()=>new Date().toISOString();
 const mime={'.woff2':'font/woff2','.js':'text/javascript','.html':'text/html; charset=utf-8','.json':'application/json','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.mp4':'video/mp4','.mov':'video/quicktime','.webm':'video/webm','.wav':'audio/wav','.m4a':'audio/mp4','.mp3':'audio/mpeg','.zip':'application/zip'};
 export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO_AGENT_CREATIVE_DATA_DIR||path.join(root,'data/commerce-runs'),planner='model'}={}){
+  try{process.loadEnvFile(path.join(root,'.env'));}catch(error){if(error.code!=='ENOENT')throw error;}
   await fs.mkdir(dataDir,{recursive:true});
   // Verify demo media when the gallery is requested, not before health/startup.
   let presets=[],presetStamp='',presetRefresh=null;
@@ -118,6 +122,7 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
   }
   async function planEdit(p,base,document,input,signal,evidence={}){
     if(input.operations)return {operations:input.operations,mode:'structured'};
+    const scoped=scopedCommerceEdit(document,input.message);if(scoped)return scoped;
     // The inverse shortcut is deliberately conservative: only an entire, positive
     // restore request may take it.  Negated, quoted, conditional, or compound
     // language must go through the full planner so no clause is dropped.
@@ -145,7 +150,7 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
       await fs.writeFile(path.join(dir,'check.log'),await runHyperFrames(dir,'check',[],{signal}));
       if(job.kind==='edit'&&document.production){
         job.stage='复核修改范围的实际画面';await save(p);
-        const quality=await reviewEditedProject(root,dir,document,{runHyperFrames,signal,message:job.input?.message||'',round:job.repairCount||0,onInvocation:async invocation=>{job.modelCalls=(job.modelCalls||0)+1;(job.modelInvocations??=[]).push({...invocation,stage:'R6-edit'});await save(p);}});
+        const quality=await reviewEditedProject(root,dir,document,{runHyperFrames,signal,message:job.input?.message||'',round:job.repairCount||0,onInvocation:async invocation=>{job.modelCalls=(job.modelCalls||0)+1;(job.modelInvocations??=[]).push({...invocation,stage:'R6-edit'});await save(p);}}).catch(error=>{if(signal?.aborted||!['CODEX_TIMEOUT','CODEX_LIMIT','CODEX_MODEL_UNAVAILABLE','CODEX_REQUEST_FAILED'].includes(error.code))throw error;return {status:'pending-model-review',engineering:'checked',revisionId:document.revisionId,issues:[],unreviewed:['visual','continuity','audio-perception'],humanReview:'pending',blocker:{code:error.code,message:error.message},candidateOnly:true};});
         job.qualitySummary=quality;
         if(quality.status==='needs-repair')throw Object.assign(Error('局部画面检查发现需要修复的问题'),{code:'EDIT_VISUAL_REVIEW',issues:quality.issues});
         document.quality=quality;bindResourceChecks(document,{engineering:true,visual:quality.status});await fs.writeFile(path.join(dir,'resource-receipts.json'),JSON.stringify(document.resourceReceipts||[],null,2));await fs.writeFile(path.join(dir,'document.json'),JSON.stringify(document,null,2));await fs.writeFile(path.join(dir,'quality-report.json'),JSON.stringify(quality,null,2));
@@ -173,6 +178,17 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
         const previous=structuredClone(p);Object.assign(p,restored,{jobs:[job]});job.revisionId=p.currentRevisionId;
         try{await save(p);}catch(error){Object.assign(p,previous);throw error;}job.summary=`已打开完整工程，保留 ${p.revisions.length} 个版本，可以继续修改。`;
       }else if(job.kind==='create'){
+        if(job.input.request)p.request={...p.request,...commerceIntake(job.input.request)};
+        const target=p.request.target||'marketing';
+        if(['image','video'].includes(target)||(target==='marketing'&&!p.assets.some(a=>a.kind==='video')&&p.assets.some(a=>a.kind==='image')&&!/(?:不|无需|禁止)生成/.test(job.input.message||p.request.message||'')&&/生成.*(?:镜头|视频)|图生/.test(job.input.message||p.request.message||''))){
+          const source=p.assets.find(a=>a.kind==='image');insist(source,'请先提供同款商品原图','GENERATION_INPUT');
+          const generate=async(kind,role,sourceAsset,prompt)=>{job.stage='生成'+(kind==='image'?'商品图片':'原始镜头')+'：'+role;await save(p);const a=await generateCommerceAsset({root,project:p,job,kind,role,sourceAsset,prompt,duration:8,save:()=>save(p),signal});if(!p.assets.some(x=>x.id===a.id))p.assets.push(a);await save(p);return a;};
+          const message=job.input.message||p.request.message;
+          if(target==='image'){await generate('image','商品整体',source,message);job.status='complete';job.completedAt=now();job.summary='商品图片已下载到同一素材库；来源和质量分别待审。';p.messages.push({role:'assistant',text:job.summary,time:now()});return;}
+          if(target==='video'){await generate('video','原始展示',source,message+'。只生成原始镜头，不烧入字幕、价格、CTA或整片配音。');job.status='complete';job.completedAt=now();job.summary='原始镜头已下载到同一素材库，可继续制作营销片。';p.messages.push({role:'assistant',text:job.summary,time:now()});return;}
+          const image=p.assets.find(a=>a.id.startsWith('rh-')&&a.kind==='image')||await generate('image','商品整体',source,message+'。保持同款商品结构与颜色，生成商品图，不添加文字或未经确认的功能。');
+          for(const role of ['整体展示','结构细节','另一角度与整体回归'])await generate('video',role,image,message+'。镜头用途：'+role+'。同款商品，不编造性能；不烧入字幕、价格、CTA或整片配音。');
+        }
         job.stage='理解创作要求';await save(p);
         const voice=await creativeVoiceInteraction(p,job.input.message||p.request.message,directory(p),{signal});
         if(voice){

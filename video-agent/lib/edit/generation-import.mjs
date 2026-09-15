@@ -24,7 +24,7 @@ function publicAddress(address){
   if(isIP(address)===6){const value=address.toLowerCase();if(value.startsWith('::ffff:')){const mapped=value.slice(7);if(isIP(mapped)===4)return publicAddress(mapped);return false;}return /^[23]/.test(value)&&!/^2001:(0?db8|0?2|0?10):|^2002:/i.test(value);}
   return false;
 }
-async function downloadTarget(raw,endpoint,lookupImpl){
+export async function downloadTarget(raw,endpoint,lookupImpl){
   let url;try{url=new URL(raw);}catch{throw new EditError('生成素材地址无效',422);}
   insist(!url.username&&!url.password&&!url.hash,'生成素材地址不能包含账号或片段标记');
   const sameLocal=localHost(endpoint.hostname)&&url.origin===endpoint.origin;
@@ -36,7 +36,7 @@ async function downloadTarget(raw,endpoint,lookupImpl){
 }
 // Pin the previously checked DNS answer to the TLS request. No redirects and no
 // generation API credentials are forwarded to a returned media URL.
-function nativeDownload({url,addresses},signal){return new Promise((resolve,reject)=>{
+export function nativeDownload({url,addresses},signal){return new Promise((resolve,reject)=>{
   const request=(url.protocol==='https:'?https:http).get(url,{signal,headers:{Accept:'video/*, audio/*, application/octet-stream'},lookup:(hostname,options,callback)=>{const selected=addresses.filter(item=>!options.family||item.family===options.family);const list=selected.length?selected:addresses;if(options.all)callback(null,list);else callback(null,list[0].address,list[0].family);}},response=>resolve({ok:response.statusCode>=200&&response.statusCode<300,status:response.statusCode,headers:{get:name=>response.headers[name.toLowerCase()]||null},body:response}));request.on('error',reject);
 });}
 export async function importGeneratedMedia(request,{assetRoot,signal,prepare=prepareAsset,fetchImpl,lookupImpl=lookup,maxBytes=1024**3,downloadTimeoutMs=120000}={}){

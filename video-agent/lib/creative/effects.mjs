@@ -13,6 +13,7 @@ const definitions = [
   ['split-detail', 'layout', ['image', 'text'], ['mediaWidth', 'gap']],
   ['price-lockup', 'commerce', ['text'], ['priceScale', 'badge']],
   ['end-card', 'commerce', ['image', 'text'], ['productScale', 'ctaPulse']],
+  ['chromatic-split', 'transition', [], ['durationFrames']],
   ['dissolve-transition', 'transition', [], ['durationFrames']],
   ['directional-transition', 'transition', [], ['durationFrames', 'direction']],
   ['flash-transition', 'transition', [], ['durationFrames', 'color', 'intensity']],
@@ -73,6 +74,7 @@ export function normalizeEffectParams(effectId, params = {}) {
     case 'split-detail': return {mediaWidth: number('mediaWidth', .58, .35, .72), gap: number('gap', 40, 12, 120)};
     case 'price-lockup': return {priceScale: number('priceScale', 1.08, .8, 1.5), badge: params.badge !== false};
     case 'end-card': return {productScale: number('productScale', .9, .55, 1.2), ctaPulse: params.ctaPulse !== false};
+    case 'chromatic-split':
     case 'dissolve-transition': return {durationFrames: Math.round(number('durationFrames', 9, 1, 30))};
     case 'directional-transition': {
       const direction = ['left', 'right', 'up', 'down'].includes(params.direction) ? params.direction : 'left';

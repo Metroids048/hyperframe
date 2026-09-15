@@ -1,3 +1,4 @@
+import {compileChromatic} from './chromatic-split.mjs';
 import {editorialDisplay,editorialCSS} from './editorial-display.mjs';
 import {textStyleCSS} from './text-style.mjs';
 import path from 'node:path';
@@ -201,7 +202,7 @@ function transitionTimeline(document, transition) {
   const incoming = document.scenes.find(s => s.id === transition.toSceneId);
   const start = Number(sec(incoming.startFrame)), duration = Number(sec(transition.durationFrames));
   const incomingSelector = `#${incoming.id}, [data-scene-media="${incoming.id}"]`;
-  if (transition.effect === 'dissolve-transition') {
+  if (['dissolve-transition','chromatic-split'].includes(transition.effect)) {
     return [`tl.fromTo(${js(incomingSelector)},{opacity:0},{opacity:1,duration:${duration},ease:"power1.inOut"},${start});`];
   }
   if (transition.effect === 'flash-transition') {
@@ -225,6 +226,7 @@ export function compileDocument(document, preparedAssets, {audioRefs={}}={}) {
   const objectMap = {};
   for (const node of document.nodes) objectMap[node.id] = {domId: `obj-${node.id}`, sceneId: node.sceneId, semanticRole: node.semanticRole, kind: node.kind};
   for(const [sceneId,bundle] of custom)for(const mapping of bundle.objects)objectMap[mapping.nodeId]={...objectMap[mapping.nodeId],domId:mapping.domId,sourceElementId:mapping.elementId,sceneId};
+  const shader=compileChromatic(document,objectMap);
   const captions=projectNativeCaptions(document);
   for(const cue of captions)objectMap[cue.id]={domId:cue.projectionId,semanticRole:'caption',kind:'text',anchor:'source-content'};
   const captionHtml=captions.map((c,i)=>`<div id="${esc(c.projectionId)}" data-object-id="${esc(c.id)}" class="clip caption" data-start="${sec(c.startFrame)}" data-duration="${sec(c.durationFrames)}" data-track-index="${300+i}"><div class="caption-content">${esc(c.text)}</div></div>`).join('\n');
@@ -281,6 +283,7 @@ export function compileDocument(document, preparedAssets, {audioRefs={}}={}) {
     ${document.transitions.filter(t => t.effect === 'flash-transition').map(t => `<div id="flash-${esc(t.id)}" class="flash-overlay" data-layout-ignore></div>`).join('')}
     ${sceneHtml}
     ${captionHtml}
+    ${shader.html}
   </div>
   <script src="assets/gsap.min.js"></script>
   <script>
@@ -289,10 +292,12 @@ export function compileDocument(document, preparedAssets, {audioRefs={}}={}) {
     ${document.nodes.filter(n=>custom.get(n.sceneId)?.managedVideoNodeIds?.includes(n.id)).map(n=>`tl.set(${js('#media-gate-'+n.id)},{visibility:"visible"},${sec(n.startFrame)});tl.set(${js('#media-gate-'+n.id)},{visibility:"hidden"},${sec(n.startFrame+n.durationFrames)});`).join('\n')}
     ${timeline}
     window.__timelines["commerce-root"] = tl;
+    ${shader.script}
   </script>
 </body>
 </html>`;
   return {html, objectMap, manifest: {
+    shaderReceipts:shader.receipts,
     schemaVersion: 1,
     revisionId: document.revisionId,
     durationFrames: document.durationFrames,
@@ -300,7 +305,7 @@ export function compileDocument(document, preparedAssets, {audioRefs={}}={}) {
     output: document.output,
     scenes: document.scenes.map(s => ({id: s.id, purpose: s.purpose, effect: s.effect, startFrame: s.startFrame, durationFrames: s.durationFrames})),
     effects: [...new Set([...document.scenes.map(s => s.effect), ...document.transitions.map(t => t.effect)])],
-    assets: Object.values(assets).map(a => ({id: a.id, kind: a.kind, sha256: a.sha256, ref: publicAsset(a), rights: a.rights || {status: 'unknown'}, generatedVoice:a.generatedVoice===true, mediaMetadata:a.mediaMetadata,originalMediaMetadata:a.originalMediaMetadata,processing:a.processing, sourceStartSeconds: a.sourceStartSeconds || 0, sourceDurationSeconds: a.sourceDurationSeconds ?? null, volume: a.volume ?? 1})),
+    assets: Object.values(assets).map(a => ({id: a.id, kind: a.kind, sha256: a.sha256, ref: publicAsset(a), rights: a.rights || {status: 'unknown'}, generated:a.generated===true, provider:a.provider, providerTaskId:a.providerTaskId, provenance:a.provenance, generatedVoice:a.generatedVoice===true, mediaMetadata:a.mediaMetadata,originalMediaMetadata:a.originalMediaMetadata,processing:a.processing, sourceStartSeconds: a.sourceStartSeconds || 0, sourceDurationSeconds: a.sourceDurationSeconds ?? null, volume: a.volume ?? 1})),
   }};
 }
 

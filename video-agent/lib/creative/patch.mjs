@@ -149,7 +149,7 @@ export function applyDocumentPatch(input, operations, assets) {
       const effect = op.effect || document.design.transition;
       if(effect==='cut'){document.transitions=document.transitions.filter(t=>t.fromSceneId!==op.fromSceneId||t.toSceneId!==op.toSceneId);continue;}
       validateEffect(effect);
-      insist(['dissolve-transition', 'directional-transition', 'flash-transition'].includes(effect), '这里只允许转场组件', 'INVALID_TRANSITION_EFFECT');
+      insist(['dissolve-transition', 'directional-transition', 'flash-transition', 'chromatic-split'].includes(effect), '这里只允许转场组件', 'INVALID_TRANSITION_EFFECT');
       const durationFrames = Number(op.durationFrames ?? 9);
       insist(Number.isInteger(durationFrames) && durationFrames >= 1 && durationFrames <= 30, '转场必须为 1～30 帧', 'INVALID_TRANSITION_TIME');
       const next = {id: stableId('transition', op.fromSceneId, op.toSceneId), fromSceneId: op.fromSceneId, toSceneId: op.toSceneId, effect, durationFrames, params: normalizeEffectParams(effect, {...op.params, durationFrames})};
