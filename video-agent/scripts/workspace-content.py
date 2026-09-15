@@ -9,6 +9,13 @@ ROOT = Path(__file__).resolve().parents[2]
 BUNDLE = ROOT / "workspace-content"
 
 
+def native_path(value):
+    text = str(value)
+    if os.name == "nt" and not text.startswith("\\\\?\\"):
+        return Path("\\\\?\\UNC\\" + text[2:] if text.startswith("\\\\") else "\\\\?\\" + text)
+    return value
+
+
 def restore(all_files=False):
     manifest = BUNDLE / "manifest.json"
     if not manifest.exists():
@@ -32,6 +39,7 @@ def restore(all_files=False):
         target = (ROOT / relative).resolve()
         if relative.is_absolute() or ROOT not in target.parents:
             raise ValueError("Invalid bundled workspace path")
+        target = native_path(target)
         if target.exists() or tuple(relative.parts[:4]) in existing_projects:
             continue
         target.parent.mkdir(parents=True, exist_ok=True)
