@@ -2,7 +2,9 @@
 import assert from 'node:assert/strict';
 import puppeteer from 'puppeteer-core';
 import {createHash} from 'node:crypto';
-import {runtimeEnv} from '../lib/workflow.mjs';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import {runtimeEnv,ROOT} from '../lib/workflow.mjs';
 const base=process.env.DELIVERY_TEST_URL;
 if(!base)throw Error('Set DELIVERY_TEST_URL to the freshly started checkout.');
 const health=await(await fetch(base+'/api/health')).json();assert.equal(health.workbench,'commerce');
@@ -12,7 +14,9 @@ assert.equal(work.sha256,'5d181af4b27709a3e728a38c99bf5166e8843d242b2e7ceb1d05ff
 const range=await fetch(base+work.videoUrl,{headers:{Range:'bytes=0-1023'}});assert.equal(range.status,206);assert.equal((await range.arrayBuffer()).byteLength,1024);
 const mp4=await fetch(base+work.videoUrl);assert.equal(createHash('sha256').update(Buffer.from(await mp4.arrayBuffer())).digest('hex'),work.sha256);
 const native=await fetch(base+work.packageUrl);assert.equal(native.status,200);const bytes=Buffer.from(await native.arrayBuffer());assert.equal(bytes.subarray(0,2).toString(),'PK');assert(bytes.length>40000000);
-const browser=await puppeteer.launch({executablePath:runtimeEnv().HYPERFRAMES_BROWSER_PATH,headless:true,args:['--no-sandbox']});
+const shippedPackage=await fs.readFile(path.join(ROOT,'deliverables/mijia-v2/mijia-v2-hyperframes-project.zip'));
+assert.equal(createHash('sha256').update(bytes).digest('hex'),createHash('sha256').update(shippedPackage).digest('hex'));
+const browser=await puppeteer.launch({executablePath:runtimeEnv().HYPERFRAMES_BROWSER_PATH,headless:true,defaultViewport:{width:1440,height:1000},args:['--no-sandbox']});
 try{
  const page=await browser.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto(base);
  assert.equal(await page.title(),'电商视频创作工作台');
