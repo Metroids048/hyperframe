@@ -1,0 +1,45 @@
+name: Recover real commerce source videos
+on:
+  push:
+    branches: [agent/material-acquisition-fix-20260914]
+    paths:
+      - '.github/workflows/commerce-asset-recovery.yml'
+      - 'video-agent/scripts/fetch-commerce-focus-assets.mjs'
+      - 'video-agent/scripts/fetch-commerce-focus-assets-system.mjs'
+      - 'video-agent/scripts/test-material-acquisition.mjs'
+      - 'video-agent/docs/commerce-focus-v1/assets.resolved-downloads.json'
+permissions:
+  contents: read
+concurrency:
+  group: commerce-asset-recovery
+  cancel-in-progress: false
+jobs:
+  acquire:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    defaults:
+      run:
+        working-directory: video-agent
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+      - run: node scripts/workspace-context.mjs --fetch-soft
+      - run: node --test scripts/test-material-acquisition.mjs
+      - name: Acquire nine verified public source links (not production approval)
+        run: node scripts/fetch-commerce-focus-assets-system.mjs --ids=A01,A02,A03,A04,A05,A06,B01,B04,B05
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: commerce-source-candidates-not-approved
+          retention-days: 1
+          compression-level: 0
+          if-no-files-found: error
+          path: |
+            video-agent/assets/commerce-focus-v1/candidates/**/*.mp4
+            video-agent/assets/commerce-focus-v1/download-results.json
+            video-agent/docs/commerce-focus-v1/assets.resolved-downloads.json
