@@ -1,0 +1,31 @@
+PASS strict schema supports v2 operations and export/tool requests
+PASS subtitle-only loads relevant skill and does not require narration
+PASS compound edits preserve base coordinates and repair context
+PASS loudness off remains explicit while untouched output fields are omitted
+PASS export response cannot combine an uncommitted edit
+PASS tools can only target registered ready assets
+PASS empty transcription explicitly returns no_speech
+PASS review rejects cutting inside a spoken word even if model approves
+PASS installed skill provenance is pinned and each adapter is readable
+PASS local voice respects explicit voice and rejects unknown names
+PASS cloud speech passes the requested speed to the API
+file:///C:/Users/admin/Desktop/hyperframe-main/video-agent/lib/edit/adapters/minimax-client.mjs:72
+ if(code!==0){const names={1001:'MINIMAX_PROVIDER_TIMEOUT',1002:'MINIMAX_RATE_LIMIT',1004:'MINIMAX_AUTH',1008:'MINIMAX_BALANCE',2013:'MINIMAX_INPUT',20132:'MINIMAX_VOICE',2042:'MINIMAX_PERMISSION',2049:'MINIMAX_AUTH'};const error=new MiniMaxError(names[code]||'MINIMAX_BUSINESS','MiniMax业务失败（'+code+'），未产生已验证音频');error.providerStatusCode=code;throw error;}
+                                                                                                                                                                                                                                      ^
+
+MiniMaxError: MiniMax业务失败（1008），未产生已验证音频
+    at businessError (file:///C:/Users/admin/Desktop/hyperframe-main/video-agent/lib/edit/adapters/minimax-client.mjs:72:231)
+    at MiniMaxClient.perform (file:///C:/Users/admin/Desktop/hyperframe-main/video-agent/lib/edit/adapters/minimax-client.mjs:135:9)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async MiniMaxClient.execute (file:///C:/Users/admin/Desktop/hyperframe-main/video-agent/lib/edit/adapters/minimax-client.mjs:103:105)
+    at async CodexProvider.speak (file:///C:/Users/admin/Desktop/hyperframe-main/video-agent/lib/edit/codex-provider.mjs:113:438)
+    at async file:///C:/Users/admin/Desktop/hyperframe-main/video-agent/scripts/test-upgrade-planner.mjs:74:3
+    at async test (file:///C:/Users/admin/Desktop/hyperframe-main/video-agent/scripts/test-upgrade-planner.mjs:16:75)
+    at async file:///C:/Users/admin/Desktop/hyperframe-main/video-agent/scripts/test-upgrade-planner.mjs:70:1 {
+  code: 'MINIMAX_BALANCE',
+  status: 409,
+  providerStatusCode: 1008
+}
+
+Node.js v24.19.0
+Assertion failed: !(handle->flags & UV_HANDLE_CLOSING), file src\win\async.c, line 94
