@@ -1,0 +1,50 @@
+✔ OAuth refresh retains request account identity and never exposes refresh credentials (164.1513ms)
+✔ OAuth rejects foreign hosts and region mismatch before sending credentials (13.154ms)
+✔ official subtitle time_begin/time_end and allowed CN endpoints (27.5683ms)
+✔ audio application rejects outside-workspace paths before probing (4.7036ms)
+✔ existing service queue persists generated audio and resumes as an ordinary project asset (679.5193ms)
+✔ unconfigured and disabled do not call transport (1.2872ms)
+✔ known provider refusal retries only explicitly and keeps prior attempt evidence (255.5682ms)
+✔ explicit retry never repeats a submission with unknown billing outcome (14.9287ms)
+✔ explicit new submission preserves unknown record and deduplicates across restart (266.7667ms)
+✔ regions explicit, arbitrary model preserved, instrumental field is real (0.5092ms)
+✔ voice listing POST uses returned metadata, never guesses language from id (17.2089ms)
+✖ real MP3 through hex, complete decode, source-time subtitle projection and single flight (528.6143ms)
+✔ safe URL audio downloads do not forward auth (266.2169ms)
+✔ HTTP200 business error 1004 (12.0039ms)
+✔ HTTP200 business error 1008 (10.3045ms)
+✔ HTTP200 business error 1002 (11.8232ms)
+✔ HTTP200 business error 2042 (10.6659ms)
+✔ unknown result persists across client restart and does not resubmit (12.5787ms)
+✔ gateway failures and indeterminate business responses never enable paid retry (46.2747ms)
+✔ subtitle absence, reversed time order and invalid offsets are not accepted as timing evidence (0.9304ms)
+✔ download recovery uses saved provider response without another synthesis (374.9663ms)
+✔ malformed hex, corrupt media and out-of-range subtitles rejected (114.5775ms)
+✔ cancel before transmission costs no submission (1.6981ms)
+ℹ tests 23
+ℹ suites 0
+ℹ pass 22
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6411.8073
+
+✖ failing tests:
+
+test at scripts\test-minimax-protocol.mjs:95:1
+✖ real MP3 through hex, complete decode, source-time subtitle projection and single flight (528.6143ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(!text.includes('https://'))
+  
+      at TestContext.<anonymous> (file:///C:/Users/admin/Desktop/hyperframe-main/video-agent/scripts/test-minimax-protocol.mjs:102:142)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
