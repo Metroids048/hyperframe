@@ -1,0 +1,73 @@
+{
+  "mode": "variant",
+  "scenario": "product_detail",
+  "objective": "基于 rev-a5b13075fbc28aac 规划竖屏变体，保留母版、第三段内容、商品事实和声音，仅输出制作规划。",
+  "auxiliaryModes": [],
+  "auxiliaryScenarios": [],
+  "requirements": [
+    {
+      "kind": "change",
+      "quote": "基于这版再规划一版竖屏",
+      "targetIds": []
+    ,
+      "excludeIds": []
+    },
+    {
+      "kind": "preserve",
+      "quote": "母版保留",
+      "targetIds": []
+    ,
+      "excludeIds": []
+    },
+    {
+      "kind": "preserve",
+      "quote": "第三段内容、商品事实和声音不变。",
+      "targetIds": [],
+      "excludeIds": []
+    },
+    {
+      "kind": "prohibit",
+      "quote": "只做规划。",
+      "targetIds": [],
+      "excludeIds": []
+    }
+  ],
+  "resources": [],
+  "gaps": [
+    {
+      "field": "baseRevisionContent",
+      "question": "请提供母版的分段与对象对应关系、商品事实文案及声音编排，标明第三段对应的对象，以便准确规划保留范围。",
+      "blocking": true
+    }
+  ],
+  "procedureSubtype": "not_applicable",
+  "steps": [
+    {
+      "id": "step-01",
+      "purpose": "待核验母版分段、商品事实和声音编排，确认第三段对象及其内容保护范围。",
+      "requires": [],
+      "assetIds": []
+    },
+    {
+      "id": "step-02",
+      "purpose": "规划独立竖屏变体的画面构图和文字布局，核验商品主体及事实信息完整可见，保留第三段内容和声音编排。",
+      "requires": [
+        "step-01"
+      ],
+      "assetIds": [
+        "asset-391904f8-3296-4c11-ba15-00b521adea04",
+        "s02-still-side",
+        "s02-still-ports",
+        "voice-7a6509e33c8e1395"
+      ]
+    },
+    {
+      "id": "step-03",
+      "purpose": "待核验制作单满足竖屏变体要求，母版保留，第三段内容、商品事实和声音保持不变；仅交付规划。",
+      "requires": [
+        "step-02"
+      ],
+      "assetIds": []
+    }
+  ]
+}

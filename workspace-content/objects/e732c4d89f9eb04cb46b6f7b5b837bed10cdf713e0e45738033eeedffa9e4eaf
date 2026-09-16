@@ -1,0 +1,275 @@
+{
+  "schemaVersion": 1,
+  "id": "plan-aa05adef4e0e66481b7b",
+  "workOrder": {
+    "version": 1,
+    "mode": "create",
+    "scenario": "general",
+    "objective": "另做一份素材归档说明制作单，列出各素材仍需观察和核验的内容。",
+    "auxiliaryModes": [],
+    "auxiliaryScenarios": [],
+    "requirements": [
+      {
+        "kind": "goal",
+        "quote": "另做一个素材归档说明",
+        "targetIds": [],
+        "excludeIds": [],
+        "inherited": false
+      },
+      {
+        "kind": "goal",
+        "quote": "列出这些素材还需要观察什么",
+        "targetIds": [],
+        "excludeIds": [],
+        "inherited": false
+      },
+      {
+        "kind": "prohibit",
+        "quote": "不宣传商品",
+        "targetIds": [],
+        "excludeIds": [],
+        "inherited": false
+      },
+      {
+        "kind": "prohibit",
+        "quote": "不归入上新",
+        "targetIds": [],
+        "excludeIds": [],
+        "inherited": false
+      },
+      {
+        "kind": "prohibit",
+        "quote": "只生成制作单，不生成视频。",
+        "targetIds": [],
+        "excludeIds": [],
+        "inherited": false
+      }
+    ],
+    "resources": [],
+    "gaps": [],
+    "procedureSubtype": "not_applicable",
+    "steps": [
+      {
+        "id": "verify-video",
+        "purpose": "待观察视频实际主体、场景、镜头边界、动作及先后关系、可读文字、清晰度和画面缺陷；核验可用于归档的片段时间范围。元数据标记无音轨，不据此推断画面内容。",
+        "requires": [],
+        "assetIds": [
+          "asset-391904f8-3296-4c11-ba15-00b521adea04"
+        ]
+      },
+      {
+        "id": "verify-audio",
+        "purpose": "待试听音频，核验是否包含人声、实际语言与文字内容、音乐或环境声、静音和噪声；核验其与视频的对应关系，不预设为配音。",
+        "requires": [],
+        "assetIds": [
+          "voice-7a6509e33c8e1395"
+        ]
+      },
+      {
+        "id": "verify-images",
+        "purpose": "待观察两张图片实际主体、视角、细节、可读文字、清晰度及裁切情况；核验与视频的对应关系和是否重复。文件名仅作为线索，不作为内容事实。",
+        "requires": [],
+        "assetIds": [
+          "s02-still-side",
+          "s02-still-ports"
+        ]
+      },
+      {
+        "id": "plan-archive-description",
+        "purpose": "规划归档说明字段：素材ID、类型、已提供元数据、待观察事项、待核验对应关系与观察记录位置；观察完成前保持内容事实未确认，不加入商品宣传或上新定位。",
+        "requires": [
+          "verify-video",
+          "verify-audio",
+          "verify-images"
+        ],
+        "assetIds": [
+          "asset-391904f8-3296-4c11-ba15-00b521adea04",
+          "voice-7a6509e33c8e1395",
+          "s02-still-side",
+          "s02-still-ports"
+        ]
+      }
+    ],
+    "originalRequest": "另做一个素材归档说明，列出这些素材还需要观察什么，不宣传商品，不归入上新。只生成制作单，不生成视频。",
+    "baseRevisionId": null,
+    "sourceRequests": [
+      "另做一个素材归档说明，列出这些素材还需要观察什么，不宣传商品，不归入上新。只生成制作单，不生成视频。"
+    ],
+    "assetScope": [
+      {
+        "id": "asset-391904f8-3296-4c11-ba15-00b521adea04",
+        "sha256": "44d52066b5d267c868a47a6b79f52afbfae42663764eb3a6ef9ad7bb981bc3b9"
+      },
+      {
+        "id": "voice-7a6509e33c8e1395",
+        "sha256": "d0bd39b6d138b2c832effd6bdc7de12c7aeaf067e8f0fba100ec2f5d4e5e803d"
+      },
+      {
+        "id": "s02-still-side",
+        "sha256": "08b64a686b66c17cfb31aaf81f8598963f68789dbcd4513ad7bbfeed1de359b1"
+      },
+      {
+        "id": "s02-still-ports",
+        "sha256": "28aa4ded9c24b7e7fd0fbfb850380ec713a51f2c8fefe2ae5593a4215d33238f"
+      }
+    ],
+    "facts": [],
+    "assetObservation": "pending",
+    "qualityAccepted": false
+  },
+  "skills": {
+    "version": 1,
+    "skills": [],
+    "genericEdit": false,
+    "fallback": "明确编辑直接受控执行；未知业务不得默认上新；真正歧义先读当前工程，再只问最小缺项。供应商故障保留版本和声音，不自动换供应商；指定效果失败不偷换。"
+  },
+  "scenePackage": null,
+  "auxiliaryPackages": [],
+  "resources": [],
+  "stages": [
+    {
+      "id": "understand",
+      "owner": "message-routing",
+      "requires": [],
+      "evidence": [
+        "原话",
+        "基准版本",
+        "制作单"
+      ],
+      "next": "inspect",
+      "scope": "当前制作单",
+      "status": "verified",
+      "qualityPass": false,
+      "receipts": [
+        {
+          "name": "原话",
+          "sha256": "320c2bc70ec46cbb7b3d4acf26f31e4aaa4674144a8637353db22f1a4fe8eedc",
+          "verified": true,
+          "source": "application"
+        },
+        {
+          "name": "基准版本",
+          "sha256": "1597f0761efc92b9edc7d57126c381d219243ddd584a8ab254426727cf57542c",
+          "verified": true,
+          "source": "application"
+        },
+        {
+          "name": "制作单",
+          "sha256": "a4fe3009771f464161ab496d9851148910c8b80d3188982dcac690149be6aa6e",
+          "verified": true,
+          "source": "application"
+        }
+      ]
+    },
+    {
+      "id": "inspect",
+      "owner": "source-inspection",
+      "requires": [
+        "understand"
+      ],
+      "evidence": [
+        "素材哈希",
+        "观察覆盖",
+        "事实与动作源区间"
+      ],
+      "next": "resources",
+      "scope": "当前制作单",
+      "status": "pending",
+      "qualityPass": false
+    },
+    {
+      "id": "resources",
+      "owner": "resource-catalog",
+      "requires": [
+        "inspect"
+      ],
+      "evidence": [
+        "真实目录",
+        "兼容过滤",
+        "执行器与依赖",
+        "作用范围"
+      ],
+      "next": "schedule",
+      "scope": "当前制作单",
+      "status": "pending",
+      "qualityPass": false
+    },
+    {
+      "id": "schedule",
+      "owner": "story-validation",
+      "requires": [
+        "resources"
+      ],
+      "evidence": [
+        "必要步骤依赖",
+        "保持集合",
+        "实测音频窗口",
+        "字幕映射"
+      ],
+      "next": "preview",
+      "scope": "当前制作单",
+      "status": "pending",
+      "qualityPass": false
+    },
+    {
+      "id": "preview",
+      "owner": "compiler/isolation",
+      "requires": [
+        "schedule"
+      ],
+      "evidence": [
+        "原生对象绑定",
+        "布局检查",
+        "局部预览"
+      ],
+      "next": "review",
+      "scope": "当前制作单",
+      "status": "pending",
+      "qualityPass": false
+    },
+    {
+      "id": "review",
+      "owner": "media-review/edit-review",
+      "requires": [
+        "preview"
+      ],
+      "evidence": [
+        "当前文件",
+        "画面连续性",
+        "声音听感",
+        "原要求比对"
+      ],
+      "next": "delivery",
+      "scope": "当前制作单",
+      "status": "pending",
+      "qualityPass": false
+    },
+    {
+      "id": "delivery",
+      "owner": "delivery-gate",
+      "requires": [
+        "review"
+      ],
+      "evidence": [
+        "文件哈希一致",
+        "工程可移植",
+        "真实用户确认"
+      ],
+      "next": null,
+      "scope": "当前制作单",
+      "status": "pending",
+      "qualityPass": false
+    }
+  ],
+  "blockers": [],
+  "status": "planned_pending_observation",
+  "nextAction": "按制作单观察真实素材；计划完成不代表准入或质量通过",
+  "provenance": {
+    "model": "Codex 默认模型",
+    "catalogHash": "ae1e19a7bc90757e1dcc7bab364957f630b3b53bb5a229dde328a49dc1f6c2c4",
+    "runtime": "0.8.33"
+  },
+  "productionStarted": false,
+  "qualityAccepted": false,
+  "nextStage": "inspect"
+}
