@@ -1,0 +1,85 @@
+{
+  "mode": "create",
+  "scenario": "general",
+  "objective": "另做一份素材归档说明制作单，列出各素材仍需观察和核验的内容。",
+  "auxiliaryModes": [],
+  "auxiliaryScenarios": [],
+  "requirements": [
+    {
+      "kind": "goal",
+      "quote": "另做一个素材归档说明"
+    ,
+      "targetIds": [],
+      "excludeIds": []
+    },
+    {
+      "kind": "goal",
+      "quote": "列出这些素材还需要观察什么",
+      "targetIds": [],
+      "excludeIds": []
+    },
+    {
+      "kind": "prohibit",
+      "quote": "不宣传商品",
+      "targetIds": [],
+      "excludeIds": []
+    },
+    {
+      "kind": "prohibit",
+      "quote": "不归入上新",
+      "targetIds": [],
+      "excludeIds": []
+    },
+    {
+      "kind": "prohibit",
+      "quote": "只生成制作单，不生成视频。",
+      "targetIds": [],
+      "excludeIds": []
+    }
+  ],
+  "resources": [],
+  "gaps": [],
+  "procedureSubtype": "not_applicable",
+  "steps": [
+    {
+      "id": "verify-video",
+      "purpose": "待观察视频实际主体、场景、镜头边界、动作及先后关系、可读文字、清晰度和画面缺陷；核验可用于归档的片段时间范围。元数据标记无音轨，不据此推断画面内容。",
+      "requires": [],
+      "assetIds": [
+        "asset-391904f8-3296-4c11-ba15-00b521adea04"
+      ]
+    },
+    {
+      "id": "verify-audio",
+      "purpose": "待试听音频，核验是否包含人声、实际语言与文字内容、音乐或环境声、静音和噪声；核验其与视频的对应关系，不预设为配音。",
+      "requires": [],
+      "assetIds": [
+        "voice-7a6509e33c8e1395"
+      ]
+    },
+    {
+      "id": "verify-images",
+      "purpose": "待观察两张图片实际主体、视角、细节、可读文字、清晰度及裁切情况；核验与视频的对应关系和是否重复。文件名仅作为线索，不作为内容事实。",
+      "requires": [],
+      "assetIds": [
+        "s02-still-side",
+        "s02-still-ports"
+      ]
+    },
+    {
+      "id": "plan-archive-description",
+      "purpose": "规划归档说明字段：素材ID、类型、已提供元数据、待观察事项、待核验对应关系与观察记录位置；观察完成前保持内容事实未确认，不加入商品宣传或上新定位。",
+      "requires": [
+        "verify-video",
+        "verify-audio",
+        "verify-images"
+      ],
+      "assetIds": [
+        "asset-391904f8-3296-4c11-ba15-00b521adea04",
+        "voice-7a6509e33c8e1395",
+        "s02-still-side",
+        "s02-still-ports"
+      ]
+    }
+  ]
+}
