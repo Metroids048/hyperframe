@@ -42,3 +42,9 @@ assert.equal((await budgetStore.get(paused.id)).modelCalls,3);assert.equal(issue
 const legacy={...paused,id:'legacy-budget'};delete legacy.maxModelCalls;await budgetStore.open(legacy);
 assert.equal((await restarted.resume(legacy.id)).modelCalls,1);
 console.log('budget persistence, authorization, legacy guard and double-resume tests passed');
+const stepStore=new AgentRunStore(dir),stepRegistry=new ToolRegistry();let boundedSteps=0;
+stepRegistry.register('bounded.step',async input=>{boundedSteps++;return input;});
+const stepKernel=new AgentKernel({registry:stepRegistry,store:stepStore,maxSteps:2,planner:async({run})=>({kind:'tool',tool:'bounded.step',checkpoint:'bounded-'+run.steps,input:{step:run.steps}})});
+const stepPaused=await stepKernel.start({userRequest:'bounded steps'});assert.equal(stepPaused.status,'recoverable');assert.equal(stepPaused.code,'STEP_BUDGET');assert.equal(stepPaused.steps,2);assert.equal(boundedSteps,2);
+assert.equal((await stepKernel.resume(stepPaused.id)).code,'STEP_BUDGET');assert.equal(boundedSteps,2);
+console.log('step budget pauses safely without raising the configured limit or repeating work');

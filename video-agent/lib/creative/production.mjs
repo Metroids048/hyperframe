@@ -65,6 +65,13 @@ function boundedQualitySchema(ids,nodes,frames){
 const labels={material:'分析商品与动作证据',creative:'设计视频方向',brief:'理解本次要求',observe:'观察真实素材',resources:'选择制作资源',narration:'制作并测量实际旁白',story:'安排整片内容与节奏',timing:'核对真实声音与动作时间',assemble:'合成原生母工程',quality:'观看实际预览并定位问题'};
 const basenameOK=s=>/^[a-zA-Z0-9_.-]+$/.test(s);
 const loadedImplementation=await captureRuntimeBuild(path.resolve(import.meta.dirname,'../..'));
+export const narrationStateFingerprint=record=>record?.enabled&&record.asset?resourceHash({
+  script:record.script,
+  voice:record.voice,
+  rate:record.rate,
+  asset:{id:record.asset.id,sha256:record.asset.sha256,duration:record.asset.mediaMetadata?.duration},
+  transcript:record.transcript?.words
+}):null;
 
 /** One durable run, native document and provider. No hidden shell tools in the model. */
 export async function produceDocument(request,assets,{root,outputDir,signal,provider,runHyperFrames,onStage,onRun,resumeRunId,io={}}={}){
@@ -541,7 +548,7 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
     if(result(run,'story')?.narrationRevision){
       const revision=result(run,'story').narrationRevision,latest=result(run,'narration');
       if(latest?.script?.text!==revision.text){await onStage?.('按实际镜头修订自拟旁白');return {kind:'tool',tool:'narration.prepare',checkpoint:'narration',input:{revision}};}
-      await onStage?.('按新旁白的实测时间更新分镜');return {kind:'tool',tool:'story.plan',checkpoint:'story',input:{narrationHash:latest.asset.sha256}};
+      await onStage?.('按新旁白的实测时间更新分镜');return {kind:'tool',tool:'story.plan',checkpoint:'story',input:{narrationState:narrationStateFingerprint(latest)}};
     }
     if(result(run,'story')?.inspectActions?.length){
       const ranges=result(run,'story').inspectActions,key='action-inspection-'+resourceHash(ranges).slice(0,16);
@@ -557,7 +564,7 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
       await onStage?.('根据新增素材证据更新分镜');return {kind:'tool',tool:'story.plan',checkpoint:'story',input:{evidenceHash:key}};
     }
     if(result(run,'resources')?.blockingGaps?.length)return {kind:'need_user',gaps:result(run,'resources').blockingGaps};
-    for(const [key,tool] of phaseTools)if(!result(run,key)){await onStage?.(labels[key]);return {kind:'tool',tool,checkpoint:key,input:key==='narration'?{scriptHash:run.artifacts.narrationScript?.hash||null}:key==='story'?{narrationHash:result(run,'narration')?.asset?.sha256||null}: {}};}
+    for(const [key,tool] of phaseTools)if(!result(run,key)){await onStage?.(labels[key]);return {kind:'tool',tool,checkpoint:key,input:key==='narration'?{scriptHash:run.artifacts.narrationScript?.hash||null}:key==='story'?{narrationState:narrationStateFingerprint(result(run,'narration'))}: {}};}
     // Scene count estimates never overwrite the persisted run budget.
     const timingScenes=result(run,'timing').scenes,completed=timingScenes.filter((s,i)=>result(run,'shot-'+i));
     if(!result(run,'direction-preview')&&completed.length>0&&completed.length<timingScenes.length&&completed.at(-1).startFrame+completed.at(-1).durationFrames>=10*FPS){

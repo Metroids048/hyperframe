@@ -14,5 +14,23 @@ with tempfile.TemporaryDirectory(prefix='video agent runtime ') as folder:
   assert json.loads(r.stdout)['node']==str(node),(name,r.stdout)
   if name in ['stale-config','old-node']:assert '候选验证失败' in r.stderr
   results.append({'case':name,'passed':True,'node':str(node)})
+dispatch_code="""
+import start
+events=[]
+start.sync_remote=lambda **kwargs: events.append(('sync',kwargs))
+start.build_frontend=lambda: events.append(('frontend',{}))
+start.start_backend=lambda **kwargs: events.append(('backend',kwargs))
+start.open_browser=lambda: events.append(('open',{}))
+start.ready=lambda: True
+assert start.dispatch('frontend')==0 and events==[('frontend',{})],events
+events.clear()
+assert start.dispatch('backend')==0 and events==[('backend',{'rebuild':False}),('open',{})],events
+events.clear()
+assert start.dispatch('push')==0 and events==[('sync',{'required':True})],events
+print('safe dispatch passed')
+"""
+dispatch=subprocess.run([sys.executable,'-c',dispatch_code],cwd=root,env={**os.environ,'VIDEO_AGENT_NODE':str(node)},capture_output=True,text=True,timeout=20)
+assert dispatch.returncode==0,dispatch.stderr or dispatch.stdout
+results.append({'case':'local-start-does-not-push','passed':True,'explicitPushStillAvailable':True})
 (root/'outputs/commerce-rebuild-v2/runtime-regression.json').write_text(json.dumps(results,indent=2))
-print('4 fresh-process runtime cases passed')
+print('4 fresh-process runtime cases and safe local-start dispatch passed')

@@ -9,6 +9,7 @@ import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
+import {assertSafeFiles,isPrivateConfigPath} from './workspace-security.mjs';
 const ROOT = path.resolve(fileURLToPath(new URL('../..', import.meta.url)));
 const BUNDLE = path.join(ROOT, 'workspace-content');
 const OBJECTS = path.join(BUNDLE, 'objects');
@@ -26,11 +27,6 @@ const PACK_ROOTS = [
   'video-agent/outputs',
 ];
 const fingerprints = new Map();
-const FORCE_TRACK = [
-  'video-agent/config/minimax.local.env',
-  'video-agent/config/edit.local.env',
-  'video-agent/config/start.local.json',
-];
 const GIT_FLAGS = [
   '-c', 'filter.lfs.smudge=cat',
   '-c', 'filter.lfs.clean=cat',
@@ -71,12 +67,12 @@ function isRuntime(relative) {
     || relative.startsWith('video-agent/deliverables/')
     || relative.startsWith('video-agent/outputs/mijia-brand-test/')
     || relative.startsWith('video-agent/outputs/r1-closeout-delivery/')
-    || relative.startsWith('video-agent/config/')
     || relative.startsWith('素材/');
 }
 
 function skipEntry(name, relative) {
   if (SKIP_DIRS.has(name) || SKIP_NAMES.has(name)) return true;
+  if (isPrivateConfigPath(relative)) return true;
   if (relative === 'hyperframe_closeout_r1/evidence/baseline-repo') return true;
   if (/(?:^|\/)(?:server\.pid|\.lock|\.tmp|\.bundle-partial|\.log)$/.test(relative)) return true;
   if (relative === 'video-agent/outputs/workspace-context.json') return false;
@@ -139,6 +135,7 @@ async function walkPack(dir, files, seen, tracked) {
       continue;
     }
     if (!entry.isFile()) continue;
+    await assertSafeFiles([{absolute:file,path:relative}],{context:'workspace bundle'});
     const stat = await fs.stat(file);
     if (tracked.has(relative) && stat.size <= GIT_FILE_LIMIT) continue;
     const previous = seen.get(relative);
@@ -193,6 +190,7 @@ export async function refreshWorkspaceBundle() {
   for (const record of files) scanned.add(record.path);
   for (const record of previous.files || []) {
     if (scanned.has(record.path)) continue;
+    if (isPrivateConfigPath(record.path)) continue;
     const local = path.join(ROOT, record.path);
     if (existsSync(local)) kept.push(record);
     else files.push(record);
@@ -252,16 +250,21 @@ async function unstageOversized() {
   return oversized;
 }
 
+export async function preflightCheckout(){
+  const changed=git(['ls-files','-m','-o','--exclude-standard','-z']);
+  if(changed.status!==0)fail('无法读取拟提交文件',changed);
+  const files=changed.stdout.split('\0').filter(Boolean).filter(relative=>existsSync(path.join(ROOT,relative))).map(relative=>({absolute:path.join(ROOT,relative),path:relative}));
+  await assertSafeFiles(files,{context:'checkout changes'});
+  const tracked=git(['ls-files','-z']);if(tracked.status!==0)fail('无法读取跟踪文件',tracked);
+  const privateTracked=tracked.stdout.split('\0').filter(Boolean).filter(isPrivateConfigPath);
+  if(privateTracked.length)throw Object.assign(new Error('拒绝提交已跟踪的本机私密配置：'+privateTracked.join(', ')),{code:'WORKSPACE_SECRET_BOUNDARY'});
+}
+
 function stageCheckout() {
   const add = git(['add', '-A', '--', '.', ':!third_party/hyperframes', ':!third_party/hyperframes-launches']);
   if (add.status !== 0) fail('暂存项目文件失败', add);
   const bundle = git(['add', '-A', '--', 'workspace-content']);
   if (bundle.status !== 0) fail('暂存内容快照失败', bundle);
-  for (const relative of FORCE_TRACK) {
-    if (!existsSync(path.join(ROOT, relative))) continue;
-    const forced = git(['add', '-f', '--', relative]);
-    if (forced.status !== 0) fail('暂存本机配置失败：' + relative, forced);
-  }
 }
 
 function identityFlags() {
@@ -272,6 +275,7 @@ function identityFlags() {
 }
 
 export async function pushWorkspace() {
+  await preflightCheckout();
   console.log('刷新工作区内容快照（大视频分块，保留已有对象）...');
   const summary = await refreshWorkspaceBundle();
   console.log('快照文件 ' + summary.files + '，去重后 ' + Math.round(summary.storedBytes / 1024 / 1024) + ' MiB');
@@ -287,7 +291,7 @@ export async function pushWorkspace() {
       ...identityFlags(),
       'commit',
       '-m',
-      'Sync local workspace, media and device credentials for continuation',
+      'Sync local workspace, media and evidence for continuation',
     ]);
     if (commit.status !== 0) fail('提交失败', commit);
     console.log(commit.stdout.trim() || '已创建同步提交');

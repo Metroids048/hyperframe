@@ -33,7 +33,8 @@ export function subscriptionEnv() {
   env.NODE_USE_ENV_PROXY='1';env.PYTHONUTF8='1';return env;
 }
 export function pythonPath(){return localPython();}
-const localVoices=['zf_001','zf_002','zm_009','zm_010','zf_xiaobei','zf_xiaoni','zf_xiaoxiao','zf_xiaoyi','zm_yunjian','zm_yunxi','zm_yunxia','zm_yunyang'];
+export const localVoices=Object.freeze(['zf_001','zf_002','zm_009','zm_010','zf_xiaobei','zf_xiaoni','zf_xiaoxiao','zf_xiaoyi','zm_yunjian','zm_yunxi','zm_yunxia','zm_yunyang']);
+export const localSpeechVoiceCatalog=()=>({engine:'kokoro',voices:localVoices.map(id=>({id,name:id,description:'本地中文音色'}))});
 export function localVoice(voice,instructions=''){
   if(voice==='HyperFrames Kokoro · 本地中文'||voice==='kokoro-v1.0')voice='default';
   if(localVoices.includes(voice))return voice;
@@ -104,7 +105,7 @@ export class CodexProvider extends CloudProvider {
     if(signal?.aborted)throw new EditError('任务已取消',409);await fs.mkdir(dir,{recursive:true});const pending=target+'.'+uid()+'.tmp';await fs.writeFile(pending,JSON.stringify(result));await fs.rename(pending,target);return {...result,metrics:{...result.metrics,cacheHit:false}};
   }
   async speechVoiceCatalog(signal) {
-    if(process.env.VIDEO_AGENT_TTS_ENGINE!=='minimax')return null;
+    if(process.env.VIDEO_AGENT_TTS_ENGINE!=='minimax')return localSpeechVoiceCatalog();
     const catalog=await new MiniMaxClient({root:ROOT}).execute('voices',{}, {signal});
     return {engine:'minimax',voices:catalog.voices};
   }

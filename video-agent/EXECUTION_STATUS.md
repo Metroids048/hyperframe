@@ -257,3 +257,37 @@ MiniMax 不确定响应（HTTP 5xx/408、超时、缺业务状态）保持 submi
 验证：最终工作流9/9；新增真实浏览器入口通过；core outputs/upgrade/verification/core-2026-09-16T11-01-28.381Z/report.json 通过；npm test 20/20。浏览器原始汇总 outputs/upgrade/verification/browser-2026-09-16T11-01-39.373Z/report.json 保留旧UI一次detached-node失败，其单独复测 outputs/upgrade/ui/2026-09-16T11-04-34-050Z 全部通过，其他浏览器套件通过，自定义隔离1项平台跳过。真实模型general通过；详情竖屏变体首次步骤引用失败后修正合同，最终正确继承product_detail并绑定scene-03保持项，未再索要已知工程字段。证据见outputs/non-generation-delivery.json与workflow-live记录。
 
 冻结S02哈希仍9cf4fa46dfe476bb422afc916e5509194bcacc27305686e14dbfb4f0edeae3f7。本轮没有重启主服务，不能宣称后端已经在主工作台热加载。没有把目录全量资源、八场景视频观看质量或MiniMax标为验收完成；既有质量未销账项继续保留。
+
+## 2026-09-16 22:03 P00-01 真实基线绑定
+
+已按新 116 卡执行包完成 P00-01。仓库 `Metroids048/hyperframe` 的 `main`、HEAD 与 `origin/main` 均为 `1bd0710314ba70e3e647477928b08d5fd0afa765`；只保留三份既有本地配置为 dirty，不读取或记录秘密值。HyperFrames 仍为 0.8.33。完整回执为 `outputs/full-closeout/P00-01/baseline.json`。
+
+当前磁盘代码已直接构建并由 PID 15790 在 3024 启动，cwd 为本 `video-agent`，数据目录为 `data/result-completion-projects`；健康 workspaceId 匹配，61 个工程，0 个运行中 job。真实浏览器加载八场景入口、17 个制作中/可恢复工程，并打开 S02 35 秒作品；视频和工程入口均 HTTP 200。启动器 readiness 的错误 workspaceId 反例与当前 workspace 正例通过；workspace/runtime 回归通过。
+
+S02 母工程 `ffa3bcb0-f6b8-4f54-a52a-973c07e1bd3b` 当前 revision `rev-e663828de3de26c6`，视频 SHA256 `f025af4c...`; MiniMax 集成成片与工程包、米家 reference-author 原片/成片/工程哈希均写入基线。S02 视频仍为 candidate、human pending；工程包入口的 reference-author 标记与视频语义不一致，不能当正式 Agent 交付。
+
+普通 `start.py frontend/backend` 会先进入 `push-workspace`。本轮发现后在远程推送前中止；其产生的 25029 个未跟踪对象未删除，完整移动至 `.cache/p00-aborted-workspace-objects-20260916-1402`，源码工作树恢复为原三份本地配置。后续需修启动/推送耦合。现有应用执行状态仍是 total=113，与新包 116 卡不一致；P00-04 必须扩展现有状态/验收器，不建平行监督平台。
+
+下一张依赖就绪卡：P00-02，排查私密配置跟踪与安全边界。
+
+## 2026-09-16 22:17 P00-02 私密配置与安全边界
+
+P00-02 工程闭环已验证，证据为 `outputs/full-closeout/P00-02/{security-check,canary-results,receipt}.json`。本地 `minimax.local.env`、`commerce.local.env`、`edit.local.env`、`start.local.json` 全部保留在原路径并由 Git 忽略；`minimax.local.env` 已从索引移除，工作区清单中的私密测试配置记录及其对象已从索引移除，对象原字节保存在 `.cache/security-quarantine-P00-02/`，没有删除用户文件或重写历史。
+
+启动路径已解除普通 `frontend/backend/all` 与远程同步的耦合，只有显式 `push` 才同步。打包、推送和 checkout 预检统一拒绝私密路径及 token/secret/private-key 特征；合成 canary 覆盖配置、日志、前端、例外目录和 ZIP，6/6 通过且错误不回显秘密。workspace context、fresh checkout 实际首页/视频/ZIP、4 类启动运行时、Python/Node 语法、`git diff --check` 与清洁 checkout 预检通过。标准 `start.py backend` 已真实重启到 PID 42182，3024 健康；八入口仍在，MiniMax 仅核验配置状态，没有供应商调用。
+
+历史风险未伪装为已消除：`video-agent/config/minimax.local.env` 曾出现在提交 `f73511238b3dd62cb40d46f7d8977964fe587f68`，凭据必须在供应商侧轮换。当前未获授权且不应强推改写历史，因此记录为 `engineering_verified_history_rotation_required`；轮换属于明确待人动作，不阻塞其他就绪卡。
+
+下一张依赖就绪卡：P00-03。
+
+## 2026-09-16 22:25 P00-03 旁白重测、恢复与音色 CI
+
+P00-03 已完成。生产 Key 全部从验证进程环境移除，固定本地 Kokoro；原两项失败稳定复现为 0/2：旁白修订链在 1200 步进入 `STEP_BUDGET`，恢复链在合成前误报 `VOICE_NOT_FOUND`。原始日志、短根因和完整修复后日志位于 `outputs/full-closeout/P00-03/`。
+
+根因一是修订前后测试 WAV 字节相同，而 `story.plan` 旧幂等键只使用音频 SHA，旧分镜被持续复用；现改为绑定批准稿、实际音色、速率、asset ID/SHA/时长和词时间的语义状态指纹。根因二是本地 provider 实际支持 12 个音色但目录方法返回空，且旧夹具没有注入 provider 目录；现本地目录真实返回 12 项，测试显式注入能力。目录校验没有关闭，目录外音色仍在合成前拒绝；1200 步上限没有提高。
+
+结果：三条目标正反例 3/3，同组 `test-commerce-next` + `test-commerce-quality-next` 44/44，commerce native 13/13，upgrade provider 17/17，试听来源 2/2，旁白时间 3/3，旁白修订 3/3，旧阶段恢复通过。独立 AgentKernel 实际反例在 2 步上限后安全 `STEP_BUDGET`，恢复不重复工作。未调用 MiniMax，未生成新商品媒体。
+
+无活动任务后通过标准 `start.py backend` 重载到 PID 42796；3024 健康、workspaceId 匹配，真实浏览器重载后 S02、八入口、视频和原生工程入口仍可见。`receipt.json` 绑定当前 HEAD、源码哈希、运行 PID、输入隔离和全部日志哈希；真人听感未执行，也不由本卡伪造。
+
+下一张依赖就绪卡：P00-04。

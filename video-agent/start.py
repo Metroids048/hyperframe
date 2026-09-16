@@ -6,9 +6,9 @@
 
 用法：
   python start.py              交互菜单
-  python start.py all          同步远程后构建前端并启动后端（完整项目）
-  python start.py frontend     同步远程后只构建前端
-  python start.py backend      同步远程后只启动后端（需已有 web-dist）
+  python start.py all          构建前端并启动后端（完整项目）
+  python start.py frontend     只构建前端
+  python start.py backend      只启动后端（需已有 web-dist）
   python start.py push         把当前工程、素材和本机配置推送到 origin
   python start.py stop         停止后端
   python start.py status       查看状态
@@ -330,7 +330,7 @@ def interactive() -> int:
     print("本地视频剪辑工作台")
     print(f"目录：{ROOT}")
     print()
-    print("  1) 启动整个项目（先推送远程，再构建前端并启动后端）")
+    print("  1) 启动整个项目（构建前端并启动后端）")
     print("  2) 只构建前端")
     print("  3) 只启动后端")
     print("  4) 停止后端")
@@ -374,8 +374,6 @@ def dispatch(action: str) -> int:
     if action == "push":
         sync_remote(required=True)
         return 0
-    if action in {"all", "frontend", "backend"}:
-        sync_remote(required=False)
     if action == "all":
         start_backend(rebuild=True)
         open_browser()

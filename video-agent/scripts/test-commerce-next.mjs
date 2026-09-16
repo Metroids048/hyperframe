@@ -10,7 +10,7 @@ import {normalizeCommerceRequest,normalizeFacts} from '../lib/creative/contracts
 import {documentFromModelPlan} from '../lib/creative/model-director.mjs';
 import {compileCustomSource} from '../lib/creative/custom-source.mjs';
 import {compileDocument} from '../lib/creative/compiler.mjs';
-import {produceDocument} from '../lib/creative/production.mjs';
+import {narrationStateFingerprint,produceDocument} from '../lib/creative/production.mjs';
 import {applyDocumentPatch} from '../lib/creative/patch.mjs';
 import {CapabilityCatalog} from '../lib/creative/capabilities.mjs';
 import {canonicalizeSingleAssetReferences} from '../lib/creative/commerce-directors.mjs';
@@ -193,11 +193,11 @@ test('self-authored narration revision remeasures before story and resumes witho
  const brief={request:inferred,needsTranscription:false,needsNarration:true,needsCaptions:false,keepOriginalAudio:false,capabilities:[],gaps:[],constraints:[]};
  const story={...plan,summary:'test',paragraphs:[{id:'p',purpose:'test',information:'test'}],scenes:[{...scene(60),paragraphId:'p',newInformation:'test',resourceId:'native-original',visualDirection:'test'}],audio:[]};
  const answers=[brief,{observations:[],candidates:[],inspectRanges:[],gaps:[]},{selected:[],originalNeeds:[],gaps:[],blockingGaps:[]},{text:'完整的自拟说明',voice:'zf_001',basis:'fixture'}, {...story,narrationRevision:{text:'简短说明',reason:'对应实拍更短，需要缩短自拟旁白'}}, {...story,narrationRevision:null}];let calls=0,speaks=0,fail=true,runId;
- const provider={structured:async()=>{const result=answers[calls++];if(calls===6){const narration=JSON.parse(await fs.readFile(path.join(directory,'narration.json')));result.audio=[{assetId:narration.asset.id,volume:1,sourceStartSeconds:0}];}return {model:'unit-fixture',result};},speak:async()=>{speaks++;return wav;},transcribe:async()=>({words:[{text:'测试',start:0,end:.8}],language:'zh'}),close:async()=>{}};
+ const provider={speechVoiceCatalog:async()=>({engine:'kokoro',voices:[{id:'zf_001'}]}),structured:async()=>{const result=answers[calls++];if(calls===6){const narration=JSON.parse(await fs.readFile(path.join(directory,'narration.json')));result.audio=[{assetId:narration.asset.id,volume:1,sourceStartSeconds:0}];}return {model:'unit-fixture',result};},speak:async()=>{speaks++;return wav;},transcribe:async()=>({words:[{text:'测试',start:0,end:.8}],language:'zh'}),close:async()=>{}};
  const io={catalog:{snapshot:{commit:'test'},context:async()=>({text:'test',records:[]}),candidates:()=>[]},collectEvidence:async()=>({records:[],inputs:[]}),buildShot:async()=>{if(fail)throw Error('after-revision interruption');return {file:'test',sceneId:'scene-01'};},assemble:async()=>{await fs.writeFile(path.join(directory,'document.json'),JSON.stringify({revisionId:'revised-voice'}));return {revisionId:'revised-voice'};},review:async()=>({revisionId:'revised-voice'})};
  await assert.rejects(()=>produceDocument(request,[],{root,outputDir:directory,provider,io,onRun:r=>runId=r.id}),/after-revision/);
  const revised=JSON.parse(await fs.readFile(path.join(directory,'narration.json'))),history=JSON.parse(await fs.readFile(path.join(directory,'narration-history.json')));
- assert.equal(revised.script.text,'简短说明');assert.equal(history.length,1);assert.equal(history[0].script.text,'完整的自拟说明');assert.notEqual(history[0].asset.id,revised.asset.id);await fs.access(path.join(directory,history[0].asset.compiledRef));assert.equal(revised.asset.providerTranscript.sourceSha256,revised.asset.sha256);
+ assert.equal(revised.script.text,'简短说明');assert.equal(history.length,1);assert.equal(history[0].script.text,'完整的自拟说明');assert.notEqual(history[0].asset.id,revised.asset.id);assert.equal(history[0].asset.sha256,revised.asset.sha256);assert.notEqual(narrationStateFingerprint(history[0]),narrationStateFingerprint(revised));await fs.access(path.join(directory,history[0].asset.compiledRef));assert.equal(revised.asset.providerTranscript.sourceSha256,revised.asset.sha256);
  fail=false;await produceDocument(request,[],{root,outputDir:directory,provider,io,resumeRunId:runId});assert.equal(speaks,2);assert.equal(calls,6);
 });
 
@@ -207,10 +207,18 @@ test('measured narration survives a later-stage interruption without another syn
  const wav=Buffer.alloc(44+48000);wav.write('RIFF');wav.writeUInt32LE(wav.length-8,4);wav.write('WAVEfmt ',8);wav.writeUInt32LE(16,16);wav.writeUInt16LE(1,20);wav.writeUInt16LE(1,22);wav.writeUInt32LE(24000,24);wav.writeUInt32LE(48000,28);wav.writeUInt16LE(2,32);wav.writeUInt16LE(16,34);wav.write('data',36);wav.writeUInt32LE(48000,40);
  const script={text:'计时测试',voice:'zf_xiaobei',basis:'test-only'},id='voice-'+resourceHash({text:script.text,voice:script.voice,rate:1}).slice(0,16),brief={request:inferred,needsTranscription:false,needsNarration:true,needsCaptions:false,keepOriginalAudio:false,capabilities:[],gaps:[],constraints:[]};
  const answers=[brief,{observations:[],candidates:[],inspectRanges:[],gaps:[]},{selected:[],originalNeeds:[],gaps:[],blockingGaps:[]},script,{...plan,summary:'test',paragraphs:[{id:'p',purpose:'test',information:'test'}],scenes:[{...scene(60),paragraphId:'p',newInformation:'test',resourceId:'native-original',visualDirection:'test'}],audio:[{assetId:id,volume:1,sourceStartSeconds:0}]}];let calls=0,speaks=0,fail=true,runId;
- const provider={structured:async()=>({model:'injected',result:answers[calls++]}),speak:async()=>{speaks++;return wav;},transcribe:async()=>({words:[{text:'计时测试',start:0,end:.8}],language:'zh'}),close:async()=>{}};
+ const provider={speechVoiceCatalog:async()=>({engine:'kokoro',voices:[{id:'zf_xiaobei'}]}),structured:async()=>({model:'injected',result:answers[calls++]}),speak:async()=>{speaks++;return wav;},transcribe:async()=>({words:[{text:'计时测试',start:0,end:.8}],language:'zh'}),close:async()=>{}};
  const io={catalog:{snapshot:{commit:'test'},context:async()=>({text:'test',records:[]}),candidates:()=>[]},collectEvidence:async()=>({records:[],inputs:[]}),buildShot:async()=>{if(fail)throw Error('later-stage interruption');return {file:'test',sceneId:'scene-01'};},assemble:async()=>{await fs.writeFile(path.join(directory,'document.json'),JSON.stringify({revisionId:'voice-resume'}));return {revisionId:'voice-resume'};},review:async()=>({revisionId:'voice-resume'})};
  await assert.rejects(()=>produceDocument(request,[],{root,outputDir:directory,provider,io,onRun:r=>runId=r.id}),/later-stage/);fail=false;
  await produceDocument(request,[],{root,outputDir:directory,provider,io,resumeRunId:runId});assert.equal(calls,5);assert.equal(speaks,1);const timing=JSON.parse(await fs.readFile(path.join(directory,'timing-plan.json'),'utf8'));assert.equal(timing.basis,'measured-narration-transcript');assert.equal(timing.audioGraph[0].durationFrames,30);
+});
+
+test('narration rejects a voice outside the injected provider catalog before synthesis',async()=>{
+ const directory=await fs.mkdtemp(path.join(os.tmpdir(),'commerce-voice-invalid-'));await fs.writeFile(path.join(directory,'evidence.json'),JSON.stringify({assets:[]}));await fs.mkdir(path.join(directory,'evidence'));await fs.mkdir(path.join(directory,'assets'));
+ const brief={request:inferred,needsTranscription:false,needsNarration:true,needsCaptions:false,keepOriginalAudio:false,capabilities:[],gaps:[],constraints:[]},answers=[brief,{observations:[],candidates:[],inspectRanges:[],gaps:[]},{selected:[],originalNeeds:[],gaps:[],blockingGaps:[]},{text:'目录反例',voice:'not-in-catalog',basis:'negative fixture'}];let calls=0,speaks=0,runId;
+ const provider={speechVoiceCatalog:async()=>({engine:'kokoro',voices:[{id:'zf_001'}]}),structured:async()=>({model:'injected',result:answers[calls++]}),speak:async()=>{speaks++;throw Error('must not synthesize');},close:async()=>{}};
+ const io={catalog:{snapshot:{commit:'test'},context:async()=>({text:'test',records:[]}),candidates:()=>[]},collectEvidence:async()=>({records:[],inputs:[]})};
+ await assert.rejects(()=>produceDocument(request,[],{root,outputDir:directory,provider,io,onRun:r=>runId=r.id}),{code:'VOICE_NOT_FOUND'});assert.equal(speaks,0);const run=JSON.parse(await fs.readFile(path.join(directory,'runs',runId+'.json'),'utf8'));assert.equal(run.status,'recoverable');assert.equal(run.code,'VOICE_NOT_FOUND');
 });
 
  test('literal rich text preserves native copy, escapes markup and survives precise text edits',()=>{

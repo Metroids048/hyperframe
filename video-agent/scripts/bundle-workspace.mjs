@@ -2,16 +2,16 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
+import {assertSafeFiles,isPrivateConfigPath} from './workspace-security.mjs';
 const root=path.resolve(process.argv[2]||'.'),destination=path.resolve(process.argv[3]||path.join(root,'workspace-content'));
 const objects=path.join(destination,'objects');await fs.mkdir(objects,{recursive:true});
 const excluded=[],files=[];const skip=new Set(['node_modules','.git','.cache','.hyperframes','__pycache__','.venv-speech']);
-const secret=/\b(?:gh[pousr]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{30,}|sk-[A-Za-z0-9_-]{24,})\b|-----BEGIN (?:RSA |OPENSSH |EC )?PRIVATE KEY-----/;
 async function walk(dir){for(const entry of await fs.readdir(dir,{withFileTypes:true})){
  const file=path.join(dir,entry.name),relative=path.relative(root,file).replaceAll('\\','/');
- if(skip.has(entry.name)||relative==='hyperframe_closeout_r1/evidence/baseline-repo'||/\.env(?:\.|$)|\.local\.(?:env|json)$|(?:server\.pid|\.lock|\.tmp|\.bundle-partial)$/.test(entry.name)){excluded.push({path:relative,reason:'dependency, reproducible cache, baseline duplicate or local runtime/private state'});continue;}
+ if(skip.has(entry.name)||relative==='hyperframe_closeout_r1/evidence/baseline-repo'||isPrivateConfigPath(relative)||/(?:server\.pid|\.lock|\.tmp|\.bundle-partial)$/.test(entry.name)){excluded.push({path:relative,reason:'dependency, reproducible cache, baseline duplicate or local runtime/private state'});continue;}
  if(entry.isDirectory()){await walk(file);continue;}if(!entry.isFile())continue;
+ await assertSafeFiles([{absolute:file,path:relative}],{context:'workspace bundle'});
  const bytes=await fs.readFile(file);
- if(/\.(?:json|md|txt|log|html|mjs|js|py|ps1|yml|yaml|env)$/i.test(file)&&secret.test(bytes.toString('utf8'))){excluded.push({path:relative,reason:'credential-like content; retained locally only'});continue;}
  const sha256=createHash('sha256').update(bytes).digest('hex'),chunks=[];
  for(let offset=0;offset<bytes.length;offset+=32*1024*1024){const chunk=bytes.subarray(offset,offset+32*1024*1024),id=createHash('sha256').update(chunk).digest('hex');chunks.push(id);await fs.writeFile(path.join(objects,id),chunk,{flag:'wx'}).catch(error=>{if(error.code!=='EEXIST')throw error;});}
  files.push({path:relative,bytes:bytes.length,sha256,chunks,runtime:relative.startsWith('third_party/')||relative.startsWith('video-agent/data/')||relative.startsWith('video-agent/outputs/mijia-brand-test/')||relative.startsWith('video-agent/outputs/r1-closeout-delivery/')});
