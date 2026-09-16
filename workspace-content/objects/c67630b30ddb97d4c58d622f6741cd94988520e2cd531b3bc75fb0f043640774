@@ -1,0 +1,133 @@
+# R1 执行台账（持续更新，未完成交付）
+
+最新汇总见 **R1_RESULT.md**；下方按发生顺序保留历史状态，旧的“尚无MP4”不是当前结论。
+
+基线：46c6ff6066fba063f18b0fd057180eece65994fc。本地无.git，按当前源码执行；没有回退、清理素材或推送。只读对照仓库位于 evidence/baseline-repo。
+
+## 已复现并修复
+
+- A：空third_party、chromatic顶层导入、缺submodule URL/CI递归恢复、npmmirror锁文件。0.8.33固定，按需shader加载，官方源安装。独立干净安装及限定40项等价测试通过；没有远端CI运行结果。
+- B：持久化逐镜头素材计划、缺口续作、生成素材内容校验、三画幅身份、锁内重读/跨进程锁、已提交task查询、未知提交需对账。
+- C：目录名称/别名/URL精确解析，否定/首转场范围，无匹配不resolved；官方色散绑定真实源素材。
+- D：真实任务/导出统计、实际进展时间、assetId选择、营销发布后自动候选导出、取消与恢复持久化。
+- 真实流程额外修复：Windows缓存/隔离进程长路径，视频解码等待；静态文字时序意见交给动画实施，最终审查仍阻断不正确时序。
+
+## 当前证据
+
+- evidence/core-final.log：现有npm test 20/20通过，包括真实浏览器主生成与MP4、重启、移动端、网络异常。
+- evidence/r1-final-regression.log：R1、原生工程、质量回归29/29通过。
+- evidence/staged-clean.log：干净安装后的限定40项等价测试通过。
+- evidence/editor-ui-retest.log、isolation-final.log、conversation-media-final.log：对应原失败项已回归通过（隔离测试16通过、1平台跳过）。
+- video-agent/outputs/r1-shader：真实耳机源工程fixture，转场前/中/后及重复seek通过，3次同一时刻PNG SHA一致。此项不是最终30秒成片。
+
+## 真实本轮工程
+
+WebUI：http://127.0.0.1:3020/?project=1e8ec7c7-d4b3-4a5d-8c41-10e768bcd4dc
+原job：job-67041e4b-edfa-4f8a-89e1-b036fb40e5ae。原run：3f0292ec-cc95-4128-aa24-57c9511b5906。
+商品：银白色头戴耳机；同源25.84秒视频+抽帧商品图；内部审查素材，未声称商业权利已确认。
+已在真实UI选择单品上新/营销/30秒/9:16提交。现从原静态文字检查点恢复，未有最终MP4，不计C10通过。
+
+## 12项当前状态
+
+|项|状态与限制|
+|---|---|
+|C01|本地干净安装与限定等价检查通过；未推送/未运行远端CI|
+|C02|营销真实UI已进入生产；独立生成仅隔离回归，非真实供应商|
+|C03|三画幅参数/身份隔离回归通过；无真实付费提交|
+|C04|并发、持久task查询、未知状态不重复提交回归通过|
+|C05|部分完成后的序列化恢复/sha复用通过；无真实供应商故障恢复|
+|C06|状态推导与只读进展回归通过；最终导出状态待本片|
+|C07|精确名称/否定/范围/无匹配回归通过；本片修改待完成|
+|C08|同源fixture真实shader与重复seek通过；本片待复验|
+|C09|受阻：无本地有效RUNNINGHUB_API_KEY与授权配置；没有付费调用|
+|C10|进行中：本片真实UI生产恢复，候选MP4尚未完成|
+|C11|待本片三次编辑、撤销恢复、工程重开与再导出|
+|C12|待本片基础/精剪同素材对照与媒体检查|
+
+已检查工程、当前环境及本地Codex环境配置位置，仅检查Key是否存在，不输出值，不新造付费授权。其余工作继续。模型订阅可用。未代签人工accepted。附件probes仅用于复现旧缺陷，不计正确行为验收。
+
+## 17:46 连接与恢复补充
+
+耳机动画调用25达到600秒CODEX_TIMEOUT，WebUI原任务恢复到调用26，未重新做前面阶段；26再次长时间等待。单独订阅HTTPS诊断9.6秒成功（evidence/model-https-diagnostic.log，不计成片验收）。通过WebUI取消该卡住调用，start.py以进程环境VIDEO_AGENT_CODEX_TRANSPORT=https重启，随后WebUI显式恢复原任务。取消状态跨重启保留，没有自动复活。新的代码修复迁移仅在需求、素材、模型、目录及策略身份相同时保留模型计划/源文件，重建执行和最终质量证据；需求变化仍拒绝原检查点复用。
+## 本次续作 18:00 检查点
+
+- 继续原耳机 project `1e8ec7c7-d4b3-4a5d-8c41-10e768bcd4dc`、job `job-67041e4b-edfa-4f8a-89e1-b036fb40e5ae`；未创建替代工程。
+- 对照 evidence/baseline-repo 的真实基线 HEAD 46c6ff6066fba063f18b0fd057180eece65994fc，本地22项受跟踪源码差异已保存 resume-delta-20260915.json；不包含新增文件的全面清单。
+- 续作回归30/30及 core 验证退出0。新复现：已检查静态画面的动画请求仍携带renderer/DOM创作说明。修复仅按阶段收窄上下文，保留业务规则/动画规则/对象与实际图片；新增断言先失败后通过，组合回归48/48。
+- 真实单图片HTTPS模型诊断成功；原动画调用第27次仍600秒超时。原任务进入recoverable后，通过start.py重启无活跃job的服务并从真实WebUI恢复同一job；其他米家CLI/参考渲染进程保留。
+- 本次仍未发现RunningHub环境Key与config/runninghub.local.json。没有新增付费调用/授权；C09保持阻断，不将现有素材当供应商新输出。
+- 候选MP4、三次续改、对照仍未完成；下一步观察收窄上下文后的真实动画请求并检查候选。
+## 18:12 真实流程推进与补修
+
+- 第29次真实动画请求成功，scene-002.json已保存；没有使用diagnostic结果替代生产输出。
+- 真实方向预览发现旧片头检查点与当前分镜不符：旧parameterized titlecard被复用于native-original。新增失败回归后修复，资源/规则变化失效下游shot检查点、原始文件留存；原input proof归档后更新当前proof，避免每次代码修复重复按旧资源迁移。
+- 同时修复“细节提前”只改色散却原地不动的本地捷径，交给完整规划；模型提示补充精确chromatic-split名称。
+- 回归50/50；现有npm test 20/20；core与browser验证退出0，其中平台专属1项跳过，详见本次log。
+- 原工程从UI恢复，当前重新检查片头静态布局；同一project/job/run，素材、已完成镜头源文件和provider记录未清空。
+- 又用真实隔离浏览器复现淡化阶段透明祖先被当不透明遮挡的问题，修复遮挡判断乘入祖先opacity；仍保留实心遮挡和假运动负例。
+- C10/C11/C12仍待最终候选/续改/对照，不因上述回归标完成。
+## 18:16 验证状态更正与CPU配额诊断
+
+更正上面“browser验证退出0”的结论：外层PowerShell展示日志覆盖了子命令退出码。实际browser report.json为failed，仅test-conversation-media在12秒导航等待处超时；其余suite通过。该报告不改写为通过，另单独重跑失败项并显式保留退出码。core report.json为passed，npm test实际20/20。
+
+新方向预览中片头隔离检查已通过，第二幕Windows监督进程exitCode=-1073741756（CPU配额耗尽），peakJobMemory约409MB，没有worker回执。固定30秒CPU不足以完成该镜头20多个取样。按可信编译器样本数分配30—120秒CPU和45—180秒墙钟，内存限制不变；保留所有样本、动态假运动、实心遮挡和终止负例。预算与R1回归17/17。
+
+## 18:19 对话媒体验证重跑
+单独 test-conversation-media 已真实退出0，十轮UI修改、刷新恢复、固定版本MP4/ZIP与手机视图全部通过。日志 evidence/conversation-media-resume-retest-20260915.log。原browser aggregate的历史失败报告保留；没有改写。耳机原任务现从UI恢复方向预览。
+
+## 18:27 合成阶段实测补修
+原任务三幕已完成，方向预览已通过。发现brief的needsCaptions将显示文案误送ASR，即使needsTranscription/needsNarration均false；新增needsSpeechCaptions严格区分，R1回归11/11。随后打包遇到保留历史回执中的旧skill哈希；仅对skills markdown允许已登记commit+精确sha的历史快照作为惰性参考，不用于执行适配器，缺失/篡改仍阻断；本片39个参考文件成功锁定，2个历史说明单独标记。相关回归12/12。通过start.py重启并从UI继续同一原任务。
+
+## 首条真实WebUI候选已导出
+revision rev-15a95c50d27634af；原job状态complete；commerce-final.mp4 SHA256 114a41e83b4a2f5a454670bbda182067777880587e810e6116c727ac272fe398。media-review:1080x1920、30fps、900帧、30秒、完整解码passed、无音轨、无blackIntervals/repeatedSource。history.zip由同一候选导出链路产生。真实浏览器点击播放从0推进到29秒，尾卡实际可见；MP4额外帧见evidence/original-mp4（times.json对应顺序），已观察字幕进入/退出及两处淡化、首尾。尾卡修复前见review-0，修复后见review-1及导出帧。人工/商业授权仍pending；当前是已有素材分支，不顶替C09。UI已提交第一次字幕精简与移位。第三次确切替换文案缺失，已请求文字输入；其他工作继续。
+
+## 两次续改与原生包缺陷
+第一次rev-5c114c9dd0b2f1be与第二次rev-fc2150f90243a259均由同一WebUI工程提交并导出。edit1-invariants.json验证媒体/音轨/镜头/转场不变；edit2-invariants.json验证第二幕73→43帧且源参数不变、首个chromatic-split、第二处淡化不变、总900帧。current-shader-seek.json三次1.567秒PNG SHA一致；WebUI也实际前进到8秒再返回色散，主体正常。WebUI撤销回rev-5c114c9dd0b2f1be并重做回rev-fc2150f90243a259成功。
+真实打开03工程包复现缺production-admission.json：portable允许列表遗漏candidate检查记录。已补business-contract.json/production-admission.json，保留candidate_only而不重造审核；包回归5/5。旧包保留before-admission-fix，原WebUI固定revision重新导出修复包后再次导入。导入每次使用独立临时blob目录，避免重试EEXIST覆盖上次证据。
+
+## 本次独立工作收束：基础对照导出完成
+
+真实包重开再次复现MAXPATH：import暂存名过长。改为12字符唯一token，重试成功；UI跟随重试返回的实际新projectId，并在revision恢复时还原30秒/9:16/单品上新。成功重开project 8f41aa0c-c7fa-422f-87f3-91bcd100fd42，三revision内容与原工程一致（reopen-invariants.json）。
+
+基础修改先复现CUSTOM_MOTION：纯有限tl.set显隐被要求连续运动目标。增加discrete合同；真实浏览器验证可见文字通过、隐藏文字与假运动仍失败，3/3。UI重试得到rev-407d68eb4792b7ad，真实重新渲染导出完成。成功编辑133.2秒、导出178.4秒。当前基础与精剪两条30秒竖屏MP4、两个有效原生包及左基础/右精剪并排MP4均在video-agent/outputs/r1-closeout-delivery。
+
+comparison-invariants.json：节点、素材、源区间、镜头、布局、声音和输出规格一致；基础只换首转场与文字显隐。comparison-mp4中12时点已实际观察，8秒字幕清楚且在商品下方留白；首处色散仅在右侧精剪出现，第二处均淡化。并排片完整解码通过。有效ZIP按package.json真实文件映射检查，分别3/4个revision admission记录hash有效，无字体或凭据配置文件；旧坏包不交付。
+
+已从UI点击基础MP4与原生工程下载，并保留两个工作台。原工程仍是初始+两次指定修改，未将对照修改算作第三次。第三次确切结尾文字仍待用户输入；RunningHub真实生成仍缺本地Key/授权；远端CI未运行。12项真实状态与明确交付链接见R1_RESULT.md。未签人工认可。
+
+## 2026-09-15 再审查与推送
+
+用户本轮要求：追加测试/对抗性审查/全局校验；删除WebUI素材目录和历史样例区域，保留已有成品下拉并包含米家V2；推送GitHub。
+
+已在原工作目录完成UI精简与成品入口；米家V2明确reference-author-v2，不计Agent自动生成验收。新增隔离UI、成品清单哈希/路径边界、最近导出版保留回归；发现并修复构建漏包、跨作品旧审阅链接、并发缓存测试错误的获锁顺序假设、Windows标签与规则CRLF哈希问题。core、browser、npm test均通过，新增UI最终通过；一个平台专属测试跳过。详细范围见video-agent/docs/R1-REVIEW-2026-09-15.md。
+
+通过独立发布副本恢复原基线，重建两个固定子模块、npm ci及core检查。提交b869aa9（58个文件）已由有效SSH授权正常推送Metroids048/hyperframe的main，未强推。原素材、输出、配置和其他本地文件保留；没有推送Key、用户视频或字体。远端CI：34963091057 / 34963091071，运行结果另见outputs/r1-review-remote-ci.json。
+
+指定私有对话6aa8c3c2-defc-83ea-aea7-2f6ed9837c9c读取受阻，三次浏览器连接/重置失败，任务工具无匹配，公开URL只返回登录页。已请求用户粘贴原始目标，未以本地文档冒充已读该对话。C09、第三次确切结尾文案与真人质量边界仍保留，不因本轮回归或推送升级为通过。
+
+
+## 2026-09-15 本轮最终核验
+
+- GitHub main 最终提交：184d17100f7a576ebf5e9ab41cfaba7230e3d575；正常推送，无强制回退。
+- Windows 独立副本复现264字符路径使FFmpeg误报不存在；保留失败日志，修复长路径及HyperFrames内部抽帧短路径入口。真实十轮修改、严格MP4/ZIP与下载回归通过：video-agent/outputs/r1-review-long-path-conversation-retest-2.log。
+- 本地最终core通过：video-agent/outputs/r1-review-core-long-path-final.log。
+- 最终双平台CI成功（14m34s）：https://github.com/Metroids048/hyperframe/actions/runs/34966825072 。含Windows启动检查。
+- 最近相关原生视频流水线成功：https://github.com/Metroids048/hyperframe/actions/runs/34964604972 。
+- 最终状态证据：video-agent/outputs/r1-review-remote-ci-final.json。
+- 本地WebUI经start.py重启，PID 10228，http://127.0.0.1:3020/?work=mijia-v2 。
+- 原始私有对话未读取；RunningHub授权、第三次确切文案和人工认可仍未冒称完成。详见video-agent/docs/R1-REVIEW-2026-09-15.md。
+
+
+## 2026-09-15 完整项目推送补正
+
+用户指出新仓库缺米家V2且WebUI错误。已将米家MP4和原生ZIP直接纳入video-agent/deliverables/mijia-v2，完整内容快照随workspace-content提交。22,040文件，逻辑14,863,514,362字节，去重1,793,761,559字节；含固定third_party，支持未初始化子模块和ZIP下载。Key、依赖缓存与重复基线副本排除项显式列入清单。
+
+启动器安装锁定依赖、校验并恢复工程、识别工作区所属服务；不再复用其他目录旧WebUI。保留原有工程，元数据最后发布。Windows长路径恢复和短TEMP测试已各自复现后修复。
+
+完整内容推送bd22d32a84d28767c2d6f413fee98f239e112b19成功，测试修正后main为704e4acfc44f63ed9a41c97d4b37dc6ab9c76b55。GitHub已确认米家MP4与原生ZIP完整Git blob哈希、大小匹配本地；原始下载连接重置，未伪称远端流式下载成功。
+
+最终空检出：C:/Users/admin/Desktop/hyperframe-clean-delivery-20260915；从零安装并恢复12,275运行文件，真实浏览器MP4播放/暂停/seek、文件完整哈希下载验证通过。另一检出额外恢复9,758历史证据文件；新检出core通过。原目录3020已升级并验证，PID13256；两个测试服务器已停止，目录保留。
+
+本地core、browser、npm test20项均通过。当前原生CI34981954032成功，双平台CI34982957661进行中。最终状态详见video-agent/outputs/full-publish-verification.json及full-publish-*.log。原R1的人评和付费授权等边界未代签通过。
+
+最终 CI 状态补记：34982957661 已结束，Linux 成功，Windows 在 test-creative-custom 第9项失败：ISOLATION_PROTOCOL / Missing or duplicate supervisor receipt。此问题尚未定位修复，不标记全平台通过。完整项目与媒体已推送到 main 704e4acfc44f63ed9a41c97d4b37dc6ab9c76b55，空检出和原目录实际 WebUI 验证结果不变。

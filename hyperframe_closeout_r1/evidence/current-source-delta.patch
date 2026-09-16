@@ -1,0 +1,957 @@
+--- a/.github/workflows/commerce-native.yml
++++ b/.github/workflows/commerce-native.yml
+@@ -33,6 +33,8 @@
+         working-directory: video-agent
+     steps:
+       - uses: actions/checkout@v4
++        with:
++          submodules: recursive
+       - uses: actions/setup-node@v4
+         with:
+           node-version: '22'
+--- a/.github/workflows/conversation-checks.yml
++++ b/.github/workflows/conversation-checks.yml
+@@ -24,6 +24,7 @@
+       - uses: actions/checkout@v4
+         with:
+           persist-credentials: false
++          submodules: recursive
+       - uses: actions/setup-node@v4
+         with:
+           node-version: '22'
+--- /dev/null
++++ b/third_party/README.md
+@@ -0,0 +1,19 @@
++# Pinned reference sources
++
++Runtime stays at HyperFrames 0.8.33. The Git links and `.gitmodules` restore:
++
++- `hyperframes`: `6e3308be4f2ab886597fcee7c5896a5f842ec4b6`
++- `hyperframes-launches`: `6259ea7aa45042fa6ebf941538cf7621cf6dad0f`
++
++New production uses `third_party/hyperframes` for both CapabilityCatalog and
++full discovery. `video-agent/config/hyperframes/catalog.generated.json` records
++the content hashes. Required resources fail closed when read; unused optional
++shaders do not break imports. Launch examples are reference-only; LFS pointers
++are not playable assets.
++
++The older `video-agent/config/hyperframes/ea7e...` snapshot and repository-level
++`hyperframes/` download are retained as historical user files. They are not
++fallback execution roots. Existing project resource locks keep their own hashes.
++
++For a fresh checkout: `git -c core.autocrlf=false submodule update --init --recursive`.
++No credentials belong in these mirrors or committed configuration.
+--- a/video-agent/lib/creative/capabilities.mjs
++++ b/video-agent/lib/creative/capabilities.mjs
+@@ -24,6 +24,13 @@
+   R6:['skills/hyperframes-core/references/review-loop.md'],
+   R7:[],R8:[]
+ };
++export function normalizeShotSource(record,mediaKinds=[]){
++  if(record.source===null){
++    insist(record.receipt?.method==='footage-cut'&&record.receipt?.tool==='native.footage-cut','只有原生素材直切可省略自定义源码','CUSTOM_SOURCE');
++    return null;
++  }
++  return normalizeMediaBindings(record.source,mediaKinds).source;
++}
+ export function normalizeMediaBindings(source,mediaKinds=[]){
+   const tree=parseFragment(source.html),changes=[];
+   const imageIds=new Set((source.objects||[]).filter(o=>{const match=/^media-(\d+)$/.exec(o.ref||'');return match&&mediaKinds[Number(match[1])-1]==='image';}).map(o=>o.elementId));
+--- a/video-agent/lib/creative/chromatic-split.mjs
++++ b/video-agent/lib/creative/chromatic-split.mjs
+@@ -34,12 +34,12 @@
+    canvas.style.opacity=p>0&&p<1?'1':'0';if(p<=0||p>=1)return;
+    gl.useProgram(program);gl.viewport(0,0,canvas.width,canvas.height);
+    for(let i=0;i<2;i++){
+-    const m=media[i],w=m.videoWidth||m.naturalWidth,h=m.videoHeight||m.naturalHeight;if(!w||!h)return;
++    const m=media[i],replacement=m.nextElementSibling,frame=replacement?.classList.contains('__render_frame__')&&replacement.complete&&replacement.naturalWidth?replacement:m,w=frame.videoWidth||frame.naturalWidth,h=frame.videoHeight||frame.naturalHeight;if(!w||!h)return;
+     ctx.fillStyle=c.background;ctx.fillRect(0,0,surface.width,surface.height);
+     const b=m.getBoundingClientRect(),r=root.getBoundingClientRect(),sx=surface.width/r.width,sy=surface.height/r.height;
+     const x=(b.left-r.left)*sx,y=(b.top-r.top)*sy,bw=b.width*sx,bh=b.height*sy,fit=getComputedStyle(m).objectFit;
+     const scale=fit==='contain'?Math.min(bw/w,bh/h):Math.max(bw/w,bh/h);
+-    ctx.save();ctx.beginPath();ctx.rect(x,y,bw,bh);ctx.clip();ctx.drawImage(m,x+(bw-w*scale)/2,y+(bh-h*scale)/2,w*scale,h*scale);ctx.restore();
++    ctx.save();ctx.beginPath();ctx.rect(x,y,bw,bh);ctx.clip();ctx.drawImage(frame,x+(bw-w*scale)/2,y+(bh-h*scale)/2,w*scale,h*scale);ctx.restore();
+     gl.activeTexture(i===0?gl.TEXTURE0:gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,textures[i]);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,surface);gl.uniform1i(gl.getUniformLocation(program,i===0?'u_from':'u_to'),i);
+    }
+    gl.uniform1f(gl.getUniformLocation(program,'u_progress'),p*p*(3-2*p));gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+@@ -48,6 +48,15 @@
+   return draw;
+  });
+  const timeline=window.__timelines['commerce-root'];timeline.eventCallback('onUpdate',()=>states.forEach(draw=>draw()));
++ // The pinned renderer invokes this hook after every exact-frame batch has
++ // decoded. Preserve its existing color-grading work, then sample those frames.
++ const wrapped=new WeakSet();
++ const bindRenderHook=()=>{const grading=window.__hf?.colorGrading;if(!grading||wrapped.has(grading))return;wrapped.add(grading);const priorRedraw=grading.redraw;grading.redraw=function(...args){priorRedraw?.apply(this,args);states.forEach(draw=>draw());};};
++ bindRenderHook();
++ // The engine installs its runtime after author scripts, so bind again when
++ // its first exact-frame sibling is inserted, before that batch decodes.
++ new MutationObserver(bindRenderHook).observe(root,{childList:true,subtree:true});
++ document.addEventListener('load',event=>{if(event.target?.classList?.contains('__render_frame__'))states.forEach(draw=>draw());},true);
+  states.forEach(draw=>draw());
+ }
+ export function compileChromatic(document,objectMap){
+--- a/video-agent/lib/creative/evidence-index.mjs
++++ b/video-agent/lib/creative/evidence-index.mjs
+@@ -21,11 +21,11 @@
+   return {version:1,assets:assets.map(a=>({assetId:a.id,sourceSha256:a.sha256,duration:a.mediaMetadata?.duration})),entries:[...new Map(entries.map(e=>[e.id,e])).values()]};
+ }
+ 
+-export function queryEvidence(index,{ranges=[],preferredRanges=[],assetIds=[],limit=12}={}){
++export function queryEvidence(index,{ranges=[],preferredRanges=[],preferredBatchKeys=[],assetIds=[],limit=12}={}){
+   insist(Number.isInteger(limit)&&limit>0&&limit<=24,'证据查询超过图片预算','OBSERVATION_BUDGET');
+   const relevant=index.entries.filter(e=>(!assetIds.length||assetIds.includes(e.assetId))&&(!ranges.length||ranges.some(r=>r.assetId===e.assetId&&(!(e.times||[]).length||(e.times||[]).some(t=>t>=r.startSeconds-.25&&t<=r.endSeconds+.25)))));
+   const preferred=e=>preferredRanges.some(r=>r.assetId===e.assetId&&(e.times||[]).some(t=>t>=r.startSeconds-.25&&t<=r.endSeconds+.25));
+-  relevant.sort((a,b)=>Number(preferred(b))-Number(preferred(a)));
++  relevant.sort((a,b)=>Number(preferredBatchKeys.includes(b.batchKey))-Number(preferredBatchKeys.includes(a.batchKey))||Number(preferred(b))-Number(preferred(a)));
+   // Round robin across source intervals/batches: latest observations cannot
+   // evict every older observation simply because they were produced last.
+   const groups=new Map();for(const e of relevant){const k=[e.assetId,e.batchKey,e.startSeconds,e.endSeconds].join(':');if(!groups.has(k))groups.set(k,[]);groups.get(k).push(e);}
+--- /dev/null
++++ b/video-agent/lib/creative/execution-status.mjs
+@@ -0,0 +1,8 @@
++export function executionStatus(projects){
++ const jobs=projects.flatMap(p=>p.jobs.map(j=>({...j,projectId:p.id}))),running=jobs.filter(j=>['queued','running'].includes(j.status));
++ const unresolved=jobs.filter(j=>['failed','recoverable','needs_user'].includes(j.status)).sort((a,b)=>(b.completedAt||b.createdAt).localeCompare(a.completedAt||a.createdAt));
++ const outputs=projects.flatMap(p=>p.revisions.filter(r=>r.rendered&&r.mediaReview?.status==='media-contract-passed').map(r=>({projectId:p.id,revisionId:r.id,createdAt:r.createdAt})));
++ const status=running.length?'running':unresolved.length?(unresolved[0].status==='failed'?'failed':'blocked'):outputs.length?'review_ready':'idle';
++ const latest=outputs.sort((a,b)=>b.createdAt.localeCompare(a.createdAt))[0]||null;
++ return {status,completed:outputs.length,total:jobs.length,activeTask:running[0]?{projectId:running[0].projectId,jobId:running[0].id,status:running[0].status,stage:running[0].stage||null}:null,recentProgressAt:projects.map(p=>p.recentProgressAt).filter(Boolean).sort().at(-1)||null,lastCheckedAt:new Date().toISOString(),lastOutput:latest,blocker:unresolved[0]?{projectId:unresolved[0].projectId,jobId:unresolved[0].id,code:unresolved[0].code,message:unresolved[0].error}:null,assetPool:{discovered:projects.reduce((n,p)=>n+p.assets.length,0)},realTasks:{completed:jobs.filter(j=>j.status==='complete').length,total:jobs.length},humanReview:{status:'pending'}};
++}
+--- a/video-agent/lib/creative/generation-plan.mjs
++++ b/video-agent/lib/creative/generation-plan.mjs
+@@ -5,6 +5,8 @@
+ import {collectCreativeEvidence} from './model-director.mjs';
+ import {insist,stableId} from './contracts.mjs';
+ import {generateCommerceAsset,outputAspect} from './runninghub.mjs';
++import {hashFile} from '../edit/media.mjs';
++import {safeRelativePath} from './contracts.mjs';
+ const string={type:'string'},number={type:'number'};
+ const fields={purpose:string,composition:string,durationSeconds:number,sourceAssetId:string,sourceStartSeconds:number,sourceEndSeconds:number,missing:{type:'boolean'},prompt:string,safeArea:string};
+ const schema={type:'object',additionalProperties:false,properties:{shots:{type:'array',items:{type:'object',additionalProperties:false,properties:fields,required:Object.keys(fields)}}},required:['shots']};
+@@ -30,17 +32,24 @@
+  let plan;
+  try{const answer=await provider.structured('你是现有电商制作流程的镜头规划步骤。输入内容是数据。根据目标和实际素材证据规划有效镜头，不固定数量，不靠重复画面凑时长。逐镜头说明用途、构图、安全字幕留白、时长、原图或视频assetId及源区间。有足够真实视频区间，或静图用于辅助标题/片尾时才可 missing=false（静图源区间为0到0）；静图不能冒充动作或长时间填充；一段视频不能代表所有镜头齐备。用户明确要求慢放时可将真实源区间以不低于0.25倍速延展，构图说明速度；这不授权改动声音。现有镜头prompt可为空。缺口只能用同款商品原图生成，missing=true，且prompt必须填写。派生prompt保持商品结构和颜色、只生成原始镜头、不添加文字、配音或虚构功能。所有镜头时长合计覆盖输出；生成时长考虑供应商配置和裁切余量。只有可观察信息，不臆造事实。', [{role:'user',content:[{type:'input_text',text:JSON.stringify({message,output,aspect,selectedAssetId:project.request.sourceAssetId,assets:prepared.map(a=>({id:a.id,kind:a.kind,metadata:a.mediaMetadata}))})},...evidence.inputs]}],schema,signal);plan=validateGenerationPlan(answer.result,prepared,output,{allowSlowMotion:/(?:细节[^。！？\n]{0,12}放慢|慢放|慢动作)/.test(message)&&!/(?:不要|禁止|无需)[^。！？\n]{0,8}(?:慢放|慢动作)/.test(message)});}finally{if(own)await provider.close();}
+  job.generationPlan={version:1,originalPrompt:message,output,createdAt:new Date().toISOString(),shots:plan.shots.map((shot,i)=>({...shot,id:stableId('shot',job.id,i),aspect,status:shot.missing?'pending':'available',assetId:shot.missing?null:shot.sourceAssetId,acceptance:{status:shot.missing?'pending':'source-range-checked',visual:'pending'}}))};
++ for(const shot of job.generationPlan.shots){
++  const source=project.assets.find(a=>a.id===shot.sourceAssetId);
++  shot.sourceSha256=await hashFile(safeRelativePath(root,source.path));
++  if(shot.status==='available')shot.sha256=shot.sourceSha256;
++ }
+  await save();return job.generationPlan;
+ }
+ export async function fillGenerationGaps({root,project,job,save,signal,generate=generateCommerceAsset}){
+  for(const shot of job.generationPlan.shots){
+   signal.throwIfAborted();if(['available','complete'].includes(shot.status)){
+-   insist(project.assets.some(a=>a.id===shot.assetId),'已完成镜头素材未登记','GENERATION_ASSET_MISSING');continue;
++   const asset=project.assets.find(a=>a.id===shot.assetId);insist(asset,'已完成镜头素材未登记','GENERATION_ASSET_MISSING');
++   if(shot.sha256)insist(await hashFile(safeRelativePath(root,asset.path))===shot.sha256,'已完成镜头内容已变更，不能复用','PROVENANCE_CHANGED');continue;
+   }
+-  insist(!/(?:不|无需|禁止)生成/.test(job.generationPlan.originalPrompt),'缺失镜头且本次禁止生成','GENERATION_DISABLED');
++  insist(!/(?:不要|不许|无需|禁止|不得)[^。！？\n]{0,12}(?:生成|生图|生视频)/.test(job.generationPlan.originalPrompt),'缺失镜头且本次禁止生成','GENERATION_DISABLED');
++  if(shot.sourceSha256){const source=project.assets.find(a=>a.id===shot.sourceAssetId);insist(source&&await hashFile(safeRelativePath(root,source.path))===shot.sourceSha256,'镜头计划的商品源素材已变更，请重新规划','PROVENANCE_CHANGED');}
+   shot.status='running';job.stage='生成镜头：'+shot.purpose;await save();
+   try{const asset=await generate({root,project,job,kind:'video',role:shot.id,sourceAsset:project.assets.find(a=>a.id===shot.sourceAssetId),prompt:shot.prompt,duration:shot.durationSeconds,save,signal});
+-   if(!project.assets.some(a=>a.id===asset.id))project.assets.push(asset);shot.assetId=asset.id;shot.status='complete';shot.acceptance={status:'downloaded-media-decoded',visual:'pending'};shot.completedAt=new Date().toISOString();await save();
++   if(!project.assets.some(a=>a.id===asset.id))project.assets.push(asset);shot.assetId=asset.id;shot.sha256=await hashFile(safeRelativePath(root,asset.path));shot.status='complete';shot.acceptance={status:'downloaded-media-decoded',visual:'pending'};shot.completedAt=new Date().toISOString();await save();
+   }catch(e){shot.status=signal.aborted?'cancelled':'failed';shot.error={code:e.code,message:e.message};await save();throw e;}
+  }
+ }
+--- a/video-agent/lib/creative/intake.mjs
++++ b/video-agent/lib/creative/intake.mjs
+@@ -1,5 +1,5 @@
+ import {insist,validateOutput} from './contracts.mjs';
+ export function commerceIntake(input={}){
+  const target=input.target||'marketing';insist(['image','video','marketing'].includes(target),'任务目标无效','INVALID_TARGET');
+- return {target,scenarioId:input.scenarioId||null,businessGoal:Array.isArray(input.businessGoal)?input.businessGoal:[],output:validateOutput(input.output),pipelineVersion:3};
++ return {target,sourceAssetId:input.sourceAssetId||null,scenarioId:input.scenarioId||null,businessGoal:Array.isArray(input.businessGoal)?input.businessGoal:[],output:validateOutput(input.output),pipelineVersion:3};
+ }
+--- a/video-agent/lib/creative/isolation.mjs
++++ b/video-agent/lib/creative/isolation.mjs
+@@ -14,29 +14,30 @@
+ export async function runSceneIsolation(directory,config,{signal,probe}={}){
+  signal?.throwIfAborted();
+ 
+- await fs.mkdir(directory,{recursive:true});const gate=path.join(directory,'assigned.gate'),workerConfig=path.join(directory,'worker.json'),jobConfig=path.join(directory,'job.json');
+- await fs.rm(gate,{force:true});
++ await fs.mkdir(directory,{recursive:true});
+  const runId=randomUUID(),receiptPath=path.join(directory,'receipt-'+runId+'.json');
+  const inputParts=await Promise.all(config.files.map(async file=>[file,digest(await fs.readFile(path.join(directory,file)))]));
+  const identity={runId,inputHash:digest(JSON.stringify({config,inputParts})),sceneIds:config.scenes.map(s=>s.id),requirements:config.scenes.map(s=>({id:s.id,visibleTargets:s.visibleTargets||s.targets,motionTargets:s.targets,motionIntervals:s.motionIntervals||[],media:s.media||[]}))};
+  const windows=process.platform==='win32';
+  const tempBase=await fs.realpath(windows?os.tmpdir():'/tmp');
+  const privateRoot=await fs.mkdtemp(path.join(tempBase,'hf-'));await fs.chmod(privateRoot,0o700);
++ const gate=path.join(privateRoot,'assigned.gate'),workerConfig=path.join(privateRoot,'worker.json'),jobConfig=path.join(privateRoot,'job.json');
+  try{
+  const profile=path.join(privateRoot,'p'),environment=windows?{SystemRoot:process.env.SystemRoot||'C:\\Windows',WINDIR:process.env.WINDIR||'C:\\Windows',PATH:path.dirname(process.execPath)+';'+path.join(process.env.SystemRoot||'C:\\Windows','System32'),TEMP:path.join(privateRoot,'t'),TMP:path.join(privateRoot,'t'),LOCALAPPDATA:path.join(profile,'AppData/Local'),APPDATA:path.join(profile,'AppData/Roaming'),USERPROFILE:profile,SystemDrive:path.parse(directory).root.replace(/[\\/]+$/,'')}:{PATH:path.dirname(process.execPath)+':/usr/bin:/bin',HOME:profile,TMPDIR:path.join(privateRoot,'t'),TEMP:path.join(privateRoot,'t'),TMP:path.join(privateRoot,'t')};
+  for(const dir of [environment.TEMP,environment.TMPDIR,environment.LOCALAPPDATA,environment.APPDATA].filter(Boolean))await fs.mkdir(dir,{recursive:true});
+  const limits={cpuSeconds:30,wallMs:45000,processMemoryBytes:1024**3,jobMemoryBytes:2*1024**3};if(['timeout','browser-timeout'].includes(probe))limits.wallMs=1500;if(probe==='memory'){limits.processMemoryBytes=192*1024**2;limits.jobMemoryBytes=256*1024**2;}
+  const defaultBrowser=process.platform==='win32'?'C:/Program Files/Google/Chrome/Application/chrome.exe':process.platform==='darwin'?'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome':'/usr/bin/google-chrome';
+  await fs.writeFile(workerConfig,JSON.stringify({...config,directory,gate,probe,identity,receiptPath,browserProfile:path.join(privateRoot,'b'),browser:process.env.HYPERFRAMES_BROWSER_PATH||defaultBrowser}));
+- await fs.writeFile(jobConfig,JSON.stringify({executable:process.execPath,arguments:['--max-old-space-size=192',path.join(root,'scripts/native-scene-worker.mjs'),workerConfig],directory,gate,environment,...limits}));
++ await fs.writeFile(jobConfig,JSON.stringify({executable:process.execPath,arguments:['--max-old-space-size=192',path.join(root,'scripts/native-scene-worker.mjs'),workerConfig],directory:privateRoot,gate,environment,...limits}));
++ await fs.copyFile(workerConfig,path.join(directory,'worker.json'));await fs.copyFile(jobConfig,path.join(directory,'job.json'));
+  let stdout='',stderr='',timedOut=false,aborted=false;
+  const command=windows?path.join(environment.SystemRoot,'System32/WindowsPowerShell/v1.0/powershell.exe'):process.execPath;
+  const args=windows?['-NoProfile','-NonInteractive','-File',path.join(root,'scripts/native-scene-job.ps1'),'-Config',jobConfig]:['--max-old-space-size=192',path.join(root,'scripts/native-scene-worker.mjs'),workerConfig];
+- await fs.writeFile(path.join(directory,'invocation.json'),JSON.stringify({command,args,cwd:directory,identity,limits,platform:process.platform},null,2));
++ await fs.writeFile(path.join(directory,'invocation.json'),JSON.stringify({command,args,cwd:privateRoot,identity,limits,platform:process.platform},null,2));
+  let pid;
+  const result=await new Promise((resolve,reject)=>{
+   signal?.throwIfAborted();
+-  const child=spawn(command,args,{cwd:directory,windowsHide:true,detached:!windows,env:environment,stdio:['ignore','pipe','pipe']});pid=child.pid;
++  const child=spawn(command,args,{cwd:privateRoot,windowsHide:true,detached:!windows,env:environment,stdio:['ignore','pipe','pipe']});pid=child.pid;
+   let escalation;
+   const send=kind=>{try{if(windows)child.kill(kind);else process.kill(-pid,kind);}catch(error){if(error.code!=='ESRCH')throw error;}};
+   const stop=()=>{send('SIGTERM');escalation=setTimeout(()=>send('SIGKILL'),1500);};
+--- a/video-agent/lib/creative/model-director.mjs
++++ b/video-agent/lib/creative/model-director.mjs
+@@ -1,4 +1,5 @@
+ import {resourceRequests} from './resource-catalog.mjs';
++import {fullOriginalAudioGraph} from './observation-audio.mjs';
+ import {createHash} from 'node:crypto';
+ import fs from 'node:fs/promises';
+ import path from 'node:path';
+@@ -197,6 +198,7 @@
+     if(asset.kind==='video')return document.nodes.filter(n=>n.kind==='video'&&n.assetId===asset.id).map((n,j)=>({id:`audio-${i+1}-${j+1}`,assetId:asset.id,sceneId:n.sceneId,sourceNodeId:n.id,startFrame:n.startFrame,sourceStartSeconds:n.params.sourceStartSeconds,playbackRate:n.params.playbackRate??1,durationFrames:n.durationFrames,volume:a.volume}));
+     return {id:`audio-${i+1}`,assetId:a.assetId,startFrame:0,sourceStartSeconds:a.sourceStartSeconds,durationFrames:Math.min(target,Math.floor((asset.mediaMetadata.duration-a.sourceStartSeconds)*FPS)),volume:a.volume};
+   });
++  document.audioGraph=fullOriginalAudioGraph(request.message,assets,target)||document.audioGraph;
+   document.revisionId=stableId('rev',request.projectId,document.scenes,document.nodes,document.design,document.audioGraph,document.sourceBundles);
+   assertNoUnknownFacts(document);return document;
+ }
+--- a/video-agent/lib/creative/observation-audio.mjs
++++ b/video-agent/lib/creative/observation-audio.mjs
+@@ -1,4 +1,16 @@
+ import {insist} from './contracts.mjs';
++
++export const preserveFullOriginalTrack = message => /(?:完整[^。！？\n]{0,20}(?:原声|原音轨)|(?:原声|原音轨|原声音轨)[^。！？\n]{0,20}完整)/.test(String(message||''));
++
++export function fullOriginalAudioGraph(message,assets,targetFrames){
++  if(!preserveFullOriginalTrack(message))return null;
++  const sources=assets.filter(a=>a.kind==='video'&&a.mediaMetadata?.hasAudio);
++  insist(sources.length===1,'完整独立原声需要明确唯一的有声视频来源','ORIGINAL_AUDIO_SOURCE');
++  const source=sources[0],frames=Math.ceil(source.mediaMetadata.duration*30);
++  insist(targetFrames>=frames,'成片时长不足以完整保留原声音轨','ORIGINAL_AUDIO_DURATION');
++  return [{id:'audio-full-original',assetId:source.id,startFrame:0,sourceStartSeconds:0,
++    playbackRate:1,durationFrames:frames,volume:1,role:'original'}];
++}
+ 
+ // Empty ASR is not evidence of silence. Original audio can still be kept
+ // verbatim; speech-dependent output must not invent a transcript.
+--- a/video-agent/lib/creative/production.mjs
++++ b/video-agent/lib/creative/production.mjs
+@@ -1,5 +1,5 @@
+ import {loadScenePackage,sceneContext} from './scene-package.mjs';
+-import {observationAudioStatus} from './observation-audio.mjs';
++import {observationAudioStatus,preserveFullOriginalTrack,fullOriginalAudioGraph} from './observation-audio.mjs';
+ import {HyperFramesResourceCatalog,HyperFramesResourcePlanner,resourceRequests} from './resource-catalog.mjs';
+ import {materialSchema,directionSchema,validateMaterial,selectStorySources,canonicalizeSingleAssetReferences} from './commerce-directors.mjs';
+ import {commerceResourceContext} from './commerce-components.mjs';
+@@ -18,7 +18,7 @@
+ import {ToolRegistry} from '../edit/tool-registry.mjs';
+ import {CodexProvider} from '../edit/codex-provider.mjs';
+ import {ffmpeg,run as mediaRun,probe,hashFile} from '../edit/media.mjs';
+-import {CapabilityCatalog,resourceHash,normalizeMediaBindings} from './capabilities.mjs';
++import {CapabilityCatalog,resourceHash,normalizeShotSource} from './capabilities.mjs';
+ import {creationSchema,collectCreativeEvidence,documentFromModelPlan,validateInferredRequest,validateObservations} from './model-director.mjs';
+ import {CUSTOM_SOURCE_CONTRACT} from './custom-source.mjs';
+ import {compileDocument,designMarkdown} from './compiler.mjs';
+@@ -80,6 +80,7 @@
+   const readJSON=name=>fs.readFile(path.join(outputDir,name),'utf8').then(JSON.parse);
+   const result=(run,key)=>run.checkpoints[key]?.result;
+   async function ask(ctx,stage,data,schema,{images=[],resources=[],extra=''}={}){
++    if(stage==='R4'&&preserveFullOriginalTrack(request.message))extra+='\n本次完整原声由执行器强制独立保持：唯一有声原视频从0秒开始、全长、原速、原音量，不跟随画面剪切和慢放。请制作供用户审阅的视觉候选分镜。ASR为空且缺实际试听时，不可声称无讲话或音画语义通过；把试听和语义同步列为候选待审限制，不把缺模型听音能力变成不能制作候选的素材缺口，不添加逐字口播字幕、声音或音效。不能删减原音轨来满足视觉节奏。';
+     if(currentContract)data={...data,businessContract:currentContract,scenarioResources:commerceResourceContext(currentContract)};
+     if(v3)data={...data,scenePackage:sceneContext(scenePackage,stage),creativeDirection:result(ctx.run,'creative')||null};
+     const guidance=await catalog.context(stage==='CD'?'R3':stage==='MA'?'R2':stage,resources);
+@@ -108,7 +109,7 @@
+     const batches=[{key:'initial-overview',tool:'assets.observe',records:overviewRecords},{...dense,tool:'assets.observe',key:'initial-dense'},...(run.artifacts.storyInspections||[]),...(run.artifacts.actionInspections||[])];
+     const index=buildEvidenceIndex(assets,batches,result(run,'observe')?.observations||[]);
+     await saveJSON('source-evidence-index.json',index);
+-    const selected=queryEvidence(index,query),images=await readEvidenceImages(outputDir,selected.records);
++    const selected=queryEvidence(index,{preferredBatchKeys:run.artifacts.latestStoryEvidenceKey?[run.artifacts.latestStoryEvidenceKey]:[],...query}),images=await readEvidenceImages(outputDir,selected.records);
+     // Retain the overall asset view without flooding every request with all frames.
+     const overview=overviewRecords.length?[]:await evidenceImages();
+     return {selection:{...selected,events:run.artifacts.sourceEvidenceEvents||[]},images:[...selectEvidenceInputs(overview,2).inputs,...images]};
+@@ -227,8 +228,8 @@
+   registry.register('story.plan',async(_,ctx)=>{
+     const brief=result(ctx.run,'brief'),resources=result(ctx.run,'resources');
+     let story,lastError=ctx.run.artifacts.storyValidationError;for(let attempt=0;attempt<3;attempt++){
+-    const evidence=await sourceEvidence(ctx.run);
+-    const imageSelection=selectEvidenceInputs(evidence.images,4);
++    const evidence=await sourceEvidence(ctx.run,{limit:24});
++    const imageSelection=selectEvidenceInputs(evidence.images,24);
+     story=await ask(ctx,'R4',{sourceEvidence:evidence.selection,message:request.message,brief,attempt,validationError:lastError?.message,priorStory:story||result(ctx.run,'story')||null,additionalSourceEvidence:[...(ctx.run.artifacts.storyInspections||[]),...(ctx.run.artifacts.actionInspections||[])],evidenceImageBudget:{sent:imageSelection.sent,available:imageSelection.available,omitted:imageSelection.omitted,reason:'model context budget; omitted images were not sent'},availableTools:[{name:'assets.inspect_actions',remaining:2-(ctx.run.artifacts.actionInspections?.length||0),maxRanges:3,maxRangeSeconds:12,sampleFps:4,playableProxy:true},{name:'assets.inspect_ranges',remaining:2-(ctx.run.artifacts.storyInspections?.length||0),maxRanges:3,maxRangeSeconds:30}],materialAnalysis:result(ctx.run,'material')||null,observations:result(ctx.run,'observe'),narration:result(ctx.run,'narration'),transcripts:await readJSON('transcripts.json'),assets:assets.map(a=>({id:a.id,kind:a.kind,metadata:a.mediaMetadata})),resources,nativeRecipeContract,fontContract},withKnownFacts(runtimeStorySchema,brief.request.facts),{images:imageSelection.inputs,resources:[],extra:'只输出整片故事和精确镜头时间，不写HTML。需要确认短动作起止时用inspectActions请求密集观察：每次至多3段，每段12秒，工具生成4Hz逐帧时间标记接触表和可播放源片段。4Hz证据只支持约0.25秒粒度的判断，不能宣称模型完整播放或帧级精确核验。观察宽区间用inspectRanges，两种工具分开记录预算。没有请求时inspectActions为空。若离散观察不足，先通过inspectRanges请求检查已有源片的具体区间（每次最多3段、每段30秒），本次scenes可留空，下一轮会得到真实工具图片及秒数。不要把未观察当成不可获得素材；也不把候选窗口当全部可用素材。已得到的补充观察不要重复请求。仅在确有不可取得的必需资料时填写blockingGaps，解释缺口；不能悄悄缩时长、补写事实或空转。有效完整分镜时两个数组均为空。按内容决定镜头数，不平均分配。每个镜头必须带新的信息或明确观看作用，paragraphId引用段落。不要把几个相似状态各自长时间停留当新信息；对连续超过8秒的镜头说明期间实际发生什么变化、为什么值得观看。durationSeconds明确到1/30秒；cut时总和严格等于目标秒数，其他转场每处重叠0.3秒。视频源区间必须足够且不重复凑时长，不改变播放速度除非用户明确要求。效应可为custom-native，后续镜头制作者处理。至少让有需要的关键镜头获得原创设计，但不要强制每幕动效或改掉自然实拍剪辑。按每镜头表达任务从resources.candidates中eligible且compatible的候选选择resourceId，selected仅为整片建议，不限制镜头；没有合适资源用native-original。productionMethod为footage-cut（单段实拍且无文字）、parameterized（符合nativeRecipeContract的常规布局）、composition-adapt（组合或局部适配）、original（必要原创）。常规镜头优先复用，关键创意不强制降级。visualDirection说明商品与文字主次、开场吸引点、此镜头新增理解及需要克制的地方。没有价格就没有价格段；用户要求开头价格则放开头。每镜头最多4媒体、32文字，整片最多300原生节点是执行预算。模板仅提供结构和视觉语言，素材、文字、顺序、镜头数及时间必须服从本次输入；相同素材换目标应改变有意义的内容取舍。先观察素材再安排镜头，自拟动作无素材支持时修改自己的计划，仅用户明确必需内容缺失时才输出blockingGaps。comparison-split可用于同一商品的画面与说明，不暗示竞品对比；grid-card-assemble条目数量由已提供内容决定；video-text-pivot须保留动作可见和视频持续播放，不以大色块覆盖。保持原声时audio列出有声视频assetId/volume:1/sourceStartSeconds:0；原声实际随每个源镜头裁切。如果narration.enabled，必须使用其真实asset.id音轨，保留完整已合成声音，并根据transcript的真实词时间安排镜头和文字。只使用brief.request的已确认事实，事实ID按fact-1顺序。设计颜色均#RRGGBB。typeScale给当前输出尺寸的像素字号，safeMarginPx给安全边距；labelStyle统一全片标签形状、边距、线条与层级，镜头制作必须继承，不各自发明字体和标签风格。'});
+     if(story.inspectActions?.length){validateActionRanges(story.inspectActions,assets);return saveJSON('story-plan.json',story);}
+     if(story.inspectRanges?.length){validateInspectionRanges(story.inspectRanges,assets);return saveJSON('story-plan.json',story);}
+@@ -252,7 +253,7 @@
+     }
+     const document=documentFromModelPlan(request,assets,nativePlan(ctx.run));
+     for(const a of assets.filter(a=>a.generatedVoice))insist(document.audioGraph.some(t=>t.assetId===a.id&&t.durationFrames+1>=Math.ceil(a.mediaMetadata.duration*FPS)),'已确认声音必须完整保留','VOICE_DURATION_CONFLICT');
+-    if(brief.keepOriginalAudio)insist(document.nodes.filter(n=>n.kind==='video'&&byId[n.assetId].mediaMetadata.hasAudio).every(n=>document.audioGraph.some(t=>t.sourceNodeId===n.id)),'要求保留的操作原声没有绑定到真实镜头','MISSING_SOURCE_AUDIO');
++    if(brief.keepOriginalAudio){const full=fullOriginalAudioGraph(request.message,assets,document.durationFrames);if(full)insist(JSON.stringify(document.audioGraph)===JSON.stringify(full),'完整独立原声音轨被修改','MISSING_SOURCE_AUDIO');else insist(document.nodes.filter(n=>n.kind==='video'&&byId[n.assetId].mediaMetadata.hasAudio).every(n=>document.audioGraph.some(t=>t.sourceNodeId===n.id)),'要求保留的操作原声没有绑定到真实镜头','MISSING_SOURCE_AUDIO');}
+     return saveJSON('timing-plan.json',{durationFrames:document.durationFrames,scenes:document.scenes.map(s=>({id:s.id,startFrame:s.startFrame,durationFrames:s.durationFrames})),audioGraph:document.audioGraph,basis:result(ctx.run,'narration')?.enabled?'measured-narration-transcript':brief.needsTranscription?'measured-transcript':'observed-source-boundaries',readingAndActionsReviewed:false});
+   });
+   async function buildShot(ctx,index,feedback){
+@@ -302,15 +303,15 @@
+     }
+     const previousSource=feedback?await readJSON(sourceFile).then(r=>r.source).catch(e=>{if(e.code!=='ENOENT')throw e;return null;}):null;
+     const packet={message:request.message,sceneId,shot,nativeObjectRefs:{media:shot.media.map((m,i)=>({ref:'media-'+(i+1),assetId:m.assetId,kind:byId[m.assetId].kind,elementTag:byId[m.assetId].kind==='image'?'img':'div'})),text:shot.text.map((t,i)=>({ref:'text-'+(i+1),role:t.role,text:t.text})),rule:'objects只能引用此列表或已声明的装饰shape。源片自带文字/品牌仍在视频里，不是额外原生文字，不得重复制作或增加text-N。'},output:result(ctx.run,'brief').request.output,design:story.design,fontContract,keyframeChoices,previous:story.scenes[index-1]||null,next:story.scenes[index+1]||null,observations:result(ctx.run,'observe').observations.filter(o=>shot.media.some(m=>m.assetId===o.assetId)),feedback:feedback||null,previousSource,repairInstruction:feedback?'在现有源码中做解决已报告问题所需的最小修改；保持所有已有原生对象映射，不重新设计本镜头。':null};
+-    let lastError,lastSource,keyframe=null,keyframeImage=[];const failedLayouts=new Set();
++    let lastError,lastSource,keyframe=null,keyframeImage=[],timingFeedback=[];const failedLayouts=new Set();
+     if(!feedback){
+       const saved=await readJSON('keyframe-'+index+'.json').catch(e=>{if(e.code!=='ENOENT')throw e;return null;});
+-      if(saved?.source&&saved.evidence&&saved.review&&!keyframeFailure(saved.review.issues||[])){
++      if(saved?.source&&saved.evidence&&saved.review&&!keyframeFailure(saved.review.issues||[],{staticOnly:true})){
+         const native=documentFromModelPlan(request,assets,nativePlan(ctx.run,{[index]:saved.source}));
+         if(native.revisionId===saved.evidence.sourceRevisionId){
+           const inspected=await (io.inspectKeyframe||inspectKeyframe)(native,sceneId,assets,outputDir,runHyperFrames,{signal,atSeconds:saved.evidence.globalSeconds-native.scenes[index].startFrame/FPS});
+           if(inspected.imageHash===saved.evidence.imageHash){
+-            keyframe=saved.source;keyframeImage=[{type:'input_text',text:'已重新验证的原关键画面 '+inspected.folder+'/'+inspected.image},{type:'input_image',image_url:'data:image/png;base64,'+(await fs.readFile(inspected.imagePath)).toString('base64')}];
++            timingFeedback=(saved.review.issues||[]).filter(i=>i.repairKind==='text-timing');keyframe=saved.source;keyframeImage=[{type:'input_text',text:'已重新验证的原关键画面 '+inspected.folder+'/'+inspected.image},{type:'input_image',image_url:'data:image/png;base64,'+(await fs.readFile(inspected.imagePath)).toString('base64')}];
+             (ctx.run.artifacts.keyframeReuses??=[]).push({index,sourceHash:resourceHash(keyframe),priorEvidence:saved.evidence.inputHash,currentEvidence:inspected.inputHash,modelCalls:ctx.run.modelCalls});await ctx.persist();
+           }
+         }
+@@ -327,14 +328,15 @@
+           const matchingSourceImages=images.flatMap((image,i)=>image.type==='input_text'&&image.text.startsWith('关键画面候选：本镜头 '+answer.keyframeAtSeconds+' 秒，')?[{...image,text:'与合成关键帧同一时刻的未包装源画面；'+image.text},images[i+1]]:[]);
+           const review=await ask(ctx,'R6',{phase:'static-keyframe',sceneId,shot,design:story.design,output:native.output,keyframeAtSeconds:answer.keyframeAtSeconds,addedTextObjects:native.nodes.filter(n=>n.sceneId===sceneId&&n.kind==='text').map(n=>({id:n.id,text:n.params.text})),evidence:inspected.folder+'/'+inspected.image},obj({issues:list(obj({severity:{type:'string',enum:['major','minor']},repairKind:{type:'string',enum:['layout','source-selection','text-evidence','text-timing','fact-binding']},problem:str,repair:str})),summary:str}),{images:[...sourceBoundaryImages,...matchingSourceImages,...keyframeImage],extra:'对照同一时刻未包装源画面和合成关键帧，以及addedTextObjects明确列出的应用文字，区分源实拍自带的文字/标识与应用新增叠层；只有未包装源画面中也存在的字样才能称为源片烧录文字。源片已有标识不是应用虚构文案，不能仅因模型自己写的visualDirection不强调品牌就要求移除、遮盖或裁掉它。原用户要求高于模型创意说明。确实遮挡必需动作时归source-selection，选择真实可用源区间，不让布局作者以色块覆盖商品或删除原片标识。另提供源选段首末帧，用来核对入点和末帧的可见动作与本镜头说明是否相符；不能仅凭离散帧宣称完整连续动作通过。源边界未加包装，不检查其文字布局。检查静态关键画面中商品、文字主次、主体裁切和中文可读性。只报告图片可确认的问题；尚未添加动画，不把静止当缺陷。major需具体局部修复。repairKind仅在源区间或动作确实错误时为source-selection；对比度、遮挡、排版为layout；事实冲突为fact-binding。'});
+           await saveJSON('keyframe-review-'+index+'-'+attempt+'.json',{...inspected,imagePath:undefined,review,sourceHash:resourceHash(adapted.source)});
+-          const failure=keyframeFailure(review.issues);if(failure)throw failure;
++          timingFeedback=review.issues.filter(i=>i.repairKind==='text-timing');const failure=keyframeFailure(review.issues,{staticOnly:true});if(failure)throw failure;
+           keyframe=adapted.source;await saveJSON('keyframe-'+index+'.json',{source:keyframe,evidence:inspected,review});break;
+         }catch(error){lastError=error;lastSource=answer.source;await saveJSON('failed-keyframe-'+index+'-'+attempt+'.json',{answer,error:{code:error.code,message:error.message}});const failureHash=resourceHash({code:error.code,message:error.message,source:answer.source});const repeated=failedLayouts.has(failureHash);failedLayouts.add(failureHash);if(repeated||repairRoute(error)!=='scene'||attempt===2)throw error;}
+       }
+       lastError=null;
+     }
++    await onStage?.((feedback?'修复':'制作')+'镜头 '+(index+1)+' 的动画与文字时序');
+     for(let attempt=0;attempt<3;attempt++){
+-      const answer=await ask(ctx,'R5',{...packet,phase:feedback?'local-repair':'animate-checked-keyframe',checkedKeyframe:keyframe,attempt,error:lastError?.message},keyframe?animationSchema:shotSchema,{images:[...images,...keyframeImage],resources:shot.resourceId==='native-original'?[]:[shot.resourceId],extra:CUSTOM_SOURCE_CONTRACT.replaceAll('customSourceJson','source')+'\n制作本镜头。若提供checkedKeyframe，只返回animation对象，包含timeline、parameters、motionTargets；应用会直接保留已检查的HTML/CSS/objects。每个将被动画触及的引导线、形状或文字ID必须已经出现在checkedKeyframe.objects，并映射到合法decoration-N或text-N；如果静态关键帧没有声明该对象，先不要在animation里引用它，不能凭CSS中存在ID就当作可验证运动目标，不要求复制它们。只有local-repair阶段返回完整source。用tl.from/tl.fromTo设置入场初态。语法示例（仅示范格式，目标和参数须按当前镜头选择）：tl.fromTo("#headline",{clipPath:"inset(0 100% 0 0)"},{clipPath:"inset(0 0% 0 0)",duration:0.7,ease:"power3.inOut"},0.2); 若本次要求遮罩揭示，须使用真实clipPath等遮罩机制，opacity与小位移不能代替；若要求持续锚点，跨幕采用对应位置、形状与进入/退出状态，不能每幕重置成无关布局。语法例子不是每幕都要使用的效果。每条调用都必须以tl.开头，并以分号分隔；不允许裸fromTo(...)、链式.to(...)、变量声明或代码围栏。真实视频本身已提供运动，无需无意义动画；无获准文字时允许空时间线。文字必须全部留空绑定。返回本镜头source结构化对象，不使用嵌套JSON字符串，不双重转义引号。不要加大面积装饰遮挡实拍。每条文字可按语义先后出现。用已有的title/feature等ref或text-1序号映射，不把用户文案拆成未经声明的内联字串。选择了蓝图则说明适配其哪个结构，保持用户动作连续性优先于蓝图的清屏或切换。最终场景时长='+shot.durationSeconds+'秒，使用params.sceneSeconds。'});
++      const answer=await ask(ctx,'R5',{...packet,phase:feedback?'local-repair':'animate-checked-keyframe',checkedKeyframe:keyframe,timingFeedback,attempt,error:lastError?.message},keyframe?animationSchema:shotSchema,{images:[...images,...keyframeImage],resources:shot.resourceId==='native-original'?[]:[shot.resourceId],extra:CUSTOM_SOURCE_CONTRACT.replaceAll('customSourceJson','source')+'\n制作本镜头。若提供checkedKeyframe，只返回animation对象，包含timeline、parameters、motionTargets；应用会直接保留已检查的HTML/CSS/objects。每个将被动画触及的引导线、形状或文字ID必须已经出现在checkedKeyframe.objects，并映射到合法decoration-N或text-N；如果静态关键帧没有声明该对象，先不要在animation里引用它，不能凭CSS中存在ID就当作可验证运动目标，不要求复制它们。只有local-repair阶段返回完整source。用tl.from/tl.fromTo设置入场初态。语法示例（仅示范格式，目标和参数须按当前镜头选择）：tl.fromTo("#headline",{clipPath:"inset(0 100% 0 0)"},{clipPath:"inset(0 0% 0 0)",duration:0.7,ease:"power3.inOut"},0.2); 若本次要求遮罩揭示，须使用真实clipPath等遮罩机制，opacity与小位移不能代替；若要求持续锚点，跨幕采用对应位置、形状与进入/退出状态，不能每幕重置成无关布局。语法例子不是每幕都要使用的效果。每条调用都必须以tl.开头，并以分号分隔；不允许裸fromTo(...)、链式.to(...)、变量声明或代码围栏。真实视频本身已提供运动，无需无意义动画；无获准文字时允许空时间线。文字必须全部留空绑定。返回本镜头source结构化对象，不使用嵌套JSON字符串，不双重转义引号。不要加大面积装饰遮挡实拍。每条文字可按语义先后出现。timingFeedback是静态阶段尚未实施的文字窗口要求，必须在本阶段按其时间限制落实，并由后续全片取帧评审验证。用已有的title/feature等ref或text-1序号映射，不把用户文案拆成未经声明的内联字串。选择了蓝图则说明适配其哪个结构，保持用户动作连续性优先于蓝图的清屏或切换。最终场景时长='+shot.durationSeconds+'秒，使用params.sceneSeconds。'});
+       try{
+         let source=keyframe?animateKeyframe(keyframe,answer.animation):answer.source;
+         const adapted=await catalog.adapt(source,{resourceId:shot.resourceId,sceneId,objectIds:[],design:story.design,mediaKinds:shot.media.map(m=>byId[m.assetId].kind)});
+@@ -364,7 +366,7 @@
+       await replanSourceShot(ctx,index,error.issues||[{problem:error.message,repairKind:'source-selection'}]);
+     }}
+   });
+-  async function assemble(ctx){for(const named of ctx.run.artifacts.resourceDiscovery?.requests||[])if(!named.negated&&named.canonicalId!=='chromatic-radial-split')insist(result(ctx.run,'story').scenes.some(s=>s.resourceId===named.canonicalId),'分镜未执行指定资源：'+named.canonicalId,'RESOURCE_UNAVAILABLE');const sources={},assemblyReceipts={};for(const [i,shot] of result(ctx.run,'story').scenes.entries()){const record=await readJSON(result(ctx.run,'shot-'+i).file);insist(resourceHash(record.source)===result(ctx.run,'shot-'+i).sourceHash,'镜头检查点内容变更','SCENE_HASH');const kinds=shot.media.map(m=>byId[m.assetId].kind);sources[i]=normalizeMediaBindings(record.source,kinds).source;
++  async function assemble(ctx){for(const named of ctx.run.artifacts.resourceDiscovery?.requests||[])if(!named.negated&&named.canonicalId!=='chromatic-radial-split')insist(result(ctx.run,'story').scenes.some(s=>s.resourceId===named.canonicalId),'分镜未执行指定资源：'+named.canonicalId,'RESOURCE_UNAVAILABLE');const sources={},assemblyReceipts={};for(const [i,shot] of result(ctx.run,'story').scenes.entries()){const record=await readJSON(result(ctx.run,'shot-'+i).file);insist(resourceHash(record.source)===result(ctx.run,'shot-'+i).sourceHash,'镜头检查点内容变更','SCENE_HASH');const kinds=shot.media.map(m=>byId[m.assetId].kind);sources[i]=normalizeShotSource(record,kinds);
+       // The checked source is authoritative, including local repairs. Re-instantiating
+       // a recipe here would discard those repairs and make preview and export differ.
+       const prior=result(ctx.run,'shot-'+i).receipt;
+@@ -387,7 +389,7 @@
+     const sources={},completed=[];
+     for(const [i]of result(ctx.run,'story').scenes.entries()){
+       const checkpoint=result(ctx.run,'shot-'+i);if(!checkpoint)break;
+-      const record=await readJSON(checkpoint.file);insist(resourceHash(record.source)===checkpoint.sourceHash,'方向预览的镜头检查点已变化','SCENE_HASH');const shot=result(ctx.run,'story').scenes[i],kinds=shot.media.map(m=>byId[m.assetId].kind);sources[i]=normalizeMediaBindings(record.source,kinds).source;completed.push(checkpoint.sceneId);
++      const record=await readJSON(checkpoint.file);insist(resourceHash(record.source)===checkpoint.sourceHash,'方向预览的镜头检查点已变化','SCENE_HASH');const shot=result(ctx.run,'story').scenes[i],kinds=shot.media.map(m=>byId[m.assetId].kind);sources[i]=normalizeShotSource(record,kinds);completed.push(checkpoint.sceneId);
+     }
+     const document=documentFromModelPlan(request,assets,nativePlan(ctx.run,sources));
+     const record=await createDirectionPreview(document,completed,assets,outputDir,root,runHyperFrames,{signal,binding:{runId:ctx.run.id,inputFingerprint:fingerprint,storyHash:resourceHash(result(ctx.run,'story')),timingHash:resourceHash(result(ctx.run,'timing')),implementationHash,sourceHashes:Object.fromEntries(Object.keys(sources).map(i=>[i,result(ctx.run,'shot-'+i).sourceHash]))}});
+--- a/video-agent/lib/creative/r3-intents.mjs
++++ b/video-agent/lib/creative/r3-intents.mjs
+@@ -2,6 +2,30 @@
+ // Closed grammar: compound requests outside these exact scopes go to the model.
+ export function scopedCommerceEdit(document,message){
+  const text=String(message).trim().replace(/[。！!\s]/g,'');
++ if(/^(?:把)?细节镜头提前[，,]只在第(?:一|1)个转场使用(?:色散|ChromaticRadialSplit|chromatic-split)[，,](?:其他内容保持|其他保持|其余不动)$/i.test(text)){
++  const matches=document.scenes.flatMap((s,i)=>i>0&&(/细节|detail|结构/i.test(s.purpose)||document.nodes?.some(n=>n.sceneId===s.id&&n.kind==='text'&&/细节|detail|结构/i.test(n.params?.text||'')))?[i]:[]);
++  insist(matches.length<=1,'有多个细节镜头，请指定镜头编号','DETAIL_TARGET_AMBIGUOUS');
++  const index=matches[0]??-1;
++  insist(index>0,'没有明确的细节镜头，请指定镜头编号','DETAIL_TARGET_MISSING');
++  const ids=document.scenes.map(s=>s.id),[detail]=ids.splice(index,1);ids.splice(1,0,detail);
++  const operations=index===1?[]:[{type:'reorder_scenes',sceneIds:ids}];
++  const duration=document.transitions[0]?.durationFrames;
++  insist(duration,'当前为直切；添加重叠会改变时长，需要先明确转场时长','TRANSITION_MISSING');
++  operations.push({type:'set_transition',fromSceneId:ids[0],toSceneId:ids[1],effect:'chromatic-split',durationFrames:duration,params:{}});
++  for(let i=1;i<ids.length-1;i++){
++   const prior=document.transitions.find(t=>t.fromSceneId===ids[i]&&t.toSceneId===ids[i+1]);
++   if(prior?.effect==='chromatic-split')operations.push({type:'set_transition',fromSceneId:ids[i],toSceneId:ids[i+1],effect:document.design.transition==='chromatic-split'?'cut':document.design.transition,durationFrames:prior.durationFrames,params:{}});
++  }
++  return {mode:'local-scoped',operations,summary:(index===1?'细节已在第二幕，保持位置；':'细节镜头提前至第二幕；')+'仅第一个转场使用官方色散，保留文案、媒体和音轨。'};
++ }
++ // Quoted copy is data: do not strip its spaces, punctuation or line breaks.
++ const finalText=/^(?:最后一句|结尾文字)\s*改为\s*[“"]([^”"]+)[”"]\s*[，,]\s*只改画面文字[。！!\s]*$/.exec(String(message).trim());
++ if(finalText){
++  const last=document.scenes.at(-1),nodes=document.nodes.filter(n=>n.sceneId===last.id&&n.kind==='text');
++  const candidates=nodes.filter(n=>n.semanticRole==='cta'),node=candidates.length===1?candidates[0]:nodes.length===1?nodes[0]:null;
++  insist(node,'结尾有多个文字对象，需指定要改的一句','CTA_TARGET_MISSING');
++  return {mode:'local-scoped',operations:[{type:'update_text',nodeId:node.id,text:finalText[1]}],summary:'仅替换结尾显示文字，镜头和声音保持。'};
++ }
+  const recut=/^将当前工程整理为(\d+)秒竖屏[，,]使用简洁的原生图文布局和0[.]3秒淡化转场[，,]保留现有素材文案和声音$/.exec(text);
+  if(recut){
+   const operations=[{type:'change_output',width:1080,height:1920},...document.scenes.map(s=>({type:'set_scene_effect',sceneId:s.id,effect:'split-detail'}))];
+--- a/video-agent/lib/creative/recovery.mjs
++++ b/video-agent/lib/creative/recovery.mjs
+@@ -5,4 +5,4 @@
+   if(job?.code==='MODEL_BUDGET')return !(Number.isSafeInteger(job.maxModelCalls)&&job.modelCalls<job.maxModelCalls-(job.completionReserve||0));
+   return exhausted.has(job?.code)&&!(job.code==='OBSERVATION_BUDGET'&&job.error==='加密观察超过预算');
+ };
+-export const canResumeJob = job => Boolean(job?.runId) && !budgetExhausted(job) && ['recoverable', 'cancelled', 'failed', 'needs_user'].includes(job.status);
++export const canResumeJob = job => Boolean(job?.runId || job?.kind==='create') && !budgetExhausted(job) && ['recoverable', 'cancelled', 'failed', 'needs_user'].includes(job.status);
+--- a/video-agent/lib/creative/repair-routing.mjs
++++ b/video-agent/lib/creative/repair-routing.mjs
+@@ -9,8 +9,8 @@
+ 
+ export function requiredRepairs(issues){return issues.filter(i=>['blocker','major'].includes(i.severity));}
+ 
+-export function keyframeFailure(issues){
+-  const required=requiredRepairs(issues);if(!required.length)return null;
++export function keyframeFailure(issues,{staticOnly=false}={}){
++  const required=requiredRepairs(issues).filter(i=>!staticOnly||i.repairKind!=='text-timing');if(!required.length)return null;
+   const code=required.some(i=>i.repairKind==='fact-binding')?'KEYFRAME_FACT':required.some(i=>['source-selection','text-evidence'].includes(i.repairKind))?'KEYFRAME_SOURCE':'KEYFRAME_LAYOUT';
+   return Object.assign(Error(JSON.stringify(required)),{code,issues:required});
+ }
+--- a/video-agent/lib/creative/resource-catalog.mjs
++++ b/video-agent/lib/creative/resource-catalog.mjs
+@@ -32,6 +32,9 @@
+  plan(need){
+   const requests=resourceRequests(need,this.catalog.resources||[]),positive=requests.filter(r=>!r.negated),denied=new Set(requests.filter(r=>r.negated).map(r=>r.canonicalId));
+   const exact=positive[0]?.canonicalId||null,found=this.catalog.search(need,{limit:20});
++  // Alias/URL matches must carry the exact catalog record even when the
++  // descriptive keyword search ranks it outside its bounded shortlist.
++  for(const r of this.catalog.resources||[])if(positive.some(q=>q.canonicalId===canonical(r))&&!found.some(f=>f.id===r.id))found.push({...r,score:1});
+   const runtimeCanonical=a=>a.canonicalId||(a.id==='chromatic-split'?'chromatic-radial-split':a.id);
+   const selected=this.adapters.filter(a=>a.compatible&&a.eligible&&!denied.has(runtimeCanonical(a))&&(!positive.length||positive.some(r=>r.canonicalId===runtimeCanonical(a)))).map(a=>{
+    const sources=found.filter(r=>canonical(r)===runtimeCanonical(a));return {...a,canonicalId:runtimeCanonical(a),scope:positive.find(r=>r.canonicalId===runtimeCanonical(a))?.scope||null,discoveryScore:sources.reduce((s,r)=>s+(r.score||0),0),sourceFiles:sources.map(r=>({path:r.path,sha256:r.sha256,commit:r.sourceCommit}))};
+--- a/video-agent/lib/creative/runninghub.mjs
++++ b/video-agent/lib/creative/runninghub.mjs
+@@ -7,8 +7,27 @@
+ import {prepareCreativeAsset} from './image-asset.mjs';
+ import {insist,safeRelativePath} from './contracts.mjs';
+ const hash=x=>createHash('sha256').update(x).digest('hex');
++const canonical=x=>Array.isArray(x)?x.map(canonical):x&&typeof x==='object'?Object.fromEntries(Object.keys(x).sort().map(k=>[k,canonical(x[k])])):x;
+ const write=async(file,value)=>{await fs.mkdir(path.dirname(file),{recursive:true});await fs.writeFile(file+'.tmp',JSON.stringify(value,null,2));await fs.rename(file+'.tmp',file);};
+ let submissionLock=Promise.resolve();
++const requestsInFlight=new Map();
++export function outputAspect(output={width:1080,height:1920}){
++ const ratio=output.width/output.height;
++ const aspect=Math.abs(ratio-1)<.001?'1:1':Math.abs(ratio-9/16)<.001?'9:16':Math.abs(ratio-16/9)<.001?'16:9':null;
++ insist(aspect,'生成画幅仅支持 1:1、9:16、16:9','GENERATION_ASPECT');return aspect;
++}
++// The on-disk lease also excludes a second service process. A dead owner can
++// release a lease, but a submitting record is still reconciliation-only.
++async function submissionLease(directory,name='.submission.lock'){
++ await fs.mkdir(directory,{recursive:true});const file=path.join(directory,name);
++ for(let attempt=0;attempt<2;attempt++){
++  try{const handle=await fs.open(file,'wx');await handle.writeFile(String(process.pid));return async()=>{await handle.close();await fs.unlink(file);};}
++  catch(e){if(e.code!=='EEXIST')throw e;const pid=Number(await fs.readFile(file,'utf8'));let alive=true;try{process.kill(pid,0);}catch(err){if(err.code==='ESRCH')alive=false;}
++   insist(!alive,'另一工作进程正在提交，稍后恢复同一任务','PROVIDER_BUSY');await fs.unlink(file);
++  }
++ }
++ throw Error('无法取得生成提交锁');
++}
+ export function submissionSpec(profile,values){
+  insist(profile&&['model','app','workflow'].includes(profile.mode),'缺少已核对的 RunningHub 能力配置','GENERATION_CONFIG');
+  const bind=value=>typeof value==='string'&&/^\$(prompt|image|duration|aspect)$/.test(value)?values[value.slice(1)]:Array.isArray(value)?value.map(bind):value&&typeof value==='object'?Object.fromEntries(Object.entries(value).map(([k,v])=>[k,bind(v)])):value;
+@@ -19,15 +38,23 @@
+  if(profile.mode==='workflow')insist(body.workflowId,'Workflow 缺少 workflowId','GENERATION_CONFIG');
+  return {endpoint,body};
+ }
+-export async function generateCommerceAsset({root,project,job,kind,prompt,sourceAsset,duration=8,role,save,signal,io={}}){
++export async function generateCommerceAsset(options){
++ const key=hash(JSON.stringify([options.root,options.project.id,options.kind,options.prompt,options.sourceAsset,options.duration,options.role,options.project.request.output]));
++ if(requestsInFlight.has(key))return requestsInFlight.get(key);
++ const pending=generateAsset(options).finally(()=>requestsInFlight.delete(key));requestsInFlight.set(key,pending);return pending;
++}
++async function generateAsset({root,project,job,kind,prompt,sourceAsset,duration=8,role,save,signal=new AbortController().signal,io={}}){
+  insist(process.env.RUNNINGHUB_API_KEY,'缺少服务端 RUNNINGHUB_API_KEY；生成分支暂停，已有素材仍可剪辑','GENERATION_KEY');
+  const config=JSON.parse(await fs.readFile(path.join(root,'config/runninghub.local.json'),'utf8').catch(e=>{if(e.code==='ENOENT')return '{}';throw e;}));
+- const profile=config[kind];submissionSpec(profile,{prompt,image:'pending-upload',duration,aspect:'9:16'});
++ const profile=config[kind],aspect=outputAspect(project.request.output);submissionSpec(profile,{prompt,image:'pending-upload',duration,aspect});
++ insist(!profile.supportedAspects||profile.supportedAspects.includes(aspect),'当前生成能力不支持 '+aspect,'GENERATION_ASPECT');
+  const endpoint=new URL(process.env.RUNNINGHUB_BASE_URL||'https://www.runninghub.ai');
+  insist(endpoint.protocol==='https:'&&['www.runninghub.ai','www.runninghub.cn'].includes(endpoint.hostname)&&!endpoint.username&&!endpoint.password,'RunningHub 服务地址必须为官方 HTTPS 域名','GENERATION_CONFIG');
+  const source=safeRelativePath(root,sourceAsset.path),inputBytes=await fs.readFile(source),sourceSha256=hash(inputBytes);
+- const request={projectId:project.id,kind,prompt,sourceAssetId:sourceAsset.id,sourceSha256,duration,role,profile};
+- const requestHash=hash(JSON.stringify(request)),recordId='rh-'+requestHash.slice(0,32),file=path.join(root,'data/runninghub-jobs',recordId+'.json');
++ const request={projectId:project.id,kind,prompt,sourceAssetId:sourceAsset.id,sourceSha256,duration,aspect,output:project.request.output,role,profile,providerOrigin:endpoint.origin};
++ const requestHash=hash(JSON.stringify(canonical(request))),recordId='rh-'+requestHash.slice(0,32),file=path.join(root,'data/runninghub-jobs',recordId+'.json');
++ const releaseRecord=await submissionLease(path.dirname(file),'.'+recordId+'.lock');
++ try{
+  let record=JSON.parse(await fs.readFile(file,'utf8').catch(e=>{if(e.code==='ENOENT')return 'null';throw e;}));
+  const event=async(type,extra={})=>{(job.providerCalls??=[]).push({provider:'runninghub',type,recordId,...extra,at:new Date().toISOString()});await save();};
+  const call=async(route,body)=>{
+@@ -40,22 +67,29 @@
+  if(!record?.providerTaskId){
+   insist(!record||record.status==='prepared','提交结果不确定，必须按已有记录对账，禁止再次付费提交','PROVIDER_RECONCILIATION');
+   const previous=submissionLock;let release;submissionLock=new Promise(resolve=>{release=resolve;});await previous;
++  let releaseLease;
+   try{
++   releaseLease=await submissionLease(path.dirname(file));
++   record=JSON.parse(await fs.readFile(file,'utf8').catch(e=>{if(e.code==='ENOENT')return 'null';throw e;}));
++   insist(!record||record.providerTaskId||record.status==='prepared','提交结果不确定，必须先对账','PROVIDER_RECONCILIATION');
++   if(!record?.providerTaskId){
+    const authorization=config.authorization;
+    insist(authorization?.source&&authorization.id&&Number.isSafeInteger(authorization.maxSubmissions)&&authorization.maxSubmissions>0,'缺少既有付费授权及调用上限，未自动设定费用','GENERATION_AUTHORIZATION');
+    const records=await fs.readdir(path.dirname(file)).catch(e=>{if(e.code==='ENOENT')return [];throw e;});let consumed=0;
+-   for(const name of records.filter(n=>n.endsWith('.json'))){const old=JSON.parse(await fs.readFile(path.join(path.dirname(file),name)));if(old.authorizationId===authorization.id&&old.status!=='prepared')consumed++;}
++   for(const name of records.filter(n=>n.endsWith('.json'))){const old=JSON.parse(await fs.readFile(path.join(path.dirname(file),name)));if(old.authorizationId===authorization.id&&old.submittedAt&&old.status!=='prepared')consumed++;}
+    insist(consumed<authorization.maxSubmissions,'已达到授权生成调用上限','GENERATION_BUDGET');
+    const form=new FormData();form.set('apiKey',process.env.RUNNINGHUB_API_KEY);form.set('file',new Blob([inputBytes]),path.basename(source));form.set('fileType','image');
+    await event('upload');const response=await (io.fetch||fetch)(new URL('/task/openapi/upload',endpoint),{method:'POST',body:form,redirect:'error',signal:AbortSignal.any([signal,AbortSignal.timeout(60000)])});const upload=await response.json();
+    insist(response.ok&&upload.code===0&&upload.data?.fileName,'RunningHub 原图上传失败','PROVIDER_UPLOAD');
+-   const spec=submissionSpec(profile,{prompt,image:profile.mode==='model'?(upload.data.fileUrl||upload.data.fileName):upload.data.fileName,duration,aspect:project.request.output?.width>project.request.output?.height?'16:9':'9:16'});
++   signal.throwIfAborted();
++   const spec=submissionSpec(profile,{prompt,image:profile.mode==='model'?(upload.data.fileUrl||upload.data.fileName):upload.data.fileName,duration,aspect});
+    record={recordId,requestHash,request,authorizationId:authorization.id,authorizationSource:authorization.source,status:'submitting',provider:'runninghub',submittedAt:new Date().toISOString(),cost:{amount:null,source:'provider bill pending'}};
+    await write(file,record);await event('submit',{requestHash});
+    const result=await call(spec.endpoint,{...spec.body,...(profile.mode!=='model'?{apiKey:process.env.RUNNINGHUB_API_KEY}:{})});
+    const taskId=result.taskId||result.data?.taskId;insist(taskId,'供应商没有返回 taskId；需对账后恢复','PROVIDER_RECONCILIATION');
+    record.providerTaskId=String(taskId);record.status='submitted';await write(file,record);await event('submitted',{providerTaskId:record.providerTaskId});
+-  }finally{release();}
++   }
++  }finally{try{await releaseLease?.();}finally{release();}}
+  }
+  let outputs=record.outputs;
+  for(let attempt=0;!outputs&&attempt<180;attempt++){
+@@ -83,4 +117,5 @@
+  const provenance={recordId,assetId,provider:'runninghub',providerTaskId:record.providerTaskId,requestHash,sha256:prepared.sha256,status:'downloaded',mediaDecoded:true,cost:record.cost};
+  await write(path.join(root,'data/generated-assets',recordId+'.json'),provenance);
+  record={...record,...provenance,asset};await write(file,record);await event('downloaded',{assetId,sha256:prepared.sha256});return asset;
++ }finally{await releaseRecord();}
+ }
+--- a/video-agent/lib/creative/service.mjs
++++ b/video-agent/lib/creative/service.mjs
+@@ -32,6 +32,8 @@
+ import {scopedCommerceEdit} from './r3-intents.mjs';
+ import {commerceIntake} from './intake.mjs';
+ import {generateCommerceAsset} from './runninghub.mjs';
++import {ensureGenerationPlan,fillGenerationGaps} from './generation-plan.mjs';
++import {executionStatus} from './execution-status.mjs';
+ import {exportCreativeHistory,unpackCreativeHistory,restoreCreativeHistory,MAX_PACKAGE_BYTES} from './portable.mjs';
+ 
+ const active=j=>['queued','running'].includes(j.status);
+@@ -52,14 +54,14 @@
+   const directory=p=>path.join(dataDir,p.id);
+   const versionDirectory=(p,r)=>path.join(directory(p),r.directory);
+   async function save(p){
+-    p.updatedAt=now();const bytes=JSON.stringify(p,null,2),target=path.join(directory(p),'native-project.json');
++    const signature=JSON.stringify(p.jobs.map(j=>[j.id,j.status,j.stage,j.runStage,j.checkpoints,j.code,j.error,j.revisionId,j.renderProgress?.completed,j.generationPlan?.shots.map(s=>[s.id,s.status,s.assetId]) ]));if(p.progressSignature!==signature){p.progressSignature=signature;p.recentProgressAt=now();}p.updatedAt=now();const bytes=JSON.stringify(p,null,2),target=path.join(directory(p),'native-project.json');
+     const task=(writes.get(p.id)||Promise.resolve()).catch(()=>{}).then(async()=>{await fs.writeFile(target+'.tmp',bytes);await replaceFileAtomically(target+'.tmp',target);});writes.set(p.id,task);await task;
+   }
+   function runStore(p,job){return new AgentRunStore(path.join(directory(p),'versions',job.id,'runs'));}
+   function syncRun(job,run){job.runId=run.id;job.checkpoints=Object.entries(run.checkpoints||{}).filter(([,v])=>v.status==='completed').map(([k])=>k);job.modelCalls=run.modelCalls;job.maxModelCalls=run.maxModelCalls??(run.code==='MODEL_BUDGET'?run.modelCalls:null);job.completionReserve=run.completionReserve||0;job.budgetSource=run.budgetSource||'legacy-application-estimate';job.runStage=run.stage;job.completedShots=job.checkpoints.filter(k=>/^shot-\d+$/.test(k)).length;job.gaps=run.gaps||[];job.quality=run.verification;job.directionPreview=run.artifacts?.directionPreview;}
+   for(const id of await fs.readdir(dataDir)){
+     if(!/^[a-zA-Z0-9_-]{1,100}$/.test(id))continue;
+-    try{const p=JSON.parse(await fs.readFile(path.join(dataDir,id,'native-project.json'),'utf8'));for(const j of p.jobs.filter(active)){j.status=j.runId?'recoverable':'failed';j.error=j.runId?'服务重启，已完成的制作检查点可恢复':'服务重启中断了任务，输入和上一有效版本已保留';j.code='INTERRUPTED';}
++    try{const p=JSON.parse(await fs.readFile(path.join(dataDir,id,'native-project.json'),'utf8'));for(const j of p.jobs.filter(active)){j.status=j.cancelRequestedAt?'cancelled':(j.runId||j.kind==='create')?'recoverable':'failed';j.error=j.runId?'服务重启，已完成的制作检查点可恢复':'服务重启中断了任务，输入和上一有效版本已保留';j.code='INTERRUPTED';}
+       // Older preview copies are derived artifacts, never a second composition entry.
+       for(const r of p.revisions){const dir=versionDirectory(p,r),preview=path.join(dir,'preview.html');const copy=await fs.readFile(preview,'utf8').catch(()=>null);if(copy!==null){const source=await fs.readFile(path.join(dir,'index.html'),'utf8');insist(copy===source.replace('</body>','<script src="assets/runtime.js"></script></body>'),'预览副本存在未知修改，已保留文件','PREVIEW_MIGRATION_CONFLICT');await fs.rename(preview,path.join(dir,'preview.html.evidence'));}}
+       for(const job of p.jobs)if(job.runId){const run=await runStore(p,job).get(job.runId);if(run)syncRun(job,run);}
+@@ -164,6 +166,12 @@
+     const previous={current:p.currentRevisionId,redo:p.redo};p.revisions.push(r);if(!branch){p.currentRevisionId=r.id;p.redo=[];}job.revisionId=r.id;
+     try{await save(p);}catch(error){p.revisions=p.revisions.filter(v=>v!==r);p.currentRevisionId=previous.current;p.redo=previous.redo;delete job.revisionId;throw error;}return r;
+   }
++  async function candidateExport(p,job,r,signal){
++    const dir=versionDirectory(p,r);job.stage='导出候选 MP4';await save(p);
++    if(!r.rendered){const release=await acquireRender({signal});try{const result=await renderCommerceProject({outputDir:r.directory,signal,onProgress:async progress=>{job.renderProgress={...progress,revisionId:r.id};job.stage='渲染画面 '+progress.percent+'%';await save(p);},onStage:async stage=>{job.stage=stage;await save(p);}},{root,outputRoot:directory(p)});r.mediaReview=result.mediaReview;job.qualitySummary=result.mediaReview;r.rendered=true;job.revisionId=r.id;await save(p);}finally{release();}}
++    job.stage='打包素材与完整历史';await save(p);
++    job.packageEvidence=await exportCreativeHistory(root,directory(p),job.snapshot||structuredClone(p),r.id,path.join(dir,'history.zip'),{signal,assetRoot:directory(p)});r.historyPackaged=true;
++  }
+   async function execute(p,job){
+     const controller=new AbortController();controllers.set(job.id,controller);const signal=controller.signal;
+     job.status='running';job.startedAt=now();
+@@ -180,15 +188,21 @@
+       }else if(job.kind==='create'){
+         if(job.input.request)p.request={...p.request,...commerceIntake(job.input.request)};
+         const target=p.request.target||'marketing';
+-        if(['image','video'].includes(target)||(target==='marketing'&&!p.assets.some(a=>a.kind==='video')&&p.assets.some(a=>a.kind==='image')&&!/(?:不|无需|禁止)生成/.test(job.input.message||p.request.message||'')&&/生成.*(?:镜头|视频)|图生/.test(job.input.message||p.request.message||''))){
+-          const source=p.assets.find(a=>a.kind==='image');insist(source,'请先提供同款商品原图','GENERATION_INPUT');
+-          const generate=async(kind,role,sourceAsset,prompt)=>{job.stage='生成'+(kind==='image'?'商品图片':'原始镜头')+'：'+role;await save(p);const a=await generateCommerceAsset({root,project:p,job,kind,role,sourceAsset,prompt,duration:8,save:()=>save(p),signal});if(!p.assets.some(x=>x.id===a.id))p.assets.push(a);await save(p);return a;};
+-          const message=job.input.message||p.request.message;
+-          if(target==='image'){await generate('image','商品整体',source,message);job.status='complete';job.completedAt=now();job.summary='商品图片已下载到同一素材库；来源和质量分别待审。';p.messages.push({role:'assistant',text:job.summary,time:now()});return;}
+-          if(target==='video'){await generate('video','原始展示',source,message+'。只生成原始镜头，不烧入字幕、价格、CTA或整片配音。');job.status='complete';job.completedAt=now();job.summary='原始镜头已下载到同一素材库，可继续制作营销片。';p.messages.push({role:'assistant',text:job.summary,time:now()});return;}
+-          const image=p.assets.find(a=>a.id.startsWith('rh-')&&a.kind==='image')||await generate('image','商品整体',source,message+'。保持同款商品结构与颜色，生成商品图，不添加文字或未经确认的功能。');
+-          for(const role of ['整体展示','结构细节','另一角度与整体回归'])await generate('video',role,image,message+'。镜头用途：'+role+'。同款商品，不编造性能；不烧入字幕、价格、CTA或整片配音。');
+-        }
++        if(job.revisionId&&p.revisions.some(r=>r.id===job.revisionId)){
++          await candidateExport(p,job,revision(p,job.revisionId),signal);
++          job.status='complete';job.completedAt=now();return;
++        }
++        if(['image','video'].includes(target)){
++          const source=p.request.sourceAssetId?p.assets.find(a=>a.id===p.request.sourceAssetId):p.assets.find(a=>a.kind==='image');
++          insist(source?.kind==='image','请选择要生成的商品原图','GENERATION_INPUT');
++          job.generationStarted=true;job.stage='生成'+(target==='image'?'商品图':'原始镜头');await save(p);
++          const a=await generateCommerceAsset({root,project:p,job,kind:target,role:target==='image'?'商品整体':'原始展示',sourceAsset:source,prompt:job.input.message||p.request.message,duration:p.request.output.durationSeconds,save:()=>save(p),signal});
++          if(!p.assets.some(x=>x.id===a.id))p.assets.push(a);job.resultAssetId=a.id;job.status='complete';job.completedAt=now();job.summary='生成素材已下载，可选择用于视频或营销成片；质量待审。';p.messages.push({role:'assistant',text:job.summary,time:now()});return;
++        }
++        job.stage='规划镜头与素材缺口';await save(p);
++        await ensureGenerationPlan({root,project:p,job,directory:path.join(directory(p),'versions',job.id),save:()=>save(p),signal});
++        await fillGenerationGaps({root,project:p,job,save:()=>save(p),signal});
++        p.request.generationPlan=structuredClone(job.generationPlan);
+         job.stage='理解创作要求';await save(p);
+         const voice=await creativeVoiceInteraction(p,job.input.message||p.request.message,directory(p),{signal});
+         if(voice){
+@@ -209,7 +223,7 @@
+         job.stage='观察素材与设计分镜';await save(p);
+         const dir=path.join(directory(p),'versions',job.id);
+         await buildCommerceProject({...p.request,projectId:p.id,assets:p.assets,outputDir:path.relative(root,dir).replaceAll('\\','/'),render:false,planning:planner,signal,resumeRunId:job.resumeRunId,onRun:async run=>{syncRun(job,run);await save(p);},onStage:async stage=>{job.stage=stage;await save(p);}},{root});
+-        const {document}=await readNativeProject(dir);p.title=document.brief.name;job.stage='检查原生预览';await save(p);await publish(p,job,dir,document,'初始创作');
++        const {document}=await readNativeProject(dir);p.title=document.brief.name;job.stage='检查原生预览';await save(p);const created=await publish(p,job,dir,document,'初始创作');await candidateExport(p,job,created,signal);job.summary='候选 MP4 与原生工程已导出，等待画面与人工审查。';
+       }else if(job.kind==='edit'){
+         const base=revision(p,job.baseRevisionId),from=versionDirectory(p,base),{document,assets}=await readNativeProject(from);
+         const dir=path.join(directory(p),'versions',job.id);await copyAssets(from,dir);
+@@ -263,14 +277,10 @@
+           }
+         }
+       }else if(job.kind==='export'){
+-        const r=revision(p,job.baseRevisionId),dir=versionDirectory(p,r);job.stage='导出所选版本';await save(p);
+-        const release=await acquireRender({signal});try{const result=await renderCommerceProject({outputDir:r.directory,signal,onProgress:async progress=>{job.renderProgress={...progress,revisionId:r.id};job.stage='渲染画面 '+progress.percent+'%（'+progress.completed+'/'+progress.total+' 帧）';await save(p);},onStage:async stage=>{job.stage=stage;await save(p);}},{root,outputRoot:directory(p)});r.mediaReview=result.mediaReview;job.qualitySummary=result.mediaReview;}finally{release();}
+-        r.rendered=true;job.revisionId=r.id;
+-        job.stage='打包素材与完整历史';await save(p);
+-        job.packageEvidence=await exportCreativeHistory(root,directory(p),job.snapshot||structuredClone(p),r.id,path.join(dir,'history.zip'),{signal,assetRoot:directory(p)});r.historyPackaged=true;
++        await candidateExport(p,job,revision(p,job.baseRevisionId),signal);
+       }
+       job.status='complete';delete job.code;delete job.error;job.completedAt=now();p.messages.push({role:'assistant',text:job.kind==='export'?'已导出指定版本。':job.summary||'预览检查通过，新版本已保存。',revisionId:job.revisionId,time:now()});
+-    }catch(e){job.status=signal.aborted?'cancelled':e.code==='NEEDS_INPUT'?'needs_user':job.runId?'recoverable':'failed';job.error=signal.aborted?'已取消，上一有效版本保留':e.message;job.code=e.code||'CREATIVE_JOB_FAILED';job.gaps=e.gaps||job.gaps;job.completedAt=now();p.messages.push({role:'assistant',text:job.error,time:now()});}
++    }catch(e){job.status=signal.aborted?'cancelled':e.code==='NEEDS_INPUT'?'needs_user':(job.runId||job.kind==='create')?'recoverable':'failed';job.error=signal.aborted?'已取消，上一有效版本保留':e.message;job.code=e.code||'CREATIVE_JOB_FAILED';job.gaps=e.gaps||job.gaps;job.completedAt=now();p.messages.push({role:'assistant',text:job.error,time:now()});}
+     finally{controllers.delete(job.id);delete job.snapshot;job.durationMs=Date.parse(job.completedAt)-Date.parse(job.startedAt);await save(p).catch(error=>{job.persistenceError=error.code||error.message;console.error('创作任务状态暂未写入，上一已提交版本保留：',p.id,job.id,error.code||error.message);});}
+   }
+   async function enqueue(p,input){
+@@ -292,14 +302,17 @@
+     else {target=input.revisionId;p.redo=[];}
+     try{revision(p,target);p.currentRevisionId=target;await save(p);}catch(error){p.currentRevisionId=previous.current;p.redo=previous.redo;throw error;}return view(p);
+   }
+-  async function cancel(p,id){const job=p.jobs.find(j=>j.id===id);insist(job&&active(job),'任务不可取消','INVALID_CANCEL');controllers.get(id)?.abort();job.stage='正在取消';await save(p);return view(p);}
++  async function cancel(p,id){const job=p.jobs.find(j=>j.id===id);insist(job&&active(job),'任务不可取消','INVALID_CANCEL');job.cancelRequestedAt=now();job.stage='正在取消';await save(p);controllers.get(id)?.abort();return view(p);}
+   async function authorizeBudget(p,input){
+     const job=p.jobs.find(j=>j.id===input.jobId);insist(job?.runId&&!active(job),'只能为暂停的原任务批准预算','INVALID_BUDGET');
+     insist(!p.jobs.some(j=>active(j)&&j.kind!=='export'),'项目已有任务在执行','PROJECT_BUSY');
+     const run=await runStore(p,job).authorizeBudget(job.runId,{maxModelCalls:input.maxModelCalls,completionReserve:input.completionReserve??6,authorizationId:input.idempotencyKey,source:'explicit-webui-approval'});
+     syncRun(job,run);await save(p);return view(p);
+   }
+-  async function resume(p,id){const job=p.jobs.find(j=>j.id===id);insist(canResumeJob(job),budgetExhausted(job)?'本轮修复预算已耗尽，已保留检查点和缺陷；不能重复恢复同一轮':'任务没有可恢复检查点','INVALID_RESUME');insist(!p.jobs.some(j=>active(j)&&j.kind!=='export'),'项目已有任务在执行','PROJECT_BUSY');insist(p.currentRevisionId===job.baseRevisionId,'基准版本已变化，保留旧任务但不能覆盖新版本','REVISION_CONFLICT');job.resumeRunId=job.runId;job.status='queued';delete job.error;delete job.code;delete job.completedAt;await save(p);void execute(p,job).catch(error=>{job.status='recoverable';job.error=error.message;});return view(p);}
++  async function resume(p,id){const job=p.jobs.find(j=>j.id===id);insist(canResumeJob(job),budgetExhausted(job)?'本轮修复预算已耗尽，已保留检查点和缺陷；不能重复恢复同一轮':'任务没有可恢复检查点','INVALID_RESUME');insist(!p.jobs.some(j=>active(j)&&j.kind!=='export'),'项目已有任务在执行','PROJECT_BUSY');insist(p.currentRevisionId===(job.revisionId||job.baseRevisionId),'基准版本已变化，保留旧任务但不能覆盖新版本','REVISION_CONFLICT');delete job.cancelRequestedAt;job.resumeRunId=job.runId;job.status='queued';delete job.error;delete job.code;delete job.completedAt;await save(p);void execute(p,job).catch(error=>{job.status='recoverable';job.error=error.message;});return view(p);}
++  for(const p of projects.values())for(const job of p.jobs){
++    if(job.status==='recoverable'&&job.code==='INTERRUPTED'&&!job.cancelRequestedAt&&(job.generationPlan||job.generationStarted))queueMicrotask(()=>resume(p,job.id).catch(async error=>{job.status='recoverable';job.code=error.code;job.error=error.message;await save(p);}));
++  }
+   return {materialRoots:async()=>(await discoverMaterialRoots(root)).map(({directory,files,...r})=>r),attachMaterialRoot,get,has:id=>projects.has(id),view,create,loadPreset,presets:async()=>(await refreshPresets()).map(publicPreset),unavailablePresets:async()=>(await refreshPresets()).unavailable||[],upload,importPackage,enqueue,navigate,cancel,resume,authorizeBudget,revision,versionDirectory,list:()=>[...projects.values()].map(view).sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt))};
+ }
+ 
+@@ -309,7 +322,7 @@
+   const route=url.pathname;
+   if(route==='/api/commerce-import'&&req.method==='POST'){const p=await service.importPackage(req);json(res,{ok:true,project:service.view(p)},202);return true;}
+   if(route==='/api/commerce-demos'&&req.method==='GET'){const all=await service.presets();const goals=['launch','detail','demo','style','promotion','faq'];const presets=goals.map(goal=>all.find(p=>(p.businessGoal||[]).includes(goal)&&/^demo-N/.test(p.id))||all.find(p=>(p.businessGoal||[]).includes(goal))).filter(Boolean);json(res,{presets,unavailable:await service.unavailablePresets()});return true;}
+-  if(route==='/api/commerce-execution-status'&&req.method==='GET'){const list=service.list();const scenarios=['product_launch','product_detail','product_howto','product_collection','product_promotion','product_faq'];const counts=Object.fromEntries(scenarios.map(id=>[id,list.filter(p=>p.request?.businessContract?.scenarioId===id||p.request?.scenarioId===id).length]));const running=list.flatMap(p=>p.jobs.filter(j=>['queued','running'].includes(j.status)).map(j=>({projectId:p.id,jobId:j.id,runId:j.runId||null,revisionId:p.currentRevisionId||null,status:j.status,stage:j.stage||j.runStage||null})));json(res,{status:'RUNNING',completed:scenarios.filter(id=>counts[id]>0).length,total:scenarios.length,activeTask:running[0]||null,recentProgressAt:new Date().toISOString(),lastOutput:list.find(p=>p.currentRevisionId)?.currentRevisionId||null,blocker:null,nextAction:'继续素材池分析与真实任务验收',scenarios:counts,assetPool:{discovered:0,probed:0,observed:0,classed:0,inProduction:0},realTasks:{completed:0,total:8},windows:{status:'TODO'},humanReview:{status:'WAITING_HUMAN'}});return true;}
++  if(route==='/api/commerce-execution-status'&&req.method==='GET'){json(res,executionStatus(service.list()));return true;}
+   if(route==='/api/commerce-projects'&&req.method==='GET'){let historyProjectIds=[];try{historyProjectIds=JSON.parse(await fs.readFile(path.join(ROOT,'examples/commerce/history-projects.json'),'utf8')).projectIds||[];}catch(error){if(error.code!=='ENOENT')throw error;}json(res,{projects:service.list(),historyProjectIds});return true;}
+   if(route==='/api/commerce-chat'&&req.method==='POST'&&(req.headers['content-type']||'').includes('application/json')){
+     const input=await jsonBody(req,256000,'创作请求');
+--- a/video-agent/lib/creative/story-validation.mjs
++++ b/video-agent/lib/creative/story-validation.mjs
+@@ -7,7 +7,8 @@
+ }
+ 
+ export function validateStory(story,brief,resources,{original,index}={}){
+-  insist(story.scenes.length>0&&story.scenes.length<=MAX_SCENES,'镜头数量超过资源预算','INVALID_SCENES');
++  insist(story.scenes.length>0,'尚未形成有效分镜，请检查素材证据是否已送达','INVALID_SCENES');
++  insist(story.scenes.length<=MAX_SCENES,'镜头数量超过资源预算','INVALID_SCENES');
+   const total=story.scenes.reduce((sum,s)=>sum+Math.round(s.durationSeconds*FPS),0)-(story.transition==='cut'?0:9*(story.scenes.length-1));
+   insist(total===Math.round(brief.request.output.durationSeconds*FPS),'镜头时间必须精确匹配需求；重新选择有内容的区间，不能延长停留补齐','INVALID_SCENE_TIME');
+   for(const s of story.scenes){insist(s.newInformation.trim()&&story.paragraphs.some(p=>p.id===s.paragraphId),'镜头缺少信息作用或段落','STORY_INFORMATION');insist(s.resourceId==='native-original'||resources.selected.some(r=>r.id===s.resourceId)||(resources.candidates||[]).some(r=>r.id===s.resourceId&&r.eligible&&r.compatible),'镜头使用未选择资源','RESOURCE_UNKNOWN');}
+--- a/video-agent/lib/edit/media-cache.mjs
++++ b/video-agent/lib/edit/media-cache.mjs
+@@ -35,7 +35,9 @@
+   try{const metadata=JSON.parse(await fs.readFile(manifest,'utf8'));if(await validBundle(dir,metadata))return {dir,metadata,hit:true};}catch{}
+   if(pending.has(manifest)){await pending.get(manifest);const metadata=JSON.parse(await fs.readFile(manifest,'utf8'));if(!await validBundle(dir,metadata))throw Error('媒体缓存不完整；请重试导入');return {dir,metadata,hit:true};}
+   const work=(async()=>{
+-    const staging=dir+'.building-'+randomUUID(),retired=dir+'.replaced-'+randomUUID();
++    // Keep native-tool working paths short. The full content identity remains
++    // the final directory; only the unpublished sibling uses a compact name.
++    const staging=path.join(path.dirname(dir),'b-'+randomUUID().slice(0,12)),retired=path.join(path.dirname(dir),'r-'+randomUUID().slice(0,12));
+     await fs.mkdir(staging,{recursive:true});
+     let moved=false;
+     try {
+--- a/video-agent/lib/edit/preview-check.mjs
++++ b/video-agent/lib/edit/preview-check.mjs
+@@ -94,7 +94,10 @@
+     await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+     const media=[...document.querySelectorAll('video,audio')],pending=media.filter(el=>{const start=Number(el.dataset.start||0),end=start+Number(el.dataset.duration||Infinity);return time>=start&&time<end;});
+     await Promise.all(pending.map(el=>new Promise((resolve,reject)=>{
+-      const target=Number(el.dataset.mediaStart||0)+(time-Number(el.dataset.start||0))*Number(el.dataset.playbackRate||1),deadline=performance.now()+3500;
++      // Concurrent export can occupy decoders longer than the old 3.5s window.
++      // Still require a decoded frame at the exact source time; never accept
++      // HAVE_METADATA as successful visual evidence.
++      const target=Number(el.dataset.mediaStart||0)+(time-Number(el.dataset.start||0))*Number(el.dataset.playbackRate||1),deadline=performance.now()+15000;
+       const check=()=>{if(el.error)return reject(Error(`媒体解码失败：${el.id} (${el.error.code})`));if(el.readyState>=2&&!el.seeking&&Math.abs(el.currentTime-target)<=1/30+.003)return resolve();if(performance.now()>deadline)return reject(Error(`媒体未在目标帧就绪：${el.id}, expected=${target.toFixed(4)}, actual=${el.currentTime.toFixed(4)}, ready=${el.readyState}`));setTimeout(check,15);};check();
+     })));
+     await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+--- /dev/null
++++ b/video-agent/scripts/check-r1-shader.mjs
+@@ -0,0 +1,23 @@
++// Engineering fixture using the same product source, never a user deliverable.
++import fs from 'node:fs/promises';
++import path from 'node:path';
++import assert from 'node:assert/strict';
++import {createHash} from 'node:crypto';
++import {createNativeDocument} from '../lib/creative/document.mjs';
++import {prepareCreativeAsset} from '../lib/creative/image-asset.mjs';
++import {writeCompiledProject,runHyperFrames} from '../lib/creative/runner.mjs';
++const root=path.resolve(import.meta.dirname,'..'),dir=path.join(root,'outputs/r1-shader');await fs.mkdir(path.join(dir,'assets'),{recursive:true});
++const asset=await prepareCreativeAsset(root,{id:'headphones',kind:'video',path:'assets/r1-headphones/source.mp4',rights:{status:'user-provided'}},path.join(dir,'assets'));
++asset.compiledRef='assets/'+path.basename(asset.normalizedRef);
++await fs.copyFile(path.join(root,'node_modules/gsap/dist/gsap.min.js'),path.join(dir,'assets/gsap.min.js'));
++await fs.copyFile(path.join(root,'node_modules/hyperframes/dist/hyperframe-runtime.js'),path.join(dir,'assets/runtime.js'));
++const scenes=[0,1].map(i=>({id:'scene-'+i,effect:'media-cut',effectParams:{},purpose:'same-product shader engineering check',startFrame:0,durationFrames:96}));
++const nodes=scenes.map((s,i)=>({id:'video-'+i,sceneId:s.id,kind:'video',semanticRole:'hero',assetId:asset.id,anchor:'scene-local',localStartFrame:0,localDurationFrames:96,durationFrames:96,params:{sourceStartSeconds:i?12:0,playbackRate:1,fit:'contain'}}));
++const document=createNativeDocument({projectId:'r1-shader-engineering',output:{width:1080,height:1920},brief:{name:'同款耳机：着色器工程检查',facts:[]},design:{background:'#101418',foreground:'#FFFFFF',panel:'#151A20',accent:'#BFCBD2',accentContrast:'#101418',fontFamily:'Arial',description:'engineering fixture',motionIntensity:'medium',easingFamily:'none',transition:'dissolve-transition'},assets:[asset],scenes,nodes,transitions:[{id:'split',fromSceneId:'scene-0',toSceneId:'scene-1',effect:'chromatic-split',durationFrames:9,params:{durationFrames:9}}]});
++await writeCompiledProject(dir,document,[asset]);await fs.writeFile(path.join(dir,'hyperframes.json'),JSON.stringify({version:1,entry:'index.html'}));
++await fs.writeFile(path.join(dir,'check.log'),await runHyperFrames(dir,'check'));
++for(const [name,times] of [['forward','2.8,2.96,3.05,3.19,3.4'],['repeat','3.4,3.05,2.8,3.05']])await fs.writeFile(path.join(dir,name+'.log'),await runHyperFrames(dir,'snapshot',['--at',times,'--output',name,'--describe','false']));
++const frame=async folder=>(await fs.readdir(path.join(dir,folder))).find(n=>/at-3\.05s/.test(n));const a=await frame('forward'),b=await frame('repeat');assert(a&&b,'requested midpoint frames missing');
++const digest=b=>createHash('sha256').update(b).digest('hex');const first=digest(await fs.readFile(path.join(dir,'forward',a))),second=digest(await fs.readFile(path.join(dir,'repeat',b)));assert.equal(first,second,'same timestamp must render identical shader/media pixels');
++for(const name of (await fs.readdir(path.join(dir,'repeat'))).filter(n=>/at-3\.05s/.test(n)))assert.equal(digest(await fs.readFile(path.join(dir,'repeat',name))),first,'every repeated midpoint must match');
++await fs.writeFile(path.join(dir,'evidence.json'),JSON.stringify({kind:'engineering-fixture',notFinalFilm:true,sourceAssetId:asset.id,sourceSha256:asset.sha256,documentRevision:document.revisionId,midpointSha256:first,repeatSeekIdentical:true,times:[2.8,2.96,3.05,3.19,3.4],note:'Full final product revision still requires its own shader and media review.'},null,2));console.log(dir);
+--- /dev/null
++++ b/video-agent/scripts/test-closeout-r1.mjs
+@@ -0,0 +1,74 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import fs from 'node:fs/promises';
++import path from 'node:path';
++import os from 'node:os';
++import sharp from 'sharp';
++import {generateCommerceAsset,outputAspect} from '../lib/creative/runninghub.mjs';
++import {HyperFramesResourcePlanner,explicitResource,resourceRequests} from '../lib/creative/resource-catalog.mjs';
++import {fillGenerationGaps} from '../lib/creative/generation-plan.mjs';
++import {executionStatus} from '../lib/creative/execution-status.mjs';
++import {compileChromatic} from '../lib/creative/chromatic-split.mjs';
++import {keyframeFailure} from '../lib/creative/repair-routing.mjs';
++import {scopedCommerceEdit} from '../lib/creative/r3-intents.mjs';
++const root=path.resolve(import.meta.dirname,'..');
++test('R1 exact catalog names, aliases, URLs, negative clauses and empty matches',()=>{
++ const resources=[{id:'blocks:cinematic-zoom',name:'cinematic-zoom',displayName:'Cinematic Zoom',aliases:['电影推近'],url:'https://example.test/zoom',path:'zoom',sha256:'abc'}];
++ const catalog={resources,data:{contentHash:'test'},search:()=>resources.map(r=>({...r,score:1}))};
++ for(const name of ['cinematic-zoom','Cinematic Zoom','电影推近','https://example.test/zoom','blocks:cinematic-zoom']){
++  const p=new HyperFramesResourcePlanner(catalog,[{id:'lt-mask-reveal',compatible:true,eligible:true}]).plan(name);
++  assert.equal(p.status,'pending_adapter');assert.deepEqual(p.selected,[]);
++ }
++ assert.equal(new HyperFramesResourcePlanner(catalog,[]).plan('completely-unknown-effect').status,'unresolved');
++ const aliasOnly={...catalog,search:()=>[]};
++ const exact=new HyperFramesResourcePlanner(aliasOnly,[{id:'cinematic-zoom',compatible:true,eligible:true}]).plan('电影推近');
++ assert.equal(exact.status,'resolved');assert.equal(exact.selected[0].sourceFiles[0].sha256,'abc');
++ assert.equal(explicitResource('Do not use chromatic split'),null);
++ const requests=resourceRequests('不要全片用色散，只在第一个转场用一次');assert.equal(requests[0].negated,false);assert.deepEqual(requests[0].scope,{kind:'transition',index:0});
++ const denied=new HyperFramesResourcePlanner(catalog,[{id:'chromatic-split',compatible:true,eligible:true}]).plan('不要色散');assert.deepEqual(denied.selected,[]);
++});
++test('R1 unused shader imports and compiles without resource reads',()=>{assert.deepEqual(compileChromatic({transitions:[]},{}),{receipts:[],html:'',script:''});});
++
++test('R1 exact displayed copy keeps spaces and punctuation',()=>{
++ const doc={scenes:[{id:'end'}],nodes:[{id:'cta',sceneId:'end',kind:'text',semanticRole:'cta'}]};
++ assert.equal(scopedCommerceEdit(doc,'最后一句改为“Learn more. 了解更多！”，只改画面文字。').operations[0].text,'Learn more. 了解更多！');
++});
++
++test('R1 static text timing is deferred, but animated review and static layout still block',()=>{
++ const timing={severity:'major',repairKind:'text-timing',problem:'exit before source action changes'};
++ assert.equal(keyframeFailure([timing],{staticOnly:true}),null);
++ assert.equal(keyframeFailure([timing]).code,'KEYFRAME_LAYOUT');
++ assert.equal(keyframeFailure([timing,{severity:'major',repairKind:'layout',problem:'unreadable'}],{staticOnly:true}).code,'KEYFRAME_LAYOUT');
++});
++test('R1 provider concurrent callers submit once, square is preserved, aspect invalidates cache and unknown submission reconciles',async()=>{
++ const dir=await fs.mkdtemp(path.join(os.tmpdir(),'r1-provider-')),key=process.env.RUNNINGHUB_API_KEY;process.env.RUNNINGHUB_API_KEY='test-only-not-a-credential';
++ try{
++  await fs.mkdir(path.join(dir,'config'));await fs.writeFile(path.join(dir,'config/runninghub.local.json'),JSON.stringify({authorization:{id:'test',source:'isolated regression',maxSubmissions:5},image:{mode:'model',endpoint:'/openapi/v2/test',body:{prompt:'$prompt',aspect:'$aspect',image:'$image'}}}));
++  const bytes=await sharp({create:{width:32,height:32,channels:3,background:'#769887'}}).png().toBuffer();await fs.writeFile(path.join(dir,'input.png'),bytes);
++  let submissions=0;const aspects=[];const io={fetch:async(url,opts)=>{
++   if(url.pathname.endsWith('/upload'))return {ok:true,json:async()=>({code:0,data:{fileName:'input.png'}})};
++   if(url.pathname.endsWith('/query'))return {ok:true,json:async()=>({status:'SUCCESS',results:[{url:'https://www.runninghub.ai/output.png',fileType:'png'}]})};
++   submissions++;aspects.push(JSON.parse(opts.body).aspect);await new Promise(r=>setTimeout(r,20));return {ok:true,json:async()=>({taskId:'task-'+submissions})};
++  },download:async()=>({ok:true,body:[bytes]})};
++  const project={id:'project',request:{output:{width:1080,height:1080}}},opts={root:dir,project,job:{},kind:'image',prompt:'same product',sourceAsset:{id:'source',path:'input.png'},role:'hero',save:async()=>{},io};
++  const results=await Promise.all([generateCommerceAsset(opts),generateCommerceAsset(opts)]);assert.equal(submissions,1);assert.equal(results[0].id,results[1].id);assert.deepEqual(aspects,['1:1']);
++  project.request.output={width:1920,height:1080};const wide=await generateCommerceAsset(opts);assert.equal(submissions,2);assert.notEqual(wide.id,results[0].id);assert.deepEqual(aspects,['1:1','16:9']);
++  const jobs=path.join(dir,'data/runninghub-jobs');const file=(await fs.readdir(jobs)).find(f=>f.endsWith('.json'));const rec=JSON.parse(await fs.readFile(path.join(jobs,file)));project.request.output=rec.request.aspect==='1:1'?{width:1080,height:1080}:{width:1920,height:1080};
++  rec.status='submitted';delete rec.asset;await fs.writeFile(path.join(jobs,file),JSON.stringify(rec));
++  const resumed=await generateCommerceAsset(opts);assert(resumed.id);assert.equal(submissions,2,'persisted task must query instead of submitting again');
++  rec.status='submitting';delete rec.providerTaskId;await fs.writeFile(path.join(jobs,file),JSON.stringify(rec));
++  await assert.rejects(()=>generateCommerceAsset(opts),{code:'PROVIDER_RECONCILIATION'});assert.equal(submissions,2);
++ }finally{if(key===undefined)delete process.env.RUNNINGHUB_API_KEY;else process.env.RUNNINGHUB_API_KEY=key;}
++ assert.equal(outputAspect({width:1080,height:1920}),'9:16');assert.throws(()=>outputAspect({width:1000,height:600}),{code:'GENERATION_ASPECT'});
++});
++test('R1 partial shot failure resumes remaining shots and retains completed asset IDs',async()=>{
++ const mediaRoot=await fs.mkdtemp(path.join(os.tmpdir(),'r1-shots-'));await fs.writeFile(path.join(mediaRoot,'shot.bin'),'immutable generated bytes');
++ const project={assets:[{id:'image',kind:'image'}]},job={generationPlan:{originalPrompt:'基于这张商品图，做一条30秒新品广告',shots:[1,2,3,4].map(i=>({id:'shot-'+i,purpose:'purpose '+i,sourceAssetId:'image',durationSeconds:8,status:'pending',prompt:'distinct '+i}))}};
++ let fail=true;const calls=[];const generate=async({role})=>{calls.push(role);if(role==='shot-2'&&fail)throw Object.assign(Error('injected provider interruption'),{code:'PROVIDER_PENDING'});return {id:'asset-'+role,path:'shot.bin'};};
++ const opts={root:mediaRoot,project,job,save:async()=>{},signal:new AbortController().signal,generate};await assert.rejects(()=>fillGenerationGaps(opts));assert.equal(job.generationPlan.shots[0].status,'complete');
++ const resumed=JSON.parse(JSON.stringify({project,job}));fail=false;await fillGenerationGaps({...opts,...resumed});assert.deepEqual(calls,['shot-1','shot-2','shot-2','shot-3','shot-4']);assert.equal(resumed.job.generationPlan.shots[0].assetId,'asset-shot-1');await fs.writeFile(path.join(mediaRoot,'shot.bin'),'changed');await assert.rejects(()=>fillGenerationGaps({...opts,...resumed}),{code:'PROVENANCE_CHANGED'});
++});
++test('R1 progress is read-only and a project is not a completed film',()=>{
++ assert.equal(executionStatus([]).status,'idle');const p={id:'p',assets:[],jobs:[],revisions:[],recentProgressAt:'2026-01-01T00:00:00Z'};assert.equal(executionStatus([p]).completed,0);assert.equal(executionStatus([p]).recentProgressAt,p.recentProgressAt);
++ p.jobs=[{id:'j',status:'recoverable',code:'GENERATION_KEY',error:'missing key',createdAt:'2026-01-01'}];assert.equal(executionStatus([p]).status,'blocked');assert.equal(executionStatus([p]).blocker.code,'GENERATION_KEY');
++});
+--- a/video-agent/scripts/test-commerce-quality-next.mjs
++++ b/video-agent/scripts/test-commerce-quality-next.mjs
+@@ -125,8 +125,8 @@
+     if(call===0)return {result:brief};if(call===1)return {result:{observations:[observation],candidates:[],inspectRanges:[],gaps:[]}};
+     if(call===2)return {result:{selected:[],gaps:[],blockingGaps:[]}};
+     if(call===5){
+-      assert.deepEqual(packet.sourceEvidence.records.map(r=>r.file),batches.map(b=>b.records[0].file));
+-      assert.deepEqual(content.filter(i=>i.type==='input_image').map(i=>i.image_url),[0,1].map(i=>'data:image/jpeg;base64,'+Buffer.from('injected-frame-'+i).toString('base64')));
++      assert.deepEqual(packet.sourceEvidence.records.map(r=>r.file),[batches[1].records[0].file,batches[0].records[0].file]);
++      assert.deepEqual(content.filter(i=>i.type==='input_image').map(i=>i.image_url),[1,0].map(i=>'data:image/jpeg;base64,'+Buffer.from('injected-frame-'+i).toString('base64')));
+     }
+     return {result:stories[call-3]};
+   }};
+--- a/video-agent/scripts/test-delivery-entry.mjs
++++ b/video-agent/scripts/test-delivery-entry.mjs
+@@ -27,7 +27,12 @@
+  assert.equal((await call('/delivery-assets/Q02-A/final_video?revision=old')).body,'old-version');
+  assert.equal((await call('/delivery-assets/Q02-A/final_video?revision=missing')).status,404);
+  assert.equal((await call('/delivery-assets/Q02-A/final_video?revision=r')).body,'test file');
+- await fs.unlink(path.join(root,'commerce-final.mp4'));await fs.symlink('/etc/hosts',path.join(root,'commerce-final.mp4'));
+- assert.equal((await call('/delivery-assets/Q02-A/final_video')).status,404);
++ const outside=await fs.mkdtemp(path.join(os.tmpdir(),'hf-delivery-outside-'));
++ try{
++  await fs.writeFile(path.join(outside,'commerce-final.mp4'),'must not be served');
++  await fs.symlink(outside,path.join(root,'escape'),process.platform==='win32'?'junction':'dir');
++  project.revisions[0].directory='escape';
++  assert.equal((await call('/delivery-assets/Q02-A/final_video')).status,404);
++ }finally{await fs.rm(outside,{recursive:true,force:true});}
+  }finally{await fs.rm(root,{recursive:true,force:true});}
+ });
+--- a/video-agent/scripts/test-editor-upgrade-ui.mjs
++++ b/video-agent/scripts/test-editor-upgrade-ui.mjs
+@@ -419,6 +419,7 @@
+   await page.reload({ waitUntil: "domcontentloaded" });
+   assert.equal(await page.$eval("#prompt", (e) => e.value), "我的未发送草稿");
+   pass("建议仅填入要求，刷新保留新项目草稿");
++  await page.waitForSelector('#sample-gallery [data-sample-id="tears-of-steel"]');
+   await page.click('#sample-gallery [data-sample-id="tears-of-steel"]');
+   await wait(() => !document.querySelector("#viewer").hidden);
+   const p = projects.get(id);
+--- /dev/null
++++ b/video-agent/scripts/test-latest-observation.mjs
+@@ -0,0 +1,17 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import {queryEvidence,selectEvidenceInputs} from '../lib/creative/evidence-index.mjs';
++test('requested inspection reaches the actual four-image model context',()=>{
++  const entries=Array.from({length:7},(_,i)=>({id:'old'+i,assetId:'v',batchKey:'overview',startSeconds:i*10,endSeconds:i*10+10,times:[i*10],file:'old'+i}));
++  entries.push(...Array.from({length:3},(_,i)=>({id:'new'+i,assetId:'v',batchKey:'requested-action',startSeconds:22,endSeconds:34,times:[22+i],file:'new'+i})));
++  const selected=queryEvidence({entries},{preferredBatchKeys:['requested-action']});
++  const actual=selectEvidenceInputs(selected.records.flatMap(r=>[{type:'input_text',text:r.id},{type:'input_image',image_url:r.id}]),4);
++  assert(actual.inputs.some(i=>i.text==='new0'));
++  assert(actual.inputs.some(i=>i.text?.startsWith('old')));
++  assert.equal(actual.sent,4);
++  assert.equal(entries[0].id,'old0');
++});
++test('an explicit source range still excludes unrelated latest observations',()=>{
++  const index={entries:[{id:'a',assetId:'v',batchKey:'old',times:[3]},{id:'b',assetId:'v',batchKey:'latest',times:[50]}]};
++  assert.deepEqual(queryEvidence(index,{ranges:[{assetId:'v',startSeconds:0,endSeconds:5}],preferredBatchKeys:['latest']}).records.map(x=>x.id),['a']);
++});
+--- /dev/null
++++ b/video-agent/scripts/test-native-cut-checkpoint.mjs
+@@ -0,0 +1,11 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import {normalizeShotSource} from '../lib/creative/capabilities.mjs';
++test('native footage checkpoint is valid without custom HTML in preview and assembly',()=>{
++  assert.equal(normalizeShotSource({source:null,receipt:{method:'footage-cut',tool:'native.footage-cut'}},['video']),null);
++  assert.throws(()=>normalizeShotSource({source:null,receipt:{method:'original'}},['video']),{code:'CUSTOM_SOURCE'});
++});
++test('custom checkpoint still normalizes native image bindings',()=>{
++  const source={html:'<div id="image"></div>',objects:[{elementId:'image',ref:'media-1'}]};
++  assert.match(normalizeShotSource({source},['image']).html,/<img/);
++});
+--- /dev/null
++++ b/video-agent/scripts/test-observation-audio.mjs
+@@ -0,0 +1,31 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import {observationAudioStatus,fullOriginalAudioGraph} from '../lib/creative/observation-audio.mjs';
++
++const empty=[{assetId:'uploaded-video',transcript:{words:[],text:''}}];
++test('empty ASR permits original-track candidate without claiming silence or review',()=>{
++  const before=structuredClone(empty);
++  const result=observationAudioStatus({keepOriginalAudio:true,needsCaptions:false},empty);
++  assert.equal(result.status,'no_recognized_speech');
++  assert.equal(result.reviewRequired,true);
++  assert.match(result.limitation,/不代表原片无声/);
++  assert.deepEqual(empty,before);
++});
++test('speech-dependent captions remain blocked on empty recognition',()=>{
++  assert.throws(()=>observationAudioStatus({keepOriginalAudio:true,needsCaptions:true},empty),{code:'NO_SPEECH'});
++  assert.throws(()=>observationAudioStatus({keepOriginalAudio:false,needsCaptions:false},empty),{code:'NO_SPEECH'});
++});
++test('recognized words remain usable with audio review pending',()=>{
++  assert.equal(observationAudioStatus({needsCaptions:true},[{transcript:{words:[{text:'Camera',start:1,end:2}]}}]).status,'speech_recognized');
++});
++
++test('explicit full source audio is detached from visual cuts and retains its tail',()=>{
++  const assets=[{id:'v',kind:'video',mediaMetadata:{duration:71.989,hasAudio:true}}];
++  const tracks=fullOriginalAudioGraph('原声音轨完整保持原速和原有时间顺序',assets,2160);
++  assert.equal(tracks.length,1);assert.equal(tracks[0].durationFrames,2160);
++  assert.equal(tracks[0].sourceNodeId,undefined);assert.equal(tracks[0].sourceStartSeconds,0);
++  assert.equal(tracks[0].playbackRate,1);assert.equal(tracks[0].volume,1);
++  assert.throws(()=>fullOriginalAudioGraph('完整保留原声',assets,900),{code:'ORIGINAL_AUDIO_DURATION'});
++  assert.throws(()=>fullOriginalAudioGraph('完整保留原声',[...assets,{...assets[0],id:'v2'}],4320),{code:'ORIGINAL_AUDIO_SOURCE'});
++  assert.equal(fullOriginalAudioGraph('操作演示保留原声，动作与声音同步慢放',assets,2160),null);
++});
+--- /dev/null
++++ b/video-agent/scripts/test-uploaded-footage-plan.mjs
+@@ -0,0 +1,18 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import {validateGenerationPlan} from '../lib/creative/generation-plan.mjs';
++const assets=[{id:'v',kind:'video',mediaMetadata:{duration:72}},{id:'i',kind:'image'}];
++const shot={purpose:'展示镜头细节',composition:'真实机身近景',durationSeconds:6,sourceAssetId:'v',sourceStartSeconds:24,sourceEndSeconds:30,missing:false,prompt:'',safeArea:'左上'};
++test('existing footage needs no image-generation prompt',()=>{
++  assert.equal(validateGenerationPlan({shots:[shot]},assets,{durationSeconds:6}).shots[0],shot);
++});
++test('explicit slow motion can use three source seconds for six output seconds',()=>{
++  const plan={shots:[{...shot,sourceEndSeconds:27}]};
++  assert.throws(()=>validateGenerationPlan(plan,assets,{durationSeconds:6}),{code:'GENERATION_PLAN'});
++  assert.equal(validateGenerationPlan(plan,assets,{durationSeconds:6},{allowSlowMotion:true}),plan);
++  assert.throws(()=>validateGenerationPlan({shots:[{...shot,sourceEndSeconds:24.2}]},assets,{durationSeconds:6},{allowSlowMotion:true}),{code:'GENERATION_PLAN'});
++});
++test('slow motion cannot authorize out-of-bounds source or empty generated prompt',()=>{
++  assert.throws(()=>validateGenerationPlan({shots:[{...shot,sourceEndSeconds:80}]},assets,{durationSeconds:6},{allowSlowMotion:true}),{code:'GENERATION_PLAN'});
++  assert.throws(()=>validateGenerationPlan({shots:[{...shot,sourceAssetId:'i',missing:true}]},assets,{durationSeconds:6}),{code:'GENERATION_PLAN'});
++});
+--- a/video-agent/web/commerce.js
++++ b/video-agent/web/commerce.js
+@@ -1,5 +1,9 @@
+ const $=s=>document.querySelector(s),composer=$('#composer'),input=$('#message'),attachments=$('#images');
++let selectedGenerationAssetId=null;
+ let files=[],project=null,poll=null,selected=null,posting=false,opening=false,nativeDocument=null,selectedNode=null,documentRevision=null;
++const draftKey=()=> 'commerce-draft:'+(project?.id||new URLSearchParams(location.search).get('project')||'new');
++input.addEventListener('input',()=>localStorage.setItem(draftKey(),input.value));
++input.value=localStorage.getItem(draftKey())||'';
+ const objectUrls=[];
+ let presetCatalog=[],chosenPreset=null,shownEvidence='',showAllProjects=false,openSequence=0,projectSummaries=[],shownVoices='';
+ const rememberedProjects=new Set(JSON.parse(localStorage.getItem('commerce-created-projects')||'[]'));
+@@ -7,7 +11,7 @@
+ const active=j=>['queued','running'].includes(j.status);
+ function drawProduction(){const last=project?.jobs.at(-1),quality=nativeDocument?.quality||last?.quality,range=nativeDocument?.previewRange,media=project?.revisions.find(r=>r.id===selected)?.mediaReview;$('#production-quality').hidden=!quality&&!range&&!media;$('#direction-preview').hidden=!range;$('#quality-summary').textContent=[quality?`工程检查：${quality.engineering==='checked'?'已通过':'待检查'}。画面检查：${quality.status==='preview-reviewed'?'关键帧已检查':quality.status==='unchanged-visual-content'?'本次未改画面':'待复核'}。人工验收：${quality.humanReview==='passed'?'已通过':'待审核'}。`:'',media?`导出媒体：${media.status==='media-contract-passed'?'时长、尺寸、帧率和音轨已检查':'未通过'}。`:'',...(quality?.issues||[]).map(i=>`${i.startSeconds??i.seconds??'?'}${i.endSeconds!=null?'–'+i.endSeconds:''} 秒：${i.problem}`)].join(' ');}
+ function drawJobs(jobs){const container=$('#jobs'),existing=new Map([...container.children].map(el=>[el.dataset.jobId,el]));const nodes=jobs.map(j=>{const signature=JSON.stringify([j.id,j.kind,j.status,j.stage,j.runId,j.gaps,j.error,j.modelCalls,j.maxModelCalls,j.completionReserve,j.budgetSource,j.completedShots,j.resumeAllowed,j.budgetExhausted,j.directionPreview?.key]),prior=existing.get(j.id);if(prior?.dataset.signature===signature)return prior;const row=drawJob(j);row.dataset.jobId=j.id;row.dataset.signature=signature;return row;});if(nodes.length!==container.children.length||nodes.some((n,i)=>container.children[i]!==n))container.replaceChildren(...nodes);}
+-function drawJob(j){const d=document.createElement('div'),label=j.kind==='export'?'导出':j.kind==='create'?'创作':'修改';d.textContent=label+' · '+(j.budgetExhausted?'本轮预算已用完，草稿与缺陷已保留':j.status==='complete'?'已完成':j.status==='needs_user'?'有待确认的问题，证据已保留':j.status==='recoverable'?'已暂停，可从检查点恢复':j.status==='failed'?shortError(j.error):j.status==='cancelled'?'已取消':j.stage||'排队中');if(j.runId){const info=document.createElement('p');info.textContent=`同一任务累计 ${j.modelCalls??0} 次 / ${j.maxModelCalls??'未登记'} 次，最终检查预留 ${j.completionReserve||0} 次；已完成 ${j.completedShots??0} 幕。预算来源：${j.budgetSource==='explicit-webui-approval'?'用户批准':'应用估算'}。`;d.append(info);}if(j.code==='MODEL_BUDGET'&&!active(j)){const budget=document.createElement('input');budget.type='number';budget.min=String((j.modelCalls||0)+7);budget.max='128';budget.value=String(Math.min(128,(j.modelCalls||0)+30));budget.setAttribute('aria-label','批准累计调用上限');const approve=document.createElement('button');approve.textContent='批准此上限（预留6次检查）';approve.onclick=()=>action({action:'authorize_budget',jobId:j.id,maxModelCalls:Number(budget.value),completionReserve:6,idempotencyKey:crypto.randomUUID()});d.append(budget,approve);}if(active(j)){const b=document.createElement('button');b.textContent='取消';b.onclick=()=>action({action:'cancel',jobId:j.id});d.append(b);}if(j.runId?(['recoverable','cancelled','failed','needs_user'].includes(j.status)&&j.resumeAllowed!==false):j.status==='failed'){const b=document.createElement('button');b.textContent=j.runId?'从检查点恢复':'重试';b.onclick=()=>action({action:j.runId?'resume':'retry',jobId:j.id});d.append(b);}if(j.directionPreview?.previewUrl){const link=document.createElement('a');link.textContent='查看提前方向预览（全片仍在制作）';link.href=j.directionPreview.previewUrl;link.target='_blank';link.rel='noopener';d.append(link);}if(j.gaps?.length){const p=document.createElement('p');p.textContent=j.gaps.join('；');d.append(p);}if(j.error){const detail=document.createElement('details'),summary=document.createElement('summary'),log=document.createElement('pre');summary.textContent='处理记录';log.textContent=j.error;detail.append(summary,log);d.append(detail);}return d;}
++function drawJob(j){const d=document.createElement('div'),label=j.kind==='export'?'导出':j.kind==='create'?'创作':'修改';d.textContent=label+' · '+(j.budgetExhausted?'本轮预算已用完，草稿与缺陷已保留':j.status==='complete'?'已完成':j.status==='needs_user'?'有待确认的问题，证据已保留':j.status==='recoverable'?'已暂停，可从检查点恢复':j.status==='failed'?shortError(j.error):j.status==='cancelled'?'已取消':j.stage||'排队中');if(j.runId){const info=document.createElement('p');info.textContent=`同一任务累计 ${j.modelCalls??0} 次 / ${j.maxModelCalls??'未登记'} 次，最终检查预留 ${j.completionReserve||0} 次；已完成 ${j.completedShots??0} 幕。预算来源：${j.budgetSource==='explicit-webui-approval'?'用户批准':'应用估算'}。`;d.append(info);}if(j.code==='MODEL_BUDGET'&&!active(j)){const budget=document.createElement('input');budget.type='number';budget.min=String((j.modelCalls||0)+7);budget.max='128';budget.value=String(Math.min(128,(j.modelCalls||0)+30));budget.setAttribute('aria-label','批准累计调用上限');const approve=document.createElement('button');approve.textContent='批准此上限（预留6次检查）';approve.onclick=()=>action({action:'authorize_budget',jobId:j.id,maxModelCalls:Number(budget.value),completionReserve:6,idempotencyKey:crypto.randomUUID()});d.append(budget,approve);}if(active(j)){const b=document.createElement('button');b.textContent='取消';b.onclick=()=>action({action:'cancel',jobId:j.id});d.append(b);}if(j.resumeAllowed||j.status==='failed'){const b=document.createElement('button');b.textContent=j.resumeAllowed?'从检查点恢复':'重试';b.onclick=()=>action({action:j.resumeAllowed?'resume':'retry',jobId:j.id});d.append(b);}if(j.directionPreview?.previewUrl){const link=document.createElement('a');link.textContent='查看提前方向预览（全片仍在制作）';link.href=j.directionPreview.previewUrl;link.target='_blank';link.rel='noopener';d.append(link);}if(j.gaps?.length){const p=document.createElement('p');p.textContent=j.gaps.join('；');d.append(p);}if(j.error){const detail=document.createElement('details'),summary=document.createElement('summary'),log=document.createElement('pre');summary.textContent='处理记录';log.textContent=j.error;detail.append(summary,log);d.append(detail);}return d;}
+ const busy=()=>posting||opening||project?.jobs.some(j=>active(j)&&j.kind!=='export');
+ const roles={hero:'主体画面',detail:'细节画面',title:'标题',feature:'说明',price:'价格',cta:'结尾提示',caption:'字幕',decoration:'图形'};
+ const shortError=text=>/^HyperFrames/.test(text||'')?'画面检查未通过，上一有效版本已保留。可以重试或调整要求。':String(text||'').split('\n')[0];
+@@ -38,7 +42,7 @@
+ async function loadObjects(r){if(documentRevision===r.id)return;documentRevision=r.id;try{const doc=await api(r.documentUrl);if(documentRevision!==r.id)return;nativeDocument=doc;drawCreationSummary(doc);$('#objects').replaceChildren(new Option('自动理解修改目标',''),...doc.nodes.filter(n=>n.kind!=='audio').map(n=>new Option(`第 ${doc.scenes.findIndex(s=>s.id===n.sceneId)+1} 幕 · ${roles[n.semanticRole]||n.kind}${n.params?.text?' · '+n.params.text.slice(0,28):''}`,n.id)),...(doc.captions||[]).map((c,i)=>new Option('字幕 '+(i+1)+' · '+c.text.slice(0,28),c.id)));chooseObject(doc.nodes.some(n=>n.id===selectedNode)?selectedNode:null);$('#object-tools').hidden=false;drawProduction();}catch(e){documentRevision=null;showError(e);}}
+ function preview(r){if(!r)return;$('#case-view').hidden=true;$('#case-film').pause();selected=r.id;const old=$('#player');if(old.getAttribute('src')!==r.previewUrl){old.pause?.();const player=preserveLastFrame(document.createElement('hyperframes-player'));player.id='player';player.setAttribute('controls','');player.setAttribute('src',r.previewUrl);player.style.aspectRatio=r.output.width+'/'+r.output.height;player.addEventListener('ready',()=>{queueMicrotask(()=>player.seek?.(.6));player.iframe?.contentDocument?.addEventListener('click',e=>{const object=e.target.closest('[data-object-id],[id^="obj-"]');if(object)chooseObject(object.dataset.objectId||object.id.slice(4));});},{once:true});old.replaceWith(player);}void loadObjects(r);$('#player').hidden=false;$('#empty').hidden=true;let reviewLink=$('#human-review-link');if(!reviewLink){reviewLink=document.createElement('a');reviewLink.id='human-review-link';reviewLink.textContent='审阅当前候选片';reviewLink.target='_blank';$('#download').after(reviewLink);}reviewLink.href='/api/commerce/'+project.id+'/review';reviewLink.hidden=!r.videoUrl;let statusLabel=$('#quality-status');if(!statusLabel){statusLabel=document.createElement('p');statusLabel.id='quality-status';$('#download').after(statusLabel);}statusLabel.textContent=project.deliveryStatus==='accepted'?'当前版本已正式验收':project.deliveryStatus==='legacy_unverified'?'历史作品：尚未按新标准验收':'候选片：技术、画面、动作、声音与人工认可分别审查';let formalLink=$('#formal-download');if(!formalLink){formalLink=document.createElement('a');formalLink.id='formal-download';formalLink.textContent='下载正式验收版';$('#download').after(formalLink);}formalLink.hidden=project.deliveryStatus!=='accepted'||selected!==project.currentRevisionId;formalLink.href=r.videoUrl+'?delivery=formal&download=1';$('#download').textContent='下载候选片（待审）';$('#download').hidden=!r.videoUrl;if(r.videoUrl)$('#download').href=r.videoUrl+'?download=1';$('#package').hidden=!r.packageUrl;if(r.packageUrl)$('#package').href=r.packageUrl+'?download=1';}
+ function draw(){
+- $('#generated-assets').replaceChildren(...(project?.assets||[]).filter(a=>a.id.startsWith('rh-')).map(a=>{const card=document.createElement('article'),media=document.createElement(a.kind==='image'?'img':'video');media.src='/api/commerce/'+project.id+'/input-assets/'+a.id;media.style.maxWidth='180px';if(a.kind==='video')media.controls=true;const label=document.createElement('p');label.textContent=a.name+' · 来源已登记，质量待审';card.append(media,label);return card;}));
++ $('#generated-assets').replaceChildren(...(project?.assets||[]).filter(a=>a.id.startsWith('rh-')).map(a=>{const card=document.createElement('article'),media=document.createElement(a.kind==='image'?'img':'video');media.src='/api/commerce/'+project.id+'/input-assets/'+a.id;media.style.maxWidth='180px';if(a.kind==='video')media.controls=true;const label=document.createElement('p');label.textContent=a.name+' · 来源已登记，质量待审';card.append(media,label);for(const [target,title] of (a.kind==='image'?[['video','做成视频'],['marketing','用于成片']]:[['marketing','用于成片']])){const button=document.createElement('button');button.type='button';button.textContent=selectedGenerationAssetId===a.id?'已选 · '+title:title;button.disabled=busy()||!!project.currentRevisionId;button.onclick=()=>{selectedGenerationAssetId=a.id;$('#creation-target').value=target;input.focus();draw();};card.append(button);}return card;}));
+ 
+  for(const id of ['creation-target','output-aspect','output-duration','business-scene'])$('#'+id).disabled=!!project?.currentRevisionId;
+ 
+@@ -52,12 +56,12 @@
+  const historyView=project?.currentRevisionId&&selected!==project.currentRevisionId;$('#projects').disabled=posting;$('#send').disabled=Boolean(busy()||historyView);$('#send').textContent=posting?'正在提交…':project?.currentRevisionId?'发送修改':({'image':'生成图片','video':'生成原始镜头'}[$('#creation-target').value]||'生成视频');$('#composer-hint').textContent=historyView?'恢复此版后可继续修改':project?.currentRevisionId?'继续描述想改的地方':'商品图可生成图片和镜头，已有素材可制作营销片';input.placeholder=project?.currentRevisionId?'想调整什么？':'想做一条怎样的视频？';for(const id of ['restore','undo','redo'])$('#'+id).disabled=Boolean(busy());$('#export').disabled=!selected||project?.jobs.some(j=>j.kind==='export'&&active(j)&&j.baseRevisionId===selected);
+ }
+ async function refresh(){if(!project)return;const id=project.id,prior=project.currentRevisionId,data=await api('/api/commerce/'+id);if(project?.id!==id)return;project=data.project;if(prior!==project.currentRevisionId){selected=project.currentRevisionId;void listProjects().catch(showError);}draw();clearTimeout(poll);if(project.jobs.some(active))poll=setTimeout(()=>refresh().catch(showError),1200);}
+-async function openProject(id){const sequence=++openSequence;opening=true;clearTimeout(poll);project=null;input.value='';files=[];thumbnails();clearPreview();draw();try{const result=await api('/api/commerce/'+id);if(sequence!==openSequence)return;project=result.project;restoreIntake();restoreMaterialSelection();selected=project.currentRevisionId;history.replaceState(null,'','/?project='+id);draw();await listProjects();await refresh();}finally{if(sequence===openSequence){opening=false;draw();}}}
++async function openProject(id){const sequence=++openSequence;opening=true;clearTimeout(poll);project=null;input.value='';files=[];thumbnails();clearPreview();draw();try{const result=await api('/api/commerce/'+id);if(sequence!==openSequence)return;project=result.project;selectedGenerationAssetId=project.request?.sourceAssetId||null;input.value=localStorage.getItem(draftKey())||'';restoreIntake();restoreMaterialSelection();selected=project.currentRevisionId;history.replaceState(null,'','/?project='+id);draw();await listProjects();await refresh();}finally{if(sequence===openSequence){opening=false;draw();}}}
+ async function action(data){$('#error').hidden=true;try{const result=await post({...data,projectId:project.id,baseRevisionId:project.currentRevisionId,idempotencyKey:crypto.randomUUID()});if(result.project){if(project.currentRevisionId!==result.project.currentRevisionId)selected=result.project.currentRevisionId;project=result.project;}await refresh();return true;}catch(e){showError(e);return false;}}
+ async function uploadFiles(){if(files.length+project.assets.length>30)throw Error('每个工程最多30个素材');if(files.some(f=>f.size>1024**3))throw Error('每个素材最多1 GiB');for(const [i,f] of files.entries()){$('#send').textContent=`上传 ${i+1}/${files.length}`;await api('/api/commerce/'+project.id+'/assets',{method:'POST',headers:{'x-file-name':encodeURIComponent(f.name)},body:f});}}
+ function restoreIntake(){const r=project?.request||{},revision=project?.revisions?.find(v=>v.id===project.currentRevisionId),o=revision?.output||r.output||{};$('#creation-target').value=r.target||'marketing';$('#output-aspect').value=o.width===o.height?'1:1':o.width>o.height?'16:9':'9:16';$('#output-duration').value=revision?revision.durationFrames/30:o.durationSeconds||24;$('#business-scene').value=r.scenarioId||'auto';selectedBusinessGoal=r.scenarioId==='product_launch'?'launch':['product_demo','product_howto'].includes(r.scenarioId)?'demo':'auto';}
+-function intake(){const ratio=$('#output-aspect').value;return {target:$('#creation-target').value,scenarioId:selectedBusinessGoal==='demo'?'product_demo':selectedBusinessGoal==='launch'?'product_launch':null,businessGoal:['launch','demo'].includes(selectedBusinessGoal)?[selectedBusinessGoal]:[],output:{width:ratio==='16:9'?1920:1080,height:ratio==='9:16'?1920:1080,durationSeconds:Number($('#output-duration').value)},pipelineVersion:3};}
+-composer.onsubmit=async e=>{e.preventDefault();if(busy())return;const message=input.value.trim();if(!message&&!files.length)return;$('#error').hidden=true;posting=true;draw();try{if(project?.currentRevisionId){await uploadFiles();if(await action({action:'patch',message,selectedNodeId:selectedNode})){input.value='';files=[];thumbnails();}}else{if(!project)project=(await post({action:'draft',request:{message,inferRequest:true,...intake()}})).project;selected=null;rememberProject(project.id);history.replaceState(null,'','/?project='+project.id);draw();if($('#material-root').value)project=(await post({action:'material-root',projectId:project.id,materialRootId:$('#material-root').value})).project;await uploadFiles();await post({action:'generate',projectId:project.id,message,request:intake(),idempotencyKey:crypto.randomUUID()});input.value='';files=[];thumbnails();await refresh();await listProjects();}}catch(err){showError(err);}finally{posting=false;draw();}};
++function intake(){const ratio=$('#output-aspect').value;return {sourceAssetId:selectedGenerationAssetId||project?.request?.sourceAssetId||null,target:$('#creation-target').value,scenarioId:selectedBusinessGoal==='demo'?'product_demo':selectedBusinessGoal==='launch'?'product_launch':null,businessGoal:['launch','demo'].includes(selectedBusinessGoal)?[selectedBusinessGoal]:[],output:{width:ratio==='16:9'?1920:1080,height:ratio==='9:16'?1920:1080,durationSeconds:Number($('#output-duration').value)},pipelineVersion:3};}
++composer.onsubmit=async e=>{e.preventDefault();if(busy())return;const message=input.value.trim(),submittedDraftKey=draftKey();if(!message&&!files.length)return;$('#error').hidden=true;posting=true;draw();try{if(project?.currentRevisionId){await uploadFiles();if(await action({action:'patch',message,selectedNodeId:selectedNode})){input.value='';localStorage.removeItem(submittedDraftKey);files=[];thumbnails();}}else{if(!project)project=(await post({action:'draft',request:{message,inferRequest:true,...intake()}})).project;selected=null;rememberProject(project.id);history.replaceState(null,'','/?project='+project.id);draw();if($('#material-root').value)project=(await post({action:'material-root',projectId:project.id,materialRootId:$('#material-root').value})).project;await uploadFiles();await post({action:'generate',projectId:project.id,message,request:intake(),idempotencyKey:crypto.randomUUID()});input.value='';localStorage.removeItem(submittedDraftKey);files=[];thumbnails();await refresh();await listProjects();}}catch(err){showError(err);}finally{posting=false;draw();}};
+ async function loadPreset(preset){if(busy())return;++openSequence;posting=true;draw();try{project=(await post({action:'preset',presetId:preset.id})).project;selected=project.currentRevisionId;history.replaceState(null,'','/?project='+project.id);input.value=preset.input;files=[];thumbnails();draw();await listProjects();}catch(e){showError(e);}finally{posting=false;draw();}}
+ $('#regenerate').onclick=async()=>{if(busy()||!project?.preset)return;let prepared=false;posting=true;draw();try{const source=project;files=await Promise.all(source.assets.map(async a=>{const r=await fetch('/api/commerce/'+source.id+'/input-assets/'+a.id);if(!r.ok)throw Error('预设输入素材读取失败');return new File([await r.blob()],a.name,{type:r.headers.get('content-type')||'application/octet-stream'});}));input.value=source.request.message;clearTimeout(poll);project=null;selected=null;nativeDocument=null;documentRevision=null;$('#messages').replaceChildren();$('#preset-notice').hidden=true;$('#revision-tools').hidden=true;$('#object-tools').hidden=true;$('#details').hidden=true;$('#jobs').replaceChildren();$('#download').hidden=true;$('#package').hidden=true;$('#player').pause?.();$('#player').hidden=true;$('#empty').hidden=false;history.replaceState(null,'','/');thumbnails();input.focus();prepared=true;}catch(e){showError(e);}finally{posting=false;draw();}if(prepared)composer.requestSubmit();};
+ $('#new-project').onclick=()=>{location.href='/';};$('#projects').onchange=e=>{if(e.target.value==='__toggle_all__'){showAllProjects=!showAllProjects;void listProjects();}else if(e.target.value.startsWith('preset:')){const preset=presetCatalog.find(p=>p.id===e.target.value.slice(7));if(preset)void loadPreset(preset);}else if(e.target.value)openProject(e.target.value).catch(showError);};$('#objects').onchange=e=>chooseObject(e.target.value,true);$('#revisions').onchange=e=>{selected=e.target.value;draw();};$('#restore').onclick=()=>action({action:'restore',revisionId:selected});$('#undo').onclick=()=>action({action:'undo'});$('#redo').onclick=()=>action({action:'redo'});$('#export').onclick=()=>action({action:'export',revisionId:selected});

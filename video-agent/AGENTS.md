@@ -121,3 +121,6 @@ When `node` is absent from PATH, use `python3 start.py frontend` / `python3 star
 ## 当前逐模块执行合同（EXECUTION-V2）
 
 实施电商业务时显式读取 [HyperFrame_逐模块执行合同_替换旧Prompt.md](docs/HyperFrame_逐模块执行合同_替换旧Prompt.md)。它替换旧 P0—P5 的业务实施及结束条件；M01—M12、六场景、十类资源逐项验收并继续下一项。保留权限、事实、凭据、历史与未提交工作保护。当前暂停新的商品图片／视频生成，本地剪辑、声音与工程能力继续。进度记录在 EXECUTION_STATUS.md，历史证据不自动通过新合同。
+
+## EIGHT-SCENARIOS-FULL-CLOSEOUT（当前）
+当前范围及结束条件读取 docs/HyperFrame_八场景与音频全量交付合同.md。八场景、S02—S08七组新片与S08两个派生、M01—M12、F1—F3全部继承。旧两场景／六场景数量不是本轮范围。MiniMax内部执行链必须实现，live凭据验收单列。保留所有历史与本地文件；进度续写EXECUTION_STATUS.md。

@@ -1,0 +1,192 @@
+{
+  "workflow": {
+    "taskMode": "edit",
+    "objective": "让首次观看者更清楚地认识头戴耳机、观看真实佩戴与结构细节，并理解收尾的了解邀请。",
+    "requirements": [
+      {
+        "kind": "change",
+        "quote": "请利用现有留白建立清楚的商品标题、细节提示和收尾层级，标题更醒目",
+        "targetIds": ["node-0a853c77bed0bdb3", "node-664f03c2683684e2", "node-59e52dfd4a901a0a"],
+        "excludeIds": [],
+        "startSeconds": null,
+        "endSeconds": null
+      },
+      {
+        "kind": "preserve",
+        "quote": "实拍主体尽可能突出但不要裁掉耳机、人物头部或手部",
+        "targetIds": ["node-f59a295e78d207ce", "node-6600299004af8f47", "node-e91f1b07c2b53786"],
+        "excludeIds": [],
+        "startSeconds": null,
+        "endSeconds": null
+      },
+      {
+        "kind": "change",
+        "quote": "采用奶油白、深墨色和少量细线的克制版式，让开场、真实佩戴过程、结尾各有明确表达",
+        "targetIds": ["scene-01", "scene-02", "scene-03"],
+        "excludeIds": [],
+        "startSeconds": null,
+        "endSeconds": null
+      },
+      {
+        "kind": "preserve",
+        "quote": "保持现有文字含义",
+        "targetIds": ["node-0a853c77bed0bdb3", "node-664f03c2683684e2", "node-59e52dfd4a901a0a"],
+        "excludeIds": [],
+        "startSeconds": null,
+        "endSeconds": null
+      },
+      {
+        "kind": "prohibit",
+        "quote": "不增加品牌、价格或性能承诺",
+        "targetIds": ["scene-01", "scene-02", "scene-03"],
+        "excludeIds": [],
+        "startSeconds": null,
+        "endSeconds": null
+      },
+      {
+        "kind": "preserve",
+        "quote": "保持所有原片区间、正常速度、完整动作顺序、30秒竖屏",
+        "targetIds": ["scene-01", "scene-02", "scene-03", "node-6600299004af8f47"],
+        "excludeIds": [],
+        "startSeconds": null,
+        "endSeconds": null
+      },
+      {
+        "kind": "preserve",
+        "quote": "静音",
+        "targetIds": [],
+        "excludeIds": [],
+        "startSeconds": null,
+        "endSeconds": null
+      },
+      {
+        "kind": "preserve",
+        "quote": "已有两处转场不变",
+        "targetIds": ["transition-ddec311a475f5ee1", "transition-2"],
+        "excludeIds": [],
+        "startSeconds": null,
+        "endSeconds": null
+      },
+      {
+        "kind": "change",
+        "quote": "只调整版式、字号、位置和有限入场动效",
+        "targetIds": ["scene-01", "scene-02", "scene-03"],
+        "excludeIds": [],
+        "startSeconds": null,
+        "endSeconds": null
+      },
+      {
+        "kind": "prohibit",
+        "quote": "不生成图片或视频，不改写整片，不替换已有素材",
+        "targetIds": ["scene-01", "scene-02", "scene-03", "asset-e3bb98f0-b6ad-48a7-9f35-5e239fafd3eb", "asset-d311db8e-2798-49cd-80be-5bb0241d1822"],
+        "excludeIds": [],
+        "startSeconds": null,
+        "endSeconds": null
+      }
+    ],
+    "assumptions": [
+      "沿用现有暖奶油底色#EDE8E0与深墨色#242329，以112px标题、72px细节提示、96px收尾建立层级。",
+      "横向素材已占满1080px画幅宽度；保留1080×608的contain媒体框，通过文字靠近媒体、减少视觉分散来突出主体，不额外放大裁切。",
+      "以当前nodes和timingPlan为准，保留现有三段文字原文及结构提示显示窗口，不采用历史说明中已过期的文字和时间。"
+    ],
+    "gaps": [
+      "当前只有三条短文字，没有可定位的长段落节点；本次仅优化现有文字层级，不新增说明。",
+      "静音由空audioGraph与无声视频元数据表达，没有可引用的音轨ID。",
+      "现有观察未覆盖连续逐帧主体完整性；保留完整源画幅不能恢复源素材本身的画外内容。",
+      "本轮仅输出补丁计划，未执行编译或预览。应用后须重编译三幕源码、重渲染候选，复验文字可读性、主体保护、静音及900帧1080×1920输出；重点检查1.433—1.733秒色散转场、6.767—9.167秒细节提示、26.267—26.567秒淡化转场。新修订ID由版本服务分配，旧预览认可不沿用。"
+    ]
+  },
+  "summary": "拟局部调整三幕原生版式：放大标题与收尾、将细节提示贴近媒体、统一细线与墨色，并加入短促文字入场。所有原文、素材、源区间、动作顺序、速度、30秒竖屏、静音和两处转场保持不变；未执行或验证。",
+  "operations": [
+    {
+      "type": "update_custom_source",
+      "sceneId": "scene-01",
+      "nodeId": null,
+      "assetId": null,
+      "text": null,
+      "effect": null,
+      "durationFrames": null,
+      "sceneIds": null,
+      "fromSceneId": null,
+      "toSceneId": null,
+      "width": null,
+      "height": null,
+      "paramsJson": null,
+      "source": {
+        "html": "<div id=\"scene01-background\"></div><div id=\"scene01-overlay\"><h1 id=\"scene01-title\"></h1><div id=\"scene01-rule\"></div></div><img id=\"scene01-media\" />",
+        "css": "#scene01-background{position:absolute;inset:0;width:1080px;height:1920px;background-color:#EDE8E0;z-index:0;}#scene01-overlay{position:absolute;inset:0;width:1080px;height:1920px;background:transparent;z-index:2;}#scene01-title{position:absolute;left:72px;top:448px;width:936px;height:140px;margin:0;padding:0;color:#242329;font-family:Microsoft YaHei;font-size:112px;font-weight:700;line-height:1.25;text-align:left;white-space:nowrap;}#scene01-rule{position:absolute;left:72px;top:610px;width:96px;height:2px;background-color:#242329;transform-origin:left center;}#scene01-media{position:absolute;left:0;top:656px;width:1080px;height:608px;object-fit:contain;object-position:center;background:transparent;opacity:1;z-index:1;}",
+        "timeline": "tl.fromTo(\"#scene01-title\",{y:12},{y:0,duration:params.sceneSeconds*0.16,ease:\"power3.out\"},0);tl.fromTo(\"#scene01-rule\",{scaleX:0.5},{scaleX:1,duration:params.sceneSeconds*0.16,ease:\"power3.out\"},0);tl.to(\"#scene01-title\",{opacity:0,duration:0.3,ease:\"none\"},params.sceneSeconds-0.3);tl.to(\"#scene01-rule\",{opacity:0,duration:0.3,ease:\"none\"},params.sceneSeconds-0.3);tl.to(\"#scene01-media\",{opacity:0,duration:0.3,ease:\"none\"},params.sceneSeconds-0.3);",
+        "parameters": [],
+        "objects": [
+          {"elementId": "scene01-background", "nodeId": "node-96641cf21da75535"},
+          {"elementId": "scene01-title", "nodeId": "node-0a853c77bed0bdb3"},
+          {"elementId": "scene01-rule", "nodeId": "node-e80f1170efcbb387"},
+          {"elementId": "scene01-media", "nodeId": "node-f59a295e78d207ce"}
+        ],
+        "motionTargets": ["scene01-title", "scene01-rule", "scene01-media"],
+        "textStyles": [],
+        "values": []
+      }
+    },
+    {
+      "type": "update_custom_source",
+      "sceneId": "scene-02",
+      "nodeId": null,
+      "assetId": null,
+      "text": null,
+      "effect": null,
+      "durationFrames": null,
+      "sceneIds": null,
+      "fromSceneId": null,
+      "toSceneId": null,
+      "width": null,
+      "height": null,
+      "paramsJson": null,
+      "source": {
+        "html": "<div id=\"scene02-layout\"><div id=\"scene02-top\"></div><div id=\"scene02-bottom\"></div><div id=\"scene02-video\"></div><div id=\"scene02-rule\"></div><div id=\"scene02-feature\"></div></div>",
+        "css": "#scene02-layout{position:absolute;inset:0;width:1080px;height:1920px;background:transparent;}#scene02-top{position:absolute;left:0;top:0;width:1080px;height:656px;background:#EDE8E0;}#scene02-bottom{position:absolute;left:0;top:1264px;width:1080px;height:656px;background:#EDE8E0;}#scene02-video{position:absolute;left:0;top:656px;width:1080px;height:608px;object-fit:contain;overflow:hidden;background:transparent;opacity:1;z-index:1;}#scene02-rule{position:absolute;left:72px;top:1312px;width:96px;height:2px;background:#242329;transform-origin:left center;z-index:2;}#scene02-feature{position:absolute;left:72px;top:1340px;width:936px;height:96px;padding:0;margin:0;font-family:Microsoft YaHei;font-size:72px;font-weight:500;line-height:1.25;color:#242329;text-align:left;white-space:nowrap;background:transparent;z-index:2;}",
+        "timeline": "tl.set(\"#scene02-feature\",{opacity:0,y:10},0);tl.set(\"#scene02-rule\",{opacity:0},0);tl.to(\"#scene02-feature\",{opacity:1,y:0,duration:params.sceneSeconds*6/754,ease:\"power3.out\"},params.sceneSeconds*160/754);tl.to(\"#scene02-rule\",{opacity:1,duration:params.sceneSeconds*6/754,ease:\"none\"},params.sceneSeconds*160/754);tl.to(\"#scene02-feature\",{opacity:0,duration:params.sceneSeconds*6/754,ease:\"none\"},params.sceneSeconds*226/754);tl.to(\"#scene02-rule\",{opacity:0,duration:params.sceneSeconds*6/754,ease:\"none\"},params.sceneSeconds*226/754);",
+        "parameters": [],
+        "objects": [
+          {"elementId": "scene02-top", "nodeId": "node-a29aea57c3f093db"},
+          {"elementId": "scene02-bottom", "nodeId": "node-7c8305170bcb18d2"},
+          {"elementId": "scene02-video", "nodeId": "node-6600299004af8f47"},
+          {"elementId": "scene02-rule", "nodeId": "node-b17ed578930bd7ad"},
+          {"elementId": "scene02-feature", "nodeId": "node-664f03c2683684e2"}
+        ],
+        "motionTargets": ["scene02-feature", "scene02-rule"],
+        "textStyles": [],
+        "values": []
+      }
+    },
+    {
+      "type": "update_custom_source",
+      "sceneId": "scene-03",
+      "nodeId": null,
+      "assetId": null,
+      "text": null,
+      "effect": null,
+      "durationFrames": null,
+      "sceneIds": null,
+      "fromSceneId": null,
+      "toSceneId": null,
+      "width": null,
+      "height": null,
+      "paramsJson": null,
+      "source": {
+        "html": "<img id=\"media\"><div id=\"text1\"></div>",
+        "css": "#media{position:absolute;left:0;top:656px;width:1080px;height:608px;object-fit:contain;object-position:center;background:transparent;opacity:1;z-index:1;}#text1{position:absolute;left:72px;top:1312px;width:936px;padding:24px 0 0;margin:0;box-sizing:border-box;border-top:2px solid #242329;font-family:Microsoft YaHei;font-size:96px;font-weight:600;line-height:1.25;color:#242329;background:transparent;text-align:left;white-space:nowrap;z-index:2;}",
+        "timeline": "tl.fromTo(\"#text1\",{opacity:0,y:10},{opacity:1,y:0,duration:params.sceneSeconds*9/112,ease:\"power3.out\"},0);",
+        "parameters": [],
+        "objects": [
+          {"elementId": "media", "nodeId": "node-e91f1b07c2b53786"},
+          {"elementId": "text1", "nodeId": "node-59e52dfd4a901a0a"}
+        ],
+        "motionTargets": ["text1"],
+        "textStyles": [],
+        "values": []
+      }
+    }
+  ],
+  "alternatives": []
+}

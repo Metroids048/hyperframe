@@ -68,6 +68,16 @@ test('parameterized resources compile native objects across aspect ratios and re
   assert(instantiateNativeRecipe({...scene,resourceId:'native-original',productionMethod:'footage-cut',text:[]},design,inferred.output,[asset]));
 });
 
+test('director audio schedule becomes real separated narration tracks',async()=>{
+  const catalog=await CapabilityCatalog.open(root),adapted=instantiateNativeRecipe(scene,design,inferred.output,[asset]);
+  const source=(await catalog.adapt(adapted.source,{resourceId:scene.resourceId,sceneId:'s',objectIds:[],design})).source;
+  const voice={id:'voice-schedule',kind:'audio',generatedVoice:true,compiledRef:'assets/voice.wav',mediaMetadata:{duration:6,hasAudio:true}};
+  const audio=[...plan.audio,...[0,2,4].map((sourceStartSeconds,i)=>({assetId:voice.id,volume:1,sourceStartSeconds,startSeconds:[0,10,20][i],durationSeconds:2}))];
+  const d=documentFromModelPlan(request,[asset,voice],{...plan,audio,observations:[...plan.observations,{...observation,assetId:voice.id,visibleContent:'实际生成旁白',uncertainty:'测试音轨排程'}],scenes:[nativeScenePlan(scene,source),nativeScenePlan({...scene,media:[{...scene.media[0],sourceStartSeconds:30}]},source)]});
+  assert.deepEqual(d.audioGraph.filter(t=>t.assetId===voice.id).map(t=>[t.startFrame,t.durationFrames,t.sourceStartSeconds]),[[0,60,0],[300,60,2],[600,60,4]]);
+  assert.doesNotThrow(()=>compileDocument(d,[asset,voice]));
+});
+
 test('a shot can select an eligible resource outside the initial shortlist',()=>{
   const story={scenes:[{...scene,durationSeconds:24,resourceId:'titlecard-reveal'}],paragraphs:[{id:'p'}],transition:'cut'};
   assert.doesNotThrow(()=>validateStory(story,{request:inferred},{selected:[],candidates:[{id:'titlecard-reveal',eligible:true,compatible:true}]}));

@@ -2,6 +2,7 @@ import path from 'node:path';
 import fs from 'node:fs/promises';
 import {CodexProvider} from '../edit/codex-provider.mjs';
 import {insist,stableId} from './contracts.mjs';
+import {hashFile} from '../edit/media.mjs';
 
 // Display copy belongs to native text nodes. Only a speech workflow may run ASR.
 export function needsSpeechCaptions(brief){
@@ -20,6 +21,13 @@ export function projectNativeCaptions(document){
   return result.sort((a,b)=>a.startFrame-b.startFrame);
 }
 
+export function mergeRecognizedCaptions(document,recognized,{assetId,trackId}={}){
+  const targets=(document.audioGraph||[]).filter(track=>track.volume>0&&track.role!=='music'&&(!assetId||track.assetId===assetId)&&(!trackId||track.id===trackId));
+  const keys=new Set(targets.map(track=>JSON.stringify([track.assetId,track.captionSourceId||track.id])));
+  const preserved=(document.captions||[]).filter(cue=>!keys.has(JSON.stringify([cue.assetId,cue.trackId])));
+  return [...preserved,...recognized];
+}
+
 export async function recognizeNativeCaptions(document,assets,directory,{assetId,trackId,signal,provider}={}){
   const own=!provider;provider??=new CodexProvider();const captions=[],records=[];
   try{
@@ -28,11 +36,14 @@ export async function recognizeNativeCaptions(document,assets,directory,{assetId
     const transcripts=new Map();
     for(const track of tracks){
       const asset=assets.find(a=>a.id===track.assetId);let transcript=transcripts.get(asset.id);
-      if(!transcript){transcript=await provider.transcribe(path.join(directory,asset.compiledRef||asset.ref),signal);transcripts.set(asset.id,transcript);records.push({assetId:asset.id,sourceSha256:asset.sha256,transcript});}
+      if(!transcript){const source=path.join(directory,asset.compiledRef||asset.ref),bound=asset.providerTranscript;
+        if(bound){insist(bound.sourceSha256===await hashFile(source),'字幕对应的音频内容已变化，需要重新识别','CAPTION_SOURCE_CHANGED');transcript=bound;}
+        else transcript=await provider.transcribe(source,signal);
+        transcripts.set(asset.id,transcript);records.push({assetId:asset.id,sourceSha256:asset.sha256,transcript});}
       const words=transcript.words||[];insist(words.length,'没有识别到可用台词；原音频和上一有效版本保留','NO_SPEECH');
       const root=track.captionSourceId||track.id,source=track.sourceStartSeconds||0,end=source+track.durationFrames/30*(track.playbackRate??1),selected=words.filter(w=>w.end>source&&w.start<end);
       let group=[];
-      const flush=()=>{if(!group.length)return;const text=group.map(w=>w.text).join(transcript.language==='zh'?'':' ').trim(),first=group[0].start,last=group.at(-1).end;captions.push({id:stableId('cue',asset.id,root,first,last),assetId:asset.id,trackId:root,anchor:'source-content',sourceStartSeconds:first,sourceEndSeconds:last,text,reviewRequired:true,source:'local-asr'});group=[];};
+      const flush=()=>{if(!group.length)return;const text=group.map(w=>w.text).join(transcript.language==='zh'?'':' ').trim(),first=group[0].start,last=group.at(-1).end;captions.push({id:stableId('cue',asset.id,root,first,last),assetId:asset.id,trackId:root,anchor:'source-content',sourceStartSeconds:first,sourceEndSeconds:last,text,reviewRequired:true,source:transcript.source||'local-asr'});group=[];};
       for(const word of selected){if(group.length&&(word.start-group.at(-1).end>.6||word.end-group[0].start>3||[...group.map(w=>w.text).join('')+word.text].length>20))flush();group.push(word);if(/[。！？.!?]$/.test(word.text))flush();}flush();
     }
     insist(captions.length,'选用片段没有可识别的台词','NO_SPEECH');

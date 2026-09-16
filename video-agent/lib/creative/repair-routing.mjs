@@ -7,7 +7,10 @@ export function repairRoute(error){
   return 'scene';
 }
 
-export function requiredRepairs(issues){return issues.filter(i=>['blocker','major'].includes(i.severity));}
+export function requiredRepairs(issues){return issues.filter(i=>
+  ['blocker','major'].includes(i.severity)||
+  (i.severity==='minor'&&['layout','text-timing','text-evidence','text-contract'].includes(i.repairKind)&&
+    typeof i.problem==='string'&&i.problem.trim()&&typeof i.repair==='string'&&i.repair.trim()));}
 
 export function changesTextContract(issue){
   return issue.repairKind==='text-contract'||/(?:删除|移除|隐藏)[^。；;]{0,32}(?:新增|文字对象|文字层|标题层)|(?:remove|delete|hide)[^.;]{0,40}(?:text|title|overlay)/i.test(issue.repair||'');

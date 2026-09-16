@@ -118,7 +118,8 @@ test('M04-4/6: real filesystem discovery detects additions, same-size changes an
   assert.equal(Object.values((await refreshLocalCatalog(dir,base)).groups).flat()[0].dependencies[0].status,'missing-or-excluded');
   await fs.writeFile(path.join(dir,'local/registry-item.json'),'{broken');
   const broken=await refreshLocalCatalog(dir,base);assert.equal(broken.scan.status,'incomplete');assert.equal(broken.scan.errors[0].code,'INVALID_MANIFEST');
-  await assert.rejects(()=>readDiscoveredResource(dir,added,{...resource,path:'/etc/hosts'}),/escapes/);
+  const outside=await fs.mkdtemp(path.join(os.tmpdir(),'resource-outside-'));
+  try{const outsideFile=path.join(outside,'boundary.txt');await fs.writeFile(outsideFile,'outside allowed roots');await assert.rejects(()=>readDiscoveredResource(dir,added,{...resource,path:outsideFile}),/escapes/);}finally{await fs.rm(outside,{recursive:true,force:true});}
   await fs.rm(path.join(dir,'local'),{recursive:true});
   assert.equal((await refreshLocalCatalog(dir,base)).scan.errors[0].code,'ENOENT');
  }finally{await fs.rm(dir,{recursive:true,force:true});}

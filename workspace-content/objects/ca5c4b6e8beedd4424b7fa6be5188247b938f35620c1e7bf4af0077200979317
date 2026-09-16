@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "proposal-1",
+  "note": "Design example only; not loaded by server.mjs. No credentials or paid calls enabled.",
+  "defaultJobBudget": {"currency": "USD", "maxCost": 0},
+  "providers": [
+    {"id": "openai-planner", "capabilities": ["brief-to-shots", "analyze-image"], "state": "planned", "model": null, "credentialEnv": "OPENAI_API_KEY"},
+    {"id": "openai-image", "capabilities": ["text-to-image", "edit-image"], "state": "planned", "model": null, "credentialEnv": "OPENAI_API_KEY", "referencePolicy": "preserve-product-identity"},
+    {"id": "runway-video", "capabilities": ["image-to-video"], "state": "planned", "model": null, "credentialEnv": "RUNWAY_API_KEY", "capabilityLimits": "verify-per-model"},
+    {"id": "veo-video", "capabilities": ["image-to-video"], "state": "planned", "model": null, "credentialEnv": "GEMINI_API_KEY", "capabilityLimits": "verify-per-model"},
+    {"id": "hyperframes-local", "capabilities": ["compose", "check", "render", "studio"], "state": "implemented", "runtime": "local-cli"},
+    {"id": "ffmpeg-local", "capabilities": ["probe", "normalize-audio"], "state": "implemented", "runtime": "local-cli"}
+  ]
+}

@@ -1,0 +1,38 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+import crypto from 'node:crypto';
+import {spawnSync} from 'node:child_process';
+import {runtimeTools} from '../../video-agent/lib/runtime-tools.mjs';
+const root=path.resolve(import.meta.dirname,'../../video-agent');
+const out=path.join(root,'outputs/r1-closeout-delivery');
+const read=p=>JSON.parse(fs.readFileSync(p,'utf8'));
+function current(id){const base=path.join(root,'data/commerce-runs',id);const p=read(path.join(base,'native-project.json'));const r=p.revisions.at(-1);const dir=path.join(base,r.directory);return {p,r,dir,d:read(path.join(dir,'document.json'))};}
+const polished=current('1e8ec7c7-d4b3-4a5d-8c41-10e768bcd4dc');
+const basic=current('8f41aa0c-c7fa-422f-87f3-91bcd100fd42');
+assert.equal(polished.r.id,'rev-fc2150f90243a259');
+assert.equal(basic.r.id,'rev-407d68eb4792b7ad');
+assert.ok(basic.r.rendered,'Finish the real UI export before running this evidence script');
+for(const key of ['nodes','scenes','audioGraph','assetRefs','output','fps','durationFrames'])assert.deepEqual(basic.d[key],polished.d[key],key);
+assert.deepEqual(basic.d.transitions[1],polished.d.transitions[1]);
+assert.equal(basic.d.transitions[0].effect,'dissolve-transition');
+assert.equal(polished.d.transitions[0].effect,'chromatic-split');
+for(let i=0;i<basic.d.sourceBundles.length;i++)for(const key of ['html','css','objects','tokens'])assert.deepEqual(basic.d.sourceBundles[i][key],polished.d.sourceBundles[i][key],`${i}:${key}`);
+const evidence={basicRevision:basic.r.id,polishedRevision:polished.r.id,sameNodesScenesAssetsAudioOutput:true,sameLayout:true,secondTransitionUnchanged:true,basicTimelines:basic.d.sourceBundles.map(b=>({sceneId:b.sceneId,timeline:b.timeline})),polishedTimelines:polished.d.sourceBundles.map(b=>({sceneId:b.sceneId,timeline:b.timeline})),humanAcceptance:'pending'};
+fs.writeFileSync(path.join(import.meta.dirname,'comparison-invariants.json'),JSON.stringify(evidence,null,2));
+for(const [source,target] of [['commerce-final.mp4','04-basic.mp4'],['history.zip','04-basic-native.zip'],['media-review.json','04-basic-media-review.json']])fs.copyFileSync(path.join(basic.dir,source),path.join(out,target));
+const rt=runtimeTools(root),ffmpeg=rt.HYPERFRAMES_FFMPEG_PATH,ffprobe=rt.HYPERFRAMES_FFPROBE_PATH;
+function run(exe,args){const r=spawnSync(exe,args,{windowsHide:true,encoding:'utf8',timeout:300000,maxBuffer:8*1024*1024});if(r.status!==0)throw Error(r.stderr||r.error||`exit ${r.status}`);return r.stdout;}
+const basicFile=path.join(out,'04-basic.mp4'),polishedFile=path.join(out,'03-detail-chromatic.mp4'),comparison=path.join(out,'05-basic-left-polished-right.mp4');
+run(ffmpeg,['-y','-v','error','-i',basicFile,'-i',polishedFile,'-filter_complex','[0:v]scale=540:960,setsar=1[l];[1:v]scale=540:960,setsar=1[r];[l][r]hstack=inputs=2[v]','-map','[v]','-an','-c:v','libx264','-crf','18','-preset','fast','-pix_fmt','yuv420p','-movflags','+faststart',comparison]);
+run(ffmpeg,['-v','error','-i',comparison,'-f','null','-']);
+const probe=JSON.parse(run(ffprobe,['-v','error','-show_streams','-show_format','-of','json',comparison]));
+assert.equal(Number(probe.format.duration),30);assert.equal(probe.streams[0].width,1080);assert.equal(probe.streams[0].height,960);
+const frames=path.join(import.meta.dirname,'comparison-mp4');fs.mkdirSync(frames,{recursive:true});
+const times=[0,1.4,1.566667,1.766667,6.7,6.8,8,9.2,20,26.416667,28,29.966667];
+for(let i=0;i<times.length;i++)run(ffmpeg,['-y','-v','error','-ss',String(times[i]),'-i',comparison,'-frames:v','1',path.join(frames,`frame-${String(i).padStart(2,'0')}.png`)]);
+run(ffmpeg,['-y','-v','error','-framerate','1','-i',path.join(frames,'frame-%02d.png'),'-vf','scale=360:320,tile=4x3','-frames:v','1',path.join(frames,'contact.png')]);
+fs.writeFileSync(path.join(frames,'times.json'),JSON.stringify({left:'basic',right:'polished',times},null,2));
+const files=['01-original.mp4','02-subtitle-edit.mp4','03-detail-chromatic.mp4','03-detail-chromatic-native.zip','04-basic.mp4','04-basic-native.zip','05-basic-left-polished-right.mp4'].map(name=>({name,bytes:fs.statSync(path.join(out,name)).size,sha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(out,name))).digest('hex')}));
+fs.writeFileSync(path.join(out,'delivery-manifest.json'),JSON.stringify({createdAt:new Date().toISOString(),files,comparison:{fullDecode:'passed',seconds:30,width:1080,height:960,left:'basic',right:'polished'},humanAcceptance:'pending'},null,2));
+console.log(JSON.stringify({status:'passed',files:files.map(f=>f.name),contact:path.join(frames,'contact.png')}));

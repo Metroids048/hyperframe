@@ -1,3 +1,4 @@
+import {MiniMaxClient} from './adapters/minimax-client.mjs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
@@ -32,17 +33,17 @@ export function subscriptionEnv() {
   env.NODE_USE_ENV_PROXY='1';env.PYTHONUTF8='1';return env;
 }
 export function pythonPath(){return localPython();}
-const localVoices=['zf_xiaobei','zf_xiaoni','zf_xiaoxiao','zf_xiaoyi','zm_yunjian','zm_yunxi','zm_yunxia','zm_yunyang'];
+const localVoices=['zf_001','zf_002','zm_009','zm_010','zf_xiaobei','zf_xiaoni','zf_xiaoxiao','zf_xiaoyi','zm_yunjian','zm_yunxi','zm_yunxia','zm_yunyang'];
 export function localVoice(voice,instructions=''){
   if(voice==='HyperFrames Kokoro · 本地中文'||voice==='kokoro-v1.0')voice='default';
   if(localVoices.includes(voice))return voice;
-  if(!voice||voice==='default')return /男|male|masculine/i.test(instructions)&&!/female/i.test(instructions)?'zm_yunxi':'zf_xiaobei';
+  if(!voice||voice==='default')return /男|male|masculine/i.test(instructions)&&!/female/i.test(instructions)?'zm_009':'zf_001';
   const legacy={marin:'zf_xiaobei',cedar:'zm_yunxi',alloy:'zf_xiaobei',ash:'zm_yunxi',ballad:'zm_yunxi',coral:'zf_xiaobei',echo:'zm_yunxi',fable:'zm_yunxi',nova:'zf_xiaobei',onyx:'zm_yunxi',sage:'zf_xiaobei',shimmer:'zf_xiaobei',verse:'zm_yunxi'};
   insist(legacy[voice],'本地配音不支持该音色，请使用列出的中文音色或配置云配音');return legacy[voice];
 }
 export class CodexProvider extends CloudProvider {
   constructor({workerFactory=options=>new SpeechWorker(options),skipLoginCheck=false,cacheRoot,reasoningEffort=process.env.VIDEO_AGENT_CODEX_REASONING_EFFORT||'low',timeoutMs=process.env.VIDEO_AGENT_MODEL_TIMEOUT_MS||600000,onInvocation}={}){super();this.timeoutMs=modelTimeoutMs(timeoutMs);this.reasoningEffort=reasoningEffort;this.onInvocation=onInvocation;this.bin=process.env.VIDEO_AGENT_CODEX_BIN||'codex';this.environment=subscriptionEnv();this.model=process.env.VIDEO_AGENT_CODEX_MODEL||process.env.VIDEO_AGENT_EDIT_MODEL||null;this.verifiedAt=null;this.loginCheckedAt=0;this.loggedIn=false;this.cacheRoot=cacheRoot||process.env.VIDEO_AGENT_CACHE_ROOT||path.join(ROOT,'data');this.asr=workerFactory({python:localPython(),env:this.environment});this.tts=workerFactory({python:localPython(),env:this.environment});if(!skipLoginCheck)void this.refreshLogin();}
-  status(){return {configured:this.loggedIn,checkingLogin:!!this.loginPending,provider:'Codex subscription',model:this.model||'Codex 默认模型',auth:'ChatGPT subscription',verifiedAt:this.verifiedAt,transcriptionModel:(process.env.VIDEO_AGENT_ASR_ENGINE==='whisperx'?'WhisperX':'Whisper')+' '+(process.env.VIDEO_AGENT_WHISPER_MODEL||'small')+' · 本地',voiceModel:process.env.VIDEO_AGENT_TTS_ENGINE==='elevenlabs'?'ElevenLabs':'HyperFrames Kokoro · 本地中文',voices:process.env.VIDEO_AGENT_TTS_ENGINE==='elevenlabs'?{engine:'elevenlabs',minRate:0.7,maxRate:1.2}:{engine:'kokoro',ids:localVoices,default:'zf_xiaobei',minRate:0.5,maxRate:2,language:'zh',instructionSupport:'音色与语速；不支持任意情绪或音色克隆'},connectionMode:'subscription'};}
+  status(){return {configured:this.loggedIn,checkingLogin:!!this.loginPending,provider:'Codex subscription',model:this.model||'Codex 默认模型',auth:'ChatGPT subscription',verifiedAt:this.verifiedAt,transcriptionModel:(process.env.VIDEO_AGENT_ASR_ENGINE==='whisperx'?'WhisperX':'Whisper')+' '+(process.env.VIDEO_AGENT_WHISPER_MODEL||'small')+' · 本地',voiceModel:process.env.VIDEO_AGENT_TTS_ENGINE==='elevenlabs'?'ElevenLabs':'HyperFrames Kokoro · 本地中文',voices:process.env.VIDEO_AGENT_TTS_ENGINE==='elevenlabs'?{engine:'elevenlabs',minRate:0.7,maxRate:1.2}:{engine:'kokoro',ids:localVoices,default:'zf_001',minRate:0.5,maxRate:2,language:'zh',instructionSupport:'音色与语速；不支持任意情绪或音色克隆'},connectionMode:'subscription'};}
   async refreshLogin(){
     if(this.loginPending)return this.loginPending;
     this.environment=subscriptionEnv();this.loginError=null;
@@ -102,14 +103,21 @@ export class CodexProvider extends CloudProvider {
     insist(Array.isArray(result.regions)&&result.regions.every(r=>Number.isFinite(r.start)&&r.start>=0&&Number.isFinite(r.end)&&r.end>r.start),'人声活动检测返回无效时间');
     if(signal?.aborted)throw new EditError('任务已取消',409);await fs.mkdir(dir,{recursive:true});const pending=target+'.'+uid()+'.tmp';await fs.writeFile(pending,JSON.stringify(result));await fs.rename(pending,target);return {...result,metrics:{...result.metrics,cacheHit:false}};
   }
+  async speechVoiceCatalog(signal) {
+    if(process.env.VIDEO_AGENT_TTS_ENGINE!=='minimax')return null;
+    const catalog=await new MiniMaxClient({root:ROOT}).execute('voices',{}, {signal});
+    return {engine:'minimax',voices:catalog.voices};
+  }
   async speak(text,voice,instructions,signal,{rate=1}={}) {
+    this.lastSpeechTranscript=null;
+    if(process.env.VIDEO_AGENT_TTS_ENGINE==='minimax'){const client=new MiniMaxClient({root:ROOT});const catalog=await client.execute('voices',{}, {signal});const selected=catalog.voices.some(v=>v.id===voice)?voice:voice&&!/^(?:zf_|zm_)/.test(voice)?voice:process.env.MINIMAX_VOICE_ID||catalog.voices.find(v=>/中文|普通话|Mandarin|Chinese/i.test(v.description))?.id;insist(catalog.voices.some(v=>v.id===selected),'请选择账户返回的有效音色');const result=await client.execute('speech',{text,voice:selected,rate},{signal});this.lastSpeechMetrics={engine:'minimax',voice:selected,rate,cacheHit:result.cacheHit,operationId:result.operationId,provenance:result.provenance};this.lastSpeechTranscript=result.transcript;return fs.readFile(result.file);}
     insist(typeof text==='string'&&text.trim()&&text.length<=4000,'旁白请填写 1～4000 个字符');
     if(signal?.aborted)throw new EditError('任务已取消',409);
     const engine=process.env.VIDEO_AGENT_TTS_ENGINE==='elevenlabs'?'elevenlabs':'kokoro';
     const selectedVoice=engine==='kokoro'?localVoice(voice,instructions):voice||process.env.ELEVENLABS_VOICE_ID||'default';
     insist(Number.isFinite(rate)&&rate>=(engine==='kokoro'?.5:.7)&&rate<=(engine==='kokoro'?2:1.2),'该配音引擎不支持所选语速');
     const runtime=engine==='kokoro'?await this.runtimeSignature('tts'):'elevenlabs-pcm-v1';
-    const digest=createHash('sha256').update(JSON.stringify({version:3,engine,text,voice:selectedVoice,rate,runtime,model:engine==='elevenlabs'?process.env.ELEVENLABS_MODEL_ID||'eleven_multilingual_v2':'kokoro-v1.0-misaki',configuredVoice:engine==='elevenlabs'?process.env.ELEVENLABS_VOICE_ID:null})).digest('hex');
+    const digest=createHash('sha256').update(JSON.stringify({version:3,engine,text,voice:selectedVoice,rate,runtime,model:engine==='elevenlabs'?process.env.ELEVENLABS_MODEL_ID||'eleven_multilingual_v2':(/^z[fm]_\d{3}$/.test(selectedVoice)?'kokoro-v1.1-zh-misaki':'kokoro-v1.0-misaki'),configuredVoice:engine==='elevenlabs'?process.env.ELEVENLABS_VOICE_ID:null})).digest('hex');
     const dir=path.join(this.cacheRoot,'edit-voices','cache-'+digest);await fs.mkdir(dir,{recursive:true});const file=path.join(dir,'speech.wav');
     try{const cached=await fs.readFile(file);if(cached.length>44&&cached.toString('ascii',0,4)==='RIFF'){this.lastSpeechMetrics={cacheHit:true,engine,voice:selectedVoice,rate};return cached;}}catch(e){if(e.code!=='ENOENT')throw e;}
     // Native audio libraries may still use MAX_PATH even when Node supports long paths.
@@ -129,7 +137,7 @@ export class CodexProvider extends CloudProvider {
     const promise=(async()=>{const scripts=kind==='tts'?['local-speak.py','speech-worker.py']:['local-transcribe.py','speech-worker.py'];
       const source=await Promise.all(scripts.map(name=>fs.readFile(path.join(ROOT,'scripts',name))));
       const pythonDir=path.dirname(localPython()),sitePackages=path.join(/^(Scripts|bin)$/i.test(path.basename(pythonDir))?path.dirname(pythonDir):pythonDir,'Lib/site-packages'),packages=(await fs.readdir(sitePackages).catch(()=>[])).filter(name=>/\.dist-info$/.test(name)&&/^(?:kokoro_onnx|misaki|onnxruntime|faster_whisper|ctranslate2|whisperx|torch|scenedetect)-/i.test(name)).sort();
-      const models=kind==='tts'?[path.join(os.homedir(),'.cache/hyperframes/tts/models/kokoro-v1.0.onnx'),path.join(os.homedir(),'.cache/hyperframes/tts/voices/voices-v1.0.bin')]:[path.join(ROOT,'data/models/whisper-'+(process.env.VIDEO_AGENT_WHISPER_MODEL||'small')+'/model.bin')];
+      const models=kind==='tts'?[path.join(os.homedir(),'.cache/hyperframes/tts/models/kokoro-v1.0.onnx'),path.join(os.homedir(),'.cache/hyperframes/tts/voices/voices-v1.0.bin'),...['models/kokoro-v1.1-zh.onnx','voices/voices-v1.1-zh.bin','models/kokoro-v1.1-zh-config.json'].map(file=>path.join(os.homedir(),'.cache/hyperframes/tts',file))]:[path.join(ROOT,'data/models/whisper-'+(process.env.VIDEO_AGENT_WHISPER_MODEL||'small')+'/model.bin')];
       const stamps=await Promise.all(models.map(async file=>{const stat=await fs.stat(file).catch(()=>null);return stat?{size:stat.size,mtime:stat.mtimeMs}:null;}));
       const hash=createHash('sha256');for(const bytes of source)hash.update(bytes);hash.update(JSON.stringify({python:localPython(),packages,stamps}));return hash.digest('hex');})();this.signatures.set(kind,promise);return promise;
   }

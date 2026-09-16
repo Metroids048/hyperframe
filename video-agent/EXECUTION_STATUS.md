@@ -141,3 +141,51 @@ S2 current rev-178e717adb7e7ea9: 45s 1920x1080, 1350 frames, no audio. Source ov
 - Confirmed visual loss: project.assemble discarded all-image custom source; fix preserves reviewed source and independent decoration. Before/after actual diagnostic renders prove loss. This is engineering evidence, not application B acceptance.
 - N1 real matching headphone photos ready; N2 same-bag photos acquired, N3 real cravat source with audio undergoing action review, N4 same-pair photo review continuing. Placeholder freeze claim remains withdrawn. G2 gate and six final films are NOT complete.
 - B修复前实际组装证据：outputs/commerce-rebuild-v2/B-before-fix/B-before.mp4 与 contact.jpg，sourceBundles=0；修复版恢复同一 run 后，shot-1 已重新进入制作，累计调用17–19，尚未形成新 final revision。不能把静态检查或这份对照当 G2 通过。
+
+## 2026-09-16 EIGHT-SCENARIOS-FULL-CLOSEOUT 执行中
+上游4cd6045881b71c17af48de900240286bce23e376已读取，111个新增／更新文件同步，旧字节保存于outputs/eight-scenarios-20260916/preserved-before-sync。原解压工作区额外文件保留。上游独立检出因git-lfs缺失失败，逐Git blob同步成功；未称完整检出成功。工作台3020由start.py在本目录启动，当前数据data/commerce-runs，历史result-completion-projects本机缺失且便携快照无新增可恢复。
+M01正在实现共用八入口、workflow及结构化引用/修改/保持合同。M02—M12/F1—F3均待本轮证据，不继承旧通过。S01当前本地候选待核实，S02—S08新片未生成；MiniMax实现未完成，live未调用。
+
+### 2026-09-16 实际运行恢复点（继续实施，非交付完成）
+用户明确禁止再用耳机素材制作；旧文件与工程仅保留历史。新原片从根目录 `素材/` 选择，已逐类查看联系表与源元数据。S02 使用 ASUS_PROART_RTX_4070_Ti_Unboxing_-_By_INVADERPC.webm，通过现有3020 WebUI上传及提交普通需求。工程 `2c34075d-b02d-4c13-8ac9-f2da2df7ea8f`，job `job-a8dfd435-347c-420e-91bb-7cb710f314e8`，run `9181cc44-094d-4991-9549-ae62c900fe8f`。35秒横屏详情图解，整体→正面→侧面→端部→关系回顾，禁止编参数、重复凑时长和新AI商品镜头。米家V2仅保留参考来源，超过参考的质量目标尚未验证。
+
+S02 已完成实际需求解析、密集离散帧观察、素材分析、创作方向、资源选择与本地旁白。资源选择曾因把“HyperFrames资源”误匹配为hyperframes/frames执行器而暂停，修复平台名和单词边界匹配后，重启真实工作台，从原检查点恢复，累计调用未清零。当前进入分镜，未有新MP4/冻结质量。旁白21.573333秒，zf_001，真实本地TTS及ASR；转写含“矩形→举行、端部→端步、依次→一次、栅格→山阁”等同音错字，必须在成片字幕审查修复，不能直接称字幕验收通过。
+
+中文旧v1.0模型实测读音异常，未删除。新v1.1-zh模型/voice bank/config保留独立文件并锁哈希，setup-speech-models.mjs提供检查与安装，setup-speech.mjs改用保留额外环境包的install。实际短句合成和ASR语义吻合；S02长句声音仍需听感验收。
+
+MiniMax本地客户端、真实协议解析/落地/缓存/未知提交保护/显式失败恢复、音色目录、TTS/音乐、同服务audio任务和WebUI试听/应用入口已实现。测试传输明确protocol-fixture，未有真实Key/权限验收。音频工程集成脚本verify-audio-portable.mjs已完成本地合成→传输替身→落地→字幕/ducking→ZIP→干净目录→改字调声音→实际MP4→实际ASR，证据在outputs/eight-scenarios-20260916/audio-portable-*/evidence.json。首次夹具缺颜色字段失败保留，第二次成功；新加原生manifest保留音频生成元数据/源绑定时间戳，第三次复验进行中。修复单音轨重生成字幕误删其他字幕，以及audioApplication路径越界。
+
+全部M01—M12/F1—F3分母保持。S02尚需分镜/资源实际绑定、完整视觉与声音审查修复、同工程续改、反例/输入变化、打包冻结；之后S03—S08依次实施（S08两个派生版本）。S01另需非耳机自有Agent证据。八类全量验收、十类资源适用执行证据、旧列表20次预设只读、完整连续编辑/撤销恢复/平台回归仍未完成。不要在恢复后停止于这份记录，继续读取S02真实job并处理首个可执行缺口。
+
+### 2026-09-16 13:40 后续恢复点（仍未完成）
+S02 原任务已实际修订自拟旁白：voice-913852de278fa634，17.84 秒，旧 21.573333 秒 WAV 和 narration-history.json 均保留。端部说明缩短后重新按真实时间分镜。当前实际完成 5 幕，检查第 6 幕。方向预览首次 HyperFrames check 超时，日志保留；从同一 WebUI“从检查点恢复”后 check 约 12 秒成功，前四幕没有重做，累计调用继续。方向预览只含 0—13.3 秒，不是完整作品。
+
+真实审查已发现 scene-03 文案末行单字“列”，scene-05 拆开“矩形”，整体—局部关系仍待增强。不能把静态检查通过视为质量超过米家。缺陷记录 S02-visual-review-working.json。完整片、字幕错字修复、同工程续改、反例及冻结尚未完成。
+
+MiniMax 不确定响应（HTTP 5xx/408、超时、缺业务状态）保持 submission_unknown，禁止自动或已知失败重试造成重复计费；目标测试 19 项通过。音频便携第三次真实导出成功，确认干净重开保留供应商时间戳而不另造时间；证据 audio-portable-with-timing.log。协议替身不代表真实 MiniMax。当前服务仍是 PID 1564，后续磁盘改动尚未全部加载，活动任务期间不重启。
+
+米家只读入口实际切换 20 次，输入草稿保留，项目数/版本数不变；文件变动均归属活动 S02。readonly-browse-result.json。米家完整播放未验证（原预览页消失），不能写通过。最新前端新增 workflow-selection.mjs，恢复 recut/variant 入口以及加载顺序；两个回归测试和 build-web 通过。其余内部/外部未验收项仍按完整分母保留。
+
+### 2026-09-16 14:03 用户先查看文档和视频，主任务继续
+新增人读总览 docs/八场景梳理与当前可看入口.md，已通过 open_in_codex 打开。S02 十幕母工程的只读快照已实际导出 outputs/eight-scenarios-20260916/S02-review-candidate-1789538234161/S02-显卡详情-审阅版-未验收.mp4，35.000秒、1920×1080、30fps、AAC 48kHz、12269408字节；ffmpeg -xerror 全片解码通过。已提供用户链接并打开。REVIEW_STATUS.json 明确已知缺陷，不计入合格成品。
+
+新发现：原 Storyboard 仅在文字中承诺旁白分段，实际 audioGraph 只有0—535帧连续音轨；R6已指出错位和错字，却会错误交给镜头作者修复。原任务累计55次、十幕完成后主动取消，完整历史保留。已补：audio startSeconds/durationSeconds 实际绑定；assertCompleteNarration 校验源顺序、无遗漏/重复、非静音、原速、无交叠、全片范围；R6字幕/旁白问题单独交音频修复，保留词实测时间和音源哈希，按现有脚本校字；minor且有明确修复步骤的文字/布局问题现在进入修复。
+
+试听改用真实 MiniMax 账户音色目录，保存实际音色、哈希、字幕时间和供应商来源，确认时不再误写Kokoro。无供应商访问时仍允许确认已有试听，不能新生成。生产旁白也接入目录；切换引擎不得改已保留台词。以上均未实际MiniMax联网验收。
+
+测试：core-2026-09-16T05-40-14.740Z通过（早于最新音频排程改动）；audio-owner-repair-tests.log 36项通过；compiled-narration-schedule-tests-fixed.log 11项通过，含真实documentFromModelPlan及compileDocument验证分段落点。第一次编译排程测试缺测试音频观察记录失败，已补真实测试元数据记录而非放宽校验。
+
+服务已从PID1564重启到PID27472，加载本轮修复。当前浏览器tab7（browser1）已通过WebUI恢复同一个S02 job/run，累计不清零。恢复会按构建差异重验证相关阶段。审阅视频快照独立保留，不受继续制作影响。米家原片已真实播放到72秒ended=true/error=null，证据mijia-browser-playback.json；仍不是自有Agent作品，也不是听感验收。
+
+14:09 恢复兼容已修复并实际通过。diagnose-s02-input.mjs对照证实只有新增taskModeExplicit字段；legacyExplicitnessCompatibility仅迁移缺失旧字段的精确推导默认值，不允许覆盖原有明确值或更改原话。18项目标测试通过。当前服务PID26480，浏览器tab8，S02同run状态running、累计56次，inputMigrations已记录合法迁移，旧55次历史及所有源码保留；因多处合同/代码修复，从brief重新验证，不是10幕仍然有效免检。核心回归最新全部通过 outputs/upgrade/verification/core-2026-09-16T06-07-04.330Z。
+
+14:15 后续小修复：audioApplication禁止新旁白超出替换时段时静默截断，保留原音轨报AUDIO_SPEECH_TOO_LONG；旁白首尾防爆音淡化缩至2帧，避免0.5秒淡入吞字。19项MiniMax协议/应用测试通过；该后端改动在当前PID26480之后，待安全时加载。前端已构建 unfinishedProjectOptions，将制作中、可恢复、待导出工程列入独立分组，4项目标测试通过，实际浏览器已看见S02及其他未导出工程。此变化不把草稿当成成品、不删除历史。当前审阅MP4实际ASR已确认接口旁白11.54—13.84秒，进一步证明声音早于17.8秒接口镜头；exported-audio-transcript.json保留实际结果，听感仍待人评。
+
+14:36 恢复点：用户可看文档实际文件为 docs/八场景梳理.md（此前长文件名链接已纠正），35秒审阅MP4仍为独立未验收快照。S02同job/run已完成6幕，正在第7幕静态检查，累计87次。真实timing-plan含5段旁白，接口说明21.6333—23.9333秒位于scene-07的21.6—24秒；S02-actual-narration-schedule.json保存当前哈希，仅排程证据非最终MP4验收。scene-02孤字行已实际修复并看过前后帧，S02-typography-repair-evidence.json。scene-04同类问题经Agent修复；为避免重复窄栏，新R5文字容量规则及源文档/manifest同步，084-R5收据确认真实加载8efccd2...，旧Prompt保留prompt-capacity-before-1789540303719。
+真实WebUI音色查询缺Key仅显示泛化错误，已修server.mjs的MiniMaxError公开提示白名单；独立HTTP测试通过，不新建工程、不请求供应商。主服务PID26480未重启，尚未加载该server修复及此前audioApplication尾部保护；待活动任务结束安全加载。core-after-http-errors-and-r5-capacity.log回归进行中。MiniMax未知提交后显式新操作恢复仍需完成，不得称key-ready全验收。
+
+### 2026-09-16 15:06 用户缩小收口范围
+最新范围只完成 S02 显卡片和独立欠项交接文档，其余场景及 MiniMax 后续再做。docs/后续Agent交接_未完成项_2026-09-16.md 已建立，完整保留 M01—M12/F1—F3 及七个其他场景状态。PID21864服务；原 S02 WebUI 恢复后正确取回短旁白，但重做十幕，按尽快收口改为保留原job cancelled/calls103/完成1幕，定点修订已保留完整母工程。脚本 closeout-s02-retained-project.mjs 正在独立 deliverables/s02-gpu-closeout-20260916 编译/隔离检查/渲染；尚未有收口最终视频，不能宣称完成。旧工程与审阅片完整保留。core-2026-09-16T06-57-20.999Z passed。
+
+### 2026-09-16 最终冻结与推送
+用户要求细节自行修改、尽快收尾、全部项目推送 Metroids048/hyperframe。S02 当前 rev-a5b13075fbc28aac 已导出35秒MP4、完整解码通过；三版原生ZIP实际解包通过；WebUI work=s02-gpu 实际可见视频及下载入口。R8两项major一项minor保留，不声明质量通过。全部欠项见 docs/后续Agent交接_未完成项_2026-09-16.md。当前服务PID4756，原job取消、累计103次调用历史保留。最新核心 core-2026-09-16T07-20-09.546Z passed；未声称浏览器套件或跨平台全通过。停止进一步生产，开始全量安全快照和Git推送。

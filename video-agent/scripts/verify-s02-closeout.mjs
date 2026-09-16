@@ -1,0 +1,30 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+import {ffmpeg,run,probe,hashFile} from '../lib/edit/media.mjs';
+const root=path.resolve(import.meta.dirname,'..');
+const projectId='2c34075d-b02d-4c13-8ac9-f2da2df7ea8f';
+const projectRoot=process.argv[2]?path.resolve(process.argv[2]):path.join(root,'data/commerce-runs',projectId);
+const project=JSON.parse(await fs.readFile(path.join(projectRoot,'native-project.json')));
+const revision=project.revisions.find(r=>r.id===(process.argv[3]||project.currentRevisionId));
+assert.ok(revision?.rendered,'S02 must have a real exported revision before closeout verification');
+const directory=path.join(projectRoot,revision.directory),video=path.join(directory,'commerce-final.mp4');
+const document=JSON.parse(await fs.readFile(path.join(directory,'document.json')));
+const evidenceRoot=path.join(root,'outputs/eight-scenarios-20260916','S02-closeout-'+revision.id);
+await fs.mkdir(evidenceRoot,{recursive:true});
+const metadata=await probe(video);assert.ok(metadata.hasAudio);assert.ok(Math.abs(metadata.duration-35)<.04);
+await fs.writeFile(path.join(evidenceRoot,'full-decode.log'),await run(ffmpeg,['-v','error','-xerror','-i',video,'-f','null','-'],{timeout:180000}));
+const frameDir=path.join(evidenceRoot,'frames');await fs.mkdir(frameDir,{recursive:true});
+const samples=[];
+for(const [i,s] of document.scenes.entries())for(const fraction of [.15,.55,.85]){
+  const seconds=(s.startFrame+s.durationFrames*fraction)/30;
+  const file=path.join(frameDir,String(samples.length).padStart(3,'0')+'.jpg');
+  await run(ffmpeg,['-v','error','-y','-ss',String(seconds),'-i',video,'-frames:v','1','-vf','scale=640:-2',file]);
+  samples.push({sceneId:s.id,seconds,file});
+}
+for(let i=0;i<Math.ceil(samples.length/9);i++)await run(ffmpeg,['-v','error','-y','-start_number',String(i*9),'-i',path.join(frameDir,'%03d.jpg'),'-frames:v','1','-vf','tile=3x3:nb_frames=9:padding=4:margin=4',path.join(evidenceRoot,'sheet-'+i+'.jpg')]);
+const report={checkedAt:new Date().toISOString(),projectId,revisionId:revision.id,parentId:revision.parentId,video,videoSha256:await hashFile(video),nativePackage:process.argv[2]?path.join(projectRoot,'S02-native-history.zip'):path.join(directory,revision.historyPackaged?'history.zip':'project.zip'),metadata,fullDecode:'passed',samples,sceneCount:document.scenes.length,audioGraph:document.audioGraph,captions:document.captions,sourceNodes:document.nodes.filter(n=>n.kind==='video'),visualReview:'pending-host-review-of-exported-frames',humanAcceptance:'pending',mijiaComparison:'not-established-as-superior'};
+if(process.argv[2]&&await fs.stat(path.join(projectRoot,'S02-native-history-final.zip')).then(()=>true,()=>false))report.nativePackage=path.join(projectRoot,'S02-native-history-final.zip');
+report.nativePackageSha256=await hashFile(report.nativePackage);
+await fs.writeFile(path.join(evidenceRoot,'evidence.json'),JSON.stringify(report,null,2));
+console.log(JSON.stringify({evidenceRoot,video,revisionId:revision.id,videoSha256:report.videoSha256,nativePackage:report.nativePackage}));

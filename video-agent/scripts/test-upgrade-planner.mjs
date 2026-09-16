@@ -61,7 +61,7 @@ await test('installed skill provenance is pinned and each adapter is readable',a
   assert.equal(selectSkills('hello').length,0);assert.equal(selectSkills('字幕翻译').some(s=>s.id==='speech-captions'),true);
 });
 await test('local voice respects explicit voice and rejects unknown names',()=>{
-  assert.equal(localVoice('zm_yunxi'),'zm_yunxi');assert.equal(localVoice('default','男声'),'zm_yunxi');assert.equal(localVoice('zf_xiaoni','男声'),'zf_xiaoni');assert.throws(()=>localVoice('made-up-voice'),/不支持/);
+  assert.equal(localVoice('zm_yunxi'),'zm_yunxi');assert.equal(localVoice('default','男声'),'zm_009');assert.equal(localVoice('default','女声'),'zf_001');assert.equal(localVoice('zf_002'),'zf_002');assert.equal(localVoice('zf_xiaoni','男声'),'zf_xiaoni');assert.throws(()=>localVoice('made-up-voice'),/不支持/);
 });
 await test('cloud speech passes the requested speed to the API',async()=>{
   const original=globalThis.fetch;globalThis.fetch=async(url,options)=>{assert(url.endsWith('/audio/speech'));const body=JSON.parse(options.body);assert.equal(body.speed,1.3);assert.equal(body.voice,'marin');return new Response(Buffer.from('RIFF'));};

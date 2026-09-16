@@ -40,6 +40,7 @@ test('media adaptation corrects only empty image placeholders without weakening 
  const result=normalizeMediaBindings(source,['image','video']);
  assert.equal(result.source.html,'<img id="photo"><div id="video"></div><div id="title"></div>');
  assert.equal(result.changes.length,3);assert(source.html.startsWith('<div'));
+ const reopened=normalizeMediaBindings(result.source,['image','video']);assert.deepEqual(reopened.source,result.source);assert.equal(reopened.changes.length,0);
  const nested={...source,html:'<div id="photo"><span>not a media placeholder</span></div>'};
  assert.equal(normalizeMediaBindings(nested,['image']).changes.length,0);
  const decorated={...source,html:'<div id=\"scene02-root\"><div id=\"scene02-bg\"></div><div id=\"scene02-media\"></div></div>',css:'#scene02-root{background-color:#F6F3EF}#scene02-bg{background:#F6F3EF}',objects:[{elementId:'scene02-media',ref:'media-1'}]};

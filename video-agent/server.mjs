@@ -16,6 +16,7 @@ import {ROOT,STUDIO,STUDIO_URL,defaults,InputError,validateBrief,validateStorybo
 import {buildCommerceProject,patchCommerceProject,renderCommerceProject} from './lib/creative/runner.mjs';
 import {createCreativeService,creativeRoutes} from './lib/creative/service.mjs';
 import {CreativeError} from './lib/creative/contracts.mjs';
+import {MiniMaxError} from './lib/edit/adapters/minimax-client.mjs';
 
 const PORT=Number(process.env.VIDEO_AGENT_PORT||3020),DATA=path.resolve(process.env.VIDEO_AGENT_DATA_DIR||path.join(ROOT,'data/projects')),WEB=path.join(ROOT,'web-dist');
 const workspaceId=createHash('sha256').update(process.platform==='win32'?ROOT.replaceAll('\\','/').toLowerCase():ROOT).digest('hex');
@@ -173,12 +174,11 @@ const server=http.createServer(async(req,res)=>{
   const assets={'/creative-studio':['creative-studio.html','text/html; charset=utf-8'],'/creative-v2':['creative-v2.html','text/html; charset=utf-8'],'/creative-v2/text-demo/final.mp4':['../examples/creative-v2/text-demo/output/final.mp4','video/mp4'],'/creative-v2/image-demo/final.mp4':['../examples/creative-v2/image-demo/output/final.mp4','video/mp4'],'/creative-v2/video-demo/final.mp4':['../examples/creative-v2/video-demo/output/final.mp4','video/mp4'],'/creative-v2/mixed-demo/final.mp4':['../examples/creative-v2/mixed-demo/output/final.mp4','video/mp4'],'/':['commerce.html','text/html; charset=utf-8'],'/edit':['editor.html','text/html; charset=utf-8'],'/create':['index.html','text/html; charset=utf-8'],'/commerce':['commerce.html','text/html; charset=utf-8'],'/editor.js':['editor.js','text/javascript; charset=utf-8'],'/editor.css':['editor.css','text/css; charset=utf-8'],'/app.js':['app.js','text/javascript; charset=utf-8'],'/commerce.js':['commerce.js','text/javascript; charset=utf-8'],'/commerce.css':['commerce.css','text/css; charset=utf-8'],'/style.css':['style.css','text/css; charset=utf-8']};
   if(['GET','HEAD'].includes(req.method)&&assets[route])return await file(req,res,path.join(WEB,assets[route][0]),assets[route][1]);
   throw new InputError('找不到这个页面',404);
- }catch(e){if(res.headersSent){res.destroy();return;}if(!(e instanceof InputError)&&!(e instanceof EditError)&&!(e instanceof CreativeError))console.error(e);json(res,{ok:false,error:e instanceof InputError||e instanceof EditError||e instanceof CreativeError?e.message:'操作暂时无法完成，请重试；详情已记录在本地日志。',code:e.code},e.status||500);}
+ }catch(e){if(res.headersSent){res.destroy();return;}const expected=e instanceof InputError||e instanceof EditError||e instanceof CreativeError||e instanceof MiniMaxError;if(!expected)console.error(e);json(res,{ok:false,error:expected?e.message:'操作暂时无法完成，请重试；详情已记录在本地日志。',code:e.code},e.status||500);}
 });
 server.listen(PORT,'127.0.0.1',()=>console.log(`对话视频剪辑 http://127.0.0.1:${PORT}`));
 server.on('error',e=>{console.error(e.message);process.exit(1);});
 let closing=false;
 async function shutdown(){if(closing)return;closing=true;accepting=false;server.close();server.closeAllConnections?.();await editor.close();await Promise.allSettled([...writes.values()]);process.exit(0);}
 process.on('SIGINT',()=>void shutdown());process.on('SIGTERM',()=>void shutdown());
-
 

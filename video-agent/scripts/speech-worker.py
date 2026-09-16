@@ -26,7 +26,7 @@ def dispatch(request):
     if operation == 'detect_speech':
         return asr.detect_speech(request['source'])
     if operation == 'speak':
-        return tts.speak(request['text'], request['output'], request.get('voice', 'zf_xiaobei'), request.get('rate', 1))
+        return tts.speak(request['text'], request['output'], request.get('voice', 'zf_001'), request.get('rate', 1))
     if operation == 'detect_scenes':
         if importlib.util.find_spec('scenedetect') is None:
             return dict(status='not_configured', reason='PySceneDetect is not installed')

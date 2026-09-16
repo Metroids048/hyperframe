@@ -1,0 +1,10 @@
+import fs from 'node:fs/promises';import path from 'node:path';import {createHash} from 'node:crypto';
+const hash=x=>createHash('sha256').update(x).digest('hex');
+export const canonicalScene=id=>({launch:'product_launch',demo:'product_demo',product_howto:'product_demo'}[id]||id);
+export async function loadScenePackage(root,id){id=canonicalScene(id);if(!['product_launch','product_demo'].includes(id))return null;
+ const dir=path.join(root,'commerce/scenes',id.replaceAll('_','-'));const files={};
+ for(const name of ['scene.json','PERSONA.md','INPUT_CONTRACT.md','OUTPUT_CONTRACT.md','STORY_GRAMMAR.md','MATERIAL_POLICY.md','RESOURCE_PROFILE.json','COMPONENTS.json','TEMPLATES.json','AUDIO_POLICY.md','QUALITY_RUBRIC.json','REPAIR_POLICY.md','EDITING_POLICY.md']){const content=await fs.readFile(path.join(dir,name),'utf8');files[name]={sha256:hash(content),content:name.endsWith('.json')?JSON.parse(content):content};}
+ const scene=files['scene.json'].content;if(scene.id!==id||scene.schemaVersion!==1)throw Error('Invalid Scene Package');const templates=files['TEMPLATES.json'].content;for(const t of [...templates.businessTemplates,...templates.visualTemplates])t.hash=hash(JSON.stringify(t));
+ return {...scene,hash:hash(JSON.stringify(Object.entries(files).map(([n,f])=>[n,f.sha256]))),files,templates,components:files['COMPONENTS.json'].content,resourceProfile:files['RESOURCE_PROFILE.json'].content};
+}
+export function sceneContext(pack,stage){if(!pack)return null;const names={R1:['PERSONA.md','INPUT_CONTRACT.md'],R2:['MATERIAL_POLICY.md'],MA:['MATERIAL_POLICY.md','INPUT_CONTRACT.md'],R3:['RESOURCE_PROFILE.json','COMPONENTS.json'],CD:['PERSONA.md','STORY_GRAMMAR.md','TEMPLATES.json'],R4:['STORY_GRAMMAR.md','AUDIO_POLICY.md'],R5:['RESOURCE_PROFILE.json','EDITING_POLICY.md'],R6:['QUALITY_RUBRIC.json','REPAIR_POLICY.md']}[stage]||['OUTPUT_CONTRACT.md'];return {id:pack.id,version:pack.version,hash:pack.hash,rules:Object.fromEntries(names.map(n=>[n,pack.files[n].content]))};}

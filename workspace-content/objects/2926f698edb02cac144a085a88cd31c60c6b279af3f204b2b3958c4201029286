@@ -1,0 +1,52 @@
+Local frontend built: web-dist
+PASS v1 stays readable, migration is non-mutating
+PASS multiple moves use base destinations even when earlier moved clips have later source times
+PASS insert/delete and two moves share immutable coordinates
+PASS speed remaps original speech, captions and end title
+PASS one-frame cuts remain exact at 0.1x, including speech and overlays
+PASS new tail can hold a result-anchored caption in the insertion transaction
+PASS transition explicitly overlaps frames and keeps later captions aligned
+PASS splitting before an existing transition preserves overlap and content duration
+PASS deleting an entire transition removes its overlap once and rejects ambiguous interior cuts
+PASS spoken captions keep their source-clip link across split and later edits
+PASS overlay rate/crop/rect and validation survive a structural cut
+PASS loudness-only output edits preserve dimensions and can be disabled
+PASS plain captions, source transcript corrections and styling never synthesize speech
+PASS explicit generated narration link updates text once and preserves voice choice
+PASS linked narration rejects overflow instead of truncating
+PASS linked narration text updates preserve the current timeline speed
+PASS preview can acquire during export; queued cancellation does not block later work
+17 upgrade timeline tests passed
+PASS strict schema supports v2 operations and export/tool requests
+PASS subtitle-only loads relevant skill and does not require narration
+PASS compound edits preserve base coordinates and repair context
+PASS loudness off remains explicit while untouched output fields are omitted
+PASS export response cannot combine an uncommitted edit
+PASS tools can only target registered ready assets
+PASS empty transcription explicitly returns no_speech
+PASS review rejects cutting inside a spoken word even if model approves
+PASS installed skill provenance is pinned and each adapter is readable
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
++ actual - expected
+
++ 'zm_009'
+- 'zm_yunxi'
+      ^
+
+    at file:///C:/Users/admin/Desktop/hyperframe-main/video-agent/scripts/test-upgrade-planner.mjs:64:58
+    at test (file:///C:/Users/admin/Desktop/hyperframe-main/video-agent/scripts/test-upgrade-planner.mjs:16:81)
+    at file:///C:/Users/admin/Desktop/hyperframe-main/video-agent/scripts/test-upgrade-planner.mjs:63:7 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: 'zm_009',
+  expected: 'zm_yunxi',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.19.0
+Verification report: C:\Users\admin\Desktop\hyperframe-main\video-agent\outputs\upgrade\verification\core-2026-09-16T03-55-03.223Z

@@ -1,0 +1,222 @@
+Local frontend built: web-dist
+PASS v1 stays readable, migration is non-mutating
+PASS multiple moves use base destinations even when earlier moved clips have later source times
+PASS insert/delete and two moves share immutable coordinates
+PASS speed remaps original speech, captions and end title
+PASS one-frame cuts remain exact at 0.1x, including speech and overlays
+PASS new tail can hold a result-anchored caption in the insertion transaction
+PASS transition explicitly overlaps frames and keeps later captions aligned
+PASS splitting before an existing transition preserves overlap and content duration
+PASS deleting an entire transition removes its overlap once and rejects ambiguous interior cuts
+PASS spoken captions keep their source-clip link across split and later edits
+PASS overlay rate/crop/rect and validation survive a structural cut
+PASS loudness-only output edits preserve dimensions and can be disabled
+PASS plain captions, source transcript corrections and styling never synthesize speech
+PASS explicit generated narration link updates text once and preserves voice choice
+PASS linked narration rejects overflow instead of truncating
+PASS linked narration text updates preserve the current timeline speed
+PASS preview can acquire during export; queued cancellation does not block later work
+17 upgrade timeline tests passed
+PASS strict schema supports v2 operations and export/tool requests
+PASS subtitle-only loads relevant skill and does not require narration
+PASS compound edits preserve base coordinates and repair context
+PASS loudness off remains explicit while untouched output fields are omitted
+PASS export response cannot combine an uncommitted edit
+PASS tools can only target registered ready assets
+PASS empty transcription explicitly returns no_speech
+PASS review rejects cutting inside a spoken word even if model approves
+PASS installed skill provenance is pinned and each adapter is readable
+PASS local voice respects explicit voice and rejects unknown names
+PASS cloud speech passes the requested speed to the API
+PASS speech cache keys include rate and voice; transcription uses content hash
+PASS speech worker reuses process and cancel/timeout preserves following tasks
+PASS real FFmpeg silence detection caches and invalidates parameters
+PASS generation adapter reports unavailable before any request
+PASS real FFmpeg scene detection finds the color cut and rejects traversal
+PASS semantic review records actual retained source frames, not claimed full viewing
+17 upgrade planner tests passed; report: C:\Users\admin\Desktop\hyperframe-main\video-agent\outputs\upgrade\planner-543da1d2-6975-4717-8344-c430309624da
+PASS import and ordinary captions create previews without speech or automatic export
+PASS inserted tail can receive new narration and linked captions in one transaction
+PASS source transcript is mapped once after a same-round rearrangement and keeps future anchors
+PASS new inserted-source transcript uses deterministic clip IDs across preparation and commit
+PASS a failed staged check never moves the current revision or loses the prior preview
+PASS cancellation interrupts work before commit and preserves the base version
+PASS editing remains available while an old revision is rendering
+PASS restore reuses immutable artifacts and does not compile or render again
+PASS ten conversational revisions retain history and refresh provider login each turn
+PASS event sequences persist and reconnect resumes after the last event
+PASS precise chat edits and invalid exact instructions never need a configured model
+PASS second source preparation does not block chat edits to the current revision
+PASS restart recovers revisions, analyses, event cursor and interrupts an uncommitted job
+PASS continuous undo, redo and Chinese revision restore follow content history
+Service acceptance: C:\Users\admin\Desktop\hyperframe-main\video-agent\outputs\upgrade\service\2026-09-16T03-55-33.388Z
+PASS caption_transcript exposes an optional target language in strict schema
+PASS null and source targets retain source text without model calls
+PASS translation maps shuffled index/id output and preserves every non-text field
+PASS missing, duplicate, unknown index and mismatched ID are rejected atomically
+PASS empty or oversized translations do not change captions
+PASS translation requires configured model but original-language captions do not
+PASS bad language codes and duplicate source IDs fail before model use
+PASS long videos translate in bounded batches with complete global indexes
+PASS cancellation between batches returns no partial result
+PASS planner requests first-round translated transcript and correct fractional-source mapping
+PASS service turns English ASR into Chinese in one request without extra sound
+PASS service default and explicit source preserve original language and skip translation
+PASS same-round translated captions retain remapped times after structural editing
+PASS known generated narration translates subtitles while preserving the audio link
+PASS Chinese narration captions preserve the exact script without ASR or same-language translation
+PASS translation failure leaves current version and existing media untouched
+16 caption translation tests passed; C:\Users\admin\Desktop\hyperframe-main\video-agent\outputs\upgrade\caption-translation\47b25203-0c92-4744-9950-3281b015d0a6
+PASS 24 tasks have balanced calibration and holdout groups
+PASS missing evidence can never yield a score or an 85 claim
+PASS valid complete mathematical fixture passes exact gates
+PASS changed or duplicated weights are rejected
+PASS single task below 70 defeats a high overall mean without rounding up
+PASS task group below 80 cannot be hidden by other groups
+PASS holdout must independently reach 85
+PASS hard failure cannot be averaged away
+PASS zero-score or broken expert reference stays pending
+PASS two reviewer identities and full viewing are mandatory
+PASS holdout reuse or manual timeline edits invalidates automatic-quality claim
+PASS randomization is reproducible privately and hides roles in review packets
+PASS scores outside bounds or duplicate reviewer files are rejected
+13 scoring unit tests passed; no real quality score was produced.
+PASS portable media paths retain explicit overrides
+PASS HyperFrames receives absolute PATH-resolved media executables
+PASS Codex uses stdin for complete instructions and no forced private model
+PASS HTTPS transport keeps subscription auth without overriding built-in provider
+PASS Codex errors distinguish unavailable model, old CLI, login, quota and timeout
+PASS Python falls back by platform and respects override
+PASS chat export works without model in Chinese and English
+PASS exact cuts retain frame precision and source mapping
+PASS prefix/suffix removal, keep and split are deterministic
+PASS speed, original volume and mute map only to explicit targets
+PASS unknown clauses, negations, selections and semantic intent never silently drop
+PASS invalid exact commands fail clearly without a model repair
+PASS whole-film speed with separate audio requires synchronization planning
+PASS bundle cache is reusable and repairs deleted artifacts
+PASS bundle cache repairs nonempty same-size corruption
+PASS cache rebuild never overwrites media linked by an existing revision
+PASS bundle cache refuses corrupt/traversing or empty artifacts
+PASS concurrent cache builders coalesce and failed build can retry
+PASS project.zip is a real UTF-8 ZIP verified independently by Python
+PASS cancelled/oversize/traversing packages never replace a good download
+20 continuation tests passed
+PASS exact explicit times create silent caption with frame precision
+PASS unique named and contextual caption corrections retain other properties
+PASS unrecognized compound requirements never disappear
+PASS ambiguous multiple captions require the model
+PASS linked narration and selections always use the model
+5 fast intent safety tests passed
+PASS fractional source start detects a word cut hidden by rounded clip.in
+PASS fractional exclusive end avoids a false word cut at rounded clip.out
+PASS fractional exclusive end detects a word cut that clip.out misses
+PASS retained transcript and scene evidence use precise source bounds with speed
+PASS review frame positions stay inside the exact range and retain fractional offset
+PASS review uses precise cached frame positions without invoking media or model
+PASS legacy integer source ranges preserve their prior review bounds
+PASS invalid timelines fail locally before requesting a review
+{"status":"passed","tests":8,"report":"C:\\Users\\admin\\Desktop\\hyperframe-main\\video-agent\\outputs\\upgrade\\review-precision\\06a31cc0-790e-4a2c-977e-5d3500ba4045\\report.json"}
+3 atomic metadata replacement regressions passed
+2 bounded analysis evidence regressions passed; C:\Users\admin\Desktop\hyperframe-main\video-agent\outputs\upgrade\analysis-evidence\07e55e07-9a86-4353-91a9-ce345db29039
+PASS Chinese and Arabic revision numbers share one bounded parser
+PASS undo walks content history and redo replays the same branch
+PASS workspace context preserves local work and exposes the complete skill/runtime contract
+✔ review: rebuilt story resets only its local repairs and archives failures without extending model budget (1.6249ms)
+✔ review: correcting unsupported wording does not force replacing correct footage (0.5801ms)
+✔ review: requested effect cannot override protected tutorial actions (1.5462ms)
+✔ review: no narration/music does not silently preserve an unrequested mixed source track (1.9926ms)
+✔ review: collection admits distinct verified identities, while a single-product scene refuses mixing (11.3953ms)
+✔ M10: visual review failure remains recoverable with the same persisted run (0.2354ms)
+✔ M03: all six business scenes load distinct packages and preserve style separation (57.9634ms)
+✔ M08-local: MiniMax speech, voice catalog and music remain independently unconfigured (0.4078ms)
+✔ M05 real animation failure names the unmapped wrapper before compilation (3.9706ms)
+✔ M04-4/6: real filesystem discovery detects additions, same-size changes and broken/missing roots (21.4655ms)
+✔ M01/M02 real failure: repeated burned-in title goes to story owner, not illegal layout deletion (5.8421ms)
+✔ M01: server policy blocks new image/video before credentials and preserves local workflows (12.7934ms)
+✔ M01: policy is server-owned, malformed config fails closed and no config preserves other workspaces (4.915ms)
+✔ M01: real runtime context loads hashed scope and paused-generation policy (2225.3192ms)
+✔ M01-3/4: explicit exclusions survive a template trying to add music, narration or price (4.3396ms)
+✔ M02-5: action dependencies use output time after speed changes; boundaries fail closed (1.4347ms)
+✔ M02: source selections bind actual observed frames and refuse stale or absent source evidence (0.5145ms)
+✔ M04-5: enough project assets does not permit a shot with one input to use a two-input adapter (2.858ms)
+✔ M01-5/M10-4: planning rule changes invalidate decisions; renderer changes retain them (188.0892ms)
+✔ M04-1/2/5: synonymous Chinese requests recall real references and hard constraints win (11437.5433ms)
+✔ M04-3/M05-transition: second boundary remains second through repeated assembly (6.8697ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 14010.3579
+PASS creation, commerce and editing intents load the registered HyperFrames skill adapters
+✔ dense finite animation checks have enough CPU while memory and worst-case budgets remain bounded (4.1496ms)
+✔ receipt binds version, run, input, scenes and actual runtime bytes (1.0631ms)
+✔ Windows supervisor uses one explicit record, independent from nested worker stdout (0.4354ms)
+✔ malformed runtime and supervisor JSON route to environment without creative repair (1.192ms)
+✔ trusted static requirements reject blank evidence and cannot downgrade declared motion (0.466ms)
+✔ model evidence budget counts images and retains their provenance pairs (25.1757ms)
+✔ malformed nested runtime evidence remains a protocol failure (0.4993ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 39.4519
+✔ delivery routes fail closed and derive current job and files (44.7864ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 50.2486
+✔ R1 recovery cannot attach an older titlecard to a newly planned original scene (0.9878ms)
+✔ R1 animation-only context preserves policy and motion guidance without renderer authoring instructions (2232.0623ms)
+✖ R1 exact catalog names, aliases, URLs, negative clauses and empty matches (7.2214ms)
+✔ R1 unused shader imports and compiles without resource reads (0.3872ms)
+✔ R1 exact displayed copy keeps spaces and punctuation (0.7851ms)
+✔ R1 advancing detail does not falsely succeed when the matched scene would stay put (0.3477ms)
+✔ R1 static text timing is deferred, but animated review and static layout still block (0.3849ms)
+✔ R1 provider concurrent callers submit once, square is preserved, aspect invalidates cache and unknown submission reconciles (199.0671ms)
+✔ R1 partial shot failure resumes remaining shots and retains completed asset IDs (6.0011ms)
+✔ R1 progress is read-only and a project is not a completed film (0.4743ms)
+✔ R1 silent display copy does not trigger speech recognition on resume (0.1805ms)
+✔ R1 packaging preserves hash-verified historical guidance without executing stale adapters (4.9808ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 11
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2460.1293
+
+✖ failing tests:
+
+test at scripts\test-closeout-r1.mjs:32:1
+✖ R1 exact catalog names, aliases, URLs, negative clauses and empty matches (7.2214ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file:///C:/Users/admin/Desktop/hyperframe-main/video-agent/scripts/test-closeout-r1.mjs:44:63)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+Verification report: C:\Users\admin\Desktop\hyperframe-main\video-agent\outputs\upgrade\verification\core-2026-09-16T03-55-28.052Z

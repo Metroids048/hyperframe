@@ -1,0 +1,193 @@
+{
+  "directory": "C:\\Users\\admin\\Desktop\\hyperframe-main\\video-agent\\outputs\\eight-scenarios-20260916\\audio-portable-1789530495262",
+  "provenance": "protocol-fixture-with-local-speech",
+  "supplierLiveVerified": false,
+  "sceneDeliverable": false,
+  "steps": [
+    {
+      "step": "local-speech-real-asr",
+      "time": "2026-09-16T03:48:30.151Z",
+      "script": "看清细节，再做选择。",
+      "transcript": {
+        "model": "small",
+        "engine": "faster-whisper",
+        "language": "zh",
+        "text": "看清細節再做選擇",
+        "words": [
+          {
+            "text": "看",
+            "start": 0,
+            "end": 0.22
+          },
+          {
+            "text": "清",
+            "start": 0.22,
+            "end": 0.48
+          },
+          {
+            "text": "細",
+            "start": 0.48,
+            "end": 0.72
+          },
+          {
+            "text": "節",
+            "start": 0.72,
+            "end": 1.04
+          },
+          {
+            "text": "再",
+            "start": 1.04,
+            "end": 1.36
+          },
+          {
+            "text": "做",
+            "start": 1.36,
+            "end": 1.56
+          },
+          {
+            "text": "選",
+            "start": 1.56,
+            "end": 1.76
+          },
+          {
+            "text": "擇",
+            "start": 1.76,
+            "end": 2.08
+          }
+        ],
+        "segments": [
+          {
+            "start": 0,
+            "end": 2.08,
+            "text": "看清細節再做選擇"
+          }
+        ],
+        "reviewRequired": true,
+        "metrics": {
+          "asrMs": 9515,
+          "queueMs": 11,
+          "workerMs": 9581,
+          "cacheHit": false
+        },
+        "status": "completed"
+      },
+      "metrics": {
+        "model": "kokoro-v1.1-zh",
+        "voice": "zf_001",
+        "ttsMs": 4875,
+        "queueMs": 16,
+        "workerMs": 4939,
+        "cacheHit": false,
+        "engine": "kokoro",
+        "rate": 1
+      },
+      "sha256": "1a188999857851012d9308b2ecb08ee528c5adf2805cb809a65712ed181d9e7d"
+    },
+    {
+      "step": "native-audio-mix-and-subtitles",
+      "time": "2026-09-16T03:48:30.793Z",
+      "calls": [
+        {
+          "path": "/v1/get_voice",
+          "body": {
+            "voice_type": "all"
+          }
+        },
+        {
+          "path": "/v1/t2a_v2",
+          "body": {
+            "model": "speech-2.8-hd",
+            "text": "看清细节，再做选择。",
+            "stream": false,
+            "output_format": "hex",
+            "language_boost": "Chinese",
+            "voice_setting": {
+              "voice_id": "local-transport-fixture",
+              "speed": 1,
+              "vol": 1,
+              "pitch": 0
+            },
+            "audio_setting": {
+              "sample_rate": 32000,
+              "bitrate": 128000,
+              "format": "mp3",
+              "channel": 1
+            },
+            "subtitle_enable": true,
+            "subtitle_type": "sentence"
+          }
+        },
+        {
+          "path": "/v1/music_generation",
+          "body": {
+            "model": "music-2.6",
+            "prompt": "protocol-fixture sine wave; not supplier music",
+            "stream": false,
+            "output_format": "hex",
+            "is_instrumental": true,
+            "lyrics_optimizer": false,
+            "audio_setting": {
+              "sample_rate": 44100,
+              "bitrate": 256000,
+              "format": "mp3"
+            }
+          }
+        }
+      ],
+      "tracks": [
+        {
+          "id": "audio-245e564ccf9949d6",
+          "assetId": "audio-baaf9889-b20f-4597-9aab-52b29479d1ea",
+          "startFrame": 15,
+          "sourceStartSeconds": 0,
+          "playbackRate": 1,
+          "volume": 1,
+          "role": "narration",
+          "durationFrames": 76,
+          "fadeInFrames": 15,
+          "fadeOutFrames": 24,
+          "ducking": []
+        },
+        {
+          "id": "audio-8cfc798a8cf379b1",
+          "assetId": "audio-a5428ba1-ae76-43b3-92dc-dbbd630d3723",
+          "startFrame": 0,
+          "sourceStartSeconds": 0,
+          "playbackRate": 1,
+          "volume": 0.22,
+          "role": "music",
+          "durationFrames": 180,
+          "fadeInFrames": 15,
+          "fadeOutFrames": 24,
+          "ducking": [
+            {
+              "startFrame": 15,
+              "endFrame": 91,
+              "gain": 0.35
+            }
+          ]
+        }
+      ],
+      "captions": [
+        {
+          "id": "cue-6bb7c9d53d60028c",
+          "assetId": "audio-baaf9889-b20f-4597-9aab-52b29479d1ea",
+          "trackId": "audio-245e564ccf9949d6",
+          "anchor": "source-content",
+          "sourceStartSeconds": 0,
+          "sourceEndSeconds": 2.08,
+          "text": "看清細節再做選擇",
+          "reviewRequired": true,
+          "source": "minimax-subtitle"
+        }
+      ]
+    },
+    {
+      "step": "failure",
+      "time": "2026-09-16T03:48:31.028Z",
+      "error": "工程颜色声明无效",
+      "code": "PACKAGE_INVALID"
+    }
+  ],
+  "status": "failed"
+}

@@ -1,0 +1,42 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import {compileDocument} from './compiler.mjs';
+import {verifyCustomProject} from './isolation.mjs';
+import {linkOrCopy} from '../edit/media.mjs';
+import {resourceHash} from './capabilities.mjs';
+import {insist,FPS} from './contracts.mjs';
+
+export const ANIMATION_SOURCE_CONTRACT='已检查静态画面不可改写。只返回animation:{timeline,parameters,motionTargets}和notes；不返回source、HTML或CSS。所有动画目标必须是checkedKeyframe.objects中已有elementId。每条语句只可用tl.to/from/fromTo/set，选择器必须是单个"#id"字符串，不能用数组；每条语句以分号结束，不链式调用，不声明变量、函数、回调、循环，不控制视频播放。GSAP视觉属性可用opacity、x/y、scale、rotation、clipPath；不得修改文字、src、left/top。数值为字面量或params.name的+-*/算式。params.sceneSeconds是内置镜头时长，不得放进parameters；其他参数必须带name/value/min/max。时间是本镜头秒数；全片时间需减sceneStartSeconds。时序必须有限、可重复seek且结束不超sceneSeconds。需要延迟出现的对象先tl.set("#id",{opacity:0},0)，再在指定窗口淡入/退出。motionTargets列出确有动画的既有对象ID。保留真实视频自然推进，不额外加动效填时长。按shot.visualDirection和timingFeedback落实文字范围，指定遮罩不能换成普通淡入。返回标准JSON，timeline不含代码围栏。';
+
+export function animateKeyframe(source,animation){
+  insist(animation&&Object.keys(animation).every(k=>['timeline','parameters','motionTargets'].includes(k)),'动画步骤只能提交时间线和运动参数','KEYFRAME_CHANGED');
+  return {...structuredClone(source),...structuredClone(animation)};
+}
+
+/** A derived single-shot inspection; the mother document remains authoritative. */
+export async function inspectKeyframe(document,sceneId,assets,outputDir,runHyperFrames,{signal,atSeconds}={}){
+  outputDir=path.resolve(outputDir);
+  const native=structuredClone(document),scene=native.scenes.find(s=>s.id===sceneId),start=scene.startFrame;
+  native.scenes=[{...scene,startFrame:0}];native.durationFrames=scene.durationFrames;native.transitions=[];native.audioGraph=[];native.captions=[];
+  native.nodes=native.nodes.filter(n=>n.sceneId===sceneId).map(n=>({...n,startFrame:n.startFrame-start}));
+  native.sourceBundles=native.sourceBundles.filter(b=>b.sceneId===sceneId).map(b=>({...b,contractVersion:b.contractVersion||2}));
+  const at=atSeconds??Number((scene.durationFrames/FPS*.45).toFixed(3));
+  insist(Number.isFinite(at)&&at>=0&&at<scene.durationFrames/FPS,'关键画面时点超出本镜头','KEYFRAME_TIME');
+  insist(native.sourceBundles.every(b=>!b.timeline.trim()&&!b.motionTargets.length),'关键画面不能提前包含动画','KEYFRAME_CONTRACT');
+  const validationFiles=await Promise.all(['lib/creative/custom-source.mjs','lib/creative/isolation.mjs','lib/creative/isolation-protocol.mjs','scripts/native-scene-worker.mjs'].map(async file=>[file,resourceHash(await fs.readFile(new URL('../../'+file,import.meta.url)))]));
+  const key=resourceHash({inspectionVersion:3,validationFiles,document:native,assets:assets.map(a=>[a.id,a.sha256]),atSeconds:at}),folder='keyframes/'+sceneId+'-'+key.slice(0,16),directory=path.join(outputDir,folder),file=path.join(directory,'verified.json');
+  try{const prior=JSON.parse(await fs.readFile(file,'utf8'));insist(prior.inputHash===key&&prior.imageHash===resourceHash(await fs.readFile(path.join(directory,prior.image))),'关键画面检查点被修改','CHECKPOINT_HASH');return {...prior,imagePath:path.join(directory,prior.image),folder};}catch(e){if(e.code!=='ENOENT')throw e;}
+  await fs.mkdir(directory,{recursive:true});
+  for(const ref of new Set(['assets/gsap.min.js',...assets.map(a=>a.compiledRef||a.ref)]))await linkOrCopy(path.join(outputDir,ref),path.join(directory,ref));
+  await fs.writeFile(path.join(directory,'index.html'),compileDocument(native,assets).html);
+  await fs.writeFile(path.join(directory,'document.json'),JSON.stringify(native,null,2));
+  await fs.writeFile(path.join(directory,'hyperframes.json'),JSON.stringify({version:1,entry:'index.html'}));
+  await verifyCustomProject(directory,native,assets,{signal});
+  // This artifact intentionally has no animation yet. Check its exact still;
+  // the assembled mother project later runs the unmodified full sweep.
+  await fs.writeFile(path.join(directory,'check.log'),await runHyperFrames(directory,'check',['--at',String(at)],{signal}));
+  await runHyperFrames(directory,'snapshot',['--at',String(at),'--output','frames','--describe','false'],{signal});
+  const image=(await fs.readdir(path.join(directory,'frames'))).find(n=>/^frame-.*\.png$/.test(n));insist(image,'关键画面未生成','PREVIEW_EVIDENCE_MISSING');
+  const record={inspectionVersion:3,validationFiles,inputHash:key,sceneId,sourceRevisionId:document.revisionId,globalSeconds:start/FPS+at,image:'frames/'+image,imageHash:resourceHash(await fs.readFile(path.join(directory,'frames',image))),engineering:'static-frame-checked',checkScope:{kind:'static-keyframe',atSeconds:at,fullTimeline:'pending-assembly',mediaExtraction:'checked'},animation:'not-yet-authored'};
+  await fs.writeFile(file,JSON.stringify(record,null,2));return {...record,imagePath:path.join(directory,record.image),folder};
+}

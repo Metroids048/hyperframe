@@ -5,6 +5,15 @@ import {catalogDigest,refreshLocalCatalog,readDiscoveredResource} from './resour
 const hash=x=>createHash('sha256').update(typeof x==='string'||Buffer.isBuffer(x)?x:JSON.stringify(x)).digest('hex');
 const canonical=r=>r.canonicalId||r.name||r.id;
 const compact=s=>String(s).toLowerCase().replace(/[^a-z0-9\u4e00-\u9fff]/g,'');
+function mentionsResource(clause,name){
+ if(typeof name!=='string'||compact(name).length<(/[\u4e00-\u9fff]/.test(name)?2:4))return false;
+ // Platform mentions request the shared workflow, not a resource named after
+ // its top-level skill. Also do not match "frames" inside "HyperFrames".
+ if(compact(name)==='hyperframes')return false;
+ if(/[\u4e00-\u9fff]/.test(name))return compact(clause).includes(compact(name));
+ const escaped=name.trim().split(/[\s_-]+/).map(part=>part.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('[\\s_-]*');
+ return new RegExp('(?<![a-z0-9])'+escaped+'(?![a-z0-9])','i').test(clause);
+}
 const needText=need=>typeof need==='string'?need:need.message||need.name||need.id||JSON.stringify(need);
 // Convert common merchant language into stable visual intents before querying
 // the English-heavy registry. This is deliberately deterministic and local:
@@ -37,18 +46,31 @@ export function normalizeVisualIntent(need={}){
 export function resourceRequests(need,resources=[]){
  const text=needText(need),entries=[...resources,{name:'chromatic-radial-split',aliases:['chromatic-split','chromatic split','ChromaticRadialSplit','色散']}];
  const requests=new Map();let previous=[];
+ const numbers={'一':1,'二':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9,'十':10,first:1,second:2,third:3};
  for(const clause of text.split(/[，,。;；！!]/)){
-  let hits=entries.filter(r=>[r.id,r.name,r.canonicalId,r.displayName,r.url,r.sourceUrl,...(r.aliases||[])].filter(Boolean).some(n=>compact(n).length>=(/[\u4e00-\u9fff]/.test(n)?2:4)&&compact(clause).includes(compact(n))));
+  let hits=entries.filter(r=>[r.id,r.name,r.canonicalId,r.displayName,r.url,r.sourceUrl,...(r.aliases||[])].some(n=>mentionsResource(clause,n)));
   if(!hits.length){const named=clause.match(/(?:使用|指定|不要|不用)(?:名为)?资源\s*[「“"']?([a-zA-Z][\w-]{2,})/);if(named)hits=[{name:named[1]}];}
-  if(!hits.length&&/只在|only.*(?:first|transition)/i.test(clause))hits=previous;
+  if(!hits.length&&/只在|仅在|其余|其他|第.+(?:取消|保留)|only.*(?:first|transition)/i.test(clause))hits=previous;
   if(!hits.length)continue;previous=hits;
-  const denied=/(?:不要|禁止|不用|不使用|do\s+not|don't|never|without)/i.test(clause);
-  const scoped=/只在|仅在|only/i.test(clause);const ordinal=clause.match(/第([一二三四五六七八九十\d]+)(?:(?:个)?转场|处|个切点)|(?:the\s+)?(first|second|third)\s+transition/i);
-  const numbers={'一':1,'二':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9,'十':10,first:1,second:2,third:3};
-  const token=ordinal?.[1]||ordinal?.[2]?.toLowerCase();const scope=ordinal?{kind:'transition',index:(numbers[token]||Number(token))-1}:scoped?{kind:'unresolved'}:{kind:'all'};
-  for(const r of hits){const id=canonical(r);requests.set(id,{canonicalId:id,negated:denied,scope,clause});}
+  const denied=/(?:不要|禁止|不用|不使用|取消|do\s+not|don't|never|without)/i.test(clause);
+  if(/其余|其他/.test(clause)&&!denied)continue;
+  const exclusive=/只在|仅在|only/i.test(clause);
+  const ordinals=[...clause.matchAll(/第([一二三四五六七八九十\d]+)(?:(?:个)?转场|处|个切点)|(?:the\s+)?(first|second|third)\s+transition/ig)];
+  const scopes=/其余|其他/.test(clause)?[{kind:'others'}]:ordinals.length?ordinals.map(m=>({kind:'transition',index:(numbers[m[1]||m[2]?.toLowerCase()]||Number(m[1]))-1})):exclusive?[{kind:'unresolved'}]:[{kind:'all'}];
+  for(const r of hits)for(const scope of scopes){const id=canonical(r),key=id+':'+scope.kind+':'+(scope.index??'');requests.set(key,{canonicalId:id,negated:denied,scope,exclusive,clause});}
  }
  return [...requests.values()];
+}
+export function resolveResourceTargets(requests,count){
+ const all=Array.from({length:count},(_,i)=>i),included=new Set(),excluded=new Set();
+ for(const r of requests)if(r.scope.kind==='unresolved')throw Object.assign(Error('资源作用范围尚未明确'),{code:'RESOURCE_SCOPE'});
+ for(const r of requests){if(r.scope.kind==='transition'&&(!Number.isInteger(r.scope.index)||r.scope.index<0||r.scope.index>=count))throw Object.assign(Error('指定资源切点不存在'),{code:'RESOURCE_SCOPE'});if(r.scope.kind==='others')continue;for(const i of r.scope.kind==='transition'?[r.scope.index]:all)(r.negated?excluded:included).add(i);}
+ const explicitPositive=new Set(requests.filter(r=>!r.negated&&r.scope.kind==='transition').map(r=>r.scope.index));
+ // A scoped inclusion can refine a global exclusion; scoped exclusions stay exact.
+ if(requests.some(r=>r.negated&&r.scope.kind==='all'))for(const i of explicitPositive)excluded.delete(i);
+ if(requests.some(r=>r.exclusive||r.negated&&r.scope.kind==='others'))for(const i of all)if(!included.has(i))excluded.add(i);
+ for(const r of requests.filter(r=>r.negated&&r.scope.kind==='transition')){excluded.add(r.scope.index);included.delete(r.scope.index);}
+ return {include:[...included].filter(i=>!excluded.has(i)).sort((a,b)=>a-b),exclude:[...excluded].sort((a,b)=>a-b)};
 }
 export function explicitResource(need,resources=[]){return resourceRequests(need,resources).find(r=>!r.negated)?.canonicalId||null;}
 export function resourceCompatibility(adapter,need={},intent=normalizeVisualIntent(need)){
@@ -67,19 +89,14 @@ export function resourceCompatibility(adapter,need={},intent=normalizeVisualInte
 }
 
 export function applyRequestedTransitions(document,message){
- const requests=resourceRequests(message);
- for(const named of requests){
-  if(named.canonicalId!=='chromatic-radial-split')continue;
-  const transitions=document.transitions||[];
-  if(named.negated){if(transitions.some(t=>t.effect==='chromatic-split'))throw Object.assign(Error('本次明确禁止色散转场'),{code:'RESOURCE_SCOPE'});continue;}
-  if(named.scope.kind==='unresolved')throw Object.assign(Error('请明确色散转场的位置'),{code:'RESOURCE_SCOPE'});
-  const targets=named.scope.kind==='transition'?[transitions[named.scope.index]]:transitions;
-  if(!targets.length||targets.some(t=>!t))throw Object.assign(Error('指定色散切点不存在'),{code:'RESOURCE_SCOPE'});
-  for(const t of targets){t.effect='chromatic-split';t.params={durationFrames:t.durationFrames};}
-  if(named.scope.kind==='transition'&&transitions.some((t,i)=>i!==named.scope.index&&t.effect==='chromatic-split'))throw Object.assign(Error('色散转场超出指定范围'),{code:'RESOURCE_SCOPE'});
+ const requests=resourceRequests(message),named=requests.filter(r=>r.canonicalId==='chromatic-radial-split');
+ if(named.length){const transitions=document.transitions||[],targets=resolveResourceTargets(named,transitions.length);
+  if(named.some(r=>!r.negated)&&!targets.include.length)throw Object.assign(Error('指定色散切点不存在或相互冲突'),{code:'RESOURCE_SCOPE'});
+  for(const i of targets.exclude)if(transitions[i].effect==='chromatic-split')throw Object.assign(Error('色散转场超出指定范围'),{code:'RESOURCE_SCOPE'});
+  for(const i of targets.include){const t=transitions[i];t.effect='chromatic-split';t.params={durationFrames:t.durationFrames};}
+  document.resourceBindings=targets.include.map(i=>({canonicalId:'chromatic-radial-split',baseRevisionId:document.revisionId||null,fromSceneId:transitions[i].fromSceneId,toSceneId:transitions[i].toSceneId,index:i}));
  }
- if(requests.length)document.resourceRequests=requests;
- return document;
+ if(requests.length)document.resourceRequests=requests;return document;
 }
 export function validateRequestedTransitionPlan(story,message){
  for(const named of resourceRequests(message).filter(r=>!r.negated&&r.canonicalId==='chromatic-radial-split')){
@@ -109,14 +126,14 @@ export class HyperFramesResourcePlanner {
    }
    check.eligible=check.reasons.length===0;return check;
   });
-  const requests=resourceRequests(need,this.catalog.resources||[]),positive=requests.filter(r=>!r.negated),denied=new Set(requests.filter(r=>r.negated).map(r=>r.canonicalId));
+  const requests=resourceRequests(need,this.catalog.resources||[]),positive=requests.filter(r=>!r.negated),denied=new Set(requests.filter(r=>r.negated&&r.scope.kind==='all'&&!positive.some(p=>p.canonicalId===r.canonicalId)).map(r=>r.canonicalId));
   const exact=positive[0]?.canonicalId||null,found=this.catalog.search(need,{limit:20});
   // Alias/URL matches must carry the exact catalog record even when the
   // descriptive keyword search ranks it outside its bounded shortlist.
   for(const r of this.catalog.resources||[])if(positive.some(q=>q.canonicalId===canonical(r))&&!found.some(f=>f.id===r.id))found.push({...r,score:1});
   const runtimeCanonical=a=>a.canonicalId||(a.id==='chromatic-split'?'chromatic-radial-split':a.id);
   const selected=this.adapters.filter(a=>adapterChecks.find(c=>c.id===a.id)?.eligible&&!denied.has(runtimeCanonical(a))&&(!positive.length||positive.some(r=>r.canonicalId===runtimeCanonical(a)))).map(a=>{
-   const sources=found.filter(r=>canonical(r)===runtimeCanonical(a));return {...a,canonicalId:runtimeCanonical(a),scope:positive.find(r=>r.canonicalId===runtimeCanonical(a))?.scope||null,discoveryScore:sources.reduce((s,r)=>s+(r.score||0),0),sourceFiles:sources.map(r=>({path:r.path,sha256:r.sha256,commit:r.sourceCommit}))};
+   const sources=found.filter(r=>canonical(r)===runtimeCanonical(a));return {...a,canonicalId:runtimeCanonical(a),scope:positive.find(r=>r.canonicalId===runtimeCanonical(a))?.scope||null,scopes:requests.filter(r=>r.canonicalId===runtimeCanonical(a)),discoveryScore:sources.reduce((s,r)=>s+(r.score||0),0),sourceFiles:sources.map(r=>({path:r.path,sha256:r.sha256,commit:r.sourceCommit}))};
   }).filter(a=>positive.length||a.discoveryScore>0).sort((a,b)=>b.discoveryScore-a.discoveryScore||(b.score||0)-(a.score||0)).slice(0,5);
   const missing=positive.filter(r=>!selected.some(a=>a.canonicalId===r.canonicalId));
   return {need,intent,adapterChecks,requests,requestedCanonicalId:exact,status:missing.length?'pending_adapter':positive.some(r=>r.scope.kind==='unresolved')?'unresolved_scope':selected.length?'resolved':requests.length&&!positive.length?'excluded':'unresolved',catalogHash:this.catalog.data.contentHash,scan:this.catalog.data.scan?{status:this.catalog.data.scan.status,boundaries:this.catalog.data.scan.boundaries,errors:this.catalog.data.scan.errors}:null,selected,alternatives:found,unresolved:missing,whySelected:'Business intents recall references; hard input and runtime conditions constrain executors before ranking',whyRejected:[...adapterChecks.filter(c=>!c.eligible),...found.filter(r=>!selected.some(a=>a.canonicalId===canonical(r))).map(r=>({id:r.id,reason:'No matching compatible executor selected'}))],compatibility:'0.8.33',adapterStatus:'requires actual bundle and render verification'};

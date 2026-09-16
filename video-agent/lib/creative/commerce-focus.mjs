@@ -3,6 +3,7 @@ import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {CreativeError} from './contracts.mjs';
 import {explicitBusinessConstraints} from './business-constraints.mjs';
+import {workflowContract} from './workflow-intent.mjs';
 
 export const FOCUS_PROFILE='commerce-focus-v1';
 export const COMMERCE_SCENARIOS={
@@ -16,16 +17,17 @@ export const COMMERCE_SCENARIOS={
 };
 export const digest=value=>createHash('sha256').update(typeof value==='string'||Buffer.isBuffer(value)?value:JSON.stringify(value)).digest('hex');
 export function businessContract(input={}){
+  const workflow=workflowContract(input);
   const goals=input.businessGoal||[];
   const message=String(input.message||'');
   const negated=(term)=>new RegExp(`(?:不要|无需|不做|禁止)[^。！？,，]{0,8}${term}`).test(message);
-  const explicit=input.scenarioId||goals[0]||(!negated('教程')&&/教程|操作|使用演示/.test(message)?'demo':/上新|种草|新品/.test(message)?'launch':null);
+  const explicit=(!['recut','variant','versions'].includes(input.scenarioId)&&input.scenarioId)||(!['recut','variant','versions'].includes(goals[0])&&goals[0])||workflow.businessScenario||(!negated('教程')&&/教程|操作|使用演示/.test(message)?'demo':/上新|种草|新品/.test(message)?'launch':null);
   const aliases=Object.fromEntries(Object.entries(COMMERCE_SCENARIOS).flatMap(([id,v])=>[[id,id],[v.alias,id]]));
   const scenarioId=explicit?aliases[explicit]:null;
   // All six business scenes share the same runtime contract; visual style remains a separate choice.
   if(explicit&&!scenarioId)throw new CreativeError('无法识别电商场景，请选择六类场景之一','SCENARIO_UNSUPPORTED');
   const audio=negated('静音')||negated('声音')? 'original':(/静音|无声|不要声音/.test(message)?'silent':/保留.*原声/.test(message)?'original':'unspecified');
-  return {schemaVersion:1,profile:FOCUS_PROFILE,scenarioId,originalRequest:message,
+  return {schemaVersion:1,profile:FOCUS_PROFILE,scenarioId,originalRequest:message,taskMode:workflow.taskMode,workflowProfile:workflow.workflowProfile,workflow:{...workflow,businessScenario:scenarioId},
     persona:{creator:'商家／内容运营（待用户研究验证）',viewer:['product_howto','product_demo'].includes(scenarioId)?'第一次操作的新手':'首次了解商品的消费者'},
     objective:({product_launch:'吸引首次观看者继续了解商品',product_detail:'讲清商品结构与可信卖点',product_demo:'理解并复现必要操作',product_howto:'理解并复现必要操作',product_collection:'理解多款商品的搭配与系列关系',product_promotion:'理解优惠条件并采取行动',product_faq:'用证据回答具体选购疑问'}[scenarioId]||'明确电商内容目标'),
     product:structuredClone(input.product||{}),output:structuredClone(input.output||{}),audio,

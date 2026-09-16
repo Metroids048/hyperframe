@@ -16,7 +16,12 @@ async function walk(dir){for(const entry of await fs.readdir(dir,{withFileTypes:
  for(let offset=0;offset<bytes.length;offset+=32*1024*1024){const chunk=bytes.subarray(offset,offset+32*1024*1024),id=createHash('sha256').update(chunk).digest('hex');chunks.push(id);await fs.writeFile(path.join(objects,id),chunk,{flag:'wx'}).catch(error=>{if(error.code!=='EEXIST')throw error;});}
  files.push({path:relative,bytes:bytes.length,sha256,chunks,runtime:relative.startsWith('third_party/')||relative.startsWith('video-agent/data/')||relative.startsWith('video-agent/outputs/mijia-brand-test/')||relative.startsWith('video-agent/outputs/r1-closeout-delivery/')});
  }}
-for(const relative of ['video-agent/data','video-agent/outputs','hyperframe_closeout_r1','third_party'])await walk(path.join(root,relative));
+// Keep the previous snapshot alongside the new one; no history/object pruning.
+const oldManifest=await fs.readFile(path.join(destination,'manifest.json')).catch(()=>null);
+if(oldManifest){await fs.mkdir(path.join(destination,'history'),{recursive:true});await fs.writeFile(path.join(destination,'history',createHash('sha256').update(oldManifest).digest('hex')+'.json'),oldManifest,{flag:'wx'}).catch(e=>{if(e.code!=='EEXIST')throw e;});}
+for(const relative of ['video-agent/data','video-agent/outputs','hyperframe_closeout_r1','third_party','video-agent/.cache','video-agent/web-dist','video-agent/assets/source-downloads']){
+ if(await fs.stat(path.join(root,relative)).then(s=>s.isDirectory(),()=>false))await walk(path.join(root,relative));
+}
 files.sort((a,b)=>a.path.localeCompare(b.path));
 const ids=new Set(files.flatMap(f=>f.chunks));let storedBytes=0;for(const id of ids)storedBytes+=(await fs.stat(path.join(objects,id))).size;
 const manifest={schemaVersion:1,createdAt:new Date().toISOString(),purpose:'Portable local project, media and evidence snapshot; does not grant human approval.',files,excluded,summary:{files:files.length,logicalBytes:files.reduce((s,f)=>s+f.bytes,0),objects:ids.size,storedBytes}};

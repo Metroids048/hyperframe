@@ -5,14 +5,13 @@ import re
 import sys
 import time
 
-_model = None
-_g2p = None
+_models = {}
+_frontends = {}
 
 
-def speak(text, output, voice='zf_xiaobei', speed=1.0):
-    global _model, _g2p
+def speak(text, output, voice='zf_001', speed=1.0):
     started = time.monotonic()
-    if voice not in ('zf_xiaobei', 'zf_xiaoni', 'zf_xiaoxiao', 'zf_xiaoyi', 'zm_yunjian', 'zm_yunxi', 'zm_yunxia', 'zm_yunyang'):
+    if voice not in ('zf_001', 'zf_002', 'zm_009', 'zm_010', 'zf_xiaobei', 'zf_xiaoni', 'zf_xiaoxiao', 'zf_xiaoyi', 'zm_yunjian', 'zm_yunxi', 'zm_yunxia', 'zm_yunyang'):
         raise ValueError('Unsupported local Chinese voice')
     speed = float(speed)
     if not .5 <= speed <= 2:
@@ -23,18 +22,23 @@ def speak(text, output, voice='zf_xiaobei', speed=1.0):
     import soundfile as sf
     from kokoro_onnx import Kokoro
     from misaki.zh import ZHG2P
-    if _model is None:
+    modern = bool(re.fullmatch(r'z[fm]_\d{3}', voice))
+    version = '1.1-zh' if modern else '1.0'
+    if version not in _models:
         cache = os.path.join(os.path.expanduser('~'), '.cache', 'hyperframes', 'tts')
-        _model = Kokoro(os.path.join(cache, 'models', 'kokoro-v1.0.onnx'), os.path.join(cache, 'voices', 'voices-v1.0.bin'))
-    if _g2p is None:
-        _g2p = ZHG2P()
+        config = os.path.join(cache, 'models', 'kokoro-v1.1-zh-config.json') if modern else None
+        _models[version] = Kokoro(os.path.join(cache, 'models', 'kokoro-v'+version+'.onnx'), os.path.join(cache, 'voices', 'voices-v'+version+'.bin'), vocab_config=config)
+    if version not in _frontends:
+        _frontends[version] = ZHG2P(version='1.1' if modern else None)
     parts = []
     for line in re.findall(r'[^。！？!?\n]+[。！？!?]?', text):
         for offset in range(0, len(line), 120):
-            phonemes, _ = _g2p(line[offset:offset + 120].strip())
+            phonemes, _ = _frontends[version](line[offset:offset + 120].strip())
+            if '❓' in phonemes:
+                raise ValueError('Local Chinese voice cannot pronounce this text; spell foreign words in Chinese or use a multilingual provider')
             if not phonemes.strip():
                 continue
-            samples, sample_rate = _model.create(phonemes, voice=voice, speed=speed, lang='cmn', is_phonemes=True)
+            samples, sample_rate = _models[version].create(phonemes, voice=voice, speed=speed, lang='cmn', is_phonemes=True)
             parts.extend([samples, np.zeros(round(sample_rate * .15 / speed), dtype=np.float32)])
     if not parts:
         raise ValueError('No speech was generated')
@@ -44,7 +48,7 @@ def speak(text, output, voice='zf_xiaobei', speed=1.0):
     with open(output, 'wb') as destination:
         sf.write(destination, audio, sample_rate, format='WAV')
     return dict(duration=len(audio) / sample_rate, sampleRate=sample_rate, voice=voice, rate=speed,
-                phonemizer='misaki-zh', metrics=dict(ttsMs=round((time.monotonic() - started) * 1000)))
+                phonemizer='misaki-zh-'+version, metrics=dict(model='kokoro-v'+version, voice=voice, ttsMs=round((time.monotonic() - started) * 1000)))
 
 
 if __name__ == '__main__':

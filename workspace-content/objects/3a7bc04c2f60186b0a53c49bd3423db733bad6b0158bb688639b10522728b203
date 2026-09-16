@@ -1,0 +1,76 @@
+COMPILED rev-eeabcbd7fe80c659
+file:///C:/Users/admin/Desktop/hyperframe-main/video-agent/lib/creative/runner.mjs:60
+    child.on('close', async code => {cleanup();await fs.writeFile(invocationFile,JSON.stringify({...invocation,exitCode:code,timedOut,cancelled:!!signal?.aborted,completedAt:new Date().toISOString()},null,2));await progressWrites;if(progressError)output+='\n进度记录写入失败：'+progressError.message;const logFile=`hyperframes-${command}-${Date.now()}.log`;await fs.writeFile(path.join(outputDir,logFile),output).catch(()=>{});if(signal?.aborted)return reject(new Error('任务已取消'));if(timedOut)return reject(new Error('处理超时，输入和上一有效版本已保留'));if(code===0&&['snapshot','check'].includes(command)){try{assertHyperFramesCapture(output);}catch(error){error.logFile=logFile;reject(error);return;}}code === 0 ? resolve(output) : reject(Object.assign(new Error(`HyperFrames ${command} 失败 (${code})\n${output}`),{code:'HYPERFRAMES_CHECK',logFile}));});
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          ^
+
+Error: HyperFrames check 失败 (1)
+◆  Checking final
+
+Lint
+  ✗ gsap_fullscreen_overlay_starts_visible: Full-frame overlay "#scene-01" starts visible before its first GSAP opacity tween at 0.00s. It will cover earlier render frames, often as a blank/white video.
+    C:\Users\admin\Desktop\hyperframe-main\video-agent\deliverables\s02-gpu-closeout-20260916\versions\final\index.html #scene-01 t=0s
+    Fix: Add `opacity: 0` to "#scene-01" in CSS/inline styles, or add an immediate `gsap.set("#scene-01", { opacity: 0 })` (outside the timeline) before the reveal tween.
+  ✗ gsap_animates_clip_element: GSAP animation sets visibility on a clip element. Selector "#scene-01" resolves to element <section id="scene-01" class="clip scene scene-custom-native scene-has-video">. The framework manages clip visibility, and autoAlpha writes visibility as well as opacity — do not animate these properties on clip elements.
+    C:\Users\admin\Desktop\hyperframe-main\video-agent\deliverables\s02-gpu-closeout-20260916\versions\final\index.html #scene-01 t=0s
+    Fix: Remove the visibility/display/autoAlpha tween, or move the content into a child <div> and target that instead.
+  ✗ gsap_animates_clip_element: GSAP animation sets visibility on a clip element. Selector "#scene-02" resolves to element <section id="scene-02" class="clip scene scene-custom-native scene-has-video">. The framework manages clip visibility, and autoAlpha writes visibility as well as opacity — do not animate these properties on clip elements.
+    C:\Users\admin\Desktop\hyperframe-main\video-agent\deliverables\s02-gpu-closeout-20260916\versions\final\index.html #scene-02 t=0s
+    Fix: Remove the visibility/display/autoAlpha tween, or move the content into a child <div> and target that instead.
+  ✗ gsap_animates_clip_element: GSAP animation sets visibility on a clip element. Selector "#scene-03" resolves to element <section id="scene-03" class="clip scene scene-custom-native scene-has-video">. The framework manages clip visibility, and autoAlpha writes visibility as well as opacity — do not animate these properties on clip elements.
+    C:\Users\admin\Desktop\hyperframe-main\video-agent\deliverables\s02-gpu-closeout-20260916\versions\final\index.html #scene-03 t=0s
+    Fix: Remove the visibility/display/autoAlpha tween, or move the content into a child <div> and target that instead.
+  ✗ gsap_animates_clip_element: GSAP animation sets visibility on a clip element. Selector "#scene-04" resolves to element <section id="scene-04" class="clip scene scene-custom-native scene-has-video">. The framework manages clip visibility, and autoAlpha writes visibility as well as opacity — do not animate these properties on clip elements.
+    C:\Users\admin\Desktop\hyperframe-main\video-agent\deliverables\s02-gpu-closeout-20260916\versions\final\index.html #scene-04 t=0s
+    Fix: Remove the visibility/display/autoAlpha tween, or move the content into a child <div> and target that instead.
+  ✗ gsap_animates_clip_element: GSAP animation sets visibility on a clip element. Selector "#scene-05" resolves to element <section id="scene-05" class="clip scene scene-custom-native scene-has-video">. The framework manages clip visibility, and autoAlpha writes visibility as well as opacity — do not animate these properties on clip elements.
+    C:\Users\admin\Desktop\hyperframe-main\video-agent\deliverables\s02-gpu-closeout-20260916\versions\final\index.html #scene-05 t=0s
+    Fix: Remove the visibility/display/autoAlpha tween, or move the content into a child <div> and target that instead.
+  ✗ gsap_animates_clip_element: GSAP animation sets visibility on a clip element. Selector "#scene-06" resolves to element <section id="scene-06" class="clip scene scene-custom-native scene-has-video">. The framework manages clip visibility, and autoAlpha writes visibility as well as opacity — do not animate these properties on clip elements.
+    C:\Users\admin\Desktop\hyperframe-main\video-agent\deliverables\s02-gpu-closeout-20260916\versions\final\index.html #scene-06 t=0s
+    Fix: Remove the visibility/display/autoAlpha tween, or move the content into a child <div> and target that instead.
+  ✗ gsap_animates_clip_element: GSAP animation sets visibility on a clip element. Selector "#scene-07" resolves to element <section id="scene-07" class="clip scene scene-custom-native scene-has-video">. The framework manages clip visibility, and autoAlpha writes visibility as well as opacity — do not animate these properties on clip elements.
+    C:\Users\admin\Desktop\hyperframe-main\video-agent\deliverables\s02-gpu-closeout-20260916\versions\final\index.html #scene-07 t=0s
+    Fix: Remove the visibility/display/autoAlpha tween, or move the content into a child <div> and target that instead.
+  ✗ gsap_animates_clip_element: GSAP animation sets visibility on a clip element. Selector "#scene-08" resolves to element <section id="scene-08" class="clip scene scene-custom-native scene-has-video">. The framework manages clip visibility, and autoAlpha writes visibility as well as opacity — do not animate these properties on clip elements.
+    C:\Users\admin\Desktop\hyperframe-main\video-agent\deliverables\s02-gpu-closeout-20260916\versions\final\index.html #scene-08 t=0s
+    Fix: Remove the visibility/display/autoAlpha tween, or move the content into a child <div> and target that instead.
+  ✗ gsap_animates_clip_element: GSAP animation sets visibility on a clip element. Selector "#scene-09" resolves to element <section id="scene-09" class="clip scene scene-custom-native scene-has-video">. The framework manages clip visibility, and autoAlpha writes visibility as well as opacity — do not animate these properties on clip elements.
+    C:\Users\admin\Desktop\hyperframe-main\video-agent\deliverables\s02-gpu-closeout-20260916\versions\final\index.html #scene-09 t=0s
+    Fix: Remove the visibility/display/autoAlpha tween, or move the content into a child <div> and target that instead.
+  ✗ gsap_animates_clip_element: GSAP animation sets visibility on a clip element. Selector "#scene-10" resolves to element <section id="scene-10" class="clip scene scene-custom-native scene-has-video">. The framework manages clip visibility, and autoAlpha writes visibility as well as opacity — do not animate these properties on clip elements.
+    C:\Users\admin\Desktop\hyperframe-main\video-agent\deliverables\s02-gpu-closeout-20260916\versions\final\index.html #scene-10 t=0s
+    Fix: Remove the visibility/display/autoAlpha tween, or move the content into a child <div> and target that instead.
+  ⚠ gsap_timeline_set_initial_hide: Initial hidden state for "#custom-scene-01-scene01-title-panel" is set via tl.set(...) at position 0 inside the paused timeline. A zero-duration set at 0 does not render while the playhead sits exactly at 0, so frame 0 shows the un-hidden state.
+    C:\Users\admin\Desktop\hyperframe-main\video-agent\deliverables\s02-gpu-closeout-20260916\versions\final\index.html #custom-scene-01-scene01-title-panel t=0s
+    Fix: Use gsap.set(...) (immediate, outside the timeline) for initial states, or author the hidden state directly in CSS/attributes.
+  ⚠ timeline_track_too_dense: Track 1 has 5 timed elements in this HTML file. Smaller sub-compositions keep timelines easier to read, iterate on, and diff.
+    C:\Users\admin\Desktop\hyperframe-main\video-agent\deliverables\s02-gpu-closeout-20260916\versions\final\index.html [data-composition-id] t=0s
+    Fix: Move coherent scene groups into separate .html files under compositions/ and mount them from the parent with data-composition-src so the timeline stays easier to inspect, revise, and validate.
+  ⚠ timeline_track_too_dense: Track 2 has 5 timed elements in this HTML file. Smaller sub-compositions keep timelines easier to read, iterate on, and diff.
+    C:\Users\admin\Desktop\hyperframe-main\video-agent\deliverables\s02-gpu-closeout-20260916\versions\final\index.html [data-composition-id] t=0s
+    Fix: Move coherent scene groups into separate .html files under compositions/ and mount them from the parent with data-composition-src so the timeline stays easier to inspect, revise, and validate.
+  11 error(s), 3 warning(s), 0 info(s)
+
+Runtime
+  ◇ 0 errors, 0 warnings
+
+Layout
+  ◇ 0 issues across 0 sample(s)
+
+Motion
+  ◇ 0 errors, 0 warnings
+
+Contrast
+  ◇ 0/0 text checks pass WCAG AA
+
+Snapshots
+  ◇ disabled
+
+◇  Check failed
+
+    at ChildProcess.<anonymous> (file:///C:/Users/admin/Desktop/hyperframe-main/video-agent/lib/creative/runner.mjs:60:731) {
+  code: 'HYPERFRAMES_CHECK',
+  logFile: 'hyperframes-check-1789543093487.log'
+}
+
+Node.js v24.19.0

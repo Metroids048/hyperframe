@@ -109,6 +109,9 @@ export function normalizeCommerceRequest(input = {}) {
       sourceDurationSeconds: asset.sourceDurationSeconds == null ? null : Number(asset.sourceDurationSeconds),
       volume: asset.volume == null ? 1 : Number(asset.volume),
       generatedVoice:asset.generatedVoice===true,
+      audioRole:asset.audioRole||null,
+      providerTranscript:asset.providerTranscript||null,
+      audioGeneration:asset.audioGeneration||null,
     };
   });
   insist(new Set(normalizedAssets.map(a=>a.id)).size===normalizedAssets.length,'素材 ID 重复','INVALID_ASSET_ID');
@@ -133,6 +136,11 @@ export function normalizeCommerceRequest(input = {}) {
     commerceProfile: input.commerceProfile || null,
     pipelineVersion: input.pipelineVersion === 3 ? 3 : 1,
     scenarioId: input.scenarioId || null,
+    taskMode: input.taskMode || input.businessContract?.taskMode || null,
+    taskModeExplicit: input.taskModeExplicit ?? input.businessContract?.workflow?.taskModeExplicit ?? Boolean(input.taskMode),
+    workflowProfile: input.workflowProfile || null,
+    baseProjectId: input.baseProjectId || null,
+    baseRevisionId: input.baseRevisionId || null,
     businessContract: input.businessContract || null,
     businessGoal: [...new Set((Array.isArray(input.businessGoal)?input.businessGoal:[]).filter(g=>['product_launch','product_demo','product_howto','product_detail','product_collection','product_promotion','product_faq','launch','detail','demo','style','promotion','faq','recut','versions'].includes(g)))],
     inputMode: normalizedAssets.some(a=>a.kind==='video')?(normalizedAssets.some(a=>a.kind==='image')?'mixed':'footage'):normalizedAssets.some(a=>a.kind==='image')?'images':null,

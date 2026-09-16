@@ -1,4 +1,5 @@
 import {resourceRequests,applyRequestedTransitions} from './resource-catalog.mjs';
+import {assertCompleteNarration} from './narration-timing.mjs';
 import {explicitBusinessConstraints,validateBusinessAudio} from './business-constraints.mjs';
 import {fullOriginalAudioGraph} from './observation-audio.mjs';
 import {createHash} from 'node:crypto';
@@ -29,7 +30,7 @@ export const creationSchema = object({
     media:list(object({assetId:str,sourceStartSeconds:num,playbackRate:num,fit:{type:'string',enum:['contain','cover']}})),
     text:list(object({role:{type:'string',enum:['title','feature','price','cta']},text:str,factRefs:list(str)})),
   })),
-  audio:list(object({assetId:str,volume:num,sourceStartSeconds:num})),
+  audio:list(object({assetId:str,volume:num,sourceStartSeconds:num,startSeconds:{type:['number','null']},durationSeconds:{type:['number','null']}})),
   omitted:list(object({assetId:str,reason:str})),
 });
 
@@ -196,11 +197,13 @@ export function documentFromModelPlan(request,assets,plan){
   document.observations=plan.observations;document.omitted=plan.omitted;
   document.audioGraph=(plan.audio||[]).flatMap((a,i)=>{
     const asset=byId[a.assetId];insist(asset?.mediaMetadata.hasAudio&&a.volume>=0&&a.volume<=1&&a.sourceStartSeconds>=0,'导演音轨无效','INVALID_MODEL_PLAN');
-    if(asset.generatedVoice)insist(a.sourceStartSeconds===0&&target>=Math.ceil(asset.mediaMetadata.duration*FPS),'已确认配音放不进当前时长，请延长成片或缩短稿件','VOICE_DURATION_CONFLICT');
     if(asset.kind==='video')return document.nodes.filter(n=>n.kind==='video'&&n.assetId===asset.id).map((n,j)=>({id:`audio-${i+1}-${j+1}`,assetId:asset.id,sceneId:n.sceneId,sourceNodeId:n.id,startFrame:n.startFrame,sourceStartSeconds:n.params.sourceStartSeconds,playbackRate:n.params.playbackRate??1,durationFrames:n.durationFrames,volume:a.volume}));
-    return {id:`audio-${i+1}`,assetId:a.assetId,startFrame:0,sourceStartSeconds:a.sourceStartSeconds,durationFrames:Math.min(target,Math.floor((asset.mediaMetadata.duration-a.sourceStartSeconds)*FPS)),volume:a.volume};
+    const startFrame=Math.round((a.startSeconds??0)*FPS),durationFrames=a.durationSeconds==null?Math.min(target-startFrame,Math.floor((asset.mediaMetadata.duration-a.sourceStartSeconds)*FPS)):Math.round(a.durationSeconds*FPS);
+    insist(Number.isInteger(startFrame)&&startFrame>=0&&Number.isInteger(durationFrames)&&durationFrames>0&&startFrame+durationFrames<=target&&a.sourceStartSeconds+durationFrames/FPS<=asset.mediaMetadata.duration+1/FPS,'分段音轨超出真实源或成片时间','INVALID_AUDIO_RANGE');
+    return {id:`audio-${i+1}`,assetId:a.assetId,startFrame,sourceStartSeconds:a.sourceStartSeconds,durationFrames,volume:a.volume,...(asset.generatedVoice?{role:'narration'}:{})};
   });
   document.audioGraph=fullOriginalAudioGraph(request.message,assets,target)||document.audioGraph;
+  assertCompleteNarration(document,assets);
   validateBusinessAudio(request.message,document.audioGraph,assets);
   document.revisionId=stableId('rev',request.projectId,document.scenes,document.nodes,document.design,document.audioGraph,document.sourceBundles);
   assertNoUnknownFacts(document);return document;

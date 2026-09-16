@@ -5,7 +5,7 @@ import path from 'node:path';
 import os from 'node:os';
 import sharp from 'sharp';
 import {generateCommerceAsset,outputAspect} from '../lib/creative/runninghub.mjs';
-import {HyperFramesResourcePlanner,explicitResource,resourceRequests} from '../lib/creative/resource-catalog.mjs';
+import {HyperFramesResourcePlanner,explicitResource,resourceRequests,resolveResourceTargets} from '../lib/creative/resource-catalog.mjs';
 import {fillGenerationGaps} from '../lib/creative/generation-plan.mjs';
 import {executionStatus} from '../lib/creative/execution-status.mjs';
 import {compileChromatic} from '../lib/creative/chromatic-split.mjs';
@@ -41,7 +41,7 @@ test('R1 exact catalog names, aliases, URLs, negative clauses and empty matches'
  const exact=new HyperFramesResourcePlanner(aliasOnly,[{id:'cinematic-zoom',compatible:true,eligible:true}]).plan('电影推近');
  assert.equal(exact.status,'resolved');assert.equal(exact.selected[0].sourceFiles[0].sha256,'abc');
  assert.equal(explicitResource('Do not use chromatic split'),null);
- const requests=resourceRequests('不要全片用色散，只在第一个转场用一次');assert.equal(requests[0].negated,false);assert.deepEqual(requests[0].scope,{kind:'transition',index:0});
+ const requests=resourceRequests('不要全片用色散，只在第一个转场用一次');assert.equal(requests.length,2);assert.equal(requests[0].negated,true);assert.equal(requests[1].negated,false);assert.deepEqual(requests[1].scope,{kind:'transition',index:0});assert.deepEqual(resolveResourceTargets(requests,3),{include:[0],exclude:[1,2]});
  const denied=new HyperFramesResourcePlanner(catalog,[{id:'chromatic-split',compatible:true,eligible:true}]).plan('不要色散');assert.deepEqual(denied.selected,[]);
 });
 test('R1 unused shader imports and compiles without resource reads',()=>{assert.deepEqual(compileChromatic({transitions:[]},{}),{receipts:[],html:'',script:''});});

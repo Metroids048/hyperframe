@@ -6,6 +6,13 @@ export function canonicalProductionInput(input){
   return {...input,request:{...request,assets:assets.map(({path,...asset})=>asset)}};
 }
 export function productionFingerprint(input){return resourceHash(canonicalProductionInput(input));}
+export function legacyExplicitnessCompatibility(before,current){
+  const compatible={...current};
+  // Older normalizers did not persist this derived marker. Only its exact old
+  // default is migratable; an explicit false/true change remains a conflict.
+  if(!Object.hasOwn(before,'taskModeExplicit')&&current.taskModeExplicit===Boolean(before.taskMode))delete compatible.taskModeExplicit;
+  return compatible;
+}
 export function verifyFingerprintMigration(prior,proof,current){
   insist(resourceHash(proof)===prior.inputFingerprint||productionFingerprint(proof)===prior.inputFingerprint,'旧输入证明与检查点指纹不符','RUN_INPUT_CONFLICT');
   insist(productionFingerprint(proof)===productionFingerprint(current),'需求、素材或运行配置已经变化，不能复用检查点','RUN_INPUT_CONFLICT');

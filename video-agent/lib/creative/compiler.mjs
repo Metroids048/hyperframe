@@ -289,7 +289,8 @@ export function compileDocument(document, preparedAssets, {audioRefs={}}={}) {
   <script>
     window.__timelines = window.__timelines || {};
     const tl = gsap.timeline({paused:true});
-    ${document.nodes.filter(n=>custom.get(n.sceneId)?.managedVideoNodeIds?.includes(n.id)).map(n=>`tl.set(${js('#media-gate-'+n.id)},{visibility:"visible"},${sec(n.startFrame)});tl.set(${js('#media-gate-'+n.id)},{visibility:"hidden"},${sec(n.startFrame+n.durationFrames)});`).join('\n')}
+    ${document.scenes.map(s=>`tl.set(${js('#'+s.id)},{clipPath:"inset(0%)"},${sec(s.startFrame)});tl.set(${js('#'+s.id)},{clipPath:"inset(100%)"},${sec(s.startFrame+s.durationFrames)});`).join('\n')}
+    ${document.nodes.filter(n=>custom.get(n.sceneId)?.managedVideoNodeIds?.includes(n.id)).map(n=>`tl.set(${js('#media-gate-'+n.id)},{visibility:"visible",clipPath:"inset(0%)"},${sec(n.startFrame)});tl.set(${js('#media-gate-'+n.id)},{visibility:"hidden",clipPath:"inset(100%)"},${sec(n.startFrame+n.durationFrames)});`).join('\n')}
     ${timeline}
     window.__timelines["commerce-root"] = tl;
     ${shader.script}
@@ -305,7 +306,7 @@ export function compileDocument(document, preparedAssets, {audioRefs={}}={}) {
     output: document.output,
     scenes: document.scenes.map(s => ({id: s.id, purpose: s.purpose, effect: s.effect, startFrame: s.startFrame, durationFrames: s.durationFrames})),
     effects: [...new Set([...document.scenes.map(s => s.effect), ...document.transitions.map(t => t.effect)])],
-    assets: Object.values(assets).map(a => ({id: a.id, kind: a.kind, sha256: a.sha256, ref: publicAsset(a), rights: a.rights || {status: 'unknown'}, generated:a.generated===true, provider:a.provider, providerTaskId:a.providerTaskId, provenance:a.provenance, generatedVoice:a.generatedVoice===true, mediaMetadata:a.mediaMetadata,originalMediaMetadata:a.originalMediaMetadata,processing:a.processing, sourceStartSeconds: a.sourceStartSeconds || 0, sourceDurationSeconds: a.sourceDurationSeconds ?? null, volume: a.volume ?? 1})),
+    assets: Object.values(assets).map(a => ({id: a.id, kind: a.kind, sha256: a.sha256, ref: publicAsset(a), rights: a.rights || {status: 'unknown'}, generated:a.generated===true, provider:a.provider, providerTaskId:a.providerTaskId, provenance:a.provenance, generatedVoice:a.generatedVoice===true, audioRole:a.audioRole,providerTranscript:a.providerTranscript,audioGeneration:a.audioGeneration,mediaMetadata:a.mediaMetadata,originalMediaMetadata:a.originalMediaMetadata,processing:a.processing, sourceStartSeconds: a.sourceStartSeconds || 0, sourceDurationSeconds: a.sourceDurationSeconds ?? null, volume: a.volume ?? 1})),
   }};
 }
 
