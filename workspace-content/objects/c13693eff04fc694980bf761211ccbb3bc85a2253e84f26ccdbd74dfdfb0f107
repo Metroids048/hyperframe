@@ -1,0 +1,59 @@
+{
+  "scope": "non-generation workflows; MiniMax paused",
+  "generatedAt": "2026-09-16T11:17:38.965Z",
+  "design": "docs/NON_GENERATION_WORKFLOWS.zh-CN.md",
+  "implementation": [
+    "lib/creative/workflow-design.mjs",
+    "lib/creative/workflow-gates.mjs",
+    "lib/creative/commerce-skills.mjs",
+    "lib/creative/service.mjs",
+    "lib/creative/capabilities.mjs",
+    "web/commerce.js"
+  ],
+  "validation": {
+    "workflowTests": {
+      "passed": 9,
+      "failed": 0
+    },
+    "workflowRealBrowser": "passed; scripts/test-workflow-ui.mjs",
+    "core": {
+      "path": "outputs/upgrade/verification/core-2026-09-16T11-01-28.381Z/report.json",
+      "status": "passed"
+    },
+    "acceptance": {
+      "passed": 20,
+      "failed": 0,
+      "path": "outputs/acceptance/2026-09-16T11-02-00-131Z"
+    },
+    "browser": {
+      "path": "outputs/upgrade/verification/browser-2026-09-16T11-01-39.373Z/report.json",
+      "status": "failed",
+      "failures": [
+        {
+          "name": "test-editor-upgrade-ui",
+          "status": "failed",
+          "durationMs": 21510,
+          "passedAssertions": 4,
+          "code": 1,
+          "signal": null,
+          "timedOut": false
+        }
+      ],
+      "supplement": "outputs/upgrade/ui/2026-09-16T11-04-34-050Z; detached-node case passed on standalone rerun"
+    },
+    "live": {
+      "general": "outputs/workflow-live-2026-09-16T11-11-01.367Z/general.json",
+      "variant": "outputs/workflow-live-2026-09-16T11-15-23.932Z/detail-variant.json",
+      "variantThirdSceneBinding": "scene-03 verified",
+      "initialFailureRetained": true
+    }
+  },
+  "audit": "outputs/workflow-support-audit.json",
+  "frozenVideoSha256": "9cf4fa46dfe476bb422afc916e5509194bcacc27305686e14dbfb4f0edeae3f7",
+  "limitations": [
+    "Main service was not restarted; source changes are not claimed live there.",
+    "Most discovered resources remain references, not verified executors.",
+    "No new business video, MiniMax call or human quality approval.",
+    "Browser original report retains one transient click failure; standalone rerun passed."
+  ]
+}

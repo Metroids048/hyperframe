@@ -1,0 +1,895 @@
+// web/finished-work-options.mjs
+function finishedWorkOptions(projects, presets, works) {
+  const visible = projects.filter((p) => p.visibility !== "test" && p.testOnly !== true && p.revisions?.some((r) => r.rendered && r.videoUrl));
+  const sources = new Set(visible.map((p) => p.id));
+  return [
+    ...works.map((w) => ({ value: "work:" + w.id, label: w.title + (w.provenance?.startsWith("reference-") ? " \xB7 \u53C2\u8003\u6210\u54C1" : " \xB7 \u5BFC\u51FA\u4F5C\u54C1") })),
+    ...visible.map((p) => {
+      const latest = [...p.revisions].reverse().find((r) => r.rendered && r.videoUrl);
+      return { value: p.id, label: (p.title || "\u672A\u547D\u540D\u4F5C\u54C1") + (latest.id !== p.currentRevisionId ? " \xB7 \u6700\u8FD1\u5BFC\u51FA\u7248" : "") };
+    }),
+    ...presets.filter((p) => p.videoUrl && !sources.has(p.sourceProjectId)).map((p) => ({ value: "preset:" + p.id, label: p.title }))
+  ];
+}
+function unfinishedProjectOptions(projects) {
+  return projects.filter((p) => p.visibility !== "test" && p.testOnly !== true && !p.revisions?.some((r) => r.rendered && r.videoUrl)).map((p) => ({ value: p.id, label: ((!p.title || ["\u65B0\u521B\u4F5C", "\u6B63\u5728\u6253\u5F00\u5DE5\u7A0B", "\u672A\u547D\u540D\u5DE5\u7A0B"].includes(p.title)) && p.request?.message ? p.request.message.slice(0, 24) + (p.request.message.length > 24 ? "\u2026" : "") : p.title || "\u672A\u547D\u540D\u5DE5\u7A0B") + " \xB7 " + (p.jobs?.some((j) => ["running", "queued"].includes(j.status)) ? "\u5236\u4F5C\u4E2D" : p.revisions?.length ? "\u5F85\u5BFC\u51FA" : "\u8349\u7A3F\uFF0F\u53EF\u6062\u590D") }));
+}
+
+// web/workflow-selection.mjs
+function savedWorkflowSelection(request, entries) {
+  const candidates = [
+    request.workflowProfile,
+    request.workflow?.workflowProfile,
+    request.taskMode,
+    request.workflow?.taskMode,
+    request.scenarioId,
+    request.businessContract?.scenarioId
+  ];
+  for (const value of candidates) {
+    const entry2 = entries.find((item) => item.id === value || item.alias === value || value === "product_howto" && item.id === "product_demo");
+    if (entry2) return { id: entry2.id, alias: entry2.alias };
+  }
+  return { id: "auto", alias: "auto" };
+}
+
+// web/commerce.js
+var $ = (s) => document.querySelector(s);
+var composer = $("#composer");
+var input = $("#message");
+var attachments = $("#images");
+var selectedGenerationAssetId = null;
+var mediaGenerationPaused = true;
+var workflowEntries = [];
+api("/api/commerce-capabilities").then((c) => {
+  mediaGenerationPaused = c.mediaGenerationPaused;
+  if (!Array.isArray(c.workflowEntries) || !c.workflowEntries.length) throw Error("\u573A\u666F\u76EE\u5F55\u672A\u80FD\u52A0\u8F7D\uFF0C\u8BF7\u5237\u65B0\u540E\u91CD\u8BD5");
+  workflowEntries = c.workflowEntries;
+  const scene = $("#business-scene"), prior = scene.value;
+  scene.replaceChildren(new Option("\u81EA\u52A8\u5224\u65AD", "auto"), ...workflowEntries.map((e) => new Option(e.label, e.id)));
+  scene.value = prior;
+  if (project) restoreIntake();
+  const paths = $("#creation-paths");
+  for (const old of paths.querySelectorAll("[data-creation]")) old.remove();
+  for (const e of workflowEntries) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "quiet";
+    b.dataset.creation = e.alias;
+    b.textContent = e.label;
+    b.onclick = () => useCreationEntry(e.alias);
+    paths.insertBefore(b, $("#input-guidance"));
+  }
+  for (const option of $("#creation-target").options) if (option.value !== "marketing") option.disabled = mediaGenerationPaused;
+  draw();
+}).catch(showError);
+var files = [];
+var project = null;
+var poll = null;
+var selected = null;
+var posting = false;
+var opening = false;
+var nativeDocument = null;
+var selectedNode = null;
+var documentRevision = null;
+var draftKey = () => "commerce-draft:" + (project?.id || new URLSearchParams(location.search).get("project") || "new");
+input.addEventListener("input", () => localStorage.setItem(draftKey(), input.value));
+input.value = localStorage.getItem(draftKey()) || "";
+var objectUrls = [];
+var presetCatalog = [];
+var finishedWorks = [];
+var openSequence = 0;
+var projectSummaries = [];
+var shownVoices = "";
+var rememberedProjects = new Set(JSON.parse(localStorage.getItem("commerce-created-projects") || "[]"));
+function rememberProject(id) {
+  rememberedProjects.add(id);
+  localStorage.setItem("commerce-created-projects", JSON.stringify([...rememberedProjects]));
+}
+var active = (j) => ["queued", "running"].includes(j.status);
+function drawProduction() {
+  const last = project?.jobs.at(-1), quality = nativeDocument?.quality || last?.quality, range = nativeDocument?.previewRange, media = project?.revisions.find((r) => r.id === selected)?.mediaReview;
+  $("#production-quality").hidden = !quality && !range && !media;
+  $("#direction-preview").hidden = !range;
+  $("#quality-summary").textContent = [quality ? `\u5DE5\u7A0B\u68C0\u67E5\uFF1A${quality.engineering === "checked" ? "\u5DF2\u901A\u8FC7" : "\u5F85\u68C0\u67E5"}\u3002\u753B\u9762\u68C0\u67E5\uFF1A${quality.status === "preview-reviewed" ? "\u5173\u952E\u5E27\u5DF2\u68C0\u67E5" : quality.status === "unchanged-visual-content" ? "\u672C\u6B21\u672A\u6539\u753B\u9762" : "\u5F85\u590D\u6838"}\u3002\u4EBA\u5DE5\u9A8C\u6536\uFF1A${quality.humanReview === "passed" ? "\u5DF2\u901A\u8FC7" : "\u5F85\u5BA1\u6838"}\u3002` : "", media ? `\u5BFC\u51FA\u5A92\u4F53\uFF1A${media.status === "media-contract-passed" ? "\u65F6\u957F\u3001\u5C3A\u5BF8\u3001\u5E27\u7387\u548C\u97F3\u8F68\u5DF2\u68C0\u67E5" : "\u672A\u901A\u8FC7"}\u3002` : "", ...(quality?.issues || []).map((i) => `${i.startSeconds ?? i.seconds ?? "?"}${i.endSeconds != null ? "\u2013" + i.endSeconds : ""} \u79D2\uFF1A${i.problem}`)].join(" ");
+}
+function drawJobs(jobs) {
+  const container = $("#jobs"), existing = new Map([...container.children].map((el) => [el.dataset.jobId, el]));
+  const nodes = jobs.map((j) => {
+    const signature = JSON.stringify([j.id, j.kind, j.status, j.stage, j.runId, j.gaps, j.error, j.modelCalls, j.maxModelCalls, j.completionReserve, j.budgetSource, j.completedShots, j.resumeAllowed, j.budgetExhausted, j.directionPreview?.key]), prior = existing.get(j.id);
+    if (prior?.dataset.signature === signature) return prior;
+    const row = drawJob(j);
+    row.dataset.jobId = j.id;
+    row.dataset.signature = signature;
+    return row;
+  });
+  if (nodes.length !== container.children.length || nodes.some((n, i) => container.children[i] !== n)) container.replaceChildren(...nodes);
+}
+function drawJob(j) {
+  const d = document.createElement("div"), label = j.kind === "plan" ? "\u89C4\u5212" : j.kind === "export" ? "\u5BFC\u51FA" : j.kind === "import" ? "\u91CD\u5F00\u5DE5\u7A0B" : j.kind === "create" ? "\u521B\u4F5C" : "\u4FEE\u6539";
+  d.textContent = label + " \xB7 " + (j.budgetExhausted ? "\u672C\u8F6E\u9884\u7B97\u5DF2\u7528\u5B8C\uFF0C\u8349\u7A3F\u4E0E\u7F3A\u9677\u5DF2\u4FDD\u7559" : j.status === "complete" ? "\u5DF2\u5B8C\u6210" : j.status === "needs_user" ? "\u6709\u5F85\u786E\u8BA4\u7684\u95EE\u9898\uFF0C\u8BC1\u636E\u5DF2\u4FDD\u7559" : j.status === "recoverable" ? "\u5DF2\u6682\u505C\uFF0C\u53EF\u4ECE\u68C0\u67E5\u70B9\u6062\u590D" : j.status === "failed" ? shortError(j.error) : j.status === "cancelled" ? "\u5DF2\u53D6\u6D88" : j.stage || "\u6392\u961F\u4E2D");
+  if (j.runId) {
+    const info = document.createElement("p");
+    info.textContent = `\u540C\u4E00\u4EFB\u52A1\u7D2F\u8BA1 ${j.modelCalls ?? 0} \u6B21 / ${j.maxModelCalls ?? "\u672A\u767B\u8BB0"} \u6B21\uFF0C\u6700\u7EC8\u68C0\u67E5\u9884\u7559 ${j.completionReserve || 0} \u6B21\uFF1B\u5DF2\u5B8C\u6210 ${j.completedShots ?? 0} \u5E55\u3002\u9884\u7B97\u6765\u6E90\uFF1A${j.budgetSource === "explicit-webui-approval" ? "\u7528\u6237\u6279\u51C6" : "\u5E94\u7528\u4F30\u7B97"}\u3002`;
+    d.append(info);
+  }
+  if (j.code === "MODEL_BUDGET" && !active(j)) {
+    const budget = document.createElement("input");
+    budget.type = "number";
+    budget.min = String((j.modelCalls || 0) + 7);
+    budget.max = "128";
+    budget.value = String(Math.min(128, (j.modelCalls || 0) + 30));
+    budget.setAttribute("aria-label", "\u6279\u51C6\u7D2F\u8BA1\u8C03\u7528\u4E0A\u9650");
+    const approve = document.createElement("button");
+    approve.textContent = "\u6279\u51C6\u6B64\u4E0A\u9650\uFF08\u9884\u75596\u6B21\u68C0\u67E5\uFF09";
+    approve.onclick = () => action({ action: "authorize_budget", jobId: j.id, maxModelCalls: Number(budget.value), completionReserve: 6, idempotencyKey: crypto.randomUUID() });
+    d.append(budget, approve);
+  }
+  if (active(j)) {
+    const b = document.createElement("button");
+    b.textContent = "\u53D6\u6D88";
+    b.onclick = () => action({ action: "cancel", jobId: j.id });
+    d.append(b);
+  }
+  if (j.kind === "audio" && j.code === "MINIMAX_SUBMISSION_UNKNOWN" && !active(j)) {
+    const b = document.createElement("button");
+    b.textContent = "\u6838\u5BF9\u540E\u6388\u6743\u65B0\u63D0\u4EA4";
+    b.onclick = () => {
+      if (confirm("\u539F\u8BF7\u6C42\u53EF\u80FD\u5DF2\u8BA1\u8D39\u3002\u8BF7\u5148\u6838\u5BF9\u4F9B\u5E94\u5546\u8BB0\u5F55\u3002\u786E\u8BA4\u53E6\u884C\u63D0\u4EA4\u5E76\u63A5\u53D7\u53EF\u80FD\u91CD\u590D\u8BA1\u8D39\uFF1F")) action({ action: "audio-new-submission", jobId: j.id, acceptPossibleDuplicateCharge: true, idempotencyKey: crypto.randomUUID() });
+    };
+    d.append(b);
+  }
+  if ((j.resumeAllowed || j.status === "failed") && !["MINIMAX_SUBMISSION_UNKNOWN", "MINIMAX_CAPABILITY_UNAVAILABLE"].includes(j.code)) {
+    const b = document.createElement("button");
+    b.textContent = j.resumeAllowed ? "\u4ECE\u68C0\u67E5\u70B9\u6062\u590D" : "\u91CD\u8BD5";
+    b.onclick = () => action({ action: j.resumeAllowed ? "resume" : "retry", jobId: j.id });
+    d.append(b);
+  }
+  if (j.directionPreview?.previewUrl) {
+    const link = document.createElement("a");
+    link.textContent = "\u67E5\u770B\u63D0\u524D\u65B9\u5411\u9884\u89C8\uFF08\u5168\u7247\u4ECD\u5728\u5236\u4F5C\uFF09";
+    link.href = j.directionPreview.previewUrl;
+    link.target = "_blank";
+    link.rel = "noopener";
+    d.append(link);
+  }
+  if (j.gaps?.length) {
+    const p = document.createElement("p");
+    p.textContent = j.gaps.join("\uFF1B");
+    d.append(p);
+  }
+  if (j.error) {
+    const detail = document.createElement("details"), summary = document.createElement("summary"), log = document.createElement("pre");
+    summary.textContent = "\u5904\u7406\u8BB0\u5F55";
+    log.textContent = j.error;
+    detail.append(summary, log);
+    d.append(detail);
+  }
+  if (j.workflowPlan) {
+    const plan = j.workflowPlan, detail = document.createElement("details"), summary = document.createElement("summary"), body = document.createElement("pre");
+    summary.textContent = "\u67E5\u770B\u5236\u4F5C\u5355\u4E0E\u7F3A\u9879";
+    body.style.whiteSpace = "pre-wrap";
+    body.textContent = [plan.workOrder.objective, "\u4E1A\u52A1\u76EE\u7684\uFF1A" + (workflowEntries.find((e) => e.id === plan.workOrder.scenario)?.label || "\u901A\u7528\u5236\u4F5C") + " \xB7 \u64CD\u4F5C\uFF1A" + ({ create: "\u65B0\u5EFA", edit: "\u4FEE\u6539", recut: "\u7CBE\u526A", variant: "\u591A\u7248" }[plan.workOrder.mode] || plan.workOrder.mode), "\u7EA6\u675F\uFF1A" + plan.workOrder.requirements.map((r) => r.quote).join("\uFF1B"), "\u6B65\u9AA4\uFF1A" + plan.workOrder.steps.map((s) => s.purpose).join(" \u2192 "), "\u8D44\u6E90\uFF1A" + plan.resources.map((r) => r.requirement.purpose + "\uFF08" + ({ resolved: "\u5DF2\u627E\u5230\u5019\u9009\uFF0C\u5F85\u9A8C\u8BC1", excluded: "\u5DF2\u6309\u8981\u6C42\u6392\u9664", pending_adapter: "\u7F3A\u5C11\u517C\u5BB9\u9002\u914D", unresolved_scope: "\u9700\u660E\u786E\u4F5C\u7528\u8303\u56F4", unresolved: "\u5C1A\u672A\u5339\u914D" }[r.status] || r.status) + "\uFF09").join("\uFF1B"), "\u4E0B\u4E00\u6B65\uFF1A" + plan.nextAction, "\u5C1A\u672A\u89C2\u5BDF\u7D20\u6750\u6216\u901A\u8FC7\u6210\u7247\u8D28\u91CF\u9A8C\u6536\u3002"].join("\n");
+    detail.append(summary, body);
+    d.append(detail);
+  }
+  return d;
+}
+var busy = () => posting || opening || project?.jobs.some((j) => active(j) && j.kind !== "export");
+var roles = { hero: "\u4E3B\u4F53\u753B\u9762", detail: "\u7EC6\u8282\u753B\u9762", title: "\u6807\u9898", feature: "\u8BF4\u660E", price: "\u4EF7\u683C", cta: "\u7ED3\u5C3E\u63D0\u793A", caption: "\u5B57\u5E55", decoration: "\u56FE\u5F62" };
+var shortError = (text) => /^HyperFrames/.test(text || "") ? "\u753B\u9762\u68C0\u67E5\u672A\u901A\u8FC7\uFF0C\u4E0A\u4E00\u6709\u6548\u7248\u672C\u5DF2\u4FDD\u7559\u3002\u53EF\u4EE5\u91CD\u8BD5\u6216\u8C03\u6574\u8981\u6C42\u3002" : String(text || "").split("\n")[0];
+function showError(e) {
+  $("#error").textContent = shortError(e.message || e);
+  $("#error").hidden = false;
+}
+async function api(url, options = {}) {
+  const r = await fetch(url, options), data = await r.json();
+  if (!r.ok) throw Error(data.error || "\u8BF7\u6C42\u5931\u8D25");
+  return data;
+}
+var post = (data) => api("/api/commerce-chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
+function thumbnails() {
+  objectUrls.splice(0).forEach(URL.revokeObjectURL);
+  $("#thumbs").replaceChildren(...files.map((f, i) => {
+    const chip = document.createElement("div");
+    chip.className = "file-chip";
+    if (f.type.startsWith("image/")) {
+      const img = document.createElement("img");
+      img.src = URL.createObjectURL(f);
+      img.alt = f.name;
+      objectUrls.push(img.src);
+      chip.append(img);
+    }
+    const name = document.createElement("span"), remove = document.createElement("button");
+    name.textContent = f.name;
+    remove.textContent = "\xD7";
+    remove.type = "button";
+    remove.setAttribute("aria-label", "\u79FB\u9664 " + f.name);
+    remove.onclick = () => {
+      files.splice(i, 1);
+      thumbnails();
+    };
+    chip.append(name, remove);
+    return chip;
+  }));
+}
+attachments.onchange = () => {
+  files.push(...attachments.files);
+  attachments.value = "";
+  thumbnails();
+};
+composer.addEventListener("dragover", (e) => {
+  e.preventDefault();
+  composer.classList.add("dragover");
+});
+composer.addEventListener("dragleave", () => composer.classList.remove("dragover"));
+composer.addEventListener("drop", (e) => {
+  e.preventDefault();
+  composer.classList.remove("dragover");
+  const dropped = [...e.dataTransfer.files];
+  if (dropped.length) {
+    files.push(...dropped);
+    thumbnails();
+  }
+});
+composer.addEventListener("paste", (e) => {
+  const pasted = [...e.clipboardData.files];
+  if (pasted.length) {
+    e.preventDefault();
+    files.push(...pasted);
+    thumbnails();
+  }
+});
+async function listProjects() {
+  const [data, catalog, finished] = await Promise.all([api("/api/commerce-projects"), api("/api/commerce-demos").catch((e) => {
+    showError(e);
+    return { presets: [] };
+  }), api("/api/commerce-finished").catch((e) => {
+    showError(e);
+    return { works: [] };
+  })]);
+  projectSummaries = data.projects;
+  presetCatalog = catalog.presets;
+  finishedWorks = finished.works;
+  const options = finishedWorkOptions(projectSummaries, presetCatalog, finishedWorks), value = project?.id || $("#projects").value;
+  const completed = document.createElement("optgroup");
+  completed.label = "\u5DF2\u5BFC\u51FA\u4F5C\u54C1";
+  completed.append(...options.map((o) => new Option(o.label, o.value)));
+  const unfinished = document.createElement("optgroup");
+  unfinished.label = "\u5236\u4F5C\u4E2D\u4E0E\u672A\u5BFC\u51FA\u5DE5\u7A0B";
+  unfinished.append(...unfinishedProjectOptions(projectSummaries).map((o) => new Option(o.label, o.value)));
+  $("#projects").replaceChildren(new Option("\u6253\u5F00\u4F5C\u54C1\u6216\u5DE5\u7A0B", ""), completed, unfinished, ...(finished.unavailable || []).map((w) => Object.assign(new Option(w.title + " \xB7 \u4E0D\u53EF\u7528\uFF1A" + w.error, "unavailable:" + w.id), { disabled: true })));
+  $("#projects").value = value;
+}
+function clearPreview() {
+  selected = null;
+  selectedNode = null;
+  nativeDocument = null;
+  documentRevision = null;
+  const old = $("#player");
+  old.pause?.();
+  if (old.getAttribute("src")) {
+    const player = document.createElement("hyperframes-player");
+    player.id = "player";
+    player.setAttribute("controls", "");
+    player.hidden = true;
+    old.replaceWith(player);
+  } else old.hidden = true;
+  $("#empty").hidden = false;
+  for (const id of ["human-review-link", "quality-status", "formal-download"]) {
+    const el = $("#" + id);
+    if (el) el.hidden = true;
+  }
+  for (const id of ["revision-tools", "object-tools", "creation-summary", "download", "package", "production-quality"]) $("#" + id).hidden = true;
+  for (const id of ["download", "package"]) $("#" + id).removeAttribute("href");
+  $("#revisions").replaceChildren();
+  $("#objects").replaceChildren(new Option("\u81EA\u52A8\u7406\u89E3\u4FEE\u6539\u76EE\u6807", ""));
+  $("#object-info").textContent = "";
+}
+function preserveLastFrame(player) {
+  let ended = false;
+  player.addEventListener("ended", () => queueMicrotask(() => {
+    if (!player.isConnected || !(player.duration > 0)) return;
+    ended = true;
+    player.pause?.();
+    player.seek?.(Math.max(0, player.duration - 1 / 30));
+  }));
+  player.addEventListener("play", () => {
+    if (ended && player.currentTime >= player.duration - 0.07) player.seek?.(0);
+    ended = false;
+  });
+  player.addEventListener("timeupdate", () => {
+    if (player.currentTime < player.duration - 0.08) ended = false;
+  });
+  return player;
+}
+function chooseObject(id, seek = false) {
+  selectedNode = id || null;
+  $("#objects").value = id || "";
+  const node = nativeDocument?.nodes.find((n) => n.id === id), scene = nativeDocument?.scenes.find((s) => s.id === node?.sceneId), locks = scene ? { content: scene.locked, timing: scene.locked, ...scene.locks } : {};
+  $("#object-info").textContent = scene ? `\u7B2C ${nativeDocument.scenes.indexOf(scene) + 1} \u5E55 \xB7 ${Object.entries(locks).filter(([, on]) => on).map(([k]) => ({ content: "\u5185\u5BB9\u5DF2\u9501", layout: "\u5E03\u5C40\u5DF2\u9501", timing: "\u65F6\u957F\u5DF2\u9501", absolute: "\u7EDD\u5BF9\u4F4D\u7F6E\u5DF2\u9501" })[k]).join("\uFF0C") || "\u53EF\u4FEE\u6539"}` : "";
+  if (seek && node) {
+    $("#player").pause?.();
+    $("#player").seek?.((node.startFrame + Math.min(18, node.durationFrames - 1)) / 30);
+  }
+}
+async function loadObjects(r) {
+  if (documentRevision === r.id) return;
+  documentRevision = r.id;
+  try {
+    const doc = await api(r.documentUrl);
+    if (documentRevision !== r.id) return;
+    nativeDocument = doc;
+    drawCreationSummary(doc);
+    drawAudio();
+    $("#objects").replaceChildren(new Option("\u81EA\u52A8\u7406\u89E3\u4FEE\u6539\u76EE\u6807", ""), ...doc.nodes.filter((n) => n.kind !== "audio").map((n) => new Option(`\u7B2C ${doc.scenes.findIndex((s) => s.id === n.sceneId) + 1} \u5E55 \xB7 ${roles[n.semanticRole] || n.kind}${n.params?.text ? " \xB7 " + n.params.text.slice(0, 28) : ""}`, n.id)), ...(doc.captions || []).map((c, i) => new Option("\u5B57\u5E55 " + (i + 1) + " \xB7 " + c.text.slice(0, 28), c.id)));
+    chooseObject(doc.nodes.some((n) => n.id === selectedNode) ? selectedNode : null);
+    $("#object-tools").hidden = false;
+    drawProduction();
+  } catch (e) {
+    documentRevision = null;
+    showError(e);
+  }
+}
+function preview(r) {
+  if (!r) return;
+  $("#case-view").hidden = true;
+  $("#case-film").pause();
+  selected = r.id;
+  const old = $("#player");
+  if (old.getAttribute("src") !== r.previewUrl) {
+    old.pause?.();
+    const player = preserveLastFrame(document.createElement("hyperframes-player"));
+    player.id = "player";
+    player.setAttribute("controls", "");
+    player.setAttribute("src", r.previewUrl);
+    player.style.aspectRatio = r.output.width + "/" + r.output.height;
+    player.addEventListener("ready", () => {
+      queueMicrotask(() => player.seek?.(0.6));
+      player.iframe?.contentDocument?.addEventListener("click", (e) => {
+        const object = e.target.closest('[data-object-id],[id^="obj-"]');
+        if (object) chooseObject(object.dataset.objectId || object.id.slice(4));
+      });
+    }, { once: true });
+    old.replaceWith(player);
+  }
+  void loadObjects(r);
+  $("#player").hidden = false;
+  $("#empty").hidden = true;
+  let reviewLink = $("#human-review-link");
+  if (!reviewLink) {
+    reviewLink = document.createElement("a");
+    reviewLink.id = "human-review-link";
+    reviewLink.textContent = "\u5BA1\u9605\u5F53\u524D\u5019\u9009\u7247";
+    reviewLink.target = "_blank";
+    $("#download").after(reviewLink);
+  }
+  reviewLink.href = "/api/commerce/" + project.id + "/review";
+  reviewLink.hidden = !r.videoUrl;
+  let statusLabel = $("#quality-status");
+  if (!statusLabel) {
+    statusLabel = document.createElement("p");
+    statusLabel.id = "quality-status";
+    $("#download").after(statusLabel);
+  }
+  statusLabel.hidden = false;
+  statusLabel.textContent = project.deliveryStatus === "accepted" ? "\u5F53\u524D\u7248\u672C\u5DF2\u6B63\u5F0F\u9A8C\u6536" : project.deliveryStatus === "legacy_unverified" ? "\u5386\u53F2\u4F5C\u54C1\uFF1A\u5C1A\u672A\u6309\u65B0\u6807\u51C6\u9A8C\u6536" : "\u5019\u9009\u7247\uFF1A\u6280\u672F\u3001\u753B\u9762\u3001\u52A8\u4F5C\u3001\u58F0\u97F3\u4E0E\u4EBA\u5DE5\u8BA4\u53EF\u5206\u522B\u5BA1\u67E5";
+  let formalLink = $("#formal-download");
+  if (!formalLink) {
+    formalLink = document.createElement("a");
+    formalLink.id = "formal-download";
+    formalLink.textContent = "\u4E0B\u8F7D\u6B63\u5F0F\u9A8C\u6536\u7248";
+    $("#download").after(formalLink);
+  }
+  formalLink.hidden = project.deliveryStatus !== "accepted" || selected !== project.currentRevisionId;
+  formalLink.href = r.videoUrl + "?delivery=formal&download=1";
+  $("#download").textContent = "\u4E0B\u8F7D\u5019\u9009\u7247\uFF08\u5F85\u5BA1\uFF09";
+  $("#download").hidden = !r.videoUrl;
+  if (r.videoUrl) $("#download").href = r.videoUrl + "?download=1";
+  $("#package").hidden = !r.packageUrl;
+  if (r.packageUrl) $("#package").href = r.packageUrl + "?download=1";
+}
+function draw() {
+  drawAudio();
+  $("#generated-assets").replaceChildren(...(project?.assets || []).filter((a) => a.id.startsWith("rh-")).map((a) => {
+    const card = document.createElement("article"), media = document.createElement(a.kind === "image" ? "img" : "video");
+    media.src = "/api/commerce/" + project.id + "/input-assets/" + a.id;
+    media.style.maxWidth = "180px";
+    if (a.kind === "video") media.controls = true;
+    const label = document.createElement("p");
+    label.textContent = a.name + " \xB7 \u6765\u6E90\u5DF2\u767B\u8BB0\uFF0C\u8D28\u91CF\u5F85\u5BA1";
+    card.append(media, label);
+    for (const [target, title] of a.kind === "image" && !mediaGenerationPaused ? [["video", "\u505A\u6210\u89C6\u9891"], ["marketing", "\u7528\u4E8E\u6210\u7247"]] : [["marketing", "\u7528\u4E8E\u6210\u7247"]]) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = selectedGenerationAssetId === a.id ? "\u5DF2\u9009 \xB7 " + title : title;
+      button.disabled = busy() || !!project.currentRevisionId;
+      button.onclick = () => {
+        selectedGenerationAssetId = a.id;
+        $("#creation-target").value = target;
+        input.focus();
+        draw();
+      };
+      card.append(button);
+    }
+    return card;
+  }));
+  for (const id of ["creation-target", "output-aspect", "output-duration"]) $("#" + id).disabled = !!project?.currentRevisionId;
+  if (!project?.currentRevisionId) clearPreview();
+  if (project) {
+    $("#case-view").hidden = true;
+    $("#case-film").pause();
+  }
+  drawVoices();
+  if (project) {
+    $("#projects").value = project.id;
+    $("#revision-tools").hidden = !project.currentRevisionId;
+    $("#preset-notice").hidden = !project.preset;
+    $("#revisions").replaceChildren(...project.revisions.map((r, i) => new Option(i + 1 + ". " + r.description.slice(0, 40) + (r.branch ? "\uFF08\u5206\u652F\uFF09" : ""), r.id)));
+    selected = selected && project.revisions.some((r) => r.id === selected) ? selected : project.currentRevisionId;
+    $("#revisions").value = selected;
+    preview(project.revisions.find((r) => r.id === selected));
+    $("#messages").replaceChildren(...project.messages.map((m) => {
+      const d = document.createElement("div");
+      d.className = "bubble " + m.role;
+      d.textContent = m.role === "assistant" ? shortError(m.text) : m.text;
+      return d;
+    }));
+    $("#messages").scrollTop = $("#messages").scrollHeight;
+    drawJobs(project.jobs.slice(-3));
+    drawProduction();
+    $("#details").hidden = false;
+    $("#status").textContent = JSON.stringify({ projectId: project.id, currentRevisionId: project.currentRevisionId, previewRevisionId: selected, assets: project.assets.length, preset: project.preset?.id || null, run: project.jobs.at(-1)?.runId, stage: project.jobs.at(-1)?.stage, checkpoints: project.jobs.at(-1)?.checkpoints }, null, 2);
+  } else {
+    $("#messages").replaceChildren();
+    $("#jobs").replaceChildren();
+    $("#status").textContent = "";
+    $("#details").hidden = true;
+    $("#preset-notice").hidden = true;
+  }
+  const historyView = project?.currentRevisionId && selected !== project.currentRevisionId;
+  $("#projects").disabled = posting;
+  $("#send").disabled = Boolean(busy() || historyView);
+  $("#plan-workflow").disabled = Boolean(busy() || historyView);
+  $("#send").textContent = posting ? "\u6B63\u5728\u63D0\u4EA4\u2026" : project?.currentRevisionId ? "\u53D1\u9001\u4FEE\u6539" : { "image": "\u751F\u6210\u56FE\u7247", "video": "\u751F\u6210\u539F\u59CB\u955C\u5934" }[$("#creation-target").value] || "\u751F\u6210\u89C6\u9891";
+  $("#composer-hint").textContent = historyView ? "\u6062\u590D\u6B64\u7248\u540E\u53EF\u7EE7\u7EED\u4FEE\u6539" : project?.currentRevisionId ? "\u7EE7\u7EED\u63CF\u8FF0\u60F3\u6539\u7684\u5730\u65B9" : mediaGenerationPaused ? "\u4F7F\u7528\u5DF2\u6709\u5546\u54C1\u7D20\u6750\u5236\u4F5C\uFF1B\u65B0\u56FE\u7247\uFF0F\u955C\u5934\u751F\u6210\u5DF2\u6682\u505C" : "\u5546\u54C1\u56FE\u53EF\u751F\u6210\u56FE\u7247\u548C\u955C\u5934\uFF0C\u5DF2\u6709\u7D20\u6750\u53EF\u5236\u4F5C\u8425\u9500\u7247";
+  input.placeholder = project?.currentRevisionId ? "\u60F3\u8C03\u6574\u4EC0\u4E48\uFF1F" : "\u60F3\u505A\u4E00\u6761\u600E\u6837\u7684\u89C6\u9891\uFF1F";
+  for (const id of ["restore", "undo", "redo"]) $("#" + id).disabled = Boolean(busy());
+  $("#export").disabled = !selected || project?.jobs.some((j) => j.kind === "export" && active(j) && j.baseRevisionId === selected);
+}
+async function refresh() {
+  if (!project) return;
+  const id = project.id, prior = project.currentRevisionId, priorExports = project.revisions.filter((r) => r.rendered).map((r) => r.id).join("|"), data = await api("/api/commerce/" + id);
+  if (project?.id !== id) return;
+  project = data.project;
+  if (prior !== project.currentRevisionId) {
+    selected = project.currentRevisionId;
+    restoreIntake();
+  }
+  if (prior !== project.currentRevisionId || priorExports !== project.revisions.filter((r) => r.rendered).map((r) => r.id).join("|")) void listProjects().catch(showError);
+  draw();
+  clearTimeout(poll);
+  if (project.jobs.some(active)) poll = setTimeout(() => refresh().catch(showError), 1200);
+}
+async function openProject(id) {
+  const sequence = ++openSequence;
+  opening = true;
+  clearTimeout(poll);
+  project = null;
+  input.value = "";
+  files = [];
+  thumbnails();
+  clearPreview();
+  draw();
+  try {
+    const result = await api("/api/commerce/" + id);
+    if (sequence !== openSequence) return;
+    project = result.project;
+    selectedGenerationAssetId = project.request?.sourceAssetId || null;
+    input.value = localStorage.getItem(draftKey()) || "";
+    restoreIntake();
+    selected = project.revisions.find((r) => r.id === project.currentRevisionId)?.videoUrl ? project.currentRevisionId : [...project.revisions].reverse().find((r) => r.videoUrl)?.id || project.currentRevisionId;
+    history.replaceState(null, "", "/?project=" + id);
+    draw();
+    await listProjects();
+    await refresh();
+  } finally {
+    if (sequence === openSequence) {
+      opening = false;
+      draw();
+    }
+  }
+}
+async function action(data) {
+  $("#error").hidden = true;
+  try {
+    const result = await post({ ...data, projectId: project.id, baseRevisionId: project.currentRevisionId, idempotencyKey: crypto.randomUUID() });
+    if (result.project) {
+      const changedProject = project.id !== result.project.id;
+      if (changedProject || project.currentRevisionId !== result.project.currentRevisionId) selected = result.project.currentRevisionId;
+      project = result.project;
+      if (changedProject) {
+        clearPreview();
+        selectedNode = null;
+        documentRevision = null;
+        rememberProject(project.id);
+        history.replaceState(null, "", "/?project=" + project.id);
+        restoreIntake();
+      }
+    }
+    await refresh();
+    return true;
+  } catch (e) {
+    showError(e);
+    return false;
+  }
+}
+async function uploadFiles() {
+  if (files.length + project.assets.length > 30) throw Error("\u6BCF\u4E2A\u5DE5\u7A0B\u6700\u591A30\u4E2A\u7D20\u6750");
+  if (files.some((f) => f.size > 1024 ** 3)) throw Error("\u6BCF\u4E2A\u7D20\u6750\u6700\u591A1 GiB");
+  for (const [i, f] of files.entries()) {
+    $("#send").textContent = `\u4E0A\u4F20 ${i + 1}/${files.length}`;
+    await api("/api/commerce/" + project.id + "/assets", { method: "POST", headers: { "x-file-name": encodeURIComponent(f.name) }, body: f });
+  }
+}
+function restoreIntake() {
+  const r = project?.request || {}, revision = project?.revisions?.find((v) => v.id === project.currentRevisionId), o = revision?.output || r.output || {};
+  $("#creation-target").value = r.target || "marketing";
+  $("#output-aspect").value = o.width && o.height && o.width === o.height ? "1:1" : o.width > o.height ? "16:9" : "9:16";
+  $("#output-duration").value = revision ? revision.durationFrames / 30 : o.durationSeconds || 24;
+  const choice = savedWorkflowSelection(r, workflowEntries);
+  $("#business-scene").value = choice.id;
+  selectedBusinessGoal = choice.alias;
+}
+function intake() {
+  const ratio = $("#output-aspect").value;
+  return { taskModeExplicit: ["recut", "versions"].includes(selectedBusinessGoal), taskMode: selectedBusinessGoal === "recut" ? "recut" : selectedBusinessGoal === "versions" ? "variant" : project?.currentRevisionId ? "edit" : "create", workflowProfile: selectedBusinessGoal === "versions" ? "variant" : selectedBusinessGoal, baseProjectId: project?.id || null, baseRevisionId: project?.currentRevisionId || null, sourceAssetId: selectedGenerationAssetId || project?.request?.sourceAssetId || null, target: $("#creation-target").value, scenarioId: { launch: "product_launch", demo: "product_demo", detail: "product_detail", style: "product_collection", promotion: "product_promotion", faq: "product_faq" }[selectedBusinessGoal] || null, businessGoal: ["launch", "demo", "detail", "style", "promotion", "faq"].includes(selectedBusinessGoal) ? [selectedBusinessGoal] : [], output: { width: ratio === "16:9" ? 1920 : 1080, height: ratio === "9:16" ? 1920 : 1080, durationSeconds: Number($("#output-duration").value) }, pipelineVersion: 3 };
+}
+composer.onsubmit = async (e) => {
+  e.preventDefault();
+  if (busy()) return;
+  const message = input.value.trim(), submittedDraftKey = draftKey();
+  if (!message && !files.length) return;
+  $("#error").hidden = true;
+  posting = true;
+  draw();
+  try {
+    if (project?.currentRevisionId) {
+      await uploadFiles();
+      const { taskMode, taskModeExplicit, workflowProfile } = intake();
+      if (await action({ action: "message", message, taskMode, taskModeExplicit, workflowProfile, selectedNodeId: selectedNode })) {
+        input.value = "";
+        localStorage.removeItem(submittedDraftKey);
+        files = [];
+        thumbnails();
+      }
+    } else {
+      if (!project) project = (await post({ action: "draft", request: { message, inferRequest: true, ...intake() } })).project;
+      selected = null;
+      rememberProject(project.id);
+      history.replaceState(null, "", "/?project=" + project.id);
+      draw();
+      await uploadFiles();
+      await post({ action: "generate", projectId: project.id, message, request: intake(), idempotencyKey: crypto.randomUUID() });
+      input.value = "";
+      localStorage.removeItem(submittedDraftKey);
+      files = [];
+      thumbnails();
+      await refresh();
+      await listProjects();
+    }
+  } catch (err) {
+    showError(err);
+  } finally {
+    posting = false;
+    draw();
+  }
+};
+async function loadPreset(preset) {
+  if (busy()) return;
+  ++openSequence;
+  posting = true;
+  draw();
+  try {
+    project = (await post({ action: "preset", presetId: preset.id })).project;
+    selected = project.currentRevisionId;
+    history.replaceState(null, "", "/?project=" + project.id);
+    input.value = preset.input;
+    files = [];
+    thumbnails();
+    draw();
+    await listProjects();
+  } catch (e) {
+    showError(e);
+  } finally {
+    posting = false;
+    draw();
+  }
+}
+$("#regenerate").onclick = async () => {
+  if (busy() || !project?.preset) return;
+  let prepared = false;
+  posting = true;
+  draw();
+  try {
+    const source = project;
+    files = await Promise.all(source.assets.map(async (a) => {
+      const r = await fetch("/api/commerce/" + source.id + "/input-assets/" + a.id);
+      if (!r.ok) throw Error("\u9884\u8BBE\u8F93\u5165\u7D20\u6750\u8BFB\u53D6\u5931\u8D25");
+      return new File([await r.blob()], a.name, { type: r.headers.get("content-type") || "application/octet-stream" });
+    }));
+    input.value = source.request.message;
+    clearTimeout(poll);
+    project = null;
+    selected = null;
+    nativeDocument = null;
+    documentRevision = null;
+    $("#messages").replaceChildren();
+    $("#preset-notice").hidden = true;
+    $("#revision-tools").hidden = true;
+    $("#object-tools").hidden = true;
+    $("#details").hidden = true;
+    $("#jobs").replaceChildren();
+    $("#download").hidden = true;
+    $("#package").hidden = true;
+    $("#player").pause?.();
+    $("#player").hidden = true;
+    $("#empty").hidden = false;
+    history.replaceState(null, "", "/");
+    thumbnails();
+    input.focus();
+    prepared = true;
+  } catch (e) {
+    showError(e);
+  } finally {
+    posting = false;
+    draw();
+  }
+  if (prepared) composer.requestSubmit();
+};
+$("#new-project").onclick = () => {
+  location.href = "/";
+};
+$("#projects").onchange = (e) => {
+  const value = e.target.value;
+  if (value.startsWith("work:")) {
+    const work = finishedWorks.find((w) => w.id === value.slice(5));
+    if (work) void showFinishedWork(work);
+  } else if (value.startsWith("preset:")) {
+    const preset = presetCatalog.find((p) => p.id === value.slice(7));
+    if (preset) void loadPreset(preset);
+  } else if (value) openProject(value).catch(showError);
+};
+$("#objects").onchange = (e) => chooseObject(e.target.value, true);
+$("#revisions").onchange = (e) => {
+  selected = e.target.value;
+  draw();
+};
+$("#restore").onclick = () => action({ action: "restore", revisionId: selected });
+$("#undo").onclick = () => action({ action: "undo" });
+$("#redo").onclick = () => action({ action: "redo" });
+$("#export").onclick = () => action({ action: "export", revisionId: selected });
+$("#open-package").onclick = () => $("#package-file").click();
+$("#direction-preview").onclick = () => {
+  const player = $("#player"), range = nativeDocument?.previewRange;
+  if (!range) return;
+  player.pause?.();
+  player.seek?.(range.startFrame / 30);
+  const stop = () => {
+    if (player.currentTime >= range.endFrame / 30) {
+      player.pause?.();
+      player.removeEventListener("timeupdate", stop);
+    }
+  };
+  player.addEventListener("timeupdate", stop);
+  player.play?.();
+};
+$("#package-file").onchange = async () => {
+  const file = $("#package-file").files[0];
+  if (!file) return;
+  $("#package-file").value = "";
+  $("#error").hidden = true;
+  $("#open-package").disabled = true;
+  try {
+    const result = await api("/api/commerce-import", { method: "POST", headers: { "Content-Type": "application/zip" }, body: file });
+    await openProject(result.project.id);
+  } catch (error) {
+    showError(error);
+  } finally {
+    $("#open-package").disabled = false;
+  }
+};
+async function showFinishedWork(work) {
+  ++openSequence;
+  clearTimeout(poll);
+  project = null;
+  opening = false;
+  selectedGenerationAssetId = null;
+  clearPreview();
+  draw();
+  history.replaceState(null, "", "/?work=" + encodeURIComponent(work.id));
+  input.value = localStorage.getItem(draftKey()) || "";
+  $("#case-view").hidden = false;
+  const film = $("#case-film");
+  film.pause();
+  film.src = work.videoUrl;
+  film.removeAttribute("poster");
+  film.load();
+  $("#case-label").textContent = work.title + " \xB7 " + work.durationSeconds + "\u79D2";
+  $("#case-input").textContent = work.note;
+  $("#empty").hidden = true;
+  $("#case-download").href = work.videoUrl + "?download=1";
+  $("#case-package").hidden = !work.packageUrl;
+  if (work.packageUrl) $("#case-package").href = work.packageUrl + "?download=1";
+  $("#case-fullscreen").onclick = () => film.requestFullscreen().catch(showError);
+  $("#projects").value = "work:" + work.id;
+}
+var initial = new URLSearchParams(location.search).get("project");
+if (initial) openProject(initial).catch(showError);
+else listProjects().then(() => {
+  const id = new URLSearchParams(location.search).get("work"), work = finishedWorks.find((w) => w.id === id);
+  if (work) return showFinishedWork(work);
+}).catch(showError);
+function drawVoices() {
+  const voices = project?.auditions || [], key = voices.map((a) => a.id).join("|");
+  if (key === shownVoices) return;
+  shownVoices = key;
+  $("#voice-results").hidden = !voices.length;
+  $("#voice-results").replaceChildren(...voices.map((a, i) => {
+    const card = document.createElement("div"), label = document.createElement("p"), audio = document.createElement("audio"), button = document.createElement("button");
+    label.textContent = "\u8BD5\u542C " + (i + 1) + " \xB7 " + (a.voiceName || a.voice);
+    audio.controls = true;
+    audio.preload = "metadata";
+    audio.src = a.url;
+    button.type = "button";
+    button.className = "quiet";
+    button.textContent = "\u9009\u62E9\u8FD9\u4E2A\u58F0\u97F3";
+    button.onclick = () => {
+      input.value = "\u786E\u8BA4\u4F7F\u7528\u7B2C" + (i + 1) + "\u4E2A\u58F0\u97F3\u3002";
+      input.focus();
+    };
+    card.append(label, audio, button);
+    return card;
+  }));
+}
+var creationInputs = {
+  style: { hint: "\u63D0\u4F9B\u540C\u6B3E\u6216\u7CFB\u5217\u5173\u7CFB\u660E\u786E\u7684\u7D20\u6750\uFF0C\u5C55\u793A\u98CE\u683C\u4E0E\u642D\u914D\uFF0C\u4E0D\u63A8\u65AD\u6027\u80FD\u3002", message: "\u7528\u8FD9\u4E9B\u7D20\u6750\u505A\u4E00\u6761\u98CE\u683C\u5C55\u793A\uFF0C\u7A81\u51FA\u5546\u54C1\u5F62\u72B6\u3001\u6750\u8D28\u4E0E\u642D\u914D\u5173\u7CFB\u3002" },
+  faq: { hint: "\u63D0\u4F9B\u5177\u4F53\u9009\u8D2D\u95EE\u9898\u4E0E\u80FD\u56DE\u7B54\u5B83\u7684\u7D20\u6750\u3002", message: "\u7528\u8FD9\u4E9B\u7D20\u6750\u56DE\u7B54\u4E00\u4E2A\u5177\u4F53\u9009\u8D2D\u95EE\u9898\uFF0C\u7ED3\u8BBA\u5FC5\u987B\u6709\u753B\u9762\u6216\u8D44\u6599\u4F9D\u636E\u3002" },
+  recut: { hint: "\u6DFB\u52A0\u539F\u89C6\u9891\u5E76\u6307\u51FA\u8981\u5220\u7684\u7B49\u5F85\u6216\u9700\u8981\u8865\u5145\u7684\u8BF4\u660E\u3002", message: "\u6574\u7406\u8FD9\u6BB5\u5B9E\u62CD\u7684\u8282\u594F\uFF0C\u5220\u6389\u7B49\u5F85\u3001\u4FDD\u7559\u52A8\u4F5C\u548C\u539F\u610F\uFF0C\u5E76\u6DFB\u52A0\u5FC5\u8981\u8BF4\u660E\u3002" },
+  versions: { hint: "\u6253\u5F00\u5DF2\u6709\u5DE5\u7A0B\u540E\u63CF\u8FF0\u65B0\u76EE\u7684\u6216\u753B\u5E45\uFF1B\u539F\u7248\u672C\u4F1A\u4FDD\u7559\u3002", message: "\u57FA\u4E8E\u540C\u4E00\u7EC4\u7D20\u6750\u8C03\u6574\u4F20\u64AD\u76EE\u7684\u548C\u753B\u5E45\uFF0C\u4FDD\u7559\u539F\u4F5C\u54C1\u5E76\u5236\u4F5C\u65B0\u7248\u672C\u3002" },
+  launch: { hint: "\u6DFB\u52A0\u5546\u54C1\u7D20\u6750\u4E0E\u5DF2\u786E\u8BA4\u7684\u91CD\u70B9\uFF0C\u65F6\u957F\u3001\u753B\u5E45\u548C\u58F0\u97F3\u53EF\u81EA\u7531\u63CF\u8FF0\u3002", message: "\u505A\u4E00\u6761\u4E0A\u65B0\u4ECB\u7ECD\uFF0C\u8BA9\u89C2\u4F17\u5148\u770B\u6E05\u5546\u54C1\uFF0C\u518D\u8BA4\u8BC6\u6709\u7D20\u6750\u4F9D\u636E\u7684\u7279\u70B9\u3002" },
+  detail: { hint: "\u6DFB\u52A0\u80FD\u652F\u6301\u8BF4\u660E\u7684\u6574\u4F53\u4E0E\u7EC6\u8282\u7D20\u6750\uFF0C\u4E0D\u786E\u5B9A\u7684\u53C2\u6570\u53EF\u4EE5\u4E0D\u586B\u3002", message: "\u91CD\u70B9\u89E3\u91CA\u8FD9\u4E9B\u5546\u54C1\u7684\u5356\u70B9\u4E0E\u7ED3\u6784\u7EC6\u8282\uFF0C\u753B\u9762\u548C\u8BF4\u660E\u8981\u5BF9\u5E94\uFF0C\u4E0D\u7F16\u9020\u53C2\u6570\u3002" },
+  demo: { hint: "\u6DFB\u52A0\u8FDE\u7EED\u5B9E\u62CD\u4E0E\u64CD\u4F5C\u987A\u5E8F\uFF0C\u8BF4\u660E\u539F\u58F0\u8981\u6C42\uFF1B\u6CA1\u6709\u62CD\u5230\u7684\u6B65\u9AA4\u4E0D\u80FD\u865A\u6784\u3002", message: "\u505A\u4E00\u6761\u4F7F\u7528\u6F14\u793A\uFF0C\u4FDD\u7559\u5B8C\u6574\u64CD\u4F5C\uFF0C\u8BA9\u7B2C\u4E00\u6B21\u770B\u7684\u4EBA\u7406\u89E3\u6B65\u9AA4\u3002" },
+  promotion: { hint: "\u63D0\u4F9B\u5DF2\u786E\u8BA4\u7684\u4EF7\u683C\u3001\u6761\u4EF6\u548C\u884C\u52A8\u63D0\u793A\uFF1B\u7F3A\u5C11\u7684\u6D3B\u52A8\u4FE1\u606F\u4F1A\u4FDD\u7559\u5F85\u786E\u8BA4\u3002", message: "\u505A\u4E00\u6761\u6D3B\u52A8\u63A8\u5E7F\u89C6\u9891\uFF0C\u6E05\u695A\u5C55\u793A\u5546\u54C1\u3001\u5DF2\u786E\u8BA4\u7684\u6D3B\u52A8\u6761\u4EF6\u4E0E\u884C\u52A8\u63D0\u793A\u3002" }
+};
+var selectedBusinessGoal = new URLSearchParams(location.search).get("creation");
+var sceneSelect = $("#business-scene");
+if (sceneSelect) sceneSelect.onchange = () => {
+  selectedBusinessGoal = { product_demo: "demo", product_launch: "launch", product_detail: "detail", product_collection: "style", product_promotion: "promotion", product_faq: "faq" }[sceneSelect.value] || workflowEntries.find((e) => e.id === sceneSelect.value)?.alias || null;
+};
+function useCreationEntry(kind) {
+  const entry2 = creationInputs[kind];
+  if (!entry2) return;
+  if (kind === "versions" && !project?.currentRevisionId) {
+    $("#input-guidance").textContent = "\u8BF7\u5148\u6253\u5F00\u4F5C\u4E3A\u6BCD\u7248\u7684\u539F\u751F\u5DE5\u7A0B\uFF0C\u518D\u5236\u4F5C\u6D3E\u751F\u7248\u672C\u3002";
+    return;
+  }
+  selectedBusinessGoal = kind;
+  $("#business-scene").value = workflowEntries.find((e) => e.alias === kind)?.id || "auto";
+  if (!input.value.trim()) input.value = entry2.message;
+  $("#input-guidance").textContent = entry2.hint;
+  input.focus();
+  $("#case-view").hidden = true;
+  $("#case-film").pause();
+}
+for (const button of document.querySelectorAll("[data-creation]")) button.onclick = () => {
+  if (busy()) return;
+  if (project) {
+    $("#input-guidance").textContent = "\u5F53\u524D\u4F5C\u54C1\u53EF\u4EE5\u76F4\u63A5\u63CF\u8FF0\u4FEE\u6539\u9700\u6C42\uFF1B\u65B0\u5236\u4F5C\u8BF7\u4F7F\u7528\u201C\u65B0\u5EFA\u201D\u3002";
+    return;
+  }
+  useCreationEntry(button.dataset.creation);
+};
+var entry = creationInputs[new URLSearchParams(location.search).get("creation")];
+if (entry && !initial) useCreationEntry(selectedBusinessGoal);
+function drawCreationSummary(doc) {
+  const names = { "comparison-split": "\u53CC\u533A\u7EC6\u8282\u8BF4\u660E", "grid-card-assemble": "\u4FE1\u606F\u5206\u7EC4", "video-text-pivot": "\u5B9E\u62CD\u914D\u5408\u8BF4\u660E", "lt-mask-reveal": "\u5B9E\u62CD\u6587\u5B57\u6807\u6CE8", "titlecard-reveal": "\u5206\u5C42\u6807\u9898", "native-original": "\u5B9A\u5236\u5E03\u5C40" };
+  const used = [...new Set((doc.resourceReceipts || []).map((r) => names[r.resourceId] || "\u539F\u751F\u52A8\u6548"))];
+  const count = (kind) => doc.nodes.filter((n) => n.kind === kind).length;
+  $("#creation-summary").hidden = false;
+  $("#creation-summary-text").textContent = `${doc.scenes.length} \u6BB5\u753B\u9762\uFF0C${count("image")} \u4E2A\u56FE\u7247\u5BF9\u8C61\u3001${count("video")} \u4E2A\u89C6\u9891\u5BF9\u8C61\u3001${count("text")} \u4E2A\u6587\u5B57\u5BF9\u8C61\u3002` + (used.length ? "\u91C7\u7528\uFF1A" + used.join("\u3001") + "\u3002" : "") + "\u53EF\u9009\u62E9\u753B\u9762\u5BF9\u8C61\u540E\u7EE7\u7EED\u63CF\u8FF0\u4FEE\u6539\u8981\u6C42\u3002";
+}
+$("#creation-target").addEventListener("change", draw);
+function drawAudio() {
+  const select = $("#audio-asset"), prior = select.value;
+  select.replaceChildren(new Option("\u9009\u62E9\u58F0\u97F3\u7D20\u6750", ""), ...(project?.assets || []).filter((a) => a.kind === "audio").map((a) => new Option(a.name || a.id, a.id)));
+  select.value = prior;
+  const tracks = $("#audio-replace"), previous = tracks.value;
+  const current = Boolean(project?.currentRevisionId && nativeDocument?.revisionId === project.currentRevisionId);
+  tracks.replaceChildren(new Option("\u6DFB\u52A0\u65B0\u97F3\u8F68", ""), ...(current ? nativeDocument.audioGraph || [] : []).map((t) => new Option((t.role || "\u58F0\u97F3") + " \xB7 " + t.id, t.id)));
+  tracks.value = previous;
+  $("#audio-apply").disabled = !current || busy();
+  $("#audio-apply").title = current ? "" : "\u8BF7\u5148\u663E\u793A\u5F53\u524D\u7F16\u8F91\u7248\u672C";
+  $("#audio-generate").disabled = busy();
+}
+$("#audio-voices").onclick = async () => {
+  try {
+    $("#audio-status").textContent = "\u6B63\u5728\u67E5\u8BE2\u8D26\u6237\u97F3\u8272\u2026";
+    const data = await post({ action: "audio-voices" });
+    $("#audio-voice").replaceChildren(new Option("\u9009\u62E9\u97F3\u8272", ""), ...data.voices.map((v) => new Option(v.name + " \xB7 " + v.description, v.id)));
+    $("#audio-status").textContent = "\u97F3\u8272\u76EE\u5F55\u5DF2\u8BFB\u53D6\uFF0C\u8BF7\u9009\u62E9\u540E\u751F\u6210\u3002";
+  } catch (e) {
+    $("#audio-status").textContent = e.message;
+  }
+};
+$("#audio-generate").onclick = async () => {
+  if (busy()) return;
+  try {
+    const kind = $("#audio-kind").value, text = $("#audio-text").value.trim(), voice = $("#audio-voice").value;
+    if (!text) throw Error("\u8BF7\u586B\u5199\u65C1\u767D\u7A3F\u6216\u97F3\u4E50\u63CF\u8FF0");
+    if (kind === "speech" && !voice) throw Error("\u8BF7\u5148\u67E5\u8BE2\u5E76\u9009\u62E9\u97F3\u8272");
+    if (!project) {
+      project = (await post({ action: "draft", request: { inferRequest: true, ...intake() } })).project;
+      rememberProject(project.id);
+      history.replaceState(null, "", "/?project=" + project.id);
+    }
+    await action({ action: "audio-generate", audio: { kind, text, prompt: text, voice, rate: Number($("#audio-rate").value) } });
+  } catch (e) {
+    showError(e);
+  }
+};
+$("#audio-asset").onchange = () => {
+  const asset = project?.assets.find((a) => a.id === $("#audio-asset").value), player = $("#audio-listen");
+  player.pause();
+  if (asset) {
+    player.src = "/api/commerce/" + project.id + "/input-assets/" + asset.id;
+    $("#audio-role").value = asset.audioRole === "narration" ? "narration" : "music";
+  } else player.removeAttribute("src");
+};
+$("#audio-apply").onclick = () => action({ action: "audio-apply", assetId: $("#audio-asset").value, replaceTrackId: $("#audio-replace").value || null, role: $("#audio-role").value, captions: $("#audio-captions").checked, startFrame: Math.round(Number($("#audio-start").value) * 30), windowDurationFrames: $("#audio-window").value ? Math.round(Number($("#audio-window").value) * 30) : void 0 });
+$("#audio-replace").onchange = () => {
+  const track = nativeDocument?.audioGraph?.find((t) => t.id === $("#audio-replace").value), asset = project?.assets.find((a) => a.id === track?.assetId);
+  if (track) {
+    $("#audio-role").value = track.role;
+    $("#audio-start").value = String(track.startFrame / 30);
+    $("#audio-window").value = String((track.speechWindowFrames || track.durationFrames) / 30);
+  }
+  if (asset?.speechRequest) {
+    $("#audio-text").value = asset.speechRequest.text;
+    $("#audio-rate").value = String(asset.speechRequest.rate);
+    if ([...$("#audio-voice").options].some((o) => o.value === asset.speechRequest.voice)) $("#audio-voice").value = asset.speechRequest.voice;
+  }
+};
+$("#audio-revoice").onclick = async () => {
+  if (busy()) return;
+  try {
+    const replaceTrackId = $("#audio-replace").value;
+    if (!replaceTrackId) throw Error("\u8BF7\u9009\u62E9\u8981\u4FEE\u6539\u7684\u65C1\u767D\u97F3\u8F68");
+    if (!project?.currentRevisionId || selected !== project.currentRevisionId) throw Error("\u8BF7\u5148\u663E\u793A\u5F53\u524D\u7F16\u8F91\u7248\u672C");
+    await action({ action: "audio-replace-speech", replaceTrackId, voice: $("#audio-voice").value || void 0, text: $("#audio-keep-text").checked ? void 0 : $("#audio-text").value, rate: Number($("#audio-rate").value) });
+  } catch (e) {
+    showError(e);
+  }
+};
+$("#plan-workflow").onclick = async () => {
+  if (busy()) return;
+  const message = input.value.trim();
+  if (!message) return;
+  posting = true;
+  draw();
+  try {
+    if (!project) {
+      project = (await post({ action: "draft", request: { message, inferRequest: true, ...intake() } })).project;
+      rememberProject(project.id);
+      history.replaceState(null, "", "/?project=" + project.id);
+    }
+    await uploadFiles();
+    await post({ action: "plan-workflow", projectId: project.id, message, baseRevisionId: project.currentRevisionId, idempotencyKey: crypto.randomUUID() });
+    await refresh();
+    await listProjects();
+  } catch (e) {
+    showError(e);
+  } finally {
+    posting = false;
+    draw();
+  }
+};

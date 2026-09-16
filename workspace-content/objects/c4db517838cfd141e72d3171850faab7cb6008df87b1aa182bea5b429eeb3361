@@ -1,0 +1,415 @@
+{
+  "schemaVersion": 1,
+  "id": "0f4fb2b6-8041-40c3-a0ce-a45046d0cc6b",
+  "title": "新创作",
+  "createdAt": "2026-09-16T11:07:39.853Z",
+  "updatedAt": "2026-09-16T11:07:57.443Z",
+  "request": {
+    "message": "只在第二处用色散，其余不要；文字别挡商品。"
+  },
+  "assets": [],
+  "revisions": [],
+  "currentRevisionId": null,
+  "jobs": [
+    {
+      "id": "job-4360d255-f9bc-4025-b376-2f3c0c50b4af",
+      "kind": "plan",
+      "input": {
+        "action": "plan-workflow",
+        "message": "只在第二处用色散，其余不要；文字别挡商品。",
+        "idempotencyKey": "workflow-test-123456"
+      },
+      "baseRevisionId": null,
+      "status": "complete",
+      "createdAt": "2026-09-16T11:07:39.871Z",
+      "idempotencyKey": "workflow-test-123456",
+      "startedAt": "2026-09-16T11:07:39.884Z",
+      "stage": "理解需求与检查工作流",
+      "workflowPlan": {
+        "schemaVersion": 1,
+        "id": "plan-b7027c86a70e7d4ade8c",
+        "workOrder": {
+          "version": 1,
+          "mode": "create",
+          "scenario": "general",
+          "objective": "说明商品",
+          "auxiliaryModes": [],
+          "auxiliaryScenarios": [],
+          "requirements": [
+            {
+              "kind": "prohibit",
+              "quote": "其余不要",
+              "targetIds": [],
+              "excludeIds": [],
+              "inherited": false
+            }
+          ],
+          "resources": [],
+          "gaps": [],
+          "procedureSubtype": "not_applicable",
+          "steps": [],
+          "originalRequest": "只在第二处用色散，其余不要；文字别挡商品。",
+          "baseRevisionId": null,
+          "sourceRequests": [
+            "只在第二处用色散，其余不要；文字别挡商品。"
+          ],
+          "assetScope": [],
+          "facts": [],
+          "assetObservation": "pending",
+          "qualityAccepted": false
+        },
+        "skills": {
+          "version": 1,
+          "skills": [],
+          "genericEdit": false,
+          "fallback": "明确编辑直接受控执行；未知业务不得默认上新；真正歧义先读当前工程，再只问最小缺项。供应商故障保留版本和声音，不自动换供应商；指定效果失败不偷换。"
+        },
+        "scenePackage": null,
+        "auxiliaryPackages": [],
+        "resources": [],
+        "stages": [
+          {
+            "id": "understand",
+            "owner": "message-routing",
+            "requires": [],
+            "evidence": [
+              "原话",
+              "基准版本",
+              "制作单"
+            ],
+            "next": "inspect",
+            "scope": "当前制作单",
+            "status": "planned",
+            "qualityPass": false
+          },
+          {
+            "id": "inspect",
+            "owner": "source-inspection",
+            "requires": [
+              "understand"
+            ],
+            "evidence": [
+              "素材哈希",
+              "观察覆盖",
+              "事实与动作源区间"
+            ],
+            "next": "resources",
+            "scope": "当前制作单",
+            "status": "pending",
+            "qualityPass": false
+          },
+          {
+            "id": "resources",
+            "owner": "resource-catalog",
+            "requires": [
+              "inspect"
+            ],
+            "evidence": [
+              "真实目录",
+              "兼容过滤",
+              "执行器与依赖",
+              "作用范围"
+            ],
+            "next": "schedule",
+            "scope": "当前制作单",
+            "status": "pending",
+            "qualityPass": false
+          },
+          {
+            "id": "schedule",
+            "owner": "story-validation",
+            "requires": [
+              "resources"
+            ],
+            "evidence": [
+              "必要步骤依赖",
+              "保持集合",
+              "实测音频窗口",
+              "字幕映射"
+            ],
+            "next": "preview",
+            "scope": "当前制作单",
+            "status": "pending",
+            "qualityPass": false
+          },
+          {
+            "id": "preview",
+            "owner": "compiler/isolation",
+            "requires": [
+              "schedule"
+            ],
+            "evidence": [
+              "原生对象绑定",
+              "布局检查",
+              "局部预览"
+            ],
+            "next": "review",
+            "scope": "当前制作单",
+            "status": "pending",
+            "qualityPass": false
+          },
+          {
+            "id": "review",
+            "owner": "media-review/edit-review",
+            "requires": [
+              "preview"
+            ],
+            "evidence": [
+              "当前文件",
+              "画面连续性",
+              "声音听感",
+              "原要求比对"
+            ],
+            "next": "delivery",
+            "scope": "当前制作单",
+            "status": "pending",
+            "qualityPass": false
+          },
+          {
+            "id": "delivery",
+            "owner": "delivery-gate",
+            "requires": [
+              "review"
+            ],
+            "evidence": [
+              "文件哈希一致",
+              "工程可移植",
+              "真实用户确认"
+            ],
+            "next": null,
+            "scope": "当前制作单",
+            "status": "pending",
+            "qualityPass": false
+          }
+        ],
+        "blockers": [
+          {
+            "code": "MISSING_ASSETS",
+            "field": "visuals",
+            "nextAction": "提供目标素材；已保存需求，不生成占位素材",
+            "recovery": {
+              "domain": "business",
+              "retryAllowed": false,
+              "automaticRetry": false,
+              "alternativeAllowed": false,
+              "qualityAccepted": false,
+              "goalReduced": false,
+              "nextAction": "保留制作单，只补缺项或定位目标"
+            }
+          }
+        ],
+        "status": "needs_input",
+        "nextAction": "提供目标素材；已保存需求，不生成占位素材",
+        "provenance": {
+          "model": "offline-test",
+          "catalogHash": "27fd89161316537bc421b7319ef1cb9c6b37c5f6caa48ddba42af40b81c84d20",
+          "runtime": "0.8.33"
+        },
+        "productionStarted": false,
+        "qualityAccepted": false
+      },
+      "summary": "制作单已保存：提供目标素材；已保存需求，不生成占位素材",
+      "completedAt": "2026-09-16T11:07:57.396Z",
+      "durationMs": 17512
+    }
+  ],
+  "messages": [
+    {
+      "role": "user",
+      "text": "只在第二处用色散，其余不要；文字别挡商品。",
+      "baseRevisionId": null,
+      "time": "2026-09-16T11:07:39.871Z"
+    },
+    {
+      "role": "assistant",
+      "text": "制作单已保存：提供目标素材；已保存需求，不生成占位素材",
+      "time": "2026-09-16T11:07:57.396Z"
+    }
+  ],
+  "redo": [],
+  "progressSignature": "[[\"job-4360d255-f9bc-4025-b376-2f3c0c50b4af\",\"complete\",\"理解需求与检查工作流\",null,null,null,null,null,null,null]]",
+  "recentProgressAt": "2026-09-16T11:07:57.396Z",
+  "workflowPlan": {
+    "schemaVersion": 1,
+    "id": "plan-b7027c86a70e7d4ade8c",
+    "workOrder": {
+      "version": 1,
+      "mode": "create",
+      "scenario": "general",
+      "objective": "说明商品",
+      "auxiliaryModes": [],
+      "auxiliaryScenarios": [],
+      "requirements": [
+        {
+          "kind": "prohibit",
+          "quote": "其余不要",
+          "targetIds": [],
+          "excludeIds": [],
+          "inherited": false
+        }
+      ],
+      "resources": [],
+      "gaps": [],
+      "procedureSubtype": "not_applicable",
+      "steps": [],
+      "originalRequest": "只在第二处用色散，其余不要；文字别挡商品。",
+      "baseRevisionId": null,
+      "sourceRequests": [
+        "只在第二处用色散，其余不要；文字别挡商品。"
+      ],
+      "assetScope": [],
+      "facts": [],
+      "assetObservation": "pending",
+      "qualityAccepted": false
+    },
+    "skills": {
+      "version": 1,
+      "skills": [],
+      "genericEdit": false,
+      "fallback": "明确编辑直接受控执行；未知业务不得默认上新；真正歧义先读当前工程，再只问最小缺项。供应商故障保留版本和声音，不自动换供应商；指定效果失败不偷换。"
+    },
+    "scenePackage": null,
+    "auxiliaryPackages": [],
+    "resources": [],
+    "stages": [
+      {
+        "id": "understand",
+        "owner": "message-routing",
+        "requires": [],
+        "evidence": [
+          "原话",
+          "基准版本",
+          "制作单"
+        ],
+        "next": "inspect",
+        "scope": "当前制作单",
+        "status": "planned",
+        "qualityPass": false
+      },
+      {
+        "id": "inspect",
+        "owner": "source-inspection",
+        "requires": [
+          "understand"
+        ],
+        "evidence": [
+          "素材哈希",
+          "观察覆盖",
+          "事实与动作源区间"
+        ],
+        "next": "resources",
+        "scope": "当前制作单",
+        "status": "pending",
+        "qualityPass": false
+      },
+      {
+        "id": "resources",
+        "owner": "resource-catalog",
+        "requires": [
+          "inspect"
+        ],
+        "evidence": [
+          "真实目录",
+          "兼容过滤",
+          "执行器与依赖",
+          "作用范围"
+        ],
+        "next": "schedule",
+        "scope": "当前制作单",
+        "status": "pending",
+        "qualityPass": false
+      },
+      {
+        "id": "schedule",
+        "owner": "story-validation",
+        "requires": [
+          "resources"
+        ],
+        "evidence": [
+          "必要步骤依赖",
+          "保持集合",
+          "实测音频窗口",
+          "字幕映射"
+        ],
+        "next": "preview",
+        "scope": "当前制作单",
+        "status": "pending",
+        "qualityPass": false
+      },
+      {
+        "id": "preview",
+        "owner": "compiler/isolation",
+        "requires": [
+          "schedule"
+        ],
+        "evidence": [
+          "原生对象绑定",
+          "布局检查",
+          "局部预览"
+        ],
+        "next": "review",
+        "scope": "当前制作单",
+        "status": "pending",
+        "qualityPass": false
+      },
+      {
+        "id": "review",
+        "owner": "media-review/edit-review",
+        "requires": [
+          "preview"
+        ],
+        "evidence": [
+          "当前文件",
+          "画面连续性",
+          "声音听感",
+          "原要求比对"
+        ],
+        "next": "delivery",
+        "scope": "当前制作单",
+        "status": "pending",
+        "qualityPass": false
+      },
+      {
+        "id": "delivery",
+        "owner": "delivery-gate",
+        "requires": [
+          "review"
+        ],
+        "evidence": [
+          "文件哈希一致",
+          "工程可移植",
+          "真实用户确认"
+        ],
+        "next": null,
+        "scope": "当前制作单",
+        "status": "pending",
+        "qualityPass": false
+      }
+    ],
+    "blockers": [
+      {
+        "code": "MISSING_ASSETS",
+        "field": "visuals",
+        "nextAction": "提供目标素材；已保存需求，不生成占位素材",
+        "recovery": {
+          "domain": "business",
+          "retryAllowed": false,
+          "automaticRetry": false,
+          "alternativeAllowed": false,
+          "qualityAccepted": false,
+          "goalReduced": false,
+          "nextAction": "保留制作单，只补缺项或定位目标"
+        }
+      }
+    ],
+    "status": "needs_input",
+    "nextAction": "提供目标素材；已保存需求，不生成占位素材",
+    "provenance": {
+      "model": "offline-test",
+      "catalogHash": "27fd89161316537bc421b7319ef1cb9c6b37c5f6caa48ddba42af40b81c84d20",
+      "runtime": "0.8.33"
+    },
+    "productionStarted": false,
+    "qualityAccepted": false
+  }
+}
