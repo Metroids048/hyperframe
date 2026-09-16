@@ -1,0 +1,1025 @@
+{
+  "schemaVersion": 1,
+  "validationRepairs": [],
+  "id": "plan-f696de8eef16246074dc",
+  "workOrder": {
+    "version": 1,
+    "mode": "variant",
+    "scenario": "product_detail",
+    "objective": "基于 rev-a5b13075fbc28aac 规划竖屏变体，保留母版、第三段内容、商品事实和声音，仅输出制作规划。",
+    "auxiliaryModes": [],
+    "auxiliaryScenarios": [],
+    "requirements": [
+      {
+        "kind": "change",
+        "quote": "基于这版再规划一版竖屏",
+        "targetIds": [],
+        "excludeIds": [],
+        "inherited": false
+      },
+      {
+        "kind": "preserve",
+        "quote": "母版保留",
+        "targetIds": [],
+        "excludeIds": [],
+        "inherited": false
+      },
+      {
+        "kind": "preserve",
+        "quote": "第三段内容、商品事实和声音不变。",
+        "targetIds": [],
+        "excludeIds": [],
+        "inherited": false
+      },
+      {
+        "kind": "prohibit",
+        "quote": "只做规划。",
+        "targetIds": [],
+        "excludeIds": [],
+        "inherited": false
+      }
+    ],
+    "resources": [],
+    "gaps": [
+      {
+        "field": "baseRevisionContent",
+        "question": "请提供母版的分段与对象对应关系、商品事实文案及声音编排，标明第三段对应的对象，以便准确规划保留范围。",
+        "blocking": true
+      }
+    ],
+    "procedureSubtype": "not_applicable",
+    "steps": [
+      {
+        "id": "step-01",
+        "purpose": "待核验母版分段、商品事实和声音编排，确认第三段对象及其内容保护范围。",
+        "requires": [],
+        "assetIds": []
+      },
+      {
+        "id": "step-02",
+        "purpose": "规划独立竖屏变体的画面构图和文字布局，核验商品主体及事实信息完整可见，保留第三段内容和声音编排。",
+        "requires": [
+          "step-01"
+        ],
+        "assetIds": [
+          "asset-391904f8-3296-4c11-ba15-00b521adea04",
+          "s02-still-side",
+          "s02-still-ports",
+          "voice-7a6509e33c8e1395"
+        ]
+      },
+      {
+        "id": "step-03",
+        "purpose": "待核验制作单满足竖屏变体要求，母版保留，第三段内容、商品事实和声音保持不变；仅交付规划。",
+        "requires": [
+          "step-02"
+        ],
+        "assetIds": []
+      }
+    ],
+    "originalRequest": "基于这版再规划一版竖屏，母版保留，第三段内容、商品事实和声音不变。只做规划。",
+    "baseRevisionId": "rev-a5b13075fbc28aac",
+    "sourceRequests": [
+      "基于这版再规划一版竖屏，母版保留，第三段内容、商品事实和声音不变。只做规划。"
+    ],
+    "assetScope": [
+      {
+        "id": "asset-391904f8-3296-4c11-ba15-00b521adea04",
+        "sha256": "44d52066b5d267c868a47a6b79f52afbfae42663764eb3a6ef9ad7bb981bc3b9"
+      },
+      {
+        "id": "voice-7a6509e33c8e1395",
+        "sha256": "d0bd39b6d138b2c832effd6bdc7de12c7aeaf067e8f0fba100ec2f5d4e5e803d"
+      },
+      {
+        "id": "s02-still-side",
+        "sha256": "08b64a686b66c17cfb31aaf81f8598963f68789dbcd4513ad7bbfeed1de359b1"
+      },
+      {
+        "id": "s02-still-ports",
+        "sha256": "28aa4ded9c24b7e7fd0fbfb850380ec713a51f2c8fefe2ae5593a4215d33238f"
+      }
+    ],
+    "facts": [],
+    "assetObservation": "pending",
+    "qualityAccepted": false
+  },
+  "skills": {
+    "version": 1,
+    "skills": [
+      {
+        "id": "commerce.detail",
+        "version": 1,
+        "scenario": "product_detail",
+        "trigger": "解释结构、部位或有依据的特性",
+        "exclude": "无证据的性能推销",
+        "inputs": [
+          "原需求",
+          "业务目的",
+          "操作模式",
+          "基准工程与版本",
+          "素材范围",
+          "确认事实",
+          "声音要求",
+          "目标与保持对象",
+          "缺项"
+        ],
+        "preflight": [
+          "目标对象存在且属于基准版本",
+          "素材源区间真实有效",
+          "事实与必要动作有证据",
+          "声音授权和依赖可用"
+        ],
+        "callOrder": [
+          "绑定主张、证据和部位",
+          "定位整体与局部源区间",
+          "检查标注稳定性",
+          "测量旁白并放入证据窗口",
+          "装配标注并检查实际成片"
+        ],
+        "resourceContract": {
+          "functions": [
+            "整体局部联动",
+            "标注",
+            "字幕"
+          ],
+          "pipeline": [
+            "功能需求",
+            "共用目录召回",
+            "素材画幅文字动作依赖过滤",
+            "按block或component执行器绑定",
+            "局部预览",
+            "主工程"
+          ]
+        },
+        "preserve": [
+          "未要求改变的对象与事实",
+          "源时间与声音关联",
+          "母版和已提交历史"
+        ],
+        "failureClasses": [
+          "missing_evidence",
+          "ambiguous_target",
+          "unsupported_capability",
+          "resource_incompatible",
+          "provider_unavailable",
+          "quality_failure"
+        ],
+        "nextAction": "跟踪不可靠时仅可明确采用稳定镜头或冻结帧；明确要求跟踪时不得用静态箭头冒充。",
+        "outputs": [
+          "结构化制作单",
+          "源区间与资源回执",
+          "原生版本",
+          "候选与检查证据"
+        ],
+        "acceptance": [
+          "实际目标变化与保持项比对",
+          "最终音画字幕窗口核对",
+          "降级不自动计质量通过"
+        ],
+        "hash": "7361272b2e1b17d504c2e746f1f86d69b2dbf6d279e62649a2be82a0a1a5c790"
+      },
+      {
+        "id": "commerce.variant",
+        "version": 1,
+        "scenario": "variant",
+        "trigger": "基于母版制作用途或画幅变体",
+        "exclude": "没有可定位母版",
+        "inputs": [
+          "原需求",
+          "业务目的",
+          "操作模式",
+          "基准工程与版本",
+          "素材范围",
+          "确认事实",
+          "声音要求",
+          "目标与保持对象",
+          "缺项"
+        ],
+        "preflight": [
+          "目标对象存在且属于基准版本",
+          "素材源区间真实有效",
+          "事实与必要动作有证据",
+          "声音授权和依赖可用"
+        ],
+        "callOrder": [
+          "锁定基准与变化保持集",
+          "建立独立版本分支",
+          "重算主体和文字布局",
+          "比较母版与派生内容"
+        ],
+        "resourceContract": {
+          "functions": [
+            "重框",
+            "分区",
+            "开头变体"
+          ],
+          "pipeline": [
+            "功能需求",
+            "共用目录召回",
+            "素材画幅文字动作依赖过滤",
+            "按block或component执行器绑定",
+            "局部预览",
+            "主工程"
+          ]
+        },
+        "preserve": [
+          "未要求改变的对象与事实",
+          "源时间与声音关联",
+          "母版和已提交历史"
+        ],
+        "failureClasses": [
+          "missing_evidence",
+          "ambiguous_target",
+          "unsupported_capability",
+          "resource_incompatible",
+          "provider_unavailable",
+          "quality_failure"
+        ],
+        "nextAction": "中心裁切损害主体动作时改源段、分区或保全主体；不得破坏母版或静默降低目标。",
+        "outputs": [
+          "结构化制作单",
+          "源区间与资源回执",
+          "原生版本",
+          "候选与检查证据"
+        ],
+        "acceptance": [
+          "实际目标变化与保持项比对",
+          "最终音画字幕窗口核对",
+          "降级不自动计质量通过"
+        ],
+        "hash": "0027a0baa32898bb6b834942f8b84a1c8795afc003a254fd64c5896bd13a1c4b"
+      }
+    ],
+    "genericEdit": false,
+    "fallback": "明确编辑直接受控执行；未知业务不得默认上新；真正歧义先读当前工程，再只问最小缺项。供应商故障保留版本和声音，不自动换供应商；指定效果失败不偷换。"
+  },
+  "scenePackage": {
+    "id": "product_detail",
+    "hash": "217dc2643e1d3587b098086161a09644ec2445094a2c82750ccb837991ae9c2c",
+    "stages": {
+      "R1": {
+        "id": "product_detail",
+        "version": "3.0.0",
+        "hash": "217dc2643e1d3587b098086161a09644ec2445094a2c82750ccb837991ae9c2c",
+        "rules": {
+          "PERSONA.md": "# PERSONA\n\nC.1 用户画像与业务目标\n\n制作用户是商品运营或详情页内容人员；观看用户已经知道是什么商品，正在判断某个具体关注点是否满足自己。目标不是再次喊“新品来了”，而是用证据回答“这个设计有什么、在哪里、怎样使用、对我有什么意义”。\n",
+          "INPUT_CONTRACT.md": "# INPUT_CONTRACT\n\nC.2 Agent 输入和最终输出\n\n项目\n\n定义\n\n输入素材\n\n商品整体定位、局部细节、可观察的结构或功能展示；允许有参数资料但要注明来源。\n\n输入信息\n\n优先解释的问题、已确认事实、目标使用者、不能声称的内容。\n\n用户不必提供\n\n卖点排序、细节坐标、分屏形式、特写剪点。\n\n建议输出\n\n约 30—45 秒详情片，整体到局部的对应关系、可编辑标注与事实索引。\n\n不可缺少\n\n具体主张与对应画面／资料；看不清的内部结构不能靠图解编造。\n\nC.3 真实用户需求示例\n\n用这组背包素材做一条约 35 秒的详情片，给日常通勤的人看。重点解释视频里真实可见的分区和取物位置，先交代整体再展示细节。没有尺寸和容量资料，不写能装几升或能放多大电脑。配乐轻一点，标注不要挡住拉链和开口。\n"
+        }
+      },
+      "R2": {
+        "id": "product_detail",
+        "version": "3.0.0",
+        "hash": "217dc2643e1d3587b098086161a09644ec2445094a2c82750ccb837991ae9c2c",
+        "rules": {
+          "MATERIAL_POLICY.md": "# MATERIAL_POLICY\n\nC.4 完整业务链路\n\n上传资料 → 识别购买关注点 → 核验主张 → 定位整体与细节 → 为每个主张匹配证据 → 编排解释顺序 → 添加图文标注 → 检查能否看懂 → 修改与交付。\n\n段落\n\n观众应该获得什么\n\n制作重点\n\n问题／整体\n\n本片解释什么，部位在哪里\n\n先建立商品和空间关系。\n\n细节一\n\n某处结构是什么\n\n画面、指示线、文字准确对齐。\n\n细节二\n\n如何使用或另一个相关点\n\n真实动作或特写，不重复同一描述。\n\n关系回顾\n\n两处细节如何共同服务需求\n\n回到整体或清楚的对照。\n\n结尾\n\n适合继续了解哪些信息\n\n未知参数明确保留，不扩大主张。\n\nC.7 缺料和验收\n\n缺某个细节时明确列为未覆盖，建议补拍对应部位；允许减少主张数量。不能把 unrelated B-roll 当本品细节。\n\n合格标准是主张有证据、观众知道细节在哪里、标注不误指、尺寸参数不虚构、解释顺序清楚。详情片不能只由“品质、精致、高级”等空泛词构成。\n"
+        }
+      },
+      "R3": {
+        "id": "product_detail",
+        "version": "3.0.0",
+        "hash": "217dc2643e1d3587b098086161a09644ec2445094a2c82750ccb837991ae9c2c",
+        "rules": {
+          "RESOURCE_PROFILE.json": {
+            "sourceKind": "video",
+            "subjectProtection": "high",
+            "motionNeed": "derived from evidence, explanation and user style",
+            "layoutNeed": "overview-to-detail with evidence-bound callouts",
+            "textAreaMaxRatio": 0.25,
+            "forbidden": [
+              "full-screen cards hiding product",
+              "unverified claims",
+              "stock substituted product",
+              "invented price or terms"
+            ],
+            "businessObjective": "用具体证据解释购买关注点",
+            "sceneSelectionPolicy": "C.5 Agent 与 HyperFrames 的分工及资源策略\n\nAgent 负责把“值得说的话”约束在证据内，决定是特写、放大、分屏还是局部提示。HyperFrames 负责可编辑的 callout、局部构图、文字层级和比较布局。\n\n优先 component、lower third、typography 和清晰的 detail composition。使用 comparison 类资源前，必须有可比较的两项资料；同一素材裁两次不能自动当成独立对照。使用测量图示前必须有已确认数值，不能为了好看编刻度。"
+          },
+          "COMPONENTS.json": [
+            {
+              "id": "hero_media",
+              "semanticRole": "hero_media",
+              "acceptableNativeKinds": [
+                "video",
+                "image"
+              ],
+              "supportedScenes": [
+                "product_detail"
+              ],
+              "layoutConstraints": {
+                "textAreaMaxRatio": 0.25,
+                "safeMarginRatio": 0.06
+              },
+              "subjectProtection": "do not overlap evidence protected regions",
+              "maxInformation": 1,
+              "hyperframesCandidates": [
+                "video-text-pivot"
+              ],
+              "fallback": "native editable element or omit unnecessary decoration",
+              "qualityRules": [
+                "source evidence required",
+                "readable on mobile",
+                "stable timing",
+                "no hidden core action"
+              ]
+            },
+            {
+              "id": "product_title",
+              "semanticRole": "product_title",
+              "acceptableNativeKinds": [
+                "text",
+                "effect"
+              ],
+              "supportedScenes": [
+                "product_detail"
+              ],
+              "layoutConstraints": {
+                "textAreaMaxRatio": 0.25,
+                "safeMarginRatio": 0.06
+              },
+              "subjectProtection": "do not overlap evidence protected regions",
+              "maxInformation": 1,
+              "hyperframesCandidates": [
+                "lt-mask-reveal",
+                "titlecard-reveal"
+              ],
+              "fallback": "native editable element or omit unnecessary decoration",
+              "qualityRules": [
+                "source evidence required",
+                "readable on mobile",
+                "stable timing",
+                "no hidden core action"
+              ]
+            },
+            {
+              "id": "feature_callout",
+              "semanticRole": "feature_callout",
+              "acceptableNativeKinds": [
+                "text",
+                "effect"
+              ],
+              "supportedScenes": [
+                "product_detail"
+              ],
+              "layoutConstraints": {
+                "textAreaMaxRatio": 0.25,
+                "safeMarginRatio": 0.06
+              },
+              "subjectProtection": "do not overlap evidence protected regions",
+              "maxInformation": 1,
+              "hyperframesCandidates": [
+                "lt-mask-reveal",
+                "titlecard-reveal"
+              ],
+              "fallback": "native editable element or omit unnecessary decoration",
+              "qualityRules": [
+                "source evidence required",
+                "readable on mobile",
+                "stable timing",
+                "no hidden core action"
+              ]
+            },
+            {
+              "id": "detail_callout",
+              "semanticRole": "detail_callout",
+              "acceptableNativeKinds": [
+                "text",
+                "effect"
+              ],
+              "supportedScenes": [
+                "product_detail"
+              ],
+              "layoutConstraints": {
+                "textAreaMaxRatio": 0.25,
+                "safeMarginRatio": 0.06
+              },
+              "subjectProtection": "do not overlap evidence protected regions",
+              "maxInformation": 1,
+              "hyperframesCandidates": [
+                "lt-mask-reveal",
+                "titlecard-reveal"
+              ],
+              "fallback": "native editable element or omit unnecessary decoration",
+              "qualityRules": [
+                "source evidence required",
+                "readable on mobile",
+                "stable timing",
+                "no hidden core action"
+              ]
+            },
+            {
+              "id": "usage_label",
+              "semanticRole": "usage_label",
+              "acceptableNativeKinds": [
+                "text",
+                "effect"
+              ],
+              "supportedScenes": [
+                "product_detail"
+              ],
+              "layoutConstraints": {
+                "textAreaMaxRatio": 0.25,
+                "safeMarginRatio": 0.06
+              },
+              "subjectProtection": "do not overlap evidence protected regions",
+              "maxInformation": 1,
+              "hyperframesCandidates": [
+                "lt-mask-reveal",
+                "titlecard-reveal"
+              ],
+              "fallback": "native editable element or omit unnecessary decoration",
+              "qualityRules": [
+                "source evidence required",
+                "readable on mobile",
+                "stable timing",
+                "no hidden core action"
+              ]
+            },
+            {
+              "id": "operation_step",
+              "semanticRole": "operation_step",
+              "acceptableNativeKinds": [
+                "text",
+                "effect"
+              ],
+              "supportedScenes": [
+                "product_detail"
+              ],
+              "layoutConstraints": {
+                "textAreaMaxRatio": 0.25,
+                "safeMarginRatio": 0.06
+              },
+              "subjectProtection": "do not overlap evidence protected regions",
+              "maxInformation": 1,
+              "hyperframesCandidates": [
+                "lt-mask-reveal",
+                "titlecard-reveal"
+              ],
+              "fallback": "native editable element or omit unnecessary decoration",
+              "qualityRules": [
+                "source evidence required",
+                "readable on mobile",
+                "stable timing",
+                "no hidden core action"
+              ]
+            },
+            {
+              "id": "step_progress",
+              "semanticRole": "step_progress",
+              "acceptableNativeKinds": [
+                "text",
+                "effect"
+              ],
+              "supportedScenes": [
+                "product_detail"
+              ],
+              "layoutConstraints": {
+                "textAreaMaxRatio": 0.25,
+                "safeMarginRatio": 0.06
+              },
+              "subjectProtection": "do not overlap evidence protected regions",
+              "maxInformation": 1,
+              "hyperframesCandidates": [
+                "lt-mask-reveal",
+                "titlecard-reveal"
+              ],
+              "fallback": "native editable element or omit unnecessary decoration",
+              "qualityRules": [
+                "source evidence required",
+                "readable on mobile",
+                "stable timing",
+                "no hidden core action"
+              ]
+            },
+            {
+              "id": "comparison",
+              "semanticRole": "comparison",
+              "acceptableNativeKinds": [
+                "text",
+                "effect"
+              ],
+              "supportedScenes": [
+                "product_detail"
+              ],
+              "layoutConstraints": {
+                "textAreaMaxRatio": 0.25,
+                "safeMarginRatio": 0.06
+              },
+              "subjectProtection": "do not overlap evidence protected regions",
+              "maxInformation": 1,
+              "hyperframesCandidates": [
+                "comparison-split"
+              ],
+              "fallback": "native editable element or omit unnecessary decoration",
+              "qualityRules": [
+                "source evidence required",
+                "readable on mobile",
+                "stable timing",
+                "no hidden core action"
+              ]
+            },
+            {
+              "id": "caption",
+              "semanticRole": "caption",
+              "acceptableNativeKinds": [
+                "text",
+                "effect"
+              ],
+              "supportedScenes": [
+                "product_detail"
+              ],
+              "layoutConstraints": {
+                "textAreaMaxRatio": 0.25,
+                "safeMarginRatio": 0.06
+              },
+              "subjectProtection": "do not overlap evidence protected regions",
+              "maxInformation": 2,
+              "hyperframesCandidates": [
+                "lt-mask-reveal",
+                "titlecard-reveal"
+              ],
+              "fallback": "native editable element or omit unnecessary decoration",
+              "qualityRules": [
+                "source evidence required",
+                "readable on mobile",
+                "stable timing",
+                "no hidden core action"
+              ]
+            },
+            {
+              "id": "quote",
+              "semanticRole": "quote",
+              "acceptableNativeKinds": [
+                "text",
+                "effect"
+              ],
+              "supportedScenes": [
+                "product_detail"
+              ],
+              "layoutConstraints": {
+                "textAreaMaxRatio": 0.25,
+                "safeMarginRatio": 0.06
+              },
+              "subjectProtection": "do not overlap evidence protected regions",
+              "maxInformation": 1,
+              "hyperframesCandidates": [
+                "lt-mask-reveal",
+                "titlecard-reveal"
+              ],
+              "fallback": "native editable element or omit unnecessary decoration",
+              "qualityRules": [
+                "source evidence required",
+                "readable on mobile",
+                "stable timing",
+                "no hidden core action"
+              ]
+            },
+            {
+              "id": "audio_caption",
+              "semanticRole": "audio_caption",
+              "acceptableNativeKinds": [
+                "text",
+                "effect"
+              ],
+              "supportedScenes": [
+                "product_detail"
+              ],
+              "layoutConstraints": {
+                "textAreaMaxRatio": 0.25,
+                "safeMarginRatio": 0.06
+              },
+              "subjectProtection": "do not overlap evidence protected regions",
+              "maxInformation": 1,
+              "hyperframesCandidates": [
+                "lt-mask-reveal",
+                "titlecard-reveal"
+              ],
+              "fallback": "native editable element or omit unnecessary decoration",
+              "qualityRules": [
+                "source evidence required",
+                "readable on mobile",
+                "stable timing",
+                "no hidden core action"
+              ]
+            },
+            {
+              "id": "logo",
+              "semanticRole": "logo",
+              "acceptableNativeKinds": [
+                "text",
+                "effect"
+              ],
+              "supportedScenes": [
+                "product_detail"
+              ],
+              "layoutConstraints": {
+                "textAreaMaxRatio": 0.25,
+                "safeMarginRatio": 0.06
+              },
+              "subjectProtection": "do not overlap evidence protected regions",
+              "maxInformation": 1,
+              "hyperframesCandidates": [
+                "lt-mask-reveal",
+                "titlecard-reveal"
+              ],
+              "fallback": "native editable element or omit unnecessary decoration",
+              "qualityRules": [
+                "source evidence required",
+                "readable on mobile",
+                "stable timing",
+                "no hidden core action"
+              ]
+            },
+            {
+              "id": "brand_mark",
+              "semanticRole": "brand_mark",
+              "acceptableNativeKinds": [
+                "text",
+                "effect"
+              ],
+              "supportedScenes": [
+                "product_detail"
+              ],
+              "layoutConstraints": {
+                "textAreaMaxRatio": 0.25,
+                "safeMarginRatio": 0.06
+              },
+              "subjectProtection": "do not overlap evidence protected regions",
+              "maxInformation": 1,
+              "hyperframesCandidates": [
+                "lt-mask-reveal",
+                "titlecard-reveal"
+              ],
+              "fallback": "native editable element or omit unnecessary decoration",
+              "qualityRules": [
+                "source evidence required",
+                "readable on mobile",
+                "stable timing",
+                "no hidden core action"
+              ]
+            },
+            {
+              "id": "CTA",
+              "semanticRole": "CTA",
+              "acceptableNativeKinds": [
+                "text",
+                "effect"
+              ],
+              "supportedScenes": [
+                "product_detail"
+              ],
+              "layoutConstraints": {
+                "textAreaMaxRatio": 0.25,
+                "safeMarginRatio": 0.06
+              },
+              "subjectProtection": "do not overlap evidence protected regions",
+              "maxInformation": 1,
+              "hyperframesCandidates": [
+                "lt-mask-reveal",
+                "titlecard-reveal"
+              ],
+              "fallback": "native editable element or omit unnecessary decoration",
+              "qualityRules": [
+                "source evidence required",
+                "readable on mobile",
+                "stable timing",
+                "no hidden core action"
+              ]
+            },
+            {
+              "id": "ending",
+              "semanticRole": "ending",
+              "acceptableNativeKinds": [
+                "text",
+                "effect"
+              ],
+              "supportedScenes": [
+                "product_detail"
+              ],
+              "layoutConstraints": {
+                "textAreaMaxRatio": 0.25,
+                "safeMarginRatio": 0.06
+              },
+              "subjectProtection": "do not overlap evidence protected regions",
+              "maxInformation": 1,
+              "hyperframesCandidates": [
+                "lt-mask-reveal",
+                "titlecard-reveal"
+              ],
+              "fallback": "native editable element or omit unnecessary decoration",
+              "qualityRules": [
+                "source evidence required",
+                "readable on mobile",
+                "stable timing",
+                "no hidden core action"
+              ]
+            },
+            {
+              "id": "background",
+              "semanticRole": "background",
+              "acceptableNativeKinds": [
+                "shape",
+                "effect"
+              ],
+              "supportedScenes": [
+                "product_detail"
+              ],
+              "layoutConstraints": {
+                "textAreaMaxRatio": 0.25,
+                "safeMarginRatio": 0.06
+              },
+              "subjectProtection": "do not overlap evidence protected regions",
+              "maxInformation": 1,
+              "hyperframesCandidates": [
+                "lt-mask-reveal",
+                "titlecard-reveal"
+              ],
+              "fallback": "native editable element or omit unnecessary decoration",
+              "qualityRules": [
+                "source evidence required",
+                "readable on mobile",
+                "stable timing",
+                "no hidden core action"
+              ]
+            },
+            {
+              "id": "accent_shape",
+              "semanticRole": "accent_shape",
+              "acceptableNativeKinds": [
+                "shape",
+                "effect"
+              ],
+              "supportedScenes": [
+                "product_detail"
+              ],
+              "layoutConstraints": {
+                "textAreaMaxRatio": 0.25,
+                "safeMarginRatio": 0.06
+              },
+              "subjectProtection": "do not overlap evidence protected regions",
+              "maxInformation": 1,
+              "hyperframesCandidates": [
+                "lt-mask-reveal",
+                "titlecard-reveal"
+              ],
+              "fallback": "native editable element or omit unnecessary decoration",
+              "qualityRules": [
+                "source evidence required",
+                "readable on mobile",
+                "stable timing",
+                "no hidden core action"
+              ]
+            },
+            {
+              "id": "subject_highlight",
+              "semanticRole": "subject_highlight",
+              "acceptableNativeKinds": [
+                "shape",
+                "effect"
+              ],
+              "supportedScenes": [
+                "product_detail"
+              ],
+              "layoutConstraints": {
+                "textAreaMaxRatio": 0.25,
+                "safeMarginRatio": 0.06
+              },
+              "subjectProtection": "do not overlap evidence protected regions",
+              "maxInformation": 1,
+              "hyperframesCandidates": [
+                "lt-mask-reveal",
+                "titlecard-reveal"
+              ],
+              "fallback": "native editable element or omit unnecessary decoration",
+              "qualityRules": [
+                "source evidence required",
+                "readable on mobile",
+                "stable timing",
+                "no hidden core action"
+              ]
+            }
+          ]
+        }
+      },
+      "R4": {
+        "id": "product_detail",
+        "version": "3.0.0",
+        "hash": "217dc2643e1d3587b098086161a09644ec2445094a2c82750ccb837991ae9c2c",
+        "rules": {
+          "STORY_GRAMMAR.md": "# STORY_GRAMMAR\n\n八场景合同执行规则：详情片的任务是解释部位关系，不沿用新品亮相片的“产品名—氛围镜头—了解更多”。先从完整原片观察同一商品的整体、可见细节和转动后的对应面，再按购买关注点组织。时长与镜头数由有效信息决定，不能重复同一特写填满固定模板。\n\n每个细节段在 StoryPlan 中注明：具体观察结论、原片证据区间、观众应看哪部分、标注采用何种安全关系，以及返回整体的位置。移动商品优先使用媒体框外的部位标题或分区布局；只有稳定画面才能绑定静态指示线。禁止把整体和局部并列呈现误写成性能对比。\n\n视觉方向至少提供两处由解释任务驱动的不同关系：例如整体定位后局部靠近；不同表面的并列回顾。两处必须服务不同信息，不能只是两个转场。资源先经过素材数量、比例、主体保护、文字容量与0.8.33兼容性检查，常规标题和版式优先参数化，必要局部适配保持原生对象可编辑。\n\nC.4 完整业务链路\n\n上传资料 → 识别购买关注点 → 核验主张 → 定位整体与细节 → 为每个主张匹配证据 → 编排解释顺序 → 添加图文标注 → 检查能否看懂 → 修改与交付。\n\n段落\n\n观众应该获得什么\n\n制作重点\n\n问题／整体\n\n本片解释什么，部位在哪里\n\n先建立商品和空间关系。\n\n细节一\n\n某处结构是什么\n\n画面、指示线、文字准确对齐。\n\n细节二\n\n如何使用或另一个相关点\n\n真实动作或特写，不重复同一描述。\n\n关系回顾\n\n两处细节如何共同服务需求\n\n回到整体或清楚的对照。\n\n结尾\n\n适合继续了解哪些信息\n\n未知参数明确保留，不扩大主张。\n",
+          "AUDIO_POLICY.md": "# AUDIO_POLICY\n\nC.6 音频、字幕与后续修改\n\n旁白可以解释画面，但不能加入画面或资料不支持的性能。修改一个卖点说明只影响该说明及相关旁白；普通样式调整不重新合成声音。换背景音乐不应改掉已经核对的标注位置。\n\n修改示例：“把分区二提前，其他细节保留”“删掉容量说法，只留取物位置”“这根指示线指错了，指向拉链开口”。\n"
+        }
+      },
+      "R5": {
+        "id": "product_detail",
+        "version": "3.0.0",
+        "hash": "217dc2643e1d3587b098086161a09644ec2445094a2c82750ccb837991ae9c2c",
+        "rules": {
+          "RESOURCE_PROFILE.json": {
+            "sourceKind": "video",
+            "subjectProtection": "high",
+            "motionNeed": "derived from evidence, explanation and user style",
+            "layoutNeed": "overview-to-detail with evidence-bound callouts",
+            "textAreaMaxRatio": 0.25,
+            "forbidden": [
+              "full-screen cards hiding product",
+              "unverified claims",
+              "stock substituted product",
+              "invented price or terms"
+            ],
+            "businessObjective": "用具体证据解释购买关注点",
+            "sceneSelectionPolicy": "C.5 Agent 与 HyperFrames 的分工及资源策略\n\nAgent 负责把“值得说的话”约束在证据内，决定是特写、放大、分屏还是局部提示。HyperFrames 负责可编辑的 callout、局部构图、文字层级和比较布局。\n\n优先 component、lower third、typography 和清晰的 detail composition。使用 comparison 类资源前，必须有可比较的两项资料；同一素材裁两次不能自动当成独立对照。使用测量图示前必须有已确认数值，不能为了好看编刻度。"
+          },
+          "EDITING_POLICY.md": "# EDITING_POLICY\n\nC.6 音频、字幕与后续修改\n\n旁白可以解释画面，但不能加入画面或资料不支持的性能。修改一个卖点说明只影响该说明及相关旁白；普通样式调整不重新合成声音。换背景音乐不应改掉已经核对的标注位置。\n\n修改示例：“把分区二提前，其他细节保留”“删掉容量说法，只留取物位置”“这根指示线指错了，指向拉链开口”。\n"
+        }
+      },
+      "R6": {
+        "id": "product_detail",
+        "version": "3.0.0",
+        "hash": "217dc2643e1d3587b098086161a09644ec2445094a2c82750ccb837991ae9c2c",
+        "rules": {
+          "QUALITY_RUBRIC.json": {
+            "weights": {
+              "product": 15,
+              "sourceSelection": 15,
+              "story": 15,
+              "editing": 15,
+              "motion": 10,
+              "typography": 10,
+              "audio": 10,
+              "finish": 10
+            },
+            "perspectives": [
+              "Merchant",
+              "Viewer",
+              "Editor"
+            ],
+            "blockers": [
+              "wrong_product",
+              "unsupported_claim",
+              "missing_action",
+              "wrong_order",
+              "subject_crop",
+              "operation_obscured",
+              "black_frame",
+              "corrupt_frame",
+              "audio_sync",
+              "silence_contract",
+              "incomplete_ending",
+              "claim_without_evidence",
+              "mispointed_annotation",
+              "invented_measurement"
+            ],
+            "passingScoreIsNotHumanAcceptance": true,
+            "scenario": "product-detail",
+            "businessObjective": "用具体证据解释购买关注点",
+            "sceneAcceptance": "C.7 缺料和验收\n\n缺某个细节时明确列为未覆盖，建议补拍对应部位；允许减少主张数量。不能把 unrelated B-roll 当本品细节。\n\n合格标准是主张有证据、观众知道细节在哪里、标注不误指、尺寸参数不虚构、解释顺序清楚。详情片不能只由“品质、精致、高级”等空泛词构成。"
+          },
+          "REPAIR_POLICY.md": "# REPAIR_POLICY\n\n八场景合同复验：不能用“编译成功”关闭画面缺陷。实际候选逐段核对整体识别、局部对应、部位指向、文字停留、不同信息的递进和声音收束；米家V2只作为完成度参考，比较商品占比、文字层级、版式一致性、过渡目的和完整收尾，不复制其文案与镜头表达。缺少两处有效解释关系、画面过暗看不清细节、字幕遮挡、静态线条追不上商品均应返回对应镜头作局部修复。\n\nC.7 缺料和验收\n\n缺某个细节时明确列为未覆盖，建议补拍对应部位；允许减少主张数量。不能把 unrelated B-roll 当本品细节。\n\n合格标准是主张有证据、观众知道细节在哪里、标注不误指、尺寸参数不虚构、解释顺序清楚。详情片不能只由“品质、精致、高级”等空泛词构成。\n"
+        }
+      }
+    }
+  },
+  "auxiliaryPackages": [],
+  "resources": [],
+  "stages": [
+    {
+      "id": "understand",
+      "owner": "message-routing",
+      "requires": [],
+      "evidence": [
+        "原话",
+        "基准版本",
+        "制作单"
+      ],
+      "next": "inspect",
+      "scope": "当前制作单",
+      "status": "planned",
+      "qualityPass": false
+    },
+    {
+      "id": "inspect",
+      "owner": "source-inspection",
+      "requires": [
+        "understand"
+      ],
+      "evidence": [
+        "素材哈希",
+        "观察覆盖",
+        "事实与动作源区间"
+      ],
+      "next": "resources",
+      "scope": "当前制作单",
+      "status": "pending",
+      "qualityPass": false
+    },
+    {
+      "id": "resources",
+      "owner": "resource-catalog",
+      "requires": [
+        "inspect"
+      ],
+      "evidence": [
+        "真实目录",
+        "兼容过滤",
+        "执行器与依赖",
+        "作用范围"
+      ],
+      "next": "schedule",
+      "scope": "当前制作单",
+      "status": "pending",
+      "qualityPass": false
+    },
+    {
+      "id": "schedule",
+      "owner": "story-validation",
+      "requires": [
+        "resources"
+      ],
+      "evidence": [
+        "必要步骤依赖",
+        "保持集合",
+        "实测音频窗口",
+        "字幕映射"
+      ],
+      "next": "preview",
+      "scope": "当前制作单",
+      "status": "pending",
+      "qualityPass": false
+    },
+    {
+      "id": "preview",
+      "owner": "compiler/isolation",
+      "requires": [
+        "schedule"
+      ],
+      "evidence": [
+        "原生对象绑定",
+        "布局检查",
+        "局部预览"
+      ],
+      "next": "review",
+      "scope": "当前制作单",
+      "status": "pending",
+      "qualityPass": false
+    },
+    {
+      "id": "review",
+      "owner": "media-review/edit-review",
+      "requires": [
+        "preview"
+      ],
+      "evidence": [
+        "当前文件",
+        "画面连续性",
+        "声音听感",
+        "原要求比对"
+      ],
+      "next": "delivery",
+      "scope": "当前制作单",
+      "status": "pending",
+      "qualityPass": false
+    },
+    {
+      "id": "delivery",
+      "owner": "delivery-gate",
+      "requires": [
+        "review"
+      ],
+      "evidence": [
+        "文件哈希一致",
+        "工程可移植",
+        "真实用户确认"
+      ],
+      "next": null,
+      "scope": "当前制作单",
+      "status": "pending",
+      "qualityPass": false
+    }
+  ],
+  "blockers": [
+    {
+      "code": "MISSING_INPUT",
+      "field": "baseRevisionContent",
+      "nextAction": "请提供母版的分段与对象对应关系、商品事实文案及声音编排，标明第三段对应的对象，以便准确规划保留范围。",
+      "recovery": {
+        "domain": "business",
+        "retryAllowed": false,
+        "automaticRetry": false,
+        "alternativeAllowed": false,
+        "qualityAccepted": false,
+        "goalReduced": false,
+        "nextAction": "保留制作单，只补缺项或定位目标"
+      }
+    }
+  ],
+  "status": "needs_input",
+  "nextAction": "请提供母版的分段与对象对应关系、商品事实文案及声音编排，标明第三段对应的对象，以便准确规划保留范围。",
+  "provenance": {
+    "model": "Codex 默认模型",
+    "catalogHash": "ae1e19a7bc90757e1dcc7bab364957f630b3b53bb5a229dde328a49dc1f6c2c4",
+    "runtime": "0.8.33"
+  },
+  "productionStarted": false,
+  "qualityAccepted": false
+}
