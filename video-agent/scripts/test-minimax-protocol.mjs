@@ -8,8 +8,13 @@ import {run,ffmpeg,probe} from '../lib/edit/media.mjs';
 import {projectNativeCaptions} from '../lib/creative/captions.mjs';
 import {recognizeNativeCaptions} from '../lib/creative/captions.mjs';
 import {createCreativeService} from '../lib/creative/service.mjs';
-import {audioApplication} from '../lib/creative/audio-assets.mjs';
+import {audioApplication,speechReplacementRequest,preserveCaptionStyles} from '../lib/creative/audio-assets.mjs';
 const env={MINIMAX_API_KEY:'protocol-test-credential-not-real'};
+test('official subtitle time_begin/time_end and allowed CN endpoints',()=>{
+ assert.deepEqual(minimaxSubtitles([{text:'测试',time_begin:200,time_end:1100}],1.2).map(c=>[c.start,c.end]),[[.2,1.1]]);
+ assert.equal(minimaxConfig('speech',{...env,MINIMAX_CN_API_HOST:'api.minimaxi.com'}).origin,'https://api.minimaxi.com');
+ assert.throws(()=>minimaxConfig('speech',{...env,MINIMAX_CN_API_HOST:'example.com'}),{code:'MINIMAX_REGION'});
+});
 const fixtureRoot=await fs.mkdtemp(path.join(os.tmpdir(),'hf-minimax-'));
 const source=path.join(fixtureRoot,'source.mp3');
 await run(ffmpeg,['-y','-v','error','-f','lavfi','-i','sine=frequency=440:duration=1.2','-c:a','libmp3lame',source]);
@@ -24,6 +29,23 @@ test.after(async()=>fs.rm(fixtureRoot,{recursive:true,force:true}));
 test('audio application rejects outside-workspace paths before probing',async()=>{
  const document={durationFrames:90,audioGraph:[]};
  for(const candidate of ['../outside.wav',source])await assert.rejects(()=>audioApplication(fixtureRoot,document,{kind:'audio',path:candidate}),{code:'INVALID_ASSET_PATH'});
+});
+test('voice changes preserve approved text and rate; source audio never invents a script',()=>{
+ const doc={audioGraph:[{id:'t',assetId:'a',role:'narration'}]},assets=[{id:'a',speechRequest:{text:'批准的原文。',voice:'old',rate:.9}}];
+ assert.deepEqual(speechReplacementRequest(doc,assets,{replaceTrackId:'t',voice:'new'}),{kind:'speech',text:'批准的原文。',voice:'new',rate:.9,subtitleType:'sentence'});
+ assert.equal(speechReplacementRequest(doc,assets,{replaceTrackId:'t',voice:'new',text:null}).text,'批准的原文。');
+ assert.throws(()=>speechReplacementRequest({audioGraph:[{...doc.audioGraph[0],sourceStartSeconds:1}]},assets,{replaceTrackId:'t',voice:'new'}),{code:'SPEECH_SCRIPT_REQUIRED'});
+ assert.throws(()=>speechReplacementRequest(doc,[{id:'a'}],{replaceTrackId:'t',voice:'new'}),{code:'SPEECH_SCRIPT_REQUIRED'});
+ assert.throws(()=>speechReplacementRequest(doc,assets,{replaceTrackId:'missing'}),{code:'PATCH_TARGET_MISSING'});
+});
+test('revoice preserves caption position and rejects ambiguous style remapping',()=>{
+ assert.equal(preserveCaptionStyles([{text:'修改后文案'}],[{text:'原文',style:{offsetY:-80}}])[0].style.offsetY,-80);
+ assert.throws(()=>preserveCaptionStyles([{text:'新分段'}],[{text:'一',style:{offsetY:-40}},{text:'二',style:{offsetY:-80}}]),{code:'CAPTION_STYLE_AMBIGUOUS'});
+});
+test('retired capability HTTP410 is a known refusal and is not retried automatically',async t=>{
+ const f=await fixture(t,{fetcher:async()=>new Response('',{status:410})});
+ await assert.rejects(()=>f.client.execute('music',{prompt:'纯音乐'}),{code:'MINIMAX_CAPABILITY_UNAVAILABLE'});
+ await assert.rejects(()=>f.client.execute('music',{prompt:'纯音乐'}),{code:'MINIMAX_CAPABILITY_UNAVAILABLE'});assert.equal(f.calls.length,1);
 });
 test('existing service queue persists generated audio and resumes as an ordinary project asset',async t=>{
  const f=await fixture(t,{fetcher:async url=>Response.json(url.endsWith('/get_voice')?{base_resp:{status_code:0},system_voice:[{voice_id:'catalog-id',voice_name:'测试目录音色'}]}:ok)});
@@ -40,7 +62,10 @@ test('existing service queue persists generated audio and resumes as an ordinary
  await assert.rejects(()=>audioApplication(f.root,document,asset,{replaceTrackId:'old',captions:true}),{code:'AUDIO_SPEECH_TOO_LONG'});
  assert.equal(document.audioGraph[0].assetId,'prior','failed fit keeps the original voice');
  document.audioGraph[0].durationFrames=60;
+ document.audioGraph[0].speechWindowFrames=90;
  const ops=await audioApplication(f.root,document,asset,{replaceTrackId:'old',captions:true});
+ assert.equal(ops.find(o=>o.type==='add_audio').params.speechWindowFrames,90);
+ assert.deepEqual(asset.speechRequest,{text:'测试',voice:'catalog-id',rate:1,model:'speech-2.8-hd',subtitleType:'sentence'});
  assert.equal(ops.find(o=>o.type==='add_audio').params.fadeInFrames,2);
  assert.equal(ops[0].type,'remove_audio');assert.deepEqual(ops[1].captions,[{id:'unrelated',trackId:'another'}]);assert.equal(ops.at(-1).type,'generate_captions');assert.equal(document.audioGraph[0].assetId,'prior');
  let asrCalls=0;const provider={transcribe:async()=>{asrCalls++;throw Error('must use source-bound subtitle');}};
@@ -64,6 +89,19 @@ test('explicit retry never repeats a submission with unknown billing outcome',as
  const f=await fixture(t,{fetcher:async()=>{throw Error('disconnected');}}),input={text:'测试',voice:'id'};
  await assert.rejects(()=>f.client.execute('speech',input),{code:'MINIMAX_SUBMISSION_UNKNOWN'});
  await assert.rejects(()=>f.client.execute('speech',input,{retryKnownFailure:true}),{code:'MINIMAX_SUBMISSION_UNKNOWN'});assert.equal(f.calls.length,1);
+});
+test('explicit new submission preserves unknown record and deduplicates across restart',async t=>{
+ let attempts=0;const f=await fixture(t,{fetcher:async()=>{if(++attempts===1)throw Error('lost');return Response.json(ok);}}),input={text:'测试',voice:'id'};
+ await assert.rejects(()=>f.client.execute('speech',input),{code:'MINIMAX_SUBMISSION_UNKNOWN'});
+ const authorization={newSubmissionAuthorization:'approved-recovery-123456789'};
+ const result=await f.client.execute('speech',input,authorization);
+ assert.equal(attempts,2);
+ const restarted=new MiniMaxClient({root:f.root,env,transport:f.transport});
+ assert.equal((await restarted.execute('speech',input,authorization)).sha256,result.sha256);assert.equal(attempts,2);
+ await assert.rejects(()=>restarted.execute('speech',input),{code:'MINIMAX_SUBMISSION_UNKNOWN'});
+ const record=JSON.parse(await fs.readFile(path.join(path.dirname(result.file),'operation.json')));
+ assert.equal(record.recovery.authorizationId,authorization.newSubmissionAuthorization);assert.notEqual(record.recovery.priorOperationId,record.operationId);
+ await assert.rejects(()=>restarted.execute('speech',{text:'不同请求',voice:'id'},authorization),{code:'MINIMAX_AUTHORIZATION'});assert.equal(attempts,2);
 });
 test('regions explicit, arbitrary model preserved, instrumental field is real',()=>{
  assert.equal(minimaxConfig('speech',{...env,MINIMAX_REGION:'global'}).origin,'https://api.minimax.io');

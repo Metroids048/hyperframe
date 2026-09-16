@@ -1,5 +1,21 @@
 # 2026-09-16 当前审查结果
 
+## 2026-09-16 19:20 音频融合交付（本地完成本节验证）
+
+- 最终工程 `ffa3bcb0-f6b8-4f54-a52a-973c07e1bd3b` / `rev-e663828de3de26c6`。35秒1920×1080、30fps、1050帧、H.264/AAC，完整解码通过。片尾旁白经过两种真实 MiniMax 音色替换，其余原有旁白保持。
+- 303项真实音色；字幕上移40px后换音色，文案和字幕样式保持；既有原创音乐入轨、音量0.12、片尾30帧淡出。解码音轨哈希证明旁白替换和音乐混音均进入实际成片。
+- 交付目录 `deliverables/minimax-audio-integrated-20260916/`：MP4、135463628字节原生历史ZIP、`verification.json`、换目录后的`reopened-check.log`。8个版本、7个素材的归档字节核对通过；新目录HyperFrames检查通过。真实HTTP撤销/重做音乐调整时，音色及字幕保留。S02母版哈希不变。
+- 48项专项测试、20项应用验收通过；最新core通过。browser原组保留一项并发运行时的预览耗时失败，整套该项独立复测通过；原报告未篡改。汇总 `outputs/minimax-live/regression-summary.json`。
+- 工作台已加载最新后端及前端，主服务3020。本节音频融合验证完成；MiniMax音乐生成仍返回410，示例明确使用项目已有原创配乐，不计为供应商音乐生成成功。八场景完整创意验收、原S02既有质量问题不在此条自动结案。
+
+### 以下为本节早期实施记录
+
+- 新 Key 的 MiniMax TTS 已真实成功。独立导入 S02 工程 `ffa3bcb0-f6b8-4f54-a52a-973c07e1bd3b`，第一轮片尾旁白替换已完成并通过原生检查；保留原母版。正在连续验证字幕上移、再次换音色、导出和工程重开。
+- 执行器新增 `audio-replace-speech` 和模型受控 `regenerate_speech`，保存批准文案、声音窗口与字幕样式，拒绝截断新旁白和误用已剪切音源的整段文案。
+- 修复新增音频被候选素材检查误拒的问题：原商品素材及合同必须相同；新增音频检查本地路径、哈希、音轨和有效时长；仍保留 candidate_only，不升级为正式通过。
+- MiniMax 音乐两个已测模型均返回 HTTP 410，独立能力未通，不能计为音乐生成成功；保留本地音乐入轨路径。37 项音频/多轮编辑测试、9 项工程包/准入测试通过；完整 core 通过，browser 与验收继续执行。
+- 过程证据：`outputs/minimax-live/edit-integration.json`、`outputs/audio-integration-tests.log`、`outputs/audio-admission-tests.log`、`outputs/audio-core-verification.log`。最终结果以这些记录及后续完成记录为准，不以此进行中条目宣称全项目完成。
+
 检查时间：2026-09-16T00:15:37.876473+00:00。完整 EXECUTION-V2 合同仍在实施，未宣告整体完成。
 
 - 真实 Agent 上新候选已完成：原 project `2ba994d0-d750-494c-99ec-0f5527add49a`，118/128 次累计调用，24 秒、1080p、30fps、720 帧、无音轨，完整解码通过。
@@ -189,3 +205,55 @@ MiniMax 不确定响应（HTTP 5xx/408、超时、缺业务状态）保持 submi
 
 ### 2026-09-16 最终冻结与推送
 用户要求细节自行修改、尽快收尾、全部项目推送 Metroids048/hyperframe。S02 当前 rev-a5b13075fbc28aac 已导出35秒MP4、完整解码通过；三版原生ZIP实际解包通过；WebUI work=s02-gpu 实际可见视频及下载入口。R8两项major一项minor保留，不声明质量通过。全部欠项见 docs/后续Agent交接_未完成项_2026-09-16.md。当前服务PID4756，原job取消、累计103次调用历史保留。最新核心 core-2026-09-16T07-20-09.546Z passed；未声称浏览器套件或跨平台全通过。停止进一步生产，开始全量安全快照和Git推送。
+
+### 2026-09-16 本周路由与 MiniMax 继续实施（未全量收口）
+当前用户要求重新接续路由/Skills/兜底/MiniMax/多轮编辑；用户只提供本地 API Key。附件是参考方案，不能把其中的完成陈述当成事实。HEAD 与 origin/main 都为 f0ead3c9929370ba521ff0f24ba6271a057784fc。首次 bootstrap 的 dirty:false 不可靠：子模块 git-lfs 缺失导致 status 失败被吞；本轮已修复，statusWarning 明确子模块覆盖缺口，父工作树正确为 dirty:true。没有重置、提交、推送或清理旧产物。
+
+保留 S02 rev-a5b13075fbc28aac，当前 final/commerce-final.mp4 SHA256 本轮重算仍为 9cf4fa46dfe476bb422afc916e5509194bcacc27305686e14dbfb4f0edeae3f7；旧质量 major/minor 保持，未再制作或改母版。
+
+实现：config/minimax.local.env 为用户唯一 Key 填写位置（Git ignored）；示例文件可追踪。读取优先级有测试：进程环境优先，空占位不覆盖旧 Key，未填 Key 保留 Kokoro，填后选择 MiniMax。状态接口及试听名称正确显示供应商/账户目录。中国区域更新为当前官方 api.minimax.cn，music-3.0 仅加入候选，默认仍 music-2.6。doctor-minimax.mjs 默认只查本地配置，--voices 只查目录。没有真实 Key 或付费调用；官方文档另有音乐新用户权限限制，需账户实测。
+
+新增 commerce-skills.mjs 八份项目合同加载到 production/model-edit，业务与操作组合、资源调用顺序、保持项、失败下一动作及哈希回执；runtime-build 规则变化使相应规划失效。service 失败记录保留原文、要求、版本与恢复动作。未知 MiniMax 请求新增显式新提交授权入口，保留旧操作和可能重复费用告知；授权 ID 跨重启幂等，协议回归已通过。界面不再对未知请求提供会无效循环的普通重试。
+
+回归发现旧首帧初始化漏洞：隐藏文字在 0 秒初始 DOM 被错误计为已可见。native-scene-worker 用确定性 seek 初始化后再采样，单项真实 Chrome 正反例已通过，完整相关套件重跑中。此前 browser 报告存在该失败，不能记整组全通过；Windows 下一个非 Windows 进程组测试明确 skip。
+
+已结束测试：npm test 20/20，outputs/acceptance/2026-09-16T08-03-35-752Z；初次 core 全通过 outputs/upgrade/verification/core-2026-09-16T08-02-57.150Z；MiniMax 协议/HTTP 21 项通过（含新授权）；weekly 集成初次6项通过，新增HTTP授权用例与完整custom套件写 outputs/weekly-final-targeted.log；最终core写 outputs/weekly-final-core.log。最新结果须以日志结尾为准。
+
+主服务 PID4756 没有活动生产任务，但重启命令被自动审批拒绝，返回 blocked by policy，未执行停止或启动。旧服务仍在，后端磁盘更新未加载；独立测试使用新代码，前端已 build。不能宣称已完成主工作台最新后端联调。
+
+未完成：真实 MiniMax 查询/TTS/音乐/字幕/换声导出；同 S02 八轮连续链；明确另做一条与场景外通用合同完整入口；七个其他场景及十类资源当前实片证据；跨平台及真人视听认可。原 M01—M12/F1—F3 欠项仍继承，不因本轮代码或单测通过销账。当前文档 docs/MiniMax本地接入与本轮验证.md。
+
+最终验证补记：outputs/weekly-final-targeted.log 为25通过/0失败/1平台跳过（26项），包含修复后的完整自定义场景浏览器套件和7项本周集成测试。outputs/weekly-final-core.log 退出0，最终核心报告 outputs/upgrade/verification/core-2026-09-16T08-13-23.548Z/report.json。git diff --check 通过；Key文件再次确认被忽略。主服务仍未重载，真实MiniMax未调用。没有声明后台自动继续。
+# 2026-09-16 17:59 当前补充：MiniMax 计费核查
+
+18:26 新Key实测更新（优先于以下旧Key阻塞记录）：原Key直连接入方式保持，用户替换的新Key真实TTS成功。speech-2.8-hd，沉稳高管，句子“看清接口与背板细节，再做选择。”；实际3.065063秒、字幕0—2.965034秒，完整解码及音频哈希通过。operationId aaf08a89-5bd2-4eae-b0f6-1e2e85260fd8，SHA256 27be0550b0b3209430d8d6f846a69dfb9e9132073053182d3f370f2fe08095c7。工作台安全重启PID16808（重启前各模块无运行任务），HTTP音色查询303个；工作台audio-generate任务job-faa1fbdd-16ab-468a-984d-3c5807984288完成，真实音频作为素材入项目2c34075d-b02d-4c13-8ac9-f2da2df7ea8f，命中刚才已落地结果，未重复付费生成。证据outputs/minimax-live/speech.json及workbench-verification.json，试听outputs/minimax-live/沉稳高管-真实试音.wav。音乐新Key请求仍HTTP410，独立未通过。这里只证明真实TTS、字幕、素材入库；尚未证明工程入轨混音导出和全量八轮验收。
+
+18:15最新用户约束：只有现有API Key，账户不在用户手中，只允许Key直连；不得要求登录或改走OAuth。官方CLI设备登录在停止时已完成，但本次隔离config/minimax-oauth/config.json已移除，OAuth运行时代码未启用且已撤回。保留Key原值。再次核实无环境覆盖、无分能力Key覆盖。主服务/api/edit-capabilities中configured指Codex订阅连接；保留S02 narration.json记录engine=kokoro，非MiniMax成功。直连语音speech-2.6-hd同样1008，x-api-key鉴权方式1004，默认仍Bearer。两个国内地址及官方CLI的既有拒绝证据保留。直接API协议21/21通过（outputs/minimax-direct-key-protocol.log）。当前不能宣称MiniMax成片完成；供应商拒绝尚无客户端可行修复，独立模块仍须继续。
+
+18:05追加工程验证：四条真实模型消息路由全部通过（outputs/message-routing-live.json）；统一消息入口独立回归3/3。变体发布按workflow.taskMode保留母版；路由失败保存原消息与基准版本。核心回归通过 outputs/upgrade/verification/core-2026-09-16T10-02-47.626Z/report.json。修复测试启动器隔离本地MiniMax凭据及TTS选择，避免离线回归误触发真实供应商；先前失败报告保留，不能算通过。最新路由/分支代码尚需主服务重载和实片UI验证，M01不标最终验收。
+
+用户指出 Token Plan 有额度后，实查相同语音 Key：套餐查询成功，general窗口100%、周99%；但 Key 是官方 CLI 识别的 sk-api- 按量格式。account/query_balance 成功，available_amount/cash/voucher/credit 均0.00。官方CLI1.0.25同模型同音色且关闭字幕仍 insufficient balance，两个国内域名均1008。纠正早先直接建议补余额；需要在本地配置填写订阅 Key，等待用户更新期间继续独立模块。证据 outputs/minimax-live/{quota,account-balance}.json，outputs/minimax-cli-diagnostic/speech-diagnostic.json。未生成MiniMax音频。
+
+主服务已安全重启 PID15012；随后新增路由代码尚未重载。M01 新统一消息路由已有3项独立回归通过，仍需真实模型及UI验证。修正官方字幕字段time_begin/time_end，MiniMax协议21/21通过。全量模块与场景仍未验收完成，保留母版和历史。
+
+## 2026-09-16 非 MiniMax 续改：独立字幕、音乐范围、版本历史
+
+本轮按“先不用minimax”继续独立模块，没有调用 MiniMax 或生成新语音。复用本地统一路由，补齐音乐降低+片尾淡出的确定性入口；新增 update_caption_style 和编译样式持久化；独立字幕连续上移累计当前值，商品 feature/body/description 不再被误当字幕。字幕变化触发覆盖镜头重检，布局锁和非法参数原子拒绝。独立音乐降低不动旁白，片尾淡出仅改最后结束的音乐段。
+
+实片完成时间以 outputs/s02-caption-edit-HAIAVF/verification.json 文件时间为准。母版 rev-a5b13075fbc28aac 哈希保持9cf4fa46dfe476bb422afc916e5509194bcacc27305686e14dbfb4f0edeae3f7。副本 rev-15d4c4099e9895e5 严格导出35秒有声MP4，新哈希d8dce2db3ba3aded3e3a60dfaed02c3244ced2c64fdd24d87aef39b494771de1；完整解码通过。字幕实测Y 916.015625→836.015625，新旧解码PCM哈希相同。副本重新读取保留样式，实际第1秒帧已查看。该副本仅为续改验证，不替换冻结交付，不清除原S02质量问题。
+
+独立字幕与音乐范围6/6；路由及服务撤销/重开/重做4/4；文字位置浏览器+R3合同9/9。核心回归通过 outputs/upgrade/verification/core-2026-09-16T10-23-47.311Z/report.json；npm test 20/20，outputs/acceptance/2026-09-16T10-25-49-439Z。新测试纳入后续core。浏览器汇总以 outputs/upgrade/verification/browser-2026-09-16T10-25-34.044Z/report.json 最终状态为准。git diff --check与改动模块语法检查通过。
+
+本轮未重启主服务；新增最后代码未证明已热加载到主工作台。非MiniMax仍欠同S02全部八轮UI链、换镜头撤销、竖屏分支、跨目录打包链、场景外通用合同、其余七场景和资源实片证据。保留先前M/F所有未销账项。详情docs/非MiniMax续改验证-20260916.md。没有建立后台自动继续机制。
+浏览器最终补记：browser-2026-09-16T10-25-34.044Z 已退出0，汇总通过；自定义场景18通过、1平台跳过。所有本轮启动的验证进程均已结束。
+
+
+## 2026-09-16 非生成工作流设计与工程接入
+
+最新范围：MiniMax 暂停；不制作新业务视频。新增统一制作单与只规划入口，六业务加 general、recut/variant 及辅助业务组合；原话/目标/步骤依赖校验、母版目的保持、模型结构最多一次修正、真实对象上下文、项目持久化/取消/重复请求保护。八个 commerce Skill 合同继续加载。共用 executionCandidates 连接既有生产与规划；阶段证据和业务/运行失败恢复决策均不自动计质量通过。工作台可展开制作单、缺项和资源状态。
+
+设计：docs/NON_GENERATION_WORKFLOWS.zh-CN.md；指定八场景总览已增加实施入口。全量 docs 审计129文件、资源1449条、8个兼容执行器候选；compositions 空受管目录补齐后配置边界扫描完成。参考资源不等于已经适配或质量通过。
+
+验证：最终工作流9/9；新增真实浏览器入口通过；core outputs/upgrade/verification/core-2026-09-16T11-01-28.381Z/report.json 通过；npm test 20/20。浏览器原始汇总 outputs/upgrade/verification/browser-2026-09-16T11-01-39.373Z/report.json 保留旧UI一次detached-node失败，其单独复测 outputs/upgrade/ui/2026-09-16T11-04-34-050Z 全部通过，其他浏览器套件通过，自定义隔离1项平台跳过。真实模型general通过；详情竖屏变体首次步骤引用失败后修正合同，最终正确继承product_detail并绑定scene-03保持项，未再索要已知工程字段。证据见outputs/non-generation-delivery.json与workflow-live记录。
+
+冻结S02哈希仍9cf4fa46dfe476bb422afc916e5509194bcacc27305686e14dbfb4f0edeae3f7。本轮没有重启主服务，不能宣称后端已经在主工作台热加载。没有把目录全量资源、八场景视频观看质量或MiniMax标为验收完成；既有质量未销账项继续保留。

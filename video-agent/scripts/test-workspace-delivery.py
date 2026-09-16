@@ -62,6 +62,11 @@ class DeliveryTests(unittest.TestCase):
         launcher.health = lambda: {"ok": True, "workspaceId": launcher.WORKSPACE_ID, "workbench": "commerce"}
         self.assertTrue(launcher.ready())
 
+    def test_launcher_exposes_full_remote_push(self):
+        text = (SCRIPTS.parent / "start.py").read_text(encoding="utf-8")
+        self.assertIn("push-workspace.mjs", text)
+        self.assertIn('"push"', text)
+
 
 if __name__ == "__main__":
     result = unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(DeliveryTests))

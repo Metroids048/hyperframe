@@ -1,0 +1,11 @@
+import '../lib/local-env.mjs';
+import fs from 'node:fs/promises';
+import assert from 'node:assert/strict';
+import {planCreativeEdit} from '../lib/creative/model-edit.mjs';
+const base='http://127.0.0.1:3020';
+const p=(await(await fetch(base+'/api/commerce-projects')).json()).projects.find(p=>p.id==='ffa3bcb0-f6b8-4f54-a52a-973c07e1bd3b');
+const d=await(await fetch(base+p.revisions.find(r=>r.id===p.currentRevisionId).documentUrl)).json();
+const track=d.audioGraph.find(t=>t.role==='narration'&&t.startFrame===930);
+const plan=await planCreativeEdit(d,'只把片尾31秒开始的旁白换成新闻女声，朗读文案保持不变，其他不动。');
+assert.equal(plan.operations.length,1);const op=plan.operations[0];assert.equal(op.type,'regenerate_speech');assert.equal(op.nodeId,track.id);assert.equal(op.text,undefined);assert.equal(op.params.voice,'Chinese (Mandarin)_News_Anchor');
+await fs.writeFile('outputs/minimax-live/speech-chat-plan.json',JSON.stringify({status:'passed',note:'Real planner only; no paid speech resubmission',plan},null,2));console.log('PASS real model selects one bound narration track and a real catalog voice, preserves text');

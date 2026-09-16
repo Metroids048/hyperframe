@@ -36,6 +36,9 @@ const commands =
         "test-delivery-entry",
         "test-closeout-r1",
         "test-creative-portable",
+        "test-message-routing",
+        "test-workflow-design",
+        "test-caption-scoped-edit",
         "test-finished-works",
         "test-shipped-assets",
       ]
@@ -51,6 +54,7 @@ const commands =
         "test-conversation-media",
         "test-creative-custom",
         "test-finished-work-ui",
+        "test-workflow-ui",
       ];
 const report = {
   group,
@@ -83,7 +87,7 @@ for (const name of commands) {
   const result = await new Promise((resolve) => {
     const child = spawn(process.execPath, ["scripts/" + name + ".mjs"], {
       cwd: ROOT,
-      env: { ...runtimeEnv(), PYTHONUTF8: "1" },
+      env: { ...runtimeEnv(), PYTHONUTF8: "1", VIDEO_AGENT_TTS_ENGINE: "kokoro", MINIMAX_API_KEY: "", MINIMAX_SPEECH_API_KEY: "", MINIMAX_VOICES_API_KEY: "", MINIMAX_MUSIC_API_KEY: "" },
       windowsHide: true,
       stdio: ["ignore", "pipe", "pipe"],
     });

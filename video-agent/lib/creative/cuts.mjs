@@ -19,6 +19,11 @@ function removeAudioRange(document,start,end){
     const parts=[[a.startFrame,Math.min(originalEnd,start)],[Math.max(a.startFrame,end),originalEnd]].filter(([s,e])=>e>s);
     return parts.map(([s,e],i)=>{
       const shift=s>=end?removed:0,node={...a,captionSourceId:a.captionSourceId||a.id,id:i?stableId('audio',a.id,'cut',start,end):a.id,startFrame:s-shift,durationFrames:e-s,sourceStartSeconds:(a.sourceStartSeconds||0)+(s-a.startFrame)/30*(a.playbackRate??1)};
+      if(a.speechWindowFrames){
+        const oldWindowEnd=a.startFrame+a.speechWindowFrames;
+        const projectedEnd=oldWindowEnd<=start?oldWindowEnd:oldWindowEnd>=end?oldWindowEnd-removed:start;
+        node.speechWindowFrames=Math.max(node.durationFrames,(parts.length>1&&i===0?Math.min(projectedEnd,start):projectedEnd)-node.startFrame);
+      }
       node.fadeInFrames=s===a.startFrame?Math.min(a.fadeInFrames||0,node.durationFrames):0;
       node.fadeOutFrames=e===originalEnd?Math.min(a.fadeOutFrames||0,node.durationFrames-node.fadeInFrames):0;
       node.ducking=(a.ducking||[]).flatMap(d=>{const first=Math.max(s,d.startFrame),last=Math.min(e,d.endFrame);return last>first?[{...d,startFrame:first-shift,endFrame:last-shift}]:[];});return node;

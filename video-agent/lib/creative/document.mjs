@@ -122,6 +122,7 @@ export function validateDocument(document, assets = {}) {
   insist(document.durationFrames>0&&document.durationFrames<=600*FPS,'工程时长必须在10分钟以内','INVALID_DURATION');
   const audioIds=new Set();
   for(const audio of document.audioGraph||[]){
+    if(audio.speechWindowFrames!==undefined)insist(['narration','voiceover'].includes(audio.role)&&Number.isInteger(audio.speechWindowFrames)&&audio.speechWindowFrames>=audio.durationFrames&&audio.startFrame+audio.speechWindowFrames<=document.durationFrames,'旁白窗口必须覆盖实际声音且位于工程内','INVALID_AUDIO_RANGE');
     const asset=assets[audio.assetId];insist(asset?.mediaMetadata?.hasAudio,'音轨引用了无声或缺失素材','INVALID_AUDIO_ASSET');
     insist(typeof audio.id==='string'&&!audioIds.has(audio.id),'音轨ID无效或重复','INVALID_AUDIO_ID');audioIds.add(audio.id);
     insist(Number.isInteger(audio.startFrame)&&audio.startFrame>=0&&Number.isInteger(audio.durationFrames)&&audio.durationFrames>0&&audio.startFrame+audio.durationFrames<=document.durationFrames,'音轨超出成片时长','INVALID_AUDIO_TIME');
@@ -136,6 +137,7 @@ export function validateDocument(document, assets = {}) {
   const captionIds=new Set();
   insist(!document.captions||Array.isArray(document.captions)&&document.captions.length<=3000,'字幕数量超过上限','INVALID_CAPTIONS');
   for(const cue of document.captions||[]){
+    if(cue.style!==undefined)validateTextStyle(cue.style);
     insist(typeof cue.id==='string'&&!captionIds.has(cue.id),'字幕ID无效','INVALID_CAPTION_ID');captionIds.add(cue.id);
     insist(typeof cue.text==='string'&&cue.text.trim()&&[...cue.text].length<=240,'字幕文字无效','INVALID_TEXT');
     const asset=assets[cue.assetId];insist(asset?.mediaMetadata?.hasAudio&&cue.anchor==='source-content'&&typeof cue.trackId==='string','字幕缺少真实音源锚点','INVALID_CAPTION_SOURCE');

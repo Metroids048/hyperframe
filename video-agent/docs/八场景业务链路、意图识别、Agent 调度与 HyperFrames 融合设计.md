@@ -44,3 +44,8 @@
 - [S06 链路](../commerce/scenes/product-faq/STORY_GRAMMAR.md)
 
 八类入口共用需求理解、素材观察、事实约束、资源选择、原生工程、审查和续改流程。资源应解决对应信息任务，不能用同一套版式换七个标题。耳机素材已排除本轮新制作；不生成新的 AI 商品图片或视频镜头。
+
+
+## 2026-09-16 非生成能力实施入口
+
+按本轮最新要求，暂停 MiniMax 与新业务视频制作。场景组合、制作单、项目级 Skill、共用资源调度、阶段证据和失败恢复的统一设计见 [非生成工作流合同](NON_GENERATION_WORKFLOWS.zh-CN.md)。工作台新增“只规划与检查”；工程入口为 `lib/creative/workflow-design.mjs`，验证入口为 `scripts/test-workflow-design.mjs` 与 `scripts/test-workflow-ui.mjs`。目录与 docs 全量哈希索引通过 `node scripts/audit-workflow-support.mjs` 生成。计划、资源命中和测试夹具不代表业务成片验收。

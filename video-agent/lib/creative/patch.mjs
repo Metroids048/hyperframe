@@ -8,9 +8,10 @@ import {sceneLocks, lockScope, requestedLocks} from './locks.mjs';
 import {cutNativeScene} from './cuts.mjs';
 import {customParameters,compileCustomSource} from './custom-source.mjs';
 import {alignSourceAudio} from './source-audio.mjs';
+import {projectNativeCaptions} from './captions.mjs';
 
 const allowed = new Set(['update_text_style','update_text', 'update_effect_params', 'set_scene_effect', 'replace_asset', 'set_scene_duration', 'reorder_scenes', 'set_transition', 'change_output','lock_scene','unlock_scene','update_media','retime_document']);
-for(const type of ['add_audio','update_audio','remove_audio','split_scene','trim_scene','update_caption','set_captions','update_custom_source'])allowed.add(type);
+for(const type of ['add_audio','update_audio','remove_audio','split_scene','trim_scene','update_caption','update_caption_style','set_captions','update_custom_source'])allowed.add(type);
 
 export function applyDocumentPatch(input, operations, assets) {
   insist(Array.isArray(operations) && operations.length > 0 && operations.length <= 100, '修改清单必须为 1～100 项', 'INVALID_PATCH');
@@ -20,6 +21,14 @@ export function applyDocumentPatch(input, operations, assets) {
     insist(op && allowed.has(op.type), `不支持的原生工程修改：${op?.type}`, 'UNSUPPORTED_PATCH');
     if(op.type==='split_scene'||op.type==='trim_scene')cutNativeScene(document,op);
     if(op.type==='set_captions')document.captions=structuredClone(op.captions);
+    if(op.type==='update_caption_style'){
+      const cues=(document.captions||[]).filter(c=>op.nodeId==null||c.id===op.nodeId);
+      insist(cues.length,'没有匹配的独立字幕对象','PATCH_TARGET_MISSING');
+      insist(op.params&&typeof op.params==='object'&&!Array.isArray(op.params)&&Object.keys(op.params).length,'字幕样式参数不能为空','INVALID_TEXT_STYLE');
+      const {offsetYDelta,...style}=op.params||{};validateTextStyle(style);
+      insist(offsetYDelta===undefined||(Number.isFinite(offsetYDelta)&&Math.abs(offsetYDelta)<=400&&style.offsetY===undefined),'字幕相对位移无效或与绝对位置冲突','INVALID_TEXT_STYLE');
+      for(const cue of cues){const next={...cue.style,...style};if(offsetYDelta!==undefined)next.offsetY=(cue.style?.offsetY||0)+offsetYDelta;validateTextStyle(next);cue.style=next;}
+    }
     if(op.type==='update_caption'){
       const cue=document.captions?.find(c=>c.id===op.nodeId);insist(cue,'目标字幕不存在','PATCH_TARGET_MISSING');
       insist(typeof op.text==='string'&&op.text.trim()&&[...op.text].length<=240,'字幕文字必须为1—240字','INVALID_TEXT');cue.text=op.text.trim();cue.reviewRequired=false;cue.corrected=true;
@@ -40,7 +49,7 @@ export function applyDocumentPatch(input, operations, assets) {
       document.audioGraph??=[];const index=document.audioGraph.findIndex(a=>a.id===op.nodeId);
       if(op.type!=='add_audio')insist(index>=0,'目标音轨不存在','PATCH_TARGET_MISSING');
       if(op.type==='remove_audio'){const [removed]=document.audioGraph.splice(index,1);if(document.audioRequirements&&removed.role&&!document.audioGraph.some(t=>t.role===removed.role))document.audioRequirements[removed.role]=false;continue;}
-      const params=op.params||{};insist(Object.keys(params).every(k=>['startFrame','durationFrames','sourceStartSeconds','playbackRate','volume','fadeInFrames','fadeOutFrames','ducking','role','sourceNodeId'].includes(k)),'不支持的音轨参数','INVALID_PATCH');
+      const params=op.params||{};insist(Object.keys(params).every(k=>['startFrame','durationFrames','speechWindowFrames','sourceStartSeconds','playbackRate','volume','fadeInFrames','fadeOutFrames','ducking','role','sourceNodeId'].includes(k)),'不支持的音轨参数','INVALID_PATCH');
       if(params.sourceNodeId)insist(document.nodes.some(n=>n.id===params.sourceNodeId&&n.kind==='video'&&n.assetId===(op.assetId||document.audioGraph[index]?.assetId)),'原声必须绑定同一真实视频对象','INVALID_AUDIO_ASSET');
       if(op.type==='add_audio'&&['music','original'].includes(params.role))document.audioRequirements={...document.audioRequirements,[params.role]:true};
       if(op.type==='add_audio'){insist(assets[op.assetId]?.mediaMetadata?.hasAudio,'素材没有可用声音','INVALID_AUDIO_ASSET');document.audioGraph.push({id:stableId('audio',input.revisionId,op,document.audioGraph.length),assetId:op.assetId,startFrame:0,sourceStartSeconds:0,playbackRate:1,volume:1,...params});}
@@ -58,7 +67,7 @@ export function applyDocumentPatch(input, operations, assets) {
       insist(flexible.length?remaining>=flexible.length*45:remaining===0,'锁定内容与目标时长冲突','LOCK_CONFLICT');
       const durations=flexible.length?solveSceneDurations(remaining,flexible.length,0,flexible.map(s=>s.durationFrames)):[];
       for(const scene of document.scenes){const old=scene.durationFrames;scene.durationFrames=fixed.get(scene.id)??durations[flexible.indexOf(scene)];for(const node of document.nodes.filter(n=>n.sceneId===scene.id))if(node.localDurationFrames===old)node.localDurationFrames=scene.durationFrames;}
-      for(const audio of document.audioGraph||[])audio.durationFrames=Math.min(audio.durationFrames,op.durationFrames-audio.startFrame);
+      for(const audio of document.audioGraph||[]){audio.durationFrames=Math.min(audio.durationFrames,op.durationFrames-audio.startFrame);if(audio.speechWindowFrames)audio.speechWindowFrames=Math.min(audio.speechWindowFrames,op.durationFrames-audio.startFrame);}
     }
     if(op.type==='update_text_style'){
       const node=document.nodes.find(n=>n.id===op.nodeId);insist(node?.kind==='text','目标文字节点不存在','PATCH_TARGET_MISSING');
@@ -185,6 +194,11 @@ export function applyDocumentPatch(input, operations, assets) {
 
 export function computeInvalidation(input, output) {
   const changedScenes = new Set();
+  if(JSON.stringify(input.captions||[])!==JSON.stringify(output.captions||[])){
+    const before=new Map((input.captions||[]).map(c=>[c.id,c])),after=new Map((output.captions||[]).map(c=>[c.id,c]));
+    const changed=new Set([...new Set([...before.keys(),...after.keys()])].filter(id=>JSON.stringify(before.get(id))!==JSON.stringify(after.get(id))));
+    for(const doc of [input,output])for(const cue of projectNativeCaptions(doc).filter(c=>changed.has(c.id)))for(const scene of doc.scenes)if(cue.startFrame<scene.startFrame+scene.durationFrames&&cue.startFrame+cue.durationFrames>scene.startFrame)changedScenes.add(scene.id);
+  }
   const beforeNodes = new Map(input.nodes.map(n => [n.id, n]));
   for (const node of output.nodes) {
     const before = beforeNodes.get(node.id);

@@ -35,7 +35,7 @@ export async function creativeVoiceInteraction(project,message,directory,{signal
     for(const voice of plan.voices){
       const bytes=await provider.speak(plan.script,voice,'',signal,{rate:plan.rate}),actualVoice=provider.lastSpeechMetrics?.voice||voice,sha256=createHash('sha256').update(bytes).digest('hex'),id=stableId('voice',actualVoice,plan.script,plan.rate,sha256),file=path.join(output,id+'.wav');
       await fs.writeFile(file,bytes);const metadata=await probe(file,signal);insist(metadata.hasAudio&&metadata.duration>0,'试听没有生成有效声音','INVALID_VOICE_OUTPUT');
-      auditions.push({id,voice:actualVoice,text:plan.script,rate:plan.rate,path:'auditions/'+id+'.wav',durationSeconds:metadata.duration,sha256:await hashFile(file),metrics:provider.lastSpeechMetrics,
+      auditions.push({id,voice:actualVoice,voiceName:catalog?.voices?.find(v=>v.id===actualVoice)?.name||actualVoice,text:plan.script,rate:plan.rate,path:'auditions/'+id+'.wav',durationSeconds:metadata.duration,sha256:await hashFile(file),metrics:provider.lastSpeechMetrics,
         providerTranscript:provider.lastSpeechTranscript?{...provider.lastSpeechTranscript,sourceSha256:sha256,source:'minimax-subtitle'}:null,
         rights:{status:provider.lastSpeechMetrics?.engine==='minimax'?'provider-generated':'locally-generated',engine:provider.lastSpeechMetrics?.engine||'kokoro',provenance:provider.lastSpeechMetrics?.provenance}});
     }

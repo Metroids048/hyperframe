@@ -9,7 +9,7 @@ import {validateEditReviewIssue} from '../lib/creative/edit-review.mjs';
 import {allocatePublicationRevision} from '../lib/creative/history.mjs';
 
 test('smaller text uses authored 28px and refuses an unknown baseline',()=>{
- const d={nodes:[{id:'label',sceneId:'s',kind:'text',semanticRole:'feature',params:{text:'商品细节'}}],sourceBundles:[{sceneId:'s',objects:[{nodeId:'label',elementId:'text-1'}],textStyles:[{elementId:'text-1',match:'商品细节',fontSize:28}]}]};
+ const d={nodes:[{id:'label',sceneId:'s',kind:'text',semanticRole:'caption',params:{text:'商品细节'}}],sourceBundles:[{sceneId:'s',objects:[{nodeId:'label',elementId:'text-1'}],textStyles:[{elementId:'text-1',match:'商品细节',fontSize:28}]}]};
  const message='字幕小一点，往上移，声音和其他画面不变';
  assert.deepEqual(scopedCommerceEdit(d,message).operations[0].params,{fontSize:24,offsetY:-40});
  delete d.sourceBundles;assert.equal(scopedCommerceEdit(d,message),null);

@@ -15,7 +15,7 @@ export function invalidatedProductionCheckpoints(before,after,checkpoints,{polic
  const order=['brief','observe','material','creative','resources','narration','story','timing','shots','assemble','quality'];
  let first=policyChanged?0:9;
  const rules=[
-  [/\/(?:contracts|commerce-focus|workflow-intent|intake|business-constraints|model-director|production|scene-package)\.mjs$/,0],
+  [/\/(?:contracts|commerce-focus|commerce-skills|workflow-intent|workflow-design|workflow-gates|intake|business-constraints|model-director|production|scene-package)\.mjs$/,0],
   [/\/(?:source-inspection|observation-request|evidence-index|commerce-directors)\.mjs$/,1],
   [/\/(?:capabilities|resource-catalog|resource-discovery|native-recipes)\.mjs$/,4],
   [/\/(?:voice|captions|audio-assets|minimax-client|minimax|codex-provider)\.mjs$/,5],

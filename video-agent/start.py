@@ -6,9 +6,10 @@
 
 用法：
   python start.py              交互菜单
-  python start.py all          构建前端并启动后端（完整项目）
-  python start.py frontend     只构建前端
-  python start.py backend      只启动后端（需已有 web-dist）
+  python start.py all          同步远程后构建前端并启动后端（完整项目）
+  python start.py frontend     同步远程后只构建前端
+  python start.py backend      同步远程后只启动后端（需已有 web-dist）
+  python start.py push         把当前工程、素材和本机配置推送到 origin
   python start.py stop         停止后端
   python start.py status       查看状态
   python start.py open         打开工作台浏览器
@@ -329,12 +330,13 @@ def interactive() -> int:
     print("本地视频剪辑工作台")
     print(f"目录：{ROOT}")
     print()
-    print("  1) 启动整个项目（构建前端 + 启动后端）")
+    print("  1) 启动整个项目（先推送远程，再构建前端并启动后端）")
     print("  2) 只构建前端")
     print("  3) 只启动后端")
     print("  4) 停止后端")
     print("  5) 查看状态")
     print("  6) 打开工作台")
+    print("  7) 一键推送到 GitHub")
     print("  0) 退出")
     print()
     choice = input("请选择：").strip()
@@ -345,6 +347,7 @@ def interactive() -> int:
         "4": "stop",
         "5": "status",
         "6": "open",
+        "7": "push",
         "0": "quit",
     }
     action = mapping.get(choice)
@@ -356,7 +359,23 @@ def interactive() -> int:
     return dispatch(action)
 
 
+def sync_remote(*, required: bool) -> None:
+    print("正在把当前工程、素材、成片和本机配置推送到 origin ...")
+    result = subprocess.run([node_bin(), str(ROOT / "scripts" / "push-workspace.mjs")], cwd=ROOT)
+    if result.returncode == 0:
+        return
+    message = "远程完整推送失败。新设备将缺少本次未同步的文件或配置。"
+    if required:
+        raise SystemExit(message)
+    print(message, file=sys.stderr)
+
+
 def dispatch(action: str) -> int:
+    if action == "push":
+        sync_remote(required=True)
+        return 0
+    if action in {"all", "frontend", "backend"}:
+        sync_remote(required=False)
     if action == "all":
         start_backend(rebuild=True)
         open_browser()
@@ -386,7 +405,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "action",
         nargs="?",
-        choices=["all", "frontend", "backend", "stop", "status", "open"],
+        choices=["all", "frontend", "backend", "push", "stop", "status", "open"],
         help="省略则进入交互菜单",
     )
     args = parser.parse_args(argv)

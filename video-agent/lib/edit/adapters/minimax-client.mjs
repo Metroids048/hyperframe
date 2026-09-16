@@ -33,7 +33,11 @@ export function minimaxConfig(kind,env=process.env){
  const key=String(env[prefix+'_API_KEY']||env.MINIMAX_API_KEY||'').trim();
  const timeoutMs=env.MINIMAX_TIMEOUT_MS==null?120000:Number(env.MINIMAX_TIMEOUT_MS);
  requireValue(Number.isInteger(timeoutMs)&&timeoutMs>=1000&&timeoutMs<=900000,'MINIMAX_TIMEOUT_CONFIG','音频超时需为1000—900000毫秒');
- return {kind,region,key,enabled:env[prefix+'_ENABLED']!=='false',origin:region==='cn'?'https://api.minimaxi.com':'https://api.minimax.io',endpoint:adapter.endpoint,
+ const cnHost=env.MINIMAX_CN_API_HOST||'api.minimax.cn';
+ requireValue(['api.minimax.cn','api.minimaxi.com'].includes(cnHost),'MINIMAX_REGION','国内 API 主机必须为官方支持地址');
+ const authStyle=env.MINIMAX_AUTH_STYLE||'bearer';
+ requireValue(['bearer','x-api-key'].includes(authStyle),'MINIMAX_AUTH_CONFIG','鉴权方式必须为 bearer 或 x-api-key');
+ return {kind,region,key,authStyle,enabled:env[prefix+'_ENABLED']!=='false',origin:region==='cn'?'https://'+cnHost:'https://api.minimax.io',endpoint:adapter.endpoint,
    model:env[prefix+'_MODEL']||(kind==='speech'?'speech-2.8-hd':kind==='music'?'music-2.6':null),voice:env.MINIMAX_VOICE_ID||null,
    timeoutMs,maxBytes:32*1024*1024,account:digest([region,key]),transport:'live'};
 }
@@ -58,7 +62,7 @@ export function minimaxSubtitles(value,duration,{offsetSeconds=0,granularity='se
  requireValue(Array.isArray(cues)&&cues.length>0&&Number.isFinite(duration)&&duration>0&&Number.isFinite(offsetSeconds)&&offsetSeconds>=0,'MINIMAX_SUBTITLES','供应商没有返回有效的字幕时间');
  let previousStart=-1,previousEnd=-1;
  return cues.map(c=>{
-  const start=Number(c.start)/1000,end=Number(c.end)/1000;
+  const start=Number(c.time_begin??c.start)/1000,end=Number(c.time_end??c.end)/1000;
   requireValue(typeof c.text==='string'&&c.text.trim()&&Number.isFinite(start)&&Number.isFinite(end)&&start>=0&&end>start&&end<=duration+.1,'MINIMAX_SUBTITLES','字幕内容或实际音频时间范围无效');
   requireValue(start>=previousStart&&end>=previousEnd,'MINIMAX_SUBTITLES','供应商字幕时间顺序无效，未静默重排');previousStart=start;previousEnd=end;
   return {text:c.text,start:start+offsetSeconds,end:end+offsetSeconds,source:'minimax-subtitle',granularity,timeUnit:'seconds',originalTimeUnit:'milliseconds'};
@@ -67,7 +71,7 @@ export function minimaxSubtitles(value,duration,{offsetSeconds=0,granularity='se
 function businessError(response){
  const code=response?.base_resp?.status_code;
  requireValue(Number.isInteger(code),'MINIMAX_PROTOCOL','供应商响应缺业务状态');
- if(code!==0){const names={1001:'MINIMAX_PROVIDER_TIMEOUT',1002:'MINIMAX_RATE_LIMIT',1004:'MINIMAX_AUTH',1008:'MINIMAX_BALANCE',2013:'MINIMAX_INPUT',20132:'MINIMAX_VOICE',2042:'MINIMAX_PERMISSION',2049:'MINIMAX_AUTH'};throw new MiniMaxError(names[code]||'MINIMAX_BUSINESS','MiniMax业务失败（'+code+'），未产生已验证音频');}
+ if(code!==0){const names={1001:'MINIMAX_PROVIDER_TIMEOUT',1002:'MINIMAX_RATE_LIMIT',1004:'MINIMAX_AUTH',1008:'MINIMAX_BALANCE',2013:'MINIMAX_INPUT',20132:'MINIMAX_VOICE',2042:'MINIMAX_PERMISSION',2049:'MINIMAX_AUTH'};const error=new MiniMaxError(names[code]||'MINIMAX_BUSINESS','MiniMax业务失败（'+code+'），未产生已验证音频');error.providerStatusCode=code;throw error;}
 }
 async function limitedBytes(response,maxBytes){
  requireValue(response?.body,'MINIMAX_EMPTY','供应商响应为空');const chunks=[];let size=0;
@@ -85,13 +89,23 @@ export class MiniMaxClient {
   return limitedBytes(response,maxBytes);
  }
  async execute(kind,input={},options={}){
-  const config=minimaxConfig(kind,this.env);requireValue(config.enabled,'MINIMAX_DISABLED','此音频能力已停用');requireValue(config.key,'MINIMAX_UNCONFIGURED','MiniMax未配置；本地音频仍可使用');
+  const config=minimaxConfig(kind,this.env);requireValue(config.enabled,'MINIMAX_DISABLED','此音频能力已停用');
+  requireValue(config.key,'MINIMAX_UNCONFIGURED','MiniMax未配置；本地音频仍可使用');
   const payload=minimaxRequest(kind,input,config),fingerprint=digest({v:1,kind,payload,account:config.account,transport:this.transport?'protocol-fixture':'live',catalogWindow:kind==='voices'?Math.floor(Date.now()/3600000):null});
-  const directory=path.join(this.root,'.cache/minimax',fingerprint);
+  let directory=path.join(this.root,'.cache/minimax',fingerprint);
+  if(options.newSubmissionAuthorization){
+   const authorization=options.newSubmissionAuthorization;
+   requireValue(typeof authorization==='string'&&/^[a-zA-Z0-9-]{16,100}$/.test(authorization),'MINIMAX_AUTHORIZATION','新提交需要明确且稳定的授权编号');
+   const previousDirectory=options.previousSubmissionAuthorization?path.join(this.root,'.cache/minimax',digest({fingerprint,authorization:options.previousSubmissionAuthorization})):directory;
+   const prior=await readJSON(path.join(previousDirectory,'operation.json')).catch(error=>{if(error.code==='ENOENT')return null;throw error;});
+   requireValue(prior?.status==='submission_unknown','MINIMAX_AUTHORIZATION','只有已记录的结果未知请求可授权新提交');
+   options={...options,recovery:{priorOperationId:prior.operationId,authorizationId:authorization,reason:'explicit-new-submission-possible-duplicate-charge'}};
+   directory=path.join(this.root,'.cache/minimax',digest({fingerprint,authorization}));
+  }
   if(flights.has(directory))return flights.get(directory);
   const task=this.perform(directory,kind,payload,config,options);flights.set(directory,task);try{return await task;}finally{flights.delete(directory);}
  }
- async perform(directory,kind,payload,config,{signal,retryKnownFailure=false}={}){
+ async perform(directory,kind,payload,config,{signal,retryKnownFailure=false,recovery=null}={}){
   requireValue(!signal?.aborted,'CANCELLED','音频任务已取消，尚未提交');
   await fs.mkdir(directory,{recursive:true});const file=path.join(directory,'operation.json');
   let record=await readJSON(file).catch(e=>{if(e.code!=='ENOENT')throw e;return null;});
@@ -115,11 +129,12 @@ export class MiniMaxClient {
    if(record?.responseSaved)response=await readJSON(path.join(directory,'response.private.json'));
    else{
     const priorAttempts=[...(record?.priorAttempts||[]),...(record?.status==='failed'?[{status:record.status,error:record.error,startedAt:record.startedAt,actualSubmissions:record.actualSubmissions}]:[])];
-    record={operationId,kind,model:config.model,status:'submitting',startedAt:new Date().toISOString(),provenance:this.transport?'protocol-fixture':'minimax-live',requestHash:digest(payload),actualSubmissions:(record?.actualSubmissions||0)+1,priorAttempts};await writeJSON(file,record);
-    let http;try{http=await (this.transport?.fetch||fetch)(config.origin+config.endpoint,{method:'POST',headers:{Authorization:'Bearer '+config.key,'Content-Type':'application/json'},body:JSON.stringify(payload),signal:combined,redirect:'error'});}catch{
+    record={operationId,kind,model:config.model,status:'submitting',startedAt:new Date().toISOString(),provenance:this.transport?'protocol-fixture':'minimax-live',requestHash:digest(payload),actualSubmissions:(record?.actualSubmissions||0)+1,priorAttempts,recovery};await writeJSON(file,record);
+    record.apiHost=new URL(config.origin).host;record.endpoint=config.endpoint;record.authStyle=config.authStyle;await writeJSON(file,record);
+    let http;try{http=await (this.transport?.fetch||fetch)(config.origin+config.endpoint,{method:'POST',headers:{...(config.authStyle==='x-api-key'?{'x-api-key':config.key}:{Authorization:'Bearer '+config.key}),'Content-Type':'application/json'},body:JSON.stringify(payload),signal:combined,redirect:'error'});}catch{
      record.status='submission_unknown';await writeJSON(file,record);throw new MiniMaxError('MINIMAX_SUBMISSION_UNKNOWN','请求结果未知，可能已提交；记录已保留，不会自动再次计费提交');
     }
-    if(!http.ok){if(http.status>=500||http.status===408){record.status='submission_unknown';record.httpStatus=http.status;await writeJSON(file,record);throw new MiniMaxError('MINIMAX_SUBMISSION_UNKNOWN','供应商或网关超时，处理结果未知；未自动重新提交');}const code=http.status===401?'MINIMAX_AUTH':http.status===403?'MINIMAX_PERMISSION':http.status===429?'MINIMAX_RATE_LIMIT':'MINIMAX_HTTP';throw new MiniMaxError(code,'MiniMax HTTP失败（'+http.status+'）');}
+    if(!http.ok){if(http.status===410)throw new MiniMaxError("MINIMAX_CAPABILITY_UNAVAILABLE","MiniMax当前不提供该接口服务（HTTP410）；保留已有声音，可使用已有音乐素材。");if(http.status>=500||http.status===408){record.status='submission_unknown';record.httpStatus=http.status;await writeJSON(file,record);throw new MiniMaxError('MINIMAX_SUBMISSION_UNKNOWN','供应商或网关超时，处理结果未知；未自动重新提交');}const code=http.status===401?'MINIMAX_AUTH':http.status===403?'MINIMAX_PERMISSION':http.status===429?'MINIMAX_RATE_LIMIT':'MINIMAX_HTTP';throw new MiniMaxError(code,'MiniMax HTTP失败（'+http.status+'）');}
     try{response=JSON.parse((await limitedBytes(http,config.maxBytes*2+1024*1024)).toString());}catch(e){record.status='submission_unknown';await writeJSON(file,record);throw new MiniMaxError('MINIMAX_SUBMISSION_UNKNOWN','响应无法完整确认，未自动重发');}
     try{businessError(response);}catch(error){if(['MINIMAX_PROTOCOL','MINIMAX_PROVIDER_TIMEOUT'].includes(error.code)){record.status='submission_unknown';await writeJSON(file,record);throw new MiniMaxError('MINIMAX_SUBMISSION_UNKNOWN','供应商未明确确认处理结果，未自动重新提交');}throw error;}await writeJSON(path.join(directory,'response.private.json'),response);record.responseSaved=true;record.status='response_received';record.traceId=response.trace_id||null;await writeJSON(file,record);
    }

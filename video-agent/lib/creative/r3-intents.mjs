@@ -2,6 +2,21 @@ import {insist} from './contracts.mjs';
 // Closed grammar: compound requests outside these exact scopes go to the model.
 export function scopedCommerceEdit(document,message){
  const text=String(message).trim().replace(/[。！!\s]/g,'');
+ const captionMove=/^字幕(?:再)?(?:往)?(上|下)移(?:一点)?$/.exec(text);
+ if(captionMove){
+  const delta=captionMove[1]==='上'?-40:40;
+  if(document.captions?.length)return {mode:'local-scoped',operations:[{type:'update_caption_style',params:{offsetYDelta:delta}}],summary:'基于当前字幕位置'+(delta<0?'上':'下')+'移40像素，保留文案、字幕时间和声音。'};
+  const nodes=document.nodes.filter(n=>n.kind==='text'&&['subtitle','caption'].includes(n.semanticRole));
+  insist(nodes.length,'工程没有独立字幕；画面中的烧录字幕不能直接移动','CAPTION_TARGET_MISSING');
+  return {mode:'local-scoped',operations:nodes.map(n=>({type:'update_text_style',nodeId:n.id,params:{offsetY:(n.params?.style?.offsetY||0)+delta}})),summary:'基于当前独立字幕位置移动，其他文字和声音保持。'};
+ }
+ const musicLower=/^(?:音乐|背景音乐)(?:音量)?(?:再)?(?:轻一点|小一点)(?:[，,](?:片尾|结尾)(?:自然)?淡出)?$/.test(text);
+ if(musicLower){
+  const tracks=(document.audioGraph||[]).filter(a=>a.role==='music');
+  insist(tracks.length,'工程没有独立音乐轨；不能把旁白或混合原声当音乐调小','AUDIO_TARGET_MISSING');
+  const lastEnd=Math.max(...tracks.map(t=>t.startFrame+t.durationFrames));
+  return {mode:'local-scoped',operations:tracks.map(t=>({type:'update_audio',nodeId:t.id,params:{volume:Math.round((t.volume??1)*.8*1000)/1000,...(/淡出/.test(text)&&t.startFrame+t.durationFrames===lastEnd?{fadeOutFrames:Math.min(30,t.durationFrames)}:{})}})),summary:'仅降低独立音乐轨音量'+(/淡出/.test(text)?'并设置结尾音乐淡出':'')+'，旁白和画面保持。'};
+ }
  if(/^(?:把)?细节镜头提前[，,]只在第(?:一|1)个转场使用(?:色散|ChromaticRadialSplit|chromatic-split)[，,](?:其他内容保持|其他保持|其余不动)$/i.test(text)){
   const matches=document.scenes.flatMap((s,i)=>i>0&&(/细节|detail|结构/i.test(s.purpose)||document.nodes?.some(n=>n.sceneId===s.id&&n.kind==='text'&&/细节|detail|结构/i.test(n.params?.text||'')))?[i]:[]);
   insist(matches.length<=1,'有多个细节镜头，请指定镜头编号','DETAIL_TARGET_AMBIGUOUS');
@@ -41,7 +56,8 @@ export function scopedCommerceEdit(document,message){
   return {mode:'local-scoped',operations:[{type:'set_transition',fromSceneId:t.fromSceneId,toSceneId:t.toSceneId,effect:'chromatic-split',durationFrames:t.durationFrames,params:{}}],summary:'仅替换第一个转场，保持时长、素材和声音。'};
  }
  if(/^字幕小一点[，,]往上移[，,]声音和其他画面不变$/.test(text)){
-  const nodes=document.nodes.filter(n=>n.kind==='text'&&['subtitle','caption','body','description','feature'].includes(n.semanticRole));
+  if(document.captions?.length)return {mode:'local-scoped',operations:document.captions.map(c=>({type:'update_caption_style',nodeId:c.id,params:{fontSize:Math.max(12,Math.round((c.style?.fontSize??46)*.85)),offsetYDelta:-40}})),summary:'按当前独立字幕字号缩小并上移，声音及其他画面保持。'};
+  const nodes=document.nodes.filter(n=>n.kind==='text'&&['subtitle','caption'].includes(n.semanticRole));
   insist(nodes.length,'没有可独立调整的字幕对象','CAPTION_TARGET_MISSING');
   const sizes=nodes.map(n=>{
    if(Number.isFinite(n.params?.style?.fontSize))return n.params.style.fontSize;

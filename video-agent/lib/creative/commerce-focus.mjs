@@ -1,7 +1,8 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
-import {CreativeError} from './contracts.mjs';
+import {CreativeError, safeRelativePath} from './contracts.mjs';
+import {hashFile, probe} from '../edit/media.mjs';
 import {explicitBusinessConstraints} from './business-constraints.mjs';
 import {workflowContract} from './workflow-intent.mjs';
 
@@ -106,6 +107,24 @@ export async function candidateAdmission(root,contract,assets,directory,document
   if(!document?.scenePackage)return assertProductionAdmission(root,contract,assets,directory);
   const saved=JSON.parse(await fs.readFile(path.join(directory,'production-admission.json'),'utf8').catch(error=>{if(error.code!=='ENOENT')throw error;throw new CreativeError('工程缺少候选素材检查记录，请从原工程重新导出完整工程包','PACKAGE_ADMISSION_MISSING');}));
   if(saved.status!=='candidate_only')return assertProductionAdmission(root,contract,assets,directory);
-  if(saved.contractHash!==digest(contract)||!Array.isArray(saved.assets)||saved.assets.length!==assets.length||saved.assets.some(a=>!assets.some(b=>b.id===a.assetId&&b.sha256===a.sha256)))throw new CreativeError('候选素材或合同改变，需要重新分析','CANDIDATE_CHANGED');
+  if(saved.contractHash!==digest(contract)||!Array.isArray(saved.assets)||saved.assets.some(a=>!assets.some(b=>b.id===a.assetId&&b.sha256===a.sha256)))throw new CreativeError('候选素材或合同改变，需要重新分析','CANDIDATE_CHANGED');
+  const additions=assets.filter(a=>!saved.assets.some(b=>b.assetId===a.id));
+  if(new Set(assets.map(a=>a.id)).size!==assets.length||additions.some(a=>a.kind!=='audio'))throw new CreativeError('候选素材或合同改变，需要重新分析','CANDIDATE_CHANGED');
+  // Adding sound does not change the observed product footage. Verify the new
+  // local bytes independently and retain candidate-only (never grant approval).
+  const receipts=[];
+  for(const asset of additions){
+    const file=safeRelativePath(directory,asset.compiledRef||asset.ref);
+    const real=await fs.realpath(file),base=await fs.realpath(directory);
+    if(!real.startsWith(base+path.sep)||!(await fs.lstat(file)).isFile()||await hashFile(file)!==asset.sha256)throw new CreativeError('新增音频文件或哈希无效','CANDIDATE_AUDIO_INVALID');
+    const metadata=await probe(file);
+    if(!metadata.hasAudio||!(metadata.duration>0))throw new CreativeError('新增音频无法读取有效音轨','CANDIDATE_AUDIO_INVALID');
+    receipts.push({assetId:asset.id,sha256:asset.sha256,kind:'audio',validation:'local_audio_verified',durationSeconds:metadata.duration});
+  }
+  if(receipts.length){
+    saved.assets.push(...receipts);saved.assetManifestHash=digest(saved.assets);
+    const target=path.join(directory,'production-admission.json'),temporary=target+'.audio.tmp';
+    await fs.writeFile(temporary,JSON.stringify(saved,null,2));await fs.rename(temporary,target);
+  }
   return saved;
 }

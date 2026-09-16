@@ -27,6 +27,19 @@ import {exportCreativeHistory} from '../lib/creative/portable.mjs';
 import {createNativeDocument} from '../lib/creative/document.mjs';
 import {compileDocument} from '../lib/creative/compiler.mjs';
 import {candidateAdmission} from '../lib/creative/commerce-focus.mjs';
+test('candidate can append verified local audio without upgrading visual approval',async()=>{
+ const version=path.join(dir,'audio-admission');await fs.mkdir(path.join(version,'assets'),{recursive:true});
+ const contract={scenarioId:'product_detail'},saved={status:'candidate_only',contractHash:createHash('sha256').update(JSON.stringify(contract)).digest('hex'),assets:[{assetId:'product',sha256:'original'}]};
+ await fs.writeFile(path.join(version,'production-admission.json'),JSON.stringify(saved));
+ const wav=Buffer.alloc(44+16000);wav.write('RIFF');wav.writeUInt32LE(wav.length-8,4);wav.write('WAVEfmt ',8);wav.writeUInt32LE(16,16);wav.writeUInt16LE(1,20);wav.writeUInt16LE(1,22);wav.writeUInt32LE(8000,24);wav.writeUInt32LE(16000,28);wav.writeUInt16LE(2,32);wav.writeUInt16LE(16,34);wav.write('data',36);wav.writeUInt32LE(16000,40);
+ await fs.writeFile(path.join(version,'assets/voice.wav'),wav);
+ const assets=[{id:'product',sha256:'original',kind:'video'},{id:'voice',kind:'audio',compiledRef:'assets/voice.wav',sha256:createHash('sha256').update(wav).digest('hex')}];
+ const result=await candidateAdmission(ROOT,contract,assets,version,{scenePackage:{}});
+ assert.equal(result.status,'candidate_only');assert.equal(result.assets[1].validation,'local_audio_verified');
+ assert.equal((await candidateAdmission(ROOT,contract,assets,version,{scenePackage:{}})).assets.length,2);
+ await assert.rejects(candidateAdmission(ROOT,contract,[{...assets[0],sha256:'changed'},assets[1]],version,{scenePackage:{}}),{code:'CANDIDATE_CHANGED'});
+ await assert.rejects(candidateAdmission(ROOT,contract,[...assets,{...assets[1],id:'bad',sha256:'wrong'}],version,{scenePackage:{}}),{code:'CANDIDATE_AUDIO_INVALID'});
+});
 test('candidate history carries exact admission and contract instead of recreating approval',async()=>{
  const project=path.join(dir,'candidate'),version=path.join(project,'versions/initial');await fs.mkdir(path.join(version,'assets'),{recursive:true});
  const document=createNativeDocument({projectId:'candidate',output:{width:1080,height:1920},brief:{facts:[]},design:{},assets:[],scenes:[{id:'scene-01',purpose:'cta',effect:'title-reveal',durationFrames:90}],nodes:[{id:'text-01',sceneId:'scene-01',kind:'text',semanticRole:'cta',anchor:'scene-local',localStartFrame:0,localDurationFrames:90,params:{text:'Candidate'}}]});

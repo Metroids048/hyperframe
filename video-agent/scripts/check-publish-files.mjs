@@ -10,7 +10,11 @@ for(const name of names){
  const file=path.join(root,name),stat=await fs.stat(file).catch(()=>null);if(!stat){missing.push(name);continue;}if(!stat.isFile())continue;
  if(stat.size>100*1024*1024)large.push({path:name,bytes:stat.size});
  if(name.startsWith('workspace-content/objects/'))continue;
- if(/(?:^|\/)\.env(?:\.|$)|\.local\.(?:env|json)$/.test(name)){findings.push({path:name,reason:'private configuration'});continue;}
+ if(/(?:^|\/)\.env(?:\.|$)/.test(name)){findings.push({path:name,reason:'private configuration'});continue;}
+ if(/\.local\.(?:env|json)$/.test(name)){
+  if(name.startsWith('video-agent/config/'))continue;
+  findings.push({path:name,reason:'private configuration'});continue;
+ }
  if(stat.size<40e6&&/\.(?:json|md|txt|log|html|mjs|js|ts|tsx|py|ps1|sh|yml|yaml|env|toml)$/i.test(name)){checked++;if(secret.test(await fs.readFile(file,'utf8'))){
   let unchangedFixture=false;if(fixturePaths.has(name))try{execFileSync('git',['diff','--quiet','HEAD','--',name],{cwd:root});unchangedFixture=true;}catch{}
   if(unchangedFixture)upstreamTestFixtures.push({path:name,reason:'Reviewed unchanged upstream redaction-test dummy / explanatory example; no real credential'});

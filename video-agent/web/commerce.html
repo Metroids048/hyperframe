@@ -19,13 +19,18 @@
 <select id="audio-voice" aria-label="MiniMax 音色"><option value="">查询后选择音色</option></select>
 <select id="audio-kind" aria-label="生成声音类型"><option value="speech">旁白</option><option value="music">纯音乐</option></select>
 <textarea id="audio-text" aria-label="旁白稿或音乐描述" placeholder="旁白填写准确台词；音乐填写风格、节奏与氛围"></textarea>
+<label>语速 <input id="audio-rate" type="number" min="0.5" max="2" step="0.05" value="1"></label>
 <button id="audio-generate" type="button">生成声音</button>
 <select id="audio-asset" aria-label="工程声音"><option value="">选择声音素材</option></select>
 <audio id="audio-listen" controls preload="none"></audio>
 <select id="audio-replace" aria-label="替换音轨"><option value="">添加新音轨</option></select>
-<select id="audio-role" aria-label="声音用途"><option value="music">背景音乐</option><option value="narration">旁白</option></select>
+<select id="audio-role" aria-label="声音用途"><option value="music">背景音乐</option><option value="narration">旁白</option><option value="voiceover">配音</option><option value="original">原声</option></select>
 <label><input id="audio-captions" type="checkbox">同时生成旁白字幕</label>
+<label>开始时间（秒）<input id="audio-start" type="number" min="0" step="0.1" value="0"></label>
+<label>旁白可用时长（秒）<input id="audio-window" type="number" min="0.1" step="0.1" placeholder="留空使用剩余时段"></label>
 <button id="audio-apply" type="button">应用到新版本</button>
+<label><input id="audio-keep-text" type="checkbox" checked>换音色时保持原文案</label>
+<button id="audio-revoice" type="button">修改所选旁白并同步字幕</button>
 <p id="audio-status" aria-live="polite"></p>
 </details>
 <div id="preset-notice" class="preset-notice" hidden><span>正在查看预设演示</span><button id="regenerate" class="quiet" type="button">用这些素材重新生成</button></div>
@@ -36,7 +41,7 @@
 <label>画幅 <select id="output-aspect" aria-label="输出画幅"><option value="9:16">9:16 竖屏</option><option value="16:9">16:9 横屏</option><option value="1:1">1:1 方形</option></select></label>
 <label>成片秒数 <input id="output-duration" aria-label="成片秒数" type="number" min="5" max="600" value="24"></label>
 <div id="generated-assets" aria-label="生成素材"></div>
-<div class="composer-footer"><label class="attachment">＋ 添加素材<input id="images" type="file" accept="image/png,image/jpeg,image/webp,video/mp4,video/quicktime,video/webm,audio/mpeg,audio/wav,audio/mp4,.woff2" multiple></label><span id="composer-hint">添加已有商品素材</span><button id="send" type="submit">生成视频</button></div>
+<div class="composer-footer"><label class="attachment">＋ 添加素材<input id="images" type="file" accept="image/png,image/jpeg,image/webp,video/mp4,video/quicktime,video/webm,audio/mpeg,audio/wav,audio/mp4,.woff2" multiple></label><span id="composer-hint">添加已有商品素材</span><button id="plan-workflow" type="button">只规划与检查</button><button id="send" type="submit">生成视频</button></div>
 <p id="error" class="error" hidden></p>
 </form>
 <label class="scene-picker" for="business-scene">场景</label><select id="business-scene" aria-label="业务场景"><option value="auto">自动判断</option><option value="product_launch">单品上新</option><option value="product_demo">商品使用演示</option><option value="product_detail">商品详情／卖点</option><option value="product_collection">穿搭／系列展示</option><option value="product_promotion">活动促销／直播预告</option><option value="product_faq">选购说明／场景问答</option></select>
