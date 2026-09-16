@@ -1,0 +1,132 @@
+{
+  "status": "passed",
+  "note": "Real planner only; no paid speech resubmission",
+  "plan": {
+    "workflow": {
+      "version": 1,
+      "taskMode": "edit",
+      "taskModeExplicit": false,
+      "workflowProfile": "edit",
+      "businessScenario": "product_detail",
+      "baseProjectId": "ffa3bcb0-f6b8-4f54-a52a-973c07e1bd3b",
+      "baseRevisionId": "rev-7ed3459c0409619e",
+      "assetScope": [],
+      "originalRequest": "只把片尾31秒开始的旁白换成新闻女声，朗读文案保持不变，其他不动。",
+      "requirements": [
+        {
+          "kind": "change",
+          "quote": "只把片尾31秒开始的旁白换成新闻女声",
+          "targetIds": [
+            "audio-d97df34010696c34"
+          ],
+          "excludeIds": [],
+          "startSeconds": 31,
+          "endSeconds": null
+        },
+        {
+          "kind": "preserve",
+          "quote": "朗读文案保持不变",
+          "targetIds": [
+            "audio-d97df34010696c34",
+            "cue-5bbfecfefbc9e52c"
+          ],
+          "excludeIds": [],
+          "startSeconds": null,
+          "endSeconds": null
+        },
+        {
+          "kind": "preserve",
+          "quote": "其他不动",
+          "targetIds": [],
+          "excludeIds": [
+            "audio-d97df34010696c34"
+          ],
+          "startSeconds": null,
+          "endSeconds": null
+        }
+      ],
+      "assumptions": [],
+      "gaps": [],
+      "interpretation": "validated-semantic-analysis",
+      "objective": "保持显卡详情片内容，仅将31秒开始的片尾旁白替换为新闻女声。",
+      "changeTargets": [
+        {
+          "kind": "change",
+          "quote": "只把片尾31秒开始的旁白换成新闻女声",
+          "targetIds": [
+            "audio-d97df34010696c34"
+          ],
+          "excludeIds": [],
+          "startSeconds": 31,
+          "endSeconds": null
+        }
+      ],
+      "preserveTargets": [
+        {
+          "kind": "preserve",
+          "quote": "朗读文案保持不变",
+          "targetIds": [
+            "audio-d97df34010696c34",
+            "cue-5bbfecfefbc9e52c"
+          ],
+          "excludeIds": [],
+          "startSeconds": null,
+          "endSeconds": null
+        },
+        {
+          "kind": "preserve",
+          "quote": "其他不动",
+          "targetIds": [],
+          "excludeIds": [
+            "audio-d97df34010696c34"
+          ],
+          "startSeconds": null,
+          "endSeconds": null
+        }
+      ],
+      "resourceNeeds": [],
+      "prohibitions": []
+    },
+    "operations": [
+      {
+        "type": "regenerate_speech",
+        "nodeId": "audio-d97df34010696c34",
+        "params": {
+          "voice": "Chinese (Mandarin)_News_Anchor"
+        }
+      }
+    ],
+    "alternatives": [],
+    "summary": "规划仅重生成指定片尾旁白，使用目录中的新闻女声，文案沿用原文；执行器同步对应字幕并保留样式、31—35秒窗口、其他音轨及画面。生成后需核验片尾声音与字幕同步及31秒衔接；尚未执行或验证。",
+    "mode": "model",
+    "model": "Codex 默认模型",
+    "promptContext": [
+      {
+        "file": "prompts/commerce/R0.md",
+        "sha256": "b253f55c56fe3b45ef85dd40958034c3ee7cbfefd01572fc835f776d480aa306"
+      },
+      {
+        "file": "prompts/commerce/R7.md",
+        "sha256": "59fc8e53bd9e9c7c243ce97210a512aa62a7be6ca16bdf26649a73c64ef2c247"
+      },
+      {
+        "file": "agent.md",
+        "sha256": "91e592dbf5a9a9f090e7ced8ec1ced07c89b177da3040e21ecfd570f8c7f4568"
+      },
+      {
+        "file": "prompts/commerce/commerce-focus.md",
+        "sha256": "7fe5a32d4ed1d530d2daa5c8b661e1d95621fd69dbe8e249f1448e62dabce35f"
+      },
+      {
+        "file": "docs/commerce-focus-v1/scenario-registry.spec.json",
+        "sha256": "d8c28def4a22ab875c65642942a7fa1417b8b7f62dbeaca74bd0007feed8c430"
+      },
+      {
+        "id": "commerce.detail",
+        "version": 1,
+        "sha256": "7361272b2e1b17d504c2e746f1f86d69b2dbf6d279e62649a2be82a0a1a5c790",
+        "source": "lib/creative/commerce-skills.mjs"
+      }
+    ]
+  }
+}
