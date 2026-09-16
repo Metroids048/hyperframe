@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {CreativeError} from './contracts.mjs';
+import {explicitBusinessConstraints} from './business-constraints.mjs';
 
 export const FOCUS_PROFILE='commerce-focus-v1';
 export const COMMERCE_SCENARIOS={
@@ -21,7 +22,7 @@ export function businessContract(input={}){
   const explicit=input.scenarioId||goals[0]||(!negated('教程')&&/教程|操作|使用演示/.test(message)?'demo':/上新|种草|新品/.test(message)?'launch':null);
   const aliases=Object.fromEntries(Object.entries(COMMERCE_SCENARIOS).flatMap(([id,v])=>[[id,id],[v.alias,id]]));
   const scenarioId=explicit?aliases[explicit]:null;
-  if(['detail','promotion','style','faq'].includes(explicit))throw new CreativeError('新制作请选择单品上新或产品演示，历史工程仍可编辑','SCENARIO_UNSUPPORTED');
+  // All six business scenes share the same runtime contract; visual style remains a separate choice.
   if(explicit&&!scenarioId)throw new CreativeError('无法识别电商场景，请选择六类场景之一','SCENARIO_UNSUPPORTED');
   const audio=negated('静音')||negated('声音')? 'original':(/静音|无声|不要声音/.test(message)?'silent':/保留.*原声/.test(message)?'original':'unspecified');
   return {schemaVersion:1,profile:FOCUS_PROFILE,scenarioId,originalRequest:message,
@@ -29,9 +30,10 @@ export function businessContract(input={}){
     objective:({product_launch:'吸引首次观看者继续了解商品',product_detail:'讲清商品结构与可信卖点',product_demo:'理解并复现必要操作',product_howto:'理解并复现必要操作',product_collection:'理解多款商品的搭配与系列关系',product_promotion:'理解优惠条件并采取行动',product_faq:'用证据回答具体选购疑问'}[scenarioId]||'明确电商内容目标'),
     product:structuredClone(input.product||{}),output:structuredClone(input.output||{}),audio,
     mustHave:structuredClone(input.mustHave||[]),mustNot:structuredClone(input.mustNot||input.product?.prohibited||[]),
-    // Generated footage is a supported input path. Formal delivery still
-    // requires provenance, product-fact checks, and media quality evidence.
-    generatedFootageAllowed:true,deliverables:['candidate_mp4','editable_project','source_index','quality_report']};
+    explicitConstraints:explicitBusinessConstraints(message),
+    // Existing generated inputs remain inspectable; new product generation
+    // is paused by the server-owned production policy.
+    generatedFootageAllowed:false,deliverables:['candidate_mp4','editable_project','source_index','quality_report']};
 }
 
 /** Uses a local, source-hash keyed review registry, never client approval flags. */
@@ -59,7 +61,7 @@ export async function productionAdmission(root,contract,assets){
     admitted.push({assetId:asset.id,...record});
   }
   const identities=new Set(admitted.filter(r=>r.role!=='environment').map(r=>r.productIdentity));
-  if(identities.size>1)issues.push('主体素材属于不同商品，不能混用');
+  if(identities.size>1&&contract?.scenarioId!=='product_collection')issues.push('主体素材属于不同商品，不能混用');
   if(contract?.audio==='original'&&!videos.some(a=>a.mediaMetadata?.hasAudio))issues.push('要求保留原声，但原片没有音轨');
   const coverage=new Set(admitted.flatMap(r=>r.coverage||[]));
   const required=['product_howto','product_demo'].includes(contract?.scenarioId)?['preparation','necessary_actions','result']:contract?.scenarioId==='product_launch'?['product_identity','real_usage_or_effective_demonstration','supported_details']:['product_identity'];

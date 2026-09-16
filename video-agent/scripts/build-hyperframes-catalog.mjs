@@ -1,4 +1,5 @@
 import fs from 'node:fs/promises';
+import {refreshLocalCatalog} from '../lib/creative/resource-discovery.mjs';
 import path from 'node:path';
 import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
@@ -11,7 +12,7 @@ if(tag!=='v0.8.33')throw Error('Expected exact pinned v0.8.33 mirror');
 const provenance={repository:'https://github.com/heygen-com/hyperframes',tag,commit,runtimeVersion:'0.8.33',license:'Apache-2.0',licenseSha256:hash(await fs.readFile(path.join(upstream,'LICENSE'))),mode:'read-only-reference',fetchedAt:new Date().toISOString(),lastVerifiedAt:new Date().toISOString()};
 await fs.writeFile(path.join(root,'third_party/hyperframes-upstream.json'),JSON.stringify(provenance,null,2));
 const groups=['skills','workflowSkills','registryBlocks','registryComponents','animationBlueprints','animationRules','mediaCapabilities','renderCapabilities','cliCapabilities','launchReferences','examples'];
-const catalog={schemaVersion:1,provenance,groups:Object.fromEntries(groups.map(k=>[k,[]])),files:[]};
+let catalog={schemaVersion:1,provenance,groups:Object.fromEntries(groups.map(k=>[k,[]])),files:[]};
 for(const file of await walk(upstream)){
  const p=path.relative(upstream,file).replaceAll('\\','/');if(!/\.(md|json|mjs|ts|tsx|html|js)$/.test(p))continue;
  const content=await fs.readFile(file,'utf8');catalog.files.push({path:p,sha256:hash(content)});
@@ -34,4 +35,5 @@ for(const file of await walk(upstream)){
 const launches=path.join(root,'third_party/hyperframes-launches');
 try{const launchCommit=execFileSync('git',['-C',launches,'rev-parse','HEAD'],{encoding:'utf8'}).trim();for(const file of await walk(launches)){const p=path.relative(launches,file);if(!/^[^/]+\/(index.html|STORYBOARD.md|meta.json)$/.test(p))continue;catalog.groups.launchReferences.push({id:'launchReferences:'+p,type:'launchReferences',name:p.split('/')[0],path:'third_party/hyperframes-launches/'+p,tags:['launch','reference'],description:'Official launch source; study composition, not brand assets',inputRequirements:{review:'read source and license'},outputBehavior:'reference composition',runtimeCompatibility:{status:'unverified',runtime:'0.8.33'},sourceCommit:launchCommit,license:'Apache-2.0 source only; bundled assets excluded',executionStatus:'reference_only',sha256:hash(await fs.readFile(file))});}await fs.writeFile(path.join(root,'third_party/hyperframes-launches-upstream.json'),JSON.stringify({repository:'https://github.com/heygen-com/hyperframes-launches',commit:launchCommit,mode:'read-only-reference',license:'Apache-2.0 source; see NOTICE for media',lfs:'text clone; binary availability must be checked',fetchedAt:new Date().toISOString()},null,2));}catch(e){catalog.launchWarning=e.message;}
 catalog.contentHash=hash(JSON.stringify({commit,groups:catalog.groups,files:catalog.files}));
+catalog=await refreshLocalCatalog(path.join(root,'video-agent'),catalog);
 await fs.mkdir(path.join(root,'video-agent/config/hyperframes'),{recursive:true});await fs.writeFile(path.join(root,'video-agent/config/hyperframes/catalog.generated.json'),JSON.stringify(catalog,null,2));console.log(JSON.stringify({contentHash:catalog.contentHash,files:catalog.files.length,counts:Object.fromEntries(groups.map(k=>[k,catalog.groups[k].length]))},null,2));

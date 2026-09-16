@@ -9,5 +9,8 @@ export function validateTextStyle(style={}) {
 }
 export function textStyleCSS(style={}) {
   validateTextStyle(style);
-  return Object.entries(style).filter(([k])=>k!=='offsetY').map(([k,v])=>({color:'color',fontSize:'font-size',fontWeight:'font-weight'}[k])+':'+v+(k==='fontSize'?'px':'')).join(';')+(style.offsetY===undefined?'':';position:relative;top:'+style.offsetY+'px');
+  // Keep authored absolute positioning and the animation transform intact.
+  // GSAP normalizes individual translate into its transform cache, losing a
+  // separate translate offset when an authored y tween subsequently runs.
+  return Object.entries(style).filter(([k])=>k!=='offsetY').map(([k,v])=>({color:'color',fontSize:'font-size',fontWeight:'font-weight'}[k])+':'+v+(k==='fontSize'?'px':'')).join(';')+(style.offsetY===undefined?'':';margin-top:'+style.offsetY+'px');
 }

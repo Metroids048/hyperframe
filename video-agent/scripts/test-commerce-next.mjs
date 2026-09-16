@@ -13,6 +13,15 @@ import {compileDocument} from '../lib/creative/compiler.mjs';
 import {produceDocument} from '../lib/creative/production.mjs';
 import {applyDocumentPatch} from '../lib/creative/patch.mjs';
 import {CapabilityCatalog} from '../lib/creative/capabilities.mjs';
+import {canonicalizeSingleAssetReferences} from '../lib/creative/commerce-directors.mjs';
+
+test('single-source story normalizes model transport typos without weakening multi-product identity',()=>{
+ const assets=[{id:'asset-real',kind:'video'}];
+ const story={scenes:[{id:null,media:[{assetId:'asset-model-typo',sourceStartSeconds:1}],sameProductAs:['asset-model-typo'],differentProductFrom:['asset-model-typo']}],actions:[{assetId:'asset-model-typo'}]};
+ const fixed=canonicalizeSingleAssetReferences(story,assets);
+ assert.equal(fixed.scenes[0].media[0].assetId,'asset-real');
+ assert.deepEqual(fixed.scenes[0].sameProductAs,[]);assert.deepEqual(fixed.scenes[0].differentProductFrom,[]);assert.equal(fixed.actions[0].assetId,'asset-real');
+});
 import {resourceHash} from '../lib/creative/capabilities.mjs';
 import {productionFingerprint,verifyFingerprintMigration} from '../lib/creative/input-fingerprint.mjs';
 import {boundedEditReviewSchema} from '../lib/creative/edit-review.mjs';
@@ -207,7 +216,8 @@ test('measured narration survives a later-stage interruption without another syn
  });
 
 test('exhausted repairs cannot be resumed while cancellations and transient interruptions can',()=>{
- for(const code of ['MODEL_BUDGET','STEP_BUDGET','STORY_REPAIR_BUDGET','VISUAL_REVIEW_FAILED']){const job={runId:'run',status:'recoverable',code};assert(budgetExhausted(job));assert.equal(canResumeJob(job),false);}
+ for(const code of ['MODEL_BUDGET','STEP_BUDGET','STORY_REPAIR_BUDGET']){const job={runId:'run',status:'recoverable',code};assert(budgetExhausted(job));assert.equal(canResumeJob(job),false);}
+ assert(canResumeJob({runId:'run',status:'recoverable',code:'VISUAL_REVIEW_FAILED',modelCalls:62,maxModelCalls:128}));
  assert(canResumeJob({runId:'run',status:'cancelled'}));assert(canResumeJob({runId:'run',status:'recoverable',code:'INTERRUPTED'}));assert.equal(canResumeJob({runId:'run',status:'running'}),false);
 });
 

@@ -1,4 +1,14 @@
-import {insist} from './contracts.mjs';
+import {insist,stableId} from './contracts.mjs';
+// Content-identical edits after undo still have distinct publication histories.
+// Never let a new checked directory alias an older rendered revision.
+export function allocatePublicationRevision(document,revisions,publicationKey){
+  if(!revisions.some(r=>r.id===document.revisionId))return document;
+  const prior=document.revisionId,next=stableId('rev',prior,publicationKey);
+  insist(!revisions.some(r=>r.id===next),'该发布任务已有版本，不能重复加入历史','REVISION_DUPLICATE');
+  document.revisionId=next;
+  if(document.quality?.revisionId===prior)document.quality.revisionId=next;
+  return document;
+}
 export function selectiveEffectRestore(current,before,after,{sceneIds}={}){
   const operations=[];
   for(const s of after.scenes){

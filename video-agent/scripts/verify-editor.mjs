@@ -30,6 +30,7 @@ const commands =
         "test-analysis-evidence",
         "test-revision-history",
         "test-workspace-context",
+        "test-execution-v2",
         "test-skill-routing",
         "test-isolation-protocol",
         "test-delivery-entry",

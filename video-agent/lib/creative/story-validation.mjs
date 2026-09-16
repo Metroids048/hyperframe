@@ -1,4 +1,5 @@
 import {insist,FPS,MAX_SCENES} from './contracts.mjs';
+import {resourceCompatibility} from './resource-catalog.mjs';
 
 // Unbuilt scenes remain valid while a neighboring custom scene is compiled.
 // These placeholders never become the published production output.
@@ -12,6 +13,13 @@ export function validateStory(story,brief,resources,{original,index}={}){
   const total=story.scenes.reduce((sum,s)=>sum+Math.round(s.durationSeconds*FPS),0)-(story.transition==='cut'?0:9*(story.scenes.length-1));
   insist(total===Math.round(brief.request.output.durationSeconds*FPS),'镜头时间必须精确匹配需求；重新选择有内容的区间，不能延长停留补齐','INVALID_SCENE_TIME');
   for(const s of story.scenes){insist(s.newInformation.trim()&&story.paragraphs.some(p=>p.id===s.paragraphId),'镜头缺少信息作用或段落','STORY_INFORMATION');insist(s.resourceId==='native-original'||resources.selected.some(r=>r.id===s.resourceId)||(resources.candidates||[]).some(r=>r.id===s.resourceId&&r.eligible&&r.compatible),'镜头使用未选择资源','RESOURCE_UNKNOWN');}
+  for(const s of story.scenes){
+    const adapter=resources.candidates?.find(r=>r.id===s.resourceId);
+    if(adapter?.requirements){
+      const check=resourceCompatibility(adapter,{message:resources.originalRequest||'',output:brief.request.output,mediaCount:s.media.length,mediaKinds:s.media.map(m=>resources.assetKinds?.[m.assetId]).filter(Boolean),texts:s.text.map(t=>t.text)});
+      insist(check.eligible,'镜头资源输入不满足：'+s.resourceId+' / '+check.reasons.join(',')+'；请选可行资源，不增加虚假素材或隐藏超长文字','RESOURCE_INPUT');
+    }
+  }
   if(original){
     insist(story.scenes.length===original.scenes.length&&story.transition===original.transition,'局部重规划不能改变镜头数量或转场','REPLAN_SCOPE');
     for(const [i,s] of story.scenes.entries())insist(i===index?Math.round(s.durationSeconds*FPS)===Math.round(original.scenes[i].durationSeconds*FPS):JSON.stringify(s)===JSON.stringify(original.scenes[i]),'局部重规划改变了范围外内容或本镜头时长','REPLAN_SCOPE');
@@ -25,14 +33,33 @@ export function replaceStoryShot(story,index,shot,brief,resources){
   return validateStory(changed,brief,resources,{original:story,index});
 }
 
-export function validateShotRepair(original,repaired,message){
-  insist(repaired.media.length===original.media.length&&repaired.text.length===original.text.length,'镜头修复不能改变对象数量','REPLAN_SCOPE');
+export function validateShotRepair(original,repaired,message,{removeRedundantText=false}={}){
+  insist(repaired.media.length===original.media.length,'镜头修复不能改变媒体数量','REPLAN_SCOPE');
+  if(removeRedundantText&&repaired.text.length<original.text.length){
+    // Only the story owner may remove model-authored redundant overlays.
+    // Explicit copy, facts, prices and CTA remain immutable, as does the
+    // order/content of every retained object. No hidden layout deletion.
+    let at=0;
+    for(const before of original.text){
+      if(JSON.stringify(before)===JSON.stringify(repaired.text[at])){at++;continue;}
+      insist(!before.factRefs?.length&&!['price','cta'].includes(before.role)&&!message.includes(before.text),'用户原文和事实文字必须保留','REPLAN_SCOPE');
+    }
+    insist(at===repaired.text.length,'删除重复文字时不能改写或增加其他文字','REPLAN_SCOPE');
+    return;
+  }
+  insist(repaired.text.length===original.text.length,'镜头修复不能改变文字数量','REPLAN_SCOPE');
   for(const [i,before]of original.text.entries()){
     const after=repaired.text[i],protectedText=before.factRefs?.length||['price','cta'].includes(before.role)||message.includes(before.text);
     insist(after.role===before.role&&JSON.stringify(after.factRefs)===JSON.stringify(before.factRefs),'镜头修复不能改变文字角色或事实引用','REPLAN_SCOPE');
     insist(!protectedText||after.text===before.text,'用户原文和事实文字必须保留','REPLAN_SCOPE');
     if(after.text!==before.text)insist(!/[0-9¥￥$%]/.test(after.text),'修正观察说明不能新增参数、数值或价格','REPLAN_SCOPE');
   }
+}
+
+export function requireSourceChange(original,repaired,feedback){
+ if(!feedback?.some(i=>i.repairKind==='source-selection'))return;
+ const changed=repaired.media.some((m,i)=>m.assetId!==original.media[i]?.assetId||m.sourceStartSeconds!==original.media[i]?.sourceStartSeconds||m.sourceEndSeconds!==original.media[i]?.sourceEndSeconds);
+ insist(changed,'源选段修复没有改变实际源区间；请重新选择已观察且能满足画面问题的连续区间','REPLAN_NO_PROGRESS');
 }
 
 // Bind factual references to this request before asking the model. Visual

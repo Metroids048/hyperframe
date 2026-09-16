@@ -134,7 +134,7 @@ export function normalizeCommerceRequest(input = {}) {
     pipelineVersion: input.pipelineVersion === 3 ? 3 : 1,
     scenarioId: input.scenarioId || null,
     businessContract: input.businessContract || null,
-    businessGoal: [...new Set((Array.isArray(input.businessGoal)?input.businessGoal:[]).filter(g=>['product_launch','product_demo','product_howto','launch','detail','demo','style','promotion','faq','recut','versions'].includes(g)))],
+    businessGoal: [...new Set((Array.isArray(input.businessGoal)?input.businessGoal:[]).filter(g=>['product_launch','product_demo','product_howto','product_detail','product_collection','product_promotion','product_faq','launch','detail','demo','style','promotion','faq','recut','versions'].includes(g)))],
     inputMode: normalizedAssets.some(a=>a.kind==='video')?(normalizedAssets.some(a=>a.kind==='image')?'mixed':'footage'):normalizedAssets.some(a=>a.kind==='image')?'images':null,
     inferRequest:input.inferRequest===true,
     creativeMode: ['text','image','video','mixed'].includes(input.creativeMode) ? input.creativeMode : normalizedAssets.some(a=>a.kind==='video')?(normalizedAssets.some(a=>a.kind==='image')?'mixed':'video'):normalizedAssets.some(a=>a.kind==='image')?'image':'text',

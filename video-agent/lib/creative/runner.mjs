@@ -1,4 +1,4 @@
-import {explicitResource} from './resource-catalog.mjs';
+import {explicitResource,applyRequestedTransitions} from './resource-catalog.mjs';
 import {trustedAssetProvenance} from './asset-provenance.mjs';
 import {commerceComponentReceipt} from './commerce-components.mjs';
 import {businessContract,candidateAdmission,assertProductionAdmission,assertRequiredActions,FOCUS_PROFILE} from './commerce-focus.mjs';
@@ -75,13 +75,13 @@ export async function buildCommerceProject(input, {root = VIDEO_AGENT_ROOT} = {}
     prepared.push(item);
   }
   request.commerceProfile=FOCUS_PROFILE;request.businessContract=businessContract(request);
-  await fs.writeFile(path.join(outputDir,'business-contract.json'),JSON.stringify(request.businessContract,null,2));
+  if(!input.resumeRunId)await fs.writeFile(path.join(outputDir,'business-contract.json'),JSON.stringify(request.businessContract,null,2));
   if(input.planning!=='model'||process.env.VIDEO_AGENT_CREATIVE_WORKFLOW==='legacy')await assertProductionAdmission(root,request.businessContract,prepared,outputDir);
   await copyGsap(outputDir);
   await writeAttribution(outputDir,prepared);
   const staged=input.planning==='model'&&process.env.VIDEO_AGENT_CREATIVE_WORKFLOW!=='legacy';
   let document = staged ? await produceDocument(request,prepared,{root,outputDir,signal:input.signal,provider:input.provider,onStage:input.onStage,onRun:input.onRun,resumeRunId:input.resumeRunId,runHyperFrames}) : input.planning === 'model' ? await planWithModel(request,prepared,{root,outputDir,signal:input.signal,provider:input.provider,onStage:input.onStage}) : planCommerceDocument(request, prepared);
-  if(explicitResource(request.message)){const first=document.transitions[0];insist(first,'指定转场缺少相邻镜头重叠区间','TRANSITION_MISSING');first.effect='chromatic-split';first.params={durationFrames:first.durationFrames};}
+  applyRequestedTransitions(document,request.message);
   if(request.businessContract){document.businessContract??=request.businessContract;document.commerceResourceReceipt=commerceComponentReceipt(document);await fs.writeFile(path.join(outputDir,'commerce-resource-receipt.json'),JSON.stringify(document.commerceResourceReceipt,null,2));}
   if(document.businessContract)assertRequiredActions(document,JSON.parse(await fs.readFile(path.join(outputDir,'production-admission.json'),'utf8')));
   const audioRefs=await prepareNativeAudio(outputDir,document,prepared,{signal:input.signal});

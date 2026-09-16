@@ -15,7 +15,8 @@ function fixture(){return {binding:structuredClone(binding),currentRevisionId:'R
 test('S01/S02 goals map independently of input extensions',()=>{
   assert.equal(businessContract({businessGoal:['launch'],assets:[{kind:'video'}]}).scenarioId,'product_launch');
   assert.equal(businessContract({businessGoal:['demo'],assets:[{kind:'image'}]}).scenarioId,'product_howto');
-  assert.throws(()=>businessContract({businessGoal:['promotion']}),{code:'SCENARIO_UNSUPPORTED'});
+  assert.equal(businessContract({businessGoal:['promotion']}).scenarioId,'product_promotion');
+  assert.throws(()=>businessContract({businessGoal:['unknown-scene']}),{code:'SCENARIO_UNSUPPORTED'});
 });
 test('S03 text/infer input cannot satisfy real footage admission',async()=>{
   const d=await productionAdmission(root,businessContract({businessGoal:['launch'],inferRequest:true}),[]);

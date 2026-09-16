@@ -1,3 +1,45 @@
+# 2026-09-16 当前审查结果
+
+检查时间：2026-09-16T00:15:37.876473+00:00。完整 EXECUTION-V2 合同仍在实施，未宣告整体完成。
+
+- 真实 Agent 上新候选已完成：原 project `2ba994d0-d750-494c-99ec-0f5527add49a`，118/128 次累计调用，24 秒、1080p、30fps、720 帧、无音轨，完整解码通过。
+- 原工程包换目录导入后，在 project `0d73b872-e182-441f-9479-39e1c96f4ec0` 通过现有 WebUI 完成字幕样式续改、撤销、重复修改及导出。最终 revision `rev-fadf0afbea313d8d`；实际三个字幕框 y=72→32、28px→24px，其余镜头/源区间/文字内容/声音/时长保持。
+- 实际 headless Chrome 原生预览与 MP4 播放至结束、刷新重开、WebUI 下载通过。最终工程包143229232字节、4个唯一版本；所有归档blob哈希及document/manifest ID一致。真人创意验收待进行。
+- 修复恢复计数、过期证据、资源保护、六场景入口、声音约束、供应商状态及实测字幕/GSAP/重复revision问题。失败候选和冲突工程备份保留。报告：`docs/execution-v2/REVIEW-2026-09-16.md`；实际结果：`outputs/execution-v2/real-package-roundtrip.json`。
+- M01-2 中文同义需求真实验收已完成自动生产：project `62ba5b0d-df7c-4434-86bb-635920b831c3`，job `job-1a582879-e60b-4f9a-a24b-e1d26617def0`，run `0fdb274a-a28c-4c71-af42-84965f7b810f`，52 次调用、6 幕、revision `rev-4e643d52e17d85df`，MP4 已输出并完成 720 帧渲染；关键帧审查未发现问题，现已补完完整解码、无音轨静音验证、headless Chrome 原生预览与 MP4 播放至结束、刷新重开。人工审阅仍待完成。
+- 监控 `hyperframe` 每30分钟检查，状态不变不通知。M01-2 已完成自动生产和最终媒体技术验证；继续其余场景、资源和声音/连续修改验收，完整范围不缩小。
+- 服务3024运行正常；本次方向预览重试快照修正已在无任务时重载，31项相关回归通过。保留本地未提交工作，未推送远端。MiniMax真调用、真人审阅及状态表中的其他缺项仍未通过。
+
+---
+## 本轮早期检查记录（以下状态已被上文替代，保留排查历史）
+
+## 2026-09-16 review and monitoring
+
+Report: `docs/execution-v2/REVIEW-2026-09-16.md`. Evidence: `outputs/execution-v2/review-round.json`. Automation: `hyperframe` (30 minutes). Full contract is NOT accepted. Current job: running / 检查镜头 5 的静态布局 / 111 calls. Checked: 2026-09-15T21:16:54.201105+00:00.
+
+Do not restart an active job. Reload pending configuration/status/scene-ID changes after it stops. The locked Mac blocks CUA interaction only.
+
+# EXECUTION-V2 当前任务（替换旧 P0—P5 结束条件）
+
+合同：`docs/HyperFrame_逐模块执行合同_替换旧Prompt.md`。全部 M01—M12、六场景和十类资源仍为当前范围，未通过项不缩小。
+
+- 基准：HEAD `184d17100f7a576ebf5e9ab41cfaba7230e3d575`；origin/main `704e4acfc44f63ed9a41c97d4b37dc6ab9c76b55`，落后 6 提交。当前生产 lib/web 无上游差异；未提交工作、用户素材、历史工程完整保留。尚未合并或推送。
+- 当前主线：M01/M02/M04 implementing；M05 待实际资源执行；M03 A 本轮真实候选已恢复制作至第5/6幕，B—F 尚未本轮验收。M06—M12 不得用历史测试回填 verified。M10 依赖失效修复已经接入同一任务，但完整恢复验收未完成。
+- 真实 WebUI project `2ba994d0-d750-494c-99ec-0f5527add49a`，job `job-27c1e043-2842-4953-8cf8-dcfdaf421ab8`，run `5c837151-b698-4657-b4eb-f35c520c3266`。入口 3024；pipelineVersion=3 已证实，版本入口故障未复现。原始小米原片 71.989 秒，普通请求制作 24 秒横屏，无旁白/音乐/价格/性能推测。
+- 服务端暂停新商品图片/视频生成已接入现有 WebUI；已有素材直达阶段生产。显式声音/价格否定规则、阶段提示哈希核对、实际 sceneRules 回执、源速率与动作依赖修复已实现。
+- 实际失败历史：首次 R2 补充观察网络连接失败并在 600 秒超时，随后同一任务恢复成功，此项不是当前外部阻塞。一次恢复因派生 businessContract 新增字段被误判输入变化，已修复派生合同迁移及依赖失效。镜头 1 实际关键帧审查发现源烧录标题与新增标题重复；随后布局作者删除合同文字导致 CUSTOM_OBJECTS。已增加故事层文字合同修复，保护用户原文/事实/价格/CTA。再运行遇到模型自拟“紧凑型”分类缺事实支持，已将该类审查问题接回受约束故事修复，等待重载实测。
+- M04：已复现同义需求无结果、第二处色散被组装器改到第一处；已实现中文功能归一、作用范围、硬条件过滤。新增实时配置范围扫描；当前扫描覆盖 6797 个文本源文件、十类功能标签，保留类型/哈希/依赖与状态。`compositions` 目录实际不存在，记录 ENOENT，未伪装全量完整。发现不等于适配或渲染。扫描产物 `outputs/execution-v2/m04-live-scan.json`。
+- 本地工程验证：49 项故事/恢复/现有电商测试通过 `outputs/execution-v2/story-contract-regression.log`；62 项扫描/资源/电商回归通过 `outputs/execution-v2/discovery-regression.log`（最新微调正在复跑）。此前 core 114 项通过属于当时版本，最终需重跑受影响组。均非真实成片或真人验收。
+- 真实成片：尚无本轮最终 MP4 / revision。源选段 `source-selections.json` 已产生，若干选段 evidence 为空，不能声称证据链全部成立。
+- 下一动作：完成当前回归后，确认无运行任务，重载现有服务并从原 WebUI 恢复上述 run；检验故事修复能否消除已观察缺陷；继续真实成片、资源执行和同一工程修改。然后逐项完成其余合同。
+- 外部缺项仅 MiniMax live 未提供、真人最终审阅未发生；local 和其他模块继续。
+
+最新检查：2026-09-16T01:15:00+08:00。
+当前实际 job 状态：running / 制作镜头 5 的动画与文字时序 / 83 次调用，已完成 4 幕；尚无 revision 或最终 MP4。
+
+---
+以下为历史记录，不能代替 EXECUTION-V2 本轮验收。
+
 ## 2026-09-14 · 六条既有作品的 WebUI 交付收口
 
 最近核对：2026-09-14T07:19:31.152725+00:00。入口：http://127.0.0.1:3024/ 。本轮未重新设计六片。

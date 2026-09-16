@@ -1,4 +1,5 @@
 import fs from 'node:fs/promises';
+import {assertMediaGenerationAllowed} from './production-policy.mjs';
 import path from 'node:path';
 import {lookup} from 'node:dns/promises';
 import {setTimeout as delay} from 'node:timers/promises';
@@ -39,6 +40,7 @@ export function submissionSpec(profile,values){
  return {endpoint,body};
 }
 export async function generateCommerceAsset(options){
+ await assertMediaGenerationAllowed(options.root);
  const key=hash(JSON.stringify([options.root,options.project.id,options.kind,options.prompt,options.sourceAsset,options.duration,options.role,options.project.request.output]));
  if(requestsInFlight.has(key))return requestsInFlight.get(key);
  const pending=generateAsset(options).finally(()=>requestsInFlight.delete(key));requestsInFlight.set(key,pending);return pending;

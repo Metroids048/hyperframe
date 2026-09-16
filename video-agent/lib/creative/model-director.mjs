@@ -1,4 +1,5 @@
-import {resourceRequests} from './resource-catalog.mjs';
+import {resourceRequests,applyRequestedTransitions} from './resource-catalog.mjs';
+import {explicitBusinessConstraints,validateBusinessAudio} from './business-constraints.mjs';
 import {fullOriginalAudioGraph} from './observation-audio.mjs';
 import {createHash} from 'node:crypto';
 import fs from 'node:fs/promises';
@@ -122,6 +123,7 @@ export function solvePlannedDurations(target,scenes,overlap=0){
 
 export function validateInferredRequest(request,inferred){
   insist(inferred,'缺少需求理解结果','INVALID_MODEL_PLAN');
+  insist(explicitBusinessConstraints(request.message).price!=='forbidden'||!inferred.price,'本次明确不展示价格','UNKNOWN_FACT');
   for(const [i,fact] of inferred.facts.entries())insist(fact.userQuote&&request.message.includes(fact.userQuote)&&fact.userQuote.includes(fact.text),`fact-${i+1} 的 text 与 userQuote 必须逐字摘自用户消息；不要把制作约束改写成商品事实`,'UNKNOWN_FACT');
   insist(!inferred.price||request.message.includes(inferred.price),'价格没有用户输入依据','UNKNOWN_FACT');
   insist(!inferred.cta||request.message.includes(inferred.cta),'结尾文案没有用户输入依据','UNKNOWN_FACT');
@@ -188,7 +190,7 @@ export function documentFromModelPlan(request,assets,plan){
   });
   const transitions=overlap?scenes.slice(1).map((s,i)=>({id:`transition-${i+1}`,fromSceneId:scenes[i].id,toSceneId:s.id,effect:design.transition,durationFrames:overlap,params:normalizeEffectParams(design.transition,{durationFrames:overlap})})):[];
   const document=createNativeDocument({projectId:request.projectId,output:request.output,brief:buildProductBrief({...request,assets}),design,assets,scenes,nodes,transitions,sourceBundles});
-  for(const named of resourceRequests(request.message)){if(named.canonicalId!=='chromatic-radial-split'||named.negated)continue;const targets=named.scope.kind==='transition'?[transitions[named.scope.index]]:transitions;insist(targets.length&&targets.every(Boolean),'指定色散切点不存在','RESOURCE_SCOPE');for(const t of targets)t.effect='chromatic-split';document.resourceRequests=[named];}
+  applyRequestedTransitions(document,request.message);
 
   for(const scene of scenes.filter(s=>s.effect==='custom-native'))compileCustomSource(sourceBundles.find(b=>b.sceneId===scene.id),{scene,nodes:nodes.filter(n=>n.sceneId===scene.id),assets:byId});
   document.observations=plan.observations;document.omitted=plan.omitted;
@@ -199,6 +201,7 @@ export function documentFromModelPlan(request,assets,plan){
     return {id:`audio-${i+1}`,assetId:a.assetId,startFrame:0,sourceStartSeconds:a.sourceStartSeconds,durationFrames:Math.min(target,Math.floor((asset.mediaMetadata.duration-a.sourceStartSeconds)*FPS)),volume:a.volume};
   });
   document.audioGraph=fullOriginalAudioGraph(request.message,assets,target)||document.audioGraph;
+  validateBusinessAudio(request.message,document.audioGraph,assets);
   document.revisionId=stableId('rev',request.projectId,document.scenes,document.nodes,document.design,document.audioGraph,document.sourceBundles);
   assertNoUnknownFacts(document);return document;
 }

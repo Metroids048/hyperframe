@@ -9,8 +9,12 @@ export function repairRoute(error){
 
 export function requiredRepairs(issues){return issues.filter(i=>['blocker','major'].includes(i.severity));}
 
+export function changesTextContract(issue){
+  return issue.repairKind==='text-contract'||/(?:删除|移除|隐藏)[^。；;]{0,32}(?:新增|文字对象|文字层|标题层)|(?:remove|delete|hide)[^.;]{0,40}(?:text|title|overlay)/i.test(issue.repair||'');
+}
+
 export function keyframeFailure(issues,{staticOnly=false}={}){
   const required=requiredRepairs(issues).filter(i=>!staticOnly||i.repairKind!=='text-timing');if(!required.length)return null;
-  const code=required.some(i=>i.repairKind==='fact-binding')?'KEYFRAME_FACT':required.some(i=>['source-selection','text-evidence'].includes(i.repairKind))?'KEYFRAME_SOURCE':'KEYFRAME_LAYOUT';
+  const code=required.some(i=>i.repairKind==='fact-binding')?'KEYFRAME_FACT':required.some(i=>changesTextContract(i)||['source-selection','text-evidence'].includes(i.repairKind))?'KEYFRAME_SOURCE':'KEYFRAME_LAYOUT';
   return Object.assign(Error(JSON.stringify(required)),{code,issues:required});
 }

@@ -43,7 +43,16 @@ export function scopedCommerceEdit(document,message){
  if(/^字幕小一点[，,]往上移[，,]声音和其他画面不变$/.test(text)){
   const nodes=document.nodes.filter(n=>n.kind==='text'&&['subtitle','caption','body','description','feature'].includes(n.semanticRole));
   insist(nodes.length,'没有可独立调整的字幕对象','CAPTION_TARGET_MISSING');
-  return {mode:'local-scoped',operations:nodes.map(n=>({type:'update_text_style',nodeId:n.id,params:{fontSize:Math.max(18,Math.round((n.params?.style?.fontSize||36)*.85)),offsetY:(n.params?.style?.offsetY||0)-40}})),summary:'缩小字幕并上移40像素，声音及其他画面保持。'};
+  const sizes=nodes.map(n=>{
+   if(Number.isFinite(n.params?.style?.fontSize))return n.params.style.fontSize;
+   const bundle=document.sourceBundles?.find(b=>b.sceneId===n.sceneId),elementId=bundle?.objects.find(o=>o.nodeId===n.id)?.elementId;
+   const styles=bundle?.textStyles?.filter(s=>s.elementId===elementId)||[];
+   // Only a complete, unambiguous authored text style is a reliable baseline.
+   // Unknown/CSS-responsive sizes go through the normal planner, not a guessed 36px.
+   return styles.length===1&&styles[0].match===n.params.text?styles[0].fontSize:null;
+  });
+  if(sizes.some(size=>!Number.isFinite(size)))return null;
+  return {mode:'local-scoped',operations:nodes.map((n,i)=>({type:'update_text_style',nodeId:n.id,params:{fontSize:Math.max(12,Math.round(sizes[i]*.85)),offsetY:Math.max(-400,(n.params?.style?.offsetY||0)-40)}})),summary:'按当前实际字号缩小字幕并上移，声音及其他画面保持；需复核安全区。'};
  }
  const detail=/^把细节镜头提前[，,]结尾文字改成[“"]([^”"]+)[”"][，,]其他不动$/.exec(text);
  if(detail){

@@ -1,9 +1,11 @@
+import {existsSync} from 'node:fs';
 import {parseFragment,serialize} from 'parse5';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {insist} from './contracts.mjs';
 import {HyperFramesResourceCatalog} from './resource-catalog.mjs';
+import {readDiscoveredResource} from './resource-discovery.mjs';
 export const resourceHash=x=>createHash('sha256').update(typeof x==='string'||Buffer.isBuffer(x)?x:JSON.stringify(x)).digest('hex');
 export async function historicalGuidance(root,record){
   if(!/^skills\/[a-zA-Z0-9_./-]+\.md$/.test(record.file)||record.file.split('/').includes('..'))return null;
@@ -57,7 +59,7 @@ export function normalizeMediaBindings(source,mediaKinds=[]){
   const mediaIds=[...(source.objects||[])].filter(o=>/^media-/.test(o.ref||'')).map(o=>o.elementId);
   if(mediaIds.length && (changes.length || normalizedSource.css)){
     let css=normalizedSource.css||'';
-    css=css.replace(/(#root\{[^}]*?)background:(?!transparent)[^;}]*(;?)/, '$1background:transparent$2');
+    css=css.replace(/(#root\{[^}]*?)background(?:-color)?:(?!transparent)[^;}]*(;?)/, '$1background:transparent$2');
     // A native scene may put its full-canvas plate on a separate #scene-bg
     // selector. It must be transparent whenever managed video is underneath;
     // local text panels remain opaque and are intentionally left untouched.
@@ -70,12 +72,13 @@ export function normalizeMediaBindings(source,mediaKinds=[]){
 }
 export class CapabilityCatalog {
   constructor(root,snapshot){this.root=root;this.snapshot=snapshot;this.files=new Map(snapshot.files.map(f=>[f.path,f]));}
-  static async open(root){const catalog=await HyperFramesResourceCatalog.open(root),d=catalog.data;return new CapabilityCatalog(root,{runtime:'0.8.33',commit:d.provenance.commit,sourceRoot:'canonical-mirror',files:[...d.files,{path:'LICENSE',sha256:d.provenance.licenseSha256}]});}
+  static async open(root){const catalog=await HyperFramesResourceCatalog.open(root),d=catalog.data;const capability=new CapabilityCatalog(root,{runtime:'0.8.33',commit:d.provenance.commit,sourceRoot:'canonical-mirror',files:[...d.files,{path:'LICENSE',sha256:d.provenance.licenseSha256}]});capability.discovery=catalog;return capability;}
   async read(file){const record=this.files.get(file);insist(record,'资源依赖未安装：'+file,'RESOURCE_MISSING');const source=this.snapshot.sourceRoot==='canonical-mirror'?path.join(this.root,'../third_party/hyperframes',file):path.join(this.root,'config/hyperframes',this.snapshot.commit,file);const content=await fs.readFile(source,'utf8');insist(resourceHash(content)===record.sha256,'资源内容发生变化：'+file,'RESOURCE_HASH');return {file,sha256:record.sha256,content};}
-  candidates({message='',assets=[]}={}){const hasVideo=assets.some(a=>a.kind==='video'),visuals=assets.filter(a=>['image','video'].includes(a.kind)).length;return recipes.map(r=>({...r,compatible:r.files.every(f=>this.files.has(f)),eligible:(!r.inputs.includes('video')||hasVideo)&&(!r.inputs.includes('visual-pair')||visuals>0),score:r.tags.reduce((n,t)=>n+(message.toLowerCase().includes(t)?1:0),0),kind:'reviewed-blueprint-adapter',runtime:'0.8.33',sourceCommit:this.snapshot.commit})).sort((a,b)=>b.score-a.score);}
+  candidates({message='',assets=[],visualInputCount}={}){const hasVideo=assets.some(a=>a.kind==='video'),visuals=assets.filter(a=>['image','video'].includes(a.kind)).length;return recipes.map(r=>({...r,requirements:{minMedia:r.inputs.includes('visual-pair')?2:r.inputs.includes('video')?1:0,mediaKinds:r.inputs.includes('video')?['video']:[],maxTextCharacters:80},motionRisk:['video-text-pivot','kinetic-type-beats'].includes(r.id)?'occluding':'low',compatible:r.files.every(f=>this.files.has(f)&&existsSync(this.snapshot.sourceRoot==='canonical-mirror'?path.join(this.root,'../third_party/hyperframes',f):path.join(this.root,'config/hyperframes',this.snapshot.commit,f))),eligible:(!r.inputs.includes('video')||hasVideo)&&(!r.inputs.includes('visual-pair')||(visualInputCount??visuals)>=2),score:r.tags.reduce((n,t)=>n+(message.toLowerCase().includes(t)?1:0),0),kind:'reviewed-blueprint-adapter',runtime:'0.8.33',sourceCommit:this.snapshot.commit})).sort((a,b)=>b.score-a.score);}
   async context(stage,ids=[],{phase}={}){
     const prompts=[];for(const id of ['R0',stage]){const content=await fs.readFile(path.join(this.root,'prompts/commerce',id+'.md'),'utf8');prompts.push({file:'prompts/commerce/'+id+'.md',sha256:resourceHash(content),content});}
     const manifest=JSON.parse(await fs.readFile(path.join(this.root,'prompts/commerce/manifest.json'),'utf8'));
+    for(const prompt of prompts){const id=path.basename(prompt.file,'.md'),record=manifest.files.find(r=>r.id===id);insist(record?.sha256===prompt.sha256,'运行时提示哈希不符：'+prompt.file,'POLICY_HASH');}
     for(const record of manifest.policyFiles||[]){insist(['agent.md','prompts/commerce/commerce-focus.md','docs/commerce-focus-v1/scenario-registry.spec.json'].includes(record.file),'未知业务规则路径','POLICY_PATH');const content=await fs.readFile(path.join(this.root,record.file),'utf8');insist(resourceHash(content)===record.sha256,'业务规则哈希不符：'+record.file,'POLICY_HASH');prompts.push({...record,content});}
     const selected=ids.map(id=>{const recipe=recipes.find(r=>r.id===id);insist(recipe,'未知资源：'+id,'RESOURCE_UNKNOWN');return recipe;});
     // Once the keyframe is checked, the model only returns bounded timeline
@@ -95,6 +98,12 @@ export class CapabilityCatalog {
     const files=recipe?recipe.files.map(file=>({file,sha256:this.files.get(file).sha256})):[];
     return {source:adapted,receipt:{resourceId:recipe?.id||'native-original',sourceCommit:this.snapshot.commit,tool:'resources.adapt_native_bundle',adapterVersion:1,sceneId,objectIds,files,sourceHash:resourceHash(adapted),originalSourceHash,normalizations:normalized.changes,status:'adapted-awaiting-check',method:recipe?'model adaptation of the supplied blueprint; not a verbatim component install':'managed original with loaded HyperFrames guidance'}};
   }
+  async readDiscoveryRecord(record){
+    const catalog=this.discovery||await HyperFramesResourceCatalog.open(this.root);
+    const resource=catalog.resources.find(r=>r.path===record.file&&r.sha256===record.sha256&&r.rootId===record.discoveryRoot&&r.id===record.id);
+    insist(resource,'引用资源已改变或不属于配置范围','RESOURCE_HASH');
+    return readDiscoveredResource(this.root,catalog.data,resource);
+  }
   async lockUsedResources(directory){
     const license=await this.read('LICENSE');const records=new Map([['LICENSE',{file:'LICENSE',sha256:license.sha256}]]);for(const name of await fs.readdir(path.join(directory,'receipts')).catch(()=>[])){if(!/^[a-zA-Z0-9_.-]+\.json$/.test(name))continue;const receipt=JSON.parse(await fs.readFile(path.join(directory,'receipts',name),'utf8'));for(const r of receipt.context||[])records.set(r.file+":"+r.sha256,r);}
     const nativeReceipts=JSON.parse(await fs.readFile(path.join(directory,'resource-receipts.json'),'utf8').catch(e=>{if(e.code!=='ENOENT')throw e;return '[]';}));
@@ -103,7 +112,7 @@ export class CapabilityCatalog {
       for(const record of receipt.adapterSources||[]){insist(localAdapterFiles.has(record.file),'未知原生适配来源','RESOURCE_UNKNOWN');records.set(record.file,record);}
       if(receipt.adapterSourceSha256)records.set('lib/creative/native-recipes.mjs',{file:'lib/creative/native-recipes.mjs',sha256:receipt.adapterSourceSha256});
     }
-    const files=[];for(const r of records.values()){let content=r.file.startsWith('third_party/hyperframes/')||r.file.startsWith('third_party/hyperframes-launches/')?await fs.readFile(path.join(this.root,'..',r.file)):(r.file.startsWith('prompts/commerce/')||['agent.md','docs/commerce-focus-v1/scenario-registry.spec.json'].includes(r.file)||localAdapterFiles.has(r.file))?await fs.readFile(path.join(this.root,r.file)):Buffer.from((await this.read(r.file)).content);let historical=null;if(resourceHash(content)!==r.sha256){historical=await historicalGuidance(this.root,r);if(historical)content=historical.content;}insist(resourceHash(content)===r.sha256,'已用上下文在打包前变化：'+r.file,'RESOURCE_HASH');const relative=(historical?'resources/history/'+r.sha256+'/':'resources/')+r.file+(/\.(?:html|js|mjs|py|sh)$/.test(r.file)?'.reference.txt':'');await fs.mkdir(path.dirname(path.join(directory,relative)),{recursive:true});await fs.writeFile(path.join(directory,relative),content);files.push({...r,packagePath:relative,...(historical?{historicalGuidance:true,sourceCommit:historical.commit}: {})});}
+    const files=[];for(const r of records.values()){let content=r.discoveryRoot?Buffer.from(await this.readDiscoveryRecord(r)):r.file.startsWith('third_party/hyperframes/')||r.file.startsWith('third_party/hyperframes-launches/')?await fs.readFile(path.join(this.root,'..',r.file)):(r.file.startsWith('prompts/commerce/')||['agent.md','docs/commerce-focus-v1/scenario-registry.spec.json'].includes(r.file)||localAdapterFiles.has(r.file))?await fs.readFile(path.join(this.root,r.file)):Buffer.from((await this.read(r.file)).content);let historical=null;if(resourceHash(content)!==r.sha256){historical=await historicalGuidance(this.root,r);if(historical)content=historical.content;}insist(resourceHash(content)===r.sha256,'已用上下文在打包前变化：'+r.file,'RESOURCE_HASH');const relative=(historical?'resources/history/'+r.sha256+'/':'resources/')+r.file+(/\.(?:html|js|mjs|py|sh)$/.test(r.file)?'.reference.txt':'');await fs.mkdir(path.dirname(path.join(directory,relative)),{recursive:true});await fs.writeFile(path.join(directory,relative),content);files.push({...r,packagePath:relative,...(historical?{historicalGuidance:true,sourceCommit:historical.commit}: {})});}
     const lock={runtime:'0.8.33',commit:this.snapshot.commit,files,execution:'reference files are inert; native bundles are the only executable adaptation',license:'upstream LICENSE; asset rights reviewed separately'};await fs.writeFile(path.join(directory,'resource-lock.json'),JSON.stringify(lock,null,2));return lock;
   }
 }

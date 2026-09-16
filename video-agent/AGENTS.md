@@ -117,3 +117,7 @@ When `node` is absent from PATH, use `python3 start.py frontend` / `python3 star
 ## Commerce focus v1
 
 电商工作读取 codex.md、agent.md 和 docs/commerce-focus-v1/03-IMPLEMENTATION_SPEC.zh-CN.md。候选可以审阅；技术通过不等于当前最终文件的视觉、动作、听感和真人认可。模型不得代签人评。
+
+## 当前逐模块执行合同（EXECUTION-V2）
+
+实施电商业务时显式读取 [HyperFrame_逐模块执行合同_替换旧Prompt.md](docs/HyperFrame_逐模块执行合同_替换旧Prompt.md)。它替换旧 P0—P5 的业务实施及结束条件；M01—M12、六场景、十类资源逐项验收并继续下一项。保留权限、事实、凭据、历史与未提交工作保护。当前暂停新的商品图片／视频生成，本地剪辑、声音与工程能力继续。进度记录在 EXECUTION_STATUS.md，历史证据不自动通过新合同。

@@ -26,7 +26,10 @@ test('S04/S15/S24/S26 real HTTP routes preserve candidate access and reject form
     const formal=await fetch(`${base}/api/commerce/${p.id}/revisions/R1/commerce-final.mp4?delivery=formal`);assert.equal(formal.status,409);assert.equal((await formal.json()).code,'DELIVERY_NOT_ACCEPTED');
     const human=await fetch(`${base}/api/commerce/${p.id}/review`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({reviewerType:'human',status:'accepted'})});assert.equal(human.status,403);
     const old=await(await fetch(`${base}/api/commerce/${p.id}`)).json();assert.equal(old.project.deliveryStatus,'legacy_unverified');assert.equal(old.project.revisions.length,1);
-    const unsupported=await fetch(base+'/api/commerce-chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'draft',request:{businessGoal:['promotion']}})});assert.equal(unsupported.status,400);assert.equal((await unsupported.json()).code,'SCENARIO_UNSUPPORTED');
+    for(const [goal,id] of [['detail','product_detail'],['style','product_collection'],['promotion','product_promotion'],['faq','product_faq']]){
+      const response=await fetch(base+'/api/commerce-chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'draft',request:{businessGoal:[goal]}})});assert.equal(response.status,201);assert.equal((await response.json()).project.request.businessContract.scenarioId,id);
+    }
+    const unsupported=await fetch(base+'/api/commerce-chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'draft',request:{businessGoal:['unknown-scene']}})});assert.equal(unsupported.status,400);assert.equal((await unsupported.json()).code,'SCENARIO_UNSUPPORTED');
     const draft=await(await fetch(base+'/api/commerce-chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'draft',request:{businessGoal:['demo'],message:'保留原声，展示真实操作'}})})).json();assert.equal(draft.project.request.businessContract.scenarioId,'product_howto');assert.equal(draft.project.request.businessContract.audio,'original');
   }finally{await new Promise(resolve=>server.close(resolve));await fs.rm(dataDir,{recursive:true,force:true});}
 });

@@ -1,4 +1,6 @@
 import {discoverMaterialRoots,resolveMaterialRoot} from './material-roots.mjs';
+import {productionPolicy,assertMediaGenerationAllowed} from './production-policy.mjs';
+import {minimaxCapabilityStatus} from '../edit/adapters/minimax.mjs';
 import {humanReviewRoute} from './human-review.mjs';
 import {deliveryDecision,formalVideoSnapshot} from './delivery-gate.mjs';
 import {businessContract,FOCUS_PROFILE} from './commerce-focus.mjs';
@@ -20,7 +22,7 @@ import {applyDocumentPatch,computeInvalidation} from './patch.mjs';
 import {requireCommerceMessagePlan,sceneNumber} from './intent.mjs';
 import {planCreativeEdit} from './model-edit.mjs';
 import {reviewEditedProject} from './edit-review.mjs';
-import {selectiveEffectRestore} from './history.mjs';
+import {selectiveEffectRestore,allocatePublicationRevision} from './history.mjs';
 import {prepareCreativeAsset} from './image-asset.mjs';
 import {inspectBrandFont,MAX_FONT_BYTES,brandFontResources} from './brand-fonts.mjs';
 import {collectCreativeEvidence} from './model-director.mjs';
@@ -150,6 +152,8 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
   async function publish(p,job,dir,document,description,{branch=false,defer=false}={}){
     const signal=controllers.get(job.id)?.signal,release=await acquireRender({kind:'preview',signal});
     try{
+      const previousId=document.revisionId;allocatePublicationRevision(document,p.revisions,job.id);
+      if(document.revisionId!==previousId){const {assets}=await readNativeProject(dir);await writeCompiledProject(dir,document,assets,{signal});}
       await fs.writeFile(path.join(dir,'check.log'),await runHyperFrames(dir,'check',[],{signal}));
       if(job.kind==='edit'&&document.production){
         job.stage='复核修改范围的实际画面';await save(p);
@@ -162,13 +166,14 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
     await linkOrCopy(path.join(root,'node_modules/hyperframes/dist/hyperframe-runtime.js'),path.join(dir,'assets/runtime.js'));
     insist(!signal?.aborted,'任务已取消','CANCELLED');
     insist(branch||p.currentRevisionId===job.baseRevisionId,'当前版本已变化，结果保留但不能覆盖新版本','REVISION_CONFLICT');
+    insist(!p.revisions.some(r=>r.id===document.revisionId),'发布版本ID与现有历史重复，已保留新工程','REVISION_DUPLICATE');
     const r={id:document.revisionId,parentId:job.baseRevisionId,directory:path.relative(directory(p),dir).replaceAll('\\','/'),createdAt:now(),description,durationFrames:document.durationFrames,output:document.output,rendered:false,branch};
     if(defer)return r;
     const previous={current:p.currentRevisionId,redo:p.redo};p.revisions.push(r);if(!branch){p.currentRevisionId=r.id;p.redo=[];}job.revisionId=r.id;
     try{await save(p);}catch(error){p.revisions=p.revisions.filter(v=>v!==r);p.currentRevisionId=previous.current;p.redo=previous.redo;delete job.revisionId;throw error;}return r;
   }
   async function candidateExport(p,job,r,signal){
-    const dir=versionDirectory(p,r);job.stage='导出候选 MP4';await save(p);
+    const dir=versionDirectory(p,r);job.revisionId=r.id;job.stage='导出候选 MP4';await save(p);
     if(!r.rendered){const release=await acquireRender({signal});try{const result=await renderCommerceProject({outputDir:r.directory,signal,onProgress:async progress=>{job.renderProgress={...progress,revisionId:r.id};job.stage='渲染画面 '+progress.percent+'%';await save(p);},onStage:async stage=>{job.stage=stage;await save(p);}},{root,outputRoot:directory(p)});r.mediaReview=result.mediaReview;job.qualitySummary=result.mediaReview;r.rendered=true;job.revisionId=r.id;await save(p);}finally{release();}}
     job.stage='打包素材与完整历史';await save(p);
     job.packageEvidence=await exportCreativeHistory(root,directory(p),job.snapshot||structuredClone(p),r.id,path.join(dir,'history.zip'),{signal,assetRoot:directory(p)});r.historyPackaged=true;
@@ -194,16 +199,22 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
           job.status='complete';job.completedAt=now();return;
         }
         if(['image','video'].includes(target)){
+          await assertMediaGenerationAllowed(root);
           const source=p.request.sourceAssetId?p.assets.find(a=>a.id===p.request.sourceAssetId):p.assets.find(a=>a.kind==='image');
           insist(source?.kind==='image','请选择要生成的商品原图','GENERATION_INPUT');
           job.generationStarted=true;job.stage='生成'+(target==='image'?'商品图':'原始镜头');await save(p);
           const a=await generateCommerceAsset({root,project:p,job,kind:target,role:target==='image'?'商品整体':'原始展示',sourceAsset:source,prompt:job.input.message||p.request.message,duration:p.request.output.durationSeconds,save:()=>save(p),signal});
           if(!p.assets.some(x=>x.id===a.id))p.assets.push(a);job.resultAssetId=a.id;job.status='complete';job.completedAt=now();job.summary='生成素材已下载，可选择用于视频或营销成片；质量待审。';p.messages.push({role:'assistant',text:job.summary,time:now()});return;
         }
+        if(!(await productionPolicy(root)).mediaGenerationPaused){
         job.stage='规划镜头与素材缺口';await save(p);
         await ensureGenerationPlan({root,project:p,job,directory:path.join(directory(p),'versions',job.id),save:()=>save(p),signal});
         await fillGenerationGaps({root,project:p,job,save:()=>save(p),signal});
         p.request.generationPlan=structuredClone(job.generationPlan);
+        }else{
+          job.productionPolicy={mediaGenerationPaused:true,source:'config/commerce.json'};
+          insist(p.assets.some(a=>['image','video'].includes(a.kind)),'请添加已有商品图片或视频素材；本轮不生成新镜头','MISSING_MEDIA');
+        }
         job.stage='理解创作要求';await save(p);
         const voice=await creativeVoiceInteraction(p,job.input.message||p.request.message,directory(p),{signal});
         if(voice){
@@ -240,7 +251,7 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
           const candidates=[];
           for(const [i,alternative] of plan.alternatives.entries()){
             job.stage=`检查开头方案 ${i+1}/${plan.alternatives.length}`;await save(p);
-            const candidate=applyDocumentPatch(document,alternative.operations,Object.fromEntries(assets.map(a=>[a.id,a])));assertOpeningOnly(document,candidate);
+            const candidate=allocatePublicationRevision(applyDocumentPatch(document,alternative.operations,Object.fromEntries(assets.map(a=>[a.id,a]))),p.revisions,job.id);assertOpeningOnly(document,candidate);
             const branchDir=path.join(directory(p),'versions',job.id+'-alternative-'+(i+1));await copyAssets(dir,branchDir);
             await fs.writeFile(path.join(branchDir,'hyperframes.json'),JSON.stringify({version:1,entry:'index.html'}));
             await writeCompiledProject(branchDir,candidate,assets,{invalidation:computeInvalidation(document,candidate),signal});
@@ -266,6 +277,7 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
         await fs.writeFile(path.join(dir,'hyperframes.json'),JSON.stringify({version:1,entry:'index.html'}));
         for(let attempt=0;attempt<3;attempt++){
           try{
+            allocatePublicationRevision(next,p.revisions,job.id);
             job.stage=attempt?'检查局部修复后的画面':'检查修改后的原生预览';await save(p);
             await writeCompiledProject(dir,next,assets,{invalidation:computeInvalidation(document,next),signal});
             await fs.writeFile(path.join(dir,'edit.json'),JSON.stringify({message:job.input.message,baseRevisionId:base.id,...plan},null,2));
@@ -291,6 +303,7 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
   async function enqueue(p,input){
     const kind=input.action==='generate'?'create':input.action==='render'||input.action==='export'?'export':'edit';
     if(input.idempotencyKey){const old=p.jobs.find(j=>j.idempotencyKey===input.idempotencyKey);if(old)return old;}
+    if(kind==='create'&&['image','video'].includes(input.request?.target||p.request.target))await assertMediaGenerationAllowed(root);
     insist(!p.jobs.some(j=>active(j)&&j.kind!=='export')||kind==='export','当前创作仍在进行','PROJECT_BUSY');
     insist(!Array.from(uploads).some(k=>k.startsWith(p.id+':')),'请等待素材上传完成','UPLOAD_BUSY');
     if(input.baseRevisionId)insist(input.baseRevisionId===p.currentRevisionId,'页面版本已过期，请刷新后再修改','REVISION_CONFLICT');
@@ -318,10 +331,11 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
   for(const p of projects.values())for(const job of p.jobs){
     if(job.status==='recoverable'&&job.code==='INTERRUPTED'&&!job.cancelRequestedAt&&(job.generationPlan||job.generationStarted))queueMicrotask(()=>resume(p,job.id).catch(async error=>{job.status='recoverable';job.code=error.code;job.error=error.message;await save(p);}));
   }
-  return {finishedWorks:()=>readFinishedWorks(root),materialRoots:async()=>(await discoverMaterialRoots(root)).map(({directory,files,...r})=>r),attachMaterialRoot,get,has:id=>projects.has(id),view,create,loadPreset,presets:async()=>(await refreshPresets()).map(publicPreset),unavailablePresets:async()=>(await refreshPresets()).unavailable||[],upload,importPackage,enqueue,navigate,cancel,resume,authorizeBudget,revision,versionDirectory,list:()=>[...projects.values()].map(view).sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt))};
+  return {productionPolicy:()=>productionPolicy(root),finishedWorks:()=>readFinishedWorks(root),materialRoots:async()=>(await discoverMaterialRoots(root)).map(({directory,files,...r})=>r),attachMaterialRoot,get,has:id=>projects.has(id),view,create,loadPreset,presets:async()=>(await refreshPresets()).map(publicPreset),unavailablePresets:async()=>(await refreshPresets()).unavailable||[],upload,importPackage,enqueue,navigate,cancel,resume,authorizeBudget,revision,versionDirectory,list:()=>[...projects.values()].map(view).sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt))};
 }
 
 export async function creativeRoutes(service,req,res,url,{json,jsonBody,file}){
+  if(req.method==='GET'&&url.pathname==='/api/commerce-capabilities'){json(res,{ok:true,...await service.productionPolicy(),audioProviders:{local:{speech:'not_verified',transcription:'not_verified',music:'local-files'},minimax:minimaxCapabilityStatus()}});return true;}
   if(req.method==='GET'&&url.pathname==='/api/commerce-material-roots'){json(res,{ok:true,roots:await service.materialRoots()});return true;}
   if(await humanReviewRoute(ROOT,service,req,res,url,{json,jsonBody}))return true;
   const route=url.pathname;

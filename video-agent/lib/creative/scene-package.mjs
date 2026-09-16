@@ -1,7 +1,13 @@
 import fs from 'node:fs/promises';import path from 'node:path';import {createHash} from 'node:crypto';
 const hash=x=>createHash('sha256').update(x).digest('hex');
-export const canonicalScene=id=>({launch:'product_launch',demo:'product_demo',product_howto:'product_demo'}[id]||id);
-export async function loadScenePackage(root,id){id=canonicalScene(id);if(!['product_launch','product_demo'].includes(id))return null;
+export const canonicalScene=id=>({launch:'product_launch',demo:'product_demo',product_howto:'product_demo',detail:'product_detail',style:'product_collection',promotion:'product_promotion',faq:'product_faq'}[id]||id);
+export async function scenePackageFingerprint(root,id){
+ if(id){const pack=await loadScenePackage(root,id);return pack?.hash||null;}
+ const entries=await fs.readdir(path.join(root,'commerce/scenes'),{withFileTypes:true});
+ const hashes=[];for(const entry of entries.filter(e=>e.isDirectory()).sort((a,b)=>a.name.localeCompare(b.name))){const pack=await loadScenePackage(root,entry.name.replaceAll('-','_'));if(pack)hashes.push([pack.id,pack.hash]);}
+ return hash(JSON.stringify(hashes));
+}
+export async function loadScenePackage(root,id){id=canonicalScene(id);if(!['product_launch','product_demo','product_detail','product_collection','product_promotion','product_faq'].includes(id))return null;
  const dir=path.join(root,'commerce/scenes',id.replaceAll('_','-'));const files={};
  for(const name of ['scene.json','PERSONA.md','INPUT_CONTRACT.md','OUTPUT_CONTRACT.md','STORY_GRAMMAR.md','MATERIAL_POLICY.md','RESOURCE_PROFILE.json','COMPONENTS.json','TEMPLATES.json','AUDIO_POLICY.md','QUALITY_RUBRIC.json','REPAIR_POLICY.md','EDITING_POLICY.md']){const content=await fs.readFile(path.join(dir,name),'utf8');files[name]={sha256:hash(content),content:name.endsWith('.json')?JSON.parse(content):content};}
  const scene=files['scene.json'].content;if(scene.id!==id||scene.schemaVersion!==1)throw Error('Invalid Scene Package');const templates=files['TEMPLATES.json'].content;for(const t of [...templates.businessTemplates,...templates.visualTemplates])t.hash=hash(JSON.stringify(t));
