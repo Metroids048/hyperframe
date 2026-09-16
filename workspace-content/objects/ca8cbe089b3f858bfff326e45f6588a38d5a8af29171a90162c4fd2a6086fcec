@@ -1,0 +1,658 @@
+<template>
+  <div data-hf-id="hf-4ag2" id="sq" data-composition-id="sq" data-start="0" data-duration="15.6413" data-width="1080" data-height="1080" style="position: relative; width: 1080px; height: 1080px; overflow: hidden; background: #F3F4ED;">
+    <style>
+      /* =====================================================================
+         LAUNCH FILM — scenes 1-4, SQUARE 1080x1080.
+         Geometry is the verified 16:9 replica scaled by k = 904/1607 = 0.5625
+         (box keeps the reference's 83.7%-of-frame-width and 3.11:1 aspect).
+         Timing is carried over unchanged from the measured reference.
+         ===================================================================== */
+      /* Anthropic's house serif, lifted from the Claude paper launch
+         (projects/active/claude-paper/fonts). Times-adjacent but not Times, which is
+         what the serif register here was reaching for with Georgia. Book is the only
+         weight we have (usWeightClass 500, italicAngle 0) — the 400-700 range is
+         declared deliberately so the renderer never SYNTHESISES a bold or an oblique
+         off it. That synthesis is exactly what got TT Norms Pro thrown out of this
+         project. Self-hosted so preview == render (Georgia was being aliased to
+         EB Garamond by the renderer). */
+      @font-face { font-family: "Copernicus"; src: url("assets/fonts/GalaxieCopernicus-Book.woff2") format("woff2");
+                   font-weight: 400 700; font-style: normal; font-display: block; }
+      @font-face { font-family: "RefSans"; src: url("assets/fonts/refsans-medium.ttf") format("truetype");
+                   font-weight: 400 700; font-display: block; }
+
+      #sq .paper { position: absolute; inset: 0; background: #F3F4ED; }
+      /* the world's navy reaction is now the supplied gradient plate. The flat #0E1524
+         stays underneath as the ground so a not-yet-decoded first frame can never flash. */
+      #sq .night { position: absolute; inset: 0; background: #0E1524; opacity: 0; }
+      #sq .navyvid { position: absolute; inset: 0; width: 1080px; height: 1080px;
+        object-fit: cover; }
+
+      #sq .stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+
+      /* pill 533x188 r39  ->  box 904x291 r33   (measured 948/334/69 -> 1607/518/58, x0.5625) */
+      /* ORANGE VARIANT: the pill's rest colour is Anthropic's Claude orange #D97757
+         instead of the reference's warm grey (229,230,218), and the ground flips to the
+         same orange with it, so the pill is never a visible object before the morph.
+         It rests OPAQUE at the paper colour rather than at alpha 0: an alpha-0 orange
+         composites against a cream ground and reads as a distinct rounded rect for the
+         three frames of the flip. Opaque-to-opaque on the same curve is invisible at
+         every instant. */
+      #sq .card { position: relative; width: 533px; height: 188px; border-radius: 39px;
+        background: #F3F4ED; z-index: 3; overflow: hidden; }
+      /* The hover still has to READ, and colour can't carry it once the pill and the
+         ground are the same orange — so it reads as DEPTH: the pill sits down into the
+         field. Carried on its own inset-shadow layer, not on the card's box-shadow,
+         because the morph tweens that same property from an inset to an OUTER drop
+         shadow and shadow-type switches don't interpolate. */
+      #sq .sunk { position: absolute; inset: 0; border-radius: inherit; opacity: 0;
+        pointer-events: none;
+        box-shadow: inset 0 11px 26px rgba(86,30,11,.46), inset 0 3px 6px rgba(86,30,11,.36),
+                    inset 0 2px 1px rgba(86,30,11,.30),
+                    inset 0 -3px 2px rgba(255,236,226,.16); }
+
+      /* ORANGE VARIANT: the lockup (palette mark + "Design") is hidden at rest and
+         arrives WITH the pill on hover, so the frame is bare paper until the cursor
+         crosses in. Parked in CSS, not by a tl.set at 0, so frame 0 paints blank. */
+      #sq .lockup { position: absolute; inset: 0; display: flex; align-items: center;
+        justify-content: center; gap: 35px; opacity: 0; }
+      #sq .lockup img { width: 81px; height: 80px; display: block; }
+      #sq .word { display: flex; font-family: "RefSans", "Helvetica Neue", sans-serif;
+        font-size: 87px; line-height: 1; font-weight: 500; color: #14130F; }
+      #sq .word span { display: inline-block; }
+
+      #sq .boxui { position: absolute; inset: 0; opacity: 0;
+        font-family: "RefSans", "Helvetica Neue", sans-serif; }
+      #sq .chips { position: absolute; left: 42px; top: 22px; display: flex; gap: 19px; opacity: 0; }
+      #sq .chip { height: 65px; padding: 0 19px; border-radius: 16px; background: #ECEBE5;
+        display: flex; align-items: center; gap: 11px; font-size: 27px; color: #4A4740; white-space: nowrap; }
+      #sq .chip svg { width: 25px; height: 25px; stroke: #6E6A5E; fill: none; stroke-width: 1.6; }
+      #sq .ptext { position: absolute; left: 42px; top: 42px; right: 40px;
+        font-size: 42px; font-weight: 600; line-height: 1.26; color: #1A1A18; letter-spacing: -0.004em; }
+      #sq .ph { position: absolute; left: 42px; top: 42px; font-size: 42px; font-weight: 600;
+        line-height: 1.26; color: #787875; display: flex; }
+      #sq .phw { display: inline-block; height: 53px; overflow: hidden; }
+      #sq .phc { display: inline-block; line-height: 53px; }
+      #sq .caret { display: inline-block; width: 3px; height: 42px; background: #1A1A18;
+        vertical-align: -7px; opacity: 0; }
+      #sq .prow { position: absolute; left: 42px; right: 40px; bottom: 40px;
+        display: flex; align-items: center; }
+      /* parked clipped: #sq-boxui turns visible at 1.764 but the reveal runs at 1.92, so
+         without this the row shows in full and then masks in a SECOND time */
+      #sq .prow > * { clip-path: inset(0px 100% 0px 0px); }
+      #sq .ibtn { width: 81px; height: 78px; border: 1.5px solid #DCDBD5; border-radius: 21px;
+        display: flex; align-items: center; justify-content: center; margin-right: 9px; }
+      #sq .ibtn svg { width: 29px; height: 29px; stroke: #6E6A5E; fill: none; stroke-width: 1.6; }
+      #sq .import { width: 190px; height: 78px; border: 1.5px solid #DCDBD5; border-radius: 21px;
+        display: flex; align-items: center; justify-content: center; font-size: 34px; color: #55524B; }
+      #sq .send { margin-left: auto; width: 210px; height: 78px; border-radius: 25px;
+        background: #E9AF9B; display: flex; align-items: center; justify-content: center; gap: 12px;
+        color: #fff; font-size: 35px; }
+
+      /* the design types — tucked BEHIND the card, slide out downward as it rises */
+      #sq .types { position: absolute; left: 0; right: 0; top: 50%; margin-top: -20px;
+        display: flex; justify-content: center; gap: 14px; z-index: 1; }
+      /* text-align matters as well as align-items: the flex rule centres the label BOX,
+         but "Landing page" wraps to two lines and those were still flush left. */
+      #sq .ty { width: 150px; padding: 18px 10px 15px; border-radius: 16px;
+        border: 1.5px solid rgba(38,37,33,.12); background: #FBFAF6;
+        display: flex; flex-direction: column; align-items: center; gap: 9px; opacity: 0;
+        text-align: center;
+        font-family: "RefSans", "Helvetica Neue", sans-serif; font-size: 21px; color: #55524B; }
+      #sq .ty .ic { width: 46px; height: 32px; border-radius: 7px; background: #ECEBE5; position: relative; }
+
+      /* in-line Claude response — the PLAN list from ref 18-21s, adapted to square.
+         Proportions carried over: pitch/font 1.94, checkbox 0.82em, column 24em. */
+      #sq .resp { position: absolute; left: 84px; top: 70px; width: 912px;
+        font-family: "RefSans", "Helvetica Neue", sans-serif; }
+      #sq .who { font-size: 40px; line-height: 1.05; color: #3A382F; margin-bottom: 46px; opacity: 0; }
+      #sq .pill { height: 62px; border: 1.5px solid rgba(38,37,33,.10); border-radius: 14px;
+        background: #FCFCF9; display: flex; align-items: center; gap: 18px; padding: 0 22px 0 40px;
+        font-size: 38px; color: #35332C; margin-bottom: 56px; opacity: 0; }
+      #sq .pill svg { width: 28px; height: 28px; stroke: #6E6A5E; fill: none; stroke-width: 1.6; }
+      #sq .card2 { border: 1.5px solid rgba(38,37,33,.07); border-radius: 16px; background: #F0EFE9;
+        padding: 22px 26px 26px 34px; margin-top: -18px; opacity: 0; }
+      #sq .hdr { display: flex; align-items: center; gap: 18px; font-size: 38px; color: #35332C;
+        margin-bottom: 58px; }
+      #sq .hdr svg { width: 28px; height: 28px; stroke: #6E6A5E; fill: none; stroke-width: 1.6; }
+      #sq .it { display: flex; align-items: flex-start; gap: 24px; height: 74px; font-size: 38px;
+        color: #262521; line-height: 1.05; }
+      #sq .bx { width: 32px; height: 32px; border-radius: 8px; border: 2px solid #B9B7AE;
+        flex: 0 0 32px; margin-top: 5px; position: relative; }
+      #sq .bx .fill { position: absolute; inset: -2px; border-radius: 8px; background: #6A8E59;
+        display: flex; align-items: center; justify-content: center; opacity: 0; }
+      #sq .bx .fill svg { width: 21px; height: 21px; stroke: #fff; fill: none; stroke-width: 3; }
+      #sq .lbl { position: relative; display: inline-block; }
+      /* the shimmer is a green copy of the label masked by a moving gradient band */
+      #sq .shim { position: absolute; left: 0; top: 0; white-space: nowrap;
+        opacity: 0; pointer-events: none;
+        background-image: linear-gradient(104deg,
+          rgba(106,142,89,0) 0%, rgba(106,142,89,0) 18%,
+          #6A8E59 34%, #93C776 44%, #B8E89B 50%, #93C776 56%, #6A8E59 66%,
+          rgba(106,142,89,0) 82%, rgba(106,142,89,0) 100%);
+        background-repeat: no-repeat; background-size: 420px 100%;
+        background-position: -300px 0;
+        -webkit-background-clip: text; background-clip: text;
+        color: transparent; -webkit-text-fill-color: transparent; }
+      #sq .lbl .strike { position: absolute; left: 0; top: 52%; height: 2.5px; width: 0; background: #9A978E; }
+      #sq .think { display: flex; align-items: center; gap: 22px; margin-top: 44px; }
+      #sq .think img { width: 64px; height: 64px; opacity: 0; }
+      #sq .tslot { position: relative; height: 74px; flex: 1; }
+      #sq .tslot > span { position: absolute; left: 0; top: 6px; opacity: 0; white-space: nowrap; }
+      #sq .tslot .thinking { font-size: 46px; color: #56534B; }
+      #sq .tslot .done { font-family: "Copernicus", Georgia, serif; font-size: 58px; color: #201F1B; }
+
+      /* cursor rig — one wrapper per motion stage so stages can overlap (keyframe-overlap) */
+      /* pointing-hand cursor. Ink tip measured at (0.386, 0.25) of the 140px art box
+         = (54.0, 35.0); the old arrow tip was (6.1, 2.0). left/top are shifted by that
+         delta (-47.9, -33.0) so every measured landing point still holds. */
+      #sq .cursor-swing { position: absolute; left: 554px; top: 617px; width: 140px; height: 140px;
+        z-index: 20; pointer-events: none; will-change: transform; }
+      #sq .cursor-rise { width: 140px; height: 140px; will-change: transform; }
+      #sq .cursor { display: block; width: 140px; height: 140px; will-change: transform;
+        filter: drop-shadow(0 2px 4px rgba(10,12,20,.34)); }
+
+      #sq .donewrap { position: absolute; inset: 0; }
+      #sq .donewrap .row { position: absolute; inset: 0; display: flex; align-items: center;
+        justify-content: center; gap: 24px; }
+      #sq .donewrap img { width: 52px; height: 52px; }
+      #sq .donewrap .txt { font-family: "Copernicus", Georgia, serif; font-size: 64px; color: #262521; }
+    </style>
+
+    <div data-hf-id="hf-6cc2" id="sq-main" class="clip" data-start="0" data-duration="15.6413" data-track-index="0">
+      <div data-hf-id="hf-2ava" id="sq-paper" class="paper"></div>
+      <div data-hf-id="hf-ba3p" id="sq-night" class="night">
+        <video data-hf-id="hf-b2zg" id="sq-navy" class="clip navyvid" data-start="6.0913" data-duration="6.60" data-track-index="1" src="assets/navy-bg.mp4" muted playsinline></video>
+      </div>
+
+      <div data-hf-id="hf-oiaf" class="types" id="sq-types" data-layout-allow-overlap="" data-layout-allow-occlusion="">
+        <div data-hf-id="hf-yqob" class="ty sq-ty"><span data-hf-id="hf-8dw9" class="ic"><i data-hf-id="hf-zrdr" style="position:absolute; inset:7px 9px; border-radius:3px; background:#DAD8CF;"></i></span>Slides</div>
+        <div data-hf-id="hf-ro4r" class="ty sq-ty"><span data-hf-id="hf-hovh" class="ic"><i data-hf-id="hf-1km4" style="position:absolute; left:9px; right:9px; top:6px; height:5px; border-radius:2px; background:#DAD8CF;"></i><i data-hf-id="hf-0fg0" style="position:absolute; left:9px; right:20px; top:15px; height:4px; border-radius:2px; background:#DAD8CF;"></i></span>Landing page</div>
+        <div data-hf-id="hf-slwc" class="ty sq-ty"><span data-hf-id="hf-ivsk" class="ic"><i data-hf-id="hf-7f6p" style="position:absolute; inset:6px 13px; border-radius:3px; background:#DAD8CF;"></i></span>Creative</div>
+        <div data-hf-id="hf-1v00" id="sq-tyanim" class="ty sq-ty"><span data-hf-id="hf-ihhj" class="ic"><i data-hf-id="hf-hvcl" style="position:absolute; left:17px; top:7px; border-style:solid; border-width:8px 0 8px 13px; border-color:transparent transparent transparent #C98A6C;"></i></span>Animation</div>
+        <div data-hf-id="hf-5jkd" class="ty sq-ty"><span data-hf-id="hf-joem" class="ic"><i data-hf-id="hf-vhhz" style="position:absolute; inset:6px 9px; border:2px solid #DAD8CF; border-radius:3px;"></i></span>Prototype</div>
+      </div>
+
+      <div data-hf-id="hf-tan6" class="stage">
+        <div data-hf-id="hf-owaz" id="sq-card" class="card">
+          <div data-hf-id="hf-336z" id="sq-lockup" class="lockup">
+            <img data-hf-id="hf-8bse" id="sq-palette" src="assets/palette.png" alt="">
+            <div data-hf-id="hf-trrc" class="word"><span data-hf-id="hf-ksn3">D</span><span data-hf-id="hf-xwr0">e</span><span data-hf-id="hf-scgm">s</span><span data-hf-id="hf-wbiw">i</span><span data-hf-id="hf-x44y">g</span><span data-hf-id="hf-tjdp">n</span></div>
+          </div>
+
+          <div data-hf-id="hf-sunk1" id="sq-sunk" class="sunk"></div>
+
+          <div data-hf-id="hf-t0jl" id="sq-boxui" class="boxui">
+            <div data-hf-id="hf-88o9" id="sq-chips" class="chips">
+              <span data-hf-id="hf-on28" class="chip"><svg data-hf-id="hf-y9f5" viewBox="0 0 24 24"><path data-hf-id="hf-01qg" d="M6 2.5h8l4 4V21a.5.5 0 0 1-.5.5h-11A.5.5 0 0 1 6 21V2.5ZM14 2.5v4h4" /></svg>meridian.docx</span>
+              <!-- was signals.xlsx; Jake wants the second attachment to be an MP4, so the
+                   pair reads brief + reference cut. Same chip geometry as the .docx so the
+                   two still land as a matched pair (the measured chip choreography holds). -->
+              <span data-hf-id="hf-hy4p" class="chip"><svg data-hf-id="hf-svtx" viewBox="0 0 24 24"><path data-hf-id="hf-or32" d="M3 6.5h13.5v11H3zM16.5 11.2 21 8.2v7.6l-4.5-3z" /></svg>meridian-ref.mp4</span>
+            </div>
+            <div data-hf-id="hf-brp2" id="sq-ph" class="ph">Describe what you want to create…</div>
+            <div data-hf-id="hf-w3uh" id="sq-ptext" class="ptext"><span data-hf-id="hf-4yfx" id="sq-typed"></span><span data-hf-id="hf-xo8i" id="sq-caret" class="caret"></span></div>
+            <div data-hf-id="hf-4w87" id="sq-prow" class="prow">
+              <span data-hf-id="hf-4d56" class="ibtn"><svg data-hf-id="hf-u2r0" viewBox="0 0 24 24"><circle data-hf-id="hf-rmyi" cx="12" cy="12" r="3.1" /><path data-hf-id="hf-dntw" d="M12 2.9v2.5M12 18.6v2.5M2.9 12h2.5M18.6 12h2.5M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M18.4 5.6l-1.8 1.8M7.4 16.6l-1.8 1.8" /></svg></span>
+              <span data-hf-id="hf-p4r2" class="ibtn"><svg data-hf-id="hf-tofz" viewBox="0 0 24 24"><path data-hf-id="hf-tke8" d="M20 11.5 12.6 19a4.6 4.6 0 0 1-6.6-6.6L13.5 5a3 3 0 0 1 4.3 4.3L10.4 16.6a1.5 1.5 0 0 1-2.1-2.1l6.8-6.8" /></svg></span>
+              <span data-hf-id="hf-pj23" class="ibtn"><svg data-hf-id="hf-uvd2" viewBox="0 0 24 24"><path data-hf-id="hf-bh2w" d="m4 20 1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19l-4 1Z" /></svg></span>
+              <span data-hf-id="hf-pik7" class="import">Import</span>
+              <span data-hf-id="hf-9rsq" id="sq-send" class="send">
+                <svg data-hf-id="hf-fw2x" width="29" height="29" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"><path data-hf-id="hf-5ml0" d="M4 5.5 20 12 4 18.5l2.4-6.5L4 5.5ZM6.4 12H20" /></svg>Send</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div data-hf-id="hf-cit7" id="sq-planclip" style="position:absolute; inset:0; z-index:5;">
+        <div data-hf-id="hf-ktik" id="sq-cam" data-layout-allow-overflow="" style="position:absolute; inset:0; transform-origin:0 0;">
+          <div data-hf-id="hf-jauj" id="sq-planrise" style="position:absolute; inset:0;">
+            <div data-hf-id="hf-pvjb" class="resp">
+        <div data-hf-id="hf-ht2d" class="who sqsec">Claude</div>
+        <div data-hf-id="hf-khad" class="pill sqsec"><svg data-hf-id="hf-uh21" viewBox="0 0 24 24"><path data-hf-id="hf-ampn" d="M12 3v3M12 10.5v3M12 18v3M5 6.5h14M5 14h14" /><circle data-hf-id="hf-l4hz" cx="9" cy="6.5" r="1.6" /><circle data-hf-id="hf-dt46" cx="15" cy="14" r="1.6" /></svg>Plan</div>
+        <div data-hf-id="hf-g66s" class="pill sqsec"><svg data-hf-id="hf-vnz4" viewBox="0 0 24 24"><path data-hf-id="hf-ztc0" d="M6 2.5h8l4 4V21a.5.5 0 0 1-.5.5h-11A.5.5 0 0 1 6 21V2.5ZM14 2.5v4h4" /></svg>write_file</div>
+        <div data-hf-id="hf-037n" class="card2 sqsec">
+          <div data-hf-id="hf-y4q6" class="hdr"><svg data-hf-id="hf-v9o3" viewBox="0 0 24 24"><path data-hf-id="hf-wlzj" d="M4 6.5h3M4 12h3M4 17.5h3M10 6.5h10M10 12h10M10 17.5h10" /></svg>Progress 5/5</div>
+            <div data-hf-id="hf-55va" class="it sqit"><span data-hf-id="hf-aedr" class="bx"><span data-hf-id="hf-v7q2" class="fill" id="sq-f1"><svg data-hf-id="hf-q3oq" viewBox="0 0 24 24"><path data-hf-id="hf-2rq2" d="m5 12.5 5 5 9-11" /></svg></span></span><span data-hf-id="hf-1ndj" class="lbl">Read the Meridian brand files<span data-hf-id="hf-pil8" class="strike" id="sq-st1"></span></span></div>
+            <div data-hf-id="hf-sl7e" class="it sqit"><span data-hf-id="hf-dab3" class="bx"><span data-hf-id="hf-p209" class="fill" id="sq-f2"><svg data-hf-id="hf-ppdp" viewBox="0 0 24 24"><path data-hf-id="hf-pd6m" d="m5 12.5 5 5 9-11" /></svg></span></span><span data-hf-id="hf-ui24" class="lbl">Build the five-scene timeline<span data-hf-id="hf-0e2v" class="strike" id="sq-st2"></span></span></div>
+            <div data-hf-id="hf-szif" class="it sqit"><span data-hf-id="hf-cw02" class="bx"><span data-hf-id="hf-oacg" class="fill" id="sq-f3"><svg data-hf-id="hf-ymfj" viewBox="0 0 24 24"><path data-hf-id="hf-prhn" d="m5 12.5 5 5 9-11" /></svg></span></span><span data-hf-id="hf-mh9q" class="lbl">Animate the 2.4M counter<span data-hf-id="hf-u8d2" class="strike" id="sq-st3"></span></span></div>
+            <div data-hf-id="hf-tdtg" class="it sqit"><span data-hf-id="hf-chp1" class="bx"><span data-hf-id="hf-kc8f" class="fill" id="sq-f4"><svg data-hf-id="hf-z0qk" viewBox="0 0 24 24"><path data-hf-id="hf-q5so" d="m5 12.5 5 5 9-11" /></svg></span></span><span data-hf-id="hf-o17k" class="lbl">Resolve the wordmark ending<span data-hf-id="hf-53up" class="strike" id="sq-st4"></span></span></div>
+            <div data-hf-id="hf-ts4h" class="it sqit"><span data-hf-id="hf-f9u8" class="bx"><span data-hf-id="hf-ge4e" class="fill" id="sq-f5"><svg data-hf-id="hf-xtth" viewBox="0 0 24 24"><path data-hf-id="hf-ndnh" d="m5 12.5 5 5 9-11" /></svg></span></span><span data-hf-id="hf-0atq" class="lbl">Polish easing and timing<span data-hf-id="hf-86qk" id="sq-shim5" class="shim">Polish easing and timing</span><span data-hf-id="hf-4c6w" class="strike" id="sq-st5"></span></span></div>
+        </div>
+        <div data-hf-id="hf-4pa8" class="think">
+          <img data-hf-id="hf-mj0a" id="sq-av" src="assets/Claude_AI_symbol.svg" alt="">
+          <span data-hf-id="hf-zgn3" class="tslot">
+            <span data-hf-id="hf-em7r" id="sq-l3" class="thinking">Thinking…</span>
+            <span data-hf-id="hf-np5u" id="sq-l4" class="done">Done.</span>
+          </span>
+        </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div data-hf-id="hf-1trt" id="sq-cur-swing" class="cursor-swing">
+        <div data-hf-id="hf-egib" id="sq-cur-rise" class="cursor-rise">
+          <img data-hf-id="hf-sovx" id="sq-cursor" class="cursor" src="assets/pointinghand.svg" alt="">
+        </div>
+      </div>
+    </div>
+
+
+    <script>
+      (function () {
+        window.__timelines = window.__timelines || {};
+        var tl = gsap.timeline({ paused: true });
+        var typedEl = document.getElementById("sq-typed");
+        /* JAKE'S OWN LINE, quoted VERBATIM (2026-08-07) — do not "clean up" the mixed
+           capitalisation, the full stop after Meridian, or the trailing "please". Those
+           are exactly what make it read as typed rather than authored. It supersedes both
+           the original tagline-ish line and my lower-case dash-chained attempt. */
+        var TXT = "Make a 10-second launch animation for Meridian. dark navy, big serif numerals, count the 2.4M signals/sec stat up please";
+        function paint(o) { typedEl.textContent = TXT.slice(0, Math.round(o.n)); }
+        var st = { n: 0 };
+
+        /* split the placeholder into per-character mask boxes so it can rise letter
+           by letter; built once at parse time, so it is deterministic under seeks */
+        (function () {
+          var ph = document.getElementById("sq-ph");
+          var t = ph.textContent; ph.textContent = "";
+          for (var i = 0; i < t.length; i++) {
+            var o = document.createElement("span"); o.className = "phw";
+            var n = document.createElement("span"); n.className = "phc";
+            n.textContent = t.charAt(i) === " " ? "\u00A0" : t.charAt(i);
+            o.appendChild(n); ph.appendChild(o);
+          }
+          /* park them with gsap.set, NOT a CSS transform (GSAP would overwrite the whole
+             transform) and NOT a tl.set at 0 (which does not render on frame 0) */
+          gsap.set(ph.querySelectorAll(".phc"), { yPercent: 100 });
+          gsap.set("#sq .prow > *", { x: -18 });
+        })();
+
+        /* ---- 1. the cursor arc — keyframe-overlap rig ----
+           Stage 1 (rise wrapper): diagonal entry, x lead + rise, 0.10 -> 0.75
+           Stage 2 (swing wrapper): the swing right, starts at 55% of stage 1 => 45% overlap
+           Separate wrappers so the two stages can run concurrently; symmetric ease
+           (expo.inOut, peak/mean 6.93) so the overlap reads as an arc, not mush.
+           45% (top of the 35-45% band, not 39%) because the stages are magnitude-
+           mismatched — a 340px rise against a 113px swing — so the rise's hump swamps
+           the swing's at 39% and the composite reads as two moves. Measured trough
+           between the humps: 51 px/s at 39% -> 130 px/s at 45%.
+           Stage 1 keeps the mandated high-peak symmetric ease (expo.inOut, peak/mean
+           6.9); stage 2 uses power2.inOut. Measured: matching expo on both sides leaves
+           a 24%-of-mean trough because expo's slow tails meet in the overlap window;
+           the gentler stage 2 lifts it to 51% while composite peak/mean stays 6.8, so
+           the punch survives. Stage 1's slow-in is hidden below the frame edge.
+           Composite x: -65 -> -113 -> 0. Lands 1.8117, click 2.0913 (0.28s comma, which
+           also lands stillness-before-climax inside its prescribed 0.3-0.75s). */
+        var CUR_EASE = "expo.inOut";      /* stage 1 — the 7x-peak invariant */
+        var CUR_EASE2 = "power2.inOut";   /* stage 2 — fills the hand-off trough */
+        /* Starts FULLY off-frame: top 650 + 470 = 1120 > 1080. Travels 525px (was 340)
+           so the tip finishes INSIDE the pill instead of grazing its bottom edge.
+           Slowed a further 0.75x on Jake's note (2026-08-06 pm): the whole two-stage rig
+           is TIME-SCALED by k = 1.34375 about its 0.02 start, which preserves both
+           keyframe-overlap invariants exactly — the eases are unchanged and the overlap
+           is still 50% of stage 1 ((0.7725-0.02)/1.505). Durations 1.12 -> 1.505 and
+           0.7733 -> 1.0392; arrival 1.3533 -> 1.8117, so everything downstream in this
+           comp is shifted +0.4583 (11 frames @24) and the comp runs 15.6413. */
+        tl.set("#sq-cur-swing", { x: 0 }, 0);
+        tl.set("#sq-cur-rise", { x: -65, y: 470 }, 0);
+        tl.to("#sq-cur-rise", { x: -113, y: -55, duration: 1.505, ease: CUR_EASE }, 0.02);
+        tl.to("#sq-cur-swing", { x: 113, duration: 1.0392, ease: CUR_EASE2 }, 0.7725);
+        /* Hover fires just AFTER the tip crosses into the pill, per Jake — a real hover
+           state lags the pointer, it never leads it. Solved analytically, not guessed:
+           the tip sits at (608 + swingX + riseX, 652 + riseY) and the pill's bottom edge
+           is y=634, so the crossing needs riseY = -18, i.e. expo.inOut progress
+           488/525 = 0.92952 -> tween u = 0.64133 -> t = 0.02 + 0.64133*1.505 = 0.9852.
+           Fired at 1.125 in the cream cut. The ORANGE intro ported in from
+           send-to-hyperframes-launch-orange fires at 0.9417 instead — see the cluster
+           below for why that is allowed to LEAD the crossing. Snapshot-measured: the tip is still 28px BELOW the edge at
+           0.958 and 17px inside it at 1.083, so the true crossing is 1.036 and the hover
+           lands 2.1 frames behind it. It used to fire at 0.60 — 3.3 frames EARLY
+           against the old rig and 9.3 against this one, which is the "eight frames" read.
+           (Verified against the render: the model predicts tip y=616 at t=0.792 on the
+           old rig and the white blob measured 619.) */
+        /* ORANGE VARIANT: the wash is SLOW — sine.inOut over half a second, not a 0.12
+           snap — and the BUTTON LEADS THE FIELD. The pointer touched the button, so the
+           button is what reacts; the ground catching up 0.16s later is a consequence,
+           not a co-event. Both still land close together (1.675 / 1.785) so it reads as
+           one spreading wash rather than two separate fades, and the last of it clears
+           0.306s before the click at 2.0913 — inside the doctrine's 0.3-0.75s
+           stillness-before-climax band.
+           Same sine.inOut on every hover tween: the lead is in the START TIMES only.
+           Mismatched CURVES make the pill's fill cross the ground's mid-wash and flip
+           from lighter to darker, which reads as a glitch, not a lead.
+           The button settles DEEPER than the ground (#BF694D vs #D97757, the same hue
+           at 88% value) so the well has something to be a shadow IN — an inset shadow
+           over a fill that matches the field is a drawn line; over a deeper fill it is
+           a recess. */
+        tl.fromTo("#sq-card", { backgroundColor: "#F3F4ED" },
+          { backgroundColor: "#BF694D", duration: 0.55, ease: "sine.inOut",
+            immediateRender: false }, 0.9417);
+        /* ORANGE VARIANT: the lockup is REVEALED by the hover, not present before it.
+           Rides the BUTTON's window (1.125 / 0.55), not the field's — the mark belongs
+           to the button, so it arrives with it. Explicit fromTo + immediateRender:false
+           per the file's own trap notes. */
+        tl.fromTo("#sq-lockup", { opacity: 0 },
+          { opacity: 1, duration: 0.55, ease: "sine.inOut", immediateRender: false }, 0.9417);
+        /* ORANGE VARIANT: the WHOLE FIELD washes to orange 0.16s BEHIND the button and
+           lands one step lighter than it, so the hover doesn't light a button — it lights the frame, and the
+           pill merges into the ground. What arrives is the mark and the word alone.
+           The field returns to paper on the morph's own 0.125 snap below, so the box
+           separating out to white and the ground going back to cream are one event. */
+        tl.fromTo("#sq-paper", { backgroundColor: "#F3F4ED" },
+          { backgroundColor: "#D97757", duration: 0.50, ease: "sine.inOut",
+            immediateRender: false }, 1.1017);
+        tl.fromTo("#sq-paper", { backgroundColor: "#D97757" },
+          { backgroundColor: "#F3F4ED", duration: 0.125, ease: "power2.out",
+            immediateRender: false }, 2.3123);
+        /* ORANGE VARIANT: the hover reads as DEPTH, since it can no longer read as
+           colour. The well darkens in over the button's own 0.55 window and the pill
+           sinks with it (1 -> 0.968, a deeper seat than the 0.985 first pass — over a
+           long ramp a shallow dip is invisible). Cause and effect are one beat. */
+        tl.fromTo("#sq-sunk", { opacity: 0 },
+          { opacity: 1, duration: 0.55, ease: "sine.inOut", immediateRender: false }, 0.9417);
+        tl.fromTo("#sq-card", { scale: 1 },
+          { scale: 0.968, duration: 0.55, ease: "sine.inOut", transformOrigin: "50% 50%",
+            immediateRender: false }, 0.9417);
+        /* the click presses it deeper on the SAME frames as the cursor's tap (2.0913 /
+           2.1913 below), then releases back to the hover depth — the press is the
+           pointer's, so it has to share the pointer's timing exactly */
+        tl.to("#sq-card", { scale: 0.947, duration: 0.10, ease: "power2.in",
+          transformOrigin: "50% 50%" }, 2.0913);
+        tl.to("#sq-card", { scale: 0.968, duration: 0.20, ease: "power2.out",
+          transformOrigin: "50% 50%" }, 2.1913);
+        /* and the well releases INTO the morph: the pill rises back out of the field
+           over the snap's own 0.125, which is the same window the ground uses to go
+           back to paper. One event — press, release, open. */
+        /* overwrite: "auto" because the click-release above runs 2.1913-2.3913 and this
+           starts inside it — two absolute scale targets on one element stack (§5.10) and
+           the linter flags the overlap. The morph's rise must win, so it takes the tail. */
+        tl.to("#sq-card", { scale: 1, duration: 0.125, ease: "power2.out",
+          transformOrigin: "50% 50%", overwrite: "auto" }, 2.3123);
+        tl.to("#sq-sunk", { opacity: 0, duration: 0.125, ease: "power2.out" }, 2.3123);
+        tl.to("#sq-cursor", { scale: 0.90, duration: 0.10, ease: "power2.in", transformOrigin: "38.6% 25%" }, 2.0913);
+        tl.to("#sq-cursor", { scale: 1, duration: 0.20, ease: "power2.out",
+          transformOrigin: "38.6% 25%", overwrite: "auto" }, 2.1913);
+
+        /* ---- 2. letters leave, then the box SNAPS open and settles (measured) ---- */
+        tl.to("#sq .word span", { autoAlpha: 0, duration: 0.05, ease: "none", stagger: 0.034 }, 2.2913);
+        tl.to("#sq-palette", { autoAlpha: 0, scale: 0.72, duration: 0.15,
+          ease: "power2.in", transformOrigin: "50% 50%" }, 2.3113);
+        /* The reference SNAPS to 64% of the pill->box range in one frame, and building
+           that literally is what read as "not actually morphing": at 1.646 the width,
+           the radius, the colour AND the shadow all jumped at once, which the eye reads
+           as a cut to a different object. The 64% landing is kept, but the element now
+           TRAVELS there over 3 frames from the pill's real state, so size/colour/radius
+           stay continuous on one shared element. Letters are still leaving across it
+           (1.50-1.70), so the box grows while the wordmark dissolves. */
+        tl.fromTo("#sq-card",
+          { width: 533, height: 188, borderRadius: 39, y: 0,
+            backgroundColor: "rgba(191,105,77,1)", boxShadow: "0 0px 0px rgba(10,12,20,0)" },
+          { width: 771, height: 273, borderRadius: 34, y: 7,
+            backgroundColor: "rgba(255,255,255,1)", boxShadow: "0 10px 29px rgba(10,12,20,0.10)",
+            duration: 0.125, ease: "power2.out", immediateRender: false }, 2.3123);
+        tl.to("#sq-card",
+          { width: 904, height: 291, borderRadius: 33, y: 0,
+            duration: 0.90, ease: "power2.out" }, 2.4373);
+        /* it drifts slowly to just below the prompt box while the box settles... */
+        tl.to("#sq-cur-rise", { x: -101, y: 78, duration: 0.94, ease: "power2.inOut" }, 2.5113);
+        /* ...then comes back up and clicks into the field (tip lands ~(320,470)) */
+        tl.to("#sq-cur-rise", { x: -401, y: -182, duration: 0.58, ease: "power2.inOut" }, 3.7313);
+        tl.to("#sq-cursor", { scale: 0.90, duration: 0.10, ease: "power2.in",
+          transformOrigin: "38.6% 25%" }, 4.3113);
+        tl.to("#sq-cursor", { scale: 1, duration: 0.20, ease: "power2.out",
+          transformOrigin: "38.6% 25%" }, 4.4113);
+        /* and leaves once the typing has the eye — it travels FULLY off the bottom
+           rather than fading out mid-frame. Base top is 617 and the art box is 140, so
+           y = 500 puts its top at 1117, clear of the 1080 edge. No opacity tween: the
+           frame edge does the hiding. */
+        tl.to("#sq-cur-rise", { y: 500, duration: 0.66, ease: "power2.in" }, 4.6313);
+
+        /* the interior WIPES in left-to-right (measured 4250px/s -> 0.378s across the box) */
+        tl.set("#sq-boxui", { opacity: 1 }, 2.5553);
+        /* placeholder rises letter by letter (left to right by construction) */
+        tl.to("#sq .phc", { yPercent: 0, duration: 0.30, ease: "power3.out",
+          stagger: 0.011 }, 2.5913);
+        /* the icon row + Send mask-reveal left to right, each starting 18px left of
+           its slot and landing as it is revealed */
+        tl.to("#sq .prow > *",
+          { clipPath: "inset(0px 0px 0px 0px)", x: 0, duration: 0.34, ease: "power3.out",
+            stagger: 0.07 }, 2.7113);
+        tl.fromTo("#sq-caret", { opacity: 0 }, { opacity: 1, duration: 0.05, immediateRender: false }, 4.5713);
+        /* A real caret is SOLID while you are typing and only blinks when idle. It used
+           to blink 0.5s on/off straight through the typing (3.80-6.80), which is what read
+           as it disappearing. It now holds solid through the typing and blinks from 6.85
+           to the send press. repeat is COMPUTED (7 -> 4.00s, odd so it ends ON), never -1. */
+        tl.to("#sq-caret", { opacity: 0, duration: 0.5, ease: "steps(1)",
+          yoyo: true, repeat: 7 }, 7.6413);
+
+        /* ---- 3. typing + the box growing a line at a time (grows DOWNWARD: y += 0.42*dH) ---- */
+        /* the click empties the field: placeholder is fully gone at 3.76, typing starts
+           3.80 — measured overlap before was 0.05s */
+        tl.to("#sq-ph", { autoAlpha: 0, duration: 0.14, ease: "power1.in" }, 4.4113);
+        /* Send enabling is a FADE, not a snap: 0.18s power1.out was effectively instant.
+           0.62s sine.inOut eases both ends. (The press-down at 11.10 stays snappy — that
+           one is a button being hit.) */
+        tl.to("#sq-send", { backgroundColor: "#D87756", duration: 0.62, ease: "sine.inOut" }, 4.6513);
+        tl.fromTo(st, { n: 0 }, { n: 37, duration: 0.50, ease: "none",
+          onUpdate: paint, onUpdateParams: [st], immediateRender: false }, 4.5913);
+        tl.to(st, { n: 78,  duration: 1.20, ease: "none", onUpdate: paint, onUpdateParams: [st] }, 5.0913);
+        tl.to(st, { n: 120, duration: 1.30, ease: "none", onUpdate: paint, onUpdateParams: [st] }, 6.2913);
+        /* longer and started earlier: at the wrap the box is already ~half grown, so the
+           new line lands into space instead of pushing it open.
+           RE-FITTED for Jake's line. Wrap points come from RefSans's own advance widths
+           (822px text column, 42px, -0.004em): it breaks after chars 37 and 78, giving
+           3 lines at 761/755/801px. The model was validated against the ORIGINAL copy
+           first — it predicted breaks at 37/79 where the file had been hand-measured to
+           38/80, so it is trustworthy on new copy. Wrap 1 lands 5.121, wrap 2 lands
+           6.322, so each growth starts one half-duration (0.23s) earlier.
+           Line 3 is 801px against an 822px column — 21px of headroom, so this copy is
+           very close to needing a 4th line. Any further wording change MUST be re-run
+           through the metrics; a 4th line needs a third box growth. */
+        tl.to("#sq-card", { height: 334, y: 18, duration: 0.46, ease: "power2.inOut" }, 4.891);
+        tl.to("#sq-card", { height: 377, y: 40, duration: 0.46, ease: "power2.inOut" }, 6.092);
+
+        /* the two source files land on top of the prompt box */
+        /* they rise, overshoot past the slot and settle back down (back.out — bounce.out
+           and elastic.out are forbidden); staggered so they land as two, not one block */
+        tl.set("#sq-chips", { opacity: 1 }, 6.7413);
+        tl.fromTo("#sq-chips .chip", { opacity: 0, y: 46 },
+          { opacity: 1, y: 0, duration: 0.52, ease: "back.out(1.7)", stagger: 0.09,
+            immediateRender: false }, 6.7413);
+        /* +85 height with y +42.5 keeps the TOP fixed so the box grows downward, per the
+           measured reference. Without this the top yanked up 42.5px mid-chip-entry and
+           the pills read as a double bounce (measured 2 and 3 direction reversals). */
+        tl.to("#sq-card", { height: 462, y: 82.5, duration: 0.46, ease: "power2.inOut" }, 6.7413);
+        tl.to("#sq-ptext", { y: 84, duration: 0.46, ease: "power2.inOut" }, 6.7413);
+
+        /* the world reacts as "dark navy" is typed */
+        /* AFTER the second wrap expansion, not with it: that growth runs 5.46-5.74,
+           so the world starts turning at 5.80 once the box has settled at its new size.
+           Still reads as caused by the words — "dark navy" finishes typing ~4.81. */
+        tl.to("#sq-night", { opacity: 1, duration: 0.26, ease: "power1.inOut" }, 6.5913);
+
+        /* ---- 4. the box RISES and the design types slide out from beneath it ---- */
+        tl.to("#sq-card", { y: -150, duration: 0.62, ease: "power2.inOut" }, 8.9913);
+        /* they are opaque and already behind the card, so the reveal reads as a SLIDE
+           out from beneath its bottom edge — not a fade */
+        tl.set("#sq .sq-ty", { opacity: 1 }, 9.0913);
+        tl.fromTo("#sq .sq-ty", { y: -150 },
+          { y: 160, duration: 0.72, ease: "power3.out", stagger: 0.055,
+            immediateRender: false }, 9.1113);
+
+        /* cursor returns, picks Animation, then Send.
+           Both legs are PURE DIAGONALS — x and y on the SAME wrapper over the SAME
+           interval, so there is no corner to round. The two-stage overlap rig is for
+           the opening entry only, where the L-shape is the intent. */
+        tl.set("#sq-cur-swing", { x: 0 }, 9.6413);
+        tl.set("#sq-cur-rise", { x: 0, y: 470 }, 9.6413);
+        tl.set("#sq-cursor", { autoAlpha: 1 }, 9.6413);
+        tl.to("#sq-cur-rise", { x: 96, y: 80, duration: 0.80, ease: "power2.inOut" }, 9.6913);
+        tl.to("#sq-cursor", { scale: 0.90, duration: 0.10, ease: "power2.in", transformOrigin: "38.6% 25%" }, 10.6513);
+        tl.to("#sq-cursor", { scale: 1, duration: 0.20, ease: "power2.out", transformOrigin: "38.6% 25%" }, 10.7513);
+        tl.to("#sq-tyanim", { borderColor: "#D87756", backgroundColor: "#FBEDE6",
+          color: "#B5522F", duration: 0.12, ease: "power1.out" }, 10.7513);
+
+        tl.to("#sq-cur-rise", { x: 239, y: -108, duration: 0.60, ease: "power2.inOut" }, 11.0313);
+        tl.to("#sq-cursor", { scale: 0.90, duration: 0.10, ease: "power2.in", transformOrigin: "38.6% 25%" }, 11.7913);
+        tl.to("#sq-cursor", { scale: 1, duration: 0.20, ease: "power2.out", transformOrigin: "38.6% 25%" }, 11.8913);
+        tl.to("#sq-send", { backgroundColor: "#B5522F", duration: 0.14, ease: "power2.out" }, 11.8913);
+
+        /* ---- 5. the prompt box morphs to a FULL-FRAME white canvas on send ---- */
+        tl.to("#sq-boxui", { autoAlpha: 0, duration: 0.16, ease: "power2.in" }, 12.0113);
+        tl.to("#sq-chips", { autoAlpha: 0, duration: 0.16, ease: "power2.in" }, 12.0113);
+        tl.to("#sq .sq-ty", { autoAlpha: 0, y: 210, duration: 0.34, ease: "power2.in", stagger: 0.03 }, 11.9913);
+        tl.to("#sq-cursor", { autoAlpha: 0, duration: 0.20, ease: "power2.in" }, 12.0313);
+        tl.to("#sq-card", { width: 1080, height: 1080, borderRadius: 0, y: 0,
+          backgroundColor: "rgba(243,244,237,1)", boxShadow: "0 0px 0px rgba(10,12,20,0)",
+          duration: 0.58, ease: "power3.inOut" }, 12.0513);
+
+        /* ---- 6. the plan list — accordion entry then the checklist ticks off ----
+           carried from the measured reference: sections land over-spaced and compress
+           (exponential, expo.out), then checks fire in a burst-of-three, hold, one. */
+        /* The clip tracks the white card's OWN rect through the morph, so the plan can
+           only ever be seen inside the white — it emerges from the card's bottom edge
+           while that edge is still travelling down to the frame bottom.
+           Card rect through the morph: top 159 -> 0, bottom 621 -> 1080 (h 462 -> 1080,
+           y -150 -> 0), so both insets decay by the same factor and one tween matches it. */
+        tl.set("#sq-planclip", { clipPath: "inset(159px 0px 459px 0px)" }, 0);
+        tl.to("#sq-planclip", { clipPath: "inset(0px 0px 0px 0px)",
+          duration: 0.58, ease: "power3.inOut" }, 12.0513);
+
+        /* stage 1 — the whole group travels up from the frame bottom (1010px), starting
+           0.06s INTO the morph so the reveal and the morph overlap.
+           power3.out, not expo.out: over 1010px expo puts 77% of the travel in 0.2s. */
+        tl.set("#sq-planrise", { y: 1010 }, 0);
+        tl.set("#sq .sqsec", { autoAlpha: 1 }, 12.0913);
+        tl.to("#sq-planrise", { y: 0, duration: 0.92, ease: "power3.out" }, 12.1113);
+
+        /* stage 2 — the MEASURED accordion settle, kept on expo.out, overlapped 45% into
+           the travel so the group never stops before it compresses (keyframe-overlap
+           applied between two stages of one group) */
+        tl.set("#sq .sqsec", { y: function (i) { return 52 * i; } }, 0);
+        tl.set("#sq .sqit",  { y: function (i) { return 52 * (i + 1); } }, 0);
+        tl.to("#sq .sqsec", { y: 0, duration: 0.70, ease: "expo.out" }, 12.6213);
+        tl.to("#sq .sqit",  { y: 0, duration: 0.70, ease: "expo.out" }, 12.6213);
+
+        /* green shimmer across the last line, landing exactly as its check fires (14.03).
+           Driven from a proxy so the mask position is a pure function of progress. */
+        var shim = { p: 0 };
+        var shimEl = document.getElementById("sq-shim5");
+        function paintShim() {
+          /* label is ~430px wide; sweep the 300px band from fully off-left to fully
+             off-right in PIXELS so it is always over the glyphs mid-sweep */
+          shimEl.style.backgroundPosition = (-420 + 850 * shim.p).toFixed(1) + "px 0px";
+        }
+        tl.set("#sq-shim5", { opacity: 1 }, 14.5913);
+        tl.fromTo(shim, { p: 0 }, { p: 1, duration: 0.62, ease: "power1.inOut",
+          onUpdate: paintShim, immediateRender: false }, 14.5913);
+        /* gone by 14.00 so the check at 14.03 lands on clean text, not a fading shimmer */
+        tl.to("#sq-shim5", { opacity: 0, duration: 0.09, ease: "none" }, 15.1913);
+
+        /* was a burst-of-three (12.93/12.95/13.07); Jake asked for an even, rhythmic
+           cadence with more air — 0.40s apart, then the last one alone after the shimmer */
+        [[1, 12.633], [2, 13.033], [3, 13.433], [4, 13.833], [5, 14.853]].forEach(function (p) {
+          tl.fromTo("#sq-f" + p[0], { autoAlpha: 0, scale: 0.5 },
+            { autoAlpha: 1, scale: 1, duration: 0.16, ease: "back.out(2)", immediateRender: false }, p[1]);
+          tl.fromTo("#sq-st" + p[0], { width: "0%" },
+            { width: "100%", duration: 0.26, ease: "power2.out", immediateRender: false }, p[1] + 0.02);
+        });
+
+        /* ---- 7. THE CAMERA — ONE move in to the plan, then ONE continuous pull back
+           out through the seam into S2's full UI. ----
+
+           Why it exists: between 12.9 and 15.2 the plan beat was static apart from the
+           checks ticking, which is a planning bug by the doctrine's pause test. The
+           camera is the sustained-motion route ("camera with intent") and it also fills
+           the ~200px of dead cream under the list.
+
+           REVISED 2026-08-07 (2): it was a push that then panned down, overlapped 76%.
+           Jake read that as two movements — "over and down" — because scale and y were
+           on separate channels with separate eases, so the eye could still see a corner
+           in the path. Now there is exactly ONE progress channel, `q`. Scale, x and y are
+           all derived from it, so they are mathematically locked in lockstep and the move
+           can only ever be a single straight travel to the final framing. The intermediate
+           "top line at 100px" framing is gone with it — the destination IS the panned-down
+           framing, which is what Jake asked for ("just move towards the final place").
+
+           GEOMETRY, measured off the settled frame (snapshots/plan), not computed from
+           CSS: the plan's ink spans y 77..840, line bands at 77/176/294/408 then the five
+           items at 508/582/656/730/804. Final framing:
+             scale 1.48
+             x = -(s-1)*118 = -56.64 -> PINS THE CHECKBOX COLUMN at exactly x=118
+             y = 980 - s*840 = -263.20 -> last item's baseline parked at y=980
+
+           REVISED again (round 3 feedback: "u didnt go straight down"). x used to end at
+           -63.28, which slid the plan 28px LEFT as it grew — a lateral component, so the
+           move read diagonal. x is now derived FROM the scale, anchored on the CHECKBOX
+           COLUMN (x=118) rather than the panel edge, because that column is what the eye
+           tracks as the checks tick down. At every value of q the checkboxes sit at exactly
+           118, so the thing being watched has zero lateral movement and the only apparent
+           motion is growth + downward travel. (Anchoring the panel edge at 84 instead let
+           the checkboxes creep 16px right across the move.)
+           A true centre anchor would be even more symmetric but puts the checkboxes at -62,
+           i.e. off frame, and the checks are the beat — so the left edge is the anchor and
+           the empty right-hand panel area crops instead.
+           Scale is capped by the longest label: its ink ends at x=697, and 697s-(s-1)*84
+           must stay under ~1000 for an 80px margin, giving s <= 1.523. 1.48 sits under it,
+           and it makes the downward travel 263.2px instead of 212.8 — 24% longer.
+
+           DRIVEN FROM ONE ANALYTIC CLOCK, not chained tweens. Two reasons, and the second
+           is the load-bearing one:
+           1. Phases writing absolute `y` on one element would stack and overwrite (§5.10)
+              and trip `overlapping_gsap_tweens`. `q` (the move) and `k` (the release) are
+              independent proxy channels composed in a single paint.
+           2. The pull SPANS THE SEAM, and the seam is not on a frame boundary
+              (15.6413 x 24 = 375.4), so S1's last frame is master 15.625 and S2's first is
+              15.6667. A tween that merely "ends at the out-point" jumps backwards by a
+              frame's worth of easing. Both sides evaluate the SAME pullEase over the SAME
+              master-time window instead. */
+        /* The pull window in MASTER time. It deliberately runs 0.86s PAST the cut, so the
+           zoom-out lands at S2 local 0.859 — about when S2's own chrome finishes arriving
+           (plan morph ends 0.92, canvas/player 0.60-1.20). It used to be 0.64s total and
+           finished at S2 local 0.32, so the camera stopped and THEN the UI assembled: that
+           is the "stepped" zoom-out Jake called out. Now the pull and the UI reveal are one
+           continuous motion into the full UI.
+           KEEP IN SYNC WITH s2-ui.html: PULL_T0, PULL_D and pullEase are duplicated there. */
+        var PULL_T0 = 15.20, PULL_D = 1.30;
+        function pullEase(u) {             /* power3.inOut, hand-written so S2 can share it */
+          u = u < 0 ? 0 : u > 1 ? 1 : u;
+          return u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
+        }
+        var CAM = { q: 0, k: 0 };
+        var camEl = document.getElementById("sq-cam");
+        function paintCam() {
+          var r = 1 - pullEase(CAM.k / PULL_D);   /* release: 1 = held in, 0 = identity */
+          var a = CAM.q * r;                      /* ONE amount drives all three properties */
+          /* x is -(scale-1)*84, i.e. derived FROM the scale, so the left edge is pinned by
+             construction and the move can only ever be vertical + growth. */
+          camEl.style.transform = "translate3d(" + (-0.48 * 118 * a).toFixed(3) + "px," +
+            (-263.20 * a).toFixed(3) + "px,0) scale(" + (1 + 0.48 * a).toFixed(5) + ")";
+        }
+        paintCam();                        /* paint once at parse — an unset transform renders broken */
+
+        /* the move in — cut-the-curve §7 nudge curve on the single `q` channel, because one
+           built-in ease smacks to a stop. 10%/65%/25% of the distance over 20%/18%/62% of
+           the time; the tail is 1.240s against a 0.400s ramp-in, past the 3x minimum.
+           1.60s. It went 1.60 -> 2.00 on "you dont go long enough" and back to 1.60 on
+           "a little bit faster" — but the TRAVEL stayed at the longer 263.2px/1.48 scale,
+           which is the part that note was actually about. So this is 25% faster than the
+           2.00s version over a 24% longer distance, i.e. meaningfully quicker than either
+           earlier cut. Starts 12.80 — 25% into the accordion settle (12.62-13.32) — so the
+           camera is already moving before the list stops. */
+        tl.to(CAM, { q: 0.10, duration: 0.320, ease: "power3.in",  onUpdate: paintCam }, 12.80);
+        tl.to(CAM, { q: 0.75, duration: 0.288, ease: "none",       onUpdate: paintCam }, 13.12);
+        tl.to(CAM, { q: 1.00, duration: 0.992, ease: "power4.out", onUpdate: paintCam }, 13.408);
+
+        /* 0.80s hold — the last check (14.853) and the shimmer (14.59-15.21) play inside
+           it, so it is a loaded comma, not dead air. Then the pull: the direction change
+           from push to pull is CAUSED by the plan completing. S1 renders the first 0.4413s
+           of it; S2 renders the rest. */
+        tl.to(CAM, { k: 15.6413 - PULL_T0, duration: 15.6413 - PULL_T0, ease: "none",
+          onUpdate: paintCam }, PULL_T0);
+
+        window.__timelines["sq"] = tl;
+      })();
+    </script>
+  </div>
+</template>

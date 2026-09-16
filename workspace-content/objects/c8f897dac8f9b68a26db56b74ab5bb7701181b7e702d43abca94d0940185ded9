@@ -1,0 +1,25 @@
+"""Build a review sheet from original footage and the actual V2 MP4."""
+from pathlib import Path
+import subprocess
+from PIL import Image, ImageDraw, ImageFont
+
+root=Path(__file__).resolve().parents[2]
+out=Path(__file__).resolve().parent/'v2'
+ff=root/'node_modules/@ffmpeg-installer/win32-x64/ffmpeg.exe'
+source=root.parent/'素材/Xiaomi_MiJia_4K_Action_Camera_Unboxing.webm'
+target=out/'mijia-product-ad-v2.mp4'
+checks=[('商品亮相',25.93,1.8),('结构对照',30.5,26),('产品收尾',25.52,68.5)]
+sheet=Image.new('RGB',(1920,1900),'#101C1A')
+draw=ImageDraw.Draw(sheet)
+font=ImageFont.truetype('C:/Windows/Fonts/msyh.ttc',34)
+draw.text((40,20),'原始素材',font=font,fill='#EEECE4')
+draw.text((1000,20),'HyperFrames V2',font=font,fill='#EEECE4')
+for i,(label,a,b) in enumerate(checks):
+    y=80+i*600
+    for side,(file,time) in enumerate([(source,a),(target,b)]):
+        dest=out/f'compare-{i}-{side}.jpg'
+        subprocess.run([str(ff),'-y','-v','error','-ss',str(time),'-i',str(file),'-frames:v','1','-vf','scale=960:540','-q:v','2',str(dest)],check=True,capture_output=True)
+        sheet.paste(Image.open(dest),(960*side,y))
+    draw.text((40,y+542),label,font=font,fill='#C1CEB0')
+sheet.save(out/'before-after.jpg',quality=92)
+print(out/'before-after.jpg')

@@ -1,0 +1,76 @@
+{
+  "kind": "mock-translation-and-service-regression",
+  "liveModel": false,
+  "realASR": false,
+  "tests": [
+    {
+      "name": "caption_transcript exposes an optional target language in strict schema",
+      "status": "passed"
+    },
+    {
+      "name": "null and source targets retain source text without model calls",
+      "status": "passed"
+    },
+    {
+      "name": "translation maps shuffled index/id output and preserves every non-text field",
+      "status": "passed"
+    },
+    {
+      "name": "missing, duplicate, unknown index and mismatched ID are rejected atomically",
+      "status": "passed"
+    },
+    {
+      "name": "empty or oversized translations do not change captions",
+      "status": "passed"
+    },
+    {
+      "name": "translation requires configured model but original-language captions do not",
+      "status": "passed"
+    },
+    {
+      "name": "bad language codes and duplicate source IDs fail before model use",
+      "status": "passed"
+    },
+    {
+      "name": "long videos translate in bounded batches with complete global indexes",
+      "status": "passed"
+    },
+    {
+      "name": "cancellation between batches returns no partial result",
+      "status": "passed"
+    },
+    {
+      "name": "planner requests first-round translated transcript and correct fractional-source mapping",
+      "status": "passed"
+    },
+    {
+      "name": "service turns English ASR into Chinese in one request without extra sound",
+      "status": "passed"
+    },
+    {
+      "name": "service default and explicit source preserve original language and skip translation",
+      "status": "passed"
+    },
+    {
+      "name": "same-round translated captions retain remapped times after structural editing",
+      "status": "passed"
+    },
+    {
+      "name": "known generated narration translates subtitles while preserving the audio link",
+      "status": "passed"
+    },
+    {
+      "name": "Chinese narration captions preserve the exact script without ASR or same-language translation",
+      "status": "passed"
+    },
+    {
+      "name": "translation failure leaves current version and existing media untouched",
+      "status": "passed"
+    }
+  ],
+  "counts": {
+    "transcribe": 5,
+    "speak": 2,
+    "translate": 4
+  }
+}

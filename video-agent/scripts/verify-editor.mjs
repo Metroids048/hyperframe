@@ -37,6 +37,7 @@ const commands =
         "test-closeout-r1",
         "test-creative-portable",
         "test-finished-works",
+        "test-shipped-assets",
       ]
     : [
         "build-web",

@@ -1,0 +1,841 @@
+{
+  "schemaVersion": 3,
+  "projectId": "8f41aa0c-c7fa-422f-87f3-91bcd100fd42",
+  "revisionId": "rev-15a95c50d27634af",
+  "fps": 30,
+  "output": {
+    "width": 1080,
+    "height": 1920,
+    "fit": "cover"
+  },
+  "durationFrames": 900,
+  "assetRefs": [
+    "asset-e3bb98f0-b6ad-48a7-9f35-5e239fafd3eb",
+    "asset-d311db8e-2798-49cd-80be-5bb0241d1822"
+  ],
+  "brief": {
+    "id": "brief-5d887f310d5881b8",
+    "productId": "product-1",
+    "name": "头戴耳机",
+    "facts": [
+      {
+        "id": "fact-1",
+        "text": "银白色头戴耳机",
+        "source": "user",
+        "status": "provided",
+        "sourceRef": "银白色头戴耳机"
+      }
+    ],
+    "price": null,
+    "cta": "了解更多",
+    "audience": null,
+    "prohibited": [],
+    "assetIds": [
+      "asset-e3bb98f0-b6ad-48a7-9f35-5e239fafd3eb",
+      "asset-d311db8e-2798-49cd-80be-5bb0241d1822"
+    ],
+    "assumptions": []
+  },
+  "design": {
+    "id": "premium",
+    "background": "#EDE8E0",
+    "foreground": "#242329",
+    "panel": "#E2DBD1",
+    "accent": "#666474",
+    "accentContrast": "#FFFFFF",
+    "fontFamily": "Microsoft YaHei",
+    "motionIntensity": 0.72,
+    "transition": "dissolve-transition",
+    "description": "暖灰背景衔接原片灰墙与银白耳机。横向媒体全幅适配于竖屏中央，固定媒体框x=0、y=656、width=1080、height=608，contain，不增加裁切。文字放在媒体外留白，商品始终为视觉主体。背景、媒体、文字、短线分别可编辑。只做两处0.3秒普通淡化和一次结构文字淡入淡出，不持续缩放，不制作装饰性重复画面。系统字体来自运行时fontContract，不引入外部字体；安装及适用许可由执行阶段核验。",
+    "safeAreas": {
+      "top": 0.06,
+      "right": 0.06,
+      "bottom": 0.07,
+      "left": 0.06
+    },
+    "minReadFrames": 48,
+    "easingFamily": "power3.out",
+    "output": {
+      "width": 1080,
+      "height": 1920
+    },
+    "typeScale": {
+      "title": 76,
+      "body": 54,
+      "label": 42
+    },
+    "safeMarginPx": 72,
+    "labelStyle": "全片统一无底框文字，左对齐x=72；文字区内边距为0，行高1.25。可配一条64×2像素强调线，与文字间距24像素。标题和CTA用76像素，结构说明用54像素；不增加胶囊、阴影、角标或新的标签样式。"
+  },
+  "scenes": [
+    {
+      "id": "scene-01",
+      "purpose": "商品亮相：让观众第一眼明确正在看什么",
+      "startFrame": 0,
+      "durationFrames": 82,
+      "effect": "custom-native",
+      "effectParams": {},
+      "reason": "82帧；成片[0,2.733333)秒。短暂静图承担辨认与标题阅读，最后9帧与下一镜头淡化。"
+    },
+    {
+      "id": "scene-02",
+      "purpose": "连续展示拿取、结构显露、戴上与完成状态",
+      "startFrame": 73,
+      "durationFrames": 754,
+      "effect": "custom-native",
+      "effectParams": {},
+      "reason": "754帧；成片[2.433333,27.566667)秒，对应源[0.266667,25.4)秒，即源帧[8,762)。正常速度连续使用一次，不在动作内部切镜或交叉淡化。超过8秒是为了保留接近、握持、离架、结构显露、上举、戴入、扶持和放手的完整变化；放手后保留不到8秒佩戴整体观察，随后立即收尾。"
+    },
+    {
+      "id": "scene-03",
+      "purpose": "end",
+      "startFrame": 818,
+      "durationFrames": 82,
+      "effect": "custom-native",
+      "effectParams": {},
+      "reason": "82帧；成片[27.266667,30)秒。前9帧与佩戴展示淡化，之后稳定阅读CTA。使用用户允许的同源静图作为独立商品结束卡，不冒充放回支架的动作。"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "node-0a853c77bed0bdb3",
+      "sceneId": "scene-01",
+      "kind": "text",
+      "semanticRole": "title",
+      "anchor": "scene-local",
+      "localStartFrame": 0,
+      "localDurationFrames": 82,
+      "durationFrames": 82,
+      "params": {
+        "text": "头戴耳机",
+        "factRefs": [
+          "fact-1"
+        ]
+      },
+      "startFrame": 0
+    },
+    {
+      "id": "node-f59a295e78d207ce",
+      "sceneId": "scene-01",
+      "kind": "image",
+      "semanticRole": "hero",
+      "assetId": "asset-e3bb98f0-b6ad-48a7-9f35-5e239fafd3eb",
+      "anchor": "scene-local",
+      "localStartFrame": 0,
+      "localDurationFrames": 82,
+      "durationFrames": 82,
+      "params": {
+        "sourceStartSeconds": 0,
+        "fit": "contain",
+        "playbackRate": 1
+      },
+      "startFrame": 0
+    },
+    {
+      "id": "node-96641cf21da75535",
+      "sceneId": "scene-01",
+      "kind": "shape",
+      "semanticRole": "decoration",
+      "anchor": "scene-local",
+      "localStartFrame": 0,
+      "localDurationFrames": 82,
+      "durationFrames": 82,
+      "params": {},
+      "startFrame": 0
+    },
+    {
+      "id": "node-e80f1170efcbb387",
+      "sceneId": "scene-01",
+      "kind": "shape",
+      "semanticRole": "decoration",
+      "anchor": "scene-local",
+      "localStartFrame": 0,
+      "localDurationFrames": 82,
+      "durationFrames": 82,
+      "params": {},
+      "startFrame": 0
+    },
+    {
+      "id": "node-664f03c2683684e2",
+      "sceneId": "scene-02",
+      "kind": "text",
+      "semanticRole": "feature",
+      "anchor": "scene-local",
+      "localStartFrame": 0,
+      "localDurationFrames": 754,
+      "durationFrames": 754,
+      "params": {
+        "text": "看看结构细节",
+        "factRefs": []
+      },
+      "startFrame": 73
+    },
+    {
+      "id": "node-6600299004af8f47",
+      "sceneId": "scene-02",
+      "kind": "video",
+      "semanticRole": "hero",
+      "assetId": "asset-d311db8e-2798-49cd-80be-5bb0241d1822",
+      "anchor": "scene-local",
+      "localStartFrame": 0,
+      "localDurationFrames": 754,
+      "durationFrames": 754,
+      "params": {
+        "sourceStartSeconds": 0.26666666666666666,
+        "fit": "contain",
+        "playbackRate": 1
+      },
+      "startFrame": 73
+    },
+    {
+      "id": "node-a29aea57c3f093db",
+      "sceneId": "scene-02",
+      "kind": "shape",
+      "semanticRole": "decoration",
+      "anchor": "scene-local",
+      "localStartFrame": 0,
+      "localDurationFrames": 754,
+      "durationFrames": 754,
+      "params": {},
+      "startFrame": 73
+    },
+    {
+      "id": "node-7c8305170bcb18d2",
+      "sceneId": "scene-02",
+      "kind": "shape",
+      "semanticRole": "decoration",
+      "anchor": "scene-local",
+      "localStartFrame": 0,
+      "localDurationFrames": 754,
+      "durationFrames": 754,
+      "params": {},
+      "startFrame": 73
+    },
+    {
+      "id": "node-b17ed578930bd7ad",
+      "sceneId": "scene-02",
+      "kind": "shape",
+      "semanticRole": "decoration",
+      "anchor": "scene-local",
+      "localStartFrame": 0,
+      "localDurationFrames": 754,
+      "durationFrames": 754,
+      "params": {},
+      "startFrame": 73
+    },
+    {
+      "id": "node-59e52dfd4a901a0a",
+      "sceneId": "scene-03",
+      "kind": "text",
+      "semanticRole": "cta",
+      "anchor": "scene-local",
+      "localStartFrame": 0,
+      "localDurationFrames": 82,
+      "durationFrames": 82,
+      "params": {
+        "text": "了解更多",
+        "factRefs": []
+      },
+      "startFrame": 818
+    },
+    {
+      "id": "node-e91f1b07c2b53786",
+      "sceneId": "scene-03",
+      "kind": "image",
+      "semanticRole": "hero",
+      "assetId": "asset-e3bb98f0-b6ad-48a7-9f35-5e239fafd3eb",
+      "anchor": "scene-local",
+      "localStartFrame": 0,
+      "localDurationFrames": 82,
+      "durationFrames": 82,
+      "params": {
+        "sourceStartSeconds": 0,
+        "fit": "contain",
+        "playbackRate": 1
+      },
+      "startFrame": 818
+    }
+  ],
+  "audioGraph": [],
+  "transitions": [
+    {
+      "id": "transition-1",
+      "fromSceneId": "scene-01",
+      "toSceneId": "scene-02",
+      "effect": "dissolve-transition",
+      "durationFrames": 9,
+      "params": {
+        "durationFrames": 9
+      }
+    },
+    {
+      "id": "transition-2",
+      "fromSceneId": "scene-02",
+      "toSceneId": "scene-03",
+      "effect": "dissolve-transition",
+      "durationFrames": 9,
+      "params": {
+        "durationFrames": 9
+      }
+    }
+  ],
+  "sourceBundles": [
+    {
+      "html": "<div id=\"scene01-background\"></div><div id=\"scene01-overlay\"><h1 id=\"scene01-title\"></h1><div id=\"scene01-rule\"></div></div><img id=\"scene01-media\" />",
+      "css": "#scene01-background { position: absolute; inset: 0; width: 1080px; height: 1920px; background-color: var(--brand-background); z-index: 0; }\n#scene01-overlay { position: absolute; inset: 0; width: 1080px; height: 1920px; background: transparent; z-index: 2; }\n#scene01-title { position: absolute; left: 72px; top: 480px; width: 936px; height: 95px; margin: 0; padding: 0; color: var(--brand-foreground); font-family: Microsoft YaHei; font-size: 76px; font-weight: 600; line-height: 1.25; text-align: left; white-space: nowrap; }\n#scene01-rule { position: absolute; left: 72px; top: 599px; width: 64px; height: 2px; background-color: var(--brand-accent); }\n#scene01-media { position: absolute; left: 0; top: 656px; width: 1080px; height: 608px; object-fit: contain; object-position: center; z-index: 1; }\n#scene01-media{background:transparent;opacity:1;z-index:1}\n#scene01-media{background:transparent;opacity:1;z-index:1}\n#scene01-media{background:transparent;opacity:1;z-index:1}",
+      "timeline": "tl.to(\"#scene01-title\",{opacity:0,duration:0.3,ease:\"none\"},params.sceneSeconds-0.3);\ntl.to(\"#scene01-rule\",{opacity:0,duration:0.3,ease:\"none\"},params.sceneSeconds-0.3);\ntl.to(\"#scene01-media\",{opacity:0,duration:0.3,ease:\"none\"},params.sceneSeconds-0.3);",
+      "parameters": [],
+      "objects": [
+        {
+          "elementId": "scene01-background",
+          "nodeId": "node-96641cf21da75535"
+        },
+        {
+          "elementId": "scene01-title",
+          "nodeId": "node-0a853c77bed0bdb3"
+        },
+        {
+          "elementId": "scene01-rule",
+          "nodeId": "node-e80f1170efcbb387"
+        },
+        {
+          "elementId": "scene01-media",
+          "nodeId": "node-f59a295e78d207ce"
+        }
+      ],
+      "motionTargets": [
+        "scene01-title",
+        "scene01-rule",
+        "scene01-media"
+      ],
+      "textStyles": [],
+      "contractVersion": 2,
+      "tokens": {
+        "background": "#EDE8E0",
+        "foreground": "#242329",
+        "panel": "#E2DBD1",
+        "accent": "#666474",
+        "accentContrast": "#FFFFFF"
+      },
+      "id": "source-scene-01",
+      "sceneId": "scene-01"
+    },
+    {
+      "html": "<div id=\"scene02-layout\"><div id=\"scene02-top\"></div><div id=\"scene02-bottom\"></div><div id=\"scene02-video\"></div><div id=\"scene02-rule\"></div><div id=\"scene02-feature\"></div></div>",
+      "css": "#scene02-layout{position:absolute;inset:0;width:1080px;height:1920px;background:transparent;}#scene02-top{position:absolute;left:0;top:0;width:1080px;height:656px;background:var(--brand-background);}#scene02-bottom{position:absolute;left:0;top:1264px;width:1080px;height:656px;background:var(--brand-background);}#scene02-video{position:absolute;left:0;top:656px;width:1080px;height:608px;object-fit:contain;overflow:hidden;}#scene02-rule{position:absolute;left:72px;top:1334px;width:64px;height:2px;background:var(--brand-accent);}#scene02-feature{position:absolute;left:72px;top:1360px;width:936px;height:82px;padding:0;margin:0;font-family:Microsoft YaHei;font-size:54px;font-weight:500;line-height:1.25;color:var(--brand-foreground);text-align:left;white-space:nowrap;}\n#scene02-video{background:transparent;opacity:1;z-index:1}\n#scene02-video{background:transparent;opacity:1;z-index:1}\n#scene02-video{background:transparent;opacity:1;z-index:1}",
+      "timeline": "tl.set(\"#scene02-feature\", {opacity:0}, 0);\ntl.set(\"#scene02-rule\", {opacity:0}, 0);\ntl.to(\"#scene02-feature\", {opacity:1, duration:0.2, ease:\"none\"}, 5.333333333333333);\ntl.to(\"#scene02-rule\", {opacity:1, duration:0.2, ease:\"none\"}, 5.333333333333333);\ntl.to(\"#scene02-feature\", {opacity:0, duration:0.2, ease:\"none\"}, 7.533333333333333);\ntl.to(\"#scene02-rule\", {opacity:0, duration:0.2, ease:\"none\"}, 7.533333333333333);",
+      "parameters": [],
+      "objects": [
+        {
+          "elementId": "scene02-top",
+          "nodeId": "node-a29aea57c3f093db"
+        },
+        {
+          "elementId": "scene02-bottom",
+          "nodeId": "node-7c8305170bcb18d2"
+        },
+        {
+          "elementId": "scene02-video",
+          "nodeId": "node-6600299004af8f47"
+        },
+        {
+          "elementId": "scene02-rule",
+          "nodeId": "node-b17ed578930bd7ad"
+        },
+        {
+          "elementId": "scene02-feature",
+          "nodeId": "node-664f03c2683684e2"
+        }
+      ],
+      "motionTargets": [
+        "scene02-feature",
+        "scene02-rule"
+      ],
+      "textStyles": [],
+      "contractVersion": 2,
+      "tokens": {
+        "background": "#EDE8E0",
+        "foreground": "#242329",
+        "panel": "#E2DBD1",
+        "accent": "#666474",
+        "accentContrast": "#FFFFFF"
+      },
+      "id": "source-scene-02",
+      "sceneId": "scene-02"
+    },
+    {
+      "html": "<img id=\"media\"><div id=\"text1\"></div>",
+      "css": "#media{position:absolute;left:0;top:656px;width:1080px;height:608px;object-fit:contain;object-position:center;background:transparent;opacity:1;z-index:1}\n#text1{position:absolute;left:72px;top:1360px;width:936px;padding:0;margin:0;font-family:Microsoft YaHei;font-size:76px;font-weight:800;line-height:1.25;color:#242329;background:transparent;text-align:left;z-index:2}\n#media{background:transparent;opacity:1;z-index:1}\n#media{background:transparent;opacity:1;z-index:1}",
+      "timeline": "tl.fromTo(\"#text1\",{opacity:0},{opacity:1,duration:0.3,ease:\"none\"},0);",
+      "parameters": [],
+      "objects": [
+        {
+          "elementId": "media",
+          "nodeId": "node-e91f1b07c2b53786"
+        },
+        {
+          "elementId": "text1",
+          "nodeId": "node-59e52dfd4a901a0a"
+        }
+      ],
+      "motionTargets": [
+        "text1"
+      ],
+      "textStyles": [],
+      "contractVersion": 2,
+      "tokens": {
+        "background": "#EDE8E0",
+        "foreground": "#242329",
+        "panel": "#E2DBD1",
+        "accent": "#666474",
+        "accentContrast": "#FFFFFF"
+      },
+      "id": "source-scene-03",
+      "sceneId": "scene-03"
+    }
+  ],
+  "dependencyLock": {
+    "hyperframes": "0.8.33",
+    "gsap": "3.14.2",
+    "schema": "commerce-v3.1",
+    "resources": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6",
+    "prompts": "b1d4c19f92d5e7b8cd8ef61e80aeeab17fcb1f57f1d0ee62bcc077e7beef115b"
+  },
+  "observations": [
+    {
+      "assetId": "asset-e3bb98f0-b6ad-48a7-9f35-5e239fafd3eb",
+      "visibleContent": "已观察附图1：银白色头戴耳机置于桌面支架上，弧形头梁、两侧椭圆耳罩和人物双手可见。手部和支架遮挡部分耳机结构。背景为灰色墙面，桌面另有电脑、纸张等物品。",
+      "uncertainty": "静图不能证明拿取动作。品牌、型号、材质及性能无法确认。同款关联依据用户提供的同源说明及获准素材中一致的耳机外观、人物服饰和支架场景，不是型号鉴定。",
+      "role": "overview",
+      "productGroup": "product-1",
+      "subjectBox": [
+        0.405,
+        0.523,
+        0.314,
+        0.351
+      ],
+      "safeCrop": [
+        0,
+        0,
+        1,
+        1
+      ],
+      "confidence": 0.95,
+      "quality": "商品轮廓可辨，画面偏暗；保护框包含耳机及双手，为归一化[x,y,width,height]。可用于整体亮相，不能承担微小结构特写。竖屏宜完整容纳横图，文字置于媒体外留白。",
+      "visibleText": [],
+      "sameProductAs": [
+        "asset-d311db8e-2798-49cd-80be-5bb0241d1822"
+      ],
+      "differentProductFrom": []
+    },
+    {
+      "assetId": "asset-d311db8e-2798-49cd-80be-5bb0241d1822",
+      "visibleContent": "已观察附图2的6张概览帧及附图3至5的27张加密帧。0.161秒耳机位于支架上；1.238至2.314秒双手靠近耳罩；3.390至4.467秒双手握持耳罩；5.543秒头梁已高于支架顶部；6.619至7.696秒耳机持于胸前，可见头梁、耳罩及浅色耳垫；8.772秒举至面前。9.831秒举至头顶，10.787至12.701秒逐步戴至双耳；13.658至15.572秒双手仍贴耳罩；16.529秒双手离开耳罩并下落，17.486秒完成放手。18.425至25.122秒展示佩戴外观及轻微头部姿态变化。",
+      "uncertainty": "观察的是带源时间的抽帧，未连续播放。离架及放手的精确帧边界、抽帧之间的连续性未验证。双手贴耳罩不足以证明尺寸调节或按键操作。未观察0至0.161秒及25.122秒之后。与获准静图的关联由用户同源说明及场景、外观一致性支持，无法确认品牌型号。",
+      "role": "usage",
+      "productGroup": "product-1",
+      "subjectBox": [],
+      "safeCrop": [
+        0,
+        0,
+        1,
+        1
+      ],
+      "confidence": 0.95,
+      "quality": "主要动作阶段和整体结构可辨，背景简洁。主体随动作移动，无法确认统一动态保护框，故留空。举至头顶时头梁接近源画面上缘，部分帧手肘接近侧边；完整适配横屏也不能恢复源外内容。safeCrop表示保留全幅，不代表逐帧完整性已通过检查。微细节、运动模糊及动态裁切安全未验证。",
+      "visibleText": [],
+      "sameProductAs": [
+        "asset-e3bb98f0-b6ad-48a7-9f35-5e239fafd3eb"
+      ],
+      "differentProductFrom": []
+    }
+  ],
+  "omitted": [],
+  "businessContract": {
+    "schemaVersion": 1,
+    "profile": "commerce-focus-v1",
+    "scenarioId": "product_launch",
+    "originalRequest": "R1 单品上新候选：用这副银白色头戴耳机的现有同源视频和图片，制作30秒1080×1920竖屏视频。素材为我提供的内部审查素材，不声称商业授权已确认。只用现有素材，禁止生图、生视频、TTS和配音；全片静音，不做转写。商品亮相、佩戴场景、结构细节、简洁结尾，视频保持真实动作顺序与正常速度，不循环或重复凑时长。原视频25.84秒，可用同源静图做短暂标题亮相和结尾，其余使用有效原片区间。开场画面文字“头戴耳机”，中段“看看结构细节”，结尾“了解更多”；不虚构品牌、价格、降噪或音质性能。保护耳机和手部完整，字号清楚，留白整洁，字幕不挡商品，适量原生版式和普通淡化转场，保留可编辑文字、源镜头和声音。完成候选MP4和原生工程。",
+    "persona": {
+      "creator": "商家／内容运营（待用户研究验证）",
+      "viewer": "首次了解商品的消费者"
+    },
+    "objective": "吸引首次观看者继续了解商品",
+    "product": {
+      "id": "product-1",
+      "name": "",
+      "facts": [],
+      "price": null,
+      "cta": "",
+      "audience": null,
+      "prohibited": []
+    },
+    "output": {
+      "width": 1080,
+      "height": 1920,
+      "durationSeconds": 30,
+      "fps": 30
+    },
+    "audio": "silent",
+    "mustHave": [],
+    "mustNot": [],
+    "generatedFootageAllowed": true,
+    "deliverables": [
+      "candidate_mp4",
+      "editable_project",
+      "source_index",
+      "quality_report"
+    ]
+  },
+  "storyPlan": {
+    "paragraphs": [
+      {
+        "id": "p1",
+        "purpose": "认出商品",
+        "information": "静图和指定标题共同建立头戴耳机身份。"
+      },
+      {
+        "id": "p2",
+        "purpose": "在真实动作中理解外观与佩戴",
+        "information": "保持一次连续源顺序：接近握持→提离支架→胸前结构显露→上举戴入→扶持放手→佩戴整体。结构说明仅在实际结构可见时出现。"
+      },
+      {
+        "id": "p3",
+        "purpose": "引导继续了解",
+        "information": "以短暂同源商品静图和指定CTA结束，不增加未经批准的商品事实。"
+      }
+    ],
+    "scenes": [
+      {
+        "sceneId": "scene-01",
+        "paragraphId": "p1",
+        "newInformation": "建立银白色头戴耳机的整体外观与商品类别。",
+        "visualDirection": "原创竖屏留白构图：商品静图完整放入统一媒体框，标题位于x=72、y=480，第一帧即清楚可读。吸引点是实际商品与人物双手的关系，随后接入真实拿取。保留耳机、支架与双手，不把支架标为随附配件；不裁成微距、不添加品牌或性能。结尾淡化期间媒体框位置与下一镜保持一致。"
+      },
+      {
+        "sceneId": "scene-02",
+        "paragraphId": "p2",
+        "newInformation": "真实动作依次呈现耳机离架、头梁与耳罩内侧外观、佩戴过程和完成后的正面形态。",
+        "visualDirection": "视频固定全幅播放，适配下三分之一资源为媒体外说明，不移动或遮罩视频。源0.266667—5.6秒展示靠近、握持与提起；源5.6—8秒对应成片7.766667—10.166667秒，在x=72、y=1360显示“看看结构细节”，前后各0.2秒仅文字淡化，注意力指向胸前实际可见的头梁、耳罩及浅色耳垫。源8—13秒继续上举戴入，源13—17.8秒保留扶持与放手；这些划分是表达节拍，不声称为精确动作边界。源17.8—25.4秒以无文字画面完成从动作观看到佩戴整体观察的转换，只有轻微姿态变化，不拆成多个卖点。全程保护完整源画幅，不将扶持解释为调节或功能操作。源画面自身上缘余量不足仍须实际播放核验，版式不承诺恢复画外内容。"
+      },
+      {
+        "sceneId": "scene-03",
+        "paragraphId": "p3",
+        "newInformation": "以明确的了解邀请结束观看。",
+        "visualDirection": "继承开场媒体框和字体，原有同源静图作为静态商品回顾，CTA置于x=72、y=1360的媒体外留白。淡化完成后所有对象稳定保持至30秒，商品仍为主体。仅一个行动短句，不补购买地址、价格、Logo或承诺；不新增动画延长结尾。"
+      }
+    ]
+  },
+  "timingPlan": {
+    "durationFrames": 900,
+    "scenes": [
+      {
+        "id": "scene-01",
+        "startFrame": 0,
+        "durationFrames": 82
+      },
+      {
+        "id": "scene-02",
+        "startFrame": 73,
+        "durationFrames": 754
+      },
+      {
+        "id": "scene-03",
+        "startFrame": 818,
+        "durationFrames": 82
+      }
+    ],
+    "audioGraph": [],
+    "basis": "observed-source-boundaries",
+    "readingAndActionsReviewed": false
+  },
+  "production": {
+    "runId": "3f0292ec-cc95-4128-aa24-57c9511b5906",
+    "inputFingerprint": "2365d1010b63557cd1ea48e6097fce4e29407203e9090562382fbda33bc38145",
+    "workflowVersion": 3,
+    "stages": [
+      "R0",
+      "R1",
+      "R2",
+      "R3",
+      "R4",
+      "R5",
+      "R6",
+      "R7",
+      "R8",
+      "R9",
+      "R10",
+      "R11",
+      "R12"
+    ],
+    "scenePackage": "dd6f72e387f8eb58ad3880d62431446c062709c5739e984072588f3fd94a7f18",
+    "catalog": "4a6a1a767df57de137a639ca96f9f307a059ffb68012de349c19ba4d66c9c460"
+  },
+  "resourceReceipts": [
+    {
+      "resourceId": "native-original",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6",
+      "tool": "resources.adapt_native_bundle",
+      "adapterVersion": 1,
+      "sceneId": "scene-01",
+      "objectIds": [
+        "node-0a853c77bed0bdb3",
+        "node-f59a295e78d207ce",
+        "node-96641cf21da75535",
+        "node-e80f1170efcbb387"
+      ],
+      "files": [],
+      "sourceHash": "1c080a2bc8839c50869d2f758ea767cdcada782926de39221d5b6a7edd586186",
+      "originalSourceHash": "62ba24e8b732fd870e7355cdd70f3a9c62c4d9a1cc8233a2323d8b7f323643f8",
+      "normalizations": [
+        {
+          "elementId": "scene01-media",
+          "reason": "transparent native media surface"
+        }
+      ],
+      "status": "engineering-checked",
+      "method": "managed original with loaded HyperFrames guidance",
+      "checkpointSourceHash": "99f5c45132288297921136803a1c982e6ed087a90b2f5a857f8c1ca5d2266590",
+      "execution": "validated-checkpoint-source",
+      "currentRevisionId": "rev-15a95c50d27634af",
+      "currentBundleHash": "14129034c62becf41c14462b54ea041edf8b5d26bf66ed867a6d4b910f422469",
+      "currentObjectIds": [
+        "node-0a853c77bed0bdb3",
+        "node-f59a295e78d207ce",
+        "node-96641cf21da75535",
+        "node-e80f1170efcbb387"
+      ],
+      "checks": {
+        "engineering": "compiled-isolated-hyperframes-checked",
+        "visual": "preview-reviewed",
+        "human": "pending",
+        "rights": "separate-review"
+      }
+    },
+    {
+      "resourceId": "lt-mask-reveal",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6",
+      "tool": "resources.adapt_native_bundle",
+      "adapterVersion": 1,
+      "sceneId": "scene-02",
+      "objectIds": [
+        "node-664f03c2683684e2",
+        "node-6600299004af8f47",
+        "node-a29aea57c3f093db",
+        "node-7c8305170bcb18d2",
+        "node-b17ed578930bd7ad"
+      ],
+      "files": [
+        {
+          "file": "registry/blocks/lt-mask-reveal/registry-item.json",
+          "sha256": "befe86d7bd1598242f43fbdd032230d06f511184172d8dcf5b9990b53073b143"
+        },
+        {
+          "file": "registry/blocks/lt-mask-reveal/lt-mask-reveal.html",
+          "sha256": "7f348ec3124e211f7ec8e7241f21220134504ab713143e3f9dc10e016892e2e3"
+        }
+      ],
+      "sourceHash": "aebfa9a195a33da6dbd31e46ee3164d3c65921293efc5acb56eaadbef4522eee",
+      "originalSourceHash": "3cc8c19e9e37461b12d99cb0077860db2ed86848912ea08d8a7fad311eef9c8c",
+      "normalizations": [
+        {
+          "elementId": "scene02-video",
+          "reason": "transparent native media surface"
+        }
+      ],
+      "status": "engineering-checked",
+      "method": "model adaptation of the supplied blueprint; not a verbatim component install",
+      "checkpointSourceHash": "15fb8e6fc474deaa31dfac23610064cca7c0d54ecbf7f8bbe3e0dc5996deaf4a",
+      "execution": "validated-checkpoint-source",
+      "currentRevisionId": "rev-15a95c50d27634af",
+      "currentBundleHash": "d4ab3d838c727cab2a20c10fe6d527152d6a1fc385e8da98607e930e47799439",
+      "currentObjectIds": [
+        "node-664f03c2683684e2",
+        "node-6600299004af8f47",
+        "node-a29aea57c3f093db",
+        "node-7c8305170bcb18d2",
+        "node-b17ed578930bd7ad"
+      ],
+      "checks": {
+        "engineering": "compiled-isolated-hyperframes-checked",
+        "visual": "preview-reviewed",
+        "human": "pending",
+        "rights": "separate-review"
+      }
+    },
+    {
+      "resourceId": "titlecard-reveal",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6",
+      "tool": "resources.adapt_native_bundle",
+      "adapterVersion": 1,
+      "sceneId": "scene-03",
+      "objectIds": [
+        "node-59e52dfd4a901a0a",
+        "node-e91f1b07c2b53786"
+      ],
+      "files": [
+        {
+          "file": "skills/hyperframes-animation/blueprints/titlecard-reveal.md",
+          "sha256": "bc8382861af871ef8688589327680b85674a4a5f326214f783b82f3a0725c00c"
+        },
+        {
+          "file": "skills/hyperframes-animation/rules/discrete-text-sequence.md",
+          "sha256": "d3eb00b0942f98eb30908f1b90f44c0bf9a4da1c2eb0dc6899b14accb75802cf"
+        }
+      ],
+      "sourceHash": "d82db55be6d0dc86a4c123914f87f6b62d31c764b2363ca079f9398f6956efdf",
+      "originalSourceHash": "923b704447050183e5f1463671a0d02ef7a209520a0b421118d19cf4ffb6382c",
+      "normalizations": [
+        {
+          "elementId": "media",
+          "reason": "transparent native media surface"
+        }
+      ],
+      "status": "engineering-checked",
+      "method": "model adaptation of the supplied blueprint; not a verbatim component install",
+      "checkpointSourceHash": "8fb83e080ccf791e90d38db79bf931c95e0f108436b2a264aecf142d0f5c16ff",
+      "execution": "validated-checkpoint-source",
+      "currentRevisionId": "rev-15a95c50d27634af",
+      "currentBundleHash": "479388a4ff409082372ee90816d5e08ba216a08e08b1b18ae6d2edc639fd3207",
+      "currentObjectIds": [
+        "node-59e52dfd4a901a0a",
+        "node-e91f1b07c2b53786"
+      ],
+      "checks": {
+        "engineering": "compiled-isolated-hyperframes-checked",
+        "visual": "preview-reviewed",
+        "human": "pending",
+        "rights": "separate-review"
+      }
+    }
+  ],
+  "quality": {
+    "summary": "已逐图检查本批12张关键帧：开场可辨银白色头戴耳机及双手，标题准确清楚；中段可见接近耳机与完成佩戴状态；结尾静图及“了解更多”稳定可读。所见文字未遮挡商品，未发现可据本批证据确定的修复项。源时间表仅使用一次连续视频区间，首尾静图复用符合用户许可。当前仅为关键帧审查，不能据此认定全片通过。",
+    "issues": [],
+    "unreviewed": [
+      "缺少成片7.766667—10.166667秒关键帧，无法验证“看看结构细节”的实际显示、可读时长及其与头梁、耳罩和耳垫画面的对应关系；动画代码不能替代渲染证据。",
+      "未连续观看拿取、离架、上举、戴入及放手过程，无法确认动作完整性、正常速度、动态主体保护和是否存在停顿或重复；尤其需检查上举时耳机及双手是否超出源画幅。",
+      "仅见转场末段抽帧：27.533秒存在淡化叠影，与指定普通淡化相容；两处转场的完整运动、流畅度及短暂遮挡尚未验证。",
+      "未试听或取得最终MP4音轨检测结果，无法确认最终文件全片静音；空audioGraph不能替代成片检查。",
+      "未检查最终MP4技术属性、解码完整性、原生工程可编辑性及其版本绑定。",
+      "素材商业授权未确认，按用户要求仅作内部候选；本次模型审查不构成人类认可或发布许可。"
+    ],
+    "status": "preview-reviewed",
+    "engineering": "checked",
+    "fullPlayback": "pending",
+    "humanReview": "pending",
+    "rights": "requires-publisher-review",
+    "revisionId": "rev-15a95c50d27634af"
+  },
+  "directionPreview": {
+    "runId": "3f0292ec-cc95-4128-aa24-57c9511b5906",
+    "inputFingerprint": "9eb343c91a29a0b1ecc8e1764e5807792efb563dc302d831e4ffff1a26d64524",
+    "storyHash": "c48404042ca9cb93dd183563e7476bb0303c84a9044094fb4feff9ec3a2c0e38",
+    "timingHash": "ffef7851d503541927699b891b5852ca8fb416293dfe256a192d0702643e1be3",
+    "implementationHash": "5dc8eb24526aa3d9fd9021b1fef8849bb5c04b25f4e22af16e1f06fbdc2929ee",
+    "sourceHashes": {
+      "0": "99f5c45132288297921136803a1c982e6ed087a90b2f5a857f8c1ca5d2266590",
+      "1": "15fb8e6fc474deaa31dfac23610064cca7c0d54ecbf7f8bbe3e0dc5996deaf4a"
+    },
+    "key": "a8234b206519af8595c2b45fc6c8f7dfd0554834af6a194412c5da036bb68096",
+    "directory": "direction-preview/a8234b206519af85",
+    "revisionId": "rev-8ea461665bb53a99",
+    "documentHash": "0c441bce1ffc0a3625fec07924760a95966cd8c40d787e033105ae0dddf92cb1",
+    "sceneIds": [
+      "scene-01",
+      "scene-02"
+    ],
+    "range": {
+      "startFrame": 0,
+      "endFrame": 450
+    },
+    "output": {
+      "width": 1080,
+      "height": 1920,
+      "fit": "cover"
+    },
+    "status": "range-engineering-checked",
+    "fullFilm": "incomplete",
+    "humanReview": "pending",
+    "createdAt": "2026-09-15T10:19:32.599Z"
+  },
+  "previewRange": {
+    "startFrame": 73,
+    "endFrame": 523
+  },
+  "scenePackage": {
+    "id": "product_launch",
+    "version": "3.0.0",
+    "hash": "dd6f72e387f8eb58ad3880d62431446c062709c5739e984072588f3fd94a7f18"
+  },
+  "creativeDirection": {
+    "businessGoal": "制作30秒竖屏单品上新内部候选，让首次观看者认识银白色头戴耳机并愿意继续了解；商业授权与最终质量仍待核验。本轮仅输出创意规划。",
+    "viewer": "首次了解这副耳机的潜在消费者。",
+    "singleSentenceIdea": "跟随一次真实的拿取与佩戴，在自然动作中看清耳机外观和结构，以“了解更多”简洁收尾。",
+    "hookStrategy": "同源静图短暂亮相，第一屏直接呈现商品与原文“头戴耳机”；横图完整置入竖屏，标题放在媒体外留白。",
+    "storyStrategy": "商品亮相后，按源顺序呈现接近握持、离架、胸前结构展示、上举佩戴、放手和完成状态；“看看结构细节”随胸前展示出现，不能为了模板将细节移到佩戴之后。重叠的使用与细节候选只使用一次。现有证据为抽帧记录，连续性、有效边界和主体完整性须在后续实际播放中核验。",
+    "pace": "1080×1920、30fps，总长30秒。暂按源视频0.266667—25.4秒连续正常速度使用，约25.133333秒，其余约4.866667秒由短暂标题静图和结尾静图承担。此为无转场重叠的预算，实际解码、删减或淡化重叠后须重新核算；不得循环、重复或变速补时长。",
+    "visualDirection": "premium-minimal",
+    "businessTemplate": "launch-premium-v1",
+    "motionDirection": "先确定静态布局，视频容器保持稳定，全幅适配横屏素材；仅在标题与收尾使用普通短淡化，关键动作期间不遮盖画面。文字与媒体分别控制属性，避免同时缩放或位移。给定蓝图和下三分之一组件仅作参考，其完整合同、依赖与许可未核验，不视为已加载或可运行资源。",
+    "typeDirection": "只使用“头戴耳机”“看看结构细节”“了解更多”三段指定文字，分别保持独立可编辑。使用清楚的大字号中文字体和高对比配色，每次一个短句，置于媒体外留白；字体可用性待执行阶段确认。",
+    "audioDirection": "全片静音，不转写、不加音乐或音效、不生成TTS或配音。按提供的元数据，源视频无音轨；保留源媒体引用及可编辑静音配置，不补造声音。",
+    "heroStrategy": "以现有同源商品静图建立外观，以真实拿取和佩戴视频承担主体展示。保护完整源画幅，尤其是耳机、头梁与双手；不强行裁切铺满竖屏。源画面上举阶段头梁贴近上缘，完整适配不能修复源内截断，该风险保留待核验。结构表达限于可见头梁、耳罩及浅色耳垫。",
+    "endingStrategy": "真实佩戴完成状态之后，以同源静图或已核验的完成状态静帧短暂承载“了解更多”，稳定保持到结束；静帧明确作为静图使用，不冒充新增动作，不添加品牌、价格或购买链接。",
+    "whatNotToDo": [
+      "不执行工具、不生成最终工程，不声称候选MP4或工程已完成。",
+      "不生图、生视频、TTS或配音；忽略合同中与明确禁止生成要求冲突的允许字段。",
+      "不倒置、跳过必要动作，不倒放、变速、循环或重复源区间凑时长。",
+      "不把整体结构展示包装成接口、按键或内部结构特写。",
+      "不虚构品牌、型号、价格、降噪、音质、舒适性等未经支持的事实。",
+      "不让字幕遮挡商品或手部，不用持续缩放、复杂转场或无意义3D抢夺注意。",
+      "不将抽帧覆盖等同于连续播放验证，不宣称商业授权、质量审查或真人认可已通过。"
+    ]
+  },
+  "catalogHash": "4a6a1a767df57de137a639ca96f9f307a059ffb68012de349c19ba4d66c9c460",
+  "commerceResourceReceipt": {
+    "templateId": "commerce-launch-v1",
+    "version": 1,
+    "resourceHash": "7e684f50dd4ef5484357229720064e13b4605f932282470b27cd3df262b78c32",
+    "instances": [
+      {
+        "componentId": "title",
+        "nodeId": "node-0a853c77bed0bdb3",
+        "sceneId": "scene-01",
+        "assetId": null
+      },
+      {
+        "componentId": "hero_media",
+        "nodeId": "node-f59a295e78d207ce",
+        "sceneId": "scene-01",
+        "assetId": "asset-e3bb98f0-b6ad-48a7-9f35-5e239fafd3eb"
+      },
+      {
+        "componentId": "detail_callout",
+        "nodeId": "node-664f03c2683684e2",
+        "sceneId": "scene-02",
+        "assetId": null
+      },
+      {
+        "componentId": "hero_media",
+        "nodeId": "node-6600299004af8f47",
+        "sceneId": "scene-02",
+        "assetId": "asset-d311db8e-2798-49cd-80be-5bb0241d1822"
+      },
+      {
+        "componentId": "ending",
+        "nodeId": "node-59e52dfd4a901a0a",
+        "sceneId": "scene-03",
+        "assetId": null
+      },
+      {
+        "componentId": "hero_media",
+        "nodeId": "node-e91f1b07c2b53786",
+        "sceneId": "scene-03",
+        "assetId": "asset-e3bb98f0-b6ad-48a7-9f35-5e239fafd3eb"
+      }
+    ],
+    "method": "business structure compiled into existing editable native objects",
+    "visualAcceptance": "pending-final-output-review"
+  }
+}

@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import {ROOT} from '../lib/workflow.mjs';
+import {readFinishedWorks} from '../lib/creative/finished-works.mjs';
+const works=await readFinishedWorks(ROOT),mijia=works.find(w=>w.id==='mijia-v2');
+assert(mijia,'The repository must contain the actual Mijia V2 export, not only its catalog entry');
+assert((await fs.stat(mijia.packageFile)).size>40000000);
+const manifest=JSON.parse(await fs.readFile(path.join(ROOT,'../workspace-content/manifest.json'),'utf8'));
+assert(manifest.files.some(f=>f.path==='video-agent/data/commerce-runs/1e8ec7c7-d4b3-4a5d-8c41-10e768bcd4dc/native-project.json'));
+for(const id of new Set(manifest.files.flatMap(f=>f.chunks)))assert((await fs.stat(path.join(ROOT,'../workspace-content/objects',id))).isFile());
+console.log('PASS shipped Mijia MP4 hash, native ZIP, retained project snapshot and every payload object exist');

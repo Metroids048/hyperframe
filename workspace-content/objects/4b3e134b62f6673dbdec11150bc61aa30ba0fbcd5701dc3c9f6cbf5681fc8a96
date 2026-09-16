@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en" data-resolution="square">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=720, height=720" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face { font-family: "HGSans"; src: url("assets/fonts/TTNormsPro-Regular.woff2") format("woff2");  font-weight: 400; font-display: block; }
+      @font-face { font-family: "HGSans"; src: url("assets/fonts/TTNormsPro-Medium.woff2") format("woff2");   font-weight: 500; font-display: block; }
+      @font-face { font-family: "HGSans"; src: url("assets/fonts/TTNormsPro-SemiBold.woff2") format("woff2"); font-weight: 600; font-display: block; }
+      @font-face { font-family: "HGSans"; src: url("assets/fonts/TTNormsPro-Bold.woff2") format("woff2");     font-weight: 700; font-display: block; }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { margin: 0; width: 720px; height: 720px; overflow: hidden; background: #f2f4f7; }
+      body { font-family: "HGSans", sans-serif; font-kerning: none; -webkit-font-smoothing: antialiased; }
+      #root { background: #f2f4f7; position: relative; width: 720px; height: 720px; }
+      .scene { position: absolute; inset: 0; }
+
+      /* ---------- title cards ----------
+         Same near-white ground the templates sit on, so a title reads as a beat
+         in the same room rather than a cut to somewhere else. */
+      .card { position: absolute; inset: 0; background: #f2f4f7; transform-origin: 50% 50%; }
+      .name {
+        position: absolute; left: 0; top: 322px; width: 100%; text-align: center;
+        font-size: 76px; font-weight: 700; letter-spacing: -2.8px;
+        color: #10121a; white-space: nowrap;
+      }
+      .name span { display: inline-block; }
+      .name span + span { margin-left: 22px; color: #00c3ff; }
+
+      /* ---------- clips ----------
+         Videos sit directly under #root, never inside another timed element:
+         the framework can only own playback for top-level media, and a nested
+         <video> renders frozen. */
+      .vid { position: absolute; top: 0; display: block; transform-origin: 50% 50%; }
+      .vsq  { left: 0;     width: 720px; height: 720px; }
+      .vpor { left: 157px; width: 406px; height: 720px; }
+
+      /* ---------- endcard ---------- */
+      #end { position: absolute; inset: 0; background: #f2f4f7; transform-origin: 50% 50%; }
+      #e-logo { position: absolute; left: 210.35px; top: 286px; width: 299.3px; height: 66.4px; }
+      #e-word { position: absolute; left: 0;     top: 10.1px; width: 221.6px; height: 55.2px; }
+      #e-sym  { position: absolute; left: 227px; top: -5.8px; width: 78px;    height: 78px; }
+      #e-logo img { display: block; width: 100%; height: 100%; }
+      #e-line {
+        position: absolute; left: 0; top: 388px; width: 100%; text-align: center;
+        font-size: 26px; font-weight: 500; letter-spacing: -0.5px; color: #7c8089;
+        white-space: nowrap;
+      }
+      #e-line span { display: inline-block; }
+      #e-line span + span { margin-left: 9px; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="54.2"
+         data-width="720" data-height="720">
+
+      <div id="t1" class="clip scene" data-start="0"       data-duration="1.2" data-track-index="1">
+        <div class="card"><div class="name"></div></div>
+      </div>
+      <video id="v1" class="vid vsq clip" src="assets/clips/c01.mp4" muted playsinline
+             data-start="1.1993" data-duration="10.8333" data-track-index="2"></video>
+
+      <div id="t2" class="clip scene" data-start="12.0326" data-duration="1.2" data-track-index="1">
+        <div class="card"><div class="name"></div></div>
+      </div>
+      <video id="v2" class="vid vsq clip" src="assets/clips/c02.mp4" muted playsinline
+             data-start="13.2326" data-duration="12.1333" data-track-index="3"></video>
+
+      <div id="t3" class="clip scene" data-start="25.366"  data-duration="1.2" data-track-index="1">
+        <div class="card"><div class="name"></div></div>
+      </div>
+      <video id="v3" class="vid vsq clip" src="assets/clips/c03.mp4" muted playsinline
+             data-start="26.566" data-duration="12.8333" data-track-index="4"></video>
+
+      <div id="t4" class="clip scene" data-start="39.3993" data-duration="1.2" data-track-index="1">
+        <div class="card"><div class="name"></div></div>
+      </div>
+      <video id="v4" class="vid vpor clip" src="assets/clips/c04.mp4" muted playsinline
+             data-start="40.5993" data-duration="11.8" data-track-index="5"></video>
+
+      <div id="tE" class="clip scene" data-start="52.3993" data-duration="1.8" data-track-index="1">
+        <div id="end">
+          <div id="e-logo">
+            <div id="e-word"><img src="assets/hg-word-text.svg" alt=""></div>
+            <div id="e-sym"><img src="assets/hg-symbol.svg" alt=""></div>
+          </div>
+          <div id="e-line"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      /* =====================================================================
+         Templates hero — 720x720, 30fps, 1626 frames (54.2s).
+
+         Each of the four templates plays start to finish, with a title card in
+         front of it.
+
+         NOTE on assets/clips/c02.mp4: the shipped 02-bouncy-ui renders with an
+         open face, because that project is redistributable. The clip here was
+         rendered from the same project with the real brand faces swapped in
+         (uncomment its second @font-face block, point #root at "TT Norms Pro",
+         set DISPLAY_FONT to "ABC Solar Display", then re-run tools/fit-type.py
+         against the brand files and paste its numbers back). Only this
+         compilation uses that build.
+
+         The motion language is the one the templates use:
+
+           - every seam is an INVERSE ZOOM-THROUGH. Whatever is leaving is
+             shrinking when the cut lands, and whatever arrives is also
+             shrinking, so direction of travel is continuous across every cut.
+           - titles arrive WORD BY WORD on a damped spring, each word three
+             frames behind the last, so the line assembles instead of appearing.
+         ===================================================================== */
+      const FPS = 30;
+      const F = (f) => (f - 1) / FPS;
+      const S = (f) => F(f) - 0.008;
+      const tl = gsap.timeline({ paused: true });
+      const $ = (s) => document.querySelector(s);
+      const EO = (p) => (p >= 1 ? 1 : 1 - Math.pow(2, -10 * p));   // arriving
+      const EI = (p) => (p <= 0 ? 0 : Math.pow(2, 10 * (p - 1)));  // leaving
+
+      /* Each word drops in on a damped spring — starts 44px low, crosses,
+         overshoots once, dead inside half a second. Same family as the
+         counter-bounce the templates use on their lockups. */
+      const spring = (t) =>
+        t <= 0 ? 44 : 44 * Math.exp(-t / 0.15) * Math.cos((2 * Math.PI * t) / 0.3);
+
+      // [id, number, first frame, last frame] — titles are 36 frames each
+      const TITLES = [
+        { id: "t1", n: "1", start: 1,    end: 36   },
+        { id: "t2", n: "2", start: 362,  end: 397  },
+        { id: "t3", n: "3", start: 762,  end: 797  },
+        { id: "t4", n: "4", start: 1183, end: 1218 },
+      ];
+
+      TITLES.forEach((T) => {
+        const root = $("#" + T.id);
+        const name = root.querySelector(".name");
+        name.innerHTML = `<span>Template</span><span>${T.n}</span>`;
+
+        // the card itself arrives shrinking — matching whatever it cut away from
+        tl.fromTo(root.querySelector(".card"), { scale: 1.16 },
+          { scale: 1, duration: 0.85, ease: EO }, F(T.start));
+
+        [...name.children].forEach((w, i) => {
+          const from = T.start + i * 3;
+          tl.fromTo(w, { opacity: 0 }, { opacity: 1, duration: 4 / FPS, ease: "none" }, F(from));
+          for (let f = from; f <= T.end + 2; f++) {
+            tl.set(w, { y: spring((f - from) / FPS) }, S(f));
+          }
+        });
+
+        // and leaves still shrinking, so the cut into the clip is continuous
+        tl.to(root.querySelector(".card"),
+          { scale: 0.84, duration: 0.42, ease: EI }, F(T.end - 9));
+        tl.fromTo(root.querySelector(".card"), { filter: "blur(0px)" },
+          { filter: "blur(7px)", duration: 0.3, ease: EI }, F(T.end - 7));
+      });
+
+      /* clips: enter shrinking, leave shrinking */
+      [["v1", 37, 361], ["v2", 398, 761], ["v3", 798, 1182], ["v4", 1219, 1572]]
+        .forEach(([id, a, b]) => {
+          const w = "#" + id;
+          tl.fromTo(w, { scale: 1.14 }, { scale: 1, duration: 0.9, ease: EO }, F(a));
+          tl.fromTo(w, { filter: "blur(9px)" },
+            { filter: "blur(0px)", duration: 0.22, ease: "power2.out" }, F(a));
+          tl.to(w, { scale: 0.86, duration: 0.4, ease: EI }, F(b - 10));
+          tl.fromTo(w, { filter: "blur(0px)" },
+            { filter: "blur(7px)", duration: 0.28, ease: EI }, F(b - 8));
+        });
+
+      /* endcard */
+      $("#e-line").innerHTML = "Four templates. Yours in one prompt."
+        .split(" ").map((w) => `<span>${w}</span>`).join("");
+      tl.fromTo("#end", { scale: 1.18 }, { scale: 1, duration: 1.0, ease: EO }, F(1573));
+      tl.fromTo("#end", { filter: "blur(8px)" },
+        { filter: "blur(0px)", duration: 0.2, ease: "power2.out" }, F(1573));
+
+      // the lockup's two parts counter-bounce, the way they do in the templates
+      for (let f = 1575; f <= 1626; f++) {
+        const t = (f - 1575) / FPS;
+        const A = 26 * Math.exp(-t / 0.279) * Math.sin((2 * Math.PI * t) / 0.5);
+        tl.set("#e-word", { y: -A }, S(f));
+        tl.set("#e-sym", { y: A }, S(f));
+      }
+      [...$("#e-line").children].forEach((w, i) => {
+        const from = 1582 + i * 3;
+        tl.fromTo(w, { opacity: 0 }, { opacity: 1, duration: 4 / FPS, ease: "none" }, F(from));
+        for (let f = from; f <= 1626; f++) {
+          tl.set(w, { y: spring((f - from) / FPS) * 0.5 }, S(f));
+        }
+      });
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

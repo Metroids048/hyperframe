@@ -1,0 +1,866 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1080" />
+    <title>HeyGen — bouncy UI launch</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      /* ---------------------------------------------------------------------
+         TYPEFACE
+
+         Inter (SIL Open Font License), shipped in assets/fonts/ and declared
+         explicitly. Naming a system font instead ("Helvetica Neue", "Arial") is a
+         trap: the renderer substitutes bundled faces for those at render time, so
+         your preview and your render disagree and every baked text width is wrong.
+         Name the face you actually want.
+
+         To use HeyGen's brand faces: drop TTNormsPro-{Regular,Medium,Bold} and
+         ABCSolarDisplay-Bold into assets/fonts/, uncomment the second block, point
+         #root at "TT Norms Pro", set DISPLAY_FONT to "ABC Solar Display", and
+         re-run `python3 tools/fit-type.py` to regenerate the advance table.
+         --------------------------------------------------------------------- */
+      @font-face { font-family: "Inter"; src: url("assets/fonts/Inter-Variable.woff2") format("woff2-variations");
+                   font-weight: 100 900; font-display: block; }
+
+      /* @font-face { font-family: "TT Norms Pro"; src: url("assets/fonts/TTNormsPro-Regular.woff2") format("woff2"); font-weight: 400; font-display: block; }
+         @font-face { font-family: "TT Norms Pro"; src: url("assets/fonts/TTNormsPro-Medium.woff2")  format("woff2"); font-weight: 500; font-display: block; }
+         @font-face { font-family: "TT Norms Pro"; src: url("assets/fonts/TTNormsPro-Bold.woff2")    format("woff2"); font-weight: 700; font-display: block; }
+         @font-face { font-family: "ABC Solar Display"; src: url("assets/fonts/ABCSolarDisplay-Bold.woff2") format("woff2"); font-weight: 700; font-display: block; } */
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1080px; height: 1080px; overflow: hidden; background: #FBFAF9; }
+
+      #root {
+        position: relative; width: 1080px; height: 1080px; overflow: hidden;
+        background: #FBFAF9;
+        font-family: "Inter";
+        font-weight: 400;
+        -webkit-font-smoothing: antialiased;
+        font-kerning: none; font-variant-ligatures: none;
+        font-feature-settings: "kern" 0, "liga" 0;
+      }
+      #ground { position: absolute; inset: 0; background: #FBFAF9; }
+
+      /* every animated body is absolutely placed and driven only by transform */
+      .o { position: absolute; left: 0; top: 0; transform-origin: 50% 50%; will-change: transform, opacity, filter; }
+
+      /* Radii, from the HeyGen design system: 12px for cards and controls, 33px for
+         large feature panels, 40px for chips. Everything here is drawn on a 720px
+         grid (see DESIGN GRID below), so the 12px control radius scales to 14px at
+         this button size. Chat bubbles use the 40px chip radius, which is a full
+         stadium at their 47px height. */
+      .pill   { border-radius: 40px; }
+      .card12 { border-radius: 14px; }
+      .card33 { border-radius: 33px; }
+      /* DEVIATION (recorded): the brand ships exactly ONE shadow —
+         0 4px 6px -1px rgba(0,0,0,.10), 0 2px 4px -2px rgba(0,0,0,.10) — which is far too
+         tight to carry this film's 3D lift, and the lift IS one of the mechanisms being
+         preserved. Kept the brand's neutral ink-at-10% character, rebuilt two-layer. */
+      .bluepill { background: #00C3FF;
+                  box-shadow: 0 6px 10.5px rgba(23,23,23,0.22), 0 24px 45px rgba(23,23,23,0.10); }
+      .whitecard { background: #FFFFFF;
+                  box-shadow: 0 4.5px 9px rgba(23,23,23,0.075), 0 21px 42px rgba(23,23,23,0.06); }
+      .selband { background: #C4EEFA; }   /* accent @22% over the warm-white ground */
+      .handle  { background: #00C3FF; }
+      .knob    { background: #00C3FF; border-radius: 50%; }
+      .ring    { border-radius: 50%; }
+
+      .txt { white-space: pre; line-height: 1em; color: #171717; }
+      .ctr { display: flex; align-items: center; justify-content: center; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="heygen-bouncy-ui" data-start="0" data-width="1080" data-height="1080" data-duration="12.1333">
+      <div id="ground"></div>
+      <svg id="fx" width="0" height="0" style="position:absolute"><defs id="fxdefs"></defs></svg>
+      <div id="stage"></div>
+    </div>
+
+    <script>
+      /* ==================================================================
+         HeyGen — bouncy UI launch.  1080x1080, 12.133 s, 30 fps.
+
+         A prompt is typed, generated, and the results arrive as UI: a
+         notification, a flipped card, a chat thread, and a closing selection.
+
+         DESIGN GRID
+           Every number below is in 720x720 DESIGN px and multiplied by S on the
+           way out. Author at one comfortable size, render at any resolution: bump
+           the root width/height and S follows.
+
+         THE MOTION SYSTEM — four rules, applied everywhere
+           P1  Exponential relaxation, tau = 0.131 s.  Every reflow, growth and
+               entry. Nothing linear, nothing that eases IN.
+           P2  A damped spring with zeta = 1/3, run on THREE channels of the same
+               body at three frequencies — position 1.45 Hz, shape 1.88 Hz,
+               rotation 2.50 Hz. Lighter channel, faster ring. One spring()
+               function called three times is the entire "bouncy" quality.
+           P3  Squash and stretch, volume-conserving, driven by the shape channel.
+           P4  Motion blur is DERIVED, never authored: because every position is a
+               pure function of t, differentiate it and feed |v| to a per-element
+               SVG blur. Half of what reads as "fluid" costs no keyframes.
+
+         SEEK-SAFETY
+           paint(t) is a pure function of timeline time. No state accumulates
+           between frames, so the renderer can seek to any frame in any order.
+           This is a hard requirement, not a style: a frame-order-dependent
+           composition renders differently on every machine.
+         ================================================================== */
+      /* DISPLAY_FONT is used only by the two expressive beats ("Generated!" and the
+         aside); everything else inherits #root. */
+      const DISPLAY_FONT = 'Inter';   // -> 'ABC Solar Display' with the brand faces installed
+
+      const S = 1080 / 720;
+      const FPS = 30;
+      const TF = (f) => (f - 1) / FPS;          // frame number -> seconds
+      const stage = document.getElementById("stage");
+      const fxdefs = document.getElementById("fxdefs");
+
+      const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
+      /* P1: exponential relaxation, 0 -> 1 */
+      const E = (u, tau) => (u <= 0 ? 0 : 1 - Math.exp(-u / tau));
+      const TAU = 0.131;
+      /* P2: damped spring residual, starts at amplitude A and rings down to 0 */
+      const ZETA = 1 / 3;
+      function spring(u, A, f, zeta) {
+        if (u <= 0) return A;
+        const z = zeta === undefined ? ZETA : zeta;
+        const wd = 2 * Math.PI * f * Math.sqrt(1 - z * z);
+        return A * Math.exp(-2 * Math.PI * z * f * u) * Math.cos(wd * u);
+      }
+      /* lerp a stamped per-frame track (f0 = frame index of track[0]) */
+      function stamp(track, f0, tf, col) {
+        const i = clamp(Math.floor(tf - f0), 0, track.length - 2);
+        const a = track[i], b = track[i + 1];
+        if (!a) return null;
+        if (!b) return a[col];
+        const g = clamp(tf - f0 - i, 0, 1);
+        return a[col] + (b[col] - a[col]) * g;
+      }
+
+      /* ---------- element factory (each body gets its own blur filter) ---------- */
+      let fxN = 0;
+      function mk(html, cls, blurrable) {
+        const el = document.createElement("div");
+        el.className = "o " + (cls || "");
+        if (html !== null && html !== undefined) el.innerHTML = html;
+        stage.appendChild(el);
+        const o = { el, fid: null };
+        if (blurrable !== false) {
+          const id = "mb" + fxN++;
+          fxdefs.insertAdjacentHTML(
+            "beforeend",
+            '<filter id="' + id + '" x="-60%" y="-160%" width="220%" height="420%" color-interpolation-filters="sRGB">' +
+              '<feGaussianBlur stdDeviation="0 0"/></filter>'
+          );
+          o.fid = id;
+          o.blurNode = fxdefs.lastElementChild.firstElementChild;
+        }
+        return o;
+      }
+      const HIDE = (o) => { if (o.el.style.display !== "none") o.el.style.display = "none"; };
+
+      /* place a body: x,y = CENTRE, w,h = size — all in design px */
+      function put(o, x, y, w, h, opacity, rot, vx, vy) {
+        const e = o.el;
+        if (e.style.display === "none") e.style.display = "";
+        if (w !== null && w !== undefined) {
+          const ws = (w * S).toFixed(2) + "px", hs = (h * S).toFixed(2) + "px";
+          if (e.style.width !== ws) e.style.width = ws;
+          if (e.style.height !== hs) e.style.height = hs;
+        }
+        const bw = parseFloat(e.style.width) || 0, bh = parseFloat(e.style.height) || 0;
+        e.style.transform =
+          "translate(" + (x * S - bw / 2).toFixed(2) + "px," + (y * S - bh / 2).toFixed(2) + "px)" +
+          (rot ? " rotate(" + rot.toFixed(3) + "deg)" : "");
+        e.style.opacity = opacity === undefined ? 1 : clamp(opacity, 0, 1).toFixed(3);
+        if (o.blurNode) {
+          /* P4: sigma = |v| / (fps * shutter * sqrt(12)),  180deg shutter @30fps -> |v|/200 */
+          const sx = Math.min(Math.abs((vx || 0) * S) / 200, 40);
+          const sy = Math.min(Math.abs((vy || 0) * S) / 200, 40);
+          if (sx > 0.25 || sy > 0.25) {
+            o.blurNode.setAttribute("stdDeviation", sx.toFixed(2) + " " + sy.toFixed(2));
+            if (e.style.filter !== "url(#" + o.fid + ")") e.style.filter = "url(#" + o.fid + ")";
+          } else if (e.style.filter !== "none") e.style.filter = "none";
+        }
+      }
+      /* numeric derivative of any scalar-returning fn of t (seek-safe: pure) */
+      const D1 = (fn, t) => (fn(t + 0.5 / FPS) - fn(t - 0.5 / FPS)) * FPS;
+
+      /* ================= GEOMETRY (design px) ================= */
+      const CX = 360;
+
+      /* ================= TYPE CALIBRATION =================
+         Text widths are BAKED as em advances (the tables below), never measured at
+         runtime. Two reasons, both hard-won:
+           - canvas.measureText()/offsetWidth before a webfont resolves silently
+             returns FALLBACK metrics, so the numbers look plausible and are wrong;
+           - the linter rejects DOM measurement inside a seek-driven callback,
+             because a cold render worker seeks out of order and measures whatever
+             DOM state its own traversal produced.
+         Run `python3 tools/fit-type.py` to regenerate the table for a new font or
+         new copy. It also prints the derived box widths.
+
+         CAL_SX horizontally compresses the two big text lines. When a face's
+         cap-height-to-advance ratio differs from the design's, fitting size on
+         width alone lands the width and leaves the glyphs short — which reads as
+         "the type is too light". Fit BOTH axes: set the size from cap height, then
+         scale X back to restore the intended line width. */
+      const CAL_SX = 0.90;
+
+      /* ---- A / J : selection band ---- */
+      const BAND = { w: 363, h: 54, cx: 362, cy: 358.5, r: 0 };
+      const FS_SEL = 39;     // the two big lines: prompt + payoff
+      const HANDLE_W = 2.6, KNOB_R = 7;
+
+      /* ---- The CTA button, f42..f88.
+
+             STAMPED TRACK. Everything else in this file is analytic, but a launch
+             followed by an impact and a rebound has no clean closed form — so this
+             one body's path is a per-frame table and the table IS the model.
+             Columns: [cx, cy, angleDeg, w, h].
+
+             Read down column 2 (cy) to see the spring: it overshoots UP to 325.6
+             at f60, back DOWN past rest to 366.2 at f71, and settles by f81. Column
+             3 is the rotation channel ringing +76.6 -> -24.7 -> +7.5 -> 0. Columns
+             4/5 are the shape channel. Same zeta, three frequencies. ---- */
+      const PILL_F0 = 42;
+            const PILL = [
+        [360.0,358.5, 67.9, 94.5, 74.2],[359.8,358.5, 76.6, 94.7, 71.0],[359.8,358.4, 66.7,104.0, 70.9],
+        [360.1,358.6, 47.9,124.7, 72.7],[360.5,358.8, 22.8,148.8, 72.8],[360.2,358.5,  0.0,175.1, 74.0],
+        [360.5,358.5,-17.4,195.7, 75.5],[360.2,358.2,-24.7,208.0, 76.9],[360.0,358.2,-22.0,207.9, 77.0],
+        [360.2,358.3,-15.2,201.3, 76.6],[360.4,358.4, -7.2,191.6, 76.6],[360.3,358.3,  0.0,182.0, 76.2],
+        [360.3,358.3,  5.1,172.7, 76.6],[360.4,358.3,  7.5,166.1, 76.4],[360.4,353.8,  7.2,156.6, 78.7],
+        [360.4,345.9,  5.2,144.3, 82.6],[360.6,337.8,  2.4,134.8, 87.8],[360.4,330.0,  0.5,126.1, 93.2],
+        [360.1,325.6, -1.0,123.4, 96.0],[360.3,327.6, -1.0,128.2, 93.8],[360.3,330.9, -0.6,136.5, 90.0],
+        [360.4,334.7, -0.1,146.9, 85.4],[360.6,339.7,  0.0,160.7, 80.8],[360.4,345.8,  0.0,175.2, 77.3],
+        [360.3,351.3,  0.0,186.7, 75.5],[360.3,356.7,  0.0,194.5, 74.3],[360.0,361.3, -0.1,196.0, 74.0],
+        [360.2,364.3,  0.0,194.5, 74.3],[360.2,365.9,  0.0,191.4, 74.8],[360.2,366.2,  0.0,186.6, 75.6],
+        [360.2,366.1,  0.0,181.1, 76.7],[360.4,364.6,  0.1,176.4, 77.0],[360.4,363.3,  0.0,172.0, 78.1],
+        [360.7,362.0,  0.3,166.9, 79.5],[360.3,360.2, -0.1,166.4, 80.1],[360.3,358.2,  0.0,166.9, 79.8],
+        [360.5,356.5, -0.2,169.0, 78.0],[360.1,355.3, -0.4,171.6, 77.6],[360.1,354.0, -0.3,174.7, 75.7],
+        [359.8,353.8, -0.4,176.9, 75.0],[359.9,353.8, -0.4,180.2, 73.6],[359.8,354.1, -0.5,182.4, 72.6],
+        [360.2,354.5, -1.8,165.7, 65.1],[360.3,357.1, -5.7,127.2, 50.6],[360.3,357.6, -8.7, 94.1, 37.0],
+        [360.8,357.9,-11.1, 78.1, 29.9],[362.5,357.8,-12.2, 84.0, 31.3]
+      ];
+
+      /* ---- rest boxes for every body ---- */
+      /* the confirmation pill hugs its label, so its width follows the copy */
+      const POSTED = { w: 284, h: 75, cx: 359, cy: 359, fs: 40, sx: 1 };   // "Generated!" hugs its label
+      const CARD   = { w: 401, h: 98, cx: 359, cy: 358, fs: 18.5, avR: 24 };
+            const AV     = { cx: 222, cy: 369, r: 59 };
+      const TYPING = { w: 139, h: 45, cx: 352, cy: 334 };                   // f265
+      const MSG1   = { w: 193, h: 47, cx: 386, cy: 334 };   // "This is unreal!" hugs its label
+      const MSG2   = { w: 266, h: 47, cx: 422, cy: 395 };                   // f316
+
+      /* ================= BODIES ================= */
+      /* A / J selection band group: one wrapper we scale anisotropically */
+      function mkBand(text, fs) {
+        const g = mk(null, "", true);
+        g.el.style.width = BAND.w * S + "px";
+        g.el.style.height = BAND.h * S + "px";
+        g.el.innerHTML =
+          '<div style="position:absolute;inset:0;background:#CCCFFC"></div>' +
+          '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;' +
+          'font-size:' + fs * S + 'px;font-weight:400;color:#171717;white-space:pre;' +
+          'transform:scaleX(' + CAL_SX + ')">' + text + "</div>";
+        return g;
+      }
+      const bandA = mkBand("Make a demo video", FS_SEL);
+      const selRect = mk(null, "selband", false);   // beat J: highlight only, no type
+      /* handles are separate so they do NOT inherit the band's anisotropic scale */
+      function mkHandles() {
+        return {
+          stemL: mk(null, "handle", false), stemR: mk(null, "handle", false),
+          knobT: mk(null, "knob", false),   knobB: mk(null, "knob", false),
+        };
+      }
+      const hA = mkHandles(), hJ = mkHandles();
+
+      /* B: Post pill */
+      /* THE BRAND TELL: dark #171717 text on cyan, never white. Get this wrong and
+         it stops looking like HeyGen no matter what else is right.
+
+         The button hugs its label, so changing the CTA copy changes its width.
+         PILL_K scales only the WIDTH column of the stamped track — the spring,
+         rotation and squash dynamics are untouched, so the bounce survives any
+         label. tools/fit-type.py prints the PILL_K for new copy. */
+      const PILL_K = 265 / 169;   // "Generate" hugs its label; see tools/fit-type.py
+      const pill = mk('<div class="ctr" style="position:absolute;inset:0;color:#171717;font-weight:500;white-space:pre">Generate</div>',
+                      "card12 bluepill", true);
+      /* three 4-point sparkles burst up-left as the notification lands (f120-f128) */
+      const SPARK_SVG =
+        '<svg viewBox="-10 -10 20 20" width="100%" height="100%">' +
+        '<path d="M0-10C0-4 4 0 10 0 4 0 0 4 0 10 0 4-4 0-10 0-4 0 0-4 0-10Z" fill="#8E7BF0"/></svg>';
+      const SPARKS = [
+        { x: 195, y: 250, vx: -135, vy: -620 },
+        { x: 228, y: 255, vx: -520, vy: -460 },
+        { x: 252, y: 272, vx: -210, vy: -380 },
+      ].map((s) => { const o = mk(SPARK_SVG, "", true); o.meta = s; return o; });
+
+      const ring1 = mk(null, "ring", false);
+      const ring2 = mk(null, "ring", false);
+      ring1.el.style.border = 2.3 * S + "px solid #7CD9F5";
+      ring2.el.style.border = 1.6 * S + "px solid #E2E1E0";
+
+      /* C: Posted! */
+      const posted = mk('<div class="ctr" style="position:absolute;inset:0;color:#171717;font-weight:700;white-space:pre;font-family:' + DISPLAY_FONT + '">Generated!</div>',
+                        "card12 whitecard", true);
+      const postedTx = posted.el.querySelector("div");
+      postedTx.style.fontSize = POSTED.fs * S + "px";
+      postedTx.style.fontWeight = "700";
+      postedTx.style.transform = "scaleX(" + POSTED.sx + ")";
+
+      /* The notification card has TWO FACES. The cursor grabs it and flips it
+         top-over-bottom; the message on the back was always there.
+
+         The flip is simulated in FLAT 2D: scaleY = |cos(theta)| with theta running
+         0 -> 180deg on P1, and the visible face swapping at 90deg. Deliberately not
+         a CSS-3D rotateX — 3D transforms can make video layers render black in
+         capture, and a real rotateX buys nothing here because a flip about the
+         horizontal axis changes no widths. */
+      /* Placeholder avatar. The person glyph is CLIPPED BY THE PLATE: the body
+         ellipse is centred BELOW the circle's bottom edge and clipped to it, so the
+         circle's own curve cuts its lower corners and its bottom never shows.
+         Drawing a self-contained dome inside the circle instead leaves a hard flat
+         edge floating in the middle — the tell of a fake placeholder. */
+      let avN = 0;
+      const AVATAR_SVG = (r, plate, fill) => {
+        const cid = "avclip" + avN++;
+        return '<svg viewBox="0 0 48 48" width="' + 2 * r * S + '" height="' + 2 * r * S + '">' +
+          '<defs><clipPath id="' + cid + '"><circle cx="24" cy="24" r="24"/></clipPath></defs>' +
+          '<circle cx="24" cy="24" r="24" fill="' + plate + '"/>' +
+          '<g clip-path="url(#' + cid + ')" data-layout-allow-overflow>' +
+            /* the ellipse runs past y=48 (the plate's bottom) on purpose — that is
+               what makes the clip do the work */
+            '<circle cx="24.4" cy="15.5" r="7.1" fill="' + fill + '"/>' +
+            '<ellipse cx="24.6" cy="45" rx="14.8" ry="18" fill="' + fill + '"/>' +
+          "</g></svg>";
+      };
+
+      /* card type: 19.4px on the design grid, two lines 24px apart, inset 104px
+         from the card's left edge to clear the avatar */
+      const CARD_TX_X = 104;        // text left, from the card's left edge
+      const CARD_LEAD = 23;         // baseline to baseline
+      function cardFace(id, html, txX) {
+        return '<div id="' + id + '" style="position:absolute;inset:0">' +
+          '<div class="cav" style="position:absolute;left:' + 16 * S + 'px;top:50%;transform:translateY(-50%)">' +
+            AVATAR_SVG(CARD.avR, "#F5F4F4", "#DAD9D8") + "</div>" +
+          '<div class="ctx" style="position:absolute;left:' + (txX || CARD_TX_X) * S + 'px;top:50%;transform:translateY(-50%);' +
+            "font-size:" + CARD.fs * S + 'px;color:#171717;line-height:' + CARD_LEAD * S + 'px;white-space:pre">' + html + "</div>" +
+          '<div class="cdot" style="position:absolute;right:' + 20 * S + 'px;top:50%;width:' + 7 * S + "px;height:" + 7 * S +
+            'px;margin-top:' + -3.5 * S + 'px;border-radius:50%;background:#00C3FF;opacity:0"></div></div>';
+      }
+      const CARD_A = '<div><span style="font-weight:700">New viewers</span> started watching</div>' +
+                     '<div>the video you made.<span style="color:#99A1AF">    3m</span></div>';
+      const CARD_B = '<div style="font-weight:700">New Message</div>' +
+                     '<div>Hey, saw your demo<span style="color:#99A1AF">  1m</span></div>';
+      const card = mk(cardFace("cardfront", CARD_A) + cardFace("cardback", CARD_B, CARD_TX_X + 9), "card33 whitecard", true);
+      const faceFront = card.el.querySelector("#cardfront");
+      const faceBack = card.el.querySelector("#cardback");
+      const cardDots = Array.from(card.el.querySelectorAll(".cdot"));
+
+      /* The aside. Three words, each with its own rotation and its own staggered
+         spring — that per-word independence is what stops it reading as one block. */
+      
+      const WORD_FS = 40, WORD_SX = 1;
+      /* resting positions */
+      const WORDS = [
+        { t: "And",   em: 2.000, x: 261, y: 256, rot: -9, f: 142 },
+        { t: "then",  em: 2.207, x: 362, y: 247, rot:  3, f: 146 },
+        { t: "this!", em: 2.158, x: 468, y: 256, rot: 10, f: 149 },
+      ].map((w) => {
+        const o = mk('<span style="display:inline-block;transform:scaleX(' + WORD_SX + ')">' + w.t + "</span>",
+                     "txt", true);
+        o.el.setAttribute("data-layout-allow-occlusion", "");
+        o.el.style.fontSize = WORD_FS * S + "px";
+        o.el.style.fontWeight = "700";
+        o.el.style.fontFamily = DISPLAY_FONT;
+        o.el.style.display = "none";
+        o.meta = w;
+        o.bw = w.em * WORD_FS * WORD_SX;   // design px
+        o.bh = WORD_FS * 1.0;
+        return o;
+      });
+
+      /* F..I: chat column */
+      const avatar = mk(AVATAR_SVG(AV.r, "#F5F4F4", "#DAD9D8"), "", true);
+      const typing = mk(
+        '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:' + 9 * S + 'px">' +
+        '<i class="d" style="width:' + 13 * S + "px;height:" + 13 * S + 'px;border-radius:50%;background:#DAD9D8;display:block"></i>' +
+        '<i class="d" style="width:' + 13 * S + "px;height:" + 13 * S + 'px;border-radius:50%;background:#DAD9D8;display:block"></i>' +
+        '<i class="d" style="width:' + 13 * S + "px;height:" + 13 * S + 'px;border-radius:50%;background:#DAD9D8;display:block"></i>' +
+        "</div>", "pill whitecard", true);
+      const dots = Array.from(typing.el.querySelectorAll(".d"));
+
+      function mkBubble(text, fs) {
+        const o = mk('<div class="ctr" style="position:absolute;inset:0;color:#000;white-space:pre;font-size:' +
+                     fs * S + 'px">' + text + "</div>", "pill whitecard", true);
+        return o;
+      }
+      const msg1 = mkBubble("This is unreal!", 25);
+      /* The closing line is ONE text body wearing three costumes in sequence:
+         chat bubble -> bare line -> selected line. Note the asymmetry with the
+         opening: there, band and glyphs scale TOGETHER (one horizontal un-scrunch);
+         here the highlight sweeps outward over type that stays put. They look like
+         mirror images and are built differently. */
+      const msg2 = mkBubble("", 25);                       // the bubble shell only
+      const LINE2_EM = 9.498;
+      const line2 = mk('<span id="l2tx" style="display:inline-block;transform:scaleX(' + CAL_SX + ')">'
+                       + "Let&#39;s work together!</span>", "txt ctr", true);
+      line2.el.style.color = "#171717";
+      line2.el.setAttribute("data-layout-allow-occlusion", "");
+
+      const TAG_FS = 19;
+      function mkTag(text, color, em) {
+        const o = mk(text, "txt", true);
+        o.el.style.fontSize = TAG_FS * S + "px";
+        o.el.style.color = color;
+        o.el.style.fontWeight = "500";
+        o.bw = em * TAG_FS;             // baked advance, design px
+        o.bh = TAG_FS * 1.0;
+        return o;
+      }
+      const tagA = mkTag("+ Appreciation", "#00A6DC", 7.048);
+      const tagO = mkTag("+ Opportunity", "#E07BEE", 6.639);
+
+      /* cursor — macOS pointing hand, tip at the element's top-left */
+      /* The cursor has TWO glyphs and switching between them is the whole gesture:
+         the pointing hand for travel and clicks, the closed hand while the card is
+         held and turned over. A single pointer throughout loses the grab entirely. */
+      /* Classic knuckled hand cursors, 32-unit SVGs in assets/. Each entry carries
+         the box size plus the offset from the box origin to the glyph's own top-left,
+         so the tracked tip lands exactly where you aim it rather than wherever the
+         artwork's bounding box happens to start. */
+      const CURSORS = {
+        point: { src: "assets/cursor-point.svg", box: 93.1, ax: 23.3, ay: 23.3 },
+        grab:  { src: "assets/cursor-grab.svg",  box: 113.5, ax: 35.5, ay: 42.1 },
+      };
+      const cursor = mk("", "", true);
+      const curImg = document.createElement("img");
+      curImg.src = CURSORS.point.src;
+      curImg.style.cssText = "width:100%;height:100%;display:block";
+      cursor.el.appendChild(curImg);
+      let curKind = "point";
+
+      /* ================= MOTION ================= */
+
+      /* --- A: band scaleX 0.05 -> 1 (P1), height shrinks 1.16 -> 1, then collapse --- */
+      const A_GROW0 = TF(4.3), A_TAU = 0.168;   // refit on text-ink width, not bbox
+      /* The collapse is NOT the exponential: successive residual ratios RISE
+         (0.97 0.96 0.94 0.92 0.87 0.80 0.61 0.39) = an accelerating ease-in.
+         Normalised travel matches u^2 to within 0.03 at every sample, and the
+         rotation matches u^1.7 — the band is sucked in, it does not relax. */
+      const A_COL = (t) => clamp((t - TF(24)) / ((42 - 24) / FPS), 0, 1);
+      function bandA_sx(t) {
+        if (t < TF(24)) return 0.055 + (1 - 0.055) * E(t - A_GROW0, A_TAU);
+        const u = A_COL(t);
+        return 1 - (1 - 0.308) * u * u;
+      }
+      function bandA_sy(t) {
+        if (t < TF(24)) return 1.16 - 0.16 * E(t - A_GROW0, A_TAU);
+        const u = A_COL(t);
+        return 1 + 0.145 * u * u;
+      }
+      function bandA_rot(t) {
+        if (t < TF(24)) return 0;
+        return -14.4 * Math.pow(A_COL(t), 1.4);
+      }
+
+      /* --- ripple rings: diameter, P1 --- */
+      const ring = (t, t0, d0, d1, tau) => d0 + (d1 - d0) * E(t - t0, tau);
+
+      /* --- generic body: spring-in on y + rotation + volume-conserving squash --- */
+      function springBody(t, t0, restY, ampY, ampRot, fY, fRot) {
+        const u = t - t0;
+        const y = restY + spring(u, ampY, fY === undefined ? 1.45 : fY);
+        const rot = spring(u, ampRot || 0, fRot === undefined ? 2.5 : fRot);
+        /* shape channel leads position, 1.88 Hz */
+        const q = spring(u, -0.42, 1.88) * (ampY < 0 ? 1 : -1);
+        return { y, rot, sx: Math.exp(q / 2), sy: Math.exp(-q / 2) };
+      }
+
+      /* ================= PAINT ================= */
+      function paint(t) {
+        const tf = t * FPS + 1;
+
+        /* ---------- A: selection band ---------- */
+        if (tf < 42) {
+          const sx = bandA_sx(t), sy = bandA_sy(t), rot = bandA_rot(t);
+          const vw = D1((tt) => bandA_sx(tt) * BAND.w, t);
+          /* the TEXT scales anisotropically WITH the band — one horizontal un-scrunch
+             of band and glyphs together, not a wipe over static type. Counter-scaling
+             the label to keep it upright looks correct at rest and then overflows the
+             moment the band collapses. */
+          bandA.el.style.transformOrigin = "50% 50%";
+          bandA.el.style.width = BAND.w * S + "px";
+          bandA.el.style.height = BAND.h * S + "px";
+          bandA.el.style.transform = "";
+          put(bandA, BAND.cx, BAND.cy, BAND.w, BAND.h, 1, 0, vw * 0.5, 0);
+          bandA.el.style.transform =
+            "translate(" + (BAND.cx * S - (BAND.w * S) / 2).toFixed(2) + "px," +
+            (BAND.cy * S - (BAND.h * S) / 2).toFixed(2) + "px)" +
+            " rotate(" + rot.toFixed(3) + "deg) scale(" + sx.toFixed(4) + "," + sy.toFixed(4) + ")";
+
+          /* handles ride the band's live edges */
+          const hw = (BAND.w * sx) / 2, hh = (BAND.h * sy) / 2;
+          const rad = (rot * Math.PI) / 180, cs = Math.cos(rad), sn = Math.sin(rad);
+          const P = (dx, dy) => [BAND.cx + dx * cs - dy * sn, BAND.cy + dx * sn + dy * cs];
+          const [lx, ly] = P(-hw, 0), [rx, ry] = P(hw, 0);
+          const a = clamp((tf - 1) / 3, 0, 1);
+          put(hA.stemL, lx, ly, HANDLE_W, BAND.h * sy, a, rot, 0, 0);
+          put(hA.stemR, rx, ry, HANDLE_W, BAND.h * sy, a, rot, 0, 0);
+          const [ktx, kty] = P(-hw, -hh - KNOB_R + 1), [kbx, kby] = P(hw, hh + KNOB_R - 1);
+          put(hA.knobT, ktx, kty, 2 * KNOB_R, 2 * KNOB_R, a, 0, 0, 0);
+          put(hA.knobB, kbx, kby, 2 * KNOB_R, 2 * KNOB_R, a, 0, 0, 0);
+        } else { HIDE(bandA); HIDE(hA.stemL); HIDE(hA.stemR); HIDE(hA.knobT); HIDE(hA.knobB); }
+
+        /* ---------- ring 1 (blue) ---------- */
+        if (tf >= 42 && tf < 58) {
+          const d = ring(t, TF(42), 117, 400, 0.145);
+          const a = clamp(1 - E(t - TF(48), 0.30), 0, 1);
+          ring1.el.style.width = d * S + "px"; ring1.el.style.height = d * S + "px";
+          put(ring1, 360, 358, null, null, a, 0, 0, 0);
+        } else HIDE(ring1);
+
+        /* ---------- the CTA button: read from the stamped track ---------- */
+        if (tf >= 42 && tf <= 89) {
+          const g = (c) => stamp(PILL, PILL_F0, tf, c);
+          const cx = g(0), cy = g(1), rot = g(2), w = g(3) * PILL_K, h = g(4);
+          const vy = D1((tt) => stamp(PILL, PILL_F0, tt * FPS + 1, 1), t);
+          const vw = D1((tt) => stamp(PILL, PILL_F0, tt * FPS + 1, 3), t) * PILL_K;
+          const inner = pill.el.firstElementChild;
+          inner.style.fontSize = 40 * S + "px";
+          /* the label does not squash with the body: counter-scale to the rest box */
+          inner.style.transform = "scale(" + (clamp(w / (169 * PILL_K), 0.35, 1.6)).toFixed(3) + "," + clamp(h / 78, 0.35, 1.6).toFixed(3) + ")";
+          inner.style.transformOrigin = "50% 50%";
+          inner.style.opacity = clamp((tf - 45) / 4, 0, 1).toFixed(2);
+          put(pill, cx, cy, w, h, clamp((tf - 41.5) / 1.5, 0, 1), rot, vw * 0.4, vy);
+        } else HIDE(pill);
+
+        /* ---------- ring 2 (grey) + "Posted!" ---------- */
+        if (tf >= 90 && tf < 103.5) {
+          const d = ring(t, TF(90), 150, 395, 0.155);
+          const a = clamp(1 - E(t - TF(94), 0.42), 0, 1);
+          ring2.el.style.width = d * S + "px"; ring2.el.style.height = d * S + "px";
+          put(ring2, 362, 372, null, null, a, 0, 0, 0);
+        } else HIDE(ring2);
+
+        if (tf >= 89 && tf < 118) {
+          const SB = (tt) => springBody(tt, TF(89), POSTED.cy, -16, 9, 1.45, 2.5);
+          const b = SB(t);
+          const vy = D1((tt) => SB(tt).y, t);
+          const a = clamp((tf - 89) / 3, 0, 1) * clamp(1 - (tf - 113) / 5, 0, 1);
+          put(posted, POSTED.cx, b.y, POSTED.w * b.sx, POSTED.h * b.sy, a, b.rot, 0, vy);
+        } else HIDE(posted);
+
+        /* ---------- D/E: notification card ---------- */
+        if (tf >= 116 && tf < 238) {
+          /* The card is BORN blank near centre and grows in width while a rotation
+             spring peaks at +14deg and rings down (1.6 Hz, same zeta as everything
+             else). It does not fly in from off-frame — the position barely travels,
+             and the smear you see is the width growth driving P4. Growth-in reads
+             heavier and more physical than translation-in for a body this wide. */
+          const T0 = TF(116), TR = TF(123);
+          /* --- the FLIP: grabbed at f168, turned over from f178.
+                 theta 0->180deg on P1; the visible face swaps at 90deg. --- */
+          const TFLIP = TF(178), FLIP_TAU = 0.135;
+          const theta = (tt) => 180 * E(tt - TFLIP, FLIP_TAU);
+          /* --- the CLICK at f206. The card does not simply leave: it DEFLATES and is
+                 disassembled into its own two contents. The avatar stays put and
+                 becomes the chat avatar; the unread dot escapes right. Nothing appears
+                 from nowhere and nothing vanishes — every element has a lineage. --- */
+          const TCLICK = TF(206);
+          const defl = (tt) => (tt < TCLICK ? 0 : E(tt - TCLICK, 0.038));
+
+          const fx = (tt) => CARD.cx + spring(Math.max(0, tt - T0 - 0.12), 14, 1.45) + 36 * defl(tt);
+          const fy = (tt) => CARD.cy + spring(Math.max(0, tt - T0 - 0.12), -17, 1.45);
+          const x = fx(t), y = fy(t);
+          const rampR = clamp((t - T0) / 0.10, 0, 1);
+          const rot = rampR * spring(Math.max(0, t - TR), 14, 1.6) + 3 * defl(t);
+          const grow = 0.62 + 0.38 * E(t - T0, 0.075);
+          const q = spring(Math.max(0, t - T0 - 0.20), 0.22, 1.88);
+          const flipY = Math.abs(Math.cos((theta(t) * Math.PI) / 180));
+          const w = CARD.w * grow * Math.exp(q / 2) * (1 - 0.45 * defl(t));
+          const h = CARD.h * Math.exp(-q / 2) * flipY * (1 - defl(t));
+          const vx = D1(fx, t) + D1((tt) => CARD.w * (0.62 + 0.38 * E(tt - T0, 0.075)), t) * 0.5;
+          const vy = D1(fy, t) + D1((tt) => CARD.h * Math.abs(Math.cos(theta(tt) * Math.PI / 180)), t) * 0.5;
+
+          const showBack = theta(t) >= 90;
+          faceFront.style.opacity = showBack ? "0" : "1";
+          faceBack.style.opacity = showBack ? "1" : "0";
+          cardDots[0].style.opacity = "0";
+          cardDots[1].style.opacity = tf >= 186 ? "1" : "0";
+          /* the shell arrives first; content resolves two frames later */
+          const cIn = (clamp((tf - 118) / 3, 0, 1) * clamp(1 - (tf - 206) / 2, 0, 1)).toFixed(2);
+          const face = showBack ? faceBack : faceFront;
+          /* contents squash WITH the body (in X only — the flip's Y squash is the
+             body's own foreshortening and the face rides it already) */
+          const sqx = (w / CARD.w).toFixed(4), sqy = clamp(h / CARD.h, 0.001, 2).toFixed(4);
+          face.querySelectorAll(".ctx, .cav").forEach((n) => {
+            n.style.opacity = cIn;
+            n.style.transform = "translateY(-50%) scale(" + sqx + "," + sqy + ")";
+            n.style.transformOrigin = "0% 50%";
+          });
+          const a = clamp((tf - 115) / 2, 0, 1) * clamp(1 - (tf - 207) / 6, 0, 1);
+          put(card, x, y, w, h, a, rot, vx, vy);
+        } else HIDE(card);
+
+        /* ---------- sparkle burst on the notification landing ---------- */
+        SPARKS.forEach((o) => {
+          if (tf < 120 || tf > 128) { HIDE(o); return; }
+          const u = t - TF(120), s = o.meta;
+          const fx = (tt) => s.x + s.vx * (tt - TF(120));
+          const fy = (tt) => s.y + s.vy * (tt - TF(120));
+          const sz = 7 + 45 * u;
+          const a = clamp(u / 0.05, 0, 1) * clamp(1 - (tf - 124) / 4, 0, 1);
+          put(o, fx(t), fy(t), sz, sz, a, 0, s.vx, s.vy);
+        });
+
+        /* ---------- D2: "And also this!" ---------- */
+        WORDS.forEach((o) => {
+          const w = o.meta;
+          if (tf < w.f || tf > 206) { HIDE(o); return; }
+          const t0 = TF(w.f);
+          const fy = (tt) => w.y + spring(tt - t0, 34, 1.45);
+          const y = fy(t), vy = D1(fy, t);
+          const rot = w.rot + spring(t - t0, -7, 2.5);
+          const a = clamp(E(t - t0, 0.07), 0, 1) * clamp(1 - (tf - 203) / 3, 0, 1);
+          put(o, w.x, y, o.bw, o.bh, a, rot, 0, vy);
+        });
+
+        /* The chat column leaves LEFT, smeared.
+
+           Declared HERE, above the first block that uses it. A `const` sits in the
+           temporal dead zone until its declaration, so referencing it from an
+           earlier block throws inside paint() — and a composition that throws
+           mid-paint still renders a perfectly valid, perfectly blank video. Keep
+           shared helpers above every consumer. */
+        const CHAT_OUT = TF(319);
+        const chatX = (tt) => (tt < CHAT_OUT ? 0 : -110 * E(tt - CHAT_OUT, 0.075));
+
+        /* ---------- F/G: avatar + typing bubble ---------- */
+        if (tf >= 209) {
+          const t0 = TF(209);
+          const fy = (tt) => AV.cy + spring(tt - t0, 26, 1.45);
+          /* it stays a ghost at 0.42 opacity while the dot is still travelling and
+             solidifies only once the dot has landed — so the dot bounces off
+             something that is still materialising */
+          const av = tf < 214 ? 0
+                   : tf < 223 ? 0.42 * clamp((tf - 213) / 3, 0, 1)
+                   : 0.42 + 0.58 * E(t - TF(221), 0.075);
+          const a = clamp(av, 0, 1) * clamp(1 - (tf - 320) / 4, 0, 1);
+          const fxA = (tt) => AV.cx + chatX(tt);
+          /* it does not appear at full size — it is the card's own avatar swelling
+             out of the deflating body, d 77 -> 122 */
+          const rA = 36 + (AV.r - 36) * E(t - TF(210), 0.18);
+          const y = fy(t), vy = D1(fy, t);
+          put(avatar, fxA(t), y, 2 * rA, 2 * rA, a, 0, D1(fxA, t), vy);
+        } else HIDE(avatar);
+
+        /* ---------- the escaping unread dot BECOMES the typing bubble ----------
+           Measured (blue mask, f211-f226): the card's blue dot leaves (552,378),
+           flies left and GROWS d 8 -> 55, overshooting to x=312 (f224) before
+           settling back to ~324 — a position spring. It then fades blue -> white
+           (f224-232) and the white disc STRETCHES into the 139x47 bubble, which
+           itself overshoots to w157 (f242) before settling to 137. One body, three
+           costumes — v8 had the bubble simply appear from nothing. */
+        /* ---------- the escaping dot BOUNCES OFF the avatar, then becomes the
+           typing bubble ----------
+           Note the velocity profile, because it is the opposite of an ease-out: the
+           dot ACCELERATES at a near-constant ~4700 px/s^2 to a peak of -1011 px/s,
+           then slams to a stop in four frames against the avatar's right edge and
+           rebounds at +196 px/s — restitution ~0.19. Building this as an exponential
+           approach (fast, then easing to rest) is the obvious mistake and it reads as
+           slow and soft, because a relaxation decelerates into a target where this
+           accelerates into a wall.
+
+           Like the CTA, an impact with a rebound gets a STAMPED per-frame track.
+           [cx, cy, diameter]. ---------- */
+        const DOT_F0 = 211;
+        const DOT = [
+          [552.2, 378.5,  8.1], [555.8, 375.7,  7.9], [550.3, 371.1,  9.0], [539.4, 364.7, 11.7],
+          [522.9, 358.2, 16.0], [500.4, 353.0, 22.6], [471.4, 348.6, 31.0], [439.1, 346.1, 37.2],
+          [405.4, 344.8, 41.8], [371.7, 344.0, 47.1], [343.4, 343.1, 50.4], [323.2, 341.0, 52.2],
+          [312.6, 338.6, 53.2], [312.1, 335.7, 54.2], [317.4, 333.7, 55.4], [323.9, 331.1, 54.9],
+        ];
+        if (tf >= 211 && tf < 276) {
+          const g = (c) => stamp(DOT, DOT_F0, Math.min(tf, 226), c);
+          const dcx = g(0), dcy = g(1), dd = g(2);
+          const vxD = D1((tt) => stamp(DOT, DOT_F0, clamp(tt * FPS + 1, 211, 226), 0), t);
+          const vyD = D1((tt) => stamp(DOT, DOT_F0, clamp(tt * FPS + 1, 211, 226), 1), t);
+          /* from f227 the white disc stretches into the bubble, growing mostly
+             rightward: left edge 296 -> 284, right edge 351 -> 423 */
+          const st = tf < 227 ? 0 : E(t - TF(227), 0.115);
+          const L0 = dcx - dd / 2, R0 = dcx + dd / 2;
+          const LE = L0 + (284 - L0) * st;
+          const RE = R0 + (423 - R0) * st + spring(Math.max(0, t - TF(227) - 0.30), 16, 1.45) * st;
+          const wS = tf < 227 ? dd : RE - LE;
+          const hS = dd + (TYPING.h - dd) * st;
+          const x = tf < 227 ? dcx : (LE + RE) / 2;
+          const y = dcy + (TYPING.cy - dcy) * st;
+          /* the dot washes cyan -> white as it becomes a bubble */
+          const wash = clamp((tf - 222) / 5, 0, 1);
+          const mx = (a, b) => Math.round(a + (b - a) * wash);
+          typing.el.style.background = "rgb(" + mx(0, 255) + "," + mx(195, 255) + "," + mx(255, 255) + ")";
+          typing.el.style.boxShadow = wash < 0.55 ? "none"
+            : "0 " + 4.5 * S + "px " + 9 * S + "px rgba(0,0,0,0.075), 0 " + 21 * S + "px " + 42 * S + "px rgba(0,0,0,0.065)";
+          /* the three dots cycle — the only sustained loop in the film */
+          const ph = (t - TF(243)) / 0.52;
+          dots.forEach((d, i) => {
+            const k = (ph - i * 0.13) % 1;
+            const lift = k > 0 && k < 0.42 ? Math.sin((k / 0.42) * Math.PI) : 0;
+            d.style.transform = "translateY(" + (-5 * lift * S).toFixed(2) + "px) scale(" + (1 + 0.16 * lift).toFixed(3) + ")";
+            d.style.opacity = (clamp((tf - 240) / 5, 0, 1) * (0.55 + 0.45 * lift)).toFixed(2);
+          });
+          const a = clamp((tf - 211) / 2, 0, 1) * clamp(1 - (tf - 271) / 4, 0, 1);
+          put(typing, x, y, wS, hS, a, 0, tf < 227 ? vxD : 0, tf < 227 ? vyD : 0);
+        } else HIDE(typing);
+
+        /* ---------- H: "Smooth, bro!" ---------- */
+        if (tf >= 272 && tf < 330) {
+          const t0 = TF(272);
+          const fy = (tt) => MSG1.cy + spring(tt - t0, 30, 1.45);
+          const fx = (tt) => MSG1.cx + chatX(tt);
+          const y = fy(t);
+          const rot = spring(t - t0, -8, 2.5);
+          const q = spring(t - t0, 0.26, 1.88);
+          const a = clamp(E(t - t0, 0.06), 0, 1) * clamp(1 - (tf - 320) / 4, 0, 1);
+          put(msg1, fx(t), y, MSG1.w * Math.exp(q / 2), MSG1.h * Math.exp(-q / 2), a, rot, D1(fx, t), D1(fy, t));
+        } else HIDE(msg1);
+
+        /* ---------- H2/I2: the two tags ---------- */
+        function tag(o, t0f, t1f, x, y0) {
+          if (tf < t0f || tf > t1f) { HIDE(o); return; }
+          const t0 = TF(t0f);
+          const fy = (tt) => y0 + spring(tt - t0, 20, 1.45);
+          const y = fy(t);
+          const a = clamp(E(t - t0, 0.06), 0, 1) * clamp(1 - (tf - (t1f - 7)) / 7, 0, 1);
+          put(o, x, y, o.bw, o.bh, a, spring(t - t0, -6, 2.5), 0, D1(fy, t));
+        }
+        tag(tagA, 273, 288, 356, 245);
+        tag(tagO, 299, 322, 360, 236);
+
+        /* ---------- I / J: the closing line, three costumes ----------
+           I   f298-316  chat bubble flies in from the right, blurred, spring-parks
+           I2  f316-330  bubble dissolves; the line grows fs25 -> 37 and re-centres
+           J   f335-353  highlight sweeps outward from the caret over STATIC type
+           J2  f354-364  highlight + type collapse together back to a caret          */
+        const L2_T0 = TF(298), L2_GROW = TF(316), L2_BAND = TF(335), L2_END = TF(354);
+        if (tf >= 298) {
+          /* the body's own path: bubble slot -> frame centre */
+          const toCentre = (tt) => (tt < L2_GROW ? 0 : E(tt - L2_GROW, 0.115));
+          const fx = (tt) => {
+            const parked = MSG2.cx - 46 * (1 - E(tt - L2_T0, 0.105));
+            return parked + (360 - parked) * toCentre(tt);
+          };
+          const fy = (tt) => {
+            const parked = MSG2.cy + spring(tt - L2_T0, 34, 1.45);
+            return parked + (357 - parked) * toCentre(tt);
+          };
+          /* The final collapse is an X-ONLY squeeze: the caret keeps its full height
+             while the width closes to nothing. A uniform shrink reads as the text
+             flying away; an X-squeeze reads as a selection collapsing to a cursor. */
+          const gsu = clamp((tf - 354) / 8, 0, 1);
+          const gs = tf < 354 ? 1 : Math.max(0.09, 1 - gsu * gsu);
+          const x = fx(t), y = fy(t), vx = D1(fx, t), vy = D1(fy, t);
+
+          /* --- the bubble shell --- */
+          if (tf < 330) {
+            const q = spring(t - L2_T0, 0.24, 1.88);
+            const rot = 8 * (1 - E(t - L2_T0, 0.11)) + spring(t - L2_T0, -6, 2.5);
+            const a = clamp(E(t - L2_T0, 0.05), 0, 1) * clamp(1 - (tf - 314) / 10, 0, 1);
+            const g2 = 0.55 + 0.45 * E(t - L2_T0, 0.085);
+            put(msg2, x, y, MSG2.w * g2 * Math.exp(q / 2), MSG2.h * Math.exp(-q / 2), a, rot, vx, vy);
+          } else HIDE(msg2);
+
+          /* --- the type: X-squeezed by gs, height untouched --- */
+          const fs = 25 + (FS_SEL - 25) * toCentre(t);
+          line2.el.style.fontSize = (fs * S).toFixed(2) + "px";
+          const rotT = tf < 316 ? 8 * (1 - E(t - L2_T0, 0.11)) + spring(t - L2_T0, -6, 2.5) : 0;
+          put(line2, x, y, LINE2_EM * fs * CAL_SX, fs * 1.02,
+              clamp(E(t - L2_T0, 0.05), 0, 1) * (tf > 358 ? clamp(1 - (tf - 358) / 3, 0, 1) : 1), rotT, vx, vy);
+          if (tf >= 354) {
+            line2.el.style.transform =
+              "translate(" + (x * S - (LINE2_EM * fs * CAL_SX * S) / 2).toFixed(2) + "px," +
+              (y * S - (fs * 1.02 * S) / 2).toFixed(2) + "px) scale(" + gs.toFixed(4) + ",1)";
+          }
+
+          /* --- the highlight, swept over static type --- */
+          if (tf >= 333) {
+            const sw = (0.05 + 0.95 * E(t - L2_BAND, A_TAU)) * gs;
+            const bw = BAND.w * sw, bh = BAND.h;
+            put(selRect, 360, 357, bw, bh, 1, 0, D1((tt) => BAND.w * (0.05 + 0.95 * E(tt - L2_BAND, A_TAU)) * 0.5, t), 0);
+            const hw = bw / 2, hh = bh / 2, kr = KNOB_R;
+            put(hJ.stemL, 360 - hw, 357, HANDLE_W, bh, 1, 0, 0, 0);
+            put(hJ.stemR, 360 + hw, 357, HANDLE_W, bh, 1, 0, 0, 0);
+            put(hJ.knobT, 360 - hw, 357 - hh - kr + 1, 2 * kr, 2 * kr, 1, 0, 0, 0);
+            put(hJ.knobB, 360 + hw, 357 + hh + kr - 1, 2 * kr, 2 * kr, 1, 0, 0, 0);
+          } else { HIDE(selRect); HIDE(hJ.stemL); HIDE(hJ.stemR); HIDE(hJ.knobT); HIDE(hJ.knobB); }
+        } else {
+          HIDE(msg2); HIDE(line2); HIDE(selRect);
+          HIDE(hJ.stemL); HIDE(hJ.stemR); HIDE(hJ.knobT); HIDE(hJ.knobB);
+        }
+
+        /* ---------- the cursor: waypoints, P1 between them ---------- */
+        /* [frame, tipX, tipY]. Park THROUGH a boundary rather than starting a new
+             leg exactly on a frame you want crisp: P4 differentiates this path, and a
+             piecewise path is only C0, so the derivative spikes at every waypoint and
+             smears whatever is meant to be sitting still. */
+        const CUR = [
+          [59, 520, 322], [64, 505, 340], [69, 420, 396], [78, 344, 373], [84, 344, 379], [92, 338, 348], [110, 338, 348],
+          [118, 470, 392], [123, 540, 404], [160, 540, 404], [168, 345, 283],
+          [172, 339, 276], [178, 340, 290], [186, 340, 400], [193, 340, 535], [199, 341, 535], [203, 341, 470],
+          [206, 342, 373], [212, 342, 375],
+        ];
+        function curXY(tt) {
+          const f = tt * FPS + 1;
+          if (f <= CUR[0][0]) return [CUR[0][1], CUR[0][2]];
+          for (let i = 0; i < CUR.length - 1; i++) {
+            if (f <= CUR[i + 1][0]) {
+              const g = E(tt - TF(CUR[i][0]), 0.085);
+              return [CUR[i][1] + (CUR[i + 1][1] - CUR[i][1]) * g, CUR[i][2] + (CUR[i + 1][2] - CUR[i][2]) * g];
+            }
+          }
+          return [CUR[CUR.length - 1][1], CUR[CUR.length - 1][2]];
+        }
+        if (tf >= 59 && tf <= 216) {
+          const [x, y] = curXY(t);
+          const vx = D1((tt) => curXY(tt)[0], t), vy = D1((tt) => curXY(tt)[1], t);
+          /* glyph swap: closed hand while the card is grabbed and turned over */
+          const wantKind = tf >= 166 && tf < 196 ? "grab" : "point";
+          if (wantKind !== curKind) { curImg.src = CURSORS[wantKind].src; curKind = wantKind; }
+          const C = CURSORS[wantKind];
+          /* THE TAP. Two clicks: the button (f84) and the card (f206). A press is a fast
+             dip DOWN plus a squeeze, recovering on the spring. Without it the cursor
+             sits at a constant size next to something that suddenly reacts, and the
+             whole beat reads as a freeze rather than a click. */
+          function tap(t0f) {
+            const u = t - TF(t0f);
+            if (u < 0) return [0, 1];
+            if (u < 0.0667) { const k = u / 0.0667; return [5 * k, 1 - 0.12 * k]; }
+            const back = clamp(1 + spring(u - 0.0667, -1, 3.2), 0, 1);
+            const k = clamp(1 - back, 0, 1);
+            return [5 * k, 1 - 0.12 * k];
+          }
+          let dy = 0, sc = 1;
+          if (tf >= 82 && tf <= 98) { const r = tap(83); dy = r[0]; sc = r[1]; }
+          else if (tf >= 205 && tf <= 216) { const r = tap(206); dy = r[0]; sc = r[1]; }
+          /* place the box so its silhouette's top-left lands on the tracked tip */
+          const bx = C.box * sc, off = { x: C.ax * sc, y: C.ay * sc };
+          put(cursor, x - off.x + bx / 2, y + dy - off.y + bx / 2, bx, bx,
+              clamp((tf - 59) / 2, 0, 1) * clamp(1 - (tf - 210) / 6, 0, 1), 0, vx, vy);
+        } else HIDE(cursor);
+      }
+
+      /* ---------- timeline ---------- */
+      window.__timelines = window.__timelines || {};
+      const drv = { p: 0 };
+      const tl = gsap.timeline({ paused: true });
+      tl.to(drv, { p: 1, duration: 12.1333, ease: "none", onUpdate: () => paint(tl.time()) }, 0);
+      paint(0);
+      window.__timelines["heygen-bouncy-ui"] = tl;
+    </script>
+  </body>
+</html>

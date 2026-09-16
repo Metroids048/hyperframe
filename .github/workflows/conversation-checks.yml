@@ -45,6 +45,9 @@ jobs:
       - name: Core regressions (no paid providers)
         working-directory: video-agent
         run: node scripts/verify-editor.mjs core
+      - name: Delivered workspace integrity and preservation
+        working-directory: video-agent
+        run: python scripts/test-workspace-delivery.py
       - name: Legacy creation and server regressions
         working-directory: video-agent
         run: node scripts/acceptance.mjs

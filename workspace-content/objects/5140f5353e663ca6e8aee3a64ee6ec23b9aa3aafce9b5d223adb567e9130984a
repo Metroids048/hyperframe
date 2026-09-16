@@ -1,0 +1,599 @@
+<template>
+  <div data-hf-id="hf-ob5i" id="s3" data-composition-id="s3" data-start="0" data-duration="8.375" data-width="1080" data-height="1080" style="position: relative; width: 1080px; height: 1080px; overflow: hidden; background: #0E1524;">
+    <style>
+      /* S3 (K8 -> K9 -> K10) — the grid flyover, ported from
+         projects/active/sth-grid-flyover/. THAT project's HANDOFF.md is the authority
+         on every curve; all of them are measured off
+         _tools/video-reverse/reversals/grid-sting/. Port changes only:
+           - :root custom properties moved to #s3-scene (the camera drives them via
+             getElementById, and the stitcher renames a composition root to "<id>-slot")
+           - EVERY selector scoped under #s3, including the `*` reset
+           - docking plane matched to S2's last frame: #0E1524, the paused gradient
+             plate, wordmark 26.77px / sub 7.84px (x4.5003 opening scale = S2's 120.5/35.3)
+           - the sub TEXT tracks S2's .vwsub, which became the promo's trusted-by line when
+             the video output was rebuilt. Both sides of a match cut or neither.
+           - serif is the self-hosted Copernicus, same as S2, so preview == render
+             across the seam (both sides changed together, so the match cut still holds) */
+      /* Anthropic's house serif, lifted from the Claude paper launch
+         (projects/active/claude-paper/fonts). Times-adjacent but not Times, which is
+         what the serif register here was reaching for with Georgia. Book is the only
+         weight we have (usWeightClass 500, italicAngle 0) — the 400-700 range is
+         declared deliberately so the renderer never SYNTHESISES a bold or an oblique
+         off it. That synthesis is exactly what got TT Norms Pro thrown out of this
+         project. Self-hosted so preview == render (Georgia was being aliased to
+         EB Garamond by the renderer). */
+      @font-face { font-family: "Copernicus"; src: url("assets/fonts/GalaxieCopernicus-Book.woff2") format("woff2");
+                   font-weight: 400 700; font-style: normal; font-display: block; }
+      /* opacity 1 to match S2's plate, which came off .42 on Jake's note. These two are
+         either side of a match cut — if one changes the other must. */
+      #s3 .dockplate { position: absolute; inset: 0; width: 240px; height: 240px;
+        object-fit: cover; opacity: 1; }
+      #s3-scene {
+        --paper: #f0eee6;
+        --card: #fbfaf6;
+        --canvas: #f3f1ea;
+        --ink: #262521;
+        --ink-soft: #3d3929;
+        --muted: #8a8574;
+        --line: rgba(38, 37, 33, 0.1);
+        --coral: #d97757;
+        --coral-deep: #c6613f;
+        --navy: #1b2233;
+        --navy-ink: #edeff4;
+        /* camera: Z = 1.0 is the K9 wide wall; 2.2376 is "one window fills the frame" */
+        --z: 2.2376;
+        --cx: 540;
+        --cy: 540;
+        /* the docking plane's own scale, on top of the camera (keyframe-overlap rig) */
+        --dock: 2.0112;
+      }
+      #s3 * { margin: 0; padding: 0; box-sizing: border-box; }
+
+      /* Scene-space layers. The camera is evaluated in calc() at paint time, not in an
+         onUpdate callback — seek-safe, and every layer is guaranteed in lockstep.
+         --ox/--oy is each layer's own origin in wall coordinates. */
+      #s3 .cam {
+        position: absolute;
+        left: 0;
+        top: 0;
+        transform-origin: 0 0;
+        transform: translate(
+            calc((540 + var(--z) * (var(--ox) - var(--cx))) * 1px),
+            calc((540 + var(--z) * (var(--oy) - var(--cy))) * 1px)
+          )
+          scale(var(--z));
+      }
+      #s3 .full { position: absolute; inset: 0; width: 1080px; height: 1080px; }
+
+      /* PUBLIC BUILD: the licensed liquid plate is not shipped, so #ground carries the wall again
+         — this is the paper radial it had before the plate went in, restored verbatim. */
+      #s3 #ground {
+        background: radial-gradient(120% 90% at 50% 8%, #f4f2eb 0%, var(--paper) 55%, #eae7db 100%);
+      }
+      #s3 #grain {
+        position: absolute; inset: 0; z-index: 90; pointer-events: none; opacity: 0;
+        mix-blend-mode: overlay;
+        background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1.2px),
+          radial-gradient(rgba(0, 0, 0, 0.15) 1px, transparent 1.2px);
+        background-size: 3px 3px, 5px 5px;
+        background-position: 0 0, 1px 2px;
+      }
+
+      /* ---- wall window (K9 design pass, verbatim tokens) ---- */
+      #s3 .cdwin {
+        position: absolute; background: #fdfcfa; border-radius: 10px;
+        border: 1px solid rgba(38, 37, 33, 0.08);
+        box-shadow: 0 18px 44px rgba(38, 33, 26, 0.13);
+        overflow: hidden; display: flex; flex-direction: column;
+      }
+      #s3 .cw-top {
+        height: 26px; flex: 0 0 26px; display: flex; align-items: center; gap: 8px; padding: 0 10px;
+        border-bottom: 1px solid rgba(38, 37, 33, 0.07); font-size: 8.5px; color: #8a8574;
+      }
+      #s3 .cw-top .ttab { color: #3d3929; font-weight: 600; }
+      #s3 .cw-top .proj { padding-left: 8px; border-left: 1px solid rgba(38, 37, 33, 0.1); }
+      #s3 .cw-top .share { margin-left: auto; }
+      #s3 .cw-top .export { background: #14130f; color: #fff; border-radius: 5px; padding: 2.5px 8px; font-weight: 600; }
+      #s3 .cw-tools {
+        height: 22px; flex: 0 0 22px; display: flex; align-items: center; gap: 7px; padding: 0 10px;
+        border-bottom: 1px solid rgba(38, 37, 33, 0.06); font-size: 7.5px; color: #9a968a;
+      }
+      #s3 .cw-tools .tw { display: flex; align-items: center; gap: 3px; color: #6e6a5e; font-weight: 600; }
+      #s3 .cw-tools .tog { width: 16px; height: 9px; border-radius: 5px; background: #63b37a; position: relative; }
+      #s3 .cw-tools .tog i { position: absolute; right: 1px; top: 1px; width: 7px; height: 7px; border-radius: 50%; background: #fff; }
+      #s3 .cw-body { flex: 1; display: flex; min-height: 0; }
+      #s3 .cw-rail {
+        width: 31%; flex: 0 0 31%; border-right: 1px solid rgba(38, 37, 33, 0.06);
+        padding: 7px 8px; display: flex; flex-direction: column; gap: 4.5px;
+        font-size: 7.5px; color: #8a8574; background: #f9f7f2;
+      }
+      #s3 .cw-rail .you { color: #3d3929; font-weight: 600; }
+      #s3 .cw-rail .step { display: flex; align-items: center; gap: 4px; }
+      #s3 .cw-rail .step i { width: 6px; height: 6px; border-radius: 2px; border: 1px solid #63b37a; background: #dff2e5; flex: 0 0 6px; }
+      #s3 .cw-rail .step s { text-decoration: line-through; opacity: 0.65; }
+      #s3 .cw-rail .comp {
+        margin-top: auto; border: 1px solid rgba(38, 37, 33, 0.12); border-radius: 6px;
+        padding: 4px 6px; font-size: 7px; color: #a9a599; background: #fff;
+      }
+      #s3 .cw-canvas {
+        flex: 1; position: relative; display: flex; align-items: center; justify-content: center;
+        overflow: hidden; background: #f3f1ea;
+        background-image: radial-gradient(rgba(38, 37, 33, 0.045) 0.8px, transparent 1px);
+        background-size: 14px 14px;
+      }
+      #s3 .cw-frame { border-radius: 6px; box-shadow: 0 8px 22px rgba(20, 19, 15, 0.22); overflow: hidden; position: relative; }
+      #s3 .serifw { font-family: "Copernicus", Georgia, serif; }
+
+      /* ---- the docking plane: Meridian's canvas frame, which opens the film full-bleed ---- */
+      #s3 #dock {
+        position: absolute; left: 420px; top: 420px; width: 240px; height: 240px;
+        z-index: 30; transform-origin: 50% 50%; transform: scale(var(--dock));
+        border-radius: 6px; background: #0E1524;
+        box-shadow: 0 0 0 4px #0E1524, 0 8px 22px rgba(20, 19, 15, 0.22);
+        display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8.3px;
+        overflow: hidden;
+      }
+      /* weight 400 not 700: S2's Georgia wordmark is regular, and 700 put 42% more
+         ink on the glyphs across the seam */
+      /* 38.8px -> 26.77px, re-matched after S2's .vword came down 84 -> 58 (it was
+         overflowing the frame). The match cut needs identical on-frame ink: S2 renders
+         58 x 2.07692 = 120.46px, and this dock opens at scale 4.5003, so 120.46/4.5003
+         = 26.77px. If either side moves again, re-derive the other from that identity. */
+      /* position: relative is LOAD-BEARING. .dockplate is position:absolute, and CSS paints
+         positioned descendants ABOVE in-flow content in the same stacking context — so once
+         the plate went from opacity .42 to 1 it covered these two spans completely and S3's
+         first frame was bare gradient with no wordmark. At .42 the text had been showing
+         THROUGH the plate, which is why it looked fine before. Making the text positioned
+         puts it back on top. Same reason S2 is unaffected: its .pscene/.vend layers are
+         already absolute, so they already paint above #s2-plate. */
+      #s3 #dock .kick { position: relative; z-index: 1;
+        color: #F3F4ED; font-size: 26.77px; font-weight: 400; letter-spacing: 0.04em; }
+      #s3 #dock .stat { position: relative; z-index: 1;
+        color: rgba(243, 244, 237, 0.62); font-size: 7.84px; letter-spacing: 0.02em; }
+      #s3 #dock .sub { display: none; }
+      /* the dim the import card lands over — lifts as the plane lets go */
+      #s3 #dockdim { position: absolute; inset: 0; background: #0d1220; opacity: 0; }
+
+      /* ---- import card (screen space — it is UI, not part of the plane) ---- */
+      #s3 #card {
+        position: absolute; z-index: 40; left: 260px; top: 452px; width: 560px;
+        background: #fbfaf6; border: 1px solid var(--line); border-radius: 18px;
+        padding: 20px 22px; box-shadow: 0 34px 80px rgba(0, 0, 0, 0.5);
+        transform-origin: 50% 50%;
+      }
+      #s3 #card .tc-head { display: flex; align-items: center; gap: 12px; color: var(--ink-soft); }
+      #s3 #card .tc-name { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 14px; color: var(--ink-soft); }
+      #s3 #card .tc-ok { margin-left: auto; color: #5e8a55; font-size: 15px; font-weight: 600; }
+      #s3 #card .widget {
+        margin-top: 14px; padding-top: 14px; display: flex; gap: 16px; align-items: center;
+        border-top: 1px solid var(--line);
+      }
+      #s3 #card .thumb {
+        width: 110px; height: 110px; flex: 0 0 110px; border-radius: 6px; background: #0E1524;
+        display: flex; align-items: center; justify-content: center;
+        color: #edeff4; font-size: 30px; font-weight: 700; font-family: "Copernicus", Georgia, serif;
+      }
+      #s3 #card .wt { font-size: 18px; font-weight: 600; color: var(--ink); }
+      #s3 #card .ws { font-size: 14px; color: var(--muted); margin-top: 2px; }
+      #s3 #card .open { margin-left: auto; font-size: 16px; color: var(--coral-deep); font-weight: 600; }
+
+      /* ---- oversized house cursor ---- */
+      #s3 .cursor { position: absolute; z-index: 70; filter: drop-shadow(0 2px 5px rgba(6, 10, 18, 0.46)); }
+      #s3 .ring {
+        position: absolute; z-index: 69; width: 74px; height: 74px; margin: -37px 0 0 -37px;
+        border-radius: 50%; border: 4px solid var(--coral); opacity: 0;
+      }
+
+      /* ---- K10: project B, entered ---- */
+      /* project B is authored at its natural 1040x930 and scaled into the 470x420 wall
+         slot, so the camera can push all the way in without a scene change. */
+      #s3 #projB { position: absolute; width: 1040px; height: 930px; transform-origin: 0 0; transform: scale(0.451923); }
+      #s3 #k10win {
+        position: absolute; left: 0; top: 0; width: 1040px; height: 930px;
+        background: var(--card); border-radius: 16px; border: 1px solid var(--line);
+        box-shadow: 0 34px 70px rgba(38, 33, 26, 0.2), 0 4px 14px rgba(38, 33, 26, 0.08);
+        overflow: hidden; display: flex; flex-direction: column;
+      }
+      #s3 .cd-bar {
+        height: 52px; flex: 0 0 52px; display: flex; align-items: center; gap: 12px; padding: 0 16px;
+        border-bottom: 1px solid var(--line); background: var(--card);
+      }
+      #s3 .cd-mark { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 600; color: var(--ink); }
+      #s3 .cd-proj { font-size: 14px; color: var(--ink-soft); padding: 5px 12px; background: #efece3; border-radius: 8px; }
+      #s3 .cd-kind { font-size: 12px; color: var(--coral-deep); border: 1px solid rgba(198, 97, 63, 0.35); padding: 3px 9px; border-radius: 999px; }
+      #s3 .tabs { display: flex; gap: 3px; margin-left: auto; background: #ece9e0; border-radius: 9px; padding: 3px; }
+      #s3 .tab { font-size: 12.5px; padding: 4px 11px; border-radius: 7px; color: var(--muted); }
+      #s3 .tab.on { background: #fffefb; color: var(--ink); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07); }
+      #s3 .abtn.primary { font-size: 13px; padding: 6px 13px; border-radius: 9px; background: var(--ink); color: #fbfaf6; border: 1px solid var(--ink); }
+      #s3 .cd-body { flex: 1; display: flex; min-height: 0; }
+      #s3 .rail {
+        width: 296px; flex: 0 0 296px; border-right: 1px solid var(--line); display: flex;
+        flex-direction: column; padding: 16px 14px; gap: 14px; background: #f7f5ef;
+      }
+      #s3 .umsg { background: #ece9df; border: 1px solid var(--line); border-radius: 13px; padding: 11px 13px; font-size: 13.5px; line-height: 1.5; color: var(--ink); }
+      #s3 .amsg { display: flex; gap: 9px; }
+      #s3 .atext { font-size: 13.5px; line-height: 1.55; color: var(--ink-soft); padding-top: 3px; }
+      #s3 .rail-composer { margin-top: auto; border: 1.5px solid var(--line); border-radius: 13px; background: #fffefb; padding: 11px 12px 9px; }
+      #s3 .rail-composer .ph { font-size: 13.5px; color: var(--muted); }
+      #s3 .composer-row { display: flex; align-items: center; margin-top: 9px; }
+      #s3 .model { font-size: 11.5px; color: var(--muted); }
+      #s3 .sendbtn { margin-left: auto; width: 28px; height: 28px; border-radius: 8px; background: var(--coral); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 14px; }
+      #s3 .canvaswrap {
+        flex: 1; background: var(--canvas); position: relative; display: flex; align-items: center;
+        justify-content: center; min-width: 0;
+        background-image: radial-gradient(rgba(38, 37, 33, 0.05) 1px, transparent 1.4px);
+        background-size: 22px 22px;
+      }
+      #s3 .frame { width: 82%; aspect-ratio: 16 / 9; border-radius: 10px; position: relative; background: #f0eee6; box-shadow: 0 16px 44px rgba(38, 33, 26, 0.18); }
+      #s3 .menu {
+        position: absolute; right: 14px; top: 10px; opacity: 0; transform-origin: 100% 0; width: 264px; background: #fffefb;
+        border: 1px solid var(--line); border-radius: 14px;
+        box-shadow: 0 24px 60px rgba(38, 33, 26, 0.22); padding: 7px; z-index: 20;
+      }
+      #s3 .mhead { font-size: 11px; color: var(--muted); padding: 7px 11px 4px; letter-spacing: 0.05em; }
+      #s3 .mi { display: flex; align-items: center; gap: 11px; padding: 9px 11px; border-radius: 9px; font-size: 14px; color: var(--ink-soft); }
+      /* NOT pre-hovered: neutral like its neighbours until the cursor lands on it */
+      #s3 .mi.on { background: transparent; color: var(--ink-soft); }
+      #s3 .mi .glyph { width: 22px; height: 22px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 11.5px; background: #ece9e0; color: var(--muted); }
+      #s3 .msep { height: 1px; background: var(--line); margin: 6px 4px; }
+    </style>
+
+    <div data-hf-id="hf-22qj" id="s3-scene" style="position: absolute; inset: 0; background: #0E1524;
+         font-family: 'Avenir Next', 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #262521;">
+
+
+      <!-- ============ K8 -> K9 : the plane, the wall, the pull ============ -->
+      <section data-hf-id="hf-gvvy" id="scene" class="clip full" data-start="0" data-duration="8.375" data-track-index="0" style="overflow: hidden">
+        <div data-hf-id="hf-qdfg" id="ground" class="full"></div>
+        <div data-hf-id="hf-p5vs" id="world" class="cam" style="--ox: 0; --oy: 0; width: 10px; height: 10px"></div>
+        <div data-hf-id="hf-55rf" id="card">
+          <div data-hf-id="hf-kn72" class="tc-head">
+            <span data-hf-id="hf-7187" style="width: 30px; height: 30px; border-radius: 8px; flex: 0 0 30px; background: url(assets/ORB.svg) center/cover no-repeat"></span>
+            <span data-hf-id="hf-y8vk" class="tc-name">import-claude-design-from-url</span>
+            <span data-hf-id="hf-j4c6" class="tc-ok">✓ Imported</span>
+          </div>
+          <div data-hf-id="hf-at44" class="widget">
+            <div data-hf-id="hf-0iob" class="thumb">2.4M</div>
+            <div data-hf-id="hf-yeow">
+              <div data-hf-id="hf-tun6" class="wt">meridian-launch</div>
+              <div data-hf-id="hf-cyx5" class="ws">HyperFrames project · draft</div>
+            </div>
+            <span data-hf-id="hf-7hwi" class="open">Open in HyperFrames →</span>
+          </div>
+        </div>
+        <div data-hf-id="hf-diuv" id="ring1" class="ring"></div>
+        <div data-hf-id="hf-pge8" id="cur1" class="cursor" style="left: -38.61px; top: -24.71px">
+          <!-- house pointing hand, as S1/S2. Its ink tip is at (0.386, 0.25) of the
+               140px box = (54.04, 35.0); the arrow it replaced had its tip at
+               (15.43, 10.29). left/top carry that exact delta, so every existing
+               x/y in the timeline — including the tip-targeted "S0X - 15, S0Y - 10"
+               click — still puts the tip on the same pixel. -->
+          <img data-hf-id="hf-medc" src="assets/pointinghand.svg" width="140" height="140" alt="">
+        </div>
+      </section>
+
+
+      <div data-hf-id="hf-f6d6" id="grain">
+    </div>
+
+    <script>
+      /* ================= the wall ================= */
+      // K9's lattice: window 470x420, pitch 510x460. The Meridian tile is placed so that
+      // ITS CANVAS FRAME centre sits at wall (540,540) — that makes the pull a pure
+      // centre-anchored zoom, exactly as measured on the reference.
+      var COLS = [-1297.85, -787.85, -277.85, 232.15, 742.15];
+      var ROWS = [-154, 306, 766];
+
+      function art(kind) {
+        switch (kind) {
+          case "night":
+            return '<div class="cw-frame" style="width:44%;aspect-ratio:9/16;background:linear-gradient(#1A1030,#2A1B4E);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px"><span class="serifw" style="color:#EFEAFE;font-size:12px">Looking South-East</span><div style="width:70%;height:38%;position:relative"><i style="position:absolute;left:12%;top:20%;width:3px;height:3px;border-radius:50%;background:#fff"></i><i style="position:absolute;left:40%;top:8%;width:2px;height:2px;border-radius:50%;background:#fff"></i><i style="position:absolute;left:66%;top:30%;width:3px;height:3px;border-radius:50%;background:#B8A2FF"></i><i style="position:absolute;left:28%;top:52%;width:2px;height:2px;border-radius:50%;background:#fff"></i><i style="position:absolute;left:55%;top:66%;width:9px;height:9px;border-radius:50%;background:#F08A4B"></i></div><span style="color:#B8A2FF;font-size:8px">Betelgeuse &middot; rises 9:42</span></div>';
+          case "crm":
+            return '<div class="cw-frame" style="width:86%;aspect-ratio:16/10;background:#EAF2EA;padding:8px"><div style="font-size:9px;font-weight:700;color:#1F2A1F">ACME &middot; Proposal Pipeline</div><div style="font-size:7px;color:#7A8578">7 active deals &mdash; $4.2M total</div><div style="margin-top:6px;display:flex;flex-direction:column;gap:4px"><div style="height:9px;border-radius:3px;background:#fff;width:92%"></div><div style="height:9px;border-radius:3px;background:#fff;width:78%"></div><div style="height:9px;border-radius:3px;background:#CDE8CF;width:60%"></div></div></div>';
+          case "lava":
+            return '<div class="cw-frame" style="width:64%;aspect-ratio:1/1;background:#12100E;display:flex;align-items:center;justify-content:center"><div style="width:34px;height:52px;border-radius:45%;background:radial-gradient(circle at 40% 30%,#FF7A59,#C2372B);filter:blur(1px)"></div></div>';
+          case "house":
+            return '<div class="cw-frame" style="width:88%;aspect-ratio:16/10;background:linear-gradient(#C9CDBD,#AEB89E 70%,#8FA383 70%)"><div style="position:absolute;left:30%;bottom:30%;width:40%;height:26%;background:#E8E2D2;box-shadow:inset 0 -4px 0 #6E7A62"></div><div style="position:absolute;left:18%;bottom:28%;width:9px;height:26px;background:#3E5A40;clip-path:polygon(50% 0,100% 100%,0 100%)"></div><div style="position:absolute;left:76%;bottom:28%;width:11px;height:32px;background:#3E5A40;clip-path:polygon(50% 0,100% 100%,0 100%)"></div></div>';
+          case "globe":
+            return '<div class="cw-frame" style="width:80%;aspect-ratio:4/3;background:#0A1416;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px"><span class="serifw" style="color:#E8F4F2;font-size:13px;text-align:center">Every place<br><span style="color:#6FD9C4;font-style:italic">has a story.</span></span><div style="width:52px;height:52px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#14343A,#0C2226);box-shadow:inset -6px -6px 14px rgba(0,0,0,.5),0 0 12px rgba(111,217,196,.25)"></div></div>';
+          case "dna":
+            return '<div class="cw-frame" style="width:86%;aspect-ratio:16/10;background:#0B0B0B;display:flex;align-items:center;justify-content:center;gap:10px"><span class="serifw" style="color:#F0EEE6;font-size:12px;font-style:italic">The Double Helix</span><svg width="60" height="44" viewBox="0 0 60 44"><path d="M4 4c14 12 38 24 52 36M4 40C18 28 42 16 56 4" stroke="#E8C34B" stroke-width="2" fill="none"/><circle cx="16" cy="14" r="2.4" fill="#E8C34B"/><circle cx="30" cy="22" r="2.4" fill="#E8C34B"/><circle cx="44" cy="30" r="2.4" fill="#E8C34B"/></svg></div>';
+          case "egg":
+            return '<div class="cw-frame" style="width:56%;aspect-ratio:1/1;background:#F6EEDC;display:flex;align-items:center;justify-content:center"><div style="width:52px;height:66px;border-radius:50% 50% 46% 46%;background:#FDFBF4;box-shadow:0 6px 14px rgba(90,70,20,.25);display:flex;align-items:center;justify-content:center"><div style="width:24px;height:24px;border-radius:50%;background:#F4B93C;display:flex;align-items:center;justify-content:center;color:#5A430C;font-size:6px;font-weight:700">9:44</div></div></div>';
+          case "quote":
+            return '<div class="cw-frame" style="width:86%;aspect-ratio:16/10;background:#FBFAF6;display:flex;align-items:center;justify-content:center;padding:10px"><span class="serifw" style="color:#3D3929;font-size:10px;font-style:italic;text-align:center;line-height:1.5">&ldquo;The plaque was written for readers who do not yet exist.&rdquo;</span></div>';
+          case "retreat":
+            return '<div class="cw-frame" style="width:86%;aspect-ratio:16/10;background:#E7DFD1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px"><div style="width:64%;height:42%;border-radius:3px;background:linear-gradient(#6E7F55,#3F4E33)"></div><span class="serifw" style="color:#4A4436;font-size:10px">Big Sur &amp; Surroundings</span><span style="font-size:6.5px;color:#8A8574;letter-spacing:.14em">OCT 7 &ndash; 9 &middot; 48 PEOPLE</span></div>';
+          case "brand":
+            return '<div class="cw-frame" style="width:86%;aspect-ratio:16/10;background:#F2EBD8;display:flex;align-items:center;justify-content:center;gap:8px"><div style="width:30px;height:30px;border-radius:50%;background:#4C6350"></div><div style="display:flex;gap:3px"><i style="display:block;width:13px;height:26px;border-radius:2px;background:#8C6A4A"></i><i style="display:block;width:13px;height:26px;border-radius:2px;background:#C7BBA6"></i><i style="display:block;width:13px;height:26px;border-radius:2px;background:#5D7B6B"></i></div></div>';
+          case "chart":
+            return '<div class="cw-frame" style="width:86%;aspect-ratio:16/10;background:#7C8CA8;display:flex;align-items:flex-end;justify-content:center;gap:4px;padding:12px"><i style="display:block;width:9px;height:22%;background:#D8E0EC"></i><i style="display:block;width:9px;height:38%;background:#D8E0EC"></i><i style="display:block;width:9px;height:52%;background:#D8E0EC"></i><i style="display:block;width:9px;height:71%;background:#EDF2F8"></i><i style="display:block;width:9px;height:88%;background:#EDF2F8"></i></div>';
+          case "finance":
+            return '<div class="cw-frame" style="width:86%;aspect-ratio:16/10;background:#EEF0F4;padding:8px"><div style="font-size:8px;font-weight:700;color:#2A3140">Transport &middot; Entertainment</div><div style="margin-top:6px;display:flex;flex-direction:column;gap:3px"><div style="height:8px;border-radius:2px;background:#fff;width:88%"></div><div style="height:8px;border-radius:2px;background:#fff;width:70%"></div><div style="height:8px;border-radius:2px;background:#D9DEE8;width:54%"></div></div></div>';
+          case "connect":
+            return '<div class="cw-frame" style="width:86%;aspect-ratio:16/10;background:#F0EEE6;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px"><span class="serifw" style="color:#262521;font-size:11px">Claude Design <span style="color:#C6613F">&rarr;</span> HyperFrames</span><span style="font-size:6px;color:#8A8574;letter-spacing:.16em">TRY THE CONNECTION</span></div>';
+          default:
+            return "";
+        }
+      }
+
+      // col index (into COLS) x row index (into ROWS). Meridian = col 3 / row 1.
+      var TILES = [
+        [0, 0, "brand",   "Create a brand ide&hellip;", "Cormorant &amp; Co",   ["Logo mark + pairing", "Palette"]],
+        [1, 0, "retreat", "Design a 5-page la&hellip;", "Hemlock Retreat",      ["Cover + event cards", "Schedule spread"]],
+        [2, 0, "night",   "Help me design a&hellip;",   "Night Sky",            ["Constellation canvas", "Events list"]],
+        [3, 0, "chart",   "Let's prototype&hellip;",    "Signals Report",       ["Bar system", "Annotations"]],
+        [4, 0, "lava",    "Design a notifi&hellip;",    "Lava lamp",            ["Metaball blobs"]],
+
+        [0, 1, "finance", "Build a spend rev&hellip;", "Monthly Spend",         ["Category rollup", "Transactions"]],
+        [1, 1, "connect", "Make a launch film&hellip;", "try-the-connection",   ["Paper + one accent", "Ends on the send"]],
+        [2, 1, "house",   "Help me build an in&hellip;", "Miller residence",    ["Low-poly house", "Time-of-day slider"]],
+        [3, 1, "MERIDIAN", "Make a launch ani&hellip;", "meridian-launch",      ["Stat reel + snap ease", "Wordmark resolve"]],
+        [4, 1, "globe",   "Interactive landing&hellip;", "Every place",         ["Great-circle arcs"]],
+
+        [0, 2, "quote",   "Create a visual inv&hellip;", "The Quiet Disapp&hellip;", ["Pull-quote system"]],
+        [1, 2, "crm",     "Let's prototype&hellip;",    "Proposal Pipeline",    ["Workspace shell", "Deal cards"]],
+        [2, 2, "dna",     "Create an interact&hellip;", "DNA Double Helix",     ["Base-pair ladder"]],
+        [3, 2, "egg",     "Design an egg-sha&hellip;",  "Egg phone",            ["Yolk clock widget"]],
+        [4, 2, "brand",   "Design a packagin&hellip;",  "Understory",           ["Three packaging designs"]]
+      ];
+
+      var PROJB_HTML = `<div id="k10win">
+          <div class="cd-bar">
+            <div class="cd-mark">
+              <span style="width:26px;height:26px;flex:0 0 26px;display:inline-block"><svg width="26" height="26" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="w-full" fill="hsl(14.8, 63.1%, 59.6%)"><path d="m19.6 66.5 19.7-11 .3-1-.3-.5h-1l-3.3-.2-11.2-.3L14 53l-9.5-.5-2.4-.5L0 49l.2-1.5 2-1.3 2.9.2 6.3.5 9.5.6 6.9.4L38 49.1h1.6l.2-.7-.5-.4-.4-.4L29 41l-10.6-7-5.6-4.1-3-2-1.5-2-.6-4.2 2.7-3 3.7.3.9.2 3.7 2.9 8 6.1L37 36l1.5 1.2.6-.4.1-.3-.7-1.1L33 25l-6-10.4-2.7-4.3-.7-2.6c-.3-1-.4-2-.4-3l3-4.2L28 0l4.2.6L33.8 2l2.6 6 4.1 9.3L47 29.9l2 3.8 1 3.4.3 1h.7v-.5l.5-7.2 1-8.7 1-11.2.3-3.2 1.6-3.8 3-2L61 2.6l2 2.9-.3 1.8-1.1 7.7L59 27.1l-1.5 8.2h.9l1-1.1 4.1-5.4 6.9-8.6 3-3.5L77 13l2.3-1.8h4.3l3.1 4.7-1.4 4.9-4.4 5.6-3.7 4.7-5.3 7.1-3.2 5.7.3.4h.7l12-2.6 6.4-1.1 7.6-1.3 3.5 1.6.4 1.6-1.4 3.4-8.2 2-9.6 2-14.3 3.3-.2.1.2.3 6.4.6 2.8.2h6.8l12.6 1 3.3 2 1.9 2.7-.3 2-5.1 2.6-6.8-1.6-16-3.8-5.4-1.3h-.8v.4l4.6 4.5 8.3 7.5L89 80.1l.5 2.4-1.3 2-1.4-.2-9.2-7-3.6-3-8-6.8h-.5v.7l1.8 2.7 9.8 14.7.5 4.5-.7 1.4-2.6 1-2.7-.6-5.8-8-6-9-4.7-8.2-.5.4-2.9 30.2-1.3 1.5-3 1.2-2.5-2-1.4-3 1.4-6.2 1.6-8 1.3-6.4 1.2-7.9.7-2.6v-.2H49L43 72l-9 12.3-7.2 7.6-1.7.7-3-1.5.3-2.8L24 86l10-12.8 6-7.9 4-4.6-.1-.5h-.3L17.2 77.4l-4.7.6-2-2 .2-3 1-1 8-5.5Z"></path></svg></span>
+              Claude <span style="font-weight: 400; color: var(--muted)">Design</span>
+            </div>
+            <span class="cd-proj">try-the-connection</span><span class="cd-kind">Animation</span>
+            <div class="tabs"><span class="tab on">Design</span><span class="tab">Code</span></div>
+            <span class="abtn primary">Share &#9662;</span>
+          </div>
+          <div class="cd-body">
+            <div class="rail">
+              <div class="umsg">Make a launch film for the Claude Design &rarr; HyperFrames connection itself.</div>
+              <div class="amsg">
+                <span style="width:26px;height:26px;flex:0 0 26px;display:inline-block"><svg width="26" height="26" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="w-full" fill="hsl(14.8, 63.1%, 59.6%)"><path d="m19.6 66.5 19.7-11 .3-1-.3-.5h-1l-3.3-.2-11.2-.3L14 53l-9.5-.5-2.4-.5L0 49l.2-1.5 2-1.3 2.9.2 6.3.5 9.5.6 6.9.4L38 49.1h1.6l.2-.7-.5-.4-.4-.4L29 41l-10.6-7-5.6-4.1-3-2-1.5-2-.6-4.2 2.7-3 3.7.3.9.2 3.7 2.9 8 6.1L37 36l1.5 1.2.6-.4.1-.3-.7-1.1L33 25l-6-10.4-2.7-4.3-.7-2.6c-.3-1-.4-2-.4-3l3-4.2L28 0l4.2.6L33.8 2l2.6 6 4.1 9.3L47 29.9l2 3.8 1 3.4.3 1h.7v-.5l.5-7.2 1-8.7 1-11.2.3-3.2 1.6-3.8 3-2L61 2.6l2 2.9-.3 1.8-1.1 7.7L59 27.1l-1.5 8.2h.9l1-1.1 4.1-5.4 6.9-8.6 3-3.5L77 13l2.3-1.8h4.3l3.1 4.7-1.4 4.9-4.4 5.6-3.7 4.7-5.3 7.1-3.2 5.7.3.4h.7l12-2.6 6.4-1.1 7.6-1.3 3.5 1.6.4 1.6-1.4 3.4-8.2 2-9.6 2-14.3 3.3-.2.1.2.3 6.4.6 2.8.2h6.8l12.6 1 3.3 2 1.9 2.7-.3 2-5.1 2.6-6.8-1.6-16-3.8-5.4-1.3h-.8v.4l4.6 4.5 8.3 7.5L89 80.1l.5 2.4-1.3 2-1.4-.2-9.2-7-3.6-3-8-6.8h-.5v.7l1.8 2.7 9.8 14.7.5 4.5-.7 1.4-2.6 1-2.7-.6-5.8-8-6-9-4.7-8.2-.5.4-2.9 30.2-1.3 1.5-3 1.2-2.5-2-1.4-3 1.4-6.2 1.6-8 1.3-6.4 1.2-7.9.7-2.6v-.2H49L43 72l-9 12.3-7.2 7.6-1.7.7-3-1.5.3-2.8L24 86l10-12.8 6-7.9 4-4.6-.1-.5h-.3L17.2 77.4l-4.7.6-2-2 .2-3 1-1 8-5.5Z"></path></svg></span>
+                <div class="atext">Done — paper, ink, one coral accent. It ends on the send itself. Ready when you are.</div>
+              </div>
+              <div class="rail-composer">
+                <div class="ph">Reply to Claude&hellip;</div>
+                <div class="composer-row"><span class="model">Claude Fable 5</span><span class="sendbtn">&uarr;</span></div>
+              </div>
+            </div>
+            <div class="canvaswrap">
+              <div class="frame">
+                <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px">
+                  <div style="font-family: 'Copernicus', Georgia, serif; font-size: 30px; color: var(--ink)">
+                    Claude Design <span style="color: var(--coral-deep)">&rarr;</span> HyperFrames
+                  </div>
+                  <div style="font-size: 11px; color: var(--muted); letter-spacing: 0.1em">TRY THE CONNECTION</div>
+                </div>
+              </div>
+              <div class="menu" id="pbmenu">
+                <div class="mhead">EXPORT</div>
+                <div class="mi"><span class="glyph">&#10515;</span> Download HTML</div>
+                <div class="mi"><span class="glyph">C</span> Export to Canva</div>
+                <div class="mi"><span class="glyph">P</span> PDF / PowerPoint</div>
+                <div class="msep"></div>
+                <div class="mhead">CONNECTORS</div>
+                <div class="mi on" id="pbhf">
+                  <img src="assets/ORB.svg" style="width: 22px; height: 22px; border-radius: 6px; object-fit: cover; flex: 0 0 22px" alt="" />
+                  Send to HyperFrames
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>`;
+
+      var world = document.getElementById("world");
+      for (var i = 0; i < TILES.length; i++) {
+        var t = TILES[i];
+        var isMeridian = t[2] === "MERIDIAN";
+        var isProjB = t[0] === 1 && t[1] === 1;
+        // the two windows the camera lands on must not mirror — K10 has its rail on the LEFT
+        var flip = !isMeridian && !isProjB && (t[0] + t[1]) % 3 === 2 ? "flex-direction:row-reverse;" : "";
+        var steps = "";
+        for (var s = 0; s < t[5].length; s++) steps += '<span class="step"><i></i><s>' + t[5][s] + "</s></span>";
+        var el = document.createElement("div");
+        if (isProjB) {
+          // The window the camera ends inside is the REAL one, authored at 1040x930 and
+          // scaled into the slot — so the push runs all the way in with no scene change.
+          el.className = "cdwin";
+          el.style.cssText = "left:" + COLS[t[0]] + "px;top:" + ROWS[t[1]] + "px;width:470px;height:420px;";
+          el.innerHTML = '<div id="projB">' + PROJB_HTML + "</div>";
+          world.appendChild(el);
+          continue;
+        }
+        el.className = "cdwin";
+        el.style.cssText = "left:" + COLS[t[0]] + "px;top:" + ROWS[t[1]] + "px;width:470px;height:420px;";
+        el.innerHTML =
+          '<div class="cw-top"><span class="ttab">' + t[3] + '</span><span class="proj">Project | ' + t[4] +
+          '</span><span class="share">Share</span><span class="export">Export</span></div>' +
+          '<div class="cw-tools"><span class="tw"><span class="tog"><i></i></span> Tweaks</span><span>Comment</span>' +
+          "<span>Edit text</span><span>Knobs</span><span>Draw</span><span style=\"margin-left:auto\">100%</span></div>" +
+          '<div class="cw-body" style="' + flip + '"><div class="cw-rail"><span class="you">You</span><span>' +
+          t[4] + '&hellip;</span>' + steps + '<div class="comp">Describe what you want to create&hellip;</div></div>' +
+          '<div class="cw-canvas">' + (isMeridian ? "" : art(t[2])) + "</div></div>";
+        world.appendChild(el);
+      }
+
+      // The Meridian canvas frame lives OUTSIDE its window so it can overscale past the
+      // window's overflow:hidden and open the film full-bleed. At scale 1.0 it lands
+      // exactly in the slot the window left empty — no swap, no dissolve.
+      var dock = document.createElement("div");
+      dock.id = "dock";
+      // the import card deliberately sits over this plane at K8
+      dock.setAttribute("data-layout-allow-overlap", "");
+      dock.innerHTML =
+        '<img class="dockplate" src="assets/navy-paused.png" alt="">' +
+        '<span class="kick serifw">MERIDIAN</span><span class="stat">NORTHVANE &#183; CASSIA &#183; HALDEN</span>' +
+        '<div id="dockdim"></div>';
+      world.appendChild(dock);
+
+      /* ================= the camera ================= */
+      // Curves measured off the reference flyover (grid.mp4), fitted in LINEAR space —
+      // the space GSAP interpolates in. See
+      // projects/_tools/video-reverse/reversals/grid-sting/spec/SPEC.md §3 / §6b.
+      function cubicBezier(x1, y1, x2, y2) {
+        var bx = function (t) { return 3 * (1 - t) * (1 - t) * t * x1 + 3 * (1 - t) * t * t * x2 + t * t * t; };
+        var by = function (t) { return 3 * (1 - t) * (1 - t) * t * y1 + 3 * (1 - t) * t * t * y2 + t * t * t; };
+        return function (p) {
+          if (p <= 0) return 0;
+          if (p >= 1) return 1;
+          var lo = 0, hi = 1, t = p;
+          for (var i = 0; i < 40; i++) { if (bx(t) < p) lo = t; else hi = t; t = (lo + hi) / 2; }
+          return by(t);
+        };
+      }
+      var EASE_Z_OUT = cubicBezier(0.3834, 0.0432, 0.0808, 1.0196);
+      var EASE_Y_OUT = cubicBezier(0.3598, -0.0272, 0.2527, 0.9937);
+      var EASE_PAN = cubicBezier(0.55, 0.006, 0.162, 0.946);
+      var EASE_Z_IN = cubicBezier(0.5489, 0.1423, 0.1358, 0.8693);
+      var EASE_Y_IN = cubicBezier(0.5891, 0.482, 0.1088, 0.9575);
+      var EASE_THRU = cubicBezier(0.3965, 0.0646, 0.72, 0.0247);
+      var EASE_THRU_Y = cubicBezier(0.334, 0.043, 0.6504, -0.0838);
+      var EASE_THRU_X = cubicBezier(0.4217, 0.0185, 0.6811, 0.021);
+
+      var F = 1 / 24;
+      var root = document.getElementById("s3-scene");
+      var tl = gsap.timeline({ paused: true });
+
+      // grain is grade, and S1/S2 carry none — hold it off the seam frame and bring it
+      // up over the first 14 frames so the join matches and the grade arrives unseen
+      tl.to("#grain", { opacity: 0.5, duration: 14 * F, ease: "none" }, 0);
+
+      // --- K8: the card lands, the cursor simply enters frame (no click — Jake, 2026-08-06)
+      tl.fromTo("#card", { y: 46, opacity: 0 }, { y: 0, opacity: 1, duration: 12 * F, ease: EASE_Z_OUT }, 0);
+      // the dim is CAUSED by the card arriving; it lifts again when the plane lets go
+      tl.to("#dockdim", { opacity: 0.55, duration: 12 * F, ease: EASE_Z_OUT }, 0);
+      // The cursor enters ON the card's landing (overlap) and moves fast from the start —
+      // the pan ease has too slow a head here and left it parked off-frame for 14 frames.
+      // The cursor enters low-left, well clear of the card and its "Open in HyperFrames"
+      // pill — it is presence, not an actor. It causes nothing; the plane simply lets go.
+      // Two overlapping legs so the entrance arcs instead of arriving and stopping, and the
+      // second carries x LINEARLY (a single ease-out tail goes sub-pixel and leaves ~13
+      // dead frames here).
+      // parked at PARSE, not by a tl.set at position 0 (which does not render on frame 0
+       // and would show the cursor in the corner on S3's first frame — the match-cut frame)
+      gsap.set("#cur1", { x: -100, y: 1120 });
+      // Jake: it arrives WITH the zoom-out, and then stays on for one continuous run.
+      // x runs LINEARLY the whole way (8.3 px/frame) so the cursor is never momentarily
+      // static — an ease-out tail on a travel this short goes sub-pixel and reads as frozen.
+      tl.to("#cur1", { x: 300, duration: 36 * F, ease: "none", force3D: false }, 50 * F);
+      tl.to("#cur1", { y: 830, duration: 36 * F, ease: "power1.out", force3D: false }, 50 * F);
+      // still drifting out when the plane lets go — it never comes to rest on screen
+      // (no exit here — it used to drift out at k78 and get re-set at k118, which read as
+      // the cursor randomly leaving mid-pan. It now stays on screen for one continuous run.)
+
+      // --- the dock: Meridian's plane lets go 8 frames BEFORE the camera moves.
+      // Two stages on one subject, overlapped, so the composite never flattens
+      // (keyframe-overlap). k50..k74.
+      tl.to(root, { "--dock": 1, duration: 24 * F, ease: EASE_Z_OUT, force3D: false }, 50 * F);
+      tl.to("#dockdim", { opacity: 0, duration: 14 * F, ease: "power1.out" }, 50 * F);
+      // The import card docks INTO the Meridian tile — it is the seam's carrier, and the
+      // tile is now its own landing. The orange "Sent ✓" pill that used to pop here was
+      // removed on Jake's note; the card still shrinks to 0.42 on the tile's own position
+      // and fades there, so the eye is handed to the tile rather than to a badge. Nothing
+      // else was retimed — only the badge tween is gone.
+      tl.to("#card", { scale: 0.42, opacity: 0, duration: 13 * F, ease: EASE_Z_OUT, force3D: false }, 50 * F);
+
+      // --- B: the pull. k58..k82, with the measured curve retargeted and a slow tail to
+      // k92 so the zoom is still alive under the pan's soft start (the reference dead-stops
+      // here; see grid-sting QC.md §T3).
+      var Z0 = 2.2376, Z1 = 1.0, ZMID = 1.0696, KB = 58, KBEND = 92;
+      function c01(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+      function zAt(kk) {
+        return Z0 + EASE_Z_OUT(c01((kk - KB) / 24)) * (ZMID - Z0) + c01((kk - 76) / 16) * (Z1 - ZMID);
+      }
+      tl.to(root, {
+        "--z": Z1, duration: (KBEND - KB) * F, force3D: false,
+        ease: function (p) { return (zAt(KB + p * (KBEND - KB)) - Z0) / (Z1 - Z0); }
+      }, KB * F);
+      tl.to(root, { "--cy": 560, duration: 24 * F, ease: EASE_Y_OUT, force3D: false }, 58 * F);
+
+      // --- C: pure horizontal pan, camera LEFT across the wall.
+      // 1093 wall px = 1.012 screen widths (the reference travelled 0.92). Lands exactly on
+      // project B's window centre so the push that follows keeps camX locked, as measured.
+      // Started at k78 rather than the reference's k82 and run over 28 frames so it ends on
+      // the same beat: the pan is already alive while the zoom-out's tail dies, which is what
+      // keeps the apex off zero. (In the 1:1 replica this cost 517px of divergence and was
+      // rejected; here there is no reference frame to match, so it is free.)
+      // Runs 2 frames PAST the push's start too, so the pan is still travelling when the
+      // camera turns into the window — the turn arcs instead of stopping and restarting.
+      tl.to(root, { "--cx": -552.85, duration: 30 * F, ease: EASE_PAN, force3D: false }, 78 * F);
+
+      // --- D: ONE continuous push, ANCHORED ON THE SHARE BUTTON. k106..k160.
+      //
+      // A true zoom-toward-a-point: the button holds a CONSTANT screen position for the
+      // whole move and everything expands around it, so there is no lateral wander to
+      // read as "drifting to a random spot then following the cursor up". camX/camY are
+      // not choreographed — they fall out of Z:
+      //     cam(Z) = P - (s0 - 540) / Z
+      // where P is the button in wall coords and s0 is where it already sits on screen
+      // when the push begins. Both axes therefore share one ease derived from the Z curve.
+      var ZF = 8.6; // final zoom (10 was a touch too far — pill was 31% of frame, now 27%)
+      var PX = -341.8, PY = 317.75; // Share pill centre, wall coords
+      // camX at k106 is whatever the pan has reached — evaluate it rather than assume, so
+      // the anchor is exact and the button does not drift.
+      var CX0 = 540 + EASE_PAN(28 / 30) * -1092.85,
+        CY0 = 560;
+      var S0X = PX - CX0 + 540,
+        S0Y = PY - CY0 + 540; // button's screen position, held for the whole push
+      var CXF = PX - (S0X - 540) / ZF,
+        CYF = PY - (S0Y - 540) / ZF;
+      var anchorEase = function (p) {
+        var z = 1 + EASE_Z_IN(p) * (ZF - 1);
+        return (1 - 1 / z) / (1 - 1 / ZF);
+      };
+      tl.to(root, { "--z": ZF, duration: 44 * F, ease: EASE_Z_IN, force3D: false }, 106 * F);
+      tl.to(root, { "--cx": CXF, duration: 44 * F, ease: anchorEase, force3D: false }, 106 * F);
+      tl.to(root, { "--cy": CYF, duration: 44 * F, ease: anchorEase, force3D: false }, 106 * F);
+
+      // --- the cursor comes back for the one click in the film, landing on Share while
+      // the camera is still settling
+      // one continuous travel from the entrance straight to the button, overlapped into
+      // the entrance leg so it never comes to rest between them
+      tl.to("#cur1", { x: S0X - 15, y: S0Y - 10, duration: 64 * F, ease: EASE_PAN, force3D: false }, 82 * F);
+      tl.set("#ring1", { x: S0X, y: S0Y }, 149 * F);
+      tl.fromTo("#ring1", { scale: 0.35, opacity: 0.6, transformOrigin: "50% 50%" },
+        { scale: 1.4, opacity: 0, duration: 13 * F, ease: "power2.out", immediateRender: false }, 150 * F);
+
+      // --- the menu SNAPS open from under the button (the reference's morph does not ease
+      // open — one frame to most of the way, then settle), rows waterfall in.
+      tl.fromTo("#pbmenu", { opacity: 0, scaleX: 0.86, scaleY: 0.42 },
+        { opacity: 1, scaleX: 1, scaleY: 1, duration: 10 * F, ease: "power3.out", immediateRender: false }, 151 * F);
+      tl.fromTo("#pbmenu .mi", { opacity: 0, y: -7 },
+        { opacity: 1, y: 0, duration: 5 * F, stagger: 1.3 * F, ease: "power2.out", immediateRender: false }, 152 * F);
+
+      // --- E: the camera PANS DOWN through the menu as it unrolls. At Z 10 the menu is
+      // 1193 x 1356 px — larger than the frame both ways — so this reads as travelling down
+      // it. It ends with the coral connector row dead centre. Starts while the menu is
+      // still opening, so the reveal and the move overlap.
+      tl.to(root, { "--cy": 428.47, duration: 27 * F, ease: "power2.out", force3D: false }, 150 * F);
+      tl.to(root, { "--cx": -383.83, duration: 27 * F, ease: "power2.out", force3D: false }, 150 * F);
+
+      // and the cursor rides down to the row that is the whole point
+      tl.to("#cur1", { x: 540, y: 542, duration: 17 * F, ease: EASE_PAN, force3D: false }, 160 * F);
+
+      // --- the row takes its coral hover state only once the cursor is on it, then the
+      // click, then the whole scene leaves LEFT (cut-the-curve, the film's current).
+      tl.to("#pbhf", { backgroundColor: "#d97757", color: "#ffffff",
+        duration: 5 * F, ease: "power1.out" }, 175 * F);
+      tl.set("#ring1", { x: 566, y: 566 }, 180 * F);
+      tl.fromTo("#ring1", { scale: 0.35, opacity: 0.6, transformOrigin: "50% 50%" },
+        { scale: 1.4, opacity: 0, duration: 13 * F, ease: "power2.out", immediateRender: false }, 181 * F);
+      tl.to("#pbhf", { backgroundColor: "#c6613f", duration: 3 * F, ease: "power2.out" }, 181 * F);
+      tl.to("#cur1", { scale: 0.9, duration: 3 * F, ease: "power2.in",
+        transformOrigin: "38.6% 25%" }, 181 * F);
+      tl.to("#cur1", { scale: 1, duration: 5 * F, ease: "power2.out",
+        transformOrigin: "38.6% 25%" }, 184 * F);
+      // exit LEFT, still accelerating at the cut (power4.in), the cut lands at k201
+      // 13 frames but the comp ends at k201, so the cut lands at 85% of the travel with
+      // the scene still accelerating: x = -137, v = 1198 px/s. S4 enters mirrored.
+      tl.to("#scene", { x: -268, duration: 13 * F, ease: "power4.in" }, 190 * F);
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["s3"] = tl;
+    </script>
+  </div>
+</div></template>

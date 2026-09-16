@@ -1,6 +1,6 @@
 # 对话式视频剪辑
 
-运行 `powershell -ExecutionPolicy Bypass -File .\start-local.ps1`，打开 [本地工作台](http://127.0.0.1:3020/)。上传素材或选择真实样例，在聊天里描述剪法，预览后继续修改；需要成片时再导出 MP4。`/` 与 `/edit` 都进入剪辑，早期图片生成器保留在 `/create`。
+运行 `python start.py all`（Windows 也可运行 `start-local.ps1`）。启动器恢复仓库附带工程、安装锁定依赖并构建当前页面，打开终端打印的实际地址。`/` 是电商视频创作首页，顶部作品下拉框包含米家 V2；`/edit` 保留旧剪辑入口，早期图片生成器保留在 `/create`。完整内容与恢复方法见[仓库说明](../README.md)。
 
 支持单素材和多素材，每个素材和成片最多 10 分钟，最高 1080p，时间线使用 30fps。普通字幕不会自动朗读；明确绑定生成旁白的字幕改词会同步更新那条旁白。导出固定到被请求版本，导出期间可以继续聊天编辑。
 
@@ -58,5 +58,4 @@ Windows，Node 22+，Chrome。依赖锁定在 package-lock.json，运行 `npm ci
 - `outputs/storyboard.json` 保存分镜，`outputs/status.json` 保存最近编排状态。
 
 这是便于看效果的第一版，不等同于已完成公司 API 集成的生产服务。
-
 

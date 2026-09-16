@@ -16,6 +16,8 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
+import importlib.util
 import json
 import os
 import socket
@@ -37,10 +39,13 @@ OUTPUTS = ROOT / "outputs"
 PID_FILE = OUTPUTS / "server.pid"
 LOG_FILE = OUTPUTS / "server.log"
 ERR_FILE = OUTPUTS / "server-error.log"
-PORT = int(os.environ.get("VIDEO_AGENT_PORT", "3020"))
+PORT_FILE = OUTPUTS / "server-port"
+SAVED_PORT = PORT_FILE.read_text().strip() if PORT_FILE.exists() else "3020"
+PORT = int(os.environ.get("VIDEO_AGENT_PORT", SAVED_PORT if SAVED_PORT.isdigit() else "3020"))
 HOST = "127.0.0.1"
 BASE = f"http://{HOST}:{PORT}"
 WORKBENCH = f"{BASE}/"
+WORKSPACE_ID = hashlib.sha256((ROOT.as_posix().lower() if os.name == "nt" else ROOT.as_posix()).encode()).hexdigest()
 
 
 def node_bin() -> str:
@@ -103,7 +108,7 @@ def editor_ok() -> bool:
 
 def ready() -> bool:
     h = health()
-    return bool(h and h.get("ok") and editor_ok())
+    return bool(h and h.get("ok") and h.get("workspaceId") == WORKSPACE_ID and h.get("workbench") == "commerce" and editor_ok())
 
 
 def read_pid() -> int | None:
@@ -139,6 +144,7 @@ def port_in_use() -> bool:
 
 
 def build_frontend() -> None:
+    prepare_checkout()
     subprocess.run([node_bin(), str(ROOT / "scripts/workspace-context.mjs"), "--fetch-soft"], cwd=ROOT, check=True)
     print(f"构建前端 -> {ROOT / 'web-dist'}")
     result = subprocess.run(
@@ -150,15 +156,52 @@ def build_frontend() -> None:
     print("前端构建完成。")
 
 
-def start_backend(*, rebuild: bool = False) -> None:
-    if ready():
-        print(f"后端已在运行：{WORKBENCH}")
+def prepare_checkout() -> None:
+    node = node_bin()
+    if not (ROOT / "node_modules/esbuild/package.json").exists() or not (ROOT / "node_modules/hyperframes/package.json").exists():
+        npm = shutil_which("npm.cmd" if os.name == "nt" else "npm")
+        npm_cli = Path(node).parent / "node_modules/npm/bin/npm-cli.js"
+        if npm_cli.exists():
+            command = [node, str(npm_cli)]
+        elif npm:
+            command = [npm]
+        else:
+            raise SystemExit("需要 npm 安装项目锁定依赖，请安装包含 npm 的 Node 22+。")
+        subprocess.run(command + ["ci", "--no-audit", "--no-fund"], cwd=ROOT, check=True)
+    spec = importlib.util.spec_from_file_location("workspace_content", ROOT / "scripts/workspace-content.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    module.restore()
+
+
+def select_workspace_port() -> None:
+    global PORT, BASE, WORKBENCH
+    if not port_in_use() or ready():
         return
-    web_dist = ROOT / "web-dist" / "editor.html"
+    old_port = PORT
+    for candidate in range(PORT + 1, PORT + 101):
+        PORT = candidate
+        if not port_in_use():
+            BASE = f"http://{HOST}:{PORT}"
+            WORKBENCH = f"{BASE}/"
+            os.environ["VIDEO_AGENT_PORT"] = str(PORT)
+            print(f"端口 {old_port} 属于其他或旧版工作台；当前工程使用 {WORKBENCH}")
+            return
+    raise SystemExit("未找到可用工作台端口。")
+
+
+def start_backend(*, rebuild: bool = False) -> None:
+    select_workspace_port()
+    prepare_checkout()
+    web_dist = ROOT / "web-dist" / "commerce.html"
     if rebuild or not web_dist.exists():
         build_frontend()
     elif not rebuild:
         print("跳过前端构建（已有 web-dist）。需要重建时用：python start.py frontend")
+
+    if ready():
+        print(f"当前工程后端已在运行：{WORKBENCH}")
+        return
 
     OUTPUTS.mkdir(parents=True, exist_ok=True)
     if port_in_use():
@@ -187,6 +230,7 @@ def start_backend(*, rebuild: bool = False) -> None:
     stdout.close()
     stderr.close()
     PID_FILE.write_text(str(proc.pid), encoding="utf-8")
+    PORT_FILE.write_text(str(PORT), encoding="utf-8")
     print(f"后端已启动，PID {proc.pid}，等待 http://{HOST}:{PORT} ...")
 
     deadline = time.time() + 20
