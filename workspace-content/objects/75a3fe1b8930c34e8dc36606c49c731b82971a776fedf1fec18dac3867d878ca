@@ -1,0 +1,67 @@
+{
+  "mode": "variant",
+  "scenario": "product_detail",
+  "objective": "基于 rev-a5b13075fbc28aac 规划竖屏变体，保留母版、第三段内容、商品事实与声音，仅输出制作规划。",
+  "auxiliaryModes": [],
+  "auxiliaryScenarios": [],
+  "requirements": [
+    {
+      "kind": "change",
+      "quote": "基于这版再规划一版竖屏",
+      "targetIds": [],
+      "excludeIds": []
+    },
+    {
+      "kind": "preserve",
+      "quote": "母版保留",
+      "targetIds": [],
+      "excludeIds": []
+    },
+    {
+      "kind": "preserve",
+      "quote": "第三段内容、商品事实和声音不变。",
+      "targetIds": [],
+      "excludeIds": []
+    },
+    {
+      "kind": "prohibit",
+      "quote": "只做规划。",
+      "targetIds": [],
+      "excludeIds": []
+    }
+  ],
+  "resources": [],
+  "gaps": [],
+  "procedureSubtype": "not_applicable",
+  "steps": [
+    {
+      "id": "verify-base",
+      "purpose": "以指定母版版本为基准，待核验第三段对应对象、现有商品事实及全部声音对象；不将编号直接认定为段落映射。",
+      "requires": [
+        "母版版本 rev-a5b13075fbc28aac 的内容与对象映射"
+      ],
+      "assetIds": []
+    },
+    {
+      "id": "plan-portrait",
+      "purpose": "规划独立竖屏变体的构图、画面适配与文字布局，保护商品主体和事实表达，确保第三段内容不变并完整沿用声音；保留母版。",
+      "requires": [
+        "verify-base"
+      ],
+      "assetIds": [
+        "asset-391904f8-3296-4c11-ba15-00b521adea04",
+        "s02-still-side",
+        "s02-still-ports",
+        "voice-7a6509e33c8e1395"
+      ]
+    },
+    {
+      "id": "verify-plan",
+      "purpose": "待核验竖屏规划中的主体可见性、文字可读性、第三段内容、商品事实和声音保持情况；现有质量状态仅表示待导出审核与待人工审核，不据此推断具体缺陷。仅交付规划，不生成或导出素材、声音或视频。",
+      "requires": [
+        "plan-portrait"
+      ],
+      "assetIds": []
+    }
+  ]
+}
