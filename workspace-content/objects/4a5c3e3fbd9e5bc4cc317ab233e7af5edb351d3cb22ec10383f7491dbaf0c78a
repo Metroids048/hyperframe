@@ -1,0 +1,95 @@
+{
+  "mode": "variant",
+  "scenario": "product_detail",
+  "objective": "基于 rev-a5b13075fbc28aac 规划一版 9:16 竖屏商品细节视频，保留母版、第三段内容、商品事实和声音，仅输出制作规划。",
+  "auxiliaryModes": [],
+  "auxiliaryScenarios": [],
+  "requirements": [
+    {
+      "kind": "change",
+      "quote": "基于这版再规划一版竖屏",
+      "targetIds": [],
+      "excludeIds": []
+    },
+    {
+      "kind": "preserve",
+      "quote": "母版保留",
+      "targetIds": [],
+      "excludeIds": []
+    },
+    {
+      "kind": "preserve",
+      "quote": "第三段内容、商品事实和声音不变。",
+      "targetIds": [
+        "scene-03",
+        "node-cd887b8c2d91e4d6",
+        "node-02bb0ce9ba772a93",
+        "node-3d398b618f68487d",
+        "voice-7a6509e33c8e1395",
+        "audio-1",
+        "audio-2",
+        "audio-3",
+        "audio-4",
+        "audio-5"
+      ],
+      "excludeIds": []
+    },
+    {
+      "kind": "prohibit",
+      "quote": "只做规划。",
+      "targetIds": [],
+      "excludeIds": []
+    }
+  ],
+  "resources": [],
+  "gaps": [],
+  "procedureSubtype": "not_applicable",
+  "steps": [
+    {
+      "id": "step-01",
+      "purpose": "核验母版工程的场景、素材映射、文字和音轨字段，建立独立竖屏变体规划；母版不覆盖。沿用已提供的十段顺序和时间信息。",
+      "requires": [],
+      "assetIds": []
+    },
+    {
+      "id": "step-02",
+      "purpose": "观察现有视频及静帧，待核验各段商品主体和部位在竖屏中的可见范围；重点检查第三段中心与叶片、第五段相邻表面、第六段连接座及第七段接口挡板，避免裁切改变内容表达。观察结果不得直接扩展为商品事实。",
+      "requires": [
+        "step-01"
+      ],
+      "assetIds": [
+        "asset-391904f8-3296-4c11-ba15-00b521adea04",
+        "s02-still-side",
+        "s02-still-ports"
+      ]
+    },
+    {
+      "id": "step-03",
+      "purpose": "规划 1080×1920 竖屏构图、商品缩放与文字布局。依据观察结果选择完整容纳或安全裁切；第三段按 ordinal=3 对应 scene-03，保留其内容、文字及原有时间范围，仅适配布局。其余段落保持商品主体和原有事实表述，不新增未经提供或核实的商品信息。",
+      "requires": [
+        "step-02"
+      ],
+      "assetIds": []
+    },
+    {
+      "id": "step-04",
+      "purpose": "核验声音保持方案：沿用现有配音资产及 audio-1 至 audio-5 的起点、时长和工程声音设置，不新增、替换或重配声音；保持画面时序与原有配音对应。",
+      "requires": [
+        "step-01",
+        "step-03"
+      ],
+      "assetIds": [
+        "voice-7a6509e33c8e1395"
+      ]
+    },
+    {
+      "id": "step-05",
+      "purpose": "复核竖屏制作单中的主体可见性、文字可读性、第三段内容保持、商品事实保持、声音保持和母版保留约束。现有质量状态为待导出审查及待人工审查，不视为已发现具体质量问题；本次仅交付规划，不生成素材、声音或视频。",
+      "requires": [
+        "step-03",
+        "step-04"
+      ],
+      "assetIds": []
+    }
+  ]
+}
