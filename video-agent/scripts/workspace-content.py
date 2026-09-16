@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import json
 import os
+import uuid
 
 ROOT = Path(__file__).resolve().parents[2]
 BUNDLE = ROOT / "workspace-content"
@@ -43,7 +44,9 @@ def restore(all_files=False):
         if target.exists() or tuple(relative.parts[:4]) in existing_projects:
             continue
         target.parent.mkdir(parents=True, exist_ok=True)
-        temporary = target.with_name(target.name + ".bundle-partial")
+        # Each invocation owns its staging file. An interrupted or concurrent
+        # restore must not block this attempt or have its bytes removed by it.
+        temporary = target.with_name(target.name + ".bundle-partial-" + uuid.uuid4().hex)
         digest = hashlib.sha256()
         try:
             with temporary.open("xb") as output:

@@ -9,6 +9,51 @@ import {applyDocumentPatch} from '../lib/creative/patch.mjs';
 import {readNativeProject} from '../lib/creative/runner.mjs';
 
 const project={currentRevisionId:'r1',revisions:[{id:'r1'}],assets:[],jobs:[],request:{scenarioId:'product_demo'}};
+test('production approval receives saved plan and selected mode without weakening explicit conflicts',async()=>{
+ const draft={...project,currentRevisionId:null,revisions:[],workflowPlan:{id:'plan-48',status:'ready',workOrder:{mode:'recut',scenario:'product_demo',objective:'保留原速动作的48秒教程'}}};
+ const message='现在按已保存的48秒制作单开始生成视频并导出候选。';
+ const provider={structured:async(_,messages)=>{const input=JSON.parse(messages[0].content);assert.equal(input.selectedTaskMode,'recut');assert.equal(input.savedPlan.id,'plan-48');assert.equal(input.savedPlan.mode,'recut');return {result:{mode:'recut',quote:message,revisionId:null,assetIds:[],question:'',scenarioId:null}};}};
+ assert.equal((await routeWorkbenchMessage(draft,message,{provider,taskMode:'recut',taskModeExplicit:true,scenarioId:'product_demo'})).mode,'recut');
+ const conflicting={structured:async()=>({result:{mode:'create',quote:'另做一条',revisionId:null,assetIds:[],question:'',scenarioId:null}})};
+ assert.equal((await routeWorkbenchMessage(draft,'另做一条',{provider:conflicting,taskMode:'recut',taskModeExplicit:true,scenarioId:'product_demo'})).source,'explicit-mode-conflict');
+});
+test('draft controls and explicit planning never become production; quoted and negated commands are not controls',async()=>{
+ const draft={...project,currentRevisionId:null,revisions:[]};
+ const noModel={structured:()=>{throw Error('unexpected model for explicit safe route');}};
+ for(const p of [project,draft]){
+  assert.equal((await routeWorkbenchMessage(p,'status',{provider:noModel})).mode,'status');
+  assert.equal((await routeWorkbenchMessage(p,'只规划这条教程，不要生成视频',{provider:noModel})).mode,'plan');
+ }
+ const wrongControl={structured:async()=>({result:{mode:'cancel',quote:'取消',revisionId:null,assetIds:[],question:''}})};
+ for(const message of ['不要取消','把字幕改成“取消”'])assert.equal((await routeWorkbenchMessage(project,message,{provider:wrongControl})).mode,'clarify');
+ for(const message of ['不要取消','“撤销”'])assert.equal((await routeWorkbenchMessage(draft,message,{provider:noModel})).mode,'clarify');
+ assert.equal((await routeWorkbenchMessage(draft,'精剪这段已有视频',{provider:noModel,taskMode:'recut',taskModeExplicit:true})).mode,'recut');
+ assert.equal((await routeWorkbenchMessage(draft,'做两个版本',{provider:noModel,taskMode:'variant',taskModeExplicit:true})).mode,'clarify');
+ const createProvider={structured:async()=>({result:{mode:'create',quote:'另做一条',revisionId:null,assetIds:[],question:''}})};
+ assert.equal((await routeWorkbenchMessage(project,'另做一条',{provider:createProvider,taskMode:'recut',taskModeExplicit:true})).mode,'clarify');
+ assert.equal((await routeWorkbenchMessage(project,'字幕再往上移一点',{provider:noModel,taskMode:'variant',taskModeExplicit:true})).mode,'clarify');
+ const sceneProvider=scenarioId=>({structured:async(_,messages)=>{const input=JSON.parse(messages[0].content);assert.equal(input.selectedScenarioId,'product_demo');return {result:{mode:'create',quote:input.message,revisionId:null,assetIds:[],question:'',scenarioId}};}});
+ assert.equal((await routeWorkbenchMessage(draft,'活动促销',{provider:sceneProvider('product_promotion'),scenarioId:'product_demo'})).source,'explicit-scenario-conflict');
+ assert.equal((await routeWorkbenchMessage(draft,'制作视频',{provider:sceneProvider(null),scenarioId:'product_demo'})).mode,'create');
+});
+
+test('draft status and idle cancel have no production job or model call',async()=>{
+ const dataDir=await fs.mkdtemp(path.join(ROOT,'outputs/draft-control-'));
+ const service=await createCreativeService({dataDir,routingProvider:{structured:()=>{throw Error('unexpected provider');}}});
+ const p=await service.create({message:'暂存素材需求',inferRequest:true});
+ for(const [i,message] of ['status','取消'].entries())await service.dispatchMessage(p,{message,idempotencyKey:'draft-control-key-'+i});
+ assert.equal(p.jobs.length,0);assert.equal(p.revisions.length,0);assert.deepEqual(p.routingReceipts.map(r=>r.mode),['status','cancel']);
+});
+
+test('explicit planning through message dispatch creates only a plan and preserves source assets',async()=>{
+ const dataDir=await fs.mkdtemp(path.join(ROOT,'outputs/message-plan-'));let calls=0;
+ const planningProvider={structured:async()=>{calls++;return {model:'isolated-contract-test',result:{mode:'create',scenario:'product_demo',objective:'规划真实教程',auxiliaryModes:[],auxiliaryScenarios:[],requirements:[],resources:[],gaps:[],procedureSubtype:'usage',steps:[]}};}};
+ const service=await createCreativeService({dataDir,planningProvider,routingProvider:{structured:()=>{throw Error('unnecessary route model');}}});
+ const p=await service.create({message:'教程',inferRequest:true});const before=structuredClone(p.assets);
+ await service.dispatchMessage(p,{message:'只规划这条教程，不要生成视频',idempotencyKey:'planning-message-12345678'});
+ const deadline=Date.now()+15000;while(p.jobs.some(j=>['queued','running'].includes(j.status))&&Date.now()<deadline)await new Promise(r=>setTimeout(r,20));
+ assert.equal(p.jobs.length,1);assert.equal(p.jobs[0].kind,'plan');assert.equal(p.jobs[0].status,'complete');assert.equal(calls,1);assert.equal(p.revisions.length,0);assert.deepEqual(p.assets,before);assert.equal(p.workflowPlan.productionStarted,false);
+});
 test('whole-message controls and direct position edits bypass the model',async()=>{
  const provider={structured:()=>{throw Error('unnecessary model');}};
  assert.equal((await routeWorkbenchMessage(project,'撤销',{provider})).mode,'undo');

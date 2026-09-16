@@ -10,7 +10,7 @@ import {CapabilityCatalog} from '../lib/creative/capabilities.mjs';
 import {commerceIntake} from '../lib/creative/intake.mjs';
 import {explicitBusinessConstraints,validateBusinessAudio,validateBriefAudio} from '../lib/creative/business-constraints.mjs';
 import {selectStorySources} from '../lib/creative/commerce-directors.mjs';
-import {invalidatedProductionCheckpoints} from '../lib/creative/runtime-build.mjs';
+import {invalidatedProductionCheckpoints,capabilityDependencyScopes} from '../lib/creative/runtime-build.mjs';
 import {scenePackageFingerprint} from '../lib/creative/scene-package.mjs';
 import {normalizeVisualIntent,resourceCompatibility,resourceRequests,applyRequestedTransitions,HyperFramesResourceCatalog} from '../lib/creative/resource-catalog.mjs';
 import {keyframeFailure,repairRoute,changesTextContract} from '../lib/creative/repair-routing.mjs';
@@ -182,12 +182,14 @@ test('M01-3/4: explicit exclusions survive a template trying to add music, narra
  assert.doesNotThrow(()=>validateBusinessAudio('保留原声，不加配乐',[{assetId:'source'}],assets));
 });
 
-test('M02-5: action dependencies use output time after speed changes; boundaries fail closed',()=>{
+test('M02-5: action dependencies use output time; necessary steps stay at original speed',()=>{
  const assets=[{id:'a',kind:'video',mediaMetadata:{duration:20}},{id:'b',kind:'video',mediaMetadata:{duration:5}}];
  const material={evidence:[],actions:[{id:'first',assetId:'a',startSeconds:10,endSeconds:20,importance:'necessary',dependsOn:[]},{id:'second',assetId:'b',startSeconds:0,endSeconds:5,importance:'necessary',dependsOn:['first']}]};
  const story={transition:'cut',scenes:[{durationSeconds:10,media:[{assetId:'a',sourceStartSeconds:0,playbackRate:2}]},{durationSeconds:5,media:[{assetId:'b',sourceStartSeconds:0}]}]};
- assert.doesNotThrow(()=>selectStorySources(story,assets,material,{demo:true}));
- assert.throws(()=>selectStorySources({...story,transition:'dissolve-transition'},assets,material,{demo:true}),{code:'ACTION_ORDER'});
+ assert.throws(()=>selectStorySources(story,assets,material,{demo:true}),{code:'ACTION_SPEED'});
+ const originalSpeed={...story,scenes:[{durationSeconds:20,media:[{assetId:'a',sourceStartSeconds:0,playbackRate:1}]},story.scenes[1]]};
+ assert.doesNotThrow(()=>selectStorySources(originalSpeed,assets,material,{demo:true}));
+ assert.throws(()=>selectStorySources({...originalSpeed,transition:'dissolve-transition'},assets,material,{demo:true}),{code:'ACTION_ORDER'});
  for(const rate of [-1,0,Infinity])assert.throws(()=>selectStorySources({...story,scenes:[{...story.scenes[0],media:[{assetId:'a',playbackRate:rate}]}]},assets,material),{code:'SOURCE_SELECTION'});
  assert.throws(()=>selectStorySources({...story,scenes:[{durationSeconds:5,media:[{assetId:'a',sourceStartSeconds:19}]}]},assets,material),{code:'SOURCE_SELECTION'});
 });
@@ -222,6 +224,21 @@ test('M01-5/M10-4: planning rule changes invalidate decisions; renderer changes 
   await fs.appendFile(path.join(sandbox,'commerce/scenes/product-launch/INPUT_CONTRACT.md'),'\n明确禁用价格槽。\n');
   assert.notEqual(await scenePackageFingerprint(sandbox,null),before);
  }finally{await fs.rm(sandbox,{recursive:true,force:true});}
+});
+
+test('packaging-only catalog changes preserve checked shots; planning changes and missing scope proof do not',async()=>{
+ const source=await fs.readFile(path.join(root,'lib/creative/capabilities.mjs'),'utf8');
+ const packed=source.replace("license:'upstream LICENSE; asset rights reviewed separately'","license:'upstream LICENSE; checked separately'");
+ const oldScopes=capabilityDependencyScopes(source),newScopes=capabilityDependencyScopes(packed);
+ assert.equal(oldScopes.planning,newScopes.planning);assert.notEqual(oldScopes.packaging,newScopes.packaging);
+ const changedPlanning=capabilityDependencyScopes(packed.replace("const recipes=[","const recipes=[{id:'new-resource'},"));
+ assert.notEqual(oldScopes.planning,changedPlanning.planning);
+ const build=scopes=>({files:{'lib/creative/capabilities.mjs':scopes.packaging},dependencyScopes:{capabilities:scopes}});
+ const checkpoints={resources:{},story:{},'shot-0':{},assemble:{},quality:{}};
+ assert.deepEqual(invalidatedProductionCheckpoints(build(oldScopes),build(newScopes),checkpoints).keys,['assemble','quality']);
+ assert.equal(invalidatedProductionCheckpoints(build(oldScopes),build(changedPlanning),checkpoints).from,'resources');
+ assert.equal(invalidatedProductionCheckpoints({files:build(oldScopes).files},build(newScopes),checkpoints).from,'resources');
+ assert.equal(invalidatedProductionCheckpoints(build(oldScopes),build(newScopes),checkpoints,{policyChanged:true}).from,'brief');
 });
 
 test('M04-1/2/5: synonymous Chinese requests recall real references and hard constraints win',async()=>{

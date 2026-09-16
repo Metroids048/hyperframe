@@ -1,4 +1,6 @@
 import {insist} from './contracts.mjs';
+import {samplingCoverage} from './evidence-index.mjs';
+import {resourceHash} from './capabilities.mjs';
 const str={type:'string'},num={type:'number'},bool={type:'boolean'},arr=items=>({type:'array',items}),obj=properties=>({type:'object',additionalProperties:false,properties,required:Object.keys(properties)});
 const evidence=obj({assetId:str,startSeconds:num,endSeconds:num,observation:str});
 const candidate=obj({assetId:str,startSeconds:num,endSeconds:num,reason:str,evidence:arr(evidence)});
@@ -37,18 +39,40 @@ export function validateMaterial(material,assets,{demo=false}={}){
 }
 export function selectStorySources(story,assets,material,{demo=false,evidenceIndex}={}){
  const ranges=[];let time=0;
- for(const [i,s]of story.scenes.entries()){for(const m of s.media){const a=assets.find(a=>a.id===m.assetId);insist(a,'选段素材不存在','SOURCE_SELECTION');const start=m.sourceStartSeconds??0,rate=m.playbackRate??1,end=start+s.durationSeconds*rate;insist(Number.isFinite(start)&&start>=0&&Number.isFinite(rate)&&rate>0&&Number.isFinite(s.durationSeconds)&&s.durationSeconds>0,'源区间或播放速度无效','SOURCE_SELECTION');if(a.kind==='video')insist(end<=a.mediaMetadata.duration+.04,'源片不足以覆盖镜头','SOURCE_SELECTION');ranges.push({sceneId:s.id||'scene-'+(i+1),sceneIndex:i,assetId:a.id,sourceStartSeconds:start,sourceEndSeconds:a.kind==='video'?end:null,outputStartSeconds:time,playbackRate:rate,duration:s.durationSeconds,selectionReason:s.newInformation,businessPurpose:s.purpose||s.visualDirection,evidence:material.evidence.filter(e=>e.assetId===a.id&&e.endSeconds>=start&&e.startSeconds<=end),protectedAction:material.actions.filter(action=>action.assetId===a.id&&action.startSeconds>=start-.04&&action.endSeconds<=end+.04).map(a=>a.id),audioDependency:material.actions.some(action=>action.assetId===a.id&&action.audioDependency),kind:a.kind});}time+=s.durationSeconds-(story.transition==='cut'?0:.3);}
+ for(const [i,s]of story.scenes.entries()){for(const m of s.media){const a=assets.find(a=>a.id===m.assetId);insist(a,'选段素材不存在','SOURCE_SELECTION');const start=m.sourceStartSeconds??0,rate=m.playbackRate??1,end=start+s.durationSeconds*rate;insist(Number.isFinite(start)&&start>=0&&Number.isFinite(rate)&&rate>0&&Number.isFinite(s.durationSeconds)&&s.durationSeconds>0,'源区间或播放速度无效','SOURCE_SELECTION');if(a.kind==='video')insist(end<=a.mediaMetadata.duration+1e-6,'源片不足以覆盖镜头','SOURCE_SELECTION');ranges.push({sceneId:s.id||'scene-'+(i+1),sceneIndex:i,assetId:a.id,sourceStartSeconds:start,sourceEndSeconds:a.kind==='video'?end:null,outputStartSeconds:time,playbackRate:rate,duration:s.durationSeconds,selectionReason:s.newInformation,businessPurpose:s.purpose||s.visualDirection,evidence:material.evidence.filter(e=>e.assetId===a.id&&e.endSeconds>=start&&e.startSeconds<=end),protectedAction:material.actions.filter(action=>action.assetId===a.id&&action.startSeconds>=start-.04&&action.endSeconds<=end+.04).map(a=>a.id),audioDependency:material.actions.some(action=>action.assetId===a.id&&action.audioDependency),kind:a.kind});}time+=s.durationSeconds-(story.transition==='cut'?0:.3);}
  const semanticEvidence=[...(material.evidence||[]),...(material.facts||[]).flatMap(f=>f.evidence||[]),...['heroCandidates','usageCandidates','detailCandidates','supportingCandidates'].flatMap(k=>(material[k]||[]).flatMap(c=>c.evidence||[]))];
  for(const range of ranges){
+  if(demo&&material.actions.some(a=>a.importance==='necessary'&&a.assetId===range.assetId&&a.endSeconds>range.sourceStartSeconds&&a.startSeconds<range.sourceEndSeconds))insist(Math.abs(range.playbackRate-1)<1e-6,'必要动作必须保持原速；不能以全片加速代替删除等待','ACTION_SPEED');
   range.evidence=[...new Map(semanticEvidence.filter(e=>e.assetId===range.assetId&&(range.kind==='image'||e.endSeconds>=range.sourceStartSeconds&&e.startSeconds<=range.sourceEndSeconds)).map(e=>[JSON.stringify(e),e])).values()];
   if(evidenceIndex){
    const source=assets.find(a=>a.id===range.assetId);
    const records=evidenceIndex.entries.filter(e=>e.assetId===range.assetId&&e.sourceSha256===source.sha256&&(range.kind==='image'||e.times?.some(t=>t>=range.sourceStartSeconds-.25&&t<=range.sourceEndSeconds+.25)));
    insist(records.length,'选段没有对应实际观察帧：'+range.assetId+' '+range.sourceStartSeconds+'—'+range.sourceEndSeconds+'秒；请用观察工具检查这个区间或选择已有证据区间','SOURCE_SELECTION');
    range.observationRefs=records.map(e=>({id:e.id,file:e.file,sha256:e.sha256,sourceSha256:e.sourceSha256,sampledTimes:(e.times||[]).filter(t=>t>=range.sourceStartSeconds-.25&&(range.kind==='image'||t<=range.sourceEndSeconds+.25)),precisionLimitSeconds:e.precisionLimitSeconds}));
+   if(range.kind==='video'){
+    const action=demo&&material.actions.some(a=>a.assetId===range.assetId&&a.endSeconds>range.sourceStartSeconds&&a.startSeconds<range.sourceEndSeconds);
+    range.samplingCoverage=samplingCoverage(records,{assetId:range.assetId,startSeconds:range.sourceStartSeconds,endSeconds:range.sourceEndSeconds},{action});
+    insist(range.samplingCoverage.samplingSufficient,'选段观察覆盖不足：'+range.assetId+' '+range.sourceStartSeconds+'—'+range.sourceEndSeconds+'秒；'+JSON.stringify(range.samplingCoverage.unobservedAtRequiredDensity)+'；请用'+(action?'inspectActions':'inspectRanges')+'检查缺口，采样不能冒充完整播放','SOURCE_SELECTION');
+   }
    range.continuousPlaybackVerified=false;
   }
  }
  if(demo){const placements=new Map();for(const action of material.actions.filter(a=>a.importance==='necessary')){const range=ranges.find(r=>r.protectedAction.includes(action.id));insist(range,'选段删除了必要动作：'+action.id,'ACTION_MISSING');const at=range.outputStartSeconds+(action.startSeconds-range.sourceStartSeconds)/range.playbackRate;for(const id of action.dependsOn){const prior=placements.get(id);insist(prior!==undefined&&at>=prior-.04,'选段打乱动作顺序','ACTION_ORDER');}placements.set(action.id,at+(action.endSeconds-action.startSeconds)/range.playbackRate);}}
  const signals=[];for(let i=0;i<ranges.length;i++){const a=ranges[i];if(a.duration<.75)signals.push({kind:'short-shot',sceneId:a.sceneId});for(const b of ranges.slice(0,i))if(a.kind==='video'&&a.assetId===b.assetId&&Math.min(a.sourceEndSeconds,b.sourceEndSeconds)-Math.max(a.sourceStartSeconds,b.sourceStartSeconds)>.25)signals.push({kind:'source-overlap',scenes:[b.sceneId,a.sceneId],requiresReason:true});}return {ranges,signals};
+}
+
+/** Bind the derived receipt to executable media nodes after checkpoint restore. */
+export function bindSourceSelectionDocument(selected,document,story,runId){
+ const nodes=document.nodes.filter(n=>n.kind==='video'||n.kind==='image'),remaining=[...nodes];
+ insist(nodes.length===selected.ranges.length,'选段回执与工程媒体数量不一致','SOURCE_SELECTION');
+ for(const range of selected.ranges){
+  const scene=document.scenes[range.sceneIndex];
+  const i=remaining.findIndex(n=>n.sceneId===scene?.id&&n.assetId===range.assetId&&n.kind===range.kind&&
+   (n.kind!=='video'||Math.abs((n.params.sourceStartSeconds||0)-range.sourceStartSeconds)<1e-6&&Math.abs((n.params.playbackRate??1)-range.playbackRate)<1e-6)&&
+   Math.abs(n.durationFrames/(document.fps||30)-range.duration)<1/(document.fps||30)+1e-6);
+  insist(i>=0,'选段回执与工程源区间不一致','SOURCE_SELECTION');range.nodeId=remaining.splice(i,1)[0].id;range.sceneId=scene.id;
+ }
+ selected.binding={runId,storyHash:resourceHash(story),revisionId:document.revisionId,
+  mediaNodesHash:resourceHash(nodes),scenesHash:resourceHash(document.scenes)};
+ return selected;
 }

@@ -26,3 +26,11 @@ export async function readFinishedWorks(root){
   Object.defineProperty(ready,'unavailable',{value:unavailable});return ready;
 }
 export const publicFinishedWork=entry=>({id:entry.id,title:entry.title,durationSeconds:entry.durationSeconds,provenance:entry.provenance,note:entry.note,sha256:entry.sha256,videoUrl:'/api/commerce-finished/'+entry.id+'/video',packageUrl:entry.packageFile?'/api/commerce-finished/'+entry.id+'/package':null,packageUnavailable:entry.packageUnavailable});
+
+// Called only for registered artifacts, never with a client-supplied filesystem path.
+export async function artifactFile(target,downloadUrl){
+ const absolutePath=await fs.realpath(target),stat=await fs.stat(absolutePath);
+ insist(stat.isFile(),'产物不是文件','ARTIFACT_NOT_FILE');
+ const hash=createHash('sha256');for await(const bytes of createReadStream(absolutePath))hash.update(bytes);
+ return {absolutePath,size:stat.size,sha256:hash.digest('hex'),downloadUrl};
+}

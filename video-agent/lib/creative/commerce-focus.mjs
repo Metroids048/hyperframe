@@ -4,10 +4,11 @@ import {createHash} from 'node:crypto';
 import {CreativeError, safeRelativePath} from './contracts.mjs';
 import {hashFile, probe} from '../edit/media.mjs';
 import {explicitBusinessConstraints} from './business-constraints.mjs';
-import {workflowContract} from './workflow-intent.mjs';
+import {workflowContract,requiresActionProtection} from './workflow-intent.mjs';
 
 export const FOCUS_PROFILE='commerce-focus-v1';
 export const COMMERCE_SCENARIOS={
+  general:{alias:'general',label:'通用剪辑与包装'},
   product_launch:{alias:'launch',label:'新品首发与品牌亮相',specialized:true},
   product_detail:{alias:'detail',label:'商品详情与卖点图解'},
   product_demo:{alias:'product_demo',label:'产品演示',specialized:true},
@@ -26,7 +27,7 @@ export function businessContract(input={}){
   const aliases=Object.fromEntries(Object.entries(COMMERCE_SCENARIOS).flatMap(([id,v])=>[[id,id],[v.alias,id]]));
   const scenarioId=explicit?aliases[explicit]:null;
   // All six business scenes share the same runtime contract; visual style remains a separate choice.
-  if(explicit&&!scenarioId)throw new CreativeError('无法识别电商场景，请选择六类场景之一','SCENARIO_UNSUPPORTED');
+  if(explicit&&!scenarioId)throw new CreativeError('无法识别业务目的，请说明需要的具体剪辑操作','SCENARIO_UNSUPPORTED');
   const audio=negated('静音')||negated('声音')? 'original':(/静音|无声|不要声音/.test(message)?'silent':/保留.*原声/.test(message)?'original':'unspecified');
   return {schemaVersion:1,profile:FOCUS_PROFILE,scenarioId,originalRequest:message,taskMode:workflow.taskMode,workflowProfile:workflow.workflowProfile,workflow:{...workflow,businessScenario:scenarioId},
     persona:{creator:'商家／内容运营（待用户研究验证）',viewer:['product_howto','product_demo'].includes(scenarioId)?'第一次操作的新手':'首次了解商品的消费者'},
@@ -48,7 +49,7 @@ export async function productionAdmission(root,contract,assets){
   // Production admission for the two commerce focus scenarios requires
   // observable real footage.  Text/inference requests may still be planned,
   // but cannot silently enter the production path without a video asset.
-  if(['product_launch','product_demo','product_howto'].includes(contract?.scenarioId) && !videos.length){
+  if((contract?.scenarioId==='product_launch'||requiresActionProtection(contract)) && !videos.length){
     issues.push('本场景生产准入需要真实视频素材，图片或推断请求只能用于需求理解');
   }
   let registry={assets:[]};
@@ -67,9 +68,9 @@ export async function productionAdmission(root,contract,assets){
   if(identities.size>1&&contract?.scenarioId!=='product_collection')issues.push('主体素材属于不同商品，不能混用');
   if(contract?.audio==='original'&&!videos.some(a=>a.mediaMetadata?.hasAudio))issues.push('要求保留原声，但原片没有音轨');
   const coverage=new Set(admitted.flatMap(r=>r.coverage||[]));
-  const required=['product_howto','product_demo'].includes(contract?.scenarioId)?['preparation','necessary_actions','result']:contract?.scenarioId==='product_launch'?['product_identity','real_usage_or_effective_demonstration','supported_details']:['product_identity'];
+  const required=requiresActionProtection(contract)?['preparation','necessary_actions','result']:contract?.scenarioId==='product_launch'?['product_identity','real_usage_or_effective_demonstration','supported_details']:['product_identity'];
   for(const role of required)if(!coverage.has(role))issues.push('素材缺少：'+role);
-  if(['product_howto','product_demo'].includes(contract?.scenarioId)){
+  if(requiresActionProtection(contract)){
     const steps=admitted.flatMap(r=>(r.steps||[]).map(s=>({...s,assetId:r.assetId}))),ids=new Set(steps.map(s=>s.id));
     if(!steps.length)issues.push('缺必要步骤及源时间映射');
     for(const step of steps){const source=assets.find(a=>a.id===step.assetId);if(!Number.isFinite(step.startSeconds)||!(step.endSeconds>step.startSeconds)||step.endSeconds>source?.mediaMetadata?.duration||(step.dependsOn||[]).some(id=>!ids.has(id))||!step.protectedRegion)issues.push('步骤证据无效：'+step.id);}
@@ -85,8 +86,8 @@ export async function assertProductionAdmission(root,contract,assets,directory){
 }
 
 export function assertRequiredActions(document,admission){
-  if(!['product_howto','product_demo'].includes(document.businessContract?.scenarioId))return;
-  const steps=admission.assets.flatMap(a=>(a.steps||[]).map(s=>({...s,assetId:a.assetId})));
+  if(!requiresActionProtection(document.businessContract))return;
+  const steps=admission.assets.flatMap(a=>(a.steps||[]).filter(s=>s.importance!=='optional').map(s=>({...s,assetId:a.assetId})));
   const placements=new Map();
   for(const step of steps){
     const matches=document.nodes.filter(n=>n.kind==='video'&&n.assetId===step.assetId).flatMap(n=>{
@@ -94,6 +95,7 @@ export function assertRequiredActions(document,admission){
       const end=start+n.durationFrames/30*rate;
       const scene=document.scenes.find(s=>s.id===n.sceneId);
       if(rate<=0||start>step.startSeconds+1/30||end<step.endSeconds-1/30)return [];
+      if(Math.abs(rate-1)>1e-6)throw new CreativeError('必要动作必须保持原速：'+step.id,'ACTION_SPEED',409);
       return [{start:(scene.startFrame+(n.localStartFrame||0))/30+(step.startSeconds-start)/rate,end:(scene.startFrame+(n.localStartFrame||0))/30+(step.endSeconds-start)/rate}];
     });
     if(!matches.length)throw new CreativeError('必要动作被剪断或缺失：'+step.id,'REQUIRED_ACTION_MISSING',409);

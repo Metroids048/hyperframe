@@ -46,12 +46,13 @@ export async function run(exe,args,{cwd=ROOT,signal,timeout=120000,log,onOutput,
     });
   });}finally{if(alias){await fs.unlink(alias);await fs.rmdir(aliasRoot);}}
 }
-export async function probe(file,signal) {
+export async function probe(file,signal,{onResult}={}) {
   let m;try{const raw=await run(ffprobe,['-v','error','-show_streams','-show_format','-of','json',file],{signal,timeout:30000}),start=raw.indexOf('{'),end=raw.lastIndexOf('}');m=JSON.parse(raw.slice(start,end+1));}catch(e){if(signal?.aborted)throw e;throw new EditError('无法读取媒体，请上传有效的 MP4、MOV、WebM 或音频文件',422);}
   const v=m.streams.find(x=>x.codec_type==='video'&&x.disposition?.attached_pic!==1),a=m.streams.find(x=>x.codec_type==='audio');
   const d=Number(m.format.duration);insist(Number.isFinite(d)&&d>0&&d<=600.1,'素材时长必须不超过 10 分钟');
   const rotation=Number(v?.tags?.rotate||v?.side_data_list?.find(x=>x.rotation!==undefined)?.rotation||0);
   const sideways=Math.abs(rotation)%180===90;
+  onResult?.({tool:'ffprobe',args:['-v','error','-show_streams','-show_format','-of','json',file],result:m});
   return {kind:v?'video':'audio',duration:d,frames:Math.floor(d*FPS+0.00001),width:v?(sideways?v.height:v.width):0,height:v?(sideways?v.width:v.height):0,rotation,hasAudio:!!a,videoCodec:v?.codec_name||null,pixelFormat:v?.pix_fmt||null,audioCodec:a?.codec_name||null,sourceFps:v?.avg_frame_rate||null,nominalFps:v?.r_frame_rate||null,size:Number(m.format.size)};
 }
 export async function hashFile(file) {const h=createHash('sha256');for await(const b of createReadStream(file))h.update(b);return h.digest('hex');}

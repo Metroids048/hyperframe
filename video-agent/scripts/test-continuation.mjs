@@ -3,7 +3,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
 import { spawnSync } from "node:child_process";
-import { codexRequest, codexFailure } from "../lib/edit/codex-command.mjs";
+import { codexRequest, codexFailure, codexWorkingDirectory } from "../lib/edit/codex-command.mjs";
 import { runtimeTools, pythonExecutable } from "../lib/runtime-tools.mjs";
 import { localEditIntent } from "../lib/edit/local-edit-intents.mjs";
 import {
@@ -32,6 +32,20 @@ const asset = {
   revision = { id: "r1", timeline: initialTimeline(asset) };
 const plan = (text) => localEditIntent(revision, text);
 try {
+  await test("long Windows request directories preserve files after alias cleanup", async () => {
+    const directory=path.join(tmp,'nested space '.repeat(12),'request '.repeat(8));
+    await fs.mkdir(directory,{recursive:true});
+    const working=await codexWorkingDirectory(directory);
+    try {
+      if(process.platform==='win32')assert.ok(working.cwd.length<200);
+      const result=spawnSync(process.execPath,['-e','process.stdout.write("ready")'],{cwd:working.cwd,encoding:'utf8',windowsHide:true});
+      assert.equal(result.status,0,result.error?.message);assert.equal(result.stdout,'ready');
+      await fs.writeFile(working.file('result.json'),'preserved');
+    } finally {await working.cleanup();}
+    assert.equal(await fs.readFile(path.join(directory,'result.json'),'utf8'),'preserved');
+    if(process.platform==='win32')await assert.rejects(fs.stat(working.cwd),{code:'ENOENT'});
+    const short=await codexWorkingDirectory(tmp);assert.equal(short.cwd,tmp);await short.cleanup();assert.ok((await fs.stat(tmp)).isDirectory());
+  });
   await test("portable media paths retain explicit overrides", () => {
     const env = {
       HYPERFRAMES_FFMPEG_PATH: "/custom/ffmpeg",

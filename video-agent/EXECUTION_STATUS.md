@@ -291,3 +291,59 @@ P00-03 已完成。生产 Key 全部从验证进程环境移除，固定本地 K
 无活动任务后通过标准 `start.py backend` 重载到 PID 42796；3024 健康、workspaceId 匹配，真实浏览器重载后 S02、八入口、视频和原生工程入口仍可见。`receipt.json` 绑定当前 HEAD、源码哈希、运行 PID、输入隔离和全部日志哈希；真人听感未执行，也不由本卡伪造。
 
 下一张依赖就绪卡：P00-04。
+
+## 2026-09-16 本机 116 卡续作（当前以 outputs/full-closeout/task-state.json 为唯一状态）
+
+已从 1bd071031 快进同步到 origin/main 5876d1982，保留本机素材、工程与已成功 MiniMax 音频；旧被跟踪的配置恢复为忽略文件，私密快照原字节保存在忽略的隔离目录。未强推或改写历史。附件完整执行包已解压在仓库根 hyperframe_full_closeout；其任务目录与 config/full-closeout-tasks.json 内容一致。
+
+P00-01—05 的本机证据位于 outputs/full-closeout。实际主工作台在 3020、data/commerce-runs，共 7 个工程；远端记录的 3024/PID/数据目录不能套用于本机。冻结 S02 视频哈希 9cf4fa46...，MiniMax 混音 revision rev-e663828de3de26c6 视频哈希 f025af4c... 保持。44 项旁白恢复回归、独立预算反例、安全 canary 通过。历史凭据仍待供应商侧撤销/轮换，不伪称风险消失。
+
+已修现有任务验收器的缺证据通过、依赖环、旧账分母和状态词汇问题，7 项反例正例及原 core/browser/npm 回归通过。已修 workspace-content 固定临时文件导致中断恢复失败及并发互删风险；7 项隔离反例、3 项旧交付回归通过。22349 分块、47160 文件的字节/拼接哈希与大小全量通过；干净目录用 npm ci 恢复 HyperFrames 0.8.33，实际恢复 S02 2189 文件，启动原服务并完整解码和显示原修订。
+
+当前 M12-F01：只读预设观看、显式幂等复制、导航时保留草稿/附件。真实隔离 S02 WebUI 20 次观看前后仍 1 工程/1 版本/60 文件/14 媒体；双击显式复制后恰为 2 工程，副本视频哈希保持；返回新建草稿保留原文字与 PNG 附件。服务并发20次、重启重放、缺参数/版本冲突/媒体失效反例通过。受影响最终回归仍运行，以 outputs/full-closeout/M12-F01 日志结尾为准；本卡尚未关闭。
+
+恢复点：读取唯一状态 resume，先查主服务和测试 PID，不重发生产/付费任务。本轮没有付费调用或新 AI 商品媒体，没有新增场景交付，也没有代签视觉、听感或真人验收。当前修改未提交，所有旧义务继续保留；不把准备阶段或 S02 复用视为四目标完成。
+
+
+### 2026-09-17 当前执行回执更新
+
+唯一状态已验收 P00-01—05、M12-F01—03、M01-F01，共 9/116 卡；当前 M01-F02，107 卡仍未结。新增实际证据在 outputs/full-closeout/M12-F01、M12-F02、M01-F01、M12-F03。当前主服务 PID 20444、3020、data/commerce-runs，原 7 工程保持。
+
+已完成预设只读与幂等副本、来源归组、草稿统一消息路由、明确只规划与场景冲突保护、实际文件路径/版本哈希及八入口一致性。一次真实只规划、四次只读语义路由、一次明确新建路由、一次场景冲突核对已实际调用模型；未调用新的 MiniMax/商品媒体生成。模型费用不在本地回执中伪称为零。真实 S02 隔离副本仅用于入口/协议验证，不作为新场景成果。
+
+系统剪贴板写入已返回成功，但 CUA 虚拟剪贴板不能读回系统剪贴板；此限制保留。全部作品质量与原 S02 major 问题继续待审。恢复按唯一状态 resume 查询实际进程/任务，不重发原模型请求，不创建新的监督平台。
+
+
+### 2026-09-17 full closeout continuation (existing queue projection)
+M01-F02 completed with real title-only/no-music inheritance, explicit local music override, undo/redo and MP4/history ZIP hash checks. Queue recorded 10/116 verified before M01-F03 source changes; affected hashes require final revalidation. Main service PID3688 retains seven original projects and S02 eight revisions.
+Current M01-F03: plan-to-production source propagation, derived contracts and stage receipts implemented; upload duplication, initial draft reload defaults, compound sound fields and negative original-audio parsing repaired. Actual isolated project 3d341fdc-2db7-4e8c-bb72-b9303dc5c284, job job-0da35025-f6fa-4c76-84c1-9a52153365e1, run5fac2c73-7bef-4688-84f2-37634b3c7415; resumed same run from7 calls, cap128 unchanged. Latest observed stage shot-0,15 calls. Service3032 session40874. No new MiniMax or AI product images/clips. Existing S02 visual2major+1minor remain open. Exact current/resume actions live in outputs/full-closeout/task-state.json; do not reset.
+
+
+### 2026-09-16T18:35:59.632Z — 当前执行点
+M01-F03 的制作单贯穿链路已接通，但真实候选仍被源片暗尾质量问题阻断，保持 blocked_internal；run 5fac2c73-7bef-4688-84f2-37634b3c7415、25/128 调用、三幕修订及失败记录完整保留。按依赖转入 M02-F01：只读素材索引、选择性加入与真实 WebUI 验证已执行，当前等待受影响回归和证据绑定后验收；随后 M02-F02，解决源选段后返回同一 F03 工程。唯一任务状态仍为 outputs/full-closeout/task-state.json；未将计划或技术子项计作候选完成。
+
+
+2026-09-16T19:18Z：唯一状态 outputs/full-closeout/task-state.json 已验证 M01-F03，真实候选 3d341fdc / rev-0b6a6684771a385f 已导出10秒静音MP4和原生历史包，27/128模型请求；首幕仅源起点定点修复，三幕源码哈希保持。当前 M01-F04 implementing；M02-F02 ready_for_integration，尚未关闭。原S02质量欠项与人工认可仍保留。最新证据 outputs/full-closeout/M01-F03/real-candidate-evidence.json；当前主服务3020 PID15376、隔离3032 PID22160，均无活动制作任务。
+
+2026-09-16T19:55Z M01-F04 执行中：general 单文件规则包、真实资源锁、复合目标/动作继承已接入；当前 core (19-49-17.766Z) 及 browser (19-44-15.195Z) 回归通过。真实 general 项目 afe9474a / job-2787ca82 / run-bc502cfc 在3033运行，同一128次预算，未导出前不验收。修复了静态受管视频 inset(0%) 触发 sweep_static 的误判，真实反例仍拦冻结时间轴；又修复恢复时场景包空值及 completed 运行在依赖失效后不重新执行的问题。三维重建反例项目 fda52954 / job-a8470a47，仅1次R1后 SCENARIO_UNSUPPORTED，无新版本/成片，源片哈希保持；UI仍显示恢复按钮的欠项留待 M01-F05/F06。证据 outputs/full-closeout/M01-F04/；具体活动任务以唯一 task-state.json 的 resume 为准，不能重发。M02-F02连续选段及复合教程真实集成仍待完成；旧S02欠项和全部未验收任务继续保留。
+
+### 2026-09-16T20:43Z · M02-F02 integrated; M01-F04 compound production active
+- M02-F02: actual general Agent run bc502cfc-42d8-416b-a1da-70806ef1169d completed at 47/128, revision rev-159ef07896893464. Evidence: outputs/full-closeout/M01-F04/general-real-evidence.json and outputs/full-closeout/M02-F02/decoded-frame-review.json. All180 exported frames inspected; boundary/source SSIM verified. Human acceptance remains not_performed; original S02 defects remain open.
+- M01-F04 general positive and real unsupported-3D negative exist. Compound production is NOT complete: project85d009f6-2c14-4747-9fbd-246f9fdc3e31, job-da802f03-659b-44d5-a775-f43f222f7f64 on3033. It consumes successful plan-0ade0fe2e8dd2dacc335 (recut + product_demo,24s portrait, original audio). Current stage is actual full-source normalization; do not submit again.
+- Real compound planning exposed and fixed explicit intake loss, source-vs-capability confusion, and premature top20 resource shortlist. Failed plans retained.37 intake tests and30 resource/workflow tests passed; current31-suite core passed at outputs/upgrade/verification/core-2026-09-16T20-36-05.519Z/report.json. Browser regression session84631 still running at this checkpoint.
+-3033 PID8400/session28759; main3020 remains older runtime. Preserve3032 completed plan-production project. Do not run retired outputs/full-closeout/M01-F04/save-resume.mjs; authoritative current resume is outputs/full-closeout/task-state.json.
+- Affected prior task source bindings still require revalidation; historical verified reports do not certify newly changed code. No final closeout or eight-scenario completion is claimed.
+
+2026-09-16T21:12:13.139Z M02-F04 implementing: evidence refresh and complete action-image delivery added; actual index replay17 available/6 before/17 after, fixed24 total. MA call22 confirms all17 exact image hashes.53 earlier regression checks,8 image-selection checks,29 action-integrity checks passed;33-suite core report21-09 passed before final R4 prompt refinement. Added original-speed guards at planning/export, optional waits can be omitted; prior regression expectation allowing2x essential actions corrected with ordered1x positive.3033 session33929 now resumes original compound run0b77b7cc at27/128; await status, do not duplicate.24-second test is assistant-authored boundary; use sufficient duration positive only after this run settles. Main3020 remains older; no card or scene closeout yet.
+
+
+### 2026-09-16T21:46:27.803Z — M01-F02 production approval / M04-F02 dependency
+Latest WebUI48s approval now routes recut and consumes plan plan-6aef376c58430d162710 with all 21 requirements unchanged. Active job job-101001fd-dd0a-4e27-860f-fe6350f66384 / run 483bff94-523e-41ea-bf01-edc6e5491921;3033 session21731; data .cache/material-index-test. Original24s31-call needs_user run stays paused. Current source runtime hash 541ab7a817cf9aadff619c70cc08cfe793f704b039a8196c22cd84290c5497d7. No render/visual acceptance yet. Core regression session19479 running. Next inspect active job, no duplicate submission. Evidence outputs/full-closeout/M01-F02/production-approval-live.json and M04-F02/generic-resource-live.json.
+
+
+### 2026-09-16T22:08:02.273Z — M04-F04 active;48s negative retained
+M01-F01/F02 and M04-F02 scoped revalidated before new ordinal changes. Current edits resource-scope/resource-catalog/model-edit/service/locks;44 then50 targeted tests passed. Runtime3033 remains prior build;48s run 483bff94-523e-41ea-bf01-edc6e5491921 needs_user18/128, observation exhausted, conservative80.756s protected envelope, noMP4. No unchanged retry. Next create clearly labeled technical4-transition fixture in isolated .cache/resource-scope-live and run real WebUI/export. Existing S02 remains untouched.
+
+
+## 2026-09-16T22:36:17.962Z 用户要求收尾
+按用户要求暂停扩展。完整116卡快照：outputs/full-closeout/USER_PROGRESS.md；机器回执：outputs/full-closeout/user-wrapup-snapshot.json。当前M04-F04四真实导出及最终四组回放通过，尚待依赖重验关闭。计数{"verified":3,"integration_pending":0,"blocked":2,"in_progress":1,"pending":98,"invalid":12}。准确恢复点在task-state.json.resume；不重复提交24/48秒暂停任务。

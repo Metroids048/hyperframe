@@ -64,7 +64,8 @@ export async function prepareCreativeAsset(root, asset, targetDir,{signal}={}) {
   }
 
   if (asset.kind === 'video' || asset.kind === 'audio') {
-    let metadata = await probe(source,signal);const originalMediaMetadata=structuredClone(metadata),processing=[];
+    let technicalProbe;
+    let metadata = await probe(source,signal,{onResult:record=>{technicalProbe={...record,sourceSha256:sha256};}});const originalMediaMetadata=structuredClone(metadata),processing=[];
     insist(metadata.kind === asset.kind, '素材内容与声明的类型不一致', 'ASSET_KIND_MISMATCH');
     const sourceStartSeconds = Number(asset.sourceStartSeconds || 0);
     const sourceDurationSeconds = asset.sourceDurationSeconds ?? (metadata.duration - sourceStartSeconds);
@@ -87,6 +88,7 @@ export async function prepareCreativeAsset(root, asset, targetDir,{signal}={}) {
       sourceStartSeconds,
       sourceDurationSeconds,
       originalMediaMetadata,
+      technicalProbe,
       processing,
       normalizedRef: path.relative(root, output).split(path.sep).join('/'),
       mediaMetadata: {

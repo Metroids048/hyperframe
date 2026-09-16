@@ -35,7 +35,7 @@ test('query keeps older broad and action evidence, verifies bytes and source ide
   const inputs=await readEvidenceImages(dir,selection.records);assert.equal(inputs.filter(i=>i.type==='input_image').length,2);
   assert.equal(queryEvidence(index,{ranges:[{assetId:'v',startSeconds:30,endSeconds:32}]}).state,'unobserved');
   assert.equal(queryEvidence(index,{limit:1}).truncated,true);
-  assert.equal(reusableInspection(batches,[{assetId:'v',startSeconds:2,endSeconds:4}]),batches[0]);
+  assert.equal(reusableInspection(batches,[{assetId:'v',startSeconds:2,endSeconds:3}],[asset]),batches[0]);
   assert.throws(()=>buildEvidenceIndex([{...asset,sha256:'changed'}],batches),{code:'CHECKPOINT_HASH'});
   await fs.writeFile(path.join(dir,records[0].file),'tampered');await assert.rejects(()=>readEvidenceImages(dir,selection.records),{code:'CHECKPOINT_HASH'});
 });

@@ -161,8 +161,8 @@ export function applyDocumentPatch(input, operations, assets) {
       insist(['dissolve-transition', 'directional-transition', 'flash-transition', 'chromatic-split'].includes(effect), '这里只允许转场组件', 'INVALID_TRANSITION_EFFECT');
       const durationFrames = Number(op.durationFrames ?? 9);
       insist(Number.isInteger(durationFrames) && durationFrames >= 1 && durationFrames <= 30, '转场必须为 1～30 帧', 'INVALID_TRANSITION_TIME');
-      const next = {id: stableId('transition', op.fromSceneId, op.toSceneId), fromSceneId: op.fromSceneId, toSceneId: op.toSceneId, effect, durationFrames, params: normalizeEffectParams(effect, {...op.params, durationFrames})};
       const found = document.transitions.findIndex(t => t.fromSceneId === op.fromSceneId && t.toSceneId === op.toSceneId);
+      const next = {id: found>=0?document.transitions[found].id:stableId('transition', op.fromSceneId, op.toSceneId), fromSceneId: op.fromSceneId, toSceneId: op.toSceneId, effect, durationFrames, params: normalizeEffectParams(effect, {...op.params, durationFrames})};
       if (found >= 0) document.transitions[found] = next; else document.transitions.push(next);
     }
     if (op.type === 'change_output') {

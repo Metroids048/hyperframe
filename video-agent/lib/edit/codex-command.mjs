@@ -1,3 +1,18 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import os from 'node:os';
+
+// Windows process creation and native file readers can still enforce MAX_PATH.
+// A junction keeps request evidence in its original directory without copying it.
+export async function codexWorkingDirectory(directory){
+  const original=path.resolve(directory);
+  if(process.platform!=='win32'||original.length<200)return {cwd:original,file:name=>path.join(original,name),cleanup:async()=>{}};
+  const temporary=await fs.mkdtemp(path.join(os.tmpdir(),'hf-codex-'));
+  const alias=path.join(temporary,'request');
+  try{await fs.symlink(original,alias,'junction');}catch(error){await fs.rmdir(temporary);throw error;}
+  return {cwd:alias,file:name=>path.join(alias,name),cleanup:async()=>{await fs.unlink(alias);await fs.rmdir(temporary);}};
+}
+
 // Codex is used as a bounded planning function, not an unrestricted editor.
 export function modelTimeoutMs(value=180000){
   const ms=Number(value);

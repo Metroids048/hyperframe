@@ -18,7 +18,7 @@ invalidateStageResults(first,['narration'],{code:'IMPLEMENTATION_CHANGED'});
 assert.equal(first.toolResults.filter(r=>r.tool==='narration.prepare'&&r.status==='completed').length,0);
 assert.equal(first.toolResults.at(-1).status,'completed');assert.equal(first.modelCalls,98);
 assert.deepEqual(first.artifacts.narrationHistory,[{script:'old'}]);
-first.status='recoverable';await store.open(first);
+assert.equal(first.status,'recoverable');assert.equal(first.resultRevisionId,null);assert.equal(first.verification,null);await store.open(first);
 const resumed=await kernel.resume(first.id);
 assert.equal(resumed.status,'completed');assert.equal(calls,2);
 assert.equal(resumed.checkpoints.narration.result.script,'retained-new');

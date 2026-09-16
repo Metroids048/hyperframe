@@ -1,7 +1,7 @@
 import {canonicalScene} from '../lib/creative/scene-package.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {workflowEntries,workflowContract,resolveWorkflowIntent,workflowObjectIds} from '../lib/creative/workflow-intent.mjs';
+import {workflowEntries,workflowContract,resolveWorkflowIntent,workflowObjectIds,inheritRevisionWorkflow,bindRevisionWorkflow} from '../lib/creative/workflow-intent.mjs';
 import {businessContract} from '../lib/creative/commerce-focus.mjs';
 import {commerceIntake} from '../lib/creative/intake.mjs';
 import {normalizeCommerceRequest} from '../lib/creative/contracts.mjs';
@@ -48,4 +48,24 @@ test('normalization retains operation and base version',()=>{
 test('each model requirement retains exact quotation and scope across repeated resources',()=>{
  const originalRequest='第一处和第三处用色散，第二处不要色散';
  const r=resolveWorkflowIntent({...base,originalRequest},{...parsed,requirements:[{...requirement('resource','第一处和第三处用色散',['cut1','cut3']),excludeIds:['cut2']}]},{objectIds:['cut1','cut2','cut3']});assert.deepEqual(r.resourceNeeds[0].targetIds,['cut1','cut3']);assert.deepEqual(r.resourceNeeds[0].excludeIds,['cut2']);
+});
+
+test('revision contract preserves sound, explicit override changes only music, and old snapshots remain intact',()=>{
+ const document={revisionId:'base',audioGraph:[],businessContract:{originalRequest:'不加背景音乐，不加旁白',workflow:{requirements:[]}}};
+ const contract=workflowContract({message:'改标题',taskMode:'edit'},{baseRevisionId:'base'});
+ const first=bindRevisionWorkflow(document,{...document},contract,{message:'改标题'});
+ assert.equal(first.soundPolicy.music,'forbidden');assert.equal(first.soundPolicy.narration,'forbidden');assert.equal(new Set(first.requirements.map(r=>r.id)).size,2);
+ const next={...document,revisionId:'title-edit',workflowContract:first};const music={id:'music-1',role:'music',assetId:'local-music'};
+ const followup=workflowContract({message:'现在允许添加背景音乐',taskMode:'edit'},{baseRevisionId:next.revisionId});
+ const second=bindRevisionWorkflow(next,{...next,audioGraph:[music]},followup,{message:'现在允许添加背景音乐'});
+ assert.equal(second.soundPolicy.music,'allowed');assert.equal(second.soundPolicy.narration,'forbidden');assert.equal(second.requirementChanges.length,1);assert.equal(second.parentContractId,first.contractId);assert.equal(first.soundPolicy.music,'forbidden');assert.equal(document.workflowContract,undefined);
+ assert.throws(()=>bindRevisionWorkflow(next,{...next,audioGraph:[music]},followup,{message:'只改标题'}),{code:'WORKFLOW_SOUND_CONFLICT'});
+ assert.throws(()=>inheritRevisionWorkflow(next,{baseRevisionId:'stale'}),{code:'WORKFLOW_BASE_CONFLICT'});
+});
+
+test('ambiguous ordinal, out-of-duration scope and include/exclude conflict fail before patch',()=>{
+ const make=quote=>workflowContract({message:quote,taskMode:'edit'},{baseRevisionId:'r'}),wrap=r=>({...parsed,taskMode:'edit',requirements:[r]});
+ assert.throws(()=>resolveWorkflowIntent(make('把第二个改成红色'),wrap(requirement('change','把第二个改成红色',['opening'])),{objectIds:['opening']}),{code:'WORKFLOW_TARGET_AMBIGUOUS'});
+ assert.throws(()=>resolveWorkflowIntent(make('前三秒先看细节'),wrap(requirement('change','前三秒先看细节',['opening'],0,3)),{objectIds:['opening'],durationSeconds:2}),{code:'WORKFLOW_SCOPE_INVALID'});
+ assert.throws(()=>resolveWorkflowIntent(make('改标题'),wrap({...requirement('change','改标题',['opening']),excludeIds:['opening']}),{objectIds:['opening']}),{code:'WORKFLOW_SCOPE_CONFLICT'});
 });

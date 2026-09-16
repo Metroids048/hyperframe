@@ -4,7 +4,7 @@ import {insist} from './contracts.mjs';
 // the complete request for semantic understanding and minimum clarification.
 export function explicitBusinessConstraints(message='') {
  const clauses=String(message).split(/[，,。！？\n;；]/);
- const denied=word=>clauses.some(c=>new RegExp('(?:不要|不加|不配|不用|禁止|无需|不需要|不写|不标|不展示|不显示|不添加)\\s*(?:(?:任何|背景|新的|额外的?|添加|再|旁白|配音|音乐|配乐|BGM|和|及|、|与)\\s*)*(?:'+word+')(?!太大|太响|过大|过响|盖过)','i').test(c));
+ const denied=word=>clauses.some(c=>new RegExp('(?:不要|不加|不配|不用|不保留|禁止|无需|不需要|不写|不标|不展示|不显示|不添加)\\s*(?:(?:任何|背景|新的|额外的?|添加|再|旁白|配音|音乐|配乐|BGM|和|及|、|与)\\s*)*(?:'+word+')(?!太大|太响|过大|过响|盖过)','i').test(c));
  const silent=/静音|无声|不要任何声音|不要声音/.test(message)&&!/(?:不要|不需|无需)静音/.test(message);
  return {schemaVersion:1,originalRequest:String(message),
   narration:silent||denied('旁白|配音|口播')?'forbidden':'unspecified',

@@ -7,6 +7,7 @@ import {insist} from './contracts.mjs';
 import {HyperFramesResourceCatalog} from './resource-catalog.mjs';
 import {readDiscoveredResource} from './resource-discovery.mjs';
 import {preserveGuidance,readPreservedGuidance} from './guidance-history.mjs';
+import {commerceSkills} from './commerce-skills.mjs';
 export const resourceHash=x=>createHash('sha256').update(typeof x==='string'||Buffer.isBuffer(x)?x:JSON.stringify(x)).digest('hex');
 export async function historicalGuidance(root,record){
   if(!/^[a-f0-9]{64}$/.test(record.sha256))return null;
@@ -118,7 +119,22 @@ export class CapabilityCatalog {
       for(const record of receipt.adapterSources||[]){insist(localAdapterFiles.has(record.file),'未知原生适配来源','RESOURCE_UNKNOWN');records.set(record.file,record);}
       if(receipt.adapterSourceSha256)records.set('lib/creative/native-recipes.mjs',{file:'lib/creative/native-recipes.mjs',sha256:receipt.adapterSourceSha256});
     }
-    const files=[];for(const r of records.values()){let content=r.discoveryRoot?Buffer.from(await this.readDiscoveryRecord(r)):r.file.startsWith('third_party/hyperframes/')||r.file.startsWith('third_party/hyperframes-launches/')?await fs.readFile(path.join(this.root,'..',r.file)):(r.file.startsWith('prompts/commerce/')||['agent.md','docs/commerce-focus-v1/scenario-registry.spec.json'].includes(r.file)||localAdapterFiles.has(r.file))?await fs.readFile(path.join(this.root,r.file)):Buffer.from((await this.read(r.file)).content);let historical=null;if(resourceHash(content)!==r.sha256){historical=await historicalGuidance(this.root,r);if(historical)content=historical.content;}insist(resourceHash(content)===r.sha256,'已用上下文在打包前变化：'+r.file,'RESOURCE_HASH');const relative=(historical?'resources/history/'+r.sha256+'/':'resources/')+r.file+(/\.(?:html|js|mjs|py|sh)$/.test(r.file)?'.reference.txt':'');await fs.mkdir(path.dirname(path.join(directory,relative)),{recursive:true});await fs.writeFile(path.join(directory,relative),content);files.push({...r,packagePath:relative,...(historical?{historicalGuidance:true,sourceCommit:historical.commit}: {})});}
+    const files=[];for(const r of records.values()){
+      // Skill receipts hash the semantic contract, not the JS module containing
+      // its definitions. Preserve those exact bytes as a separate resource type.
+      if(r.file===undefined){
+        insist(r.source==='lib/creative/commerce-skills.mjs','未知的无路径上下文记录','RESOURCE_UNKNOWN');
+        const skill=Object.values(commerceSkills).find(s=>s.id===r.id&&s.version===r.version);
+        insist(skill&&skill.hash===r.sha256,'已用 Skill 契约在打包前变化：'+r.id,'RESOURCE_HASH');
+        const {hash,...contract}=skill,content=JSON.stringify(contract);
+        insist(resourceHash(content)===r.sha256,'Skill 契约哈希不符','RESOURCE_HASH');
+        const relative='resources/contracts/'+skill.id+'-v'+skill.version+'.json';
+        await fs.mkdir(path.dirname(path.join(directory,relative)),{recursive:true});
+        await fs.writeFile(path.join(directory,relative),content);
+        files.push({...r,recordType:'commerce-skill-contract',packagePath:relative});continue;
+      }
+      insist(typeof r.file==='string'&&r.file.length>0&&!path.isAbsolute(r.file)&&!r.file.split(/[\\/]/).includes('..'),'上下文文件路径无效','RESOURCE_UNKNOWN');
+      let content=r.discoveryRoot?Buffer.from(await this.readDiscoveryRecord(r)):r.file.startsWith('third_party/hyperframes/')||r.file.startsWith('third_party/hyperframes-launches/')?await fs.readFile(path.join(this.root,'..',r.file)):(r.file.startsWith('prompts/commerce/')||/^commerce\/scenes\/(?:general|product-(?:launch|demo|detail|collection|promotion|faq))\/(?:scene\.json|(?:PERSONA|INPUT_CONTRACT|OUTPUT_CONTRACT|STORY_GRAMMAR|MATERIAL_POLICY|AUDIO_POLICY|REPAIR_POLICY|EDITING_POLICY)\.md|(?:RESOURCE_PROFILE|COMPONENTS|TEMPLATES|QUALITY_RUBRIC)\.json)$/.test(r.file)||['agent.md','docs/commerce-focus-v1/scenario-registry.spec.json'].includes(r.file)||localAdapterFiles.has(r.file))?await fs.readFile(path.join(this.root,r.file)):Buffer.from((await this.read(r.file)).content);let historical=null;if(resourceHash(content)!==r.sha256){historical=await historicalGuidance(this.root,r);if(historical)content=historical.content;}insist(resourceHash(content)===r.sha256,'已用上下文在打包前变化：'+r.file,'RESOURCE_HASH');const relative=(historical?'resources/history/'+r.sha256+'/':'resources/')+r.file+(/\.(?:html|js|mjs|py|sh)$/.test(r.file)?'.reference.txt':'');await fs.mkdir(path.dirname(path.join(directory,relative)),{recursive:true});await fs.writeFile(path.join(directory,relative),content);files.push({...r,packagePath:relative,...(historical?{historicalGuidance:true,sourceCommit:historical.commit}: {})});}
     const lock={runtime:'0.8.33',commit:this.snapshot.commit,files,execution:'reference files are inert; native bundles are the only executable adaptation',license:'upstream LICENSE; asset rights reviewed separately'};await fs.writeFile(path.join(directory,'resource-lock.json'),JSON.stringify(lock,null,2));return lock;
   }
 }

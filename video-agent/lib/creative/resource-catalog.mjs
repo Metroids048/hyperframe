@@ -2,6 +2,8 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {catalogDigest,refreshLocalCatalog,readDiscoveredResource} from './resource-discovery.mjs';
+import {transitionScopes,resourceInstructionText} from './resource-scope.mjs';
+import {stableId,insist} from './contracts.mjs';
 const hash=x=>createHash('sha256').update(typeof x==='string'||Buffer.isBuffer(x)?x:JSON.stringify(x)).digest('hex');
 const canonical=r=>r.canonicalId||r.name||r.id;
 const compact=s=>String(s).toLowerCase().replace(/[^a-z0-9\u4e00-\u9fff]/g,'');
@@ -10,6 +12,12 @@ function mentionsResource(clause,name){
  // Platform mentions request the shared workflow, not a resource named after
  // its top-level skill. Also do not match "frames" inside "HyperFrames".
  if(compact(name)==='hyperframes')return false;
+ // Media-type nouns in a functional description are not named resources.
+ // An explicit resource marker, quoted name, or full catalog ID still works.
+ if(['video','audio','image','text','media','canvas','frames'].includes(compact(name))){
+  const n=name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  if(!new RegExp('(?:[「“"`\\\']'+n+'[」”"`\\\']|(?:资源|组件|resource|component)\\s*(?:named\\s+)?[:：]?\\s*'+n+'(?![a-z0-9])|(?<![a-z0-9])'+n+'\\s*(?:资源|组件|component))','i').test(clause))return false;
+ }
  if(/[\u4e00-\u9fff]/.test(name))return compact(clause).includes(compact(name));
  const escaped=name.trim().split(/[\s_-]+/).map(part=>part.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('[\\s_-]*');
  return new RegExp('(?<![a-z0-9])'+escaped+'(?![a-z0-9])','i').test(clause);
@@ -44,24 +52,24 @@ export function normalizeVisualIntent(need={}){
  }};
 }
 export function resourceRequests(need,resources=[]){
- const text=needText(need),entries=[...resources,{name:'chromatic-radial-split',aliases:['chromatic-split','chromatic split','ChromaticRadialSplit','色散']}];
+ const text=resourceInstructionText(typeof need==='object'&&typeof need.explicitText==='string'?need.explicitText:needText(need)),entries=[...resources,{name:'chromatic-radial-split',aliases:['chromatic-split','chromatic split','ChromaticRadialSplit','色散']}];
  const requests=new Map();let previous=[];
- const numbers={'一':1,'二':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9,'十':10,first:1,second:2,third:3};
  for(const clause of text.split(/[，,。;；！!]/)){
+  if(/不变|保持原样|保持现状/.test(clause)&&!/(?:改为|改成|使用|换成|设为|用)/.test(clause))continue;
   let hits=entries.filter(r=>[r.id,r.name,r.canonicalId,r.displayName,r.url,r.sourceUrl,...(r.aliases||[])].some(n=>mentionsResource(clause,n)));
   if(!hits.length){const named=clause.match(/(?:使用|指定|不要|不用)(?:名为)?资源\s*[「“"']?([a-zA-Z][\w-]{2,})/);if(named)hits=[{name:named[1]}];}
-  if(!hits.length&&/只在|仅在|其余|其他|第.+(?:取消|保留)|only.*(?:first|transition)/i.test(clause))hits=previous;
+  if(!hits.length&&/只在|仅在|其余|其他|(?:第|最后|倒数).+(?:取消|保留)|only.*(?:first|transition)/i.test(clause))hits=previous;
   if(!hits.length)continue;previous=hits;
   const denied=/(?:不要|禁止|不用|不使用|取消|do\s+not|don't|never|without)/i.test(clause);
   if(/其余|其他/.test(clause)&&!denied)continue;
   const exclusive=/只在|仅在|only/i.test(clause);
-  const ordinals=[...clause.matchAll(/第([一二三四五六七八九十\d]+)(?:(?:个)?转场|处|个切点)|(?:the\s+)?(first|second|third)\s+transition/ig)];
-  const scopes=/其余|其他/.test(clause)?[{kind:'others'}]:ordinals.length?ordinals.map(m=>({kind:'transition',index:(numbers[m[1]||m[2]?.toLowerCase()]||Number(m[1]))-1})):exclusive?[{kind:'unresolved'}]:[{kind:'all'}];
-  for(const r of hits)for(const scope of scopes){const id=canonical(r),key=id+':'+scope.kind+':'+(scope.index??'');requests.set(key,{canonicalId:id,negated:denied,scope,exclusive,clause});}
+  const scopes=transitionScopes(clause,{exclusive});
+  for(const r of hits)for(const scope of scopes){const id=canonical(r),key=id+':'+scope.kind+':'+(scope.index??scope.offset??'');requests.set(key,{canonicalId:id,negated:denied,scope,exclusive,clause});}
  }
  return [...requests.values()];
 }
 export function resolveResourceTargets(requests,count){
+ requests=requests.map(r=>r.scope.kind==='relative-transition'?{...r,scope:{kind:'transition',index:count-r.scope.offset}}:r);
  const all=Array.from({length:count},(_,i)=>i),included=new Set(),excluded=new Set();
  for(const r of requests)if(r.scope.kind==='unresolved')throw Object.assign(Error('资源作用范围尚未明确'),{code:'RESOURCE_SCOPE'});
  for(const r of requests){if(r.scope.kind==='transition'&&(!Number.isInteger(r.scope.index)||r.scope.index<0||r.scope.index>=count))throw Object.assign(Error('指定资源切点不存在'),{code:'RESOURCE_SCOPE'});if(r.scope.kind==='others')continue;for(const i of r.scope.kind==='transition'?[r.scope.index]:all)(r.negated?excluded:included).add(i);}
@@ -73,6 +81,44 @@ export function resolveResourceTargets(requests,count){
  return {include:[...included].filter(i=>!excluded.has(i)).sort((a,b)=>a-b),exclude:[...excluded].sort((a,b)=>a-b)};
 }
 export function explicitResource(need,resources=[]){return resourceRequests(need,resources).find(r=>!r.negated)?.canonicalId||null;}
+export function bindTransitionResourceScopes(document,requests){
+ const order=new Map((document.scenes||[]).map((s,i)=>[s.id,i]));
+ const transitions=[...(document.transitions||[])].sort((a,b)=>(order.get(a.fromSceneId)??0)-(order.get(b.fromSceneId)??0));
+ const ref=(t,index)=>({transitionId:t.id||stableId('transition',t.fromSceneId,t.toSceneId),fromSceneId:t.fromSceneId,toSceneId:t.toSceneId,index});
+ return [...new Set(requests.map(r=>r.canonicalId))].map(canonicalId=>{
+  const selected=requests.filter(r=>r.canonicalId===canonicalId),targets=resolveResourceTargets(selected,transitions.length);
+  insist(!selected.some(r=>!r.negated)||targets.include.length,'指定转场不存在或相互冲突','RESOURCE_SCOPE');
+  return {canonicalId,baseRevisionId:document.revisionId||null,include:targets.include.map(i=>ref(transitions[i],i)),exclude:targets.exclude.map(i=>ref(transitions[i],i)),preserve:transitions.flatMap((t,i)=>targets.include.includes(i)||targets.exclude.includes(i)?[]:[ref(t,i)]),requests:selected};
+ });
+}
+export function validateResourceScopeOperations(document,operations,bindings){
+ for(const binding of bindings){
+  insist(binding.baseRevisionId===(document.revisionId||null),'资源范围不属于当前版本','WORKFLOW_BASE_CONFLICT');
+  if(binding.canonicalId!=='chromatic-radial-split')continue;
+  const matches=(a,b)=>a.fromSceneId===b.fromSceneId&&a.toSceneId===b.toSceneId;
+  for(const op of operations.filter(o=>o.type==='set_transition')){
+   const included=binding.include.some(r=>matches(r,op)),excluded=binding.exclude.some(r=>matches(r,op));
+   insist(included||excluded,'转场修改超出指定范围','RESOURCE_SCOPE');
+   insist(included?op.effect==='chromatic-split':op.effect!=='chromatic-split','转场效果与包含／排除范围冲突','RESOURCE_SCOPE');
+  }
+  for(const ref of binding.include)insist(operations.some(op=>op.type==='set_transition'&&matches(ref,op)&&op.effect==='chromatic-split')||(document.transitions||[]).some(t=>matches(ref,t)&&t.effect==='chromatic-split'),'遗漏指定转场','RESOURCE_SCOPE');
+  for(const ref of binding.exclude)insist(!(document.transitions||[]).some(t=>matches(ref,t)&&t.effect==='chromatic-split')||operations.some(op=>op.type==='set_transition'&&matches(ref,op)&&op.effect!=='chromatic-split'),'未移除被排除的色散转场','RESOURCE_SCOPE');
+ }
+}
+export function planExactTransitionResourceEdit(document,message,bindings){
+ if(!bindings.length||bindings.some(b=>b.canonicalId!=='chromatic-radial-split'))return null;
+ const remainder=resourceInstructionText(message).replace(/chromatic[-\s]*(?:radial[-\s]*)?split|色散|转场|切点|其余|其他|不要|不用|不使用|取消|保留|不变|保持|只在|仅在|最后|倒数|使用|改为|改成|设为|换成|添加|用|第|处|个|一|二|两|三|四|五|六|七|八|九|十|百|零|〇|和|与|及|至|到|请|在|了|the|last|first|second|third|transition|\d|[、，,。；;！!\s-]/gi,'');
+ if(remainder)return null;
+ const transitions=document.transitions||[],operations=[];
+ for(const binding of bindings)for(const [refs,effect] of [[binding.include,'chromatic-split'],[binding.exclude,'dissolve-transition']])for(const ref of refs){
+  const t=transitions.find(t=>t.fromSceneId===ref.fromSceneId&&t.toSceneId===ref.toSceneId);
+  if(effect!=='chromatic-split'&&t.effect!=='chromatic-split')continue;
+  operations.push({type:'set_transition',fromSceneId:t.fromSceneId,toSceneId:t.toSceneId,effect,durationFrames:t.durationFrames});
+ }
+ if(!operations.length)return null;
+ validateResourceScopeOperations(document,operations,bindings);
+ return {operations,alternatives:[],resourceScopes:bindings,summary:'按当前版本的指定转场范围修改，保留其他镜头与声音。',mode:'local-resource-scope'};
+}
 export function resourceCompatibility(adapter,need={},intent=normalizeVisualIntent(need)){
  const requirements=adapter.requirements||{},reasons=[];
  if(!adapter.compatible)reasons.push('dependency-unavailable');
@@ -91,14 +137,18 @@ export function resourceCompatibility(adapter,need={},intent=normalizeVisualInte
 export function applyRequestedTransitions(document,message){
  const requests=resourceRequests(message),named=requests.filter(r=>r.canonicalId==='chromatic-radial-split');
  if(named.length){const transitions=document.transitions||[],targets=resolveResourceTargets(named,transitions.length);
+  const bindings=bindTransitionResourceScopes(document,named),binding=bindings[0];
   if(named.some(r=>!r.negated)&&!targets.include.length)throw Object.assign(Error('指定色散切点不存在或相互冲突'),{code:'RESOURCE_SCOPE'});
-  for(const i of targets.exclude)if(transitions[i].effect==='chromatic-split')throw Object.assign(Error('色散转场超出指定范围'),{code:'RESOURCE_SCOPE'});
-  for(const i of targets.include){const t=transitions[i];t.effect='chromatic-split';t.params={durationFrames:t.durationFrames};}
-  document.resourceBindings=targets.include.map(i=>({canonicalId:'chromatic-radial-split',baseRevisionId:document.revisionId||null,fromSceneId:transitions[i].fromSceneId,toSceneId:transitions[i].toSceneId,index:i}));
+  const find=ref=>transitions.find(t=>t.id?t.id===ref.transitionId:(t.fromSceneId===ref.fromSceneId&&t.toSceneId===ref.toSceneId));
+  for(const ref of binding.exclude)if(find(ref).effect==='chromatic-split')throw Object.assign(Error('色散转场超出指定范围'),{code:'RESOURCE_SCOPE'});
+  for(const ref of binding.include){const t=find(ref);t.effect='chromatic-split';t.params={durationFrames:t.durationFrames};}
+  document.resourceBindings=binding.include.map(ref=>({canonicalId:binding.canonicalId,baseRevisionId:binding.baseRevisionId,...ref}));
+  document.resourceScopeBindings=bindings;
  }
  if(requests.length)document.resourceRequests=requests;return document;
 }
 export function validateRequestedTransitionPlan(story,message){
+ resolveResourceTargets(resourceRequests(message).filter(r=>r.canonicalId==='chromatic-radial-split'),Math.max(0,story.scenes.length-1));
  for(const named of resourceRequests(message).filter(r=>!r.negated&&r.canonicalId==='chromatic-radial-split')){
   if(story.transition==='cut')throw Object.assign(Error('色散需要真实相邻镜头的重叠：请在分镜中选择非cut转场，按每处0.3秒重叠重新分配镜头时长，保持用户总时长。执行器只在指定边界使用色散。'),{code:'RESOURCE_SCOPE'});
   if(named.scope.kind==='transition'&&named.scope.index>=story.scenes.length-1)throw Object.assign(Error('指定色散转场的位置没有相邻两个镜头，请在目标总时长内安排该切点。'),{code:'RESOURCE_SCOPE'});
@@ -127,7 +177,10 @@ export class HyperFramesResourcePlanner {
    check.eligible=check.reasons.length===0;return check;
   });
   const requests=resourceRequests(need,this.catalog.resources||[]),positive=requests.filter(r=>!r.negated),denied=new Set(requests.filter(r=>r.negated&&r.scope.kind==='all'&&!positive.some(p=>p.canonicalId===r.canonicalId)).map(r=>r.canonicalId));
-  const exact=positive[0]?.canonicalId||null,found=this.catalog.search(need,{limit:20});
+  // Rank compatible executors against all discovered matches before limiting
+  // the displayed reference list. Popular references must not evict the only
+  // executable low-occlusion text adapter from a broad functional request.
+  const exact=positive[0]?.canonicalId||null,found=this.catalog.search(need,{limit:Math.max(20,this.catalog.resources?.length||0)});
   // Alias/URL matches must carry the exact catalog record even when the
   // descriptive keyword search ranks it outside its bounded shortlist.
   for(const r of this.catalog.resources||[])if(positive.some(q=>q.canonicalId===canonical(r))&&!found.some(f=>f.id===r.id))found.push({...r,score:1});
@@ -136,6 +189,7 @@ export class HyperFramesResourcePlanner {
    const sources=found.filter(r=>canonical(r)===runtimeCanonical(a));return {...a,canonicalId:runtimeCanonical(a),scope:positive.find(r=>r.canonicalId===runtimeCanonical(a))?.scope||null,scopes:requests.filter(r=>r.canonicalId===runtimeCanonical(a)),discoveryScore:sources.reduce((s,r)=>s+(r.score||0),0),sourceFiles:sources.map(r=>({path:r.path,sha256:r.sha256,commit:r.sourceCommit}))};
   }).filter(a=>positive.length||a.discoveryScore>0).sort((a,b)=>b.discoveryScore-a.discoveryScore||(b.score||0)-(a.score||0)).slice(0,5);
   const missing=positive.filter(r=>!selected.some(a=>a.canonicalId===r.canonicalId));
-  return {need,intent,adapterChecks,requests,requestedCanonicalId:exact,status:missing.length?'pending_adapter':positive.some(r=>r.scope.kind==='unresolved')?'unresolved_scope':selected.length?'resolved':requests.length&&!positive.length?'excluded':'unresolved',catalogHash:this.catalog.data.contentHash,scan:this.catalog.data.scan?{status:this.catalog.data.scan.status,boundaries:this.catalog.data.scan.boundaries,errors:this.catalog.data.scan.errors}:null,selected,alternatives:found,unresolved:missing,whySelected:'Business intents recall references; hard input and runtime conditions constrain executors before ranking',whyRejected:[...adapterChecks.filter(c=>!c.eligible),...found.filter(r=>!selected.some(a=>a.canonicalId===canonical(r))).map(r=>({id:r.id,reason:'No matching compatible executor selected'}))],compatibility:'0.8.33',adapterStatus:'requires actual bundle and render verification'};
+  const visible=found.filter((r,i)=>i<20||selected.some(a=>a.canonicalId===canonical(r)));
+  return {need,intent,adapterChecks,requests,requestedCanonicalId:exact,status:missing.length?'pending_adapter':positive.some(r=>r.scope.kind==='unresolved')?'unresolved_scope':selected.length?'resolved':requests.length&&!positive.length?'excluded':'unresolved',catalogHash:this.catalog.data.contentHash,scan:this.catalog.data.scan?{status:this.catalog.data.scan.status,boundaries:this.catalog.data.scan.boundaries,errors:this.catalog.data.scan.errors}:null,selected,alternatives:visible,unresolved:missing,whySelected:'Business intents recall references; hard input and runtime conditions constrain executors before ranking',whyRejected:[...adapterChecks.filter(c=>!c.eligible),...visible.filter(r=>!selected.some(a=>a.canonicalId===canonical(r))).map(r=>({id:r.id,reason:'No matching compatible executor selected'}))],compatibility:'0.8.33',adapterStatus:'requires actual bundle and render verification'};
  }
 }

@@ -8,6 +8,19 @@ export function invalidateStageResults(run, keys, reason) {
   for(const call of run.toolCalls||[])if(tools.has(call.name))ids.add(call.idempotencyKey);
   for(const entry of run.toolResults||[])if(entry.status==='completed'&&(ids.has(entry.idempotencyKey)||tools.has(entry.tool))){entry.status='invalidated';entry.invalidation=structuredClone(reason);}
   for(const key of stages)delete run.checkpoints[key];
+  if(keys.length&&run.status==='completed'){run.status='recoverable';run.resultRevisionId=null;run.verification=null;}
+}
+// Newly observed action boundaries invalidate decisions derived from the old
+// material analysis, but never the observations, paid audio or global budget.
+export function refreshActionMaterial(run, evidenceHash) {
+  const material=run.checkpoints.material?.result;
+  if(!material || !(run.artifacts.actionInspections?.length) || run.artifacts.materialActionEvidenceHash===evidenceHash)return false;
+  const reason={code:'ACTION_EVIDENCE_CHANGED',evidenceHash};
+  (run.artifacts.materialEvidenceHistory??=[]).push({material:structuredClone(material),evidenceHash:run.artifacts.materialActionEvidenceHash??null,modelCalls:run.modelCalls});
+  run.artifacts.priorActionMaterial=structuredClone(material);
+  const keys=['material','creative','resources','story','timing','direction-preview','assemble','quality',...Object.keys(run.checkpoints).filter(k=>k.startsWith('shot-'))];
+  invalidateStageResults(run,keys,reason);
+  return true;
 }
 // Older runs mislabeled validation of an unexecuted inspection request as spent budget.
 // Actual model/step counters stay in the same run and are enforced by AgentKernel.

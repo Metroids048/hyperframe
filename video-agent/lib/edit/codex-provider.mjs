@@ -9,7 +9,7 @@ import {ROOT} from '../workflow.mjs';
 import {EditError,insist,uid} from './timeline.mjs';
 import {hashFile} from './media.mjs';
 import {SpeechWorker,localPython} from './speech-worker.mjs';
-import {codexRequest,codexFailure,modelTimeoutMs} from './codex-command.mjs';
+import {codexRequest,codexFailure,modelTimeoutMs,codexWorkingDirectory} from './codex-command.mjs';
 import {speakElevenLabs} from './adapters/optional-providers.mjs';
 
 export function subscriptionEnv() {
@@ -65,23 +65,24 @@ export class CodexProvider extends CloudProvider {
       if(c.type==='input_text')parts.push(c.text);
       else if(c.type==='input_image'){const match=/^data:image\/(jpeg|png);base64,(.+)$/s.exec(c.image_url);insist(match,'模型图片必须为本地抽帧');const f=path.join(dir,`frame-${images.length}.${match[1]}`);await fs.writeFile(f,Buffer.from(match[2],'base64'));images.push(f);parts.push(`【附图 ${images.length}】`);}
     }messages.push({role:item.role,content:parts.join('\n')});}
-    const {args,prompt}=codexRequest({model,schemaFile,output,images,instructions,messages,reasoningEffort:this.reasoningEffort});
+    const working=await codexWorkingDirectory(dir);
+    const {args,prompt}=codexRequest({model,schemaFile:working.file('schema.json'),output:working.file('result.json'),images:images.map(file=>working.file(path.basename(file))),instructions,messages,reasoningEffort:this.reasoningEffort});
     const invocation={model,timeoutMs:this.timeoutMs,reasoningEffort:this.reasoningEffort,attempt,imageCount:images.length,promptSha256:createHash('sha256').update(prompt).digest('hex'),schemaSha256:createHash('sha256').update(JSON.stringify(schema)).digest('hex'),directory:dir};
-    await fs.writeFile(path.join(dir,'prompt.txt'),prompt);
-    await this.onInvocation?.(invocation);
     try {
+      await fs.writeFile(path.join(dir,'prompt.txt'),prompt);
+      await this.onInvocation?.(invocation);
       await new Promise((resolve,reject)=>{
         if(signal?.aborted)return reject(new EditError('任务已取消'));
-        const child=spawn(this.bin,args,{cwd:dir,env:this.environment,windowsHide:true,stdio:['pipe','pipe','pipe']});let tail='',timed=false;
+        const child=spawn(this.bin,args,{cwd:working.cwd,env:this.environment,windowsHide:true,stdio:['pipe','pipe','pipe']});let tail='',timed=false;
         const kill=()=>{if(process.platform==='win32')spawnSync('taskkill',['/pid',String(child.pid),'/T','/F'],{windowsHide:true,stdio:'ignore'});else child.kill('SIGKILL');};
         const timer=setTimeout(()=>{timed=true;kill();},this.timeoutMs);signal?.addEventListener('abort',kill,{once:true});
         child.stdin.on('error',()=>{});child.stdin.end(prompt);child.stdout.on('data',b=>tail=(tail+b).slice(-16000));child.stderr.on('data',b=>tail=(tail+b).slice(-16000));
-        child.on('error',()=>{clearTimeout(timer);signal?.removeEventListener('abort',kill);reject(new EditError('Codex 无法启动，请检查本机安装',503));});
+        child.on('error',error=>{clearTimeout(timer);signal?.removeEventListener('abort',kill);reject(new EditError('Codex 无法启动（'+(error.code||'unknown')+'，工作目录长度 '+working.cwd.length+'），请检查可执行文件及工作目录',503));});
         child.on('close',code=>{clearTimeout(timer);signal?.removeEventListener('abort',kill);if(signal?.aborted)return reject(new EditError('任务已取消',409));if(code!==0||timed){const diagnostic=tail.replace(/sk-[a-zA-Z0-9_-]+/g,'[redacted]').replace(/Bearer\s+\S+/gi,'Bearer [redacted]'),capacity=!timed&&/Selected model is at capacity|model.*temporarily unavailable/i.test(tail),failure=codexFailure(tail,{timed}),error=Object.assign(new EditError(failure.message,503),{capacity,code:failure.code});void fs.writeFile(path.join(dir,'failure.log'),diagnostic).catch(()=>{}).finally(()=>reject(error));return;}resolve();});
       });
       const result=JSON.parse(await fs.readFile(output,'utf8'));this.verifiedAt=new Date().toISOString();if(model)this.availableModel=model;return {result,usage:null,model:model||'Codex 默认模型',reasoningEffort:this.reasoningEffort,invocation,...(model!==this.model?{fallbackFrom:this.model}:{})};
     }catch(error){if(error.capacity&&attempt+1<candidates.length&&!signal?.aborted)return await this.structured(instructions,input,schema,signal,attempt+1);if(error.capacity)error.message='可用模型当前都很繁忙，输入已保存，请稍后重试';throw error;}
-    finally {await fs.writeFile(path.join(dir,'request.json'),JSON.stringify({...invocation,completedAt:new Date().toISOString()})).catch(()=>{});}
+    finally {await fs.writeFile(path.join(dir,'request.json'),JSON.stringify({...invocation,completedAt:new Date().toISOString()})).catch(()=>{});await working.cleanup();}
   }
   async transcribe(file,signal) {
     if(signal?.aborted)throw new EditError('任务已取消',409);

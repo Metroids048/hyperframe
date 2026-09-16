@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import sharp from 'sharp';
-import {ffmpeg,run} from '../edit/media.mjs';
+import {ffmpeg,run,hashFile} from '../edit/media.mjs';
 import {insist} from './contracts.mjs';
 import {resourceHash} from './capabilities.mjs';
 
@@ -17,10 +17,22 @@ export function validateActionRanges(ranges,assets){
   return ranges;
 }
 
+async function inspectionSources(directory,assets,ranges){
+  const sources=[];
+  for(const id of new Set(ranges.map(r=>r.assetId))){
+    const asset=assets.find(a=>a.id===id),compiledSha256=await hashFile(path.join(directory,asset.compiledRef));
+    const expected=asset.processing?.at(-1)?.outputSha256||asset.sha256;
+    insist(expected===compiledSha256,'观察源文件与当前素材版本不一致','CHECKPOINT_HASH');
+    sources.push({assetId:id,sourceSha256:asset.sha256,compiledSha256});
+  }
+  return sources;
+}
+
 /** Finite, time-labelled 4 Hz observations and a playable proxy; no claim of model video playback. */
 export async function inspectActionRanges(directory,assets,ranges,{signal}={}){
   validateActionRanges(ranges,assets);
-  const key=resourceHash({ranges,version:1,sampleFps:4}).slice(0,16),records=[],clips=[];
+  const sources=await inspectionSources(directory,assets,ranges);
+  const key=resourceHash({ranges,sources,version:2,sampleFps:4}).slice(0,16),records=[],clips=[];
   await fs.mkdir(path.join(directory,'evidence'),{recursive:true});
   for(const [i,r]of ranges.entries()){
     const asset=assets.find(a=>a.id===r.assetId),source=path.join(directory,asset.compiledRef),duration=r.endSeconds-r.startSeconds;
@@ -46,25 +58,43 @@ export async function inspectActionRanges(directory,assets,ranges,{signal}={}){
     await run(ffmpeg,['-y','-v','error','-ss',String(r.startSeconds),'-i',source,'-t',String(duration),'-an','-vf','scale=960:-2','-c:v','libx264','-preset','ultrafast','-crf','26','-pix_fmt','yuv420p',path.join(directory,file)],{signal,timeout:60000});
     clips.push({...r,file,sha256:resourceHash(await fs.readFile(path.join(directory,file))),sourceSha256:asset.sha256,audio:false,purpose:'continuous visual playback reference'});
   }
-  return {tool:'assets.inspect_actions',key,records,clips,sampling:'up to 4 Hz; labels use actual decoded showinfo timestamps plus the source in-point',motionPlayback:'playable source proxies created; model receives ordered stills, not continuous video',precisionLimitSeconds:0.25};
+  return {tool:'assets.inspect_actions',key,sources,records,clips,sampling:'up to 4 Hz; labels use actual decoded showinfo timestamps plus the source in-point',motionPlayback:'playable source proxies created; model receives ordered stills, not continuous video',precisionLimitSeconds:0.25};
 }
 
 /** Bounded source observation. Each contact sheet has nine timestamped real frames. */
 export async function inspectSourceRanges(directory,assets,ranges,{signal}={}){
-  validateInspectionRanges(ranges,assets);const key=resourceHash(ranges).slice(0,16),records=[];
+  validateInspectionRanges(ranges,assets);const sources=await inspectionSources(directory,assets,ranges);
+  const key=resourceHash({ranges,sources,version:3,boundaries:'first-and-last-decoded-frame'}).slice(0,16),records=[];
   await fs.mkdir(path.join(directory,'evidence'),{recursive:true});
   for(const [i,r] of ranges.entries()){
-    const asset=assets.find(a=>a.id===r.assetId),count=Math.ceil(r.endSeconds-r.startSeconds),times=Array.from({length:count},(_,j)=>r.startSeconds+(j+.5)*(r.endSeconds-r.startSeconds)/count);
+    const asset=assets.find(a=>a.id===r.assetId),duration=r.endSeconds-r.startSeconds,count=Math.max(2,Math.ceil(duration)+1),last=Math.max(r.startSeconds,r.endSeconds-1/30),times=Array.from({length:count},(_,j)=>r.startSeconds+j*(last-r.startSeconds)/(count-1));
     for(let offset=0;offset<times.length;offset+=9){
-      const sample=times.slice(offset,offset+9),cells=[];
+      const sample=times.slice(offset,offset+9),cells=[],decodedTimes=[];
       for(const [j,time] of sample.entries()){
         signal?.throwIfAborted();const file=`evidence/inspection-${key}-${i}-${offset+j}.jpg`;
-        await run(ffmpeg,['-y','-v','error','-ss',String(time),'-i',path.join(directory,asset.compiledRef),'-frames:v','1','-vf','scale=400:225:force_original_aspect_ratio=decrease,format=rgb24,pad=400:225:(ow-iw)/2:(oh-ih)/2',path.join(directory,file)],{signal,timeout:30000});
-        cells.push({input:await fs.readFile(path.join(directory,file)),left:j%3*400,top:Math.floor(j/3)*225});
+        let log='';await run(ffmpeg,['-y','-v','info','-ss',String(time),'-i',path.join(directory,asset.compiledRef),'-frames:v','1','-vf','showinfo,scale=400:225:force_original_aspect_ratio=decrease,format=rgb24,pad=400:225:(ow-iw)/2:(oh-ih)/2',path.join(directory,file)],{signal,timeout:30000,onOutput:chunk=>{log+=chunk;}});
+        const match=log.match(/\bn:\s*0\s+pts:\s*-?\d+\s+pts_time:([\d.]+)/);insist(match,'补充观察缺少实际解码时间','OBSERVATION_TIMESTAMP');
+        const actual=time+Number(match[1]);insist(actual<r.endSeconds+1e-6,'观察帧超出候选区间','OBSERVATION_TIMESTAMP');decodedTimes.push(actual);
+        const label=Buffer.from(`<svg width="400" height="26"><rect width="400" height="26" fill="#111111"/><text x="8" y="19" fill="#ffffff" font-size="16">source ${actual.toFixed(3)}s</text></svg>`);
+        const input=await sharp(path.join(directory,file)).extend({bottom:26,background:'#111'}).composite([{input:label,left:0,top:225}]).jpeg().toBuffer();
+        cells.push({input,left:j%3*400,top:Math.floor(j/3)*251});
       }
-      const bytes=await sharp({create:{width:1200,height:Math.ceil(sample.length/3)*225,channels:3,background:'#111'}}).composite(cells).jpeg({quality:88}).toBuffer(),file=`evidence/inspection-contact-${key}-${i}-${offset}.jpg`;
-      await fs.writeFile(path.join(directory,file),bytes);records.push({...r,file,times:sample,sha256:resourceHash(bytes),sourceSha256:asset.sha256});
+      const bytes=await sharp({create:{width:1200,height:Math.ceil(sample.length/3)*251,channels:3,background:'#111'}}).composite(cells).jpeg({quality:88}).toBuffer(),file=`evidence/inspection-contact-${key}-${i}-${offset}.jpg`;
+      await fs.writeFile(path.join(directory,file),bytes);records.push({...r,file,times:decodedTimes,requestedTimes:sample,sha256:resourceHash(bytes),sourceSha256:asset.sha256});
     }
   }
-  return {tool:'assets.inspect_ranges',key,records,sampling:'approximately 1 Hz; not frame-accurate action boundary validation',motionPlayback:'not performed'};
+  return {tool:'assets.inspect_ranges',key,sources,records,sampling:'approximately 1 Hz including first and last source frames; labels use decoded timestamps; not continuous action validation',motionPlayback:'not performed'};
+}
+
+/** Exact candidate cuts are deterministic validation, not another semantic search. */
+export async function inspectSourceBoundaries(directory,assets,ranges,{signal}={}){
+  insist(ranges.length<=48,'候选边界数量超限','OBSERVATION_BUDGET');
+  const windows=[];
+  for(const r of ranges){const asset=assets.find(a=>a.id===r.assetId);
+    insist(asset?.kind==='video'&&Number.isFinite(r.startSeconds)&&Number.isFinite(r.endSeconds)&&r.startSeconds>=0&&r.endSeconds>r.startSeconds&&r.endSeconds<=asset.mediaMetadata.duration,'候选切点越界','INVALID_SOURCE_RANGE');
+    windows.push({...r,endSeconds:Math.min(r.endSeconds,r.startSeconds+.05),reason:'deterministic first-frame validation'},
+      {...r,startSeconds:Math.max(r.startSeconds,r.endSeconds-.05),reason:'deterministic last-frame validation'});
+  }
+  const batches=[];for(let i=0;i<windows.length;i+=3)batches.push(await inspectSourceRanges(directory,assets,windows.slice(i,i+3),{signal}));
+  return {tool:'assets.inspect_boundaries',key:resourceHash(batches.map(b=>b.key)),ranges,sources:[...new Map(batches.flatMap(b=>b.sources).map(s=>[s.assetId,s])).values()],records:batches.flatMap(b=>b.records),sampling:'first and last decoded frames only; interior and continuous motion remain unverified',motionPlayback:'not performed'};
 }

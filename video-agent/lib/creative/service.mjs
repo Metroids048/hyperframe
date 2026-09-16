@@ -1,7 +1,7 @@
-import {planWorkbenchWorkflow,workflowStages} from './workflow-design.mjs';
-import {workflowContract,workflowEntries} from './workflow-intent.mjs';
+import {planWorkbenchWorkflow,workflowStages,productionWorkflowFromPlan} from './workflow-design.mjs';
+import {workflowContract,workflowEntries,inheritRevisionWorkflow,bindRevisionWorkflow} from './workflow-intent.mjs';
 import {routeWorkbenchMessage} from './message-routing.mjs';
-import {discoverMaterialRoots,resolveMaterialRoot} from './material-roots.mjs';
+import {discoverMaterialRoots,resolveMaterialRoot,publicMaterialRoot,selectMaterialEntries} from './material-roots.mjs';
 import {productionPolicy,assertMediaGenerationAllowed} from './production-policy.mjs';
 import {minimaxCapabilityStatus} from '../edit/adapters/minimax.mjs';
 import {MiniMaxClient} from '../edit/adapters/minimax-client.mjs';
@@ -21,7 +21,7 @@ import path from 'node:path';
 import {randomUUID} from 'node:crypto';
 import {ROOT} from '../workflow.mjs';
 import {acquireRender} from '../render-queue.mjs';
-import {linkOrCopy} from '../edit/media.mjs';
+import {linkOrCopy,hashFile} from '../edit/media.mjs';
 import {CreativeError, insist, assetKindFromName, MAX_FILE_BYTES, MAX_ASSETS, stableId,safeRelativePath} from './contracts.mjs';
 import {buildCommerceProject,patchCommerceProject,readNativeProject,writeCompiledProject,runHyperFrames,renderCommerceProject} from './runner.mjs';
 import {applyDocumentPatch,computeInvalidation} from './patch.mjs';
@@ -33,7 +33,7 @@ import {prepareCreativeAsset} from './image-asset.mjs';
 import {inspectBrandFont,MAX_FONT_BYTES,brandFontResources} from './brand-fonts.mjs';
 import {collectCreativeEvidence} from './model-director.mjs';
 import {readCreativePresets, publicPreset} from './presets.mjs';
-import {readFinishedWorks,publicFinishedWork} from './finished-works.mjs';
+import {readFinishedWorks,publicFinishedWork,artifactFile} from './finished-works.mjs';
 import {replaceFileAtomically} from '../edit/project-store.mjs';
 import {creativeVoiceInteraction} from './voice.mjs';
 import {recognizeNativeCaptions,mergeRecognizedCaptions} from './captions.mjs';
@@ -63,6 +63,14 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
   const projects=new Map(),writes=new Map(),uploads=new Set(),controllers=new Map();
   const directory=p=>path.join(dataDir,p.id);
   const versionDirectory=(p,r)=>path.join(directory(p),r.directory);
+  async function artifacts(p,revisionId){
+    const r=revision(p,revisionId),base=versionDirectory(p,r),files=[];
+    for(const name of [...(r.rendered?['commerce-final.mp4']:[]),...(r.historyPackaged?['history.zip']:r.packaged?['project.zip']:[])]){
+      try{files.push({name,...await artifactFile(path.join(base,name),`/api/commerce/${p.id}/revisions/${r.id}/${name}?download=1`)});}
+      catch(error){if(error.code!=='ENOENT')throw error;files.push({name,unavailable:'文件缺失，请核对该版本导出记录'});}
+    }
+    return {projectId:p.id,revisionId:r.id,files};
+  }
   async function save(p){
     const signature=JSON.stringify(p.jobs.map(j=>[j.id,j.status,j.stage,j.runStage,j.checkpoints,j.code,j.error,j.revisionId,j.renderProgress?.completed,j.generationPlan?.shots.map(s=>[s.id,s.status,s.assetId]) ]));if(p.progressSignature!==signature){p.progressSignature=signature;p.recentProgressAt=now();}p.updatedAt=now();const bytes=JSON.stringify(p,null,2),target=path.join(directory(p),'native-project.json');
     const task=(writes.get(p.id)||Promise.resolve()).catch(()=>{}).then(async()=>{await fs.writeFile(target+'.tmp',bytes);await replaceFileAtomically(target+'.tmp',target);});writes.set(p.id,task);await task;
@@ -96,15 +104,16 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
       const base=p.currentRevisionId;
       const document=base?(await readNativeProject(versionDirectory(p,revision(p)))).document:null;
       let route;
-      try{route=await routeWorkbenchMessage(p,input.message,{provider:routingProvider,document});}
+      try{route=await routeWorkbenchMessage(p,input.message,{provider:routingProvider,document,taskMode:input.taskMode||input.request?.taskMode,taskModeExplicit:input.taskModeExplicit??input.request?.taskModeExplicit,scenarioId:input.scenarioId||input.request?.scenarioId||p.request?.scenarioId});}
       catch(error){(p.routingFailures??=[]).push({time:now(),message:input.message,baseRevisionId:base,idempotencyKey:input.idempotencyKey,code:error.code||'MESSAGE_ROUTE_FAILED'});await save(p);throw error;}
       insist(p.currentRevisionId===base,'理解期间版本已变化，保留消息并请重试','REVISION_CONFLICT');
       (p.routingReceipts??=[]).push({time:now(),message:input.message,baseRevisionId:base,...route});
       let resultProject=p;
       if(route.mode==='clarify'){p.messages.push({role:'user',text:input.message,time:now()},{role:'assistant',text:route.question,time:now()});}
+      else if(route.mode==='plan')await enqueue(p,{...input,action:'plan-workflow'});
       else if(route.mode==='status')p.messages.push({role:'assistant',text:p.jobs.at(-1)?.error||p.jobs.at(-1)?.stage||'当前版本已保存。',time:now()});
       else if(['undo','redo','restore'].includes(route.mode))await navigate(p,{action:route.mode,revisionId:route.revisionId});
-      else if(route.mode==='cancel'){const running=p.jobs.filter(active);insist(running.length===1,'请在任务记录中选择要取消的任务','CANCEL_TARGET_AMBIGUOUS');await cancel(p,running[0].id);}
+      else if(route.mode==='cancel'){const running=p.jobs.filter(active);if(!running.length)p.messages.push({role:'assistant',text:'当前没有正在运行的任务，工程和素材已保留。',time:now()});else {insist(running.length===1,'请在任务记录中选择要取消的任务','CANCEL_TARGET_AMBIGUOUS');await cancel(p,running[0].id);}}
       else if(route.mode==='create'&&base){
         const request={message:input.message,inferRequest:true,target:'marketing',taskMode:'create',taskModeExplicit:true,pipelineVersion:3,commerceProfile:FOCUS_PROFILE};
         request.businessContract=businessContract(request);resultProject=await create(request);
@@ -118,17 +127,43 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
       return {project:view(resultProject),route};
     })();messageFlights.set(key,task);try{return await task;}finally{messageFlights.delete(key);}
   }
-  async function loadPreset(id){
-    await refreshPresets();
-    const preset=presets.find(p=>p.id===id);insist(preset,'这个预设暂不可用','PRESET_MISSING');
-    const p=await create({message:preset.input,inferRequest:true}),dir=path.join(directory(p),'versions','preset');
+  const presetFlights=new Map();
+  async function presetFile(id){
+    const preset=(await refreshPresets()).find(p=>p.id===id);
+    insist(preset,'这个预设暂不可用','PRESET_MISSING');
+    const target=await fs.realpath(path.join(preset.directory,'commerce-final.mp4'));
+    const relative=path.relative(await fs.realpath(root),target);
+    insist(relative&&!relative.startsWith('..'+path.sep)&&!path.isAbsolute(relative),'预设文件超出工作区','PRESET_MISSING');
+    return target;
+  }
+  async function loadPreset(id,{idempotencyKey,expectedSha256}={}){
+    insist(typeof idempotencyKey==='string'&&idempotencyKey.length>=16&&idempotencyKey.length<=200,'创建副本需要稳定请求编号','PRESET_REQUEST_ID_REQUIRED');
+    insist(/^[a-f0-9]{64}$/.test(expectedSha256||''),'创建副本需要确认预设版本','PRESET_VERSION_REQUIRED');
+    const signature=id+':'+expectedSha256;
+    const flight=presetFlights.get(idempotencyKey);
+    if(flight){insist(flight.signature===signature,'请求编号已用于其他预设版本','IDEMPOTENCY_CONFLICT');return flight.promise;}
+    const previous=[...projects.values()].find(p=>p.request?.presetCopy?.idempotencyKey===idempotencyKey);
+    if(previous){
+      insist(previous.request.presetCopy.signature===signature,'请求编号已用于其他预设版本','IDEMPOTENCY_CONFLICT');
+      insist(previous.currentRevisionId,'上次副本尚未完整保存，已保留文件，请检查原副本','PRESET_COPY_INCOMPLETE');
+      return previous;
+    }
+    const promise=copyPreset(id,{idempotencyKey,expectedSha256,signature});
+    presetFlights.set(idempotencyKey,{signature,promise});
+    try{return await promise;}finally{presetFlights.delete(idempotencyKey);}
+  }
+  async function copyPreset(id,{idempotencyKey,expectedSha256,signature}){
+    // Revalidate bytes for an explicit copy even if the catalog file did not change.
+    const preset=(await readCreativePresets(root)).find(p=>p.id===id);insist(preset,'这个预设暂不可用','PRESET_MISSING');
+    insist(preset.sha256===expectedSha256,'预设版本已变化，请重新打开确认','PRESET_CHANGED');
+    const p=await create({message:preset.input,inferRequest:true,presetCopy:{idempotencyKey,signature}}),dir=path.join(directory(p),'versions','preset');
     await fs.mkdir(dir,{recursive:true});
     for(const name of ['index.html','document.json','object-map.json','manifest.json','DESIGN.md','hyperframes.json','commerce-final.mp4'])await fs.copyFile(path.join(preset.directory,name),path.join(dir,name));
     await copyAssets(preset.directory,dir);await linkOrCopy(path.join(root,'node_modules/hyperframes/dist/hyperframe-runtime.js'),path.join(dir,'assets/runtime.js'));
     const document=structuredClone(preset.document);document.projectId=p.id;document.revisionId=stableId('rev',p.id,preset.document.revisionId);
     await fs.writeFile(path.join(dir,'document.json'),JSON.stringify(document,null,2));
     const manifest=JSON.parse(await fs.readFile(path.join(dir,'manifest.json'),'utf8'));manifest.revisionId=document.revisionId;await fs.writeFile(path.join(dir,'manifest.json'),JSON.stringify(manifest,null,2));
-    p.title=preset.title;p.preset={id:preset.id,sha256:preset.sha256,sourceRevisionId:preset.document.revisionId,note:preset.note};
+    p.title=preset.title;p.preset={id:preset.id,sha256:preset.sha256,sourceProjectId:preset.document.projectId,sourceRevisionId:preset.document.revisionId,note:preset.note,creationKey:idempotencyKey};
     if(preset.originalAssets){
       p.assets=[];
       for(const a of preset.originalAssets){const source=safeRelativePath(root,a.path),target=path.join(directory(p),'uploads',a.id+path.extname(source).toLowerCase());await linkOrCopy(source,target);p.assets.push({...a,path:path.relative(root,target).replaceAll('\\','/'),rights:preset.assets.find(n=>n.id===a.id)?.rights||a.rights});}
@@ -148,12 +183,34 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
       const asset={id,kind,name:path.basename(name),path:path.relative(root,target).replaceAll('\\','/'),bytes:size,rights:{status:'user-provided'}};p.assets.push(asset);await save(p);return asset;
     }catch(e){p.assets=p.assets.filter(a=>a.id!==id);await fs.unlink(target).catch(()=>{});throw e;}finally{uploads.delete(key);}
   }
-  async function attachMaterialRoot(p,id){
+  const materialFlights=new Map();
+  async function attachMaterialRoot(p,id,assetIds){
+    insist(Array.isArray(assetIds),'请先选择要加入工程的素材','MATERIAL_SELECTION_REQUIRED');
+    const signature=JSON.stringify([id,[...new Set(assetIds||[])].sort()]),flight=materialFlights.get(p.id);
+    if(flight){insist(flight.signature===signature,'素材选择正在处理，请等待完成','PROJECT_BUSY');return flight.promise;}
+    const promise=attachSelectedMaterials(p,id,assetIds);materialFlights.set(p.id,{signature,promise});
+    try{return await promise;}finally{materialFlights.delete(p.id);}
+  }
+  async function attachSelectedMaterials(p,id,assetIds){
     insist(!p.currentRevisionId&&!p.jobs.some(active),'制作中不能更换素材目录','PROJECT_BUSY');
     const selected=await resolveMaterialRoot(root,id);
-    insist(p.assets.length+selected.files.length<=MAX_ASSETS,'素材超过工程上限，请选择更具体的目录','ASSET_LIMIT');
-    for(const file of selected.files)await upload(p,createReadStream(file),path.basename(file));
-    p.request={...p.request,pipelineVersion:3,materialRoot:{id:selected.id,label:selected.label}};await save(p);return p;
+    const entries=selectMaterialEntries(selected,assetIds),pending=entries.filter(e=>!p.assets.some(a=>a.materialSource?.id===e.id&&a.sha256===e.sha256));
+    insist(p.assets.length+pending.length<=MAX_ASSETS,'所选素材超过工程上限，请减少选择','ASSET_LIMIT');
+    const added=[];
+    try{
+      for(const entry of pending){
+        const source=await fs.realpath(entry.realPath),relative=path.relative(selected.directory,source);
+        insist(!path.isAbsolute(relative)&&relative!=='..'&&!relative.startsWith('..'+path.sep)&&source===entry.realPath,'素材路径已变化，请刷新后重选','MATERIAL_CHANGED');
+        const asset=await upload(p,createReadStream(source),entry.name);added.push(asset);
+        insist(await hashFile(safeRelativePath(root,asset.path))===entry.sha256,'复制期间素材已变化，保留原件并撤回本次加入','MATERIAL_CHANGED');
+        asset.sha256=entry.sha256;asset.materialSource={id:entry.id,rootId:selected.id,relativePath:entry.relativePath,realPath:source,sha256:entry.sha256,indexHash:selected.indexHash};
+      }
+      p.request={...p.request,pipelineVersion:3,materialRoot:{id:selected.id,label:selected.label,indexHash:selected.indexHash,assetIds:entries.map(e=>e.id)}};await save(p);return p;
+    }catch(error){
+      const ids=new Set(added.map(a=>a.id));p.assets=p.assets.filter(a=>!ids.has(a.id));
+      for(const asset of added)await fs.unlink(safeRelativePath(root,asset.path)).catch(()=>{});
+      await save(p);throw error;
+    }
   }
   async function importPackage(req){
     const p=await create({}),target=path.join(directory(p),'import.zip');let bytes=0;
@@ -227,7 +284,8 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
       if(job.kind==='plan'){
         job.stage='理解需求与检查工作流';await save(p);
         const document=job.baseRevisionId?(await readNativeProject(versionDirectory(p,revision(p,job.baseRevisionId)))).document:null;
-        const plan=await planWorkbenchWorkflow({root,message:job.input.message,document,assets:structuredClone(p.assets),baseRevisionId:job.baseRevisionId,prior:p.workflowPlan?.workOrder?.baseRevisionId===job.baseRevisionId?p.workflowPlan.workOrder:null,provider:planningProvider,signal});
+        const prior=p.workflowPlan?.workOrder?.baseRevisionId===job.baseRevisionId?p.workflowPlan.workOrder:document?inheritRevisionWorkflow(document,{baseRevisionId:job.baseRevisionId}):null;
+        const plan=await planWorkbenchWorkflow({root,message:job.input.message,document,assets:structuredClone(p.assets),baseRevisionId:job.baseRevisionId,prior,intake:{taskMode:job.input.taskMode,taskModeExplicit:job.input.taskModeExplicit,output:job.input.output},provider:planningProvider,signal});
         insist(!signal.aborted,'任务已取消','CANCELLED');
         insist(p.currentRevisionId===job.baseRevisionId,'规划期间基准版本已变化','REVISION_CONFLICT');
         job.workflowPlan=plan;p.workflowPlan=plan;job.summary=plan.status==='needs_input'?'制作单已保存：'+plan.nextAction:'制作单与资源候选已保存，尚未生成或修改视频。';
@@ -286,12 +344,18 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
         // so observation, planning and recovery all see the same inputs that
         // are currently attached to the project.
         p.request={...p.request,assets:structuredClone(p.assets)};
+        if(p.workflowPlan){
+          const workflow=productionWorkflowFromPlan(p.workflowPlan,{message:p.request.message,assets:p.assets,baseRevisionId:job.baseRevisionId});
+          p.request={...p.request,workflow,taskMode:workflow.taskMode,scenarioId:workflow.businessScenario};
+          job.planningConsumption=structuredClone(workflow.planningConsumption);
+        }
         job.stage='观察素材与设计分镜';await save(p);
         const dir=path.join(directory(p),'versions',job.id);
         await buildCommerceProject({...p.request,projectId:p.id,assets:p.assets,outputDir:path.relative(root,dir).replaceAll('\\','/'),render:false,planning:planner,signal,resumeRunId:job.resumeRunId,onRun:async run=>{syncRun(job,run);await save(p);},onStage:async stage=>{job.stage=stage;await save(p);}},{root});
         const {document}=await readNativeProject(dir);p.title=document.brief.name;job.stage='检查原生预览';await save(p);const created=await publish(p,job,dir,document,'初始创作');await candidateExport(p,job,created,signal);job.summary='候选 MP4 与原生工程已导出，等待画面与人工审查。';
       }else if(job.kind==='edit'){
         const base=revision(p,job.baseRevisionId),from=versionDirectory(p,base),{document,assets}=await readNativeProject(from);
+        job.input.workflow=inheritRevisionWorkflow(document,job.input.workflow);
         // Earlier native manifests omitted synthesis metadata. Recover only
         // the saved request for the exact same locally recorded audio bytes.
         for(const asset of assets){
@@ -320,6 +384,7 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
           for(const [i,alternative] of plan.alternatives.entries()){
             job.stage=`检查开头方案 ${i+1}/${plan.alternatives.length}`;await save(p);
             const candidate=allocatePublicationRevision(applyDocumentPatch(document,alternative.operations,Object.fromEntries(assets.map(a=>[a.id,a]))),p.revisions,job.id);assertOpeningOnly(document,candidate);
+            candidate.workflowContract=bindRevisionWorkflow(document,candidate,job.input.workflow,{message:job.input.message,operations:alternative.operations,interpreted:plan.workflow});
             const branchDir=path.join(directory(p),'versions',job.id+'-alternative-'+(i+1));await copyAssets(dir,branchDir);
             await fs.writeFile(path.join(branchDir,'hyperframes.json'),JSON.stringify({version:1,entry:'index.html'}));
             await writeCompiledProject(branchDir,candidate,assets,{invalidation:computeInvalidation(document,candidate),signal});
@@ -357,6 +422,8 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
         }
         plan.requestedOperations=requestedOperations;plan.operations=operations;
         let next=applyDocumentPatch(document,operations,Object.fromEntries(assets.map(a=>[a.id,a])));
+        if(plan.resourceScopes?.length)next.resourceScopeBindings=structuredClone(plan.resourceScopes);
+        next.workflowContract=bindRevisionWorkflow(document,next,job.input.workflow,{message:job.input.message,operations,interpreted:plan.workflow});
         const allowed=computeInvalidation(document,next),allowedScenes=new Set(allowed.fullRecompile?document.scenes.map(s=>s.id):allowed.changedScenes);
         await fs.writeFile(path.join(dir,'hyperframes.json'),JSON.stringify({version:1,entry:'index.html'}));
         for(let attempt=0;attempt<3;attempt++){
@@ -392,6 +459,7 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
     insist(!p.jobs.some(j=>active(j)&&j.kind!=='export')||kind==='export','当前创作仍在进行','PROJECT_BUSY');
     insist(!Array.from(uploads).some(k=>k.startsWith(p.id+':')),'请等待素材上传完成','UPLOAD_BUSY');
     if(input.baseRevisionId)insist(input.baseRevisionId===p.currentRevisionId,'页面版本已过期，请刷新后再修改','REVISION_CONFLICT');
+    if(kind==='plan')input={...input,taskMode:input.taskMode||(!p.currentRevisionId?p.request.taskMode:undefined),taskModeExplicit:input.taskModeExplicit??Boolean(!p.currentRevisionId&&p.request.taskModeExplicit),output:structuredClone(input.output||p.request.output)};
     if(!['export','plan'].includes(kind)){const current=p.revisions.find(r=>r.id===p.currentRevisionId);input={...input,workflow:workflowContract({...p.request,...input.request,...input,message:input.message||input.request?.message||p.request.message,taskMode:input.taskMode||input.request?.taskMode||(kind==='edit'?'edit':p.request.taskMode),taskModeExplicit:input.taskModeExplicit??input.request?.taskModeExplicit??Boolean(input.taskMode||input.request?.taskMode),assets:p.assets},{scenarioId:p.request.businessContract?.scenarioId||p.request.scenarioId,baseProjectId:p.id,baseRevisionId:current?.id})};if(input.workflow.taskMode==='variant')insist(current,'变体需要先打开已有原生工程','VARIANT_BASE_REQUIRED');}
     if(kind==='create')insist(!p.currentRevisionId,'项目已有版本，请继续编辑或新建项目','PROJECT_EXISTS');else if(!['audio','plan'].includes(kind))revision(p,input.revisionId||p.currentRevisionId);
     if(kind==='audio'){insist(['speech','music'].includes(input.audio?.kind),'请选择旁白或纯音乐','AUDIO_KIND');insist(p.assets.length<MAX_ASSETS,'最多30个素材','ASSET_LIMIT');}
@@ -418,7 +486,7 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
   for(const p of projects.values())for(const job of p.jobs){
     if(job.status==='recoverable'&&job.code==='INTERRUPTED'&&!job.cancelRequestedAt&&(job.generationPlan||job.generationStarted))queueMicrotask(()=>resume(p,job.id).catch(async error=>{job.status='recoverable';job.code=error.code;job.error=error.message;await save(p);}));
   }
-  return {dispatchMessage,audioVoices:()=>new MiniMaxClient({root,env:audioEnv,transport:audioTransport}).execute('voices'),applyAudio:async(p,input)=>{const {document}=await readNativeProject(versionDirectory(p,revision(p)));const operations=await audioApplication(root,document,p.assets.find(a=>a.id===input.assetId),input);return enqueue(p,{...input,action:'patch',operations,message:input.replaceTrackId?'替换已选音轨':'添加已选声音'});},productionPolicy:()=>productionPolicy(root),finishedWorks:()=>readFinishedWorks(root),materialRoots:async()=>(await discoverMaterialRoots(root)).map(({directory,files,...r})=>r),attachMaterialRoot,get,has:id=>projects.has(id),view,create,loadPreset,presets:async()=>(await refreshPresets()).map(publicPreset),unavailablePresets:async()=>(await refreshPresets()).unavailable||[],upload,importPackage,enqueue,navigate,cancel,resume,authorizeBudget,revision,versionDirectory,list:()=>[...projects.values()].map(view).sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt))};
+  return {artifacts,dispatchMessage,audioVoices:()=>new MiniMaxClient({root,env:audioEnv,transport:audioTransport}).execute('voices'),applyAudio:async(p,input)=>{const {document}=await readNativeProject(versionDirectory(p,revision(p)));const operations=await audioApplication(root,document,p.assets.find(a=>a.id===input.assetId),input);return enqueue(p,{...input,action:'patch',operations,message:(input.replaceTrackId?'替换已选':'添加已选')+(input.role==='narration'?'旁白':input.role==='original'?'原声':'背景音乐')});},productionPolicy:()=>productionPolicy(root),finishedWorks:()=>readFinishedWorks(root),materialRoots:async()=>(await discoverMaterialRoots(root)).map(publicMaterialRoot),attachMaterialRoot,get,has:id=>projects.has(id),view,create,loadPreset,presetFile,presets:async()=>(await refreshPresets()).map(publicPreset),unavailablePresets:async()=>(await refreshPresets()).unavailable||[],upload,importPackage,enqueue,navigate,cancel,resume,authorizeBudget,revision,versionDirectory,list:()=>[...projects.values()].map(view).sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt))};
 }
 
 export async function creativeRoutes(service,req,res,url,{json,jsonBody,file}){
@@ -426,12 +494,20 @@ export async function creativeRoutes(service,req,res,url,{json,jsonBody,file}){
   if(req.method==='GET'&&url.pathname==='/api/commerce-material-roots'){json(res,{ok:true,roots:await service.materialRoots()});return true;}
   if(await humanReviewRoute(ROOT,service,req,res,url,{json,jsonBody}))return true;
   const route=url.pathname;
+  const presetMatch=/^\/api\/commerce-presets\/([a-zA-Z0-9_-]+)\/(video|artifacts)$/.exec(route);
+  if(presetMatch&&['GET','HEAD'].includes(req.method)){
+    const target=await service.presetFile(presetMatch[1]);
+    if(presetMatch[2]==='artifacts'){json(res,{presetId:presetMatch[1],files:[{name:'MP4',...await artifactFile(target,`/api/commerce-presets/${presetMatch[1]}/video?download=1`)}]});return true;}
+    res.setHeader('X-Delivery-Status','preset-reference');
+    await file(req,res,target,'video/mp4',url.searchParams.has('download')?path.basename(target):undefined);return true;
+  }
   if(route==='/api/commerce-finished'&&req.method==='GET'){const works=await service.finishedWorks();json(res,{works:works.map(publicFinishedWork),unavailable:works.unavailable||[]});return true;}
-  const finishedMatch=/^\/api\/commerce-finished\/([a-zA-Z0-9_-]+)\/(video|package)$/.exec(route);
+  const finishedMatch=/^\/api\/commerce-finished\/([a-zA-Z0-9_-]+)\/(video|package|artifacts)$/.exec(route);
   if(finishedMatch&&['GET','HEAD'].includes(req.method)){
     const work=(await service.finishedWorks()).find(w=>w.id===finishedMatch[1]);insist(work,'成品不存在或本机未安装','FINISHED_WORK_NOT_FOUND');
+    if(finishedMatch[2]==='artifacts'){const files=[{name:'MP4',...await artifactFile(work.video,`/api/commerce-finished/${work.id}/video?download=1`)}];if(work.packageFile)files.push({name:'原生工程',...await artifactFile(work.packageFile,`/api/commerce-finished/${work.id}/package?download=1`)});json(res,{workId:work.id,files});return true;}
     const isVideo=finishedMatch[2]==='video',target=isVideo?work.video:work.packageFile;insist(target,'成品文件不存在','FINISHED_WORK_NOT_FOUND');
-    res.setHeader('X-Delivery-Status','reference-author');await file(req,res,target,isVideo?'video/mp4':'application/zip',url.searchParams.has('download')?path.basename(target):undefined);return true;
+    res.setHeader('X-Delivery-Status',work.provenance?.startsWith('reference-')?'reference-author':'candidate');await file(req,res,target,isVideo?'video/mp4':'application/zip',url.searchParams.has('download')?path.basename(target):undefined);return true;
   }
   if(route==='/api/commerce-import'&&req.method==='POST'){const p=await service.importPackage(req);json(res,{ok:true,project:service.view(p)},202);return true;}
   if(route==='/api/commerce-demos'&&req.method==='GET'){const all=await service.presets();const goals=['launch','detail','demo','style','promotion','faq'];const presets=goals.map(goal=>all.find(p=>(p.businessGoal||[]).includes(goal)&&/^demo-N/.test(p.id))||all.find(p=>(p.businessGoal||[]).includes(goal))).filter(Boolean);json(res,{presets,unavailable:await service.unavailablePresets()});return true;}
@@ -440,8 +516,8 @@ export async function creativeRoutes(service,req,res,url,{json,jsonBody,file}){
   if(route==='/api/commerce-chat'&&req.method==='POST'&&(req.headers['content-type']||'').includes('application/json')){
     const input=await jsonBody(req,256000,'创作请求');
     if(input.action==='audio-voices'){json(res,{ok:true,...await service.audioVoices()});return true;}
-    if(input.action==='preset'){const p=await service.loadPreset(input.presetId);json(res,{ok:true,project:service.view(p)},201);return true;}
-    if(input.action==='material-root'){const p=service.get(input.projectId);await service.attachMaterialRoot(p,input.materialRootId);json(res,{ok:true,project:service.view(p)});return true;}
+    if(input.action==='preset'){const p=await service.loadPreset(input.presetId,{idempotencyKey:input.idempotencyKey,expectedSha256:input.expectedSha256});json(res,{ok:true,project:service.view(p)},201);return true;}
+    if(input.action==='material-root'){const p=service.get(input.projectId);await service.attachMaterialRoot(p,input.materialRootId,input.assetIds);json(res,{ok:true,project:service.view(p)});return true;}
     if(input.action==='draft'){const request={...input.request,commerceProfile:FOCUS_PROFILE};request.businessContract=businessContract(request);const p=await service.create(request);json(res,{ok:true,project:service.view(p)},201);return true;}
     if(input.action==='plan-workflow')insist(service.has(input.projectId),'请先建立工作台草稿','PROJECT_NOT_FOUND');
     if(!service.has(input.projectId)){
@@ -475,6 +551,7 @@ export async function creativeRoutes(service,req,res,url,{json,jsonBody,file}){
   const p=service.get(match[1]),action=match[2]||'';
   if(action==='assets'&&req.method==='POST'){let name;try{name=decodeURIComponent(req.headers['x-file-name']||'');}catch{throw new CreativeError('文件名无效');}json(res,{ok:true,asset:await service.upload(p,req,name)},201);return true;}
   if(['GET','HEAD'].includes(req.method)){
+    if(action==='artifacts'){const revisionId=url.searchParams.get('revision');insist(revisionId,'请指定产物版本','REVISION_REQUIRED');json(res,await service.artifacts(p,revisionId));return true;}
     if(action==='delivery-status'){const r=service.revision(p,url.searchParams.get('revision')||p.currentRevisionId);json(res,await deliveryDecision(ROOT,service.versionDirectory(p,r),{currentRevisionId:p.currentRevisionId}));return true;}
     if(action===''||action==='status'){const view=service.view(p);if(p.currentRevisionId&&p.request?.commerceProfile===FOCUS_PROFILE){view.deliveryDecision=await deliveryDecision(ROOT,service.versionDirectory(p,service.revision(p)),{currentRevisionId:p.currentRevisionId});view.deliveryStatus=view.deliveryDecision.status;}json(res,{ok:true,project:view});return true;}
     const audition=/^auditions\/(voice-[a-z0-9]+)\.wav$/.exec(action);

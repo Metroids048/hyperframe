@@ -455,7 +455,9 @@ try {
   );
   await page.click("#clear-selection");
   await page.click("#show-library");
-  await page.click("#transcript button");
+  // Polling can replace transcript buttons between lookup and scrolling.
+  // Locator reacquires the current node while preserving the real click path.
+  await page.locator("#transcript button").click();
   assert.match(
     await page.$eval("#selection-text", (e) => e.textContent),
     /今天我们一起/,

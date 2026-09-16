@@ -124,6 +124,22 @@ test('static overlays preserve actual HyperFrames video source-time progression'
  assert(samples.at(-1).media[0].currentTime-samples[0].media[0].currentTime>6);
 });
 
+test('static mapped video passes pinned HyperFrames sweep without hiding a frozen timeline',async()=>{
+ const {runHyperFrames}=await import('../lib/creative/runner.mjs');
+ const asset={id:'video-source',kind:'video',compiledRef:'assets/footage.mp4',mediaMetadata:{duration:30,width:1920,height:1080,hasAudio:true}};
+ const mediaNode={id:'native-footage',kind:'video',sceneId:scene.id,semanticRole:'hero',assetId:asset.id,anchor:'scene-local',localStartFrame:0,localDurationFrames:240,durationFrames:240,params:{sourceStartSeconds:2,playbackRate:1,fit:'contain'}};
+ const source={...bundle,contractVersion:2,timeline:'',motionTargets:[],css:bundle.css+'#headline{background:#000000;padding:12px}',html:bundle.html+'<div id="footage"></div>',objects:[...bundle.objects,{elementId:'footage',nodeId:mediaNode.id}]};
+ const doc=createNativeDocument({projectId:'static-mapped-footage',output:document.output,brief:document.brief,design:document.design,assets:[asset],scenes:[scene],nodes:[...nodes,mediaNode],sourceBundles:[source]});
+ const dir=await fixture('video-static-mapped');await fs.copyFile(path.join(ROOT,'assets/edit-samples/coffee.mp4'),path.join(dir,'assets/footage.mp4'));
+ await fs.writeFile(path.join(dir,'index.html'),compileDocument(doc,[asset]).html);await fs.writeFile(path.join(dir,'hyperframes.json'),JSON.stringify({version:1,entry:'index.html'}));
+ assert.match(await runHyperFrames(dir,'check'),/Check passed/);
+ // A frozen, genuinely static document must still be rejected. Do not opt the
+ // composition out of the sweep or animate decoration merely to pass it.
+ const frozen=compileDocument({...document,sourceBundles:[{...bundle,contractVersion:2,timeline:'',motionTargets:[]}]},[]).html;
+ await fs.writeFile(path.join(dir,'index.html'),frozen);
+ await assert.rejects(runHyperFrames(dir,'check'),error=>error.code==='HYPERFRAMES_CHECK'&&error.message.includes('sweep_static'));
+});
+
 test('finite chained GSAP calls normalize without accepting arbitrary call roots',()=>{
  const timeline='tl.fromTo("#dot",{x:0},{x:300,duration:2},0).to("#dot",{x:500,duration:2},4);';
  const result=compileCustomSource({...bundle,timeline},{scene,nodes,assets:{}});

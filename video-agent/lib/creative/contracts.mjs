@@ -142,6 +142,7 @@ export function normalizeCommerceRequest(input = {}) {
     baseProjectId: input.baseProjectId || null,
     baseRevisionId: input.baseRevisionId || null,
     businessContract: input.businessContract || null,
+    ...(input.workflow?{workflow:structuredClone(input.workflow)}:{}),
     businessGoal: [...new Set((Array.isArray(input.businessGoal)?input.businessGoal:[]).filter(g=>['product_launch','product_demo','product_howto','product_detail','product_collection','product_promotion','product_faq','launch','detail','demo','style','promotion','faq','recut','versions'].includes(g)))],
     inputMode: normalizedAssets.some(a=>a.kind==='video')?(normalizedAssets.some(a=>a.kind==='image')?'mixed':'footage'):normalizedAssets.some(a=>a.kind==='image')?'images':null,
     inferRequest:input.inferRequest===true,

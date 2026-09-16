@@ -3,6 +3,7 @@ import {recoveryDecision} from './workflow-gates.mjs';
 
 // Project planning contracts, not external services or grants of tool authority.
 const definitions = [
+  ['general','general','明确的通用剪辑、章节或角标包装','需要未实现能力或暂停的新视觉生成', ['拆解为已有受控操作','观察真实源窗口与必要动作','继承主/辅助目的和保持项','绑定可编辑对象与资源','检查实际目标变化及保持差异'], '未知能力明确未实现；不默认上新，不增加工具权限，不用二维包装冒充三维重建。', ['可编辑章节','角标','受控剪接','声音与字幕']],
   ['product_launch','launch','让初次接触者认识商品','完整教学或具体问答', ['核验同款和可信重点','选择整体、细节、真实使用和收尾','按有效信息减少表达'], '缺性能资料不写性能；必须真实使用却缺片时请求具体源片，不能静图冒充。', ['主体容器','轻标题','片尾']],
   ['product_detail','detail','解释结构、部位或有依据的特性','无证据的性能推销', ['绑定主张、证据和部位','定位整体与局部源区间','检查标注稳定性','测量旁白并放入证据窗口','装配标注并检查实际成片'], '跟踪不可靠时仅可明确采用稳定镜头或冻结帧；明确要求跟踪时不得用静态箭头冒充。', ['整体局部联动','标注','字幕']],
   ['product_demo','procedure','按步骤理解开箱、安装或使用','只有外观展示且没有过程要求', ['区分开箱安装使用子类型','建立必要步骤依赖和源区间','保护连续动作与源声','先删等待再排步骤','检查起始状态与完成状态'], '缺必要步骤不能计完整教程正例；时长不够不能删必要动作或加速动作迁就旁白。', ['步骤条','保护区','源声同步']],
@@ -24,8 +25,8 @@ export const commerceSkills = Object.fromEntries(definitions.map(([scenario,name
   return [scenario,{...contract,hash:createHash('sha256').update(JSON.stringify(contract)).digest('hex')}];
 }));
 
-export function commerceSkillContext(scenario,mode='create') {
-  const selected=[commerceSkills[scenario],...(['recut','variant'].includes(mode)?[commerceSkills[mode]]:[])].filter(Boolean);
+export function commerceSkillContext(scenario,mode='create',workflow={}) {
+  const selected=[commerceSkills[scenario],...(workflow.auxiliaryScenarios||[]).map(id=>commerceSkills[id]),...([...new Set([mode,...(workflow.auxiliaryModes||[])])].filter(m=>['recut','variant'].includes(m)).map(m=>commerceSkills[m]))].filter(Boolean);
   return {version:1,skills:[...new Map(selected.map(s=>[s.id,s])).values()],genericEdit:mode==='edit',
     fallback:'明确编辑直接受控执行；未知业务不得默认上新；真正歧义先读当前工程，再只问最小缺项。供应商故障保留版本和声音，不自动换供应商；指定效果失败不偷换。'};
 }
