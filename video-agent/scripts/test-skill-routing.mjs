@@ -4,6 +4,7 @@ const ids=text=>new Set(selectSkills(text).map(s=>s.id));
 for(const [text,expected] of [
   ['把这篇文章做成无真人讲解视频',['hyperframes','faceless-explainer']],
   ['用信息图做三步流程，并加一个数据对比',['hyperframes-creative']],
+  ['只改刚才那个，其他不变',['conversation-edit']],
   ['第二张截图至少展示三秒，不要换成无关B-roll',['media-use']],
   ['标题淡入后缩放，转场要自然',['hyperframes-animation']],
   ['删掉前3秒并把原声音量降到20%',['timeline-edit','audio-mix']],

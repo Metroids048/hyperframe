@@ -9,6 +9,14 @@ import {applyDocumentPatch} from '../lib/creative/patch.mjs';
 import {readNativeProject} from '../lib/creative/runner.mjs';
 
 const project={currentRevisionId:'r1',revisions:[{id:'r1'}],assets:[],jobs:[],request:{scenarioId:'product_demo'}};
+test('local download wording survives global routing integration and honors explicit mode',async()=>{
+ const provider={structured:()=>{throw Error('unnecessary model for download');}};
+ for(const message of ['下载当前视频为MP4','请导出当前版本']){
+  const result=await routeWorkbenchMessage(project,message,{provider});
+  assert.equal(result.mode,'export');assert.equal(result.baseRevisionId,'r1');
+  assert.equal((await routeWorkbenchMessage(project,message,{provider,taskMode:'edit',taskModeExplicit:true})).mode,'clarify');
+ }
+});
 test('production approval receives saved plan and selected mode without weakening explicit conflicts',async()=>{
  const draft={...project,currentRevisionId:null,revisions:[],workflowPlan:{id:'plan-48',status:'ready',workOrder:{mode:'recut',scenario:'product_demo',objective:'保留原速动作的48秒教程'}}};
  const message='现在按已保存的48秒制作单开始生成视频并导出候选。';

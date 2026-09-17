@@ -43,7 +43,8 @@ test('authorized material index preserves originals, distinguishes names and err
   assert.ok(!JSON.stringify(publicMaterialRoot(index)).includes(sandbox));
   for(const [file,hash]of Object.entries(before))assert.equal(await hashFile(file),hash);
   await image(first,'white');const changed=(await discoverMaterialRoots(root)).find(r=>r.id===index.id);
-  assert.throws(()=>selectMaterialEntries(changed,[same.find(e=>e.realPath===first).id]),{code:'MATERIAL_CHANGED'});
+  const canonicalFirst=await fs.realpath(first);
+  assert.throws(()=>selectMaterialEntries(changed,[same.find(e=>e.realPath===canonicalFirst).id]),{code:'MATERIAL_CHANGED'});
   await assert.rejects(resolveMaterialRoot(root,outside),{code:'MATERIAL_ROOT_UNKNOWN'});
  }finally{
   // Only this owned fixture is removed; unlink junctions before recursive cleanup.

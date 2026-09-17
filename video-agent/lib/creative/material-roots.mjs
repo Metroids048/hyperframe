@@ -31,22 +31,22 @@ export async function discoverMaterialRoots(root,{filesystem=fs}={}){
     async function walk(directory,depth=0){
       if(depth>64||record.entries.length>=10000){diagnostic(directory,{code:'SCAN_LIMIT'});return;}
       let real,children;
-      try{real=await filesystem.realpath(directory);if(!inside(record.directory,real)){record.excluded.push({path:display(path.relative(base,directory)),reason:'outside_authorized_root'});return;}
+      try{real=await filesystem.realpath(directory);if(!inside(record.directory,real)){record.excluded.push({path:display(path.relative(record.directory,directory)),reason:'outside_authorized_root'});return;}
         if(visited.has(canonical(real)))return;visited.add(canonical(real));children=await filesystem.readdir(real,{withFileTypes:true});
       }catch(error){diagnostic(directory,error);return;}
-      if(children.some(e=>e.name==='document.json')&&children.some(e=>e.name==='hyperframes.json')){record.excluded.push({path:display(path.relative(base,directory)),reason:'native_project_output'});return;}
+      if(children.some(e=>e.name==='document.json')&&children.some(e=>e.name==='hyperframes.json')){record.excluded.push({path:display(path.relative(record.directory,directory)),reason:'native_project_output'});return;}
       for(const child of children.sort((a,b)=>a.name.localeCompare(b.name))){
         if(record.entries.length>=10000){diagnostic(real,{code:'SCAN_LIMIT'});break;}
         const file=path.join(real,child.name);let actual=file,stat;
-        if(child.name.startsWith('.')||generatedDirectories.has(child.name.toLowerCase())){record.excluded.push({path:display(path.relative(base,file)),reason:'derived_or_hidden'});continue;}
+        if(child.name.startsWith('.')||generatedDirectories.has(child.name.toLowerCase())){record.excluded.push({path:display(path.relative(record.directory,file)),reason:'derived_or_hidden'});continue;}
         try{
           actual=await filesystem.realpath(file);
-          if(!inside(record.directory,actual)){record.excluded.push({path:display(path.relative(base,file)),reason:'outside_authorized_root'});continue;}
-          if(path.relative(record.directory,actual).split(path.sep).some(part=>part.startsWith('.')||generatedDirectories.has(part.toLowerCase()))){record.excluded.push({path:display(path.relative(base,file)),reason:'derived_or_hidden'});continue;}
+          if(!inside(record.directory,actual)){record.excluded.push({path:display(path.relative(record.directory,file)),reason:'outside_authorized_root'});continue;}
+          if(path.relative(record.directory,actual).split(path.sep).some(part=>part.startsWith('.')||generatedDirectories.has(part.toLowerCase()))){record.excluded.push({path:display(path.relative(record.directory,file)),reason:'derived_or_hidden'});continue;}
           stat=await filesystem.stat(actual);
           if(stat.isDirectory()){await walk(actual,depth+1);continue;}
           if(!stat.isFile()||!media.test(child.name))continue;
-          if(generatedFile.test(child.name)||generatedFile.test(path.basename(actual))){record.excluded.push({path:display(path.relative(base,file)),reason:'derived_filename'});continue;}
+          if(generatedFile.test(child.name)||generatedFile.test(path.basename(actual))){record.excluded.push({path:display(path.relative(record.directory,file)),reason:'derived_filename'});continue;}
           if(indexed.has(canonical(actual)))continue;indexed.add(canonical(actual));
           const kind=/\.(mp4|mov|webm)$/i.test(child.name)?'video':'image';
           const entry={id:null,name:child.name,relativePath:display(path.relative(record.directory,actual)),realPath:actual,kind,bytes:stat.size,sha256:null,status:'indexed',technicalStatus:'not_checked',contentSuitability:'not_assessed',fullDecode:'not_checked'};

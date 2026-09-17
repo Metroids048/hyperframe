@@ -387,3 +387,15 @@ M01-F01/F02 and M04-F02 scoped revalidated before new ordinal changes. Current e
 字幕实际重新分为六条，中文词语和末句不再拆断，字号33/offsetY -120保持；音轨、镜头、节点、转场、输出参数与上版完全一致。最终35秒1080p/30fps MP4和21版history.zip实际导出通过，包内对话/路由/变化集保留；完整视频解码、连续预览、14精确帧对照（含每条字幕中点和色散转场）通过，另查看开头与末句实际导出截图。MP4 SHA256 780d2b7d1ede59e1d42e542462264739ef3da92aac97247ca554821bbf67a6a5；包 SHA256 b8f925c0e277614e8d9cad1e73ef989e5e3e4826014020fb6ba2d3741460c3c3。产物位于 .cache/global-media-acceptance/82c4dac3-143f-42e9-b6a3-32534b876acd/versions/job-97abed25-8e76-4248-aa4a-132afcc2386d/。
 
 原母工程八版及原视频SHA256保持，原验收工程19版/current第17版保持；主3020未重启，3041为最新验收运行时且无活动任务。源码未提交/推送，HyperFrames仍0.8.33。人工听感和ASR文案校对、云语音实调用未代签；此次收尾不代表旧场景任务或商用质量全部通过。未扩展场景、Demo、Provider、UI或工作流。
+# 2026-09-17 GitHub / 本机融合交接
+
+- 本次任务：融合 `origin/main` 最新源码与现有本地进度，保持同一仓库后续开发连续；不改变历史视频的人评状态。
+- 上游：`07a3c0e52c3859ddb828994b0648c1b111e659fc`。合并提交：`7dba2d839f83288e43c95b91afa4a391bdcca9df`。
+- 原始 3 个已修改文件和 5 个未跟踪文件完整保存在 stash `codex-preserve-local-before-origin-sync`。不要直接再次 pop，该原型已人工融合。
+- 冲突决策：远端统一路由和 skill resolver 已接入调用链，替代本地早期原型；本地相对引用提示迁入 skill-hints，保留对话能力与验收约束、下载当前版本的精确路由。未知草稿继续交由远端语义路由核实，不恢复关键词即自动生产的旧原型。场景沿用 product_howto -> product_demo 的现有归一契约。
+- macOS 复测修复：素材排除记录用 realpath 后的授权根计算相对路径，防止 /var 与 /private/var 别名导致绝对路径暴露；测试也对比 canonical 路径。
+- 核心验证：36 组通过，`outputs/upgrade/verification/core-2026-09-17T04-12-40.399Z/report.json`。此前失败的素材索引用例已修复并复测。
+- 浏览器/媒体验证：12 组通过，`outputs/upgrade/verification/browser-2026-09-17T04-11-24.124Z/report.json`；Windows 专用用例在 macOS 跳过。
+- npm 未进入当前 PATH；直接运行 package.json 的 test 等价命令 `node scripts/build-web.mjs && node scripts/acceptance.mjs`，20 项通过、0 失败，证据 `outputs/acceptance/2026-09-17T04-13-23-922Z/report.json`。
+- 全量内容恢复运行 `python3 video-agent/scripts/workspace-content.py --all`：0 个缺失文件需恢复，已有本地工程保留。两个子模块已注册且与锁定提交一致，HyperFrames 保持 0.8.33。
+- 后续：按 `docs/WORKSPACE-SYNC.md` 在原目录拉取、开发、验证、提交和推送。配置、凭据及缓存留本地；本次测试未调用真实语义模型、ASR/TTS 供应商，技术通过不代表成片人工认可。

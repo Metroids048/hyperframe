@@ -12,8 +12,10 @@ async function legacyRoute(project,message,{provider,signal,document=null,taskMo
   insist(typeof message==='string'&&message.trim(),'请输入需求','MESSAGE_REQUIRED');
   const globalControl=controlRoute(project,message);if(globalControl)return globalControl;
   const text=message.trim().replace(/[。！!？?]$/,'');
-  const explicitConflict=mode=>taskModeExplicit&&['create','edit','recut','variant'].includes(mode)&&mode!==taskMode;
+  const explicitConflict=mode=>taskModeExplicit&&['create','edit','recut','variant','export'].includes(mode)&&mode!==taskMode;
   const conflict=()=>({mode:'clarify',quote:message,revisionId:null,assetIds:[],question:'界面选择的操作与这句话不一致，请确认这轮是局部修改、精剪还是派生版本。',source:'explicit-mode-conflict'});
+  if(project.currentRevisionId&&/^(?:请)?(?:导出|下载)(?:当前(?:版本|视频)|视频|成片)?(?:为|成)?(?:\s*MP4)?$/i.test(text))
+    return explicitConflict('export')?conflict():{mode:'export',quote:message,revisionId:project.currentRevisionId,assetIds:[],question:'',source:'exact-export',baseRevisionId:project.currentRevisionId};
   const unquoted=text.replace(/“[^”]*”|「[^」]*」|『[^』]*』|"[^"]*"|'[^']*'/g,'');
   if(/^(?:请)?(?:先)?(?:只规划|仅规划|只做规划|只做计划)(?:[，,\s]|这|一|$)/.test(unquoted))
     return {mode:'plan',quote:message,revisionId:null,assetIds:[],question:'',source:'explicit-plan-only'};

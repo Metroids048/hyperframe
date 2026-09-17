@@ -10,5 +10,6 @@ export const skillHints={
   'hyperframes-creative':/信息图|流程图|对比|步骤|数据|图表|标题动画|片头|片尾|品牌|强调|callout|infographic|diagram|chart|creative/i,
   'media-use':/截图|图片|照片|素材图|展示.*图|screen|image|photo|screenshot|b-?roll|media/i,
   'hyperframes-animation':/动画|动效|转场|运动|缩放|推近|淡入|淡出|motion|animate|animation|transition|gsap/i,
-  'commerce-promo':/商品|电商|带货|卖货|产品宣传|商品宣传|产品广告|product\s*(?:promo|ad)|e-?commerce|shopping\s*video/i
+  'commerce-promo':/商品|电商|带货|卖货|产品宣传|商品宣传|产品广告|product\s*(?:promo|ad)|e-?commerce|shopping\s*video/i,
+  'conversation-edit':/刚才|上一版|这条|那个|保留|其他不变|只改|不要改|撤销|重做|恢复|再剪|recut|keep|preserve|undo|redo|restore/i
 };
