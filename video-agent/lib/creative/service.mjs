@@ -1,5 +1,5 @@
 import {routeDecision,fallbackPolicy,selectiveHistoryTarget} from '../orchestration/global-router.mjs';
-import {acceptedChanges,resolveConversationMessage,nativeChangeReceipt,transitionRestorePlan,audioRestorePlan} from '../orchestration/conversation-edit.mjs';
+import {acceptedChanges,resolveConversationMessage,conversationTargetScope,validateConversationTargetScope,nativeChangeReceipt,transitionRestorePlan,audioRestorePlan} from '../orchestration/conversation-edit.mjs';
 import {planWorkbenchWorkflow,workflowStages,productionWorkflowFromPlan} from './workflow-design.mjs';
 import {workflowContract,workflowEntries,inheritRevisionWorkflow,bindRevisionWorkflow} from './workflow-intent.mjs';
 import {routeWorkbenchMessage} from './message-routing.mjs';
@@ -243,7 +243,15 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
   async function planEdit(p,base,document,input,signal,evidence={}){
     if(input.operations)return {operations:input.operations,mode:'structured'};
     const history=acceptedChanges({...p,currentRevisionId:base.id});
+    const targetScope=conversationTargetScope(document,input.message,history,input.routeDecision?.targets||[]);
     const resolvedMessage=resolveConversationMessage(input.message,history);
+    if(targetScope&&targetScope.basis!=='message-route'){
+      const local=scopedCommerceEdit(document,resolvedMessage);
+      insist(local?.operations?.every(op=>op.type==='update_caption_style'),'相对字幕移动无法安全执行','AMBIGUOUS_TARGET');
+      const operations=local.operations.flatMap(op=>targetScope.targetIds.map(nodeId=>({...op,nodeId})));
+      validateConversationTargetScope(document,operations,targetScope);
+      return {...local,operations,targetScope};
+    }
     if(selectiveHistoryTarget(input.message)==='audio'){
       insist(base.parentId,'没有上一版声音','RESTORE_NOT_FOUND');
       const previous=(await readNativeProject(versionDirectory(p,revision(p,base.parentId)))).document;
@@ -278,7 +286,9 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
       }
       throw new CreativeError('没有可恢复的动效历史','RESTORE_NOT_FOUND');
     }
-    return planCreativeEdit(document,resolvedMessage,{conversation:history.slice(-10),selectedNodeId:input.selectedNodeId,workflow:input.workflow,signal,...evidence});
+    const plan=await planCreativeEdit(document,resolvedMessage,{conversation:history.slice(-10),selectedNodeId:input.selectedNodeId,workflow:input.workflow,signal,...evidence});
+    validateConversationTargetScope(document,plan.operations,targetScope);
+    return {...plan,targetScope};
   }
   async function publish(p,job,dir,document,description,{branch=false,defer=false}={}){
     const signal=controllers.get(job.id)?.signal,release=await acquireRender({kind:'preview',signal});
@@ -444,6 +454,8 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
           try{await save(p);}catch(error){p.revisions=prior;delete job.revisionIds;throw error;}
           job.summary=`已保存 ${candidates.length} 个开头方案，可在作品版本中比较和选择，主版本保留。`;job.status='complete';job.completedAt=now();p.messages.push({role:'assistant',text:job.summary,time:now()});return;
         }
+        validateConversationTargetScope(document,plan.operations,plan.targetScope);
+        job.requestedScope=plan.targetScope||null;
         const requestedOperations=structuredClone(plan.operations),operations=[];
         const pendingOperations=[...plan.operations];
         for(let operationIndex=0;operationIndex<pendingOperations.length;operationIndex++){
@@ -470,7 +482,7 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
         }
         plan.requestedOperations=requestedOperations;plan.operations=operations;
         let next=applyDocumentPatch(document,operations,Object.fromEntries(assets.map(a=>[a.id,a])));
-        job.changeReceipt=nativeChangeReceipt(document,next,job.input.message,operations);
+        job.changeReceipt=nativeChangeReceipt(document,next,job.input.message,operations,plan.targetScope);
         if(plan.resourceScopes?.length)next.resourceScopeBindings=structuredClone(plan.resourceScopes);
         next.workflowContract=bindRevisionWorkflow(document,next,job.input.workflow,{message:job.input.message,operations,interpreted:plan.workflow});
         const allowed=computeInvalidation(document,next),allowedScenes=new Set(allowed.fullRecompile?document.scenes.map(s=>s.id):allowed.changedScenes);
@@ -479,10 +491,10 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
         for(let attempt=0;attempt<=fallbackPolicy.maxReplans;attempt++){
           try{
             allocatePublicationRevision(next,p.revisions,job.id);
-            job.changeReceipt=nativeChangeReceipt(document,next,job.input.message,operations);
+            job.changeReceipt=nativeChangeReceipt(document,next,job.input.message,operations,plan.targetScope);
             job.stage=attempt?'检查局部修复后的画面':'检查修改后的原生预览';await save(p);
             await writeCompiledProject(dir,next,assets,{invalidation:computeInvalidation(document,next),signal});
-            job.changeReceipt=nativeChangeReceipt(document,next,job.input.message,[...operations,...(plan.repairs||[]).flatMap(r=>r.operations)]);
+            job.changeReceipt=nativeChangeReceipt(document,next,job.input.message,[...operations,...(plan.repairs||[]).flatMap(r=>r.operations)],plan.targetScope);
             await fs.writeFile(path.join(dir,'edit.json'),JSON.stringify({message:job.input.message,baseRevisionId:base.id,routeDecision:job.routeDecision,changeReceipt:job.changeReceipt,...plan},null,2));
             const branch=job.input.branch===true||job.input.workflow?.taskMode==='variant';
             await publish(p,job,dir,next,job.input.message,{branch});

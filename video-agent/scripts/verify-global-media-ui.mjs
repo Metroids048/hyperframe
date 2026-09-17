@@ -5,7 +5,7 @@ import path from 'node:path';
 import puppeteer from 'puppeteer-core';
 import {ROOT,runtimeEnv} from '../lib/workflow.mjs';
 const base=process.env.GLOBAL_TEST_URL||'http://127.0.0.1:3041',id=process.env.GLOBAL_TEST_PROJECT_ID||'ffa3bcb0-f6b8-4f54-a52a-973c07e1bd3b';
-const out=path.join(ROOT,'outputs/global-media');await fs.mkdir(out,{recursive:true});
+const out=path.join(ROOT,process.env.GLOBAL_EVIDENCE_DIR||'outputs/global-media');await fs.mkdir(out,{recursive:true});
 const message=process.argv[2]||'字幕小一点，往上挪。';
 const get=async()=> (await(await fetch(base+'/api/commerce/'+id)).json()).project;
 const before=await get(),initial=new Set(before.jobs.map(j=>j.id));

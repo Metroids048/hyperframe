@@ -6,12 +6,12 @@ import assert from 'node:assert/strict';
 import puppeteer from 'puppeteer-core';
 import {ROOT,runtimeEnv} from '../lib/workflow.mjs';
 const base=process.env.GLOBAL_TEST_URL||'http://127.0.0.1:3041';
-const sourceId='ffa3bcb0-f6b8-4f54-a52a-973c07e1bd3b';
-const out=path.join(ROOT,'outputs/global-media/remainder');await fs.mkdir(out,{recursive:true});
+const sourceId=process.env.GLOBAL_TEST_PROJECT_ID||'ffa3bcb0-f6b8-4f54-a52a-973c07e1bd3b';
+const out=path.resolve(ROOT,process.env.GLOBAL_EVIDENCE_DIR||'outputs/global-media/remainder');await fs.mkdir(out,{recursive:true});
 const get=async id=>(await(await fetch(base+'/api/commerce/'+id)).json()).project;
-const source=await get(sourceId);assert(!source.jobs.some(j=>['running','queued'].includes(j.status)));
+const source=process.env.GLOBAL_SOURCE_PROJECT_FILE?JSON.parse(await fs.readFile(path.resolve(ROOT,process.env.GLOBAL_SOURCE_PROJECT_FILE),'utf8')):await get(sourceId);assert.equal(source.id,sourceId);assert(!source.jobs.some(j=>['running','queued'].includes(j.status)));
 const revision=source.revisions.find(r=>r.id===source.currentRevisionId);
-const zip=path.join(ROOT,'.cache/global-media-acceptance',sourceId,revision.directory,'history.zip');
+const zip=process.env.GLOBAL_SOURCE_PACKAGE?path.resolve(ROOT,process.env.GLOBAL_SOURCE_PACKAGE):path.join(ROOT,process.env.GLOBAL_PROJECT_DATA_DIR||'.cache/global-media-acceptance',sourceId,revision.directory,'history.zip');
 const browser=await puppeteer.launch({executablePath:runtimeEnv().HYPERFRAMES_BROWSER_PATH,headless:true,args:['--no-sandbox']});
 let imported;
 try{
@@ -43,7 +43,7 @@ try{
  await page.waitForFunction(()=>document.querySelector('#player')?.duration>0,{timeout:60000});
  await page.evaluate(()=>document.querySelector('#player').seek?.(1));await new Promise(r=>setTimeout(r,500));
  await page.screenshot({path:path.join(out,'reopened.png'),fullPage:true});
- const after=await get(sourceId);assert.equal(after.currentRevisionId,source.currentRevisionId);assert.deepEqual(after.revisions,source.revisions);
+ const after=process.env.GLOBAL_SOURCE_PROJECT_FILE?JSON.parse(await fs.readFile(path.resolve(ROOT,process.env.GLOBAL_SOURCE_PROJECT_FILE),'utf8')):await get(sourceId);assert.equal(after.currentRevisionId,source.currentRevisionId);assert.deepEqual(after.revisions,source.revisions);
  const report={status:'passed',projectId:imported.id,sourceId,zip,revisionCount:imported.revisions.length,currentRevisionId:imported.currentRevisionId,job,sourceUnchanged:true};
  await fs.writeFile(path.join(out,'reopen-progress.json'),JSON.stringify(report,null,2));console.log(JSON.stringify({status:report.status,projectId:report.projectId,revisionCount:report.revisionCount}));
 }catch(error){await fs.writeFile(path.join(out,'reopen-progress.json'),JSON.stringify({status:'failed',projectId:imported?.id,sourceId,error:error.message,job:imported?.jobs?.find(j=>j.kind==='import')},null,2));throw error;}finally{await browser.close();}

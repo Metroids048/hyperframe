@@ -12,9 +12,9 @@ const base=process.env.GLOBAL_TEST_URL||'http://127.0.0.1:3041',id=process.env.G
 const {project}=await(await fetch(base+'/api/commerce/'+id)).json();
 const revision=project.revisions.find(r=>r.id===project.currentRevisionId);
 assert(revision.rendered,'Export the current revision through WebUI first');
-const directory=path.join(ROOT,'.cache/global-media-acceptance',id,revision.directory);
+const directory=path.join(ROOT,process.env.GLOBAL_PROJECT_DATA_DIR||'.cache/global-media-acceptance',id,revision.directory);
 const document=JSON.parse(await fs.readFile(path.join(directory,'document.json'),'utf8'));
-const video=path.join(directory,'commerce-final.mp4'),out=path.join(ROOT,'outputs/global-media/final-'+revision.id);
+const video=path.join(directory,'commerce-final.mp4'),out=path.join(ROOT,process.env.GLOBAL_EVIDENCE_DIR||'outputs/global-media','final-'+revision.id);
 await fs.mkdir(out,{recursive:true});
 await run(ffmpeg,['-v','error','-i',video,'-f','null','-'],{timeout:180000});
 const media=await probe(video);assert.equal(media.width,document.output.width);assert.equal(media.height,document.output.height);assert(Math.abs(media.duration-document.durationFrames/30)<.05);assert(media.hasAudio);

@@ -1,5 +1,5 @@
 import {scopedCommerceEdit} from './r3-intents.mjs';
-import {acceptedChanges,resolveConversationMessage} from '../orchestration/conversation-edit.mjs';
+import {acceptedChanges,resolveConversationMessage,conversationTargetScope,validateConversationTargetScope} from '../orchestration/conversation-edit.mjs';
 import {controlRoute,routeDecision,routePolicy,routeUserMessage} from '../orchestration/global-router.mjs';
 import {CodexProvider} from '../edit/codex-provider.mjs';
 import {insist} from './contracts.mjs';
@@ -56,7 +56,14 @@ async function legacyRoute(project,message,{provider,signal,document=null,taskMo
 
 export async function routeWorkbenchMessage(project,message,options={}){
   const result=await routeUserMessage(project,message,{...options,
-    localPlanner:options.document&&(!options.taskModeExplicit||options.taskMode==='edit')?()=>scopedCommerceEdit(options.document,resolveConversationMessage(message,acceptedChanges(project))):null,
+    localPlanner:options.document&&(!options.taskModeExplicit||options.taskMode==='edit')?()=>{
+      const history=acceptedChanges(project),scope=conversationTargetScope(options.document,message,history);
+      const plan=scopedCommerceEdit(options.document,resolveConversationMessage(message,history));
+      if(!scope||!plan)return plan;
+      const operations=plan.operations.flatMap(op=>scope.targetIds.map(nodeId=>({...op,nodeId})));
+      validateConversationTargetScope(options.document,operations,scope);
+      return {...plan,operations,targetScope:scope};
+    }:null,
     semanticPlanner:()=>legacyRoute(project,message,options)});
   return result.decision;
 }

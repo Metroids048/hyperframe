@@ -6,13 +6,38 @@ export function acceptedChanges(project){
   while(revision){ancestry.add(revision.id);revision=project.revisions.find(r=>r.id===revision.parentId);}
   return conversationJobs(project).filter(j=>j.status==='complete'&&Array.isArray(j.changeReceipt?.changeSet)&&ancestry.has(j.revisionId)).map(j=>j.changeReceipt);
 }
+const relativeMove=message=>/^(?:再)?(?:往)?(?:上|下)(?:挪|移)?(?:一点)?[。！!\s]*$/.test(message);
+// Resolve scope from the request and PREVIOUS accepted edit, before planning.
+// Never derive the permitted targets from the plan being checked.
+export function conversationTargetScope(document,message,history=[],routeTargets=[]){
+  if(!relativeMove(message)){
+    // The semantic router has already bound request evidence to real objects.
+    // Freeze that independently of the subsequent editing model's operations.
+    if(!routeTargets.length||!routeTargets.every(t=>t.kind==='caption'&&t.id))return null;
+    const ids=[...new Set(routeTargets.map(t=>t.id))];
+    insist(ids.every(id=>document.captions?.some(c=>c.id===id)),'请求引用的字幕已变化','AMBIGUOUS_TARGET');
+    return {baseRevision:document.revisionId,userRequest:message,kind:'caption',targetIds:ids,allowedTypes:['update_caption','update_caption_style','remove_caption'],basis:'message-route'};
+  }
+  const last=history.filter(h=>h.changeSet?.length).at(-1);
+  insist(last&&last.changeSet.every(op=>['update_caption_style','update_caption'].includes(op.type)),'请说明要移动字幕还是画面文字。','AMBIGUOUS_TARGET');
+  const ids=[...new Set(last.changeSet.flatMap(op=>op.nodeId?[op.nodeId]:(document.captions||[]).map(c=>c.id)))];
+  insist(ids.length&&ids.every(id=>document.captions?.some(c=>c.id===id)),'上一轮字幕对象已变化，请明确要移动的字幕。','AMBIGUOUS_TARGET');
+  return {baseRevision:document.revisionId,sourceRevision:last.newRevision||null,userRequest:message,kind:'caption',targetIds:ids,allowedTypes:['update_caption_style']};
+}
 export function resolveConversationMessage(message,history=[]){
-  if(!/^(?:再)?(?:往)?(?:上|下)(?:挪|移)?(?:一点)?[。！!\s]*$/.test(message))return message;
+  if(!relativeMove(message))return message;
   const last=history.filter(h=>h.changeSet?.length).at(-1);
   insist(last&&last.changeSet.every(op=>['update_caption_style','update_caption'].includes(op.type)),'请说明要移动字幕还是画面文字。','AMBIGUOUS_TARGET');
   return '字幕'+(message.includes('上')?'往上移一点':'往下移一点');
 }
-export function nativeChangeReceipt(before,after,message,operations){
+export function validateConversationTargetScope(document,operations,scope){
+  if(!scope)return;
+  insist(scope.baseRevision===document.revisionId,'局部修改基准版本已变化','REVISION_CONFLICT');
+  insist(operations.length&&operations.every(op=>scope.allowedTypes.includes(op.type)&&scope.targetIds.includes(op.nodeId)),'修改计划超出了预先确定的字幕对象','PRESERVE_VIOLATION');
+}
+export function nativeChangeReceipt(before,after,message,operations,scope=null){
+  validateConversationTargetScope(before,operations,scope);
+  if(scope)for(const cue of before.captions||[])if(!scope.targetIds.includes(cue.id))insist(same(cue,after.captions?.find(c=>c.id===cue.id)),'未选中的字幕发生变化：'+cue.id,'PRESERVE_VIOLATION');
   const types=new Set(operations.map(o=>o.type));
   const structural=[...types].some(t=>['trim_scene','split_scene','set_scene_duration','retime_document','reorder_scenes','set_transition','change_output'].includes(t));
   const checks=[];
@@ -34,7 +59,7 @@ export function nativeChangeReceipt(before,after,message,operations){
     checks.push({field:'untargeted-content',passed:true});
   }
   check('output',!types.has('change_output'));
-  return {baseRevision:before.revisionId,userRequest:message,targetSet:operations.map(o=>({type:o.type,id:o.nodeId||o.sceneId||o.fromSceneId||null})),preserveSet:checks.map(c=>c.field),changeSet:structuredClone(operations),validation:{passed:true,checks},newRevision:after.revisionId};
+  return {baseRevision:before.revisionId,userRequest:message,...(scope?{requestedScope:structuredClone(scope)}:{}),targetSet:operations.map(o=>({type:o.type,id:o.nodeId||o.sceneId||o.fromSceneId||null})),preserveSet:checks.map(c=>c.field),changeSet:structuredClone(operations),validation:{passed:true,checks},newRevision:after.revisionId};
 }
 export function transitionRestorePlan(current,previous){
   insist(current.scenes.map(s=>s.id).join()===previous.scenes.map(s=>s.id).join(),'场景顺序已变化，不能直接恢复旧转场','REVISION_CONFLICT');

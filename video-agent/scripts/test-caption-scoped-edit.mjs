@@ -71,3 +71,39 @@ test('end fade does not rewrite an earlier music section fade',()=>{
  const next=applyDocumentPatch(doc,scopedCommerceEdit(doc,'音乐再轻一点，片尾自然淡出').operations,map);
  assert.equal(next.audioGraph[0].fadeOutFrames,30);assert.equal(next.audioGraph[1].fadeOutFrames,7);
 });
+
+// Same request/history scope used by the service, independent of proposed operations.
+import {conversationTargetScope,validateConversationTargetScope,nativeChangeReceipt} from '../lib/orchestration/conversation-edit.mjs';
+test('relative move after a single caption edit cannot widen to all captions',()=>{
+ const {doc,map}=fixture();
+ const history=[{newRevision:doc.revisionId,changeSet:[{type:'update_caption',nodeId:'cue-2',text:'第二处字幕'}]}];
+ const scope=conversationTargetScope(doc,'再往上一点',history);
+ assert.deepEqual(scope.targetIds,['cue-2']);
+ for(const ops of [[{type:'update_caption_style',params:{offsetYDelta:-40}}],[{type:'update_caption_style',nodeId:'cue-1',params:{offsetYDelta:-40}}]])
+  assert.throws(()=>validateConversationTargetScope(doc,ops,scope),{code:'PRESERVE_VIOLATION'});
+ const ops=[{type:'update_caption_style',nodeId:'cue-2',params:{offsetYDelta:-40}}];
+ const after=applyDocumentPatch(doc,ops,map);
+ assert.deepEqual(after.captions[0],doc.captions[0]);
+ assert.equal(after.captions[1].style.offsetY,-40);
+ assert.deepEqual(nativeChangeReceipt(doc,after,'再往上一点',ops,scope).requestedScope,scope);
+ const damaged=structuredClone(after);damaged.captions[0].text='不允许';
+ assert.throws(()=>nativeChangeReceipt(doc,damaged,'再往上一点',ops,scope),{code:'PRESERVE_VIOLATION'});
+ assert.throws(()=>conversationTargetScope({...doc,captions:[]},'再往上',history),{code:'AMBIGUOUS_TARGET'});
+ assert.throws(()=>validateConversationTargetScope({...doc,revisionId:'stale'},ops,scope),{code:'REVISION_CONFLICT'});
+});
+
+import {routeWorkbenchMessage} from '../lib/creative/message-routing.mjs';
+test('real message routing retains the prior single caption ID before execution',async()=>{
+ const {doc}=fixture();
+ const project={currentRevisionId:doc.revisionId,revisions:[{id:doc.revisionId}],assets:[],jobs:[{id:'accepted',status:'complete',revisionId:doc.revisionId,changeReceipt:{changeSet:[{type:'update_caption',nodeId:'cue-2'}]}}]};
+ const route=await routeWorkbenchMessage(project,'再往上一点',{document:doc,provider:{structured(){throw Error('exact relative target needs no model');}}});
+ assert.deepEqual(route.targets.map(t=>t.id),['cue-2']);
+ assert(route.selectedSkills.includes('speech-captions'));
+});
+
+test('semantic caption target is frozen before planning, so extra model targets fail',()=>{
+ const {doc}=fixture(),scope=conversationTargetScope(doc,'只改最后一句，其他不动',[],[{kind:'caption',id:'cue-2'}]);
+ assert.deepEqual(scope.targetIds,['cue-2']);
+ assert.throws(()=>validateConversationTargetScope(doc,[{type:'update_caption',nodeId:'cue-1',text:'误改'}],scope),{code:'PRESERVE_VIOLATION'});
+ assert.doesNotThrow(()=>validateConversationTargetScope(doc,[{type:'update_caption',nodeId:'cue-2',text:'正确'}],scope));
+});
