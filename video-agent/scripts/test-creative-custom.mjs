@@ -57,7 +57,7 @@ test('a declared target that is static is not accepted by runtime motion measure
 const evidenceDir=path.join(ROOT,'outputs/resume','custom-isolation-'+new Date().toISOString().replaceAll(':','-'));
 async function fixture(name){const dir=path.join(evidenceDir,name);await fs.mkdir(path.join(dir,'assets'),{recursive:true});await fs.copyFile(path.join(ROOT,'node_modules/gsap/dist/gsap.min.js'),path.join(dir,'assets/gsap.min.js'));await fs.writeFile(path.join(dir,'index.html'),compileDocument(document,[]).html);return dir;}
 const config=()=>({files:['index.html','assets/gsap.min.js'],output:document.output,scenes:[{...scene,targets:['custom-scene-01-dot']}]});
-test('production worker renders motion while blocking network, project and file access',async()=>{const result=await runSceneIsolation(await fixture('valid'),config(),{probe:'network'});if(process.platform==='win32'){assert.equal(result.evidence.limitFlags,0x230c);assert.equal(result.evidence.cpuRate,5000);assert(result.evidence.peakJobMemoryBytes>0);}else{assert.equal(result.evidence.status,'passed');}assert(result.runtime.motion.every(m=>m.moved));assert(!result.runtime.environmentKeys.some(k=>/CODEX|AUTH|TOKEN|PROXY/i.test(k)));assert(Object.values(result.runtime.boundaryProbe).every(Boolean));});
+test('production worker renders motion while blocking network, project and file access',async()=>{const result=await runSceneIsolation(await fixture('valid'),config(),{probe:'network'});if(process.platform==='win32'){assert.equal(result.evidence.limitFlags,0x230c);assert.equal(result.evidence.cpuRate,5000);assert.equal(result.evidence.activeProcesses,0);assert(result.evidence.peakJobMemoryBytes>0);}else{assert.equal(result.evidence.status,'passed');}assert(result.runtime.motion.every(m=>m.moved));assert(!result.runtime.environmentKeys.some(k=>/CODEX|AUTH|TOKEN|PROXY/i.test(k)));assert(Object.values(result.runtime.boundaryProbe).every(Boolean));});
 test('Windows job terminates an unbounded worker and refuses excessive committed memory',{skip:process.platform!=='win32'},async()=>{const timeout=await runSceneIsolation(await fixture('timeout'),config(),{probe:'timeout'});assert.equal(timeout.evidence.timedOut,true);if(process.platform==='win32')assert.equal(timeout.code,124);const memory=await runSceneIsolation(await fixture('memory'),config(),{probe:'memory'});assert.notEqual(memory.code,0);assert.equal(memory.evidence.timedOut,false);if(process.platform==='win32')assert.equal(memory.evidence.processMemoryBytes,192*1024**2);});
 process.on('exit',()=>console.log('ISOLATION_EVIDENCE '+evidenceDir));
 test('portable timeout and cancellation verify the worker process group has exited',{skip:process.platform==='win32'},async()=>{
@@ -168,3 +168,28 @@ test('discrete caption visibility is valid without inventing motion, hidden cont
 });
 
 import {verifyCustomProject} from '../lib/creative/isolation.mjs';
+
+test('scene evidence follows identical compiler bytes across directories and invalidates changed executable content',async()=>{
+ const {verifyCustomProject}=await import('../lib/creative/isolation.mjs');
+ const first=await fixture('cache-first'),compiled=compileDocument(document,[]);
+ await fs.writeFile(path.join(first,'index.html'),compiled.html);
+ await verifyCustomProject(first,document,[],{compiled});
+ const second=await fixture('cache-second'),next={...document,revisionId:'rev-new-cache-proof'};
+ await fs.writeFile(path.join(second,'index.html'),compiled.html);
+ await verifyCustomProject(second,next,[],{compiled});
+ const proof=JSON.parse(await fs.readFile(path.join(second,'custom-isolation.json'),'utf8'));
+ assert(proof.cache.every(c=>c.hit));
+ // A mutated runtime must never reuse the compiler's successful receipt.
+ await fs.appendFile(path.join(second,'assets/gsap.min.js'),'\nthrow new Error("changed dependency");');
+ await assert.rejects(verifyCustomProject(second,next,[],{compiled}));
+});
+
+test('Windows cancellation closes the assigned job without requiring a success receipt',{skip:process.platform!=='win32'},async()=>{
+ const dir=await fixture('windows-cancel'),controller=new AbortController();
+ const running=runSceneIsolation(dir,config(),{probe:'browser-timeout',signal:controller.signal});
+ const timer=setInterval(async()=>{if(await fs.access(path.join(dir,'browser-started.json')).then(()=>true,()=>false))controller.abort();},50);
+ try{await assert.rejects(running,{name:'AbortError'});}finally{clearInterval(timer);}
+ const log=await fs.readFile(path.join(dir,'windows-job.log'),'utf8');
+ const {parseSupervisor}=await import('../lib/creative/isolation-protocol.mjs');
+ assert.equal(parseSupervisor(log).activeProcesses,0);
+});
