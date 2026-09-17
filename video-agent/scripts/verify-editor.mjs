@@ -52,6 +52,7 @@ const commands =
         "test-general-workflow",
         "test-caption-scoped-edit",
         "test-finished-works",
+        "test-exact-properties",
         "test-shipped-assets",
       ]
     : [

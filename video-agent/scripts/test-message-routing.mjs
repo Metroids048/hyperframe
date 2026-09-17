@@ -131,3 +131,17 @@ test('caption history undo preserves prior edits and redo survives service reope
  assert.equal(redone.captions[0].style.offsetY,-80);assert.deepEqual(redone.audioGraph,base.audioGraph);
  await fs.writeFile(path.join(dataDir,'evidence.json'),JSON.stringify({base:base.revisionId,first:first.revisionId,second:second.revisionId,undoAndReopenAndRedo:true},null,2));
 });
+
+test('intake persists before a slow route, deduplicates, accepts controls and cancels without publication',async()=>{
+ const dataDir=await fs.mkdtemp(path.join(ROOT,'outputs/message-intake-'));
+ let entered,release;const started=new Promise(r=>entered=r);
+ const service=await createCreativeService({dataDir,routingProvider:{structured:async(_instructions,_input,_schema,signal)=>{entered();return new Promise((resolve,reject)=>{release=resolve;signal.addEventListener('abort',()=>reject(Object.assign(Error('cancelled'),{name:'AbortError'})),{once:true});});}}});
+ const p=await service.create({message:'original'}),input={message:'让这一段讲得更紧凑',idempotencyKey:'slow-route-accept-0001'};
+ const ack=await service.acceptMessage(p,input);assert(ack.messageJobId);assert.equal(p.messages.filter(m=>m.text===input.message).length,1);
+ const same=await service.acceptMessage(p,input);assert.equal(same.messageJobId,ack.messageJobId);assert.equal(p.jobs.length,1);
+ await started;
+ await service.acceptMessage(p,{message:'查看进度',idempotencyKey:'slow-route-status-0001'});
+ await service.acceptMessage(p,{message:'取消',idempotencyKey:'slow-route-cancel-0001'});
+ for(let n=0;n<100&&p.jobs[0].status!=='cancelled';n++)await new Promise(r=>setTimeout(r,10));
+ assert.equal(p.jobs[0].status,'cancelled');assert.equal(p.revisions.length,0);assert.equal(p.messages.filter(m=>m.role==='user'&&m.text===input.message).length,1);
+});

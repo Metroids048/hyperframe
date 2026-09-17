@@ -107,9 +107,17 @@ def editor_ok() -> bool:
     return bool(data and data.get("engine"))
 
 
+def disk_identity() -> dict:
+    result = subprocess.run([node_bin(), str(ROOT / "scripts/runtime-identity.mjs")], cwd=ROOT, capture_output=True, text=True, check=True, timeout=30)
+    return json.loads(result.stdout)
+
+
 def ready() -> bool:
     h = health()
-    return bool(h and h.get("ok") and h.get("workspaceId") == WORKSPACE_ID and h.get("workbench") == "commerce" and editor_ok())
+    if not (h and h.get("ok") and h.get("workspaceId") == WORKSPACE_ID and h.get("workbench") == "commerce" and editor_ok()):
+        return False
+    expected = disk_identity()
+    return all(h.get("runtime", {}).get(k) == v for k, v in expected.items())
 
 
 def read_pid() -> int | None:
@@ -179,6 +187,9 @@ def select_workspace_port() -> None:
     global PORT, BASE, WORKBENCH
     if not port_in_use() or ready():
         return
+    h = health()
+    if h and h.get("workspaceId") == WORKSPACE_ID:
+        raise SystemExit("当前工作台构建或数据根不匹配；保留原端口与任务。先核对活动任务并安全重启，不能以另一个端口冒充交付。")
     old_port = PORT
     for candidate in range(PORT + 1, PORT + 101):
         PORT = candidate
@@ -192,7 +203,6 @@ def select_workspace_port() -> None:
 
 
 def start_backend(*, rebuild: bool = False) -> None:
-    select_workspace_port()
     prepare_checkout()
     web_dist = ROOT / "web-dist" / "commerce.html"
     if rebuild or not web_dist.exists():
@@ -200,6 +210,7 @@ def start_backend(*, rebuild: bool = False) -> None:
     elif not rebuild:
         print("跳过前端构建（已有 web-dist）。需要重建时用：python start.py frontend")
 
+    select_workspace_port()
     if ready():
         print(f"当前工程后端已在运行：{WORKBENCH}")
         return
@@ -249,47 +260,23 @@ def start_backend(*, rebuild: bool = False) -> None:
 
 def stop_backend() -> None:
     pid = read_pid()
-    if pid and pid_alive(pid):
-        print(f"停止后端 PID {pid}")
+    h = health()
+    if port_in_use():
+        if not h or h.get("workspaceId") != WORKSPACE_ID or h.get("runtime", {}).get("pid") != pid:
+            raise SystemExit("服务身份与记录PID未核实；保留进程，请先核对工作目录和启动记录。")
+        if h.get("activeJobs") or h.get("activeProjectId"):
+            raise SystemExit("工作台仍有活动任务，保留进程；完成或显式取消后再停止。")
+        print(f"停止已核实的后端 PID {pid}")
         if os.name == "nt":
-            subprocess.run(
-                ["taskkill", "/PID", str(pid), "/T", "/F"],
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-            )
+            subprocess.run(["taskkill", "/PID", str(pid), "/T"], check=True)
         else:
-            try:
-                os.kill(pid, 15)
-            except OSError:
-                pass
-            for _ in range(20):
-                if not pid_alive(pid):
-                    break
-                time.sleep(0.1)
-            if pid_alive(pid):
-                os.kill(pid, 9)
-    elif port_in_use():
-        print(f"未找到记录的 PID，但端口 {PORT} 仍被占用。")
-        if os.name == "nt":
-            lookup = subprocess.run(
-                ["netstat", "-ano"],
-                capture_output=True,
-                text=True,
-                encoding="utf-8",
-                errors="ignore",
-            )
-            for line in lookup.stdout.splitlines():
-                if f"{HOST}:{PORT}" in line and "LISTENING" in line:
-                    occupied = line.split()[-1]
-                    subprocess.run(
-                        ["taskkill", "/PID", occupied, "/T", "/F"],
-                        stdout=subprocess.DEVNULL,
-                        stderr=subprocess.DEVNULL,
-                    )
-                    print(f"已结束占用端口的进程 PID {occupied}")
-                    break
-    else:
-        print("后端未在运行。")
+            os.kill(pid, 15)
+        for _ in range(100):
+            if not port_in_use():
+                break
+            time.sleep(0.1)
+    elif pid and pid_alive(pid):
+        raise SystemExit("记录PID仍存活但服务身份无法确认；不结束未知进程。")
 
     if PID_FILE.exists():
         PID_FILE.unlink()

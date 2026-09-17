@@ -1,4 +1,4 @@
-import {routeDecision,fallbackPolicy,selectiveHistoryTarget} from '../orchestration/global-router.mjs';
+import {controlRoute,routeDecision,fallbackPolicy,selectiveHistoryTarget} from '../orchestration/global-router.mjs';
 import {acceptedChanges,resolveConversationMessage,conversationTargetScope,validateConversationTargetScope,nativeChangeReceipt,transitionRestorePlan,audioRestorePlan} from '../orchestration/conversation-edit.mjs';
 import {planWorkbenchWorkflow,workflowStages,productionWorkflowFromPlan} from './workflow-design.mjs';
 import {workflowContract,workflowEntries,inheritRevisionWorkflow,bindRevisionWorkflow} from './workflow-intent.mjs';
@@ -74,6 +74,12 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
     return {projectId:p.id,revisionId:r.id,files};
   }
   async function save(p){
+    const timestamp=Date.now();
+    for(const job of p.jobs){
+      if(job.status==='running'){
+        if(job.timingStage!==job.stage){if(job.timingStage)(job.stageTimings??=[]).push({stage:job.timingStage,startedAt:job.timingStageAt,durationMs:timestamp-job.timingStageAt});job.timingStage=job.stage;job.timingStageAt=timestamp;}
+      }else if(job.timingStage){(job.stageTimings??=[]).push({stage:job.timingStage,startedAt:job.timingStageAt,durationMs:timestamp-job.timingStageAt});delete job.timingStage;delete job.timingStageAt;}
+    }
     const signature=JSON.stringify(p.jobs.map(j=>[j.id,j.status,j.stage,j.runStage,j.checkpoints,j.code,j.error,j.revisionId,j.renderProgress?.completed,j.generationPlan?.shots.map(s=>[s.id,s.status,s.assetId]) ]));if(p.progressSignature!==signature){p.progressSignature=signature;p.recentProgressAt=now();}p.updatedAt=now();const bytes=JSON.stringify(p,null,2),target=path.join(directory(p),'native-project.json');
     const task=(writes.get(p.id)||Promise.resolve()).catch(()=>{}).then(async()=>{await fs.writeFile(target+'.tmp',bytes);await replaceFileAtomically(target+'.tmp',target);});writes.set(p.id,task);await task;
   }
@@ -106,22 +112,23 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
       const base=p.currentRevisionId;
       const document=base?(await readNativeProject(versionDirectory(p,revision(p)))).document:null;
       let route;
-      try{route=await routeWorkbenchMessage(p,input.message,{provider:routingProvider,document,taskMode:input.taskMode||input.request?.taskMode,taskModeExplicit:input.taskModeExplicit??input.request?.taskModeExplicit,scenarioId:input.scenarioId||input.request?.scenarioId||p.request?.scenarioId});}
+      try{route=await routeWorkbenchMessage(p,input.message,{provider:routingProvider,signal:controllers.get(input.dispatchJobId)?.signal,cacheRoot:path.join(directory(p),'message-model-calls'),onInvocation:async invocation=>{const job=p.jobs.find(j=>j.id===input.dispatchJobId);if(job){job.modelCalls=(job.modelCalls||0)+1;(job.modelInvocations??=[]).push({...invocation,stage:'route'});await save(p);}},document,taskMode:input.taskMode||input.request?.taskMode,taskModeExplicit:input.taskModeExplicit??input.request?.taskModeExplicit,scenarioId:input.scenarioId||input.request?.scenarioId||p.request?.scenarioId});}
       catch(error){
         const receipt=failureReceipt(error,{request:input.message,revisionId:base,targets:[{kind:'routing',requirement:input.message}]});
         (p.routingFailures??=[]).push({time:now(),message:input.message,baseRevisionId:base,idempotencyKey:input.idempotencyKey,code:error.code||'MESSAGE_ROUTE_FAILED',failureReceipt:receipt});
-        p.messages.push({role:'user',text:input.message,time:now()},{role:'assistant',text:error.message+'；当前版本保留。',time:now()});
+        if(!input.messageAlreadySaved)p.messages.push({role:'user',text:input.message,time:now()});p.messages.push({role:'assistant',text:error.message+'；当前版本保留。',time:now()});
         await save(p);throw error;
       }
+      controllers.get(input.dispatchJobId)?.signal.throwIfAborted();
       insist(p.currentRevisionId===base,'理解期间版本已变化，保留消息并请重试','REVISION_CONFLICT');
       (p.routingReceipts??=[]).push({time:now(),message:input.message,baseRevisionId:base,...route});
       let resultProject=p;
-      if(route.mode==='clarify'){p.messages.push({role:'user',text:input.message,time:now()},{role:'assistant',text:route.question,time:now()});}
+      if(route.mode==='clarify'){if(!input.messageAlreadySaved)p.messages.push({role:'user',text:input.message,time:now()});p.messages.push({role:'assistant',text:route.question,time:now()});}
       else if(route.mode==='export')await enqueue(p,{...input,action:'export',routeDecision:route});
       else if(route.mode==='plan')await enqueue(p,{...input,action:'plan-workflow',routeDecision:route});
       else if(route.mode==='status')p.messages.push({role:'assistant',text:p.jobs.at(-1)?.error||p.jobs.at(-1)?.stage||'当前版本已保存。',time:now()});
-      else if(['undo','redo','restore'].includes(route.mode))await navigate(p,{action:route.mode,revisionId:route.revisionId});
-      else if(route.mode==='cancel'){const running=p.jobs.filter(active);if(!running.length)p.messages.push({role:'assistant',text:'当前没有正在运行的任务，工程和素材已保留。',time:now()});else {insist(running.length===1,'请在任务记录中选择要取消的任务','CANCEL_TARGET_AMBIGUOUS');await cancel(p,running[0].id);}}
+      else if(['undo','redo','restore'].includes(route.mode))await navigate(p,{action:route.mode,revisionId:route.revisionId,dispatchJobId:input.dispatchJobId});
+      else if(route.mode==='cancel'){const activeJobs=p.jobs.filter(active),running=activeJobs.some(j=>j.status==='running')?activeJobs.filter(j=>j.status==='running'):activeJobs;if(!running.length)p.messages.push({role:'assistant',text:'当前没有正在运行的任务，工程和素材已保留。',time:now()});else {insist(running.length===1,'请在任务记录中选择要取消的任务','CANCEL_TARGET_AMBIGUOUS');await cancel(p,running[0].id);}}
       else if(route.mode==='create'&&base){
         const request={message:input.message,inferRequest:true,target:'marketing',taskMode:'create',taskModeExplicit:true,pipelineVersion:3,commerceProfile:FOCUS_PROFILE};
         request.businessContract=businessContract(request);resultProject=await create(request);
@@ -134,6 +141,31 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
       (p.messageDispatches??=[]).push({key:input.idempotencyKey,projectId:resultProject.id,route});await save(p);
       return {project:view(resultProject),route};
     })();messageFlights.set(key,task);try{return await task;}finally{messageFlights.delete(key);}
+  }
+  // Reuse the persisted job list for intake, routing, cancellation and FIFO edits.
+  // HTTP acknowledges the saved original message; routing never holds the request.
+  const routingDrains=new Map();
+  async function acceptMessage(p,input){
+    insist(typeof input.message==='string'&&input.message.trim(),'请输入需求','MESSAGE_REQUIRED');
+    insist(typeof input.idempotencyKey==='string'&&input.idempotencyKey.length>=16,'消息需要稳定编号','MESSAGE_ID_REQUIRED');
+    if(controlRoute(p,input.message))return dispatchMessage(p,input);
+    const prior=p.jobs.find(j=>j.kind==='message'&&j.idempotencyKey===input.idempotencyKey);
+    if(prior)return {project:view(p),messageJobId:prior.id,acknowledgedAt:prior.createdAt};
+    insist(!input.baseRevisionId||input.baseRevisionId===p.currentRevisionId,'页面版本已过期','REVISION_CONFLICT');
+    const job={id:'job-'+randomUUID(),kind:'message',input:structuredClone(input),idempotencyKey:input.idempotencyKey,acceptedBaseRevisionId:p.currentRevisionId,baseRevisionId:null,status:'queued',stage:'消息已保存，等待执行',createdAt:now()};
+    p.jobs.push(job);p.messages.push({role:'user',text:input.message,time:job.createdAt,messageJobId:job.id,baseRevisionId:p.currentRevisionId});await save(p);
+    setImmediate(()=>void drainMessages(p));return {project:view(p),messageJobId:job.id,acknowledgedAt:now()};
+  }
+  async function drainMessages(p){
+    if(routingDrains.has(p.id)||p.jobs.some(j=>active(j)&&j.kind!=='export'&&j.kind!=='message'))return;
+    const job=p.jobs.find(j=>j.kind==='message'&&j.status==='queued');if(!job)return;
+    const controller=new AbortController();controllers.set(job.id,controller);routingDrains.set(p.id,job.id);
+    try{
+      job.status='running';job.stage='理解消息与绑定当前版本';job.startedAt=now();job.baseRevisionId=p.currentRevisionId;job.queueMs=Date.parse(job.startedAt)-Date.parse(job.createdAt);await save(p);
+      const result=await dispatchMessage(p,{...job.input,baseRevisionId:p.currentRevisionId,messageAlreadySaved:true,dispatchJobId:job.id});
+      controller.signal.throwIfAborted();job.routeDecision=result.route;job.resultProjectId=result.project.id;job.status='complete';
+    }catch(error){job.status=controller.signal.aborted?'cancelled':'failed';job.code=error.code||'MESSAGE_ROUTE_FAILED';job.error=error.message;}
+    finally{job.completedAt=now();job.durationMs=Date.parse(job.completedAt)-Date.parse(job.startedAt);controllers.delete(job.id);routingDrains.delete(p.id);await save(p);setImmediate(()=>void drainMessages(p));}
   }
   const presetFlights=new Map();
   async function presetFile(id){
@@ -220,11 +252,45 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
       await save(p);throw error;
     }
   }
-  async function importPackage(req){
-    const p=await create({}),target=path.join(directory(p),'import.zip');let bytes=0;
-    try{await pipeline(req,new Transform({transform(chunk,encoding,callback){bytes+=chunk.length;callback(bytes>MAX_PACKAGE_BYTES?new CreativeError('原生包最多80 GiB','PACKAGE_LIMIT',413):null,chunk);}}),createWriteStream(target,{flags:'wx'}));insist(bytes>0,'原生包不能为空','PACKAGE_INVALID');}
+  async function importPackage(req,finishedWork,existing){
+    const p=existing||await create({}),target=path.join(directory(p),'import.zip');let bytes=0;
+    if(finishedWork){p.finishedWork=finishedWork;await save(p);}
+    try{await pipeline(req,new Transform({transform(chunk,encoding,callback){bytes+=chunk.length;callback(bytes>MAX_PACKAGE_BYTES?new CreativeError('原生包最多80 GiB','PACKAGE_LIMIT',413):null,chunk);}}),createWriteStream(target,{flags:existing?'w':'wx'}));insist(bytes>0,'原生包不能为空','PACKAGE_INVALID');}
     catch(error){await fs.unlink(target).catch(()=>{});throw error;}
     const job={id:'job-'+randomUUID(),kind:'import',input:{},baseRevisionId:null,status:'queued',createdAt:now()};p.title='正在打开工程';p.jobs.push(job);await save(p);void execute(p,job).catch(error=>{job.status='failed';job.error=error.message;});return p;
+  }
+  const finishedFlights=new Map();
+  async function resolveFinished(work){
+    if(!work.provenance?.startsWith('own-agent-')||!work.nativeBinding)return {...work,editable:false,editStatus:'reference-read-only'};
+    const binding=work.nativeBinding;
+    const p=projects.get(binding.projectId)||[...projects.values()].find(p=>p.finishedWork?.id===work.id&&p.finishedWork?.sha256===work.sha256);
+    if(p){
+      const valid=p.revisions.some(r=>r.id===binding.revisionId)||p.finishedWork?.id===work.id;
+      if(!valid)return {...work,editable:false,editStatus:'native-binding-mismatch'};
+      return {...work,editable:true,projectId:p.id,revisionId:p.currentRevisionId,editUrl:'/?project='+p.id,editStatus:p.currentRevisionId?'native-ready':'import-pending'};
+    }
+    return {...work,editable:!!work.packageFile,editStatus:work.packageFile?'import-available':'native-missing'};
+  }
+  async function finishedWorks(){const works=await readFinishedWorks(root),resolved=await Promise.all(works.map(resolveFinished));Object.defineProperty(resolved,'unavailable',{value:works.unavailable});return resolved;}
+  async function openFinished(id){
+    if(finishedFlights.has(id))return finishedFlights.get(id);
+    const task=(async()=>{
+      const work=(await finishedWorks()).find(w=>w.id===id);
+      insist(work?.editable,'此作品没有可续改的自有原生工程；参考成品仅供浏览','FINISHED_WORK_READ_ONLY');
+      if(work.projectId){
+        const p=get(work.projectId);
+        if(p.currentRevisionId||p.jobs.some(active))return p;
+        const prior=p.jobs.find(j=>j.kind==='import');
+        if(prior?.status==='failed'){await retryImport(p,prior.id);return p;}
+        if(prior)return p;
+        insist(p.finishedWork?.id===work.id&&p.finishedWork.sha256===work.sha256,'工程来源不匹配','FINISHED_WORK_BINDING');
+        return importPackage(createReadStream(work.packageFile),p.finishedWork,p);
+      }
+      // Persist the catalog identity before importing, so refresh/restart cannot
+      // create another draft. All content still goes through the normal importer.
+      return importPackage(createReadStream(work.packageFile),{id:work.id,sha256:work.sha256});
+    })();finishedFlights.set(id,task);
+    try{return await task;}finally{finishedFlights.delete(id);}
   }
   async function copyAssets(from,to){
     await fs.mkdir(path.join(to,'assets'),{recursive:true});for(const name of await fs.readdir(path.join(from,'assets')))await linkOrCopy(path.join(from,'assets',name),path.join(to,'assets',name));
@@ -296,6 +362,7 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
       const previousId=document.revisionId;allocatePublicationRevision(document,p.revisions,job.id);
       if(document.revisionId!==previousId){const {assets}=await readNativeProject(dir);await writeCompiledProject(dir,document,assets,{signal});}
       await fs.writeFile(path.join(dir,'check.log'),await runHyperFrames(dir,'check',[],{signal}));
+    }finally{release();}
       if(job.kind==='edit'&&document.production){
         job.stage='复核修改范围的实际画面';await save(p);
         const quality=await reviewEditedProject(root,dir,document,{runHyperFrames,signal,message:job.input?.message||'',changeReceipt:job.changeReceipt,round:job.repairCount||0,onInvocation:async invocation=>{job.modelCalls=(job.modelCalls||0)+1;(job.modelInvocations??=[]).push({...invocation,stage:'R6-edit'});await save(p);}}).catch(error=>{if(signal?.aborted||!['CODEX_TIMEOUT','CODEX_LIMIT','CODEX_MODEL_UNAVAILABLE','CODEX_REQUEST_FAILED'].includes(error.code))throw error;return {status:'pending-model-review',engineering:'checked',revisionId:document.revisionId,issues:[],unreviewed:['visual','continuity','audio-perception'],humanReview:'pending',blocker:{code:error.code,message:error.message},candidateOnly:true};});
@@ -303,7 +370,6 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
         if(quality.status==='needs-repair')throw Object.assign(Error('局部画面检查发现需要修复的问题'),{code:'EDIT_VISUAL_REVIEW',issues:quality.issues});
         document.quality=quality;bindResourceChecks(document,{engineering:true,visual:quality.status});await fs.writeFile(path.join(dir,'resource-receipts.json'),JSON.stringify(document.resourceReceipts||[],null,2));await fs.writeFile(path.join(dir,'document.json'),JSON.stringify(document,null,2));await fs.writeFile(path.join(dir,'quality-report.json'),JSON.stringify(quality,null,2));
       }
-    }finally{release();}
     await linkOrCopy(path.join(root,'node_modules/hyperframes/dist/hyperframe-runtime.js'),path.join(dir,'assets/runtime.js'));
     insist(!signal?.aborted,'任务已取消','CANCELLED');
     insist(branch||p.currentRevisionId===job.baseRevisionId,'当前版本已变化，结果保留但不能覆盖新版本','REVISION_CONFLICT');
@@ -435,7 +501,8 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
         const targetIds=new Set(visualTargets.map(t=>t.id).filter(Boolean));
         const visualAssetIds=new Set(document.nodes.filter(n=>targetIds.has(n.id)||targetIds.has(n.sceneId)).map(n=>n.assetId).filter(Boolean));
         const retainedVisuals=visualTargets.length?assets.filter(a=>a.kind==='image'||visualAssetIds.has(a.id)).filter(a=>['image','video'].includes(a.kind)).slice(0,8):[];
-        const observed=[...new Map([...added.filter(a=>a.kind!=='font'),...retainedVisuals,...assets.filter(a=>a.kind==='audio'&&!a.generatedVoice)].map(a=>[a.id,a])).values()].map(a=>({...a,normalizedRef:path.relative(root,path.join(dir,a.compiledRef)).replaceAll('\\','/')}));
+        const deterministicPlan=scopedCommerceEdit(document,resolveConversationMessage(job.input.message||'',acceptedChanges(p)));
+        const observed=deterministicPlan?[]:[...new Map([...added.filter(a=>a.kind!=='font'),...retainedVisuals,...assets.filter(a=>a.kind==='audio'&&!a.generatedVoice)].map(a=>[a.id,a])).values()].map(a=>({...a,normalizedRef:path.relative(root,path.join(dir,a.compiledRef)).replaceAll('\\','/')}));
         const evidence=observed.length?await collectCreativeEvidence(observed,dir,root,signal):{inputs:[],records:[]};
         document.audioEvidence=evidence.records.filter(r=>r.audioAnalysis).map(r=>({assetId:r.assetId,sha256:r.sha256,...r.audioAnalysis}));
         const countInvocation=async invocation=>{job.modelCalls=(job.modelCalls||0)+1;(job.modelInvocations??=[]).push({...invocation,stage:'R7-edit'});await save(p);};
@@ -520,14 +587,14 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
         await candidateExport(p,job,revision(p,job.baseRevisionId),signal);
       }
       job.status='complete';delete job.code;delete job.error;job.completedAt=now();p.messages.push({role:'assistant',text:job.kind==='export'?'已导出指定版本。':job.summary||'预览检查通过，新版本已保存。',revisionId:job.revisionId,time:now()});
-    }catch(e){job.failureReceipt=failureReceipt(e,{request:job.input.message||job.input.request?.message||p.request.message,revisionId:job.baseRevisionId,publishedRevisionId:job.revisionId,requirements:job.input.workflow?.requirements||[],targets:job.routeDecision?.targets||[]});job.status=signal.aborted?'cancelled':e.code==='NEEDS_INPUT'?'needs_user':(job.runId||['create','audio'].includes(job.kind))?'recoverable':'failed';job.error=signal.aborted?'已取消，上一有效版本保留':e.message;job.code=e.code||'CREATIVE_JOB_FAILED';job.gaps=e.gaps||job.gaps;job.completedAt=now();p.messages.push({role:'assistant',text:job.error,time:now()});}
-    finally{controllers.delete(job.id);delete job.snapshot;job.durationMs=Date.parse(job.completedAt)-Date.parse(job.startedAt);await save(p).catch(error=>{job.persistenceError=error.code||error.message;console.error('创作任务状态暂未写入，上一已提交版本保留：',p.id,job.id,error.code||error.message);});}
+    }catch(e){job.failureReceipt=failureReceipt(e,{request:job.input.message||job.input.request?.message||p.request.message,revisionId:job.baseRevisionId,publishedRevisionId:job.revisionId,requirements:job.input.workflow?.requirements||[],targets:job.input.routeDecision?.targets||job.routeDecision?.requestedTargets||[]});job.status=signal.aborted?'cancelled':e.code==='NEEDS_INPUT'?'needs_user':(job.runId||['create','audio'].includes(job.kind))?'recoverable':'failed';job.error=signal.aborted?'已取消，上一有效版本保留':e.message;job.code=e.code||'CREATIVE_JOB_FAILED';job.gaps=e.gaps||job.gaps;job.completedAt=now();p.messages.push({role:'assistant',text:job.error,time:now()});}
+    finally{controllers.delete(job.id);delete job.snapshot;job.durationMs=Date.parse(job.completedAt)-Date.parse(job.startedAt);await save(p).catch(error=>{job.persistenceError=error.code||error.message;console.error('创作任务状态暂未写入，上一已提交版本保留：',p.id,job.id,error.code||error.message);});setImmediate(()=>void drainMessages(p));}
   }
   async function enqueue(p,input){
     const kind=input.action==='plan-workflow'?'plan':input.action==='audio-generate'?'audio':input.action==='generate'?'create':input.action==='render'||input.action==='export'?'export':'edit';
-    if(input.idempotencyKey){const old=p.jobs.find(j=>j.idempotencyKey===input.idempotencyKey);if(old)return old;}
+    if(input.idempotencyKey){const old=p.jobs.find(j=>j.kind!=='message'&&j.idempotencyKey===input.idempotencyKey);if(old)return old;}
     if(kind==='create'&&['image','video'].includes(input.request?.target||p.request.target))await assertMediaGenerationAllowed(root);
-    insist(!p.jobs.some(j=>active(j)&&j.kind!=='export')||kind==='export','当前创作仍在进行','PROJECT_BUSY');
+    insist(!p.jobs.some(j=>active(j)&&j.kind!=='export'&&j.id!==input.dispatchJobId&&!(j.kind==='message'&&j.status==='queued'))||kind==='export','当前创作仍在进行','PROJECT_BUSY');
     insist(!Array.from(uploads).some(k=>k.startsWith(p.id+':')),'请等待素材上传完成','UPLOAD_BUSY');
     if(input.baseRevisionId)insist(input.baseRevisionId===p.currentRevisionId,'页面版本已过期，请刷新后再修改','REVISION_CONFLICT');
     if(kind==='plan')input={...input,taskMode:input.taskMode||(!p.currentRevisionId?p.request.taskMode:undefined),taskModeExplicit:input.taskModeExplicit??Boolean(!p.currentRevisionId&&p.request.taskModeExplicit),output:structuredClone(input.output||p.request.output)};
@@ -536,17 +603,17 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
     if(kind==='audio'){insist(['speech','music'].includes(input.audio?.kind),'请选择旁白或纯音乐','AUDIO_KIND');insist(p.assets.length<MAX_ASSETS,'最多30个素材','ASSET_LIMIT');}
     if(kind==='export')insist(!p.jobs.some(j=>active(j)&&j.kind==='export'&&j.baseRevisionId===(input.revisionId||p.currentRevisionId)),'这个版本正在导出','EXPORT_BUSY');
     const job={id:'job-'+randomUUID(),kind,input:structuredClone(input),routeDecision:input.routeDecision,baseRevisionId:input.revisionId||p.currentRevisionId,status:'queued',createdAt:now(),idempotencyKey:input.idempotencyKey};if(kind==='export')job.snapshot={...structuredClone(p),jobs:p.jobs.map(({snapshot,...prior})=>structuredClone(prior))};p.jobs.push(job);
-    if(input.message)p.messages.push({role:'user',text:input.message,baseRevisionId:job.baseRevisionId,time:now()});await save(p);void execute(p,job).catch(error=>{job.status='failed';job.error=error.message;job.code=error.code||'CREATIVE_JOB_FAILED';controllers.delete(job.id);console.error('创作任务失败：',p.id,job.id,error.code||error.message);});return job;
+    if(input.message&&!input.messageAlreadySaved)p.messages.push({role:'user',text:input.message,baseRevisionId:job.baseRevisionId,time:now()});await save(p);void execute(p,job).catch(error=>{job.status='failed';job.error=error.message;job.code=error.code||'CREATIVE_JOB_FAILED';controllers.delete(job.id);console.error('创作任务失败：',p.id,job.id,error.code||error.message);});return job;
   }
   async function navigate(p,input){
-    insist(!p.jobs.some(j=>active(j)&&j.kind!=='export'),'编辑完成后可恢复版本','PROJECT_BUSY');
+    insist(!p.jobs.some(j=>active(j)&&j.kind!=='export'&&j.id!==input.dispatchJobId),'编辑完成后可恢复版本','PROJECT_BUSY');
     const current=revision(p),previous={current:p.currentRevisionId,redo:[...p.redo]};let target;
     if(input.action==='undo'){target=current.parentId;insist(target,'已经是初始版本','NO_UNDO');p.redo.push(current.id);}
     else if(input.action==='redo'){target=p.redo.pop();insist(target,'没有可重做版本','NO_REDO');}
     else {target=input.revisionId;p.redo=[];}
     try{revision(p,target);p.currentRevisionId=target;await save(p);}catch(error){p.currentRevisionId=previous.current;p.redo=previous.redo;throw error;}return view(p);
   }
-  async function cancel(p,id){const job=p.jobs.find(j=>j.id===id);insist(job&&active(job),'任务不可取消','INVALID_CANCEL');job.cancelRequestedAt=now();job.stage='正在取消';await save(p);controllers.get(id)?.abort();return view(p);}
+  async function cancel(p,id){const job=p.jobs.find(j=>j.id===id);insist(job&&active(job),'任务不可取消','INVALID_CANCEL');job.cancelRequestedAt=now();job.stage='正在取消';await save(p);if(job.kind==='message'&&job.status==='queued'){job.status='cancelled';job.completedAt=now();await save(p);}else controllers.get(id)?.abort();return view(p);}
   async function authorizeBudget(p,input){
     const job=p.jobs.find(j=>j.id===input.jobId);insist(job?.runId&&!active(job),'只能为暂停的原任务批准预算','INVALID_BUDGET');
     insist(!p.jobs.some(j=>active(j)&&j.kind!=='export'),'项目已有任务在执行','PROJECT_BUSY');
@@ -557,7 +624,7 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
   for(const p of projects.values())for(const job of p.jobs){
     if(job.status==='recoverable'&&job.code==='INTERRUPTED'&&!job.cancelRequestedAt&&(job.generationPlan||job.generationStarted))queueMicrotask(()=>resume(p,job.id).catch(async error=>{job.status='recoverable';job.code=error.code;job.error=error.message;await save(p);}));
   }
-  return {artifacts,dispatchMessage,audioVoices:()=>new MiniMaxClient({root,env:audioEnv,transport:audioTransport}).execute('voices'),applyAudio:async(p,input)=>{const {document}=await readNativeProject(versionDirectory(p,revision(p)));const operations=await audioApplication(root,document,p.assets.find(a=>a.id===input.assetId),input);return enqueue(p,{...input,action:'patch',operations,message:(input.replaceTrackId?'替换已选':'添加已选')+(input.role==='narration'?'旁白':input.role==='original'?'原声':'背景音乐')});},productionPolicy:()=>productionPolicy(root),finishedWorks:()=>readFinishedWorks(root),materialRoots:async()=>(await discoverMaterialRoots(root)).map(publicMaterialRoot),attachMaterialRoot,get,has:id=>projects.has(id),view,create,loadPreset,presetFile,presets:async()=>(await refreshPresets()).map(publicPreset),unavailablePresets:async()=>(await refreshPresets()).unavailable||[],upload,importPackage,retryImport,enqueue,navigate,cancel,resume,authorizeBudget,revision,versionDirectory,list:()=>[...projects.values()].map(view).sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt))};
+  return {dataRoot:path.resolve(dataDir),artifacts,dispatchMessage,acceptMessage,audioVoices:()=>new MiniMaxClient({root,env:audioEnv,transport:audioTransport}).execute('voices'),applyAudio:async(p,input)=>{const {document}=await readNativeProject(versionDirectory(p,revision(p)));const operations=await audioApplication(root,document,p.assets.find(a=>a.id===input.assetId),input);return enqueue(p,{...input,action:'patch',operations,message:(input.replaceTrackId?'替换已选':'添加已选')+(input.role==='narration'?'旁白':input.role==='original'?'原声':'背景音乐')});},productionPolicy:()=>productionPolicy(root),finishedWorks,openFinished,materialRoots:async()=>(await discoverMaterialRoots(root)).map(publicMaterialRoot),attachMaterialRoot,get,has:id=>projects.has(id),view,create,loadPreset,presetFile,presets:async()=>(await refreshPresets()).map(publicPreset),unavailablePresets:async()=>(await refreshPresets()).unavailable||[],upload,importPackage,retryImport,enqueue,navigate,cancel,resume,authorizeBudget,revision,versionDirectory,list:()=>[...projects.values()].map(view).sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt))};
 }
 
 export async function creativeRoutes(service,req,res,url,{json,jsonBody,file}){
@@ -573,6 +640,8 @@ export async function creativeRoutes(service,req,res,url,{json,jsonBody,file}){
     await file(req,res,target,'video/mp4',url.searchParams.has('download')?path.basename(target):undefined);return true;
   }
   if(route==='/api/commerce-finished'&&req.method==='GET'){const works=await service.finishedWorks();json(res,{works:works.map(publicFinishedWork),unavailable:works.unavailable||[]});return true;}
+  const openFinishedMatch=/^\/api\/commerce-finished\/([a-zA-Z0-9_-]+)\/open$/.exec(route);
+  if(openFinishedMatch&&req.method==='POST'){const p=await service.openFinished(openFinishedMatch[1]);json(res,{ok:true,project:service.view(p)},202);return true;}
   const finishedMatch=/^\/api\/commerce-finished\/([a-zA-Z0-9_-]+)\/(video|package|artifacts)$/.exec(route);
   if(finishedMatch&&['GET','HEAD'].includes(req.method)){
     const work=(await service.finishedWorks()).find(w=>w.id===finishedMatch[1]);insist(work,'成品不存在或本机未安装','FINISHED_WORK_NOT_FOUND');
@@ -598,7 +667,7 @@ export async function creativeRoutes(service,req,res,url,{json,jsonBody,file}){
       json(res,{ok:true,result});return true;
     }
     const p=service.get(input.projectId);
-    if(input.action==='message'){json(res,{ok:true,...await service.dispatchMessage(p,input)},202);return true;}
+    if(input.action==='message'){json(res,{ok:true,...await service.acceptMessage(p,input)},202);return true;}
     if(input.action==='audio-new-submission'){
       const old=p.jobs.find(j=>j.id===input.jobId);
       insist(old?.kind==='audio'&&old.code==='MINIMAX_SUBMISSION_UNKNOWN'&&!active(old),'只能针对结果未知的声音任务授权新提交','INVALID_AUDIO_RECOVERY');

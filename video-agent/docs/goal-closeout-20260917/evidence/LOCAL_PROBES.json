@@ -1,0 +1,43 @@
+{
+  "scope": "Isolated faithful logic probes only; not full repo integration tests",
+  "launcher_source": "https://github.com/Metroids048/hyperframe/blob/10fa622107087499f06258e682a45d5ebe3f7c07/video-agent/start.py",
+  "ready_cases": [
+    {
+      "case": "old_build_same_workspace",
+      "health": {
+        "ok": true,
+        "workspaceId": "same-workspace",
+        "workbench": "commerce",
+        "sourceSha": "90c78f0"
+      },
+      "actual_ready": true
+    },
+    {
+      "case": "new_build_same_workspace",
+      "health": {
+        "ok": true,
+        "workspaceId": "same-workspace",
+        "workbench": "commerce",
+        "sourceSha": "10fa622"
+      },
+      "actual_ready": true
+    },
+    {
+      "case": "wrong_workspace",
+      "health": {
+        "ok": true,
+        "workspaceId": "other-workspace",
+        "workbench": "commerce",
+        "sourceSha": "10fa622"
+      },
+      "actual_ready": false
+    }
+  ],
+  "cache_source": "https://github.com/Metroids048/hyperframe/blob/10fa622107087499f06258e682a45d5ebe3f7c07/video-agent/lib/creative/isolation.mjs",
+  "cache_probe": {
+    "same_content_different_directory_misses": true,
+    "same_content_different_revision_misses": true,
+    "interpretation": "The current key includes outputDir and the full document, so ordinary new revision folders cannot reuse a prior folder cache entry."
+  },
+  "checks_executed_and_asserted": true
+}

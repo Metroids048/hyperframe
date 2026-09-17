@@ -78,3 +78,19 @@ export function invalidatedProductionCheckpoints(before,after,checkpoints,{polic
  }
  return {changedFiles:changed,from:order[first],keys:Object.keys(checkpoints).filter(key=>key==='direction-preview'||(key.startsWith('shot-')?8:order.indexOf(key))>=first)};
 }
+
+// Called at process startup (or by the launcher's independent disk probe), never
+// recomputed inside health: a running process cannot claim later disk changes.
+export async function captureRuntimeIdentity(root, dataRoot){
+ const hashTree=async(directory,filter=()=>true)=>{
+  const entries=[];
+  async function walk(dir){for(const item of await fs.readdir(path.join(root,dir),{withFileTypes:true}).catch(e=>{if(e.code==='ENOENT')return [];throw e;})){
+   const name=dir+'/'+item.name;if(item.isDirectory())await walk(name);else if(item.isFile()&&filter(name))entries.push([name,resourceHash(await fs.readFile(path.join(root,name)))]);
+  }}
+  await walk(directory);return entries.sort(([a],[b])=>a<b?-1:a>b?1:0);
+ };
+ const build=await captureRuntimeBuild(root);
+ const source=[...Object.entries(build.files),...await hashTree('prompts'),...await hashTree('config',name=>!name.endsWith('.local.json')&&!name.endsWith('.env'))];
+ const webFiles=await hashTree('web-dist');
+ return {sourceHash:resourceHash(JSON.stringify(source)),frontendHash:resourceHash(JSON.stringify(webFiles)),frontendSourceHash:resourceHash(JSON.stringify(await hashTree('web'))),dataRoot:await fs.realpath(path.resolve(dataRoot)),workspaceRoot:await fs.realpath(root)};
+}

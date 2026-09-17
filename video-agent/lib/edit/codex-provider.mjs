@@ -84,7 +84,7 @@ export class CodexProvider extends CloudProvider {
     }messages.push({role:item.role,content:parts.join('\n')});}
     const working=await codexWorkingDirectory(dir);
     const {args,prompt}=codexRequest({model,schemaFile:working.file('schema.json'),output:working.file('result.json'),images:images.map(file=>working.file(path.basename(file))),instructions,messages,reasoningEffort:this.reasoningEffort});
-    const invocation={model,transport:process.env.VIDEO_AGENT_CODEX_TRANSPORT||'auto',timeoutMs:this.timeoutMs,reasoningEffort:this.reasoningEffort,attempt,imageCount:images.length,promptSha256:createHash('sha256').update(prompt).digest('hex'),schemaSha256:createHash('sha256').update(JSON.stringify(schema)).digest('hex'),directory:dir};
+    const invocation={startedAt:new Date().toISOString(),model,transport:process.env.VIDEO_AGENT_CODEX_TRANSPORT||'auto',timeoutMs:this.timeoutMs,reasoningEffort:this.reasoningEffort,attempt,imageCount:images.length,promptSha256:createHash('sha256').update(prompt).digest('hex'),schemaSha256:createHash('sha256').update(JSON.stringify(schema)).digest('hex'),directory:dir};
     try {
       await fs.writeFile(path.join(dir,'prompt.txt'),prompt);
       await this.onInvocation?.(invocation);
@@ -99,7 +99,7 @@ export class CodexProvider extends CloudProvider {
       });
       const result=JSON.parse(await fs.readFile(output,'utf8'));this.verifiedAt=new Date().toISOString();if(model)this.availableModel=model;return {result,usage:null,model:model||'Codex 默认模型',reasoningEffort:this.reasoningEffort,invocation,...(model!==this.model?{fallbackFrom:this.model}:{})};
     }catch(error){if(error.capacity&&attempt+1<candidates.length&&!signal?.aborted)return await this.structured(instructions,input,schema,signal,attempt+1);if(error.capacity)error.message='可用模型当前都很繁忙，输入已保存，请稍后重试';throw error;}
-    finally {await fs.writeFile(path.join(dir,'request.json'),JSON.stringify({...invocation,completedAt:new Date().toISOString()})).catch(()=>{});await working.cleanup();}
+    finally {await fs.writeFile(path.join(dir,'request.json'),JSON.stringify({...invocation,completedAt:new Date().toISOString(),durationMs:Date.now()-Date.parse(invocation.startedAt)})).catch(()=>{});await working.cleanup();}
   }
   async transcribe(file,signal) {
     if(signal?.aborted)throw new EditError('任务已取消',409);

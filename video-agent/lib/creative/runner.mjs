@@ -140,9 +140,11 @@ export async function readNativeProject(outputDir) {
 }
 
 export async function writeCompiledProject(outputDir, document, assets, {invalidation = null,signal} = {}) {
+  const timings=[];let phaseStarted=performance.now();const mark=stage=>{const end=performance.now();timings.push({stage,durationMs:end-phaseStarted});phaseStarted=end;};
   if(document.businessContract){const admission=await candidateAdmission(VIDEO_AGENT_ROOT,document.businessContract,assets,outputDir,document);assertRequiredActions(document,admission);}
   validateDocument(document,Object.fromEntries(assets.map(a=>[a.id,a])));
   const audioRefs=await prepareNativeAudio(outputDir,document,assets,{signal});
+  mark('audio-preparation');
   const compiled = compileDocument(document, assets,{audioRefs});
   await writeAttribution(outputDir,assets);
   await fs.writeFile(path.join(outputDir, 'index.html'), compiled.html);
@@ -150,8 +152,9 @@ export async function writeCompiledProject(outputDir, document, assets, {invalid
   await fs.writeFile(path.join(outputDir, 'object-map.json'), JSON.stringify(compiled.objectMap, null, 2));
   await fs.writeFile(path.join(outputDir, 'manifest.json'), JSON.stringify(compiled.manifest, null, 2));
   await fs.writeFile(path.join(outputDir, 'DESIGN.md'), designMarkdown(document));
-  await verifyCustomProject(outputDir,document,assets,{signal});
-  const status = {state: 'composed', projectId: document.projectId, outputDir: path.relative(VIDEO_AGENT_ROOT, outputDir).split(path.sep).join('/'), document: documentSummary(document), rendered: false, invalidation};
+  mark('compile-and-write');
+  await verifyCustomProject(outputDir,document,assets,{signal,compiled,audioRefs});mark('isolation');
+  const status = {state: 'composed', projectId: document.projectId, outputDir: path.relative(VIDEO_AGENT_ROOT, outputDir).split(path.sep).join('/'), document: documentSummary(document), rendered: false, invalidation,timings};
   await fs.writeFile(path.join(outputDir, 'status.json'), JSON.stringify(status, null, 2));
   return status;
 }

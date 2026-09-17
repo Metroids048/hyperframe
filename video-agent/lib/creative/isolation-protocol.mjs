@@ -29,6 +29,10 @@ export function validateReceipt(receipt,identity,runtimeBytes){
    const samples=runtime.samples.filter(s=>s&&s.sceneId===scene.id);
    if(samples.some(s=>!Array.isArray(s.objects)||s.objects.some(o=>!o||typeof o!=='object')))fail('Invalid measured objects');
    for(const id of scene.visibleTargets)if(!samples.some(s=>Array.isArray(s.objects)&&s.objects.some(o=>o&&o.id===id&&o.visible===true)))fail('Success lacks visible object: '+id);
+   for(const id of scene.layoutTargets||[]){
+    const visible=samples.flatMap(s=>s.objects).filter(o=>o.id===id&&o.visible);
+    if(!visible.length||visible.some(o=>![o.x,o.y,o.width,o.height].every(Number.isFinite)||o.x<-.5||o.y<-.5||o.x+o.width>scene.output.width+.5||o.y+o.height>scene.output.height+.5))fail('Caption layout outside output: '+id);
+   }
    for(const video of scene.media||[]){
     const active=samples.filter(s=>s.time>=video.start&&s.time<video.start+video.duration);
     if(active.length<2)fail('Success lacks video progression samples');

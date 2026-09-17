@@ -1,3 +1,4 @@
+import {captureRuntimeIdentity} from './lib/creative/runtime-build.mjs';
 import {formalVideoSnapshot} from './lib/creative/delivery-gate.mjs';
 import {deliveryRoutes} from './lib/creative/delivery-entry.mjs';
 import {planShots,validateShots} from './lib/multishot.mjs';
@@ -22,6 +23,7 @@ const PORT=Number(process.env.VIDEO_AGENT_PORT||3020),DATA=path.resolve(process.
 const workspaceId=createHash('sha256').update(process.platform==='win32'?ROOT.replaceAll('\\','/').toLowerCase():ROOT).digest('hex');
 const editor=await createEditService();
 const creative=await createCreativeService();
+const runtimeIdentity={...await captureRuntimeIdentity(ROOT,creative.dataRoot),pid:process.pid,startedAt:new Date().toISOString()};
 const projects=new Map(),writes=new Map();let active=null,studioProject=null,studioBusy=false,accepting=true;
 await fs.mkdir(DATA,{recursive:true});
 async function save(p){const snapshot=JSON.stringify(p,null,2),file=path.join(DATA,p.id,'project.json');const task=(writes.get(p.id)||Promise.resolve()).catch(()=>{}).then(async()=>{await fs.writeFile(file+'.tmp',snapshot);await fs.rename(file+'.tmp',file);});writes.set(p.id,task);await task;}
@@ -135,7 +137,7 @@ const server=http.createServer(async(req,res)=>{
    return await file(req,res,servedPath,type,kind==='video'?`candidate-${commerceFile[1]}.mp4`:null);
   }
   if(['GET','HEAD'].includes(req.method)&&route==='/editor-player.js')return await file(req,res,path.join(ROOT,'node_modules/hyperframes/dist/hyperframes-player.global.js'),'text/javascript; charset=utf-8');
-  if(req.method==='GET'&&route==='/api/health')return json(res,{ok:true,version:'0.7.0-conversation',workspaceId,workbench:'commerce',activeProjectId:active,studioProjectId:studioProject});
+  if(req.method==='GET'&&route==='/api/health')return json(res,{ok:true,version:'0.7.0-conversation',workspaceId,workbench:'commerce',runtime:runtimeIdentity,activeJobs:creative.list().flatMap(p=>p.jobs.filter(j=>['running','queued'].includes(j.status)).map(j=>({projectId:p.id,jobId:j.id,status:j.status}))),activeProjectId:active,studioProjectId:studioProject});
   if(req.method==='POST'&&route==='/api/optimize'){const input=await jsonBody(req,16000,'需求描述');if(input.mode==='live'&&process.env.VIDEO_AGENT_LIVE_CODEX!=='1')throw new InputError('实时 Codex 当前未启用：上次模型连接超时。请使用演示整理，或手动补充；输入已保留。',503);return json(res,input.mode==='live'?await optimizePrompt(input.text):demoOptimize(input.text));}
   if(req.method==='GET'&&route==='/api/cases')return json(res,await Promise.all(cases.map(async c=>({...c,ready:await fs.access(path.join(ROOT,'showcase',c.id,'media.json')).then(()=>true).catch(()=>false),imageUrl:`/cases/${c.id}/image`,videoUrl:`/cases/${c.id}/video`}))));
   const ce=/^\/api\/cases\/([a-z]+)\/edit$/.exec(route);

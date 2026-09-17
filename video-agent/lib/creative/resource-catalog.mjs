@@ -83,7 +83,9 @@ export function resolveResourceTargets(requests,count){
 export function explicitResource(need,resources=[]){return resourceRequests(need,resources).find(r=>!r.negated)?.canonicalId||null;}
 export function bindTransitionResourceScopes(document,requests){
  const order=new Map((document.scenes||[]).map((s,i)=>[s.id,i]));
- const transitions=[...(document.transitions||[])].sort((a,b)=>(order.get(a.fromSceneId)??0)-(order.get(b.fromSceneId)??0));
+ const existing=[...(document.transitions||[])].sort((a,b)=>(order.get(a.fromSceneId)??0)-(order.get(b.fromSceneId)??0));
+ // A cut is still an adjacent boundary, even without an effect object yet.
+ const transitions=document.scenes?.length>1?document.scenes.slice(0,-1).map((scene,i)=>existing.find(t=>t.fromSceneId===scene.id&&t.toSceneId===document.scenes[i+1].id)||{fromSceneId:scene.id,toSceneId:document.scenes[i+1].id,effect:'cut',durationFrames:0}):existing;
  const ref=(t,index)=>({transitionId:t.id||stableId('transition',t.fromSceneId,t.toSceneId),fromSceneId:t.fromSceneId,toSceneId:t.toSceneId,index});
  return [...new Set(requests.map(r=>r.canonicalId))].map(canonicalId=>{
   const selected=requests.filter(r=>r.canonicalId===canonicalId),targets=resolveResourceTargets(selected,transitions.length);
@@ -112,6 +114,7 @@ export function planExactTransitionResourceEdit(document,message,bindings){
  const transitions=document.transitions||[],operations=[];
  for(const binding of bindings)for(const [refs,effect] of [[binding.include,'chromatic-split'],[binding.exclude,'dissolve-transition']])for(const ref of refs){
   const t=transitions.find(t=>t.fromSceneId===ref.fromSceneId&&t.toSceneId===ref.toSceneId);
+  if(!t){if(effect==='chromatic-split')return null;continue;}
   if(effect!=='chromatic-split'&&t.effect!=='chromatic-split')continue;
   operations.push({type:'set_transition',fromSceneId:t.fromSceneId,toSceneId:t.toSceneId,effect,durationFrames:t.durationFrames});
  }
@@ -192,4 +195,18 @@ export class HyperFramesResourcePlanner {
   const visible=found.filter((r,i)=>i<20||selected.some(a=>a.canonicalId===canonical(r)));
   return {need,intent,adapterChecks,requests,requestedCanonicalId:exact,status:missing.length?'pending_adapter':positive.some(r=>r.scope.kind==='unresolved')?'unresolved_scope':selected.length?'resolved':requests.length&&!positive.length?'excluded':'unresolved',catalogHash:this.catalog.data.contentHash,scan:this.catalog.data.scan?{status:this.catalog.data.scan.status,boundaries:this.catalog.data.scan.boundaries,errors:this.catalog.data.scan.errors}:null,selected,alternatives:visible,unresolved:missing,whySelected:'Business intents recall references; hard input and runtime conditions constrain executors before ranking',whyRejected:[...adapterChecks.filter(c=>!c.eligible),...visible.filter(r=>!selected.some(a=>a.canonicalId===canonical(r))).map(r=>({id:r.id,reason:'No matching compatible executor selected'}))],compatibility:'0.8.33',adapterStatus:'requires actual bundle and render verification'};
  }
+}
+
+// Transition-only edits preserve all existing cut positions and downstream media
+// clocks. A newly introduced overlap uses the predecessor's tail; normal source
+// range and native media checks still reject unavailable frames.
+export function preserveTransitionTiming(document,operations){
+ if(!operations.length||!operations.every(op=>op.type==='set_transition'))return operations;
+ const adjustments=new Map();
+ for(const op of operations){
+  const prior=document.transitions?.find(t=>t.fromSceneId===op.fromSceneId&&t.toSceneId===op.toSceneId);
+  const before=prior?.durationFrames||0,after=op.effect==='cut'?0:op.durationFrames??9,delta=after-before;
+  if(delta){const scene=document.scenes.find(s=>s.id===op.fromSceneId);insist(scene,'转场起点不存在','RESOURCE_SCOPE');adjustments.set(scene.id,{type:'set_scene_duration',sceneId:scene.id,durationFrames:scene.durationFrames+delta});}
+ }
+ return [...adjustments.values(),...operations];
 }

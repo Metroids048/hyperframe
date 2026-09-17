@@ -25,7 +25,7 @@ export async function readFinishedWorks(root){
   }
   Object.defineProperty(ready,'unavailable',{value:unavailable});return ready;
 }
-export const publicFinishedWork=entry=>({id:entry.id,title:entry.title,durationSeconds:entry.durationSeconds,provenance:entry.provenance,note:entry.note,sha256:entry.sha256,videoUrl:'/api/commerce-finished/'+entry.id+'/video',packageUrl:entry.packageFile?'/api/commerce-finished/'+entry.id+'/package':null,packageUnavailable:entry.packageUnavailable});
+export const publicFinishedWork=entry=>({id:entry.id,title:entry.title,durationSeconds:entry.durationSeconds,provenance:entry.provenance,note:entry.note,sha256:entry.sha256,videoUrl:'/api/commerce-finished/'+entry.id+'/video',packageUrl:entry.packageFile?'/api/commerce-finished/'+entry.id+'/package':null,packageUnavailable:entry.packageUnavailable,nativeBinding:entry.nativeBinding||null,editable:entry.editable===true,projectId:entry.projectId||null,revisionId:entry.revisionId||null,editUrl:entry.editUrl||null,editStatus:entry.editStatus||'read-only'});
 
 // Called only for registered artifacts, never with a client-supplied filesystem path.
 export async function artifactFile(target,downloadUrl){

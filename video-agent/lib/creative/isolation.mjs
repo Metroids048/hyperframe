@@ -5,6 +5,7 @@ import {fileURLToPath} from 'node:url';
 import {spawn} from 'node:child_process';
 import {randomUUID,createHash} from 'node:crypto';
 import {insist} from './contracts.mjs';
+import {editReviewTimes} from './edit-review.mjs';
 import {compileDocument} from './compiler.mjs';
 import {projectNativeCaptions} from './captions.mjs';
 import {captureRuntimeBuild} from './runtime-build.mjs';
@@ -21,7 +22,7 @@ export async function runSceneIsolation(directory,config,{signal,probe}={}){
  await fs.mkdir(directory,{recursive:true});
  const runId=randomUUID(),receiptPath=path.join(directory,'receipt-'+runId+'.json');
  const inputParts=await Promise.all(config.files.map(async file=>[file,digest(await fs.readFile(path.join(directory,file)))]));
- const identity={runId,inputHash:digest(JSON.stringify({config,inputParts})),sceneIds:config.scenes.map(s=>s.id),requirements:config.scenes.map(s=>({id:s.id,visibleTargets:s.visibleTargets||s.targets,motionTargets:s.targets,motionIntervals:s.motionIntervals||[],media:s.media||[]}))};
+ const identity={runId,inputHash:digest(JSON.stringify({config,inputParts})),sceneIds:config.scenes.map(s=>s.id),requirements:config.scenes.map(s=>({id:s.id,visibleTargets:s.visibleTargets||s.targets,motionTargets:s.targets,motionIntervals:s.motionIntervals||[],media:s.media||[],layoutTargets:s.layoutTargets||[],output:config.output}))};
  const windows=process.platform==='win32';
  const tempBase=await fs.realpath(windows?os.tmpdir():'/tmp');
  const privateRoot=await fs.mkdtemp(path.join(tempBase,'hf-'));await fs.chmod(privateRoot,0o700);
@@ -87,7 +88,8 @@ export async function verifyCustomProject(outputDir,document,assets,{signal,comp
  // PowerShell Add-Type and Chromium still encounter MAX_PATH in deeply nested jobs.
  const directory=path.join(root,'outputs','native-isolation',randomUUID()),files=['index.html','assets/gsap.min.js'];
  const byId=Object.fromEntries(assets.map(a=>[a.id,a]));
- const targets=scenes.map(scene=>{const compiled=compileCustomSource(document.sourceBundles.find(b=>b.sceneId===scene.id),{scene,nodes:document.nodes.filter(n=>n.sceneId===scene.id),assets:byId});return {id:scene.id,startFrame:scene.startFrame,durationFrames:scene.durationFrames,targets:compiled.validationRequirements.motionTargets,visibleTargets:compiled.validationRequirements.visibleTargets,mode:compiled.validationRequirements.mode,motionIntervals:compiled.validationRequirements.motionIntervals,media:compiled.validationRequirements.media,sampleTimes:compiled.sampleTimes};});
+ const captions=projectNativeCaptions(document);
+ const targets=scenes.map(scene=>{const compiled=compileCustomSource(document.sourceBundles.find(b=>b.sceneId===scene.id),{scene,nodes:document.nodes.filter(n=>n.sceneId===scene.id),assets:byId});const cues=captions.filter(c=>c.startFrame<scene.startFrame+scene.durationFrames&&c.startFrame+c.durationFrames>scene.startFrame);return {id:scene.id,startFrame:scene.startFrame,durationFrames:scene.durationFrames,targets:compiled.validationRequirements.motionTargets,visibleTargets:[...compiled.validationRequirements.visibleTargets,...cues.map(c=>c.projectionId)],layoutTargets:cues.map(c=>c.projectionId),captureTimes:editReviewTimes(document,[scene]),mode:compiled.validationRequirements.mode,motionIntervals:compiled.validationRequirements.motionIntervals,media:compiled.validationRequirements.media,sampleTimes:[...compiled.sampleTimes,...editReviewTimes(document,[scene]),...cues.map(c=>(Math.max(scene.startFrame,c.startFrame)+Math.min(scene.startFrame+scene.durationFrames,c.startFrame+c.durationFrames)-1)/60)]};});
  for(const asset of assets){const ref=asset.compiledRef||asset.ref;insist(/^assets\/[a-zA-Z0-9_.-]+$/.test(ref),'隔离素材路径无效','CUSTOM_RESOURCE');files.push(ref);}
  const hasVideo=assets.some(a=>a.kind==='video');if(hasVideo)files.push('assets/runtime.js');
  // Only compiler-originated bytes can use semantic scene dependency keys.
@@ -104,7 +106,7 @@ export async function verifyCustomProject(outputDir,document,assets,{signal,comp
  const sceneKey=digest(JSON.stringify({canonical,target,dependencies,implementation:isolationImplementation.files,platform:process.platform,node:process.version,browser:process.env.HYPERFRAMES_BROWSER_PATH||'default'}));
  const prior=verifiedScenes.get(sceneKey);
  if(prior){results.push(prior);cache.push({sceneId:target.id,hit:true,dependencyHash:sceneKey});continue;}
- const startedAt=Date.now();const sceneDirectory=path.join(directory,String(i+1));for(const file of new Set(files)){if(file==='assets/runtime.js')await linkOrCopy(path.join(root,'node_modules/hyperframes/dist/hyperframe-runtime.js'),path.join(sceneDirectory,file));else if(file==='index.html'&&hasVideo){await fs.mkdir(sceneDirectory,{recursive:true});await fs.writeFile(path.join(sceneDirectory,file),html.toString().replace('</body>','<script src="assets/runtime.js"></script></body>'));}else await linkOrCopy(path.join(outputDir,file),path.join(sceneDirectory,file));}const checked=await runSceneIsolation(sceneDirectory,{files:[...new Set(files)],fonts:brandFontResources(assets),output:document.output,runtimeMedia:hasVideo,scenes:[target]},{signal});results.push(checked);verifiedScenes.set(sceneKey,checked);if(verifiedScenes.size>256)verifiedScenes.delete(verifiedScenes.keys().next().value);cache.push({sceneId:target.id,hit:false,dependencyHash:sceneKey,durationMs:Date.now()-startedAt});}
- const result={evidence:results[0].evidence,runtime:{motion:results.flatMap(r=>r.runtime.motion)},scenes:results.map((r,i)=>({sceneId:targets[i].id,evidence:r.evidence,runtime:r.runtime}))};
+ const startedAt=Date.now();const sceneDirectory=path.join(directory,String(i+1));for(const file of new Set(files)){if(file==='assets/runtime.js')await linkOrCopy(path.join(root,'node_modules/hyperframes/dist/hyperframe-runtime.js'),path.join(sceneDirectory,file));else if(file==='index.html'&&hasVideo){await fs.mkdir(sceneDirectory,{recursive:true});await fs.writeFile(path.join(sceneDirectory,file),html.toString().replace('</body>','<script src="assets/runtime.js"></script></body>'));}else await linkOrCopy(path.join(outputDir,file),path.join(sceneDirectory,file));}const checked=await runSceneIsolation(sceneDirectory,{files:[...new Set(files)],fonts:brandFontResources(assets),output:document.output,runtimeMedia:hasVideo,scenes:[target]},{signal});checked.directory=sceneDirectory;results.push(checked);verifiedScenes.set(sceneKey,checked);if(verifiedScenes.size>256)verifiedScenes.delete(verifiedScenes.keys().next().value);cache.push({sceneId:target.id,hit:false,dependencyHash:sceneKey,durationMs:Date.now()-startedAt});}
+ const result={evidence:results[0].evidence,runtime:{motion:results.flatMap(r=>r.runtime.motion)},scenes:results.map((r,i)=>({sceneId:targets[i].id,evidence:r.evidence,runtime:r.runtime,screenshotDirectory:r.directory}))};
  await fs.writeFile(path.join(outputDir,'custom-isolation.json'),JSON.stringify({status:'passed',inputHash,cache,directory:path.relative(outputDir,directory).replaceAll('\\','/'),isolationPlatform:process.platform,windows:result.evidence,motion:result.runtime.motion,scenes:result.scenes},null,2));return result;
 }

@@ -9,7 +9,7 @@ import {EFFECTS} from './effects.mjs';
 import {ROOT} from '../workflow.mjs';
 import {CapabilityCatalog} from './capabilities.mjs';
 import {CUSTOM_SOURCE_CONTRACT} from './custom-source.mjs';
-import {resourceRequests,bindTransitionResourceScopes,planExactTransitionResourceEdit,validateResourceScopeOperations} from './resource-catalog.mjs';
+import {resourceRequests,preserveTransitionTiming,bindTransitionResourceScopes,planExactTransitionResourceEdit,validateResourceScopeOperations} from './resource-catalog.mjs';
 
 const nullable=type=>({type:[type,'null']});
 const properties={type:{type:'string',enum:['update_text_style','update_text','update_effect_params','update_custom_source','set_scene_effect','replace_asset','set_scene_duration','reorder_scenes','set_transition','change_output','lock_scene','unlock_scene','update_media','retime_document','add_audio','update_audio','remove_audio','split_scene','trim_scene','generate_captions','update_caption','update_caption_style','remove_caption']},sceneId:nullable('string'),nodeId:nullable('string'),assetId:nullable('string'),text:nullable('string'),effect:nullable('string'),durationFrames:nullable('integer'),sceneIds:{type:['array','null'],items:{type:'string'}},fromSceneId:nullable('string'),toSceneId:nullable('string'),width:nullable('integer'),height:nullable('integer'),paramsJson:nullable('string')};
@@ -42,7 +42,7 @@ effect限editorial-display/media-cut/product-reveal/image-pan-zoom/detail-inset/
   insist(alternatives.length<=3&&(!alternatives.length||!answer.result.operations.length),'开头方案必须与普通修改分开','INVALID_BRANCH_PLAN');
   const clean=op=>{const {paramsJson,source,...rest}=op;const value=Object.fromEntries(Object.entries(rest).filter(([,v])=>v!==null));if(op.type==='update_custom_source'){insist(source&&typeof source.html==='string','源码修改必须使用结构化source字段','CUSTOM_SOURCE');const {values,...bundle}=source;value.params=bundle;if(values?.length)value.params.values=Object.fromEntries(values.map(p=>[p.name,p.value]));}else if(paramsJson)value.params=JSON.parse(paramsJson);return value;};
   const interpreted=answer.result.workflow?resolveWorkflowIntent(workflow||workflowContract({message},{scenarioId:document.businessContract?.scenarioId,baseProjectId:document.projectId,baseRevisionId:document.revisionId}),answer.result.workflow,{objectIds:workflowObjectIds(document),durationSeconds:document.durationFrames/30}):null;
-  const operations=answer.result.operations.map(clean),branches=alternatives.map(a=>({...a,operations:a.operations.map(clean)}));
+  const operations=preserveTransitionTiming(document,answer.result.operations.map(clean)),branches=alternatives.map(a=>({...a,operations:a.operations.map(clean)}));
   for(const batch of branches.length?branches.map(b=>b.operations):[operations])validateResourceScopeOperations(document,batch,resourceScopes);
   return {workflow:interpreted,operations,alternatives:branches,resourceScopes,summary:answer.result.summary,mode:'model',model:answer.model,promptContext:guidance.records};
 }

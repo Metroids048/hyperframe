@@ -3,6 +3,7 @@ import {projectNativeCaptions} from './captions.mjs';
 // Closed grammar: compound requests outside these exact scopes go to the model.
 export function scopedCommerceEdit(document,message){
  const text=String(message).trim().replace(/[。！!\s]/g,'');
+ const propertyPlan=exactPropertyEdit(document,text);if(propertyPlan)return propertyPlan;
  const firstBoundary=/^(?:把)?(?:第(?:一|1)个转场|第(?:一|1)幕(?:到|切)第(?:二|2)幕)(?:改成|换成|用|使用)(色散|chromatic-split|淡化|dissolve-transition|directional|directional-transition|闪白|flash-transition)(?:[，,](?:其他|其余)不动)?$/i.exec(text);
  if(firstBoundary){
   insist(document.scenes.length>1,'当前工程没有两个相邻场景','TRANSITION_MISSING');
@@ -98,6 +99,35 @@ export function scopedCommerceEdit(document,message){
   const last=document.scenes.at(-1),node=document.nodes.find(n=>n.sceneId===last.id&&n.kind==='text'&&n.semanticRole==='cta');insist(node,'结尾没有独立CTA对象','CTA_TARGET_MISSING');
   const ids=document.scenes.map(s=>s.id),[id]=ids.splice(index,1);ids.splice(1,0,id);
   return {mode:'local-scoped',operations:[{type:'reorder_scenes',sceneIds:ids},{type:'update_text',nodeId:node.id,text:detail[1]}],summary:'细节镜头提前至第二幕，只替换结尾显示文字，声音保留。'};
+ }
+ return null;
+}
+
+// Deterministic numeric properties with a closed preservation suffix. Anything
+// with additional actions, negation, ambiguity or unsupported units stays semantic.
+export function exactPropertyEdit(document,text){
+ const parts=text.split(/[，,；;]/),command=parts.shift();
+ if(parts.length&&!parts.every(p=>/^(?:(?:位置|文字|时间|字号|颜色|其他字幕|其余字幕|全部声音画面|声音|画面|旁白|配音|音乐|其他内容|其余内容)[、和与及]?)+(?:都)?(?:保持不变|保持|不动|不变)$/.test(p)))return null;
+ const match=/^(?:请)?(?:只)?(?:把|将)?(全部字幕|所有字幕|字幕|最后一[句条]字幕|第[一二三四五六七八九十0-9]+[句条]字幕)的?(字号|字体大小|垂直偏移)(?:设为|设置为|调到|改为)(-?\d+(?:\.\d+)?)(?:像素|px)?$/.exec(command);
+ if(match){
+  const [,target,property,raw]=match,value=Number(raw),key=property==='垂直偏移'?'offsetY':'fontSize';
+  // Preservation clauses cannot contradict the property being changed.
+  if(parts.some(p=>p.includes(key==='fontSize'?'字号':'位置')))return null;
+  insist(key==='fontSize'?value>=12&&value<=200:value>=-400&&value<=400,'指定字幕属性超出可用范围','PATCH_VALUE');
+  const projected=projectNativeCaptions(document),ordered=[...new Map(projected.map(c=>[c.id,c])).values()];
+  let cues=document.captions||[];
+  if(target.startsWith('最后'))cues=ordered.slice(-1);
+  else if(target.startsWith('第')){const index=target.match(/第(.+)[句条]/)[1],number=Number(index)||'一二三四五六七八九十'.indexOf(index)+1;cues=ordered.slice(number-1,number);}
+  insist(cues.length,'当前没有对应的独立字幕；烧录文字不能作为原生字幕修改','CAPTION_TARGET_MISSING');
+  if(cues.length===1)insist(projected.filter(c=>c.startFrame===cues[0].startFrame).length===1,'同一时间有多条字幕，请指定具体文字','AMBIGUOUS_TARGET');
+  return {mode:'local-scoped',operations:cues.map(c=>({type:'update_caption_style',nodeId:c.id,params:{[key]:value}})),summary:'仅调整已确定字幕的'+property+'，其他内容保持。'};
+ }
+ const volume=/^(?:请)?(?:只)?(?:把|将)?(?:背景音乐|音乐)(?:的)?音量(?:设为|设置为|调到|改为)(0(?:\.\d+)?|1(?:\.0+)?|\d{1,3}%)$/.exec(command);
+ if(volume){
+  if(parts.some(p=>p.includes('音乐')))return null;
+  const value=volume[1].endsWith('%')?Number(volume[1].slice(0,-1))/100:Number(volume[1]);if(value>1)return null;
+  const tracks=(document.audioGraph||[]).filter(t=>t.role==='music');insist(tracks.length,'工程没有独立音乐轨','AUDIO_TARGET_MISSING');
+  return {mode:'local-scoped',operations:tracks.map(t=>({type:'update_audio',nodeId:t.id,params:{volume:value}})),summary:'仅调整独立音乐轨音量，旁白保持。'};
  }
  return null;
 }

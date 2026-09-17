@@ -186,7 +186,7 @@ test('scene evidence follows identical compiler bytes across directories and inv
 
 test('Windows cancellation closes the assigned job without requiring a success receipt',{skip:process.platform!=='win32'},async()=>{
  const dir=await fixture('windows-cancel'),controller=new AbortController();
- const running=runSceneIsolation(dir,config(),{probe:'browser-timeout',signal:controller.signal});
+ const running=runSceneIsolation(dir,config(),{probe:'browser-cancel',signal:controller.signal});
  const timer=setInterval(async()=>{if(await fs.access(path.join(dir,'browser-started.json')).then(()=>true,()=>false))controller.abort();},50);
  try{await assert.rejects(running,{name:'AbortError'});}finally{clearInterval(timer);}
  const log=await fs.readFile(path.join(dir,'windows-job.log'),'utf8');

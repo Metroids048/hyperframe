@@ -37,7 +37,7 @@ try{
  await fs.mkdir(browserProfile,{recursive:true,mode:0o700});result.browserProfile=browserProfile;
  browser=await puppeteer.launch({executablePath:config.browser,headless:true,userDataDir:browserProfile,defaultViewport:config.output,dumpio:true,args:['--disable-background-networking','--disable-component-update','--no-first-run','--enable-logging=stderr'],env:process.env});
  await fs.writeFile(path.join(config.directory,'browser-started.json'),JSON.stringify({pid:browser.process().pid,runId:config.identity.runId}));
- if(config.probe==='browser-timeout')await new Promise(()=>{});
+ if(['browser-timeout','browser-cancel'].includes(config.probe))await new Promise(()=>{});
  result.browserArgs=browser.process().spawnargs.filter(a=>!a.includes('user-data-dir')&&!a.includes('remote-debugging'));
  if(result.browserArgs.some(a=>a==='--no-sandbox'||a==='--disable-setuid-sandbox'))throw Error('Browser sandbox must remain enabled');
  const page=await browser.newPage();await page.setRequestInterception(true);
@@ -69,7 +69,15 @@ try{
     const media=[];
     if(runtimeMedia)for(const video of document.querySelectorAll('video')){const start=Number(video.dataset.start||0),duration=Number(video.dataset.duration);if(time<start||time>=start+duration)continue;const expected=Number(video.dataset.mediaStart||0)+(time-start)*Number(video.dataset.playbackRate||1),deadline=performance.now()+3500;while(video.seeking||video.readyState<2||Math.abs(video.currentTime-expected)>1/30+.003){if(video.error)throw Error('媒体解码失败：'+video.id);if(performance.now()>deadline)throw Error('媒体未在目标帧就绪：'+video.id);await new Promise(r=>setTimeout(r,15));}media.push({id:video.id,currentTime:video.currentTime,expected});}
     return {time,media,objects:targets.map(id=>{const e=document.getElementById(id);if(!e)return {id,visible:false};const r=e.getBoundingClientRect(),s=getComputedStyle(e),stroke=e instanceof SVGGraphicsElement&&s.stroke!=='none'?parseFloat(s.strokeWidth)||0:0;const blockers=new Set();const exposed=[[.5,.5],[.2,.2],[.8,.2],[.2,.8],[.8,.8]].some(([fx,fy])=>{const x=r.x+r.width*fx,y=r.y+r.height*fy;if(x<0||y<0||x>=innerWidth||y>=innerHeight)return false;for(const top of document.elementsFromPoint(x,y)){if(top===e||e.contains(top))return true;if(top.contains(e))continue;const style=getComputedStyle(top),color=style.backgroundColor,alpha=color.startsWith('rgba')?Number(color.match(/,\s*([\d.]+)\)$/)?.[1]||0):color==='transparent'?0:1;if(effectiveOpacity(top)>.95&&(alpha>.95||['IMG','VIDEO','CANVAS'].includes(top.tagName))){blockers.add(top.id||top.tagName);return false;}}return true;});return {id,exposed,blockedBy:[...blockers],x:r.x,y:r.y,width:r.width,height:r.height,opacity:Number(s.opacity),transform:s.transform,strokeDashoffset:s.strokeDashoffset,clipPath:s.clipPath,color:s.color,backgroundColor:s.backgroundColor,fill:s.fill,borderRadius:s.borderRadius,visible:exposed&&e.checkVisibility({checkOpacity:true,checkVisibilityCSS:true})&&(!(e instanceof HTMLImageElement)||e.complete&&e.naturalWidth>0)&&(!(e instanceof HTMLVideoElement)||e.readyState>=2)&&Math.max(r.width,stroke)>0&&Math.max(r.height,stroke)>0&&r.bottom+stroke/2>0&&r.right+stroke/2>0&&r.left-stroke/2<innerWidth&&r.top-stroke/2<innerHeight&&Number(s.opacity)>.01};})};},{time,targets:[...new Set([...(scene.visibleTargets||scene.targets),...scene.targets])],runtimeMedia:config.runtimeMedia});sample.sceneId=scene.id;result.samples.push(sample);
+   if(scene.captureTimes?.some(t=>Math.abs(t-time)<.0001)){
+    const file='frame-'+(result.samples.length)+'-at-'+time.toFixed(3)+'s.png',bytes=await page.screenshot({type:'png'});
+    await fs.writeFile(path.join(config.directory,file),bytes);(result.screenshots??=[]).push({sceneId:scene.id,time,file,sha256:digest(bytes)});
+   }
    await page.screenshot({path:path.join(config.directory,scene.id+'-'+Math.round(time*1000)+'.jpg'),type:'jpeg',quality:85});
+  }
+  for(const id of scene.layoutTargets||[]){
+   const visible=result.samples.filter(s=>s.sceneId===scene.id).flatMap(s=>s.objects).filter(o=>o.id===id&&o.visible);
+   if(!visible.length||visible.some(o=>o.x<-.5||o.y<-.5||o.x+o.width>config.output.width+.5||o.y+o.height>config.output.height+.5))throw Error('字幕越出画面安全边界：'+id);
   }
   for(const id of scene.visibleTargets||scene.targets)if(!result.samples.filter(s=>s.sceneId===scene.id).some(s=>s.objects.some(o=>o.id===id&&o.visible))){const blocked=[...new Set(result.samples.filter(s=>s.sceneId===scene.id).flatMap(s=>s.objects.filter(o=>o.id===id).flatMap(o=>o.blockedBy||[])))].map(value=>value.replace('custom-'+scene.id+'-',''));throw Error('必要对象不可见：'+id+(blocked.length?'；不透明遮挡对象：'+blocked.map(id=>'#'+id).join(',')+'。视频在独立底层，请将这些覆盖实拍的全画幅容器背景设为transparent，仅保留局部文字标签背景。':''));}
   const sceneSamples=result.samples.filter(s=>s.sceneId===scene.id);

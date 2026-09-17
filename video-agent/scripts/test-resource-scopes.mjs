@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {resourceRequests,resolveResourceTargets,applyRequestedTransitions,HyperFramesResourcePlanner,bindTransitionResourceScopes,planExactTransitionResourceEdit,validateResourceScopeOperations} from '../lib/creative/resource-catalog.mjs';
+import {resourceRequests,preserveTransitionTiming,resolveResourceTargets,applyRequestedTransitions,HyperFramesResourcePlanner,bindTransitionResourceScopes,planExactTransitionResourceEdit,validateResourceScopeOperations} from '../lib/creative/resource-catalog.mjs';
 import {planCreativeEdit} from '../lib/creative/model-edit.mjs';
 import {lockScope} from '../lib/creative/locks.mjs';
 import {applyDocumentPatch} from '../lib/creative/patch.mjs';
@@ -75,4 +75,22 @@ test('missing cut fails without mutating any transition',()=>{
 test('actual binding uses current scene boundaries and keeps unrelated transitions',()=>{
  const doc={revisionId:'r',transitions:Array.from({length:4},(_,i)=>({fromSceneId:'s'+i,toSceneId:'s'+(i+1),effect:'dissolve-transition',durationFrames:9}))};
  applyRequestedTransitions(doc,'第一处和第三处用色散');assert.deepEqual(doc.transitions.map(t=>t.effect),['chromatic-split','dissolve-transition','chromatic-split','dissolve-transition']);assert.equal(doc.resourceBindings[1].fromSceneId,'s2');assert.equal(doc.resourceBindings[1].baseRevisionId,'r');
+});
+
+test('ordinal cut scopes include adjacent boundaries before any effect exists',()=>{
+ const doc={revisionId:'cuts',scenes:[{id:'a'},{id:'b'},{id:'c'}],transitions:[]};
+ const scopes=bindTransitionResourceScopes(doc,resourceRequests('第一处用色散'));
+ assert.equal(scopes[0].include[0].fromSceneId,'a');assert.equal(scopes[0].include[0].toSceneId,'b');
+ assert.equal(scopes[0].preserve[0].fromSceneId,'b');
+ // Adding overlap requires planning actual timing/source constraints.
+ assert.equal(planExactTransitionResourceEdit(doc,'第一处用色散',scopes),null);
+ assert.throws(()=>validateResourceScopeOperations(doc,[{type:'set_transition',fromSceneId:'b',toSceneId:'c',effect:'chromatic-split'}],scopes),{code:'RESOURCE_SCOPE'});
+});
+
+test('adding an effect at a cut preserves following scene clocks and total duration',()=>{
+ const scenes=['a','b'].map(id=>({id,effect:'title-reveal',purpose:'cut',startFrame:0,durationFrames:60}));
+ const doc=createNativeDocument({projectId:'cut-timing',output:{width:640,height:360},brief:{name:'test',facts:[]},design:{background:'#101418',foreground:'#FFFFFF',accent:'#55EEAA',panel:'#151A20',accentContrast:'#101418',fontFamily:'Arial',transition:'cut'},assets:[],scenes,nodes:scenes.map(s=>({id:'n-'+s.id,sceneId:s.id,kind:'text',semanticRole:'title',anchor:'scene-local',localStartFrame:0,localDurationFrames:60,durationFrames:60,params:{text:s.id}})),transitions:[]});
+ const operations=preserveTransitionTiming(doc,[{type:'set_transition',fromSceneId:'a',toSceneId:'b',effect:'chromatic-split',durationFrames:12}]);
+ const next=applyDocumentPatch(doc,operations,{});assert.equal(next.durationFrames,doc.durationFrames);assert.equal(next.scenes[1].startFrame,doc.scenes[1].startFrame);assert.deepEqual(next.audioGraph,doc.audioGraph);
+ assert.equal(preserveTransitionTiming(doc,operations),operations);
 });
