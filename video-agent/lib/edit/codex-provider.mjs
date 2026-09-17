@@ -34,7 +34,7 @@ export function subscriptionEnv() {
 }
 export function pythonPath(){return localPython();}
 export const localVoices=Object.freeze(['zf_001','zf_002','zm_009','zm_010','zf_xiaobei','zf_xiaoni','zf_xiaoxiao','zf_xiaoyi','zm_yunjian','zm_yunxi','zm_yunxia','zm_yunyang']);
-export const localSpeechVoiceCatalog=()=>({engine:'kokoro',voices:localVoices.map(id=>({id,name:id,description:'本地中文音色'}))});
+export const localSpeechVoiceCatalog=()=>({engine:'kokoro',voices:localVoices.map(id=>({id,name:id,description:id.startsWith('zm_')?'本地中文男声':'本地中文女声'}))});
 export function localVoice(voice,instructions=''){
   if(voice==='HyperFrames Kokoro · 本地中文'||voice==='kokoro-v1.0')voice='default';
   if(localVoices.includes(voice))return voice;
@@ -58,7 +58,7 @@ export class CodexProvider extends CloudProvider {
   async structured(instructions,input,schema,signal,attempt=0) {
     const candidates=[...new Set([...(this.availableModel?[this.availableModel]:[]),this.model,...(process.env.VIDEO_AGENT_CODEX_FALLBACK_MODELS||'').split(',').map(x=>x.trim()).filter(Boolean)])],model=candidates[attempt]||this.model;
     if(this.loginPending||!this.loggedIn||Date.now()-this.loginCheckedAt>30000)await this.refreshLogin();
-    insist(this.loggedIn,this.loginError||'本机 Codex 尚未使用 ChatGPT 登录，请先完成 Codex 登录');
+    if(!this.loggedIn)throw Object.assign(new EditError(this.loginError||'本机 Codex 尚未使用 ChatGPT 登录，请先完成 Codex 登录',503),{code:'CODEX_LOGIN_REQUIRED'});
     const dir=path.join(this.cacheRoot,'edit-engine',uid());await fs.mkdir(dir,{recursive:true});const schemaFile=path.join(dir,'schema.json'),output=path.join(dir,'result.json');await fs.writeFile(schemaFile,JSON.stringify(schema));
     const images=[],messages=[];
     for(const item of input){const parts=[];for(const c of (Array.isArray(item.content)?item.content:[{type:'input_text',text:item.content}])) {
@@ -77,7 +77,7 @@ export class CodexProvider extends CloudProvider {
         const kill=()=>{if(process.platform==='win32')spawnSync('taskkill',['/pid',String(child.pid),'/T','/F'],{windowsHide:true,stdio:'ignore'});else child.kill('SIGKILL');};
         const timer=setTimeout(()=>{timed=true;kill();},this.timeoutMs);signal?.addEventListener('abort',kill,{once:true});
         child.stdin.on('error',()=>{});child.stdin.end(prompt);child.stdout.on('data',b=>tail=(tail+b).slice(-16000));child.stderr.on('data',b=>tail=(tail+b).slice(-16000));
-        child.on('error',error=>{clearTimeout(timer);signal?.removeEventListener('abort',kill);reject(new EditError('Codex 无法启动（'+(error.code||'unknown')+'，工作目录长度 '+working.cwd.length+'），请检查可执行文件及工作目录',503));});
+        child.on('error',error=>{clearTimeout(timer);signal?.removeEventListener('abort',kill);reject(Object.assign(new EditError('Codex 无法启动（'+(error.code||'unknown')+'，工作目录长度 '+working.cwd.length+'），请检查可执行文件及工作目录',503),{code:'CODEX_START_FAILED'}));});
         child.on('close',code=>{clearTimeout(timer);signal?.removeEventListener('abort',kill);if(signal?.aborted)return reject(new EditError('任务已取消',409));if(code!==0||timed){const diagnostic=tail.replace(/sk-[a-zA-Z0-9_-]+/g,'[redacted]').replace(/Bearer\s+\S+/gi,'Bearer [redacted]'),capacity=!timed&&/Selected model is at capacity|model.*temporarily unavailable/i.test(tail),failure=codexFailure(tail,{timed}),error=Object.assign(new EditError(failure.message,503),{capacity,code:failure.code});void fs.writeFile(path.join(dir,'failure.log'),diagnostic).catch(()=>{}).finally(()=>reject(error));return;}resolve();});
       });
       const result=JSON.parse(await fs.readFile(output,'utf8'));this.verifiedAt=new Date().toISOString();if(model)this.availableModel=model;return {result,usage:null,model:model||'Codex 默认模型',reasoningEffort:this.reasoningEffort,invocation,...(model!==this.model?{fallbackFrom:this.model}:{})};

@@ -13,8 +13,8 @@ insist(fragment,'官方色散着色器实现缺失','SHADER_SOURCE');
 const sourceSha256=createHash('sha256').update(source).digest('hex');
 return {fragment,sourceSha256};
 }
-function runtime(configs,fragment){
- const root=document.getElementById('commerce-root');
+function runtime(configs,fragment,rootId){
+ const root=document.getElementById(rootId);
  const states=configs.map(c=>{
   const canvas=document.getElementById(c.canvasId),gl=canvas.getContext('webgl',{preserveDrawingBuffer:true,alpha:false});
   if(!gl)throw Error('Chromatic Radial Split requires WebGL');
@@ -30,7 +30,7 @@ function runtime(configs,fragment){
   if(media.some(m=>!m||!['IMG','VIDEO'].includes(m.tagName)))throw Error('Shader media binding missing');
   const surface=document.createElement('canvas');surface.width=canvas.width;surface.height=canvas.height;const ctx=surface.getContext('2d');
   const draw=()=>{
-   const time=window.__timelines['commerce-root']?.time()||0,p=(time-c.start)/c.duration;
+   const time=window.__timelines[rootId]?.time()||0,p=(time-c.start)/c.duration;
    canvas.style.opacity=p>0&&p<1?'1':'0';if(p<=0||p>=1)return;
    gl.useProgram(program);gl.viewport(0,0,canvas.width,canvas.height);
    for(let i=0;i<2;i++){
@@ -44,10 +44,18 @@ function runtime(configs,fragment){
    }
    gl.uniform1f(gl.getUniformLocation(program,'u_progress'),p*p*(3-2*p));gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
   };
-  for(const m of media)for(const event of ['seeked','loadeddata','load'])m.addEventListener(event,draw);
+  // Media visibility is applied after the timeline seek. Drawing only in
+  // onUpdate/seeked can sample a still-hidden video's zero-size box.
+  const redrawAfterLayout=()=>draw();
+  const visibilityObserver=new MutationObserver(redrawAfterLayout);
+  for(const m of media){
+   for(const event of ['seeked','loadeddata','load'])m.addEventListener(event,redrawAfterLayout);
+   visibilityObserver.observe(m,{attributes:true,attributeFilter:['style','class']});
+   if(m.parentElement)visibilityObserver.observe(m.parentElement,{attributes:true,attributeFilter:['style','class']});
+  }
   return draw;
  });
- const timeline=window.__timelines['commerce-root'];timeline.eventCallback('onUpdate',()=>states.forEach(draw=>draw()));
+ const timeline=window.__timelines[rootId];timeline.eventCallback('onUpdate',()=>states.forEach(draw=>draw()));
  // The pinned renderer invokes this hook after every exact-frame batch has
  // decoded. Preserve its existing color-grading work, then sample those frames.
  const wrapped=new WeakSet();
@@ -59,12 +67,12 @@ function runtime(configs,fragment){
  document.addEventListener('load',event=>{if(event.target?.classList?.contains('__render_frame__'))states.forEach(draw=>draw());},true);
  states.forEach(draw=>draw());
 }
-export function compileChromatic(document,objectMap){
+export function compileChromatic(document,objectMap,{rootId='commerce-root',mediaId=node=>'obj-'+node.id}={}){
  const {fragment,sourceSha256}=document.transitions.some(t=>t.effect==='chromatic-split')?loadShader():{};
  const configs=document.transitions.filter(t=>t.effect==='chromatic-split').map(t=>{
   const nodes=[t.fromSceneId,t.toSceneId].map(id=>document.nodes.find(n=>n.sceneId===id&&['image','video'].includes(n.kind)));
   insist(nodes.every(Boolean),'色散转场必须绑定相邻真实媒体','SHADER_MEDIA');
-  return {canonicalId:'chromatic-radial-split',runtimeName:t.effect,transitionId:t.id,canvasId:'shader-'+t.id,start:document.scenes.find(s=>s.id===t.toSceneId).startFrame/30,duration:t.durationFrames/30,mediaIds:nodes.map(n=>n.kind==='video'?'obj-'+n.id:objectMap[n.id].domId),assetIds:nodes.map(n=>n.assetId),background:document.design.background,sourcePath,sourceSha256};
+  return {canonicalId:'chromatic-radial-split',runtimeName:t.effect,transitionId:t.id,canvasId:'shader-'+t.id,start:document.scenes.find(s=>s.id===t.toSceneId).startFrame/30,duration:t.durationFrames/30,mediaIds:nodes.map(n=>n.kind==='video'?mediaId(n):objectMap[n.id].domId),assetIds:nodes.map(n=>n.assetId),background:document.design.background,sourcePath,sourceSha256};
  });
- return {receipts:configs,html:configs.map(c=>`<canvas id="${c.canvasId}" width="${document.output.width}" height="${document.output.height}" data-layout-ignore style="position:absolute;inset:0;width:100%;height:100%;z-index:200;opacity:0;pointer-events:none"></canvas>`).join(''),script:configs.length?`(${runtime.toString()})(${JSON.stringify(configs)},${JSON.stringify(fragment)});`:''};
+ return {receipts:configs,html:configs.map(c=>`<canvas id="${c.canvasId}" width="${document.output.width}" height="${document.output.height}" data-layout-ignore style="position:absolute;inset:0;width:100%;height:100%;z-index:200;opacity:0;pointer-events:none"></canvas>`).join(''),script:configs.length?`(${runtime.toString()})(${JSON.stringify(configs)},${JSON.stringify(fragment)},${JSON.stringify(rootId)});`:''};
 }

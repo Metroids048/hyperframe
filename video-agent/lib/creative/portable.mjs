@@ -11,6 +11,7 @@ import {insist,assetKindFromName,MAX_ASSETS,MAX_FILE_BYTES,MAX_SCENES} from './c
 import {readNativeProject,writeCompiledProject,runHyperFrames} from './runner.mjs';
 import {linkOrCopy,probe} from '../edit/media.mjs';
 import {inspectBrandFont} from './brand-fonts.mjs';
+import {conversationJobs} from '../orchestration/conversation-edit.mjs';
 
 export const MAX_PACKAGE_BYTES=80*1024**3;
 const MAX_ENTRIES=20000,MAX_JSON=16*1024**2;
@@ -57,7 +58,7 @@ export async function exportCreativeHistory(root,projectDir,snapshot,selectedRev
   for(const asset of snapshot.assets){const file=historyAssetFile(root,assetRoot,asset.path),extension=path.extname(file).toLowerCase();insist(assetKindFromName(file)===asset.kind,'素材类型无效','PACKAGE_INVALID');assets.push({...asset,path:undefined,blob:await add(file),extension});}
   const auditions=[];
   for(const voice of snapshot.auditions||[])auditions.push({...voice,path:undefined,blob:await add(relativeFile(projectDir,voice.path))});
-  const metadata={format:'hyperframe-creative-history',schemaVersion:1,capturedAt:new Date().toISOString(),selectedRevisionId,dependencies:await dependencies(root),project:{title:snapshot.title,createdAt:snapshot.createdAt,request:snapshot.request,messages:snapshot.messages,redo:snapshot.redo,jobs:snapshot.jobs.map(j=>({id:j.id,kind:j.kind,status:j.status,baseRevisionId:j.baseRevisionId,revisionId:j.revisionId,revisionIds:j.revisionIds,createdAt:j.createdAt,completedAt:j.completedAt,summary:j.summary,error:j.error,code:j.code,durationMs:j.durationMs,runId:j.runId,checkpoints:j.checkpoints,modelCalls:j.modelCalls,qualitySummary:j.qualitySummary})),sourceProjectId:snapshot.id,preset:snapshot.preset,confirmedVoice:snapshot.confirmedVoice?{...snapshot.confirmedVoice,path:undefined}:undefined},assets,auditions,revisions};
+  const metadata={format:'hyperframe-creative-history',schemaVersion:1,capturedAt:new Date().toISOString(),selectedRevisionId,dependencies:await dependencies(root),project:{title:snapshot.title,createdAt:snapshot.createdAt,request:snapshot.request,messages:snapshot.messages,redo:snapshot.redo,jobs:conversationJobs(snapshot).map(j=>({routeDecision:j.routeDecision,changeReceipt:j.changeReceipt,input:{message:j.input?.message||j.changeReceipt?.userRequest},id:j.id,kind:j.kind,status:j.status,baseRevisionId:j.baseRevisionId,revisionId:j.revisionId,revisionIds:j.revisionIds,createdAt:j.createdAt,completedAt:j.completedAt,summary:j.summary,error:j.error,code:j.code,durationMs:j.durationMs,runId:j.runId,checkpoints:j.checkpoints,modelCalls:j.modelCalls,qualitySummary:j.qualitySummary})),sourceProjectId:snapshot.id,preset:snapshot.preset,confirmedVoice:snapshot.confirmedVoice?{...snapshot.confirmedVoice,path:undefined}:undefined},assets,auditions,revisions};
   const data=Buffer.from(JSON.stringify(metadata,null,2));insist(data.length<=MAX_JSON&&blobs.size<MAX_ENTRIES,'工程历史过大','PACKAGE_LIMIT');
   const uniqueBytes=[...blobs.values()].reduce((sum,b)=>sum+b.size,0);insist(uniqueBytes+data.length<MAX_PACKAGE_BYTES,'工程包超过80 GiB受控范围','PACKAGE_LIMIT');
   const temp=output+'.'+randomUUID()+'.partial',zip=new yazl.ZipFile();

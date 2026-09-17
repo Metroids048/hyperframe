@@ -30,7 +30,11 @@ try{
  await page.goto(base);await page.waitForSelector('#projects option[value="work:mijia-v2"]');
  assert.equal(await page.$('#material-root'),null);assert.equal(await page.$('#history-examples'),null);
  for(const id of ['creation-target','business-scene','output-aspect'])assert(await page.$('#'+id));
- await page.select('#projects','p');await page.waitForFunction(()=>document.querySelector('#revisions').value==='old');
+ await page.select('#projects','p');await page.waitForFunction(()=>document.querySelector('#revisions').value==='new');
+ assert.equal(await page.$eval('#send',el=>el.disabled),false,'reopening selects the editable current revision');
+ await page.select('#revisions','old');await page.waitForFunction(()=>document.querySelector('#send').disabled);
+ assert.equal(await page.$eval('#download',el=>el.hidden),false,'the prior exported version remains available explicitly');
+ await page.reload();await page.waitForFunction(()=>document.querySelector('#revisions').value==='new'&&!document.querySelector('#send').disabled);
  await page.select('#projects','work:mijia-v2');await page.waitForFunction(()=>!document.querySelector('#case-view').hidden);
  assert.equal(await page.$eval('#case-film',el=>el.getAttribute('src')),'/reference.mp4');
  assert.equal(await page.$eval('#human-review-link',el=>el.hidden),true);

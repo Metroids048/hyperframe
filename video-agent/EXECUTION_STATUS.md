@@ -347,3 +347,43 @@ M01-F01/F02 and M04-F02 scoped revalidated before new ordinal changes. Current e
 
 ## 2026-09-16T22:36:17.962Z 用户要求收尾
 按用户要求暂停扩展。完整116卡快照：outputs/full-closeout/USER_PROGRESS.md；机器回执：outputs/full-closeout/user-wrapup-snapshot.json。当前M04-F04四真实导出及最终四组回放通过，尚待依赖重验关闭。计数{"verified":3,"integration_pending":0,"blocked":2,"in_progress":1,"pending":98,"invalid":12}。准确恢复点在task-state.json.resume；不重复提交24/48秒暂停任务。
+
+
+## 2026-09-17 G1/G2/G3 当前用户范围
+基线 main/origin/main 90c78f037c2c483b5e3fe8abf2b9fb679ffe8ad3，启动时源码干净。当前用户要求取代场景扩展队列：暂停八场景、Demo和新商品媒体；只收口全局路由、基础视听、多轮编辑。原历史义务保留但不作为本轮执行目标。
+进行中：新增 config/routing/route-policy.v1.json、fallback-policy.v1.json、lib/orchestration/global-router.mjs、skill-resolver.mjs、config/skills/conversation-edit.md；稳定Registry移除运行时注入；共用Native转场目录及色散shader；字幕语言传递；自然语言配音统一Provider；变化集与显式声音保持校验、相对字幕引用和选择性转场恢复。
+已运行：timeline/skill 通过，caption/resource scope 31项通过。首次完整core被旧Skill数量断言阻断，已更新为12并重跑（outputs/upgrade/verification/core-2026-09-17T00-48-*）；只规划路由测试曾15秒超时，待定位，未计通过。真实业务10项尚未完成；不得称G1/G2/G3完成或进入场景制作。主3020工程7个，无活动job；S02母工程8版本保持。
+
+2026-09-17 G1/G2/G3中途证据：core完整回归通过 outputs/upgrade/verification/core-2026-09-17T01-23-05.046Z/report.json；现有browser首次2项失败已定位修复并单项真实重验通过（engine-media/2026-09-17T00-57-13.760Z、conversation-media/2026-09-17T00-58-27.314Z）。4种共用富转场真实渲染/预览及重复跳转通过 outputs/global-transitions-juEEmC。S02同project隔离验收保留8版原历史，已完成加中文字幕/缩小上移/再往上3轮。男声发现旧工作流原话引用冲突、旧Provider调用及测量时长窗口问题，已修复；失败均未推进currentRevision，正在真实重测。原3020母工程不变；3041验收副本与outputs/global-media/ui-results.jsonl保留完整成功/失败记录。仍未完成10项业务验收，不进入场景扩展。
+
+### 2026-09-17 G1/G2/G3 最终范围验收
+
+本段取代上面的本轮中途状态，不注销历史场景质量欠项。G1/G2/G3 已通过本轮十项业务验收，完整说明 outputs/global-media/ACCEPTANCE.md，机器证据 outputs/global-media/acceptance.json。五个目标核心文件为 config/routing/route-policy.v1.json、config/routing/fallback-policy.v1.json、lib/orchestration/global-router.mjs、lib/orchestration/skill-resolver.mjs、config/skills/conversation-edit.md。现有 creative/edit 入口、Registry、规划器、转场编译、语音字幕、变化集校验与历史包接入统一规则，没有新增第三套执行系统。
+
+验收使用既有 S02 的隔离副本，3041、project ffa3bcb0-f6b8-4f54-a52a-973c07e1bd3b。累计19个版本；撤销/重做/回到第17版均真实通过，当前 rev-af81c08f70c74c51，当前祖先链8轮有效修改，后续第18/19版仍保留。加中文字幕、缩小上移和相对指代、五段Kokoro男声、指定色散、压快细节前画面且音轨不变、仅恢复转场保留新字幕、末句字幕修改均经过原WebUI执行。色散非法时长故障注入明确失败，未替换效果、未推进版本。完整成功和失败过程保留在 ui-results.jsonl。
+
+最终35秒1920x1080/30fps MP4和含19版的history.zip已导出；工程包包含路由、变化集及对话消息，实际ZIP读取与相对指代恢复验证通过（package-verification.json）。七个精确帧预览/MP4对照、完整预览播放和MP4解码通过（final-rev-af81c08f70c74c51/report.json）。四种富转场实际渲染和反复seek通过（outputs/global-transitions-juEEmC）。最终35套core全部通过：outputs/upgrade/verification/core-2026-09-17T02-11-32.660Z/report.json；此前browser失败项的修复后单项回放通过，不将原失败报告改写为通过。
+
+原3020母工程仍8版本/current rev-e663828de3de26c6，原视频SHA256 f025af4c199fb4618f826926d1340951f11342c5bf807a4b22fd1ed0d5029daf保持。main/origin/main基线仍90c78f037c2c483b5e3fe8abf2b9fb679ffe8ad3；本轮源码修改未提交/推送，主服务未重启，3041为验收运行时；HyperFrames仍0.8.33。
+
+边界：本轮真实语音仅覆盖Kokoro，云Provider未实调用；字幕断句/识别和声音听感待人工校对；跨版本音轨恢复遇到不唯一的字幕绑定明确阻断；故障实测为非法效果参数，不代表GPU/云故障全覆盖；19版包未做完整UI重导入重编译。可进入下一阶段有限场景验证，但未开展场景扩展，也不宣称商用成片或旧116卡全部验收。
+
+### 2026-09-17 G1/G2/G3 剩余项继续收口（用户新指令）
+
+范围仍仅G1/G2/G3，暂不进入场景。当前补齐：两条编辑链共用ASR字幕分组，按词/句边界避免单字短尾且不伪造时间；字幕已校对文字遇到新分组无法对齐时明确阻断；选择性声音恢复支持可唯一匹配的相邻旧字幕实测时间并集。路由失败保存全局失败回执及原消息；本地语音依赖、启动、超时与Codex登录/启动故障有明确能力错误分类。已通过26项路由/全局检查、22项字幕/恢复检查、16项翻译检查，以及原服务集成中新增的色散检查失败原能力重试/禁止偷换反例。真实ASR缓存回放显示末句已完整合并，原有时间边界保持，证据 outputs/global-media/remainder/retained-transcript-grouping.json。
+
+真实WebUI上传原19版history.zip已执行，导入项目82c4dac3-143f-42e9-b6a3-32534b876acd，原验收工程及母工程均保留。首个测试脚本遇到CDP大上传响应缓存淘汰，上传已成功，未重复提交；修复脚本并对同一导入任务继续观察。3041仍原运行时，导入按原有规则逐版完整编译检查，正在进行；完成后才重载最新源码，执行重开后相对指代、字幕修复、导出和实际成片复验。导入进度 outputs/global-media/remainder/reopen-progress.json；不得在导入未结束时重启3041或再上传同一包。
+
+续作恢复点：首轮导入在第8版CUSTOM_RUNTIME_FAILED（媒体目标帧未就绪）停止，未发布版本。已修复原导入重试入口：复用原project和job、记录failedAttempts，不再创建额外工程；7项portable检查通过。主3041已在无活动任务时重载到PID28820（exec62035）；原导入job-84cb3dd9-8085-4654-8497-f6e7bd419e29通过真实UI重试，exec66188，已再次通过原失败第8版并进入13/19。原失败的场景媒体这次隔离实测通过，未放松检查标准。当前不并行启动其他媒体渲染，不重启3041、不重复导入。
+
+回归：core-2026-09-17T02-31-06.979Z全36套通过；npm20项通过 outputs/acceptance/2026-09-17T02-31-28-577Z。browser-2026-09-17T02-33-00.440Z只有finished-work-ui旧断言失败：它仍期待重开选旧导出版，现用户连续编辑要求应打开当前版。改为当前版可编辑、显式选择旧版可下载、刷新回当前版；单项重跑通过，其余浏览器组含真实连续10轮及MP4/ZIP均通过。最新字幕/路由/导入30项通过，新增对没有人声、无旁白稿、字幕绑定歧义和未知音色的精确失败分类。
+
+导入完成后步骤：先确认19版完整、预览可打开；因最终fallback-policy分类在服务启动后微调，空闲时再重载3041。随后在同一导入项目通过verify-global-media-ui（GLOBAL_TEST_PROJECT_ID指定82c4...）执行回到第16版、再往上、给讲话加中文字幕、撤销、重做、导出。verify-global-media-output已扩展覆盖每条字幕中点，随后运行verify-global-remainder生成最终差异/成片/包证据。最终人工听感、云语音实调用仍不伪签。尚未完成这些真实续改前不关闭剩余项。
+
+### 2026-09-17 G1/G2/G3 缩小范围后的最终收尾
+
+本段取代上述续作恢复点：剩余代码修复与本轮技术验收已完成，不再重复导入或提交编辑。完整报告 outputs/global-media/remainder/ACCEPTANCE.md，最终机器回执 outputs/global-media/remainder/final-acceptance.json 为 passed。19版包已逐版完整导入；同一导入工程82c4dac3-143f-42e9-b6a3-32534b876acd通过“再往上”“给讲话加中文字幕”“撤销”“重做”“导出”，当前21版 rev-ec33e47fbc1ea4f4，当前祖先链九轮有效修改，原19版均保留。首轮相对上移遇到Codex登录检查失败，未发布新版本；CLI和Provider重新检查均正常后仅重试一次成功，失败证据未删。
+
+字幕实际重新分为六条，中文词语和末句不再拆断，字号33/offsetY -120保持；音轨、镜头、节点、转场、输出参数与上版完全一致。最终35秒1080p/30fps MP4和21版history.zip实际导出通过，包内对话/路由/变化集保留；完整视频解码、连续预览、14精确帧对照（含每条字幕中点和色散转场）通过，另查看开头与末句实际导出截图。MP4 SHA256 780d2b7d1ede59e1d42e542462264739ef3da92aac97247ca554821bbf67a6a5；包 SHA256 b8f925c0e277614e8d9cad1e73ef989e5e3e4826014020fb6ba2d3741460c3c3。产物位于 .cache/global-media-acceptance/82c4dac3-143f-42e9-b6a3-32534b876acd/versions/job-97abed25-8e76-4248-aa4a-132afcc2386d/。
+
+原母工程八版及原视频SHA256保持，原验收工程19版/current第17版保持；主3020未重启，3041为最新验收运行时且无活动任务。源码未提交/推送，HyperFrames仍0.8.33。人工听感和ASR文案校对、云语音实调用未代签；此次收尾不代表旧场景任务或商用质量全部通过。未扩展场景、Demo、Provider、UI或工作流。

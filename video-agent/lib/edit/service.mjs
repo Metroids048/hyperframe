@@ -1,3 +1,6 @@
+import {routeUserMessage,routeDecision,controlRoute,fallbackPolicy,assertNoEffectSubstitution} from '../orchestration/global-router.mjs';
+import {failureReceipt} from '../creative/commerce-skills.mjs';
+import {groupCaptionWords} from './caption-segmentation.mjs';
 import fs from 'node:fs/promises';
 import {createWriteStream,createReadStream} from 'node:fs';
 import path from 'node:path';
@@ -82,6 +85,14 @@ export async function createEditService({dataDir=process.env.VIDEO_AGENT_EDIT_DA
     insist(typeof key==='string'&&key.length>=8&&key.length<=160,'请提供有效的幂等键');
     const hash=fingerprint({kind,payload}),found=p.jobs.find(j=>j.key===key);
     if(found){if(found.hash!==hash)throw new EditError('重复请求键对应不同内容',409);return clone(found);}
+    const control=kind==='edit'?controlRoute(p,payload.text):null;
+    if(control&&['cancel','status','clarify'].includes(control.mode)){
+      const targets=p.jobs.filter(j=>activeStates.includes(j.status));
+      if(control.mode==='cancel')for(const target of targets)await cancel(p,target.id);
+      const text=control.question||(control.mode==='cancel'?'已停止当前任务，已有版本保留。':targets.map(j=>j.stage).join('；')||'当前版本已保存。');
+      const j={id:uid(),key,hash,kind,payload:clone(payload),status:'complete',stage:text,progress:100,createdAt:new Date().toISOString(),completedAt:new Date().toISOString(),routeDecision:routeDecision(p,payload.text,control)};
+      p.jobs.push(j);p.messages.push({id:uid(),role:'user',text:payload.text,jobId:j.id},{id:uid(),role:'assistant',text,jobId:j.id});await save(p,jobEvent(j));return clone(j);
+    }
     if(kind==='render'){
       insist(p.revisions.some(r=>r.id===payload.revisionId),'导出版本不存在');
       const shared=p.jobs.find(j=>j.kind==='render'&&j.payload.revisionId===payload.revisionId&&activeStates.includes(j.status));
@@ -190,7 +201,7 @@ export async function createEditService({dataDir=process.env.VIDEO_AGENT_EDIT_DA
           if(!a.analysis?.transcript){await measure(j,'prepare_speech',()=>prepareAudio(assetDir(p.id,a.id),a,signal));const transcript=await measure(j,'transcribe',()=>provider.transcribe(path.join(assetDir(p.id,a.id),a.speech),signal));a.analysis={...(a.analysis||{}),transcript};j.cloudVerifiedAt=new Date().toISOString();await save(p);}
           const sourceIn=sourceStart(c),sourceOut=sourceIn+sourceLength(c),words=a.analysis.transcript.words.filter(w=>frame(w.end)>sourceIn&&frame(w.start)<sourceOut);let group=[];
           function flush(){if(!group.length)return;const rate=c.rate||1,start=c.start+Math.round((Math.max(sourceIn,frame(group[0].start))-sourceIn)/rate),end=Math.min(c.end,c.start+Math.round((Math.min(sourceOut,frame(group.at(-1).end))-sourceIn)/rate));if(end>start)result.push({type:'caption_add',start,end,text:group.map((w,i)=>(i&&/^[a-z0-9]/i.test(w.text)?' ':'')+w.text).join(''),position:'bottom',sourceSpoken:true,sourceAssetId:a.id,anchor:'source',coordinateSpace:'result',...(audioState.clips.some(x=>x.id===c.id)?{anchorClipId:c.id}:{})});group=[];}
-          for(const w of words){if(group.length&&(group.reduce((s,x)=>s+x.text.length,0)+w.text.length>24||w.start-group.at(-1).end>0.4||w.end-group[0].start>3))flush();group.push(w);}flush();
+          for(const next of groupCaptionWords(words,{language:a.analysis.transcript.language,maxGap:.4})){group=next;flush();}
         }
         insist(result.length>captionStart,'没有检测到可生成字幕的讲话。可以添加画面说明，或换用有讲话的素材。');
         const targetLanguage=String(op.language||'source').trim().toLowerCase();
@@ -292,13 +303,14 @@ export async function createEditService({dataDir=process.env.VIDEO_AGENT_EDIT_DA
     }
     let ops=payload.operations,summary=payload.description||'精确编辑',answer=null,planningProject=null;
     if(j.kind==='edit') {
-      const clean=payload.text.trim(),undo=/^(撤销(上一步|刚才的修改)?|回到上一版)[。！!\s]*$/.test(clean),redo=/^(重做|恢复撤销|撤销的撤销)[。！!\s]*$/.test(clean);
-      const match=/^回到第([\d零〇一二两三四五六七八九十百千]+)版[。！!\s]*$/.exec(clean);
+      j.routeDecision=routeDecision(p,payload.text,controlRoute(p,payload.text)||{mode:'edit',source:'semantic'},{revision:base});
+      if(j.routeDecision.mode==='export'){j.exportRequested=true;j.revisionId=base.id;p.messages.push({id:uid(),role:'assistant',text:'正在导出当前版本。',jobId:j.id});return;}
+      const undo=j.routeDecision.mode==='undo',redo=j.routeDecision.mode==='redo',match=j.routeDecision.mode==='restore';
       if(undo||redo||match) {
         let resolved;
         if(undo)resolved=undoNavigation(p.revisions,base);
         else if(redo)resolved=redoNavigation(p.revisions,base);
-        else {const n=parseRevisionNumber(match[1]);insist(n,'版本号无法识别，请使用 1～9999 的阿拉伯数字或中文整数');const target=p.revisions.find(r=>r.number===n);resolved=target?{target,navigation:{restoredFromId:target.id,redoStack:[]}}:null;}
+        else {const target=p.revisions.find(r=>r.id===j.routeDecision.revisionId);resolved=target?{target,navigation:{restoredFromId:target.id,redoStack:[]}}:null;}
         insist(resolved?.target,redo?'没有可以重做的版本':undo?'已经是最早可撤销的内容':'找不到要恢复的版本');
         const {target,navigation}=resolved;await newRevision(p,clone(target.timeline),base.id,`恢复到第 ${target.number} 版`,[],j,signal,{reuse:target,navigation});p.messages.push({id:uid(),role:'assistant',text:`已恢复到第 ${target.number} 版的内容。`,revisionId:j.revisionId,jobId:j.id});return;
       }
@@ -337,8 +349,9 @@ export async function createEditService({dataDir=process.env.VIDEO_AGENT_EDIT_DA
       ops=answer.result.operations;summary=answer.result.summary;
     }
     const requestedOps=clone(ops);
-    for(let attempt=0;attempt<3;attempt++){
+    for(let attempt=0;attempt<=fallbackPolicy.maxReplans;attempt++){
       try{
+        assertNoEffectSubstitution(requestedOps,ops);
         ops=await voiceOperations(p,base,ops,j,signal);let t=applyOperations(base.timeline,ops,p.assets);
         t=await syncCaptionVoices(t,base.timeline,ops,async(text,voiceOptions={})=>{
           const generated=await voiceOperations(p,{...base,timeline:t},[{type:'voiceover',text,start:0,voice:voiceOptions.voice,rate:voiceOptions.rate||1,instructions:voiceOptions.instructions||''}],j,signal);
@@ -349,7 +362,9 @@ export async function createEditService({dataDir=process.env.VIDEO_AGENT_EDIT_DA
         await newRevision(p,t,base.id,summary,ops,j,signal,{verify:contentReview?(draft,dir)=>provider.verifyEdit(p,draft,payload.text,{signal,beforeRevision:base,planResult:answer.result,revisionDir:dir}):null});
         break;
       }catch(error){
-        if(signal.aborted||j.committedAt||!answer||attempt===2||error.status===503||answer.executionMode==='exact-local-intent')throw error;
+        if(signal.aborted||j.committedAt||!answer||attempt===fallbackPolicy.maxReplans||error.status===503||answer.executionMode==='exact-local-intent')throw error;
+        j.failureSignatures??=[];j.failureSignatures.push((error.code||'')+':'+error.message);
+        if(j.failureSignatures.slice(-fallbackPolicy.identicalFailureLimit).length===fallbackPolicy.identicalFailureLimit&&new Set(j.failureSignatures.slice(-fallbackPolicy.identicalFailureLimit)).size===1)throw error;
         await update(j,p,`正在修正剪辑方案（${attempt+1}/2）`,55);j.repairCount=attempt+1;
         answer=await planRequest({repairContext:{error:error.message,previousOperations:ops,originalOperations:requestedOps}});
         if(answer.result.clarification){j.status='needs_input';j.question=answer.result.clarification;p.messages.push({id:uid(),role:'assistant',text:j.question,jobId:j.id,revisionId:base.id});return;}
@@ -359,15 +374,24 @@ export async function createEditService({dataDir=process.env.VIDEO_AGENT_EDIT_DA
     }
     p.messages.push({id:uid(),role:'assistant',text:summary,revisionId:j.revisionId,jobId:j.id});
     async function planRequest(options){
-      if(!options?.repairContext){const local=fastIntent(base,payload.text,payload.selection)||localEditIntent(base,payload.text,payload.selection);if(local){j.selectedSkills=local.selectedSkills;j.planningMetrics=local.metrics;j.toolCalls??=[];j.toolCalls.push(...local.toolCalls);await update(j,p,'正在执行精确修改',50);return local;}}
-      await provider.refreshLogin?.();
-      if(!provider.status().configured)throw new EditError('模型连接尚未就绪。点击“连接模型”完成连接后，点“重试”继续这次修改；视频和指令已保存。',503);
-      const result=await measure(j,'plan',()=>provider.plan(planningProject,base,payload.text,payload.selection,id=>assetDir(p.id,id),signal,options));
-      j.metrics.modelCalls+=result.metrics?.modelCalls||1;j.planningMetrics=result.metrics||null;j.selectedSkills=result.selectedSkills||[];
+      const routed=await routeUserMessage(p,payload.text,{revision:base,skipLocal:Boolean(options?.repairContext),
+        localPlanner:()=>fastIntent(base,payload.text,payload.selection)||localEditIntent(base,payload.text,payload.selection),
+        semanticPlanner:async()=>{
+          await provider.refreshLogin?.();
+          if(!provider.status().configured)throw new EditError('模型连接尚未就绪。请连接模型后重试；视频和指令已保存。',503);
+          return measure(j,'plan',()=>provider.plan(planningProject,base,payload.text,payload.selection,id=>assetDir(p.id,id),signal,options));
+        }});
+      j.routeDecision=routed.decision;const result=routed.plan;
+      if(!result&&routed.decision.mode==='clarify')return {result:{clarification:routed.decision.question},executionMode:'local'};
+      insist(result,'控制请求未产生编辑计划');
+      if(routed.decision.executionStrategy==='L1')await update(j,p,'正在执行精确修改',50);
+      else j.metrics.modelCalls+=result.metrics?.modelCalls||1;
+      j.planningMetrics=result.metrics||null;j.selectedSkills=result.selectedSkills||[];
       if(result.toolCalls?.length){j.toolCalls??=[];j.toolCalls.push(...result.toolCalls);}
       return result;
     }
   }
+
   async function pump() {
     if(pumping||closed)return;pumping=true;
     try{
@@ -394,6 +418,7 @@ export async function createEditService({dataDir=process.env.VIDEO_AGENT_EDIT_DA
       await save(p,jobEvent(j));await execute(p,j,c.signal);
       if(j.status==='running'){j.status='complete';j.stage=j.kind==='render'?'导出完成':'已完成';j.progress=100;}
     }catch(error){
+      j.failureReceipt=failureReceipt(error,{request:j.payload.text||'',revisionId:j.payload.baseRevisionId,publishedRevisionId:j.revisionId,targets:j.routeDecision?.targets||[]});
       if(j.committedAt){j.status='complete';j.stage='修改已保存';j.progress=100;j.warning='修改已提交；后续处理未完成，可继续预览。';}
       else{j.status=c.signal.aborted?'cancelled':'failed';j.error=error.message;j.stage=c.signal.aborted?'已取消':'未完成';if(j.kind==='edit')p.messages.push({id:uid(),role:'assistant',text:error.message,jobId:j.id,revisionId:p.currentRevisionId,error:true});}
     }finally{

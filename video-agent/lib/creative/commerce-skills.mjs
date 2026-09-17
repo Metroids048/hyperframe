@@ -1,3 +1,4 @@
+import {classifyFailure,fallbackPolicy} from '../orchestration/global-router.mjs';
 import {createHash} from 'node:crypto';
 import {recoveryDecision} from './workflow-gates.mjs';
 
@@ -19,7 +20,7 @@ export const commerceSkills = Object.fromEntries(definitions.map(([scenario,name
     preflight:['目标对象存在且属于基准版本','素材源区间真实有效','事实与必要动作有证据','声音授权和依赖可用'],
     callOrder:order,resourceContract:{functions:resources,pipeline:['功能需求','共用目录召回','素材画幅文字动作依赖过滤','按block或component执行器绑定','局部预览','主工程']},
     preserve:['未要求改变的对象与事实','源时间与声音关联','母版和已提交历史'],
-    failureClasses:['missing_evidence','ambiguous_target','unsupported_capability','resource_incompatible','provider_unavailable','quality_failure'],
+    failureClasses:fallbackPolicy.categories,
     nextAction:fallback,outputs:['结构化制作单','源区间与资源回执','原生版本','候选与检查证据'],
     acceptance:['实际目标变化与保持项比对','最终音画字幕窗口核对','降级不自动计质量通过']};
   return [scenario,{...contract,hash:createHash('sha256').update(JSON.stringify(contract)).digest('hex')}];
@@ -31,10 +32,10 @@ export function commerceSkillContext(scenario,mode='create',workflow={}) {
     fallback:'明确编辑直接受控执行；未知业务不得默认上新；真正歧义先读当前工程，再只问最小缺项。供应商故障保留版本和声音，不自动换供应商；指定效果失败不偷换。'};
 }
 
-export function failureReceipt(error,{request='',revisionId=null,requirements=[],publishedRevisionId=null}={}) {
+export function failureReceipt(error,{request='',revisionId=null,requirements=[],targets=[],publishedRevisionId=null}={}) {
   const code=error.code||'INTERNAL_ERROR';
-  const category=/^(?:MINIMAX_|CODEX_|PROVIDER_)/.test(code)?'provider_unavailable':/MISSING|NEEDS_INPUT|INSUFFICIENT/.test(code)?'missing_evidence':/SCOPE|TARGET|CONFLICT/.test(code)?'ambiguous_target':/UNSUPPORTED|CAPABILITY/.test(code)?'unsupported_capability':'quality_failure';
+  const category=classifyFailure(error);
   return {version:2,code,category,recovery:recoveryDecision({code}),reason:error.message,originalRequest:request,requirements,baseRevisionId:revisionId,
-    actualAction:publishedRevisionId?'版本已保存，后续阶段失败；保留该候选与上一版本':'保留上一有效版本；本次未发布修改',publishedRevisionId,preserved:['工程','已有音轨','素材','历史'],goalReduced:false,qualityAccepted:false,
+    actualAction:publishedRevisionId?'版本已保存，后续阶段失败；保留该候选与上一版本':'保留上一有效版本；本次未发布修改',publishedRevisionId,preserved:['工程','已有音轨','素材','历史'],goalReduced:false,qualityAccepted:false,failedTargets:targets.length?targets:requirements,policyVersion:fallbackPolicy.version,
     nextAction:code==='MINIMAX_SUBMISSION_UNKNOWN'?'核对供应商记录；不得盲目重新提交':category==='missing_evidence'?'只补缺失对象或证据后恢复':category==='provider_unavailable'?'修复对应账户配置或供应商状态后恢复；不自动替换供应商':'定位失败对象，执行最小修复后重新检查'};
 }

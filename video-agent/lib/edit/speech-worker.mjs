@@ -6,6 +6,7 @@ import {ROOT} from '../workflow.mjs';
 import {EditError} from './timeline.mjs';
 
 export const localPython=()=>pythonExecutable();
+const speechError=(message,status,code)=>Object.assign(new EditError(message,status),{code});
 
 /** Serialized requests per resource; aborting a running inference destroys that worker, never its next job. */
 export class SpeechWorker {
@@ -31,11 +32,11 @@ export class SpeechWorker {
         if(response.id!==this.active?.id)continue;
         const job=this.active;clearTimeout(job.timer);job.signal?.removeEventListener('abort',job.abort);this.active=null;
         if(response.ok)job.resolve({...response.result,metrics:{...response.result?.metrics,queueMs:Math.round(job.started-job.enqueued),workerMs:Math.round(performance.now()-job.started)}});
-        else {const missing=/ModuleNotFoundError|FileNotFoundError/.test(response.error?.type||'');job.reject(new EditError(missing?'本地语音能力未配置：所需模型或依赖尚未安装':`本地语音处理失败（${response.error?.type||'worker_error'}）`,missing?503:422));}
+        else {const missing=/ModuleNotFoundError|FileNotFoundError/.test(response.error?.type||'');job.reject(speechError(missing?'本地语音能力未配置：所需模型或依赖尚未安装':`本地语音处理失败（${response.error?.type||'worker_error'}）`,missing?503:422,missing?'PROVIDER_SPEECH_UNAVAILABLE':'SPEECH_QUALITY_FAILURE'));}
         this.pump();
       }
     });
-    const failed=error=>{if(this.child===child)this.stop(new EditError(error?.code==='ENOENT'?'本地 Python 未找到。请安装 Python，或设置 VIDEO_AGENT_PYTHON 为现有解释器路径；视频与指令已保留。':'本地语音进程已退出，请检查语音依赖后重试',503));};
+    const failed=error=>{if(this.child===child)this.stop(speechError(error?.code==='ENOENT'?'本地 Python 未找到。请安装 Python，或设置 VIDEO_AGENT_PYTHON 为现有解释器路径；视频与指令已保留。':'本地语音进程已退出，请检查语音依赖后重试',503,'PROVIDER_SPEECH_UNAVAILABLE'));};
     child.on('error',failed);child.on('close',()=>failed());
   }
   pump() {
@@ -44,7 +45,7 @@ export class SpeechWorker {
     if(!job){if(this.child){this.idle=setTimeout(()=>this.stop(),this.idleMs);this.idle.unref();}return;}
     if(job.signal?.aborted){job.abort();this.pump();return;}
     if(!this.child)this.start();this.active=job;job.started=performance.now();
-    job.timer=setTimeout(()=>this.stop(new EditError('本地语音处理超时，输入已保留',503)),job.timeout);
+    job.timer=setTimeout(()=>this.stop(speechError('本地语音处理超时，输入已保留',503,'PROVIDER_SPEECH_TIMEOUT')),job.timeout);
     this.child.stdin.write(JSON.stringify({...job.params,id:job.id,operation:job.operation})+'\n');
   }
   stop(error) {

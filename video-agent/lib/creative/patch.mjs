@@ -11,7 +11,7 @@ import {alignSourceAudio} from './source-audio.mjs';
 import {projectNativeCaptions} from './captions.mjs';
 
 const allowed = new Set(['update_text_style','update_text', 'update_effect_params', 'set_scene_effect', 'replace_asset', 'set_scene_duration', 'reorder_scenes', 'set_transition', 'change_output','lock_scene','unlock_scene','update_media','retime_document']);
-for(const type of ['add_audio','update_audio','remove_audio','split_scene','trim_scene','update_caption','update_caption_style','set_captions','update_custom_source'])allowed.add(type);
+for(const type of ['add_audio','update_audio','remove_audio','split_scene','trim_scene','update_caption','update_caption_style','set_captions','remove_caption','update_custom_source'])allowed.add(type);
 
 export function applyDocumentPatch(input, operations, assets) {
   insist(Array.isArray(operations) && operations.length > 0 && operations.length <= 100, '修改清单必须为 1～100 项', 'INVALID_PATCH');
@@ -29,6 +29,7 @@ export function applyDocumentPatch(input, operations, assets) {
       insist(offsetYDelta===undefined||(Number.isFinite(offsetYDelta)&&Math.abs(offsetYDelta)<=400&&style.offsetY===undefined),'字幕相对位移无效或与绝对位置冲突','INVALID_TEXT_STYLE');
       for(const cue of cues){const next={...cue.style,...style};if(offsetYDelta!==undefined)next.offsetY=(cue.style?.offsetY||0)+offsetYDelta;validateTextStyle(next);cue.style=next;}
     }
+    if(op.type==='remove_caption'){insist(document.captions?.some(c=>c.id===op.nodeId),'目标字幕不存在','PATCH_TARGET_MISSING');document.captions=document.captions.filter(c=>c.id!==op.nodeId);}
     if(op.type==='update_caption'){
       const cue=document.captions?.find(c=>c.id===op.nodeId);insist(cue,'目标字幕不存在','PATCH_TARGET_MISSING');
       insist(typeof op.text==='string'&&op.text.trim()&&[...op.text].length<=240,'字幕文字必须为1—240字','INVALID_TEXT');cue.text=op.text.trim();cue.reviewRequired=false;cue.corrected=true;
@@ -52,7 +53,7 @@ export function applyDocumentPatch(input, operations, assets) {
       const params=op.params||{};insist(Object.keys(params).every(k=>['startFrame','durationFrames','speechWindowFrames','sourceStartSeconds','playbackRate','volume','fadeInFrames','fadeOutFrames','ducking','role','sourceNodeId'].includes(k)),'不支持的音轨参数','INVALID_PATCH');
       if(params.sourceNodeId)insist(document.nodes.some(n=>n.id===params.sourceNodeId&&n.kind==='video'&&n.assetId===(op.assetId||document.audioGraph[index]?.assetId)),'原声必须绑定同一真实视频对象','INVALID_AUDIO_ASSET');
       if(op.type==='add_audio'&&['music','original'].includes(params.role))document.audioRequirements={...document.audioRequirements,[params.role]:true};
-      if(op.type==='add_audio'){insist(assets[op.assetId]?.mediaMetadata?.hasAudio,'素材没有可用声音','INVALID_AUDIO_ASSET');document.audioGraph.push({id:stableId('audio',input.revisionId,op,document.audioGraph.length),assetId:op.assetId,startFrame:0,sourceStartSeconds:0,playbackRate:1,volume:1,...params});}
+      if(op.type==='add_audio'){insist(assets[op.assetId]?.mediaMetadata?.hasAudio,'素材没有可用声音','INVALID_AUDIO_ASSET');const id=op.nodeId||stableId('audio',input.revisionId,op,document.audioGraph.length);insist(/^[\w-]{1,100}$/.test(id)&&!document.audioGraph.some(t=>t.id===id),'音轨 ID 无效或重复','INVALID_AUDIO_ID');document.audioGraph.push({id,assetId:op.assetId,startFrame:0,sourceStartSeconds:0,playbackRate:1,volume:1,...params});}
       else {
         document.audioGraph[index]={...document.audioGraph[index],...params};
         // A requested audio-only timing edit deliberately separates this track.

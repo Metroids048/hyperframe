@@ -1,7 +1,28 @@
 import {insist} from './contracts.mjs';
+import {projectNativeCaptions} from './captions.mjs';
 // Closed grammar: compound requests outside these exact scopes go to the model.
 export function scopedCommerceEdit(document,message){
  const text=String(message).trim().replace(/[。！!\s]/g,'');
+ const firstBoundary=/^(?:把)?(?:第(?:一|1)个转场|第(?:一|1)幕(?:到|切)第(?:二|2)幕)(?:改成|换成|用|使用)(色散|chromatic-split|淡化|dissolve-transition|directional|directional-transition|闪白|flash-transition)(?:[，,](?:其他|其余)不动)?$/i.exec(text);
+ if(firstBoundary){
+  insist(document.scenes.length>1,'当前工程没有两个相邻场景','TRANSITION_MISSING');
+  const t=text.includes('幕')?document.transitions.find(t=>t.fromSceneId===document.scenes[0].id&&t.toSceneId===document.scenes[1].id):[...document.transitions].sort((a,b)=>document.scenes.findIndex(s=>s.id===a.fromSceneId)-document.scenes.findIndex(s=>s.id===b.fromSceneId))[0],from=t?document.scenes.find(s=>s.id===t.fromSceneId):document.scenes[0],to=t?document.scenes.find(s=>s.id===t.toSceneId):document.scenes[1];
+  const effect=({'色散':'chromatic-split','淡化':'dissolve-transition',directional:'directional-transition','闪白':'flash-transition'}[firstBoundary[1]]||firstBoundary[1]),durationFrames=t?.durationFrames||9;
+  return {mode:'local-scoped',operations:[...(!t?[{type:'set_scene_duration',sceneId:from.id,durationFrames:from.durationFrames+durationFrames}]:[]),{type:'set_transition',fromSceneId:from.id,toSceneId:to.id,effect,durationFrames,params:{}}],summary:'只调整第一个切点；新增转场时补足重叠，保持后续场景入点、总时长与声音。'};
+ }
+ if(/^(?:给讲话|给视频|给这段讲话)?(?:加|添加)(?:中文|英文)?字幕$/.test(text))return {mode:'local-scoped',operations:[{type:'generate_captions',params:{language:text.includes('中文')?'zh':text.includes('英文')?'en':'source'}}],summary:'从真实人声音轨生成字幕，声音保持。'};
+ const lastCaption=/^(?:再把|把)?最后一条字幕(?:改成|改为)[“"]([^”"]+)[”"][。！!\s]*$/.exec(String(message).trim());
+ if(lastCaption){
+  const projected=projectNativeCaptions(document),last=projected.at(-1),cue=document.captions?.find(c=>c.id===last?.id);insist(cue,'当前没有可修改的独立字幕','CAPTION_TARGET_MISSING');
+  insist(projected.filter(c=>c.startFrame===last.startFrame).length===1,'结尾有同时显示的字幕，请指定要改的文字','AMBIGUOUS_TARGET');
+  return {mode:'local-scoped',operations:[{type:'update_caption',nodeId:cue.id,text:lastCaption[1]}],summary:'只修改最后一条字幕文字，配音及其他内容保持。'};
+ }
+ if(/^(?:不要|去掉)配音[，,](?:只留|保留)字幕$/.test(text)){
+  const tracks=(document.audioGraph||[]).filter(t=>['narration','voiceover'].includes(t.role));
+  insist(tracks.length,'当前没有可关闭的配音音轨','PATCH_TARGET_MISSING');
+  return {mode:'local-scoped',operations:tracks.map(t=>({type:'update_audio',nodeId:t.id,params:{volume:0}})),summary:'关闭配音，保留字幕文字、样式和时间，以及其他音轨。'};
+ }
+ if(/^字幕(?:再)?小一点(?:[，,](?:再)?往上(?:挪|移)(?:一点)?)?$/.test(text)&&document.captions?.length)return {mode:'local-scoped',operations:document.captions.map(c=>({type:'update_caption_style',nodeId:c.id,params:{fontSize:Math.max(12,Math.round((c.style?.fontSize??46)*.85)),...(text.includes('往上')?{offsetYDelta:-40}:{})}})),summary:'只缩小字幕'+(text.includes('往上')?'并上移':'')+'，内容和声音保持。'};
  const captionMove=/^字幕(?:再)?(?:往)?(上|下)移(?:一点)?$/.exec(text);
  if(captionMove){
   const delta=captionMove[1]==='上'?-40:40;
