@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {normalizeCommerceRequest} from '../lib/creative/contracts.mjs';
 import {planCommerceDocument} from '../lib/creative/director.mjs';
 import {applyDocumentPatch,computeInvalidation} from '../lib/creative/patch.mjs';
+import {projectNativeCaptions} from '../lib/creative/captions.mjs';
 import {compileDocument} from '../lib/creative/compiler.mjs';
 import {scopedCommerceEdit} from '../lib/creative/r3-intents.mjs';
 
@@ -26,6 +27,14 @@ test('repeated caption moves accumulate without changing words, timings, media o
 test('portable native manifest preserves synthesis request for voice-only edits',()=>{
  const {doc,assets}=fixture();assets[1].speechRequest={text:'批准文案',voice:'catalog-voice',rate:1};
  assert.deepEqual(compileDocument(doc,assets).manifest.assets.find(a=>a.id==='music').speechRequest,assets[1].speechRequest);
+});
+test('turning off narration retains caption bindings and measured display intervals',()=>{
+ const {doc,map}=fixture();doc.audioGraph[0].role='narration';doc.audioRequirements={music:false,original:false};
+ const before=projectNativeCaptions(doc),next=applyDocumentPatch(doc,scopedCommerceEdit(doc,'不要配音，只留字幕。').operations,map);
+ assert.equal(next.audioGraph[0].volume,0);assert.deepEqual(projectNativeCaptions(next),before);assert.deepEqual(next.captions,doc.captions);
+});
+test('last caption means the latest displayed cue even if storage order differs',()=>{
+ const {doc}=fixture();doc.captions.reverse();const plan=scopedCommerceEdit(doc,'最后一条字幕改成“现在开始”。');assert.equal(plan.operations[0].nodeId,'cue-2');
 });
 test('targeted captions invalidate only overlapping scenes, including text changes',()=>{
  const {doc,map}=fixture();const next=applyDocumentPatch(doc,[{type:'update_caption_style',nodeId:'cue-1',params:{offsetYDelta:-40}}],map);

@@ -1,3 +1,4 @@
+import {transitionStyles} from '../orchestration/transition-catalog.mjs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import {EditError,insist,positioned,duration,seconds,sourceStart,sourceLength,validateTimeline} from './timeline.mjs';
@@ -27,7 +28,7 @@ const opSchema={anyOf:[
   op('clip_speed',{id:str,rate:decimal}),op('clip_crop',{id:str,crop:boxSchema,fit}),
   op('overlay_add',{id:nullable(str),assetId:str,in:num,out:num,start:num,end:nullable(num),rate:nullable(decimal),gain:nullable(decimal),track:num,rect:boxSchema,crop:nullable(boxSchema),fit,anchor}),
   op('overlay_update',{id:str,assetId:nullable(str),in:nullable(num),out:nullable(num),start:nullable(num),end:nullable(num),rate:nullable(decimal),gain:nullable(decimal),track:nullable(num),rect:nullable(boxSchema),crop:nullable(boxSchema),fit,anchor}),op('overlay_remove',{id:str}),
-  op('transition',{fromId:str,toId:str,style:choice(['crossfade','wipe','none']),duration:num}),
+  op('transition',{fromId:str,toId:str,style:choice([...transitionStyles,'none']),duration:num}),
   op('output',{width:nullable(num),height:nullable(num),fit,loudness:{anyOf:[decimal,{type:'string',enum:['off']},{type:'null'}]}})
 ]};
 export const editSchema=object({analysisRequired:boolean,contentBased:boolean,summary:str,clarification:nullable(str),action:nullable(choice(['export'])),toolRequests:{type:'array',items:{anyOf:[object({tool:choice(['detect_silence','detect_scenes']),assetId:str,threshold:nullable(decimal),minDuration:nullable(decimal)}),object({tool:choice(['generate_media']),prompt:str,kind:choice(['video','audio']),durationSeconds:{type:'number',exclusiveMinimum:0,maximum:600}})]}},operations:{type:'array',items:opSchema}});
@@ -122,7 +123,7 @@ export class CloudProvider {
   }
 
   async plan(project,revision,message,selection,assetDir,signal,options={}) {
-    const startedAt=Date.now(),selected=selectSkills(message,options.repairContext?.previousOperations||[]);
+    const startedAt=Date.now(),selected=selectSkills(message,options.repairContext?.previousOperations||[],{project,revision,mode:'edit'});
     const selectedSkills=selected.map(({id,version,source,sourceCommit,license})=>({id,version,source,sourceCommit,license}));
     const skillText=await loadSkillInstructions(selected);
     const context={fps:30,revisionId:revision.id,durationFrames:duration(revision.timeline),timeline:revision.timeline,positionedClips:positioned(revision.timeline.clips),assets:Object.values(project.assets).map(a=>({id:a.id,name:a.name,kind:a.kind,frames:a.frames,hasAudio:a.hasAudio,status:a.status,generation:a.generation?{prompt:a.generation.prompt,kind:a.generation.kind,durationSeconds:a.generation.durationSeconds,attribution:a.generation.attribution}:null,analysis:a.analysis||null})),recentConversation:(project.messages||[]).slice(-14).map(m=>({role:m.role,text:m.text,revisionId:m.revisionId})),selection,attachedAssetIds:options.assetIds||[],repairContext:options.repairContext||null,voiceCapabilities:this.status().voices||null,generationCapabilities:generationCapabilities(),sampleContext:project.sampleContext||null};
@@ -136,7 +137,7 @@ export class CloudProvider {
       'sampleContext是样例的客观信息；burnedInSubtitles=true表示字幕已嵌入像素，应遵守subtitleGuidance，默认不要重复叠加同一对白字幕，明确要求翻译或新增字幕时说明并按要求编辑。',
       '字幕与声音独立。普通 caption_add/update/remove 从不自动朗读；不得因加字幕而输出 voiceover。只有已有字幕明确绑定生成旁白时，执行器更新其对应语音。首次给讲话生成字幕用 caption_transcript，assetId=null 表示已有素材原声，language=null或source保留讲话原语言；用户要求中文字幕必须设置language="zh"，英文字幕用"en"，其他语言用标准语言代码。执行器先真实转写和分组，再翻译新字幕文字，保留原时间与关联，不需要分两轮。例如“英语讲话生成中文字幕”直接caption_transcript(assetId=null,language="zh")，不要先只生成英文或虚构已有字幕ID。无讲话时如实说明。画面说明字幕先根据真实场景证据生成 caption_add。明确要旁白且配字幕时同时 voiceover + caption_transcript(assetId="new_voice",language=用户指定语言或null)，执行器会按新旁白生成字幕，不能重复朗读。引号内台词逐字保留。已有timeline字幕的翻译或纠错使用caption_update，只改text且保留时间，除非要求另改；原语言ASR纠错也通过caption_update，不用翻译功能冒充识别。caption_add 默认 bottom，字号比例 0.025..0.09，颜色 #RRGGBB。',
       '新增 voiceover.id=null、start 为起点、end=null 按实际声音时长，替换使用已有独立音轨 ID。同轮新插入尾部旁白请用anchor=timeline，start/end为最终成片位置；其他默认anchor=source。voice 参考 voiceCapabilities，未指定为 default；语速必须用 rate，语气用 instructions，不能声称本地引擎支持任意音色克隆或情绪。用户要求与本地能力冲突时直接说明。音乐仅引用已就绪且 hasAudio 的资产，gain 默认0.3、duck=true、fadeIn=15、fadeOut=30，结束不超过视频及源长度。原声音量 clip_volume，独立音轨音量 audio_update。',
-      'output 宽高偶数，最长边1920、短边1080，默认contain，要求铺满才cover。output.loudness 为目标整体响度 LUFS（-30到-8，常用-16），"off" 关闭响度处理，null 保持；未修改的 width/height/fit 用null。clip_crop.crop 与 overlay.rect/crop 为归一化{x,y,width,height}，范围在0..1内。画中画 overlay_add 默认静音、track=1。transition 连接相邻稳定clip ID，style=crossfade|wipe|none，duration 是重叠帧数；不添加未经要求的转场。',
+      'output 宽高偶数，最长边1920、短边1080，默认contain，要求铺满才cover。output.loudness 为目标整体响度 LUFS（-30到-8，常用-16），"off" 关闭响度处理，null 保持；未修改的 width/height/fit 用null。clip_crop.crop 与 overlay.rect/crop 为归一化{x,y,width,height}，范围在0..1内。画中画 overlay_add 默认静音、track=1。transition 连接相邻稳定clip ID，style=crossfade|wipe|chromatic-split|dissolve-transition|directional-transition|flash-transition|none；色散必须使用chromatic-split，不得替换，duration 是重叠帧数；不添加未经要求的转场。',
       '所有图层时间默认 anchor="source" 跟随源片段；固定成片位置用 timeline；最后几秒字幕用 end，start/end 仍基于基础版末尾。用户本次明确要求字幕或声音同步前移/同步变速时，检查已有图层的 anchor：timeline/end 不会跟随源内容，必须同轮 caption_update/audio_update/overlay_update 将相关图层 anchor 改为 source，再执行裁切或变速；不要同时再重复调整 start/end。更新时不变字段 null。最多2000个操作，不返回未支持操作；素材生成未配置时告知需要外部生成提供方或上传素材。repairContext 给出失败原因时重新生成整份清单，仍基于相同基础版本，不能仅返回增量修补。'
     ].join('\n')+skillText;
     const input=[{role:'user',content:[{type:'input_text',text:JSON.stringify(context)},{type:'input_text',text:'用户这次指令：'+message}]}];

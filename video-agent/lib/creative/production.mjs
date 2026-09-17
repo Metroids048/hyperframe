@@ -255,7 +255,7 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
     const mediaMetadata=await probe(file,signal);insist(mediaMetadata.duration<=brief.request.output.durationSeconds+1/FPS,'实际旁白超过目标时长；稿件与声音已保留，请调整稿件或时长，未压缩语速','VOICE_DURATION_CONFLICT');
     const asset={id,kind:'audio',generatedVoice:true,compiledRef,normalizedRef:compiledRef,sha256:await hashFile(file),mediaMetadata,status:'ready',volume:1,rights:{status:'generated',engine:provider.lastSpeechMetrics?.engine||'kokoro',review:'separate-publisher-review'}};
     const transcript=provider.lastSpeechTranscript||await provider.transcribe(file,signal);insist(transcript.words?.length,'旁白已生成，但没有取得实际语音时间戳','NO_SPEECH');
-    asset.audioRole='narration';asset.providerTranscript={...transcript,sourceSha256:asset.sha256,source:provider.lastSpeechTranscript?'minimax-subtitle':'local-asr'};
+    asset.audioRole='narration';asset.speechRequest={text:script.text,voice:provider.lastSpeechMetrics?.voice||script.voice,rate:1};asset.providerTranscript={...transcript,sourceSha256:asset.sha256,source:provider.lastSpeechTranscript?'minimax-subtitle':'local-asr'};
     if(revision){
       (ctx.run.artifacts.narrationHistory??=[]).push(priorNarration);
       await saveJSON('narration-history.json',ctx.run.artifacts.narrationHistory);

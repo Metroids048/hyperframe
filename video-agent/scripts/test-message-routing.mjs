@@ -44,6 +44,17 @@ test('draft status and idle cancel have no production job or model call',async()
  for(const [i,message] of ['status','取消'].entries())await service.dispatchMessage(p,{message,idempotencyKey:'draft-control-key-'+i});
  assert.equal(p.jobs.length,0);assert.equal(p.revisions.length,0);assert.deepEqual(p.routingReceipts.map(r=>r.mode),['status','cancel']);
 });
+test('routing provider failure persists the original request and global receipt, and controls remain available',async()=>{
+ const dataDir=await fs.mkdtemp(path.join(ROOT,'outputs/routing-failure-'));let calls=0;
+ const service=await createCreativeService({dataDir,routingProvider:{structured:async()=>{calls++;throw Object.assign(Error('Injected provider outage'),{code:'PROVIDER_UNAVAILABLE'});}}});
+ const p=await service.create({message:'原需求',inferRequest:true});
+ const input={message:'让表达更加紧凑',idempotencyKey:'provider-fault-key-123456'};
+ await assert.rejects(()=>service.dispatchMessage(p,input),{code:'PROVIDER_UNAVAILABLE'});
+ const receipt=p.routingFailures.at(-1).failureReceipt;assert.equal(receipt.category,'provider_unavailable');assert.equal(receipt.originalRequest,input.message);assert.equal(receipt.publishedRevisionId,null);assert.equal(receipt.goalReduced,false);assert.equal(receipt.failedTargets[0].requirement,input.message);
+ assert(p.messages.some(m=>m.role==='user'&&m.text===input.message));assert.equal(p.jobs.length,0);assert.equal(p.revisions.length,0);
+ await service.dispatchMessage(p,{message:'查看进度',idempotencyKey:'provider-offline-control'});assert.equal(calls,1);
+ const reopened=await createCreativeService({dataDir});assert.deepEqual(reopened.get(p.id).routingFailures,p.routingFailures);
+});
 
 test('explicit planning through message dispatch creates only a plan and preserves source assets',async()=>{
  const dataDir=await fs.mkdtemp(path.join(ROOT,'outputs/message-plan-'));let calls=0;

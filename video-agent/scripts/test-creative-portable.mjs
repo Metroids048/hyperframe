@@ -8,8 +8,19 @@ import assert from 'node:assert/strict';
 import yazl from 'yazl';
 import {ROOT} from '../lib/workflow.mjs';
 import {unpackCreativeHistory,relativeFile,historyAssetFile} from '../lib/creative/portable.mjs';
+import {Readable} from 'node:stream';
+import {createCreativeService} from '../lib/creative/service.mjs';
 const dir=path.join(ROOT,'outputs/resume','portable-security-'+new Date().toISOString().replaceAll(':','-'));await fs.mkdir(dir,{recursive:true});
 async function archive(name,entries){const file=path.join(dir,name+'.zip'),zip=new yazl.ZipFile(),done=pipeline(zip.outputStream,createWriteStream(file));for(const [name,data] of entries)zip.addBuffer(Buffer.from(data),name,{compress:false,forceZip64Format:true});zip.end({forceZip64Format:true});await done;return file;}
+test('failed import retry remains in the same project and job, preserving earlier failure evidence',async()=>{
+ const service=await createCreativeService({dataDir:path.join(dir,'retry-projects')});
+ const p=await service.importPackage(Readable.from([Buffer.from('invalid archive for failure-path verification')])),job=p.jobs[0];
+ const finish=async()=>{for(let i=0;i<500&&['running','queued'].includes(job.status);i++)await new Promise(r=>setTimeout(r,10));assert.equal(job.status,'failed');};await finish();
+ const before={id:p.id,jobId:job.id,count:service.list().length,error:job.error};
+ await Promise.all([service.retryImport(p,job.id),service.retryImport(p,job.id)]);await finish();
+ assert.equal(p.id,before.id);assert.equal(p.jobs.length,1);assert.equal(p.jobs[0].id,before.jobId);assert.equal(service.list().length,before.count);assert.equal(p.currentRevisionId,null);assert.equal(job.failedAttempts.length,1);assert.equal(job.failedAttempts[0].error,before.error);
+ const reopened=await createCreativeService({dataDir:path.join(dir,'retry-projects')});assert.equal(reopened.get(p.id).jobs[0].failedAttempts.length,1);
+});
 test('ZIP64 hashes and non-ASCII native data survive extraction without trusting paths',async()=>{const bytes='真实声音与字幕',hash=createHash('sha256').update(bytes).digest('hex'),file=await archive('valid',[['package.json',JSON.stringify({format:'hyperframe-creative-history',schemaVersion:1})],['blobs/'+hash,bytes]]),result=await unpackCreativeHistory(file,path.join(dir,'valid'));assert.equal(await fs.readFile(result.blob(hash),'utf8'),bytes);assert.throws(()=>relativeFile(dir,'../outside'),{code:'PACKAGE_PATH'});assert.throws(()=>relativeFile(dir,'assets/x:stream'),{code:'PACKAGE_PATH'});});
 test('corrupt blobs and undeclared archive paths fail before project publication',async()=>{const wrong='0'.repeat(64);for(const [name,entries,code] of [['corrupt',[['blobs/'+wrong,'wrong']], 'PACKAGE_CORRUPT'],['path',[['assets/evil.js','bad']], 'PACKAGE_PATH'],['prototype',[['package.json','{"__proto__":{"bad":true}}']], 'PACKAGE_INVALID']]){const file=await archive(name,entries);await assert.rejects(unpackCreativeHistory(file,path.join(dir,name)),{code});}});
 test('duplicate archive records and compressed data are rejected',async()=>{const file=await archive('duplicate',[['package.json','{}'],['package.json','{}']]);await assert.rejects(unpackCreativeHistory(file,path.join(dir,'duplicate')),{code:'PACKAGE_LIMIT'});const zip=new yazl.ZipFile(),f=path.join(dir,'compressed.zip'),done=pipeline(zip.outputStream,createWriteStream(f));zip.addBuffer(Buffer.from('{}'),'package.json');zip.end();await done;await assert.rejects(unpackCreativeHistory(f,path.join(dir,'compressed')),{code:'PACKAGE_FORMAT'});});
@@ -47,9 +58,11 @@ test('candidate history carries exact admission and contract instead of recreati
  const compiled=compileDocument(document,[]);await fs.writeFile(path.join(version,'document.json'),JSON.stringify(document));await fs.writeFile(path.join(version,'manifest.json'),JSON.stringify(compiled.manifest));await fs.writeFile(path.join(version,'production-admission.json'),JSON.stringify(admission));await fs.writeFile(path.join(version,'business-contract.json'),JSON.stringify(contract));
  const reviewFrame='review-attempt-aB1234/round-0/batch-0/frame-00-at-0.3s.png';await fs.mkdir(path.dirname(path.join(version,reviewFrame)),{recursive:true});await fs.writeFile(path.join(version,reviewFrame),'isolated test evidence bytes, not a real frame');
  const selections={ranges:[],continuousPlaybackVerified:false};await fs.writeFile(path.join(version,'source-selections.json'),JSON.stringify(selections));
- const snapshot={id:'candidate',title:'Candidate fixture',assets:[],jobs:[],messages:[],revisions:[{id:document.revisionId,directory:'versions/initial',description:'candidate'}]};await exportCreativeHistory(ROOT,project,snapshot,document.revisionId,path.join(project,'history.zip'));
+ const historicalJob={id:'edit-1',status:'complete',revisionId:document.revisionId,input:{message:'字幕小一点'},routeDecision:{mode:'edit'},changeReceipt:{changeSet:[{type:'update_caption_style',nodeId:'cue-1'}]}};
+ const snapshot={id:'candidate',title:'Candidate fixture',assets:[],jobs:[],imported:{originalJobs:[historicalJob]},messages:[],revisions:[{id:document.revisionId,directory:'versions/initial',description:'candidate'}]};await exportCreativeHistory(ROOT,project,snapshot,document.revisionId,path.join(project,'history.zip'));
  await assert.rejects(()=>exportCreativeHistory(ROOT,project,{...snapshot,revisions:[...snapshot.revisions,...snapshot.revisions]},document.revisionId,path.join(project,'duplicate-history.zip')),{code:'PACKAGE_INVALID'});
  const unpacked=await unpackCreativeHistory(path.join(project,'history.zip'),path.join(project,'unpacked')),files=unpacked.metadata.revisions[0].files;
+ assert.deepEqual(unpacked.metadata.project.jobs[0].changeReceipt,historicalJob.changeReceipt);assert.deepEqual(unpacked.metadata.project.jobs[0].routeDecision,historicalJob.routeDecision);assert.equal(unpacked.metadata.project.jobs[0].input.message,historicalJob.input.message);
  assert.deepEqual(JSON.parse(await fs.readFile(unpacked.blob(files['production-admission.json']))),admission);assert.deepEqual(JSON.parse(await fs.readFile(unpacked.blob(files['business-contract.json']))),contract);
  assert.equal(await fs.readFile(unpacked.blob(files[reviewFrame]),'utf8'),'isolated test evidence bytes, not a real frame');assert.deepEqual(JSON.parse(await fs.readFile(unpacked.blob(files['source-selections.json']))),selections);
  assert.equal((await candidateAdmission(ROOT,contract,[],version,document)).status,'candidate_only');

@@ -27,7 +27,7 @@ await test('strict schema supports v2 operations and export/tool requests',()=>{
 await test('subtitle-only loads relevant skill and does not require narration',async()=>{
   const provider=new Stub(result([{type:'caption_add',text:'你好',start:0,end:90,position:'bottom',anchor:null}]));
   const answer=await provider.plan(project,revision,'只加字幕“你好”',null,()=>out);
-  assert.deepEqual(answer.selectedSkills.map(s=>s.id),['speech-captions']);assert.match(provider.calls[0].instructions,/普通 caption_add\/update\/remove 从不自动朗读/);
+  assert.deepEqual(answer.selectedSkills.map(s=>s.id),['speech-captions','conversation-edit']);assert.match(provider.calls[0].instructions,/普通 caption_add\/update\/remove 从不自动朗读/);
   assert(!Object.hasOwn(answer.result.operations[0],'anchor'));assert.equal(answer.metrics.modelCalls,1);assert.equal(answer.toolCalls[0].tool,'plan');
 });
 await test('compound edits preserve base coordinates and repair context',async()=>{
@@ -57,7 +57,7 @@ await test('review rejects cutting inside a spoken word even if model approves',
   assert.equal(review.passed,false);assert.equal(review.issues[0].code,'cut_inside_word');assert.equal(review.evidence.audioListening,false);
 });
 await test('installed skill provenance is pinned and each adapter is readable',async()=>{
-  const caps=skillCapabilities();assert.equal(caps.skills.length,11);for(const skill of caps.skills){assert.match(skill.sourceCommit,/^[a-f0-9]{40}$/);assert(skill.license);assert((await loadSkillInstructions([skill])).length>100);}
+  const caps=skillCapabilities();assert.equal(caps.skills.length,12);for(const skill of caps.skills){if(skill.source!=='project')assert.match(skill.sourceCommit,/^[a-f0-9]{40}$/);assert(skill.license);assert((await loadSkillInstructions([skill])).length>100);}
   assert.equal(selectSkills('hello').length,0);assert.equal(selectSkills('字幕翻译').some(s=>s.id==='speech-captions'),true);
 });
 await test('local voice respects explicit voice and rejects unknown names',()=>{
