@@ -1,12 +1,12 @@
 import {workflowIntentSchema,resolveWorkflowIntent,productionContractMessage,requiresActionProtection} from './workflow-intent.mjs';
 import {commerceSkillContext} from './commerce-skills.mjs';
-import {assertCompleteNarration} from './narration-timing.mjs';
+import {assertCompleteNarration,needsNarrationAlignment} from './narration-timing.mjs';
 import {isAudioReviewIssue,correctedAudioAssets} from './audio-review-repair.mjs';
 import {narrationRevisionPolicy,validateNarrationRevision} from './narration-revision.mjs';
 import {loadScenePackage,sceneContext,scenePackageFingerprint} from './scene-package.mjs';
 import {shotCheckpointMismatch,invalidateRepairGeneration,invalidateStageResults,refreshActionMaterial} from './recovery.mjs';
 import {validateBriefAudio} from './business-constraints.mjs';
-import {observationAudioStatus,preserveFullOriginalTrack,fullOriginalAudioGraph} from './observation-audio.mjs';
+import {observationAudioStatus,needsSourceSpeechEvidence,preserveFullOriginalTrack,fullOriginalAudioGraph} from './observation-audio.mjs';
 import {HyperFramesResourceCatalog,HyperFramesResourcePlanner,resourceRequests,validateRequestedTransitionPlan} from './resource-catalog.mjs';
 import {materialSchema,directionSchema,validateMaterial,selectStorySources,bindSourceSelectionDocument,canonicalizeSingleAssetReferences} from './commerce-directors.mjs';
 import {commerceResourceContext} from './commerce-components.mjs';
@@ -98,6 +98,14 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
   const readJSON=name=>fs.readFile(path.join(outputDir,name),'utf8').then(JSON.parse);
   const result=(run,key)=>run.checkpoints[key]?.result;
   async function ask(ctx,stage,data,schema,{images=[],resources=[],extra=''}={}){
+    data={...data,audioCapabilities:{
+      narration:{available:typeof provider.speak==='function',execution:'narration.prepare',timing:'after resources.plan, before story.plan',readiness:'provider execution must succeed; availability is not a successful synthesis'},
+      transcription:{available:typeof provider.transcribe==='function',execution:'provider.transcribe',coverage:'speech timestamps only; not listening or non-speech semantic review'},
+      suppliedAudio:assets.filter(a=>a.kind==='audio').map(a=>({id:a.id,name:a.name||a.compiledRef,metadata:a.mediaMetadata,rights:a.rights||null})),
+      music:{execution:'schedule supplied audio assets; no implicit music generation or library search'},
+      listening:{available:false,coverage:'human listening remains pending'}
+    }};
+    if(['R1','R3','CD'].includes(stage))extra+='\n音频能力以audioCapabilities为准；adapter.tools仅列视觉适配工具，不是全部应用能力。已请求旁白且narration.available为true时，后续narration.prepare会调用真实供应商并测量，不因尚无旁白资产要求用户先上传。不能把尚未合成写成已合成，也不能推断供应商一定成功。音乐必须绑定suppliedAudio里的真实音源及已有权利依据，不能假设未挂入工程的音乐已可用。';
     if(stage==='R4'&&preserveFullOriginalTrack(request.message))extra+='\n本次完整原声由执行器强制独立保持：唯一有声原视频从0秒开始、全长、原速、原音量，不跟随画面剪切和慢放。请制作供用户审阅的视觉候选分镜。ASR为空且缺实际试听时，不可声称无讲话或音画语义通过；把试听和语义同步列为候选待审限制，不把缺模型听音能力变成不能制作候选的素材缺口，不添加逐字口播字幕、声音或音效。不能删减原音轨来满足视觉节奏。';
     if(currentContract)data={...data,businessContract:currentContract,workflowBinding:{requestId:request.requestId,contractId:currentContract.workflow?.contractId||null,parentContractId:currentContract.workflow?.parentContractId||null},scenarioResources:commerceResourceContext(currentContract),commerceSkills:commerceSkillContext(currentContract.scenarioId,currentContract.workflow?.taskMode||currentContract.taskMode,currentContract.workflow)};
     if(v3)data={...data,scenePackage:sceneContext(scenePackage,stage),creativeDirection:result(ctx.run,'creative')||null};
@@ -188,7 +196,7 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
         observation=canonicalizeSingleAssetReferences(await ask(ctx,'R2',{message:request.message,brief,prior:observation,validationError:error.message,attempt,metadata:assets.map(a=>({id:a.id,...a.mediaMetadata}))},observationSchema,{images:visualInputs,extra:'修正观察合同。框是归一化[x,y,width,height]，不是右下坐标；无法确认可留空。只需观察获准使用的素材，其余不能借相似外观建立同型号关系。inspectRanges为空，不重复已执行的抽帧。'}),assets);
       }
     }
-    const transcripts=[];if(brief.needsTranscription){for(const a of assets.filter(a=>a.mediaMetadata.hasAudio)){const transcript=await provider.transcribe(path.join(outputDir,a.compiledRef),signal);transcripts.push({assetId:a.id,sourceSha256:a.sha256,transcript});}await saveJSON('transcripts.json',transcripts);const audioStatus=observationAudioStatus(brief,transcripts);await saveJSON('observation-audio-status.json',audioStatus);if(audioStatus.limitation)observation.gaps.push(audioStatus.limitation);}
+    const transcripts=[];if(needsSourceSpeechEvidence(brief,currentContract,assets)){for(const a of assets.filter(a=>a.mediaMetadata.hasAudio&&!a.generatedVoice&&(brief.needsTranscription||a.kind==='video'))){const transcript=await provider.transcribe(path.join(outputDir,a.compiledRef),signal);transcripts.push({assetId:a.id,sourceSha256:a.sha256,transcript});}await saveJSON('transcripts.json',transcripts);const audioStatus=observationAudioStatus(brief,transcripts);await saveJSON('observation-audio-status.json',audioStatus);if(audioStatus.limitation)observation.gaps.push(audioStatus.limitation);}
     await saveJSON('transcripts.json',transcripts);return saveJSON('observations.json',observation);
   });
   registry.register('materials.analyze',async(_,ctx)=>{
@@ -254,15 +262,17 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
     try{await fs.writeFile(file,bytes,{flag:'wx'});}catch(error){if(error.code!=='EEXIST')throw error;insist(await hashFile(file)===createHash('sha256').update(bytes).digest('hex'),'旁白缓存文件已变化','VOICE_CACHE_CONFLICT');}
     const mediaMetadata=await probe(file,signal);insist(mediaMetadata.duration<=brief.request.output.durationSeconds+1/FPS,'实际旁白超过目标时长；稿件与声音已保留，请调整稿件或时长，未压缩语速','VOICE_DURATION_CONFLICT');
     const asset={id,kind:'audio',generatedVoice:true,compiledRef,normalizedRef:compiledRef,sha256:await hashFile(file),mediaMetadata,status:'ready',volume:1,rights:{status:'generated',engine:provider.lastSpeechMetrics?.engine||'kokoro',review:'separate-publisher-review'}};
-    const transcript=provider.lastSpeechTranscript||await provider.transcribe(file,signal);insist(transcript.words?.length,'旁白已生成，但没有取得实际语音时间戳','NO_SPEECH');
-    asset.audioRole='narration';asset.speechRequest={text:script.text,voice:provider.lastSpeechMetrics?.voice||script.voice,rate:1};asset.providerTranscript={...transcript,sourceSha256:asset.sha256,source:provider.lastSpeechTranscript?'minimax-subtitle':'local-asr'};
+    const providerTranscript=provider.lastSpeechTranscript,alignedLocally=needsNarrationAlignment(providerTranscript);
+    if(providerTranscript)await saveJSON('provider-transcript-'+id+'.json',providerTranscript);
+    const transcript=alignedLocally?await provider.transcribe(file,signal):providerTranscript;insist(transcript.words?.length,'旁白已生成，但没有取得实际语音时间戳','NO_SPEECH');
+    asset.audioRole='narration';asset.speechRequest={text:script.text,voice:provider.lastSpeechMetrics?.voice||script.voice,rate:1};asset.providerTranscript={...transcript,sourceSha256:asset.sha256,source:alignedLocally?'local-asr':'minimax-subtitle'};
     if(revision){
       (ctx.run.artifacts.narrationHistory??=[]).push(priorNarration);
       await saveJSON('narration-history.json',ctx.run.artifacts.narrationHistory);
       const index=assets.findIndex(a=>a.id===priorNarration.asset.id);if(index>=0)assets.splice(index,1);delete byId[priorNarration.asset.id];
       const observed=result(ctx.run,'observe');observed.observations=observed.observations.filter(a=>a.assetId!==priorNarration.asset.id);
     }
-    const record={enabled:true,asset,script,transcript,tool:provider.lastSpeechMetrics?.engine==='minimax'?'minimax.tts-and-provider-subtitles':'local.kokoro.tts-and-local.transcribe',voice:provider.lastSpeechMetrics?.voice||script.voice,rate:1,measuredSeconds:mediaMetadata.duration,metrics:provider.lastSpeechMetrics};await restoreNarration(record);
+    const record={enabled:true,asset,script,transcript,tool:provider.lastSpeechMetrics?.engine==='minimax'?(alignedLocally?'minimax.tts-and-local.transcribe':'minimax.tts-and-provider-subtitles'):'local.kokoro.tts-and-local.transcribe',voice:provider.lastSpeechMetrics?.voice||script.voice,rate:1,measuredSeconds:mediaMetadata.duration,metrics:provider.lastSpeechMetrics};await restoreNarration(record);
     const observation=result(ctx.run,'observe');if(!observation.observations.some(o=>o.assetId===id))observation.observations.push({assetId:id,visibleContent:'实际合成旁白：'+script.text,uncertainty:'声音感知质量仍待试听评审',role:'unknown',productGroup:'narration',subjectBox:[],safeCrop:[],confidence:1,quality:'local audio measured',visibleText:[],sameProductAs:[],differentProductFrom:[]});
     await saveJSON('observations.json',observation);await ctx.persist();
     const transcripts=(await readJSON('transcripts.json')).filter(t=>byId[t.assetId]);if(!transcripts.some(t=>t.assetId===id))transcripts.push({assetId:id,sourceSha256:asset.sha256,transcript});await saveJSON('transcripts.json',transcripts);
@@ -348,7 +358,7 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
     }
 
     const keyframeChoices=[...new Set([.2,.45,.75].map(f=>Math.round(shot.durationSeconds*FPS*f)/FPS))];
-    const staticShotSchema=obj({...shotSchema.properties,keyframeAtSeconds:{type:'number',enum:keyframeChoices}});
+    const staticShotSchema=obj({...shotSchema.properties,keyframeAtSeconds:{type:'number',enum:keyframeChoices},mediaBindingGap:str});
     const images=[],sourceBoundaryImages=[];
     for(const m of shot.media){
       const a=byId[m.assetId];
@@ -392,8 +402,9 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
         }
       }
       for(let attempt=0;!keyframe&&attempt<3;attempt++){
-        const answer=await ask(ctx,'R5',{...packet,phase:'static-keyframe',attempt,error:lastError?.message,previousSource:lastSource||packet.previousSource},staticShotSchema,{images,resources:shot.resourceId==='native-original'?[]:[shot.resourceId],extra:CUSTOM_SOURCE_CONTRACT.replaceAll('customSourceJson','source')+'\n这里只制作最清晰的静态关键画面，尚未制作动画。根据已提供的真实候选帧，从keyframeChoices选择主体与动作最清楚的本镜头秒数，返回keyframeAtSeconds；不要固定使用中点。静态图没有可见时序差异时也从此列表选择。timeline必须为空字符串，motionTargets必须为空数组，全部获准文字在CSS静态状态清晰可见，不能使用opacity:0隐藏。保留真实实拍主体与所有获准原生对象。不要为动效预置不可见状态。应用会先运行真实布局/对比度检查并截图评审，再单独请求动画。'});
+        const answer=await ask(ctx,'R5',{...packet,phase:'static-keyframe',attempt,error:lastError?.message,previousSource:lastSource||packet.previousSource},staticShotSchema,{images,resources:shot.resourceId==='native-original'?[]:[shot.resourceId],extra:CUSTOM_SOURCE_CONTRACT.replaceAll('customSourceJson','source')+'\n这里只制作最清晰的静态关键画面，尚未制作动画。mediaBindingGap通常为空；如果既定设计必须有多个同源视频窗口但nativeObjectRefs未声明足够媒体，填写具体缺口交回分镜，不能自行复制视频或返回缺窗口的画面冒充完成。根据已提供的真实候选帧，从keyframeChoices选择主体与动作最清楚的本镜头秒数，返回keyframeAtSeconds；不要固定使用中点。静态图没有可见时序差异时也从此列表选择。timeline必须为空字符串，motionTargets必须为空数组，全部获准文字在CSS静态状态清晰可见，不能使用opacity:0隐藏。保留真实实拍主体与所有获准原生对象。不要为动效预置不可见状态。应用会先运行真实布局/对比度检查并截图评审，再单独请求动画。'});
         try{
+          if(answer.mediaBindingGap?.trim())throw Object.assign(Error(answer.mediaBindingGap),{code:'KEYFRAME_MEDIA_BINDING',issues:[{severity:'major',repairKind:'media-binding',problem:answer.mediaBindingGap,repair:'由分镜为需要的同源同步多窗口显式增加媒体绑定，保持原始媒体、源时间、播放率、文字、时长和音轨策略。'}]});
           insist(!answer.source.timeline.trim()&&!answer.source.motionTargets.length,'静态阶段不能含动画','KEYFRAME_CONTRACT');
           const adapted=await catalog.adapt(answer.source,{resourceId:shot.resourceId,sceneId,objectIds:[],design:story.design,mediaKinds:shot.media.map(m=>byId[m.assetId].kind)});
           const native=documentFromModelPlan(request,assets,nativePlan(ctx.run,{[index]:adapted.source}));
@@ -401,7 +412,7 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
           const inspected=await (io.inspectKeyframe||inspectKeyframe)(native,sceneId,assets,outputDir,runHyperFrames,{signal,atSeconds:answer.keyframeAtSeconds});
           keyframeImage=[{type:'input_text',text:'已检查的静态关键画面 '+inspected.folder+'/'+inspected.image},{type:'input_image',image_url:'data:image/png;base64,'+(await fs.readFile(inspected.imagePath)).toString('base64')}];
           const matchingSourceImages=images.flatMap((image,i)=>image.type==='input_text'&&image.text.startsWith('关键画面候选：本镜头 '+answer.keyframeAtSeconds+' 秒，')?[{...image,text:'与合成关键帧同一时刻的未包装源画面；'+image.text},images[i+1]]:[]);
-          const review=await ask(ctx,'R6',{phase:'static-keyframe',sceneId,shot,design:story.design,output:native.output,keyframeAtSeconds:answer.keyframeAtSeconds,addedTextObjects:native.nodes.filter(n=>n.sceneId===sceneId&&n.kind==='text').map(n=>({id:n.id,text:n.params.text})),evidence:inspected.folder+'/'+inspected.image},obj({issues:list(obj({severity:{type:'string',enum:['major','minor']},repairKind:{type:'string',enum:['layout','source-selection','text-evidence','text-timing','fact-binding','text-contract']},problem:str,repair:str})),summary:str}),{images:[...sourceBoundaryImages,...matchingSourceImages,...keyframeImage],extra:'对照同一时刻未包装源画面和合成关键帧，以及addedTextObjects明确列出的应用文字，区分源实拍自带的文字/标识与应用新增叠层；只有未包装源画面中也存在的字样才能称为源片烧录文字。源片已有标识不是应用虚构文案，不能仅因模型自己写的visualDirection不强调品牌就要求移除、遮盖或裁掉它。原用户要求高于模型创意说明。确实遮挡必需动作时归source-selection，选择真实可用源区间，不让布局作者以色块覆盖商品或删除原片标识。另提供源选段首末帧，用来核对入点和末帧的可见动作与本镜头说明是否相符；不能仅凭离散帧宣称完整连续动作通过。源边界未加包装，不检查其文字布局。检查静态关键画面中商品、文字主次、主体裁切和中文可读性。只报告图片可确认的问题；尚未添加动画，不把静止当缺陷。major需具体局部修复。repairKind仅在源区间或动作确实错误时为source-selection；对比度、遮挡、排版为layout；事实冲突为fact-binding。源片烧录标题与新增文字重复、或必须删除新增文字才能解决时归text-contract，由故事导演修订文字对象合同；layout只可调整样式，不能要求镜头作者删除、隐藏合同内对象。'});
+          const review=await ask(ctx,'R6',{phase:'static-keyframe',captionStage:{requested:needsSpeechCaptions(result(ctx.run,'brief')),execution:'project.assemble after all scenes',presentInThisFrame:false,verification:'full composition review remains required'},sceneId,shot,design:story.design,output:native.output,keyframeAtSeconds:answer.keyframeAtSeconds,addedTextObjects:native.nodes.filter(n=>n.sceneId===sceneId&&n.kind==='text').map(n=>({id:n.id,text:n.params.text})),evidence:inspected.folder+'/'+inspected.image},obj({issues:list(obj({severity:{type:'string',enum:['major','minor']},repairKind:{type:'string',enum:['layout','source-selection','text-evidence','text-timing','fact-binding','text-contract']},problem:str,repair:str})),summary:str}),{images:[...sourceBoundaryImages,...matchingSourceImages,...keyframeImage],extra:'此处是单镜头静态检查；captionStage.requested=true时，旁白转写字幕将在project.assemble调用真实字幕执行器加入，此帧尚无字幕不构成镜头缺陷，也不得要求镜头作者复制整段旁白。最终合成必须继续核查真实字幕。商品标题、必要免责声明等仍须实际声明并显示，不能用尚未实现的全局层搪塞。对照同一时刻未包装源画面和合成关键帧，以及addedTextObjects明确列出的应用文字，区分源实拍自带的文字/标识与应用新增叠层；只有未包装源画面中也存在的字样才能称为源片烧录文字。源片已有标识不是应用虚构文案，不能仅因模型自己写的visualDirection不强调品牌就要求移除、遮盖或裁掉它。原用户要求高于模型创意说明。确实遮挡必需动作时归source-selection，选择真实可用源区间，不让布局作者以色块覆盖商品或删除原片标识。另提供源选段首末帧，用来核对入点和末帧的可见动作与本镜头说明是否相符；不能仅凭离散帧宣称完整连续动作通过。源边界未加包装，不检查其文字布局。检查静态关键画面中商品、文字主次、主体裁切和中文可读性。只报告图片可确认的问题；尚未添加动画，不把静止当缺陷。major需具体局部修复。repairKind仅在源区间或动作确实错误时为source-selection；对比度、遮挡、排版为layout；事实冲突为fact-binding。源片烧录标题与新增文字重复、或必须删除新增文字才能解决时归text-contract，由故事导演修订文字对象合同；layout只可调整样式，不能要求镜头作者删除、隐藏合同内对象。'});
           await saveJSON('keyframe-review-'+index+'-'+attempt+'.json',{...inspected,imagePath:undefined,review,sourceHash:resourceHash(adapted.source)});
           timingFeedback=review.issues.filter(i=>i.repairKind==='text-timing');const failure=keyframeFailure(review.issues,{staticOnly:true});if(failure)throw failure;
           keyframe=adapted.source;await saveJSON('keyframe-'+index+'.json',{source:keyframe,binding:keyframeBinding,evidence:inspected,review});break;
@@ -442,10 +453,19 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
     const original=result(ctx.run,'story'),brief=result(ctx.run,'brief'),resources=result(ctx.run,'resources');
     const shot=original.scenes[index],evidence=await sourceEvidence(ctx.run,{assetIds:shot.media.map(m=>m.assetId),preferredRanges:shot.media.map(m=>({assetId:m.assetId,startSeconds:m.sourceStartSeconds,endSeconds:m.sourceStartSeconds+shot.durationSeconds*(m.playbackRate||1)}))});
     insist(shotRepairCount<2,'此镜头的源证据修复次数已用完；保留真实证据与有效镜头，不代表素材不存在','STORY_REPAIR_BUDGET');
-    const removeRedundantText=feedback.some(changesTextContract);
-    const repaired=await ask(ctx,'R4',{removeRedundantText,sourceEvidence:evidence.selection,phase:'repair-one-source-selection',index,story:original,brief,observations:result(ctx.run,'observe'),additionalSourceEvidence:[...(ctx.run.artifacts.storyInspections||[]),...(ctx.run.artifacts.actionInspections||[])],sourceMetadata:assets.map(a=>({id:a.id,...a.mediaMetadata})),feedback},withKnownFacts(storyScene,brief.request.facts),{images:evidence.images,extra:(removeRedundantText?'本次已由真实关键画面审查确认文字合同冲突。允许删除没有factRefs、不是price/cta且不属于用户原话的重复新增文字，保留其余文字顺序和内容，不新增文字；也可保留文字改选无重复烧录文字的已观察源片。这个例外优先于下述文字数量不变要求。\n':'')+'画面检查指出源片选段、重复文字或模型自拟观察说明与画面证据不符。没有用户事实引用的自拟分类、性能暗示也需改为可见的中性描述，不向用户索取Agent自行补写的主张。仅修复这个镜头：若画面正确但模型自拟的中性说明不符，可根据真实证据纠正该说明，不必换掉正确实拍。用户消息中逐字提供的文字、有factRefs的文字、价格与CTA必须原样保留。文字数量、角色、事实引用、媒体数量、时长、段落和资源ID不变；更正说明不得新增数值、参数、价格或无法从实际画面确认的商品事实。不改其他镜头或声音策略。不要重复其他镜头补时长，不编造缺失动作或商品关联。片尾不能在新动作中间戛然而止；依据实际接触表选择能自然结束的真实区间，不能冻结、慢放或循环。返回完整单镜头；sourceStartSeconds实际影响原生视频及同步原声音轨。'});
-    validateShotRepair(original.scenes[index],repaired,request.message,{removeRedundantText});requireSourceChange(original.scenes[index],repaired,feedback);
+    const removeRedundantText=feedback.some(changesTextContract),allowDuplicateMedia=feedback.some(i=>i.repairKind==='media-binding'),allowRequiredText=feedback.some(i=>i.repairKind==='text-contract');
+    let repaired,rejectedRepair=null;
+    for(let repairAttempt=0;repairAttempt<2;repairAttempt++){
+    repaired=await ask(ctx,'R4',{allowRequiredText,allowDuplicateMedia,repairAttempt,rejectedRepair,sourceChangeRequired:feedback.some(i=>i.repairKind==='source-selection'),removeRedundantText,sourceEvidence:evidence.selection,phase:'repair-one-source-selection',index,story:original,brief,observations:result(ctx.run,'observe'),additionalSourceEvidence:[...(ctx.run.artifacts.storyInspections||[]),...(ctx.run.artifacts.actionInspections||[])],sourceMetadata:assets.map(a=>({id:a.id,...a.mediaMetadata})),feedback},withKnownFacts(storyScene,brief.request.facts),{images:evidence.images,extra:(allowRequiredText?'若审查指出缺少用户明确要求且尚未声明的文字对象，允许在现有text末尾追加逐字来自用户原话的说明，factRefs为空且role不是price/cta；保留原有文字及顺序。不得只在设计说明中承诺一个未实现的全局层。这个例外优先于文字数量不变；旁白字幕由合成阶段生成，不在镜头重复添加全文。\n':'')+(allowDuplicateMedia?'本次修复媒体绑定：允许追加既有media条目的精确副本以支持同源同步局部窗口，最多4路；原条目顺序和属性保持，不能改变源时间、播放率、素材身份、时长、文字、声音策略。这个例外优先于媒体数量不变；其他修复不允许增加媒体。\n':'')+(removeRedundantText?'本次已由真实关键画面审查确认文字合同冲突。允许删除没有factRefs、不是price/cta且不属于用户原话的重复新增文字，保留其余文字顺序和内容，不新增文字；也可保留文字改选无重复烧录文字的已观察源片。这个例外优先于下述文字数量不变要求。\n':'')+'画面检查指出源片选段、重复文字或模型自拟观察说明与画面证据不符。没有用户事实引用的自拟分类、性能暗示也需改为可见的中性描述，不向用户索取Agent自行补写的主张。仅修复这个镜头：若画面正确但模型自拟的中性说明不符，可根据真实证据纠正该说明，不必换掉正确实拍。用户消息中逐字提供的文字、有factRefs的文字、价格与CTA必须原样保留。文字数量、角色、事实引用、媒体数量、时长、段落和资源ID不变；更正说明不得新增数值、参数、价格或无法从实际画面确认的商品事实。不改其他镜头或声音策略。不要重复其他镜头补时长，不编造缺失动作或商品关联。片尾不能在新动作中间戛然而止；依据实际接触表选择能自然结束的真实区间，不能冻结、慢放或循环。返回完整单镜头；sourceStartSeconds实际影响原生视频及同步原声音轨。'});
+    validateShotRepair(original.scenes[index],repaired,request.message,{removeRedundantText,allowDuplicateMedia,allowRequiredText});
+    try{requireSourceChange(original.scenes[index],repaired,feedback);break;}catch(error){
+      await saveJSON('source-repair-rejected-'+index+'-'+Date.now()+'.json',{original:original.scenes[index],repaired,feedback,error:{code:error.code,message:error.message}});
+      if(error.code!=='REPLAN_NO_PROGRESS'||repairAttempt===1)throw error;
+      rejectedRepair={scene:repaired,error:error.message,requiredAction:'源取景问题必须改变实际sourceStartSeconds或合法素材，文字说明和CSS调整不改变源区间；依据已观察证据选取，不能编造可用时码。'};
+    }
+    }
     const story=replaceStoryShot(original,index,repaired,brief,resources),native=documentFromModelPlan(request,assets,nativePlan(ctx.run,{},story));
+    if(allowDuplicateMedia)insist(resourceHash(native.audioGraph)===resourceHash(documentFromModelPlan(request,assets,nativePlan(ctx.run,{},original)).audioGraph),'同源窗口修复不能重复原声或改变音轨','REPLAN_SCOPE');
     await ensureSourceBoundaries(story,ctx);
     const selections=v3?selectStorySources(story,assets,result(ctx.run,'material'),{demo:requiresActionProtection(currentContract),evidenceIndex:await readJSON('source-evidence-index.json')}):null;
     await saveJSON('story-before-repair-'+count+'.json',original);await saveJSON('story-repair-'+count+'.json',{index,before:original.scenes[index],after:repaired,reason:feedback});
@@ -456,7 +476,7 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
   registry.register('scene.author',async({index},ctx)=>{
     if(io.buildShot)return io.buildShot(index,ctx);
     for(;;){try{return await buildShot(ctx,index);}catch(error){
-      if(!['source-selection','fact-binding'].includes(repairRoute(error))||signal?.aborted)throw error;
+      if(!['source-selection','fact-binding','media-binding'].includes(repairRoute(error))||signal?.aborted)throw error;
       await replanSourceShot(ctx,index,error.issues||[{problem:error.message,repairKind:'source-selection'}]);
     }}
   });

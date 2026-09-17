@@ -3,6 +3,7 @@
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>电商视频创作工作台</title><link rel="stylesheet" href="/commerce.css"></head>
 <body>
 <header><a href="/">视频创作</a><div class="header-actions"><select id="projects" aria-label="打开作品"><option value="">我的作品</option></select><button id="open-package" class="quiet" type="button">打开工程</button><input id="package-file" type="file" accept=".zip" aria-label="选择原生工程包" hidden><button id="new-project" class="quiet" type="button">新建</button></div></header>
+<nav id="work-switcher" aria-label="切换视频"></nav>
 <main>
 <section class="chat" aria-label="创作对话">
 <div class="intro"><h1>你想制作什么？</h1><p>选择场景，描述目标，把素材交给 Agent。</p></div>
@@ -11,6 +12,7 @@
 <button type="button" class="quiet" data-creation="demo">单品操作演示</button>
 <p id="input-guidance">上传真实商品视频，选择目标或直接描述需求。图片可辅助，缺关键动作时会说明素材缺口。</p>
 </section>
+<p id="editing-context" role="status" hidden></p><div id="edit-suggestions" hidden><button type="button" class="quiet" data-edit-prompt="把刚才修改的标题再小一点，位置和声音保持。">承接上轮修改</button><button type="button" class="quiet" data-edit-prompt="恢复刚才修改前的字号，但保留现在的位置和其他修改。">只恢复一个属性</button><button type="button" class="quiet" data-edit-prompt="撤销上一步。">撤销上一步</button></div>
 <div id="messages" class="messages" aria-live="polite"></div>
 <div id="voice-results" hidden></div>
 <details id="audio-tools"><summary>旁白与音乐</summary>

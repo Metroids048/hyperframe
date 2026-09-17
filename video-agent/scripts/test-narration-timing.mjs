@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {assertCompleteNarration} from '../lib/creative/narration-timing.mjs';
+import {assertCompleteNarration,needsNarrationAlignment} from '../lib/creative/narration-timing.mjs';
 const assets=[{id:'voice',generatedVoice:true,mediaMetadata:{duration:6}}];
 const track=(source,start,duration)=>({assetId:'voice',sourceStartSeconds:source,startFrame:start,durationFrames:duration,volume:1});
 test('source-complete narration may leave intentional silent reading intervals',()=>{
@@ -15,4 +15,10 @@ test('missing words, repeated audio, overlap, reorder and muted voice cannot pas
     [track(3,0,90),track(0,180,90)],[{...track(0,0,180),volume:0}],
     [{...track(0,0,180),playbackRate:2}],[track(0,200,180)]];
   for(const audioGraph of variants)assert.throws(()=>assertCompleteNarration({durationFrames:360,audioGraph},assets),{code:'VOICE_DURATION_CONFLICT'});
+});
+
+test('long provider chunks request measured alignment rather than estimated word times',()=>{
+ assert.equal(needsNarrationAlignment({words:[{text:'这次开箱显示了充电器收纳包掌机等多个物件',start:0,end:16}]}),true);
+ assert.equal(needsNarrationAlignment({words:[{text:'充电器',start:1,end:1.8}]}),false);
+ assert.equal(needsNarrationAlignment(null),true);
 });

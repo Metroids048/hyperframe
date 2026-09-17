@@ -19,3 +19,9 @@ export function assertCompleteNarration(document,assets){
       '旁白分段遗漏结尾或超出真实音频','VOICE_DURATION_CONFLICT');
   }
 }
+
+// Provider sentence chunks cannot serve as word-level evidence for per-object cuts.
+export function needsNarrationAlignment(transcript){
+ const words=transcript?.words||[];
+ return !words.length||words.some(w=>w.end-w.start>3||[...String(w.text||'')].filter(c=>/[\p{L}\p{N}]/u.test(c)).length>12);
+}

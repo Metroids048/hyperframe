@@ -399,3 +399,33 @@ M01-F01/F02 and M04-F02 scoped revalidated before new ordinal changes. Current e
 - npm 未进入当前 PATH；直接运行 package.json 的 test 等价命令 `node scripts/build-web.mjs && node scripts/acceptance.mjs`，20 项通过、0 失败，证据 `outputs/acceptance/2026-09-17T04-13-23-922Z/report.json`。
 - 全量内容恢复运行 `python3 video-agent/scripts/workspace-content.py --all`：0 个缺失文件需恢复，已有本地工程保留。两个子模块已注册且与锁定提交一致，HyperFrames 保持 0.8.33。
 - 后续：按 `docs/WORKSPACE-SYNC.md` 在原目录拉取、开发、验证、提交和推送。配置、凭据及缓存留本地；本次测试未调用真实语义模型、ASR/TTS 供应商，技术通过不代表成片人工认可。
+
+## 2026-09-17 八场景 Demo 实际开工
+
+用户要求已转为逐场景制作，并补充米家 V2 即产品讲解 Demo，参考其流程完成剩余场景。附件已导入 docs/scene-demos-phase2/；详细实际恢复点为 09_LOCAL_EXECUTION.md。原服务3024与 data/result-completion-projects 保留，未重启、未覆盖历史母片。
+
+S03在真实WebUI通过自动场景、55秒横屏、原始即食饭素材和制作卡原话提交。项目2bd26376-6826-45c1-a837-866e526db3f3于2026-09-17T04:26:51.758Z记录登录阻断：CodexProvider与独立CLI均未登录。零任务、零修订、零新MP4；不重复建立草稿。下一动作是用户完成codex login后，在同一工程检查活动任务并重发原话。没有后台自动制作机制。
+
+六条Pexels补充候选已实际下载到assets/scene-demo-inputs/raw/，来源与许可限制有SOURCES.json；10条本地源与6条补充文件的元数据、哈希、全解码和概览证据位于outputs/scene-demos-phase2/materials/。已查看16份抽帧概览，尚未完成连续动作及听音审阅。米家V2与原片/成片对照已读取查看，保持reference-author-v2来源；S02编号替代及S08母版选择待用户回答，不阻塞S03准备。
+
+[NEW] 制作包、09_LOCAL_EXECUTION.md、六条补充媒体与来源、scene-demo-ui.mjs和scene-demo-inspect.mjs检查脚本。[MODIFIED] 本台账与制作包入口。[REUSED] 原3024服务、S02原生包/声音、米家V2、既有Agent消息链和HyperFrames0.8.33。脚本不写终片或工程状态。最终成片、64轮编辑与原生往返验收尚未执行，不以准备成果计为视频交付。
+
+### 2026-09-17 12:55 连接恢复与真实制作启动
+
+用户已授权直接登录及必要时使用其中转站。Codex 登录成功后，订阅主模型及备用模型均返回容量不足；保留两次失败记录。复用本机 Codex 配置的 One-API 中转后，结构化请求成功。新增显式 configured 连接模式，凭据仍由 Codex 管理，结构化输出、禁用 shell/apps 与只读沙盒保留；默认 auto/https 行为保留。22项连接/续作合同检查与 core 验证通过，browser/完整验收继续。
+
+确认无活动任务后重启原3024服务，PID10141，原数据目录不变。同一S03项目经真实WebUI成功进入制作：job-33672bba-f5a6-4c94-b721-9fa9bb8cfcfd，run 1cd03d67-75ef-424e-8d9f-418595093ffa。实际进度已越过brief，进入observe；尚无新修订或MP4。上文“等待登录”是历史阻断，已解除。继续跟踪实际任务、候选检查和自然语言续改，不重复建项目。
+
+
+### 2026-09-17 用户授权多场景并发
+
+排期更新为最多3条活跃制作：S03原任务继续，S01与S07由独立执行者经真实WebUI启动并分别记录工程。S04/S05/S06随后进入空闲名额，S08等待稳定母版。当前任务已创建每5分钟heartbeat跟进（automation），有实质进展/失败/需用户决策才通知。项目和job标识以各outputs/scene-demos-phase2/Sxx回执为准。严禁把提交/运行状态记为成片通过。
+
+
+### 2026-09-17 本轮作品入口与持续对话编辑
+
+按用户截图要求，WebUI归档隐藏61个旧工程、旧显卡登记和预设样片；底层媒体与历史未删除。web/workspace-library.json保存明确归档ID与本轮三工程标题，今后新工程和成片默认可见。下拉框下新增视频切换栏，每15秒刷新作品列表，其他工程导出后可自动出现；未导出工程单列，需处理/失败不冒充成片。
+
+新增编辑版本上下文和相对指代/选择性恢复快捷输入（只填入、不自动发送）；原有同工程message/baseRevisionId、撤销重做和独立导出链保留。修复观看参考作品时输入可能误建无关工程的问题：参考只读入口明确，新原生工程照常续改。米家V2包为HTML参考创作包，未冒充NativeDocument可对话工程。
+
+验证：6项列表/归档与成片文件检查通过；隔离浏览器验证两轮消息基准随最新版本推进、相对指代原话保留、刷新恢复、参考只读防误建通过；实机3024菜单核对和截图在outputs/scene-demos-phase2/workbench-library-check.json及workbench-library.png。core报告core-2026-09-17T05-25-12.210Z；完整验收20项通过（2026-09-17T05-26-15-895Z）；browser完整检查日志ui-browser.log。前端已构建，未重启活跃制作服务。前端验证不计为64轮真实语义视频验收。

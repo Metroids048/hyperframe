@@ -104,6 +104,35 @@ try {
       true,
     );
   });
+  await test("configured provider reports its own connection without requiring subscription login", async () => {
+    const {CodexProvider}=await import('../lib/edit/codex-provider.mjs');
+    const previous=process.env.VIDEO_AGENT_CODEX_TRANSPORT;
+    process.env.VIDEO_AGENT_CODEX_TRANSPORT='configured';
+    const provider=new CodexProvider({skipLoginCheck:true,workerFactory:()=>({})});
+    try {
+      assert.equal(provider.loggedIn,false);
+      assert.equal(provider.status().configured,true);
+      assert.equal(provider.status().connectionMode,'configured');
+      assert.equal(provider.status().verifiedAt,null);
+      process.env.VIDEO_AGENT_CODEX_TRANSPORT='auto';
+      assert.equal(provider.status().configured,false);
+      assert.equal(provider.status().connectionMode,'subscription');
+    } finally {
+      await provider.close();
+      if(previous===undefined)delete process.env.VIDEO_AGENT_CODEX_TRANSPORT;
+      else process.env.VIDEO_AGENT_CODEX_TRANSPORT=previous;
+    }
+  });
+  await test("configured transport reuses credentials while keeping bounded planning", () => {
+    const request={schemaFile:'s',output:'o',instructions:'i',messages:[]};
+    const args=codexRequest({...request,transport:'configured'}).args;
+    assert.ok(!args.includes('--ignore-user-config'));
+    assert.equal(args[args.indexOf('--sandbox')+1],'read-only');
+    for(const flag of ['features.apps=false','features.shell_tool=false','project_doc_max_bytes=0'])assert.ok(args.includes(flag));
+    assert.ok(args.includes('--output-schema'));
+    assert.ok(!args.some(a=>a.startsWith('model_provider=')));
+    assert.ok(codexRequest({...request,transport:'auto'}).args.includes('--ignore-user-config'));
+  });
   await test("HTTPS transport keeps subscription auth without overriding built-in provider", () => {
     const args = codexRequest({schemaFile:"s",output:"o",instructions:"i",messages:[],transport:"https"}).args;
     assert.ok(args.includes('model_providers.subscription-http.requires_openai_auth=true'));

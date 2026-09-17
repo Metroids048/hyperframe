@@ -431,7 +431,11 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
         }
         const added=[];for(const asset of p.assets.filter(a=>!assets.some(b=>b.id===a.id))){const prepared=await prepareCreativeAsset(root,asset,path.join(dir,'assets'),{signal});prepared.compiledRef=`assets/${path.basename(prepared.normalizedRef)}`;assets.push(prepared);added.push(prepared);document.assetRefs.push(prepared.id);}
         if(assets.some(a=>a.kind==='font'))document.fontResources=brandFontResources(assets);
-        const observed=[...added.filter(a=>a.kind!=='font'),...assets.filter(a=>a.kind==='audio'&&!a.generatedVoice&&!added.some(b=>b.id===a.id))].map(a=>({...a,normalizedRef:path.relative(root,path.join(dir,a.compiledRef)).replaceAll('\\','/')}));
+        const visualTargets=(job.input.routeDecision?.targets||[]).filter(t=>['visual','effect'].includes(t.kind));
+        const targetIds=new Set(visualTargets.map(t=>t.id).filter(Boolean));
+        const visualAssetIds=new Set(document.nodes.filter(n=>targetIds.has(n.id)||targetIds.has(n.sceneId)).map(n=>n.assetId).filter(Boolean));
+        const retainedVisuals=visualTargets.length?assets.filter(a=>a.kind==='image'||visualAssetIds.has(a.id)).filter(a=>['image','video'].includes(a.kind)).slice(0,8):[];
+        const observed=[...new Map([...added.filter(a=>a.kind!=='font'),...retainedVisuals,...assets.filter(a=>a.kind==='audio'&&!a.generatedVoice)].map(a=>[a.id,a])).values()].map(a=>({...a,normalizedRef:path.relative(root,path.join(dir,a.compiledRef)).replaceAll('\\','/')}));
         const evidence=observed.length?await collectCreativeEvidence(observed,dir,root,signal):{inputs:[],records:[]};
         document.audioEvidence=evidence.records.filter(r=>r.audioAnalysis).map(r=>({assetId:r.assetId,sha256:r.sha256,...r.audioAnalysis}));
         const countInvocation=async invocation=>{job.modelCalls=(job.modelCalls||0)+1;(job.modelInvocations??=[]).push({...invocation,stage:'R7-edit'});await save(p);};
@@ -504,7 +508,7 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
             await fs.writeFile(path.join(dir,`edit-failure-${attempt}.json`),JSON.stringify({revisionId:next.revisionId,error:error.message,code:error.code,issues:error.issues},null,2));
             const failureKey=JSON.stringify([error.code,error.issues||error.message]);failures.set(failureKey,(failures.get(failureKey)||0)+1);
             if(!next.production||signal.aborted||attempt>=fallbackPolicy.maxReplans||failures.get(failureKey)>=fallbackPolicy.identicalFailureLimit||error.code!=='EDIT_VISUAL_REVIEW')throw error;
-            const repair=await planCreativeEdit(next,'只修复本次修改造成的这些画面问题：'+JSON.stringify(error.issues)+'。允许修改的镜头：'+JSON.stringify([...allowedScenes])+'。只能修改这些镜头的自定义布局/动效源码、已有效果参数或明确字幕ID的样式，保持字幕时间、全文字、媒体区间、声音、时长和其他镜头。',{signal,root,onInvocation:countInvocation,cacheRoot:path.join(dir,'model-calls')});
+            const repair=await planCreativeEdit(next,'只修复本次修改造成的这些画面问题：'+JSON.stringify(error.issues)+'。允许修改的镜头：'+JSON.stringify([...allowedScenes])+'。只能修改这些镜头的自定义布局/动效源码、已有效果参数或明确字幕ID的样式，保持字幕时间、全文字、媒体区间、声音、时长和其他镜头。',{signal,root,onInvocation:countInvocation,cacheRoot:path.join(dir,'model-calls'),evidenceInputs:evidence.inputs,assetMetadata:assets.map(a=>({id:a.id,kind:a.kind,metadata:a.mediaMetadata}))});
             const requestedCaptionIds=new Set((job.changeReceipt?.targetSet||[]).filter(t=>/caption/.test(t.type)).map(t=>t.id).filter(Boolean));
             const allowedCaptions=new Set(projectNativeCaptions(next).filter(c=>(!requestedCaptionIds.size||requestedCaptionIds.has(c.id))&&next.scenes.some(s=>allowedScenes.has(s.id)&&c.startFrame<s.startFrame+s.durationFrames&&c.startFrame+c.durationFrames>s.startFrame)).map(c=>c.id));
             insist(repair.operations.length&&repair.operations.every(op=>['update_custom_source','update_effect_params'].includes(op.type)&&allowedScenes.has(op.sceneId)||op.type==='update_caption_style'&&allowedCaptions.has(op.nodeId)),'自动修复超出本次允许的布局范围','REPAIR_SCOPE');

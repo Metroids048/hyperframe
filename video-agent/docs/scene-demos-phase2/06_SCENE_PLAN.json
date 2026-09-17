@@ -1,0 +1,802 @@
+{
+  "meta": {
+    "packageVersion": "2026-09-17-phase2",
+    "repository": "https://github.com/Metroids048/hyperframe",
+    "baselineCommit": "90c78f037c2c483b5e3fe8abf2b9fb679ffe8ad3",
+    "purpose": "八场景业务驱动制作方案与Codex执行输入，不是成片或运行时API配置",
+    "verifiedThisTurn": [
+      "main引用",
+      "素材树10条文件存在",
+      "现有场景包加载代码",
+      "既有S02验证记录",
+      "外部具体来源页"
+    ],
+    "notDoneThisTurn": [
+      "源视频连续观看与本地解码",
+      "补充媒体成功下载",
+      "用户本机服务访问",
+      "付费模型调用",
+      "新Demo渲染",
+      "产品多轮编辑验收",
+      "仓库写入或推送"
+    ],
+    "newMp4sProduced": 0,
+    "minimumRequiredScenarioVideos": 9
+  },
+  "order": [
+    "S02",
+    "S03",
+    "S01",
+    "S04",
+    "S05",
+    "S06",
+    "S07",
+    "S08"
+  ],
+  "scenes": [
+    {
+      "id": "S01",
+      "name": "新品首发／品牌亮相",
+      "product": "Steam Deck既有型号亮相演示",
+      "purpose": "让首次接触的观众记住商品身份和一两个可见特征。",
+      "inputs": [
+        "MAT-07"
+      ],
+      "backup": [],
+      "businessScenario": "product_launch",
+      "taskMode": "create",
+      "folder": "product-launch",
+      "skill": "commerce.launch",
+      "seconds": 24,
+      "aspect": "9:16",
+      "depends": [],
+      "preflight": "确认有全貌和至少两个可分辨细节窗口；9:16必须容纳整台设备和关键操控部位。普通开箱不足以证明实际游戏表现。无法直裁就使用保全主体的分区布局，不偷偷改画幅。",
+      "brief": "用这些掌机素材做一条约24秒竖屏商品亮相演示，让人先认出是什么，再记住两个看得见的外观重点。画面为主，中文短标题，可加已有授权音乐，不加旁白、不报价格，不编游戏性能、续航和新型号信息。",
+      "arc": [
+        "识别：从真实全貌或有辨识力的取出瞬间开头",
+        "记忆点：选两段不同部位的清楚画面，不重复同一角度",
+        "语境：只呈现实际拍到的拿取、摆放或收纳，不虚构使用",
+        "收束：回到清晰产品全貌与非交易性了解提示"
+      ],
+      "resources": [
+        "title-reveal：只用于商品身份揭示",
+        "product-reveal或受控media composition：保持主体完整",
+        "keyword-emphasis：只强调有画面依据的短词",
+        "dissolve-transition/方向连接：按相邻构图选择，不全片色散"
+      ],
+      "aesthetic": "克制科技感；真实视频占主体，以构图变化和标题时序增强记忆，而不是把开箱变成大字卡。",
+      "audio": "本片默认无旁白；原音是否保留先观察，已有授权音乐可用且与原声独立。",
+      "preserve": [
+        "商品身份与素材来源",
+        "真实可见事实",
+        "未编辑镜头、音乐及主体保护区"
+      ],
+      "fail": [
+        "把历史商品写成2026新发布",
+        "用开箱画面宣称续航、跑分或游戏兼容",
+        "套入另一品牌/型号的画面",
+        "竖屏裁掉关键手持设备部位"
+      ],
+      "edits": [
+        [
+          "商品出场太晚，把产品亮相提前；总时长和音乐保持。",
+          "调整开头内容取舍，不是全片加速。"
+        ],
+        [
+          "刚才那个商品标题小一点，只改它。",
+          "定位上一轮焦点；其他字幕及画面保持。"
+        ],
+        [
+          "再往上移一点，别挡住设备。",
+          "沿用当前焦点并从当前位置增量调整。"
+        ],
+        [
+          "只在第一个切换加色散，其他转场保持。",
+          "真实chromatic-split作用于首个指定连接。"
+        ],
+        [
+          "刚才的色散恢复原样，但标题保持现在这样。",
+          "只恢复转场，不能整版回退。"
+        ],
+        [
+          "撤销上一步。",
+          "只撤销选择性恢复，回到前一有效版本内容。"
+        ],
+        [
+          "重做。",
+          "正确重做选择性恢复。"
+        ],
+        [
+          "导出这一版，并保留可继续修改的工程。",
+          "MP4与当前原生版本一致。"
+        ]
+      ],
+      "definitionStatus": "production_blueprint_not_execution_receipt",
+      "sourceRanges": null,
+      "sharedSkillNeeds": [
+        "hyperframes",
+        "media-use",
+        "visual-composition",
+        "speech-captions",
+        "audio-mix"
+      ],
+      "actualSelectedSkills": null,
+      "actualResourceBindings": null,
+      "outputState": "not_produced_this_turn",
+      "minimumFinalVideos": 1,
+      "configPath": "video-agent/commerce/scenes/product-launch/",
+      "scopeContract": "hyperframe_full_closeout/scenes/S01.md",
+      "deliverablesProposal": "video-agent/deliverables/scene-demos-phase2/S01/"
+    },
+    {
+      "id": "S02",
+      "name": "商品详情／卖点图解",
+      "product": "ASUS ProArt显卡结构详情",
+      "purpose": "让观众知道部位在哪里，说明与看到的结构一一对应。",
+      "inputs": [
+        "MAT-02"
+      ],
+      "backup": [],
+      "businessScenario": "product_detail",
+      "taskMode": "edit",
+      "folder": "product-detail",
+      "skill": "commerce.detail",
+      "seconds": 35,
+      "aspect": "16:9",
+      "depends": [],
+      "preflight": "先验证既有MiniMax工程与原生包、当前revision及Agent制作来源。核对19.2秒暗/虚细节、33.4秒整体/三视角对应和说明底板先出问题是否仍复现；只修仍存在的问题。原报告通过不覆盖新修订。",
+      "brief": "继续这条35秒横屏显卡详情片，先让观众看清整体，再解释画面中可确认的结构和接口位置。把不清楚的细节换成同部位的清楚源段，说明出现时必须能看到对应部位。保留已确认的声音、字幕风格与音乐，不新增未经证实的规格、性能、价格。",
+      "arc": [
+        "整体定位：用清楚全貌建立方向",
+        "局部解释：逐个部位，以真实源窗口对应简短旁白",
+        "空间关系：整体定位框与局部放大区同步，不乱指",
+        "回归整体：把刚解释的部位放回产品位置，完整收尾"
+      ],
+      "resources": [
+        "detail-inset：同一部位的整体—局部联动",
+        "feature-callout：有证据的定位与标签",
+        "受控sourceBundle：必要时实现持续可编辑的关系图",
+        "字幕/音轨原生对象：实测语音映射到相应证据窗口"
+      ],
+      "aesthetic": "清楚的技术说明片，不是广告口号片。保留已通过的构图/声音，减少遮挡，不以锐化假造源片细节。",
+      "audio": "优先复用已确认MiniMax音色及缓存；只对必须修改的台词段重新配音。现有音乐可复用；MiniMax音乐410不等于TTS不可用。",
+      "preserve": [
+        "原S02母版与已成功音频",
+        "未要求更改的商品事实/源区间",
+        "当前字幕样式与非目标音轨",
+        "35秒总时长与横屏"
+      ],
+      "fail": [
+        "标注指错或声音说接口但画面是别处",
+        "低清源片放大并宣称已恢复细节",
+        "单纯改字幕字号触发重配整片声音",
+        "复用旧MP4冒充重新走过Agent"
+      ],
+      "edits": [
+        [
+          "把接口说明提前，整体定位仍放在它前面，其他信息都保留。",
+          "保持空间解释依赖，不能提前到观众尚不认识整体。"
+        ],
+        [
+          "接口这段字幕小一点并上移，声音保持。",
+          "字幕样式与音频解耦。"
+        ],
+        [
+          "再上移一点。",
+          "定位同一字幕范围，不能移动全片所有文字。"
+        ],
+        [
+          "只把片尾这一句换成目录中另一种男声，台词和时间窗口保持。",
+          "先读取实际声音目录；未授权扩大窗口不能截尾。"
+        ],
+        [
+          "片尾改回刚才那种声音，但字幕保持现在的位置。",
+          "选择性恢复音频，不整体撤销字幕。"
+        ],
+        [
+          "撤销上一步。",
+          "验证前一声音恢复且字幕不变。"
+        ],
+        [
+          "重做。",
+          "重做准确，不产生重复音轨。"
+        ],
+        [
+          "导出当前版和原生工程。",
+          "复验源、音轨、字幕及最终MP4。"
+        ]
+      ],
+      "definitionStatus": "production_blueprint_not_execution_receipt",
+      "sourceRanges": null,
+      "sharedSkillNeeds": [
+        "hyperframes",
+        "media-use",
+        "visual-composition",
+        "speech-captions",
+        "audio-mix"
+      ],
+      "actualSelectedSkills": null,
+      "actualResourceBindings": null,
+      "outputState": "not_produced_this_turn",
+      "minimumFinalVideos": 1,
+      "configPath": "video-agent/commerce/scenes/product-detail/",
+      "scopeContract": "hyperframe_full_closeout/scenes/S02.md",
+      "deliverablesProposal": "video-agent/deliverables/scene-demos-phase2/S02/"
+    },
+    {
+      "id": "S03",
+      "name": "开箱／安装／使用教程",
+      "product": "即食饭调制流程演示",
+      "purpose": "观众看懂从准备到完成的必要过程，不靠字幕虚构缺失操作。",
+      "inputs": [
+        "MAT-06"
+      ],
+      "backup": [],
+      "businessScenario": "product_demo",
+      "taskMode": "create",
+      "folder": "product-demo",
+      "skill": "commerce.procedure",
+      "seconds": 55,
+      "aspect": "16:9",
+      "depends": [],
+      "preflight": "逐段核对真实动作顺序、包装文字、起始和完成状态。来源说明的原YouTube时码不能作为本文件时码。若关键步骤未拍到，只能补同款真实素材或准确声明本片仅演示可见部分，不能通过完整教程验收。",
+      "brief": "把这份即食饭制作素材整理成约55秒横屏使用流程片。保留真实准备、操作、等待前后衔接和完成状态，删掉无信息的等待；中文步骤条不要遮住手部。原声能用就保留，不加音乐，不猜加水量、加热功率或时间。",
+      "arc": [
+        "准备：辨认商品和实际需要的物件",
+        "操作：按依赖顺序保留必需动作及开始/结束状态",
+        "等待：可压缩真实无信息等待，但保留前后连续性",
+        "完成：结果可见，步骤条完成，不补写未演示功能"
+      ],
+      "resources": [
+        "步骤条：从当前catalog匹配可编辑component；ID待实际绑定",
+        "caption/usage-label：步骤说明与逐字字幕分轨",
+        "主体保护区：手部、容器和操作路径不被文字遮挡",
+        "轻量淡化/直接受控剪接：关键动作段内不插炫技转场"
+      ],
+      "aesthetic": "说明清楚、操作容易跟随；一步一重点，固定文字区，动作比动效重要。",
+      "audio": "优先保持可用原声；字幕不自动配音。原声有讲话再识别字幕，无讲话只能给证据支持的步骤说明。",
+      "preserve": [
+        "必需动作顺序、源速率与原声同步",
+        "可见准备和完成状态",
+        "明确步骤字段及安全边界"
+      ],
+      "fail": [
+        "为凑55秒截掉必要动作",
+        "无证据写具体水量/功率/温度",
+        "时间轴缩短后原声错段",
+        "步骤编号完结但实际操作未完成"
+      ],
+      "edits": [
+        [
+          "只删掉没有新动作的等待，操作过程和先后顺序别动。",
+          "Agent先识别等待证据；不得机械删静音。"
+        ],
+        [
+          "步骤说明挡到手了，往上移一点。",
+          "只调整步骤说明，不裁掉动作。"
+        ],
+        [
+          "再小一点，位置保持。",
+          "承接同一说明对象。"
+        ],
+        [
+          "第一段切到操作时不要花哨转场，其他不变。",
+          "限定范围，动作连续。"
+        ],
+        [
+          "说明字号恢复到缩小之前，但保持上移后的位置。",
+          "字段级选择性恢复。"
+        ],
+        [
+          "撤销上一步。",
+          "撤销字号恢复，不撤销位置。"
+        ],
+        [
+          "重做。",
+          "保持动作和原声哈希映射。"
+        ],
+        [
+          "导出教程和可继续修改的工程。",
+          "连贯播放到结果、检查重开后编辑。"
+        ]
+      ],
+      "definitionStatus": "production_blueprint_not_execution_receipt",
+      "sourceRanges": null,
+      "sharedSkillNeeds": [
+        "hyperframes",
+        "media-use",
+        "visual-composition",
+        "timeline-edit"
+      ],
+      "actualSelectedSkills": null,
+      "actualResourceBindings": null,
+      "outputState": "not_produced_this_turn",
+      "minimumFinalVideos": 1,
+      "configPath": "video-agent/commerce/scenes/product-demo/",
+      "scopeContract": "hyperframe_full_closeout/scenes/S03.md",
+      "deliverablesProposal": "video-agent/deliverables/scene-demos-phase2/S03/"
+    },
+    {
+      "id": "S04",
+      "name": "穿搭／组合／系列展示",
+      "product": "首饰单品与佩戴组合",
+      "purpose": "讲清单品各自是什么，以及组合起来的关系；不是随机拼珠宝镜头。",
+      "inputs": [
+        "pexels-9430537",
+        "pexels-9430543",
+        "pexels-9430550"
+      ],
+      "backup": [
+        "MAT-05"
+      ],
+      "businessScenario": "product_collection",
+      "taskMode": "create",
+      "folder": "product-collection",
+      "skill": "commerce.collection",
+      "seconds": 30,
+      "aspect": "9:16",
+      "depends": [],
+      "preflight": "补充视频尚未下载。下载后逐项匹配戒指/项链/耳饰身份；同作者不代表同一件产品。至少有两种可辨单品及组合画面，素材窗口足够且不靠反复循环凑30秒。若不相同，分别按实际单品展示，不假装同款；仍无法表达组合则继续补同一组视频。",
+      "brief": "用这些已核对身份的首饰视频做约30秒竖屏搭配展示：先看组合，再看各单品，最后回到佩戴关系。画面保持真实颜色，不推测贵金属成分、价格或品牌；同件商品的画面要一致，音乐轻，文字少。",
+      "arc": [
+        "组合主题：真实同框/佩戴关系开场",
+        "单品：按身份分组展示，名称标签稳定对应",
+        "关系：分屏或网格比较各自形状与位置，不写未证实材质",
+        "群像：回到完整组合，让观众能辨认出现过的单品"
+      ],
+      "resources": [
+        "grid/split-screen需求：经resource-catalog选择已适配资源",
+        "identity label：同一物件的稳定标签与nodeId",
+        "协调遮罩/方向过渡：不把一种首饰变形成另一种",
+        "成组typography：不覆盖项链、耳饰及戒指细节"
+      ],
+      "aesthetic": "编辑式画册感；用分组、版式和动线表现搭配关系，避免所有镜头都是全屏大标题。",
+      "audio": "已有授权纯音乐为主，无必须旁白；音乐不携带未经许可的原广告人声。",
+      "preserve": [
+        "每款身份、真实色号与对应镜头",
+        "必须出现的单品清单",
+        "原版和非目标款曝光"
+      ],
+      "fail": [
+        "同作者素材自动认作同款",
+        "只看到银色外观就写925银",
+        "将Elsa品牌广告与外部首饰冒充同一系列",
+        "以变形转场掩盖SKU替换"
+      ],
+      "edits": [
+        [
+          "先看项链，再看戒指，组合收尾保留。",
+          "按真实身份重排，不按文件名猜对象。"
+        ],
+        [
+          "项链标签太大，只缩小它。",
+          "其他商品标签保持。"
+        ],
+        [
+          "刚才那个标签再往右一点，不压到首饰。",
+          "跟随同一焦点。"
+        ],
+        [
+          "把背景音乐调轻，片尾自然淡出。",
+          "只改音乐轨，不改镜头速度。"
+        ],
+        [
+          "标签字号恢复原样，但位置和音乐保持现在这样。",
+          "选择性恢复标签字号。"
+        ],
+        [
+          "撤销上一步。",
+          "其他单品与声音不回退。"
+        ],
+        [
+          "重做。",
+          "验证依赖隔离。"
+        ],
+        [
+          "导出搭配片和原生工程。",
+          "检查单品露出与组合关系。"
+        ]
+      ],
+      "definitionStatus": "production_blueprint_not_execution_receipt",
+      "sourceRanges": null,
+      "sharedSkillNeeds": [
+        "hyperframes",
+        "media-use",
+        "visual-composition",
+        "speech-captions",
+        "audio-mix"
+      ],
+      "actualSelectedSkills": null,
+      "actualResourceBindings": null,
+      "outputState": "not_produced_this_turn",
+      "minimumFinalVideos": 1,
+      "configPath": "video-agent/commerce/scenes/product-collection/",
+      "scopeContract": "hyperframe_full_closeout/scenes/S04.md",
+      "deliverablesProposal": "video-agent/deliverables/scene-demos-phase2/S04/"
+    },
+    {
+      "id": "S05",
+      "name": "活动促销／直播预告",
+      "product": "香水视觉＋明确虚构的直播演示活动",
+      "purpose": "让观众读清活动主题、时间、参与方式，而不是虚构优惠。",
+      "inputs": [
+        "pexels-8447362",
+        "pexels-8447672",
+        "pexels-8453909"
+      ],
+      "backup": [],
+      "businessScenario": "product_promotion",
+      "taskMode": "create",
+      "folder": "product-promotion",
+      "skill": "commerce.campaign",
+      "seconds": 22,
+      "aspect": "9:16",
+      "depends": [],
+      "preflight": "补充素材下载和同瓶身份核对后再绑定；品牌或人物不得被描述为本项目代言。当前没有真实活动信息，本卡只能使用显著标注的虚构Demo事实包；公开商用版本必须换成经确认的真实活动及合法素材。",
+      "brief": "做一条约22秒竖屏活动预告能力演示。活动是虚构测试：主题“香氛展示直播”，演示时间2026年10月1日20:00（北京时间），入口写“演示直播间”，不设置折扣、不写价格、不声称官方活动。全片清楚显示“虚构活动／非官方演示”。商品镜头为主，时间和参与方式足够好读，可用中文旁白和轻音乐。",
+      "arc": [
+        "主题：商品与活动主题同时建立",
+        "内容价值：说明展示内容，不宣称香调/持香等未知特性",
+        "参与信息：独立展示虚构时间、入口及非真实活动标识",
+        "行动：清楚收束到演示入口，不导向实际交易或冒名账号"
+      ],
+      "resources": [
+        "date/condition/CTA：独立可编辑文字对象",
+        "keyword-emphasis：强调活动主题而非虚假优惠数字",
+        "title-reveal与受控数字排版：日期不用系统实时时钟",
+        "定向/短淡化：建立节奏但不抢活动条件阅读时间"
+      ],
+      "aesthetic": "有节奏的活动视觉，产品仍可见；时间与条件优先，不能缩成小字充数。",
+      "audio": "获准使用当前可用TTS；活动日期、时间、行动提示建立文字—语音字段关联。音乐独立可调，无音乐生成也可使用已有授权音乐。",
+      "preserve": [
+        "显著虚构/非官方标识",
+        "活动字段一致性与原义",
+        "真实商品身份、未编辑镜头"
+      ],
+      "fail": [
+        "虚构日期当成真实活动发布",
+        "画面改日期而旁白仍播旧日期",
+        "香水素材标题或标签当成香调/效果证明",
+        "没有音频授权擅自换配音供应商"
+      ],
+      "edits": [
+        [
+          "演示时间改成10月2日21:00，相关画面和旁白一起改，其他不动。",
+          "有明确授权才重配关联句；不重配整片。"
+        ],
+        [
+          "时间信息大一点，别挡住商品。",
+          "只改时间对象样式。"
+        ],
+        [
+          "刚才那块再向上移一点。",
+          "识别时间对象，不移动全片字幕。"
+        ],
+        [
+          "音乐小一点，片尾淡出。",
+          "仅独立音乐轨修改。"
+        ],
+        [
+          "时间字号恢复到放大前，保持新日期、位置和音乐。",
+          "字段级恢复，不回退活动事实。"
+        ],
+        [
+          "撤销上一步。",
+          "回退字号，不回退日期。"
+        ],
+        [
+          "重做。",
+          "保持旁白和画面仍说同一新时间。"
+        ],
+        [
+          "导出演示版，保留虚构活动标识和原生工程。",
+          "仍是演示用途，不能自动进入真实投放。"
+        ]
+      ],
+      "definitionStatus": "production_blueprint_not_execution_receipt",
+      "sourceRanges": null,
+      "sharedSkillNeeds": [
+        "hyperframes",
+        "media-use",
+        "visual-composition",
+        "speech-captions",
+        "audio-mix"
+      ],
+      "actualSelectedSkills": null,
+      "actualResourceBindings": null,
+      "outputState": "not_produced_this_turn",
+      "minimumFinalVideos": 1,
+      "configPath": "video-agent/commerce/scenes/product-promotion/",
+      "scopeContract": "hyperframe_full_closeout/scenes/S05.md",
+      "deliverablesProposal": "video-agent/deliverables/scene-demos-phase2/S05/"
+    },
+    {
+      "id": "S06",
+      "name": "选购说明／场景问答",
+      "product": "Steam Deck这次开箱的实物清单问答",
+      "purpose": "回答具体购买前问题，并将能确认与不能确认的内容分开。",
+      "inputs": [
+        "MAT-07"
+      ],
+      "backup": [],
+      "businessScenario": "product_faq",
+      "taskMode": "create",
+      "folder": "product-faq",
+      "skill": "commerce.evidence_qa",
+      "seconds": 30,
+      "aspect": "16:9",
+      "depends": [],
+      "preflight": "核查这次开箱实际展示的物件，至少能形成一个明确回答和两处独立证据。商品清单只限本次拍摄，不扩大为当前所有SKU标配；未观察到的附件不列“没有”。若素材不足以回答本题，记录缺少的具体实物窗口并补源，不能偷换成产品介绍。",
+      "brief": "用这份掌机开箱素材做约30秒购买前问答，回答“这次开箱实际展示了哪些盒内物件？”先给简短答案，再逐个用真实画面对应。只说看得见的东西；片尾说明配置需以具体购买版本确认，不据此判断游戏性能、续航或兼容性。中文旁白配字幕，原素材与S01相同也要重新按问答目的取舍。",
+      "arc": [
+        "提问：短问题标题，不铺满画面",
+        "简答：仅列本次画面可确认的物件",
+        "证据：答案中的每一项都回到实际源窗口",
+        "边界：区分本次记录与所有销售配置，保留必要限制"
+      ],
+      "resources": [
+        "question label：问题只在开头形成焦点",
+        "split-detail/feature-callout：回答与对应实物同屏",
+        "caption：真实旁白时序，答案和字幕不打架",
+        "小型边界说明：可读且不盖住产品"
+      ],
+      "aesthetic": "答案先行的证据型信息片；不重复S01的亮相叙事，不用漂亮空镜代替答案。",
+      "audio": "短中文旁白＋关联字幕；用实际生成时长安排证据窗口，不能先随机选段再硬铺旁白。",
+      "preserve": [
+        "原问题及答案证据对应",
+        "无法确认的限制信息",
+        "不同物件身份",
+        "其他旁白段及字幕样式"
+      ],
+      "fail": [
+        "把未出现当成不存在",
+        "把历史开箱当作当前所有SKU配置",
+        "提问是附件，回答却变成性能广告",
+        "只显示问答卡不使用源画面证据"
+      ],
+      "edits": [
+        [
+          "答案早点说，证据镜头和限制说明都保留。",
+          "前置答案，不删除边界。"
+        ],
+        [
+          "问题标题短一点，但不要改问题的意思。",
+          "标题精简与旁白事实一致。"
+        ],
+        [
+          "刚才这个标题小一点。",
+          "只改标题，不重配声音。"
+        ],
+        [
+          "第一条答案字幕上移一点，其他不变。",
+          "只改被指向的一条字幕。"
+        ],
+        [
+          "标题恢复成精简前的文字，字号和字幕位置保持。",
+          "只恢复文字字段。"
+        ],
+        [
+          "撤销上一步。",
+          "其他证据及音轨不回退。"
+        ],
+        [
+          "重做。",
+          "回放确认回答和证据仍匹配。"
+        ],
+        [
+          "导出问答片和原生工程。",
+          "与S01有明确内容组织差异。"
+        ]
+      ],
+      "definitionStatus": "production_blueprint_not_execution_receipt",
+      "sourceRanges": null,
+      "sharedSkillNeeds": [
+        "hyperframes",
+        "media-use",
+        "visual-composition",
+        "speech-captions",
+        "audio-mix"
+      ],
+      "actualSelectedSkills": null,
+      "actualResourceBindings": null,
+      "outputState": "not_produced_this_turn",
+      "minimumFinalVideos": 1,
+      "configPath": "video-agent/commerce/scenes/product-faq/",
+      "scopeContract": "hyperframe_full_closeout/scenes/S06.md",
+      "deliverablesProposal": "video-agent/deliverables/scene-demos-phase2/S06/"
+    },
+    {
+      "id": "S07",
+      "name": "已有视频精剪与包装",
+      "product": "握力球过程片精剪",
+      "purpose": "在不改写原意与动作链的前提下，让长素材更紧凑、可理解。",
+      "inputs": [
+        "MAT-08"
+      ],
+      "backup": [
+        "MAT-05"
+      ],
+      "businessScenario": "product_demo",
+      "taskMode": "recut",
+      "folder": "product-demo",
+      "skill": "commerce.recut",
+      "seconds": 55,
+      "aspect": "16:9",
+      "depends": [],
+      "preflight": "本地完整查看104秒来源候选，记录开始、维持、间歇、结束及原声。不得把危险示范美化成训练指导；保留来源已有警告，必要时仅作“过程记录精剪”而非操作教学。若风险/素材不适宜，则用授权明确的已有广告做保义精剪并准确记录目的变更，不伪装教程完成。",
+      "brief": "把这个较长的使用过程记录精剪成约55秒，保留启动、运动状态变化与结束的真实顺序，只删无新信息的重复和等待，保留对应原声。加少量章节说明，不添加音乐、不重写原意、不加入训练效果或鼓励高强度模仿的内容。给我看清楚删了哪里、保留了什么。",
+      "arc": [
+        "理解：先识别原内容的过程及必需上下文",
+        "删留：从源证据中区分必要动作和无信息冗余",
+        "包装：只补章节/指示，保持动作本身为主",
+        "对照：主交付为完整精剪片，另保留删留表与对照窗口"
+      ],
+      "resources": [
+        "rough-cut/timeline能力：以内容与动作证据决定剪点",
+        "chapter label：可编辑章节，不伪造成原声字幕",
+        "原声映射：同源起点、速度与片段顺序",
+        "轻连接：不将动作断点隐藏在炫技转场里"
+      ],
+      "aesthetic": "干净的精剪与章节包装，重点展示Agent判断删留的价值，而非增加装饰数量。",
+      "audio": "保留随源内容同步的可用原声；不加音乐，不生成TTS。不可恢复混合成片中未提供的原分轨。",
+      "preserve": [
+        "真实动作和原意",
+        "原声源位置/速率",
+        "来源提示及安全边界",
+        "未要求删除的关键内容"
+      ],
+      "fail": [
+        "静音段全部机械删除",
+        "跳过关键动作造成错误顺序",
+        "用全片加速冒充精剪",
+        "前后对比视频来自不同素材或另一个商品"
+      ],
+      "edits": [
+        [
+          "把开头无动作的准备等待再缩短，但启动动作完整保留。",
+          "精确找到无信息源区间，不截启动。"
+        ],
+        [
+          "第二个章节说明小一点。",
+          "只改指定章节点。"
+        ],
+        [
+          "再往上移一点。",
+          "沿用最近章节点焦点。"
+        ],
+        [
+          "把最近删掉的一小段恢复回来，说明样式保持。",
+          "用真实删留记录恢复，不凭空生成。"
+        ],
+        [
+          "恢复刚才那次删段，仍保留现在的说明样式。",
+          "仅作用于源片段操作，不整体回退。"
+        ],
+        [
+          "撤销上一步。",
+          "恢复片段且样式保持。"
+        ],
+        [
+          "重做。",
+          "恢复精剪结果并核对原声。"
+        ],
+        [
+          "导出精剪片、工程和删留对照。",
+          "实测时长、动作完整性与同源对照。"
+        ]
+      ],
+      "definitionStatus": "production_blueprint_not_execution_receipt",
+      "sourceRanges": null,
+      "sharedSkillNeeds": [
+        "hyperframes",
+        "media-use",
+        "visual-composition",
+        "timeline-edit"
+      ],
+      "actualSelectedSkills": null,
+      "actualResourceBindings": null,
+      "outputState": "not_produced_this_turn",
+      "minimumFinalVideos": 1,
+      "configPath": "video-agent/commerce/scenes/product-demo/",
+      "scopeContract": "hyperframe_full_closeout/scenes/S07.md",
+      "deliverablesProposal": "video-agent/deliverables/scene-demos-phase2/S07/"
+    },
+    {
+      "id": "S08",
+      "name": "一稿多版／开头／画幅调整",
+      "product": "S02显卡母版的开头版＋竖屏版",
+      "purpose": "证明同一工程可以针对不同触达方式派生，且母版和兄弟版本互不破坏。",
+      "inputs": [
+        "MAT-02"
+      ],
+      "backup": [],
+      "businessScenario": "product_detail",
+      "taskMode": "variant",
+      "folder": "product-detail",
+      "skill": "commerce.variant",
+      "seconds": 35,
+      "aspect": "16:9 + 9:16",
+      "depends": [
+        "S02"
+      ],
+      "preflight": "从S02本轮质量通过的真实revision派生；A/B均记录同一母版ID。母版未通过则只准备分支方案，不复制旧MP4假装派生。无论文件或版本号，都必须绑定实际源/音轨/字幕/资源。",
+      "brief": "从这条已确认的35秒横屏显卡详情片各出一个独立版本：A仍横屏，只修改前3秒的视觉开头，后面和声音不要动；B保持35秒，做竖屏，把整体定位和局部说明重新排好，不要简单中心裁切。保留母版，不要让一个版本的修改影响另一个。",
+      "arc": [
+        "母版：冻结已验证内容和ID，不复制成片冒充工程",
+        "A：只改变开头视觉组织，3秒之后绝对时间与内容保持",
+        "B：按竖屏保护区重布局整体、细节、标签及字幕",
+        "对照：母版/A/B分别可播放、可编辑、可恢复和下载"
+      ],
+      "resources": [
+        "原生branch与稳定nodeId：两个独立依赖分支",
+        "A：受控标题揭示/开头版式，不改变后文或音轨",
+        "B：detail-inset/分区布局/字号适配，重新验证空间指向",
+        "原生字幕与音轨继承：不因改画幅重配整片声音"
+      ],
+      "aesthetic": "A靠开头表达差异；B靠布局适配体现价值。两条都必须像经过重新设计，而不是随机换颜色或粗暴裁画面。",
+      "audio": "母版所有音轨原样继承。A不改变前3秒声音；若新视觉无法兼容声音，就另选兼容视觉，不私自改声。",
+      "preserve": [
+        "母版及兄弟版的源/音轨/对象",
+        "A的第3秒之后全部内容和绝对时间",
+        "B的全部事实、时长、音色与有效证据",
+        "原生包的分支关系"
+      ],
+      "fail": [
+        "只改width/height就是竖屏适配",
+        "A改开头导致后文整体时间漂移",
+        "两个派生互相覆盖",
+        "同一个MP4复制两份计作多版"
+      ],
+      "edits": [
+        [
+          "只改A的开头标题，B和母版不动。",
+          "分支作用域验证。"
+        ],
+        [
+          "刚才标题再小一点。",
+          "同分支同焦点。"
+        ],
+        [
+          "切到B，只把字幕上移，其他保持。",
+          "工程选择由UI真实切换；不猜目标分支。"
+        ],
+        [
+          "B的字幕字号放大一点，第一处转场改为淡化，别动A。",
+          "兄弟版不可变。"
+        ],
+        [
+          "B字幕字号恢复母版设置，但保持上移位置和竖屏布局。",
+          "选择性恢复字段，不恢复整张母版构图。"
+        ],
+        [
+          "撤销上一步。",
+          "只回退B的字号操作。"
+        ],
+        [
+          "重做。",
+          "母版/A哈希仍一致。"
+        ],
+        [
+          "分别导出A和B，并导出能重开全部分支的原生包。",
+          "两条35秒实片、分支包往返后续改。"
+        ]
+      ],
+      "definitionStatus": "production_blueprint_not_execution_receipt",
+      "sourceRanges": null,
+      "sharedSkillNeeds": [
+        "hyperframes",
+        "media-use",
+        "visual-composition",
+        "speech-captions",
+        "audio-mix"
+      ],
+      "actualSelectedSkills": null,
+      "actualResourceBindings": null,
+      "outputState": "not_produced_this_turn",
+      "minimumFinalVideos": 2,
+      "configPath": "video-agent/commerce/scenes/product-detail/",
+      "scopeContract": "hyperframe_full_closeout/scenes/S08.md",
+      "deliverablesProposal": "video-agent/deliverables/scene-demos-phase2/S08/"
+    }
+  ]
+}

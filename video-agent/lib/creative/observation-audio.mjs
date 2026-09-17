@@ -22,3 +22,11 @@ export function observationAudioStatus(brief, transcripts) {
   return {status:'no_recognized_speech',reviewRequired:true,
     limitation:'转写未识别到讲话，不代表原片无声或已完成试听。完整保留原音轨，不据此删音或编写口播字幕；语义与音画对应待审。'};
 }
+
+// Speech-dependent recuts need measured evidence even when the brief cannot
+// establish speech from visual observations. Music-only inputs do not trigger ASR.
+export function needsSourceSpeechEvidence(brief,contract,assets){
+ return Boolean(brief.needsTranscription||(brief.keepOriginalAudio&&
+   (contract?.workflow?.taskMode==='recut'||contract?.taskMode==='recut')&&
+   assets.some(a=>a.kind==='video'&&a.mediaMetadata?.hasAudio)));
+}

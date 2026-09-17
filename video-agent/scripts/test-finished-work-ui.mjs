@@ -9,13 +9,18 @@ const old={id:'old',description:'已导出',rendered:true,videoUrl:'/clip.mp4',p
 const current={...old,id:'new',description:'待导出',rendered:false,videoUrl:null};
 const project={id:'p',title:'耳机',request:{},currentRevisionId:'new',revisions:[old,current],assets:[],jobs:[],messages:[]};
 const work={id:'mijia-v2',title:'米家相机 V2',durationSeconds:72,videoUrl:'/reference.mp4',packageUrl:'/reference.zip',note:'reference-author-v2'};
-let catalogFailure=false;const errors=[];
+let catalogFailure=false;const errors=[],requests=[];
 const server=http.createServer(async(req,res)=>{try{
  const url=new URL(req.url,'http://local');let data;
  if(url.pathname==='/api/commerce-projects')data={projects:[project],historyProjectIds:['p']};
  if(url.pathname==='/api/commerce-demos')data={presets:[]};
  if(url.pathname==='/api/commerce-finished'){if(catalogFailure){res.writeHead(500,{'Content-Type':'application/json'});return res.end(JSON.stringify({error:'参考成品校验失败'}));}data={works:[work]};}
  if(url.pathname==='/api/commerce/p')data={project};
+ if(url.pathname==='/api/commerce-chat'&&req.method==='POST'){
+  let body='';for await(const chunk of req)body+=chunk;const input=JSON.parse(body);requests.push(input);
+  if(input.action==='message'){const id='edit-'+requests.length;project.revisions.push({...current,id,parentId:project.currentRevisionId,description:input.message});project.currentRevisionId=id;project.messages.push({role:'user',text:input.message});}
+  data={project};
+ }
  if(url.pathname==='/document.json')data={scenes:[],nodes:[],resourceReceipts:[]};
  if(data){res.setHeader('Content-Type','application/json');return res.end(JSON.stringify(data));}
  if(url.pathname==='/editor-player.js'){res.setHeader('Content-Type','text/javascript');return res.end("customElements.define('hyperframes-player',class extends HTMLElement {pause(){} seek(){}})");}
@@ -35,8 +40,18 @@ try{
  await page.select('#revisions','old');await page.waitForFunction(()=>document.querySelector('#send').disabled);
  assert.equal(await page.$eval('#download',el=>el.hidden),false,'the prior exported version remains available explicitly');
  await page.reload();await page.waitForFunction(()=>document.querySelector('#revisions').value==='new'&&!document.querySelector('#send').disabled);
+ await page.type('#message','把标题往上移一点，声音不变。');await page.click('#send');
+ await page.waitForFunction(()=>document.querySelector('#revisions').value==='edit-1');
+ await page.click('[data-edit-prompt]');await page.click('#send');
+ await page.waitForFunction(()=>document.querySelector('#revisions').value==='edit-2');
+ assert.equal(requests[0].baseRevisionId,'new');assert.equal(requests[1].baseRevisionId,'edit-1');
+ assert.match(requests[1].message,/刚才/);assert.equal(requests[1].projectId,'p');
+ await page.reload();await page.waitForFunction(()=>document.querySelector('#revisions').value==='edit-2');
+ assert.match(await page.$eval('#messages',e=>e.textContent),/标题往上/);
+ assert.equal(await page.$eval('#edit-suggestions',e=>e.hidden),false);
  await page.select('#projects','work:mijia-v2');await page.waitForFunction(()=>!document.querySelector('#case-view').hidden);
  assert.equal(await page.$eval('#case-film',el=>el.getAttribute('src')),'/reference.mp4');
+ assert.equal(await page.$eval('#send',el=>el.disabled),true,'reference playback must not create an unrelated project from an edit message');
  assert.equal(await page.$eval('#human-review-link',el=>el.hidden),true);
  assert.equal(await page.$eval('#download',el=>el.hidden),true);
  await page.reload();await page.waitForFunction(()=>document.querySelector('#projects').value==='work:mijia-v2');

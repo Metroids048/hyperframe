@@ -44,7 +44,21 @@ export function localVoice(voice,instructions=''){
 }
 export class CodexProvider extends CloudProvider {
   constructor({workerFactory=options=>new SpeechWorker(options),skipLoginCheck=false,cacheRoot,reasoningEffort=process.env.VIDEO_AGENT_CODEX_REASONING_EFFORT||'low',timeoutMs=process.env.VIDEO_AGENT_MODEL_TIMEOUT_MS||600000,onInvocation}={}){super();this.timeoutMs=modelTimeoutMs(timeoutMs);this.reasoningEffort=reasoningEffort;this.onInvocation=onInvocation;this.bin=process.env.VIDEO_AGENT_CODEX_BIN||'codex';this.environment=subscriptionEnv();this.model=process.env.VIDEO_AGENT_CODEX_MODEL||process.env.VIDEO_AGENT_EDIT_MODEL||null;this.verifiedAt=null;this.loginCheckedAt=0;this.loggedIn=false;this.cacheRoot=cacheRoot||process.env.VIDEO_AGENT_CACHE_ROOT||path.join(ROOT,'data');this.asr=workerFactory({python:localPython(),env:this.environment});this.tts=workerFactory({python:localPython(),env:this.environment});if(!skipLoginCheck)void this.refreshLogin();}
-  status(){return {configured:this.loggedIn,checkingLogin:!!this.loginPending,provider:'Codex subscription',model:this.model||'Codex 默认模型',auth:'ChatGPT subscription',verifiedAt:this.verifiedAt,transcriptionModel:(process.env.VIDEO_AGENT_ASR_ENGINE==='whisperx'?'WhisperX':'Whisper')+' '+(process.env.VIDEO_AGENT_WHISPER_MODEL||'small')+' · 本地',voiceModel:process.env.VIDEO_AGENT_TTS_ENGINE==='minimax'?'MiniMax · '+(process.env.MINIMAX_SPEECH_MODEL||'speech-2.8-hd'):process.env.VIDEO_AGENT_TTS_ENGINE==='elevenlabs'?'ElevenLabs':'HyperFrames Kokoro · 本地中文',voices:process.env.VIDEO_AGENT_TTS_ENGINE==='minimax'?{engine:'minimax',catalog:'account',minRate:0.5,maxRate:2,default:process.env.MINIMAX_VOICE_ID||null}:process.env.VIDEO_AGENT_TTS_ENGINE==='elevenlabs'?{engine:'elevenlabs',minRate:0.7,maxRate:1.2}:{engine:'kokoro',ids:localVoices,default:'zf_001',minRate:0.5,maxRate:2,language:'zh',instructionSupport:'音色与语速；不支持任意情绪或音色克隆'},connectionMode:'subscription'};}
+  status(){
+    const custom=process.env.VIDEO_AGENT_CODEX_TRANSPORT==='configured';
+    return {
+      configured:custom||this.loggedIn,
+      checkingLogin:custom?false:!!this.loginPending,
+      provider:custom?'Codex configured provider':'Codex subscription',
+      model:this.model||'Codex 默认模型',
+      auth:custom?'Codex user configuration':'ChatGPT subscription',
+      verifiedAt:this.verifiedAt,
+      transcriptionModel:(process.env.VIDEO_AGENT_ASR_ENGINE==='whisperx'?'WhisperX':'Whisper')+' '+(process.env.VIDEO_AGENT_WHISPER_MODEL||'small')+' · 本地',
+      voiceModel:process.env.VIDEO_AGENT_TTS_ENGINE==='minimax'?'MiniMax · '+(process.env.MINIMAX_SPEECH_MODEL||'speech-2.8-hd'):process.env.VIDEO_AGENT_TTS_ENGINE==='elevenlabs'?'ElevenLabs':'HyperFrames Kokoro · 本地中文',
+      voices:process.env.VIDEO_AGENT_TTS_ENGINE==='minimax'?{engine:'minimax',catalog:'account',minRate:0.5,maxRate:2,default:process.env.MINIMAX_VOICE_ID||null}:process.env.VIDEO_AGENT_TTS_ENGINE==='elevenlabs'?{engine:'elevenlabs',minRate:0.7,maxRate:1.2}:{engine:'kokoro',ids:localVoices,default:'zf_001',minRate:0.5,maxRate:2,language:'zh',instructionSupport:'音色与语速；不支持任意情绪或音色克隆'},
+      connectionMode:custom?'configured':'subscription',
+    };
+  }
   async refreshLogin(){
     if(this.loginPending)return this.loginPending;
     this.environment=subscriptionEnv();this.loginError=null;
@@ -56,9 +70,12 @@ export class CodexProvider extends CloudProvider {
     }).finally(()=>{this.loginPending=null;});return this.loginPending;
   }
   async structured(instructions,input,schema,signal,attempt=0) {
+    const configuredTransport=process.env.VIDEO_AGENT_CODEX_TRANSPORT==='configured';
     const candidates=[...new Set([...(this.availableModel?[this.availableModel]:[]),this.model,...(process.env.VIDEO_AGENT_CODEX_FALLBACK_MODELS||'').split(',').map(x=>x.trim()).filter(Boolean)])],model=candidates[attempt]||this.model;
-    if(this.loginPending||!this.loggedIn||Date.now()-this.loginCheckedAt>30000)await this.refreshLogin();
-    if(!this.loggedIn)throw Object.assign(new EditError(this.loginError||'本机 Codex 尚未使用 ChatGPT 登录，请先完成 Codex 登录',503),{code:'CODEX_LOGIN_REQUIRED'});
+    if(!configuredTransport){
+      if(this.loginPending||!this.loggedIn||Date.now()-this.loginCheckedAt>30000)await this.refreshLogin();
+      if(!this.loggedIn)throw Object.assign(new EditError(this.loginError||'本机 Codex 尚未使用 ChatGPT 登录，请先完成 Codex 登录',503),{code:'CODEX_LOGIN_REQUIRED'});
+    }
     const dir=path.join(this.cacheRoot,'edit-engine',uid());await fs.mkdir(dir,{recursive:true});const schemaFile=path.join(dir,'schema.json'),output=path.join(dir,'result.json');await fs.writeFile(schemaFile,JSON.stringify(schema));
     const images=[],messages=[];
     for(const item of input){const parts=[];for(const c of (Array.isArray(item.content)?item.content:[{type:'input_text',text:item.content}])) {
@@ -67,7 +84,7 @@ export class CodexProvider extends CloudProvider {
     }messages.push({role:item.role,content:parts.join('\n')});}
     const working=await codexWorkingDirectory(dir);
     const {args,prompt}=codexRequest({model,schemaFile:working.file('schema.json'),output:working.file('result.json'),images:images.map(file=>working.file(path.basename(file))),instructions,messages,reasoningEffort:this.reasoningEffort});
-    const invocation={model,timeoutMs:this.timeoutMs,reasoningEffort:this.reasoningEffort,attempt,imageCount:images.length,promptSha256:createHash('sha256').update(prompt).digest('hex'),schemaSha256:createHash('sha256').update(JSON.stringify(schema)).digest('hex'),directory:dir};
+    const invocation={model,transport:process.env.VIDEO_AGENT_CODEX_TRANSPORT||'auto',timeoutMs:this.timeoutMs,reasoningEffort:this.reasoningEffort,attempt,imageCount:images.length,promptSha256:createHash('sha256').update(prompt).digest('hex'),schemaSha256:createHash('sha256').update(JSON.stringify(schema)).digest('hex'),directory:dir};
     try {
       await fs.writeFile(path.join(dir,'prompt.txt'),prompt);
       await this.onInvocation?.(invocation);

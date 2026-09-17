@@ -32,12 +32,13 @@ export function codexRequest({
   const args = [
     "exec",
     "--ephemeral",
-    "--ignore-user-config",
     "--skip-git-repo-check",
     "--sandbox",
     "read-only",
   ];
-  if(!['auto','https'].includes(transport))throw new RangeError('VIDEO_AGENT_CODEX_TRANSPORT 必须为auto或https');
+  if(!['auto','https','configured'].includes(transport))throw new RangeError('VIDEO_AGENT_CODEX_TRANSPORT 必须为auto、https或configured');
+  // Explicit opt-in lets Codex load the user's provider and credentials itself.
+  if(transport!=='configured')args.push('--ignore-user-config');
   if(transport==='https')for(const value of [
     'model_provider="subscription-http"',
     'model_providers.subscription-http.name="OpenAI subscription HTTPS"',

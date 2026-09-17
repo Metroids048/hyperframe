@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {observationAudioStatus,fullOriginalAudioGraph} from '../lib/creative/observation-audio.mjs';
+import {observationAudioStatus,fullOriginalAudioGraph,needsSourceSpeechEvidence} from '../lib/creative/observation-audio.mjs';
 
 const empty=[{assetId:'uploaded-video',transcript:{words:[],text:''}}];
 test('empty ASR permits original-track candidate without claiming silence or review',()=>{
@@ -28,4 +28,13 @@ test('explicit full source audio is detached from visual cuts and retains its ta
   assert.throws(()=>fullOriginalAudioGraph('完整保留原声',assets,900),{code:'ORIGINAL_AUDIO_DURATION'});
   assert.throws(()=>fullOriginalAudioGraph('完整保留原声',[...assets,{...assets[0],id:'v2'}],4320),{code:'ORIGINAL_AUDIO_SOURCE'});
   assert.equal(fullOriginalAudioGraph('操作演示保留原声，动作与声音同步慢放',assets,2160),null);
+});
+
+test('recuts retaining source sound request real speech evidence before judging audio cuts',()=>{
+ const video={kind:'video',mediaMetadata:{hasAudio:true}};
+ assert.equal(needsSourceSpeechEvidence({keepOriginalAudio:true,needsTranscription:false},{workflow:{taskMode:'recut'}},[video]),true);
+ assert.equal(needsSourceSpeechEvidence({keepOriginalAudio:true},{taskMode:'create'},[video]),false);
+ assert.equal(needsSourceSpeechEvidence({keepOriginalAudio:false},{taskMode:'recut'},[video]),false);
+ assert.equal(needsSourceSpeechEvidence({keepOriginalAudio:true},{taskMode:'recut'},[{kind:'audio',mediaMetadata:{hasAudio:true}}]),false);
+ assert.equal(needsSourceSpeechEvidence({needsTranscription:true},{},[video]),true);
 });

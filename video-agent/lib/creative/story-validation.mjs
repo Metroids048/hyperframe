@@ -33,8 +33,17 @@ export function replaceStoryShot(story,index,shot,brief,resources){
   return validateStory(changed,brief,resources,{original:story,index});
 }
 
-export function validateShotRepair(original,repaired,message,{removeRedundantText=false}={}){
-  insist(repaired.media.length===original.media.length,'镜头修复不能改变媒体数量','REPLAN_SCOPE');
+export function validateShotRepair(original,repaired,message,{removeRedundantText=false,allowDuplicateMedia=false,allowRequiredText=false}={}){
+  if(allowDuplicateMedia){
+    insist(repaired.media.length>=original.media.length&&repaired.media.length<=4,'同源窗口修复只能追加有限媒体绑定','REPLAN_SCOPE');
+    const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+    insist(original.media.every((m,i)=>same(m,repaired.media[i]))&&repaired.media.slice(original.media.length).every(m=>original.media.some(o=>same(o,m))),'同源窗口必须保持既有素材、源时间、播放率和顺序','REPLAN_SCOPE');
+  }else insist(repaired.media.length===original.media.length,'镜头修复不能改变媒体数量','REPLAN_SCOPE');
+  if(allowRequiredText&&repaired.text.length>original.text.length){
+    insist(repaired.text.length<=32&&original.text.every((t,i)=>JSON.stringify(t)===JSON.stringify(repaired.text[i])),'补齐必需文字必须保留已有对象及顺序','REPLAN_SCOPE');
+    insist(repaired.text.slice(original.text.length).every(t=>typeof t.text==='string'&&t.text.trim()&&message.includes(t.text)&&!t.factRefs?.length&&!['price','cta'].includes(t.role)),'新增文字必须逐字来自用户要求，不得增加事实或价格','REPLAN_SCOPE');
+    return;
+  }
   if(removeRedundantText&&repaired.text.length<original.text.length){
     // Only the story owner may remove model-authored redundant overlays.
     // Explicit copy, facts, prices and CTA remain immutable, as does the

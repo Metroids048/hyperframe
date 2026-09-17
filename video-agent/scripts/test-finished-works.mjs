@@ -12,16 +12,16 @@ test('M12-F02 groups by source identity while keeping same-title works and edite
  const original={id:'mother',title:'同名作品',currentRevisionId:'r1',revisions:[revision]};
  const copy=id=>({id,title:'同名作品',currentRevisionId:'r1',preset:{sourceProjectId:'mother',sourceRevisionId:'source-r',sha256:'abc'},revisions:[revision]});
  const options=finishedWorkOptions([original,copy('copy-a'),copy('copy-b'),{...copy('edited'),revisions:[revision,{...revision,id:'r2'}],currentRevisionId:'r2'},{...original,id:'distinct'}],[],[{id:'locked',title:'精选',sha256:'locked-sha'},{id:'ref',title:'参考',provenance:'reference-author'}]);
- assert.equal(options.find(o=>o.value==='work:locked').group,'精选作品');
- assert.equal(options.find(o=>o.value==='work:ref').group,'参考作品');
- assert.equal(options.find(o=>o.value==='mother').group,'候选作品与版本历史');
- assert.equal(options.find(o=>o.value==='distinct').group,'候选作品与版本历史');
+ assert.equal(options.find(o=>o.value==='work:locked').group,'我的视频');
+ assert.equal(options.find(o=>o.value==='work:ref').group,'我的视频');
+ assert.equal(options.find(o=>o.value==='mother').group,'我的视频');
+ assert.equal(options.find(o=>o.value==='distinct').group,'我的视频');
  assert.equal(options.find(o=>o.value==='copy-a').group,options.find(o=>o.value==='copy-b').group);
  assert.match(options.find(o=>o.value==='copy-a').group,/同源未修改副本/);
- assert.equal(options.find(o=>o.value==='edited').group,'候选作品与版本历史');
+ assert.equal(options.find(o=>o.value==='edited').group,'我的视频');
  assert.equal(new Set(options.map(o=>o.value)).size,7);
  const unknown=finishedWorkOptions([{...copy('legacy-copy'),preset:{id:'old-preset'}}],[],[]);
- assert.equal(unknown[0].group,'候选作品与版本历史');
+ assert.equal(unknown[0].group,'我的视频');
 });
 
 test('exported work remains selectable after an unrendered edit; test projects and duplicate presets stay out',()=>{

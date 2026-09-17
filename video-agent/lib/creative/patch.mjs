@@ -11,7 +11,7 @@ import {alignSourceAudio} from './source-audio.mjs';
 import {projectNativeCaptions} from './captions.mjs';
 
 const allowed = new Set(['update_text_style','update_text', 'update_effect_params', 'set_scene_effect', 'replace_asset', 'set_scene_duration', 'reorder_scenes', 'set_transition', 'change_output','lock_scene','unlock_scene','update_media','retime_document']);
-for(const type of ['add_audio','update_audio','remove_audio','split_scene','trim_scene','update_caption','update_caption_style','set_captions','remove_caption','update_custom_source'])allowed.add(type);
+for(const type of ['duplicate_media','add_audio','update_audio','remove_audio','split_scene','trim_scene','update_caption','update_caption_style','set_captions','remove_caption','update_custom_source'])allowed.add(type);
 
 export function applyDocumentPatch(input, operations, assets) {
   insist(Array.isArray(operations) && operations.length > 0 && operations.length <= 100, '修改清单必须为 1～100 项', 'INVALID_PATCH');
@@ -38,6 +38,14 @@ export function applyDocumentPatch(input, operations, assets) {
       const scene=document.scenes.find(s=>s.id===op.sceneId);insist(scene,'目标场景不存在','PATCH_TARGET_MISSING');scene.locks=sceneLocks(scene);delete scene.locked;
       recomputeSceneStarts(document);
       for(const kind of requestedLocks(op.params)){scene.locks[kind]=op.type==='lock_scene';const key=scene.id+':'+kind;if(scene.locks[kind]){if(!locks.has(key))locks.set(key,{id:scene.id,kind,before:lockScope(document,scene.id,kind)});}else locks.delete(key);}
+    }
+    if(op.type==='duplicate_media'){
+      const node=document.nodes.find(n=>n.id===op.nodeId),p=op.params||{};
+      insist(node&&['image','video'].includes(node.kind)&&node.sceneId===op.sceneId,'复制窗口必须引用同一场景的真实媒体节点','PATCH_TARGET_MISSING');
+      insist(Object.keys(p).every(k=>k==='newId')&&/^[a-zA-Z][\w-]{0,99}$/.test(p.newId||'')&&!document.nodes.some(n=>n.id===p.newId),'新增窗口ID无效或已存在','INVALID_NODE_ID');
+      insist(document.nodes.length<300&&document.nodes.filter(n=>n.sceneId===op.sceneId&&['image','video'].includes(n.kind)).length<4,'同屏窗口超出原生预算','INVALID_PATCH');
+      document.nodes.push({...structuredClone(node),id:p.newId});
+      // Copy only a visual window; source timing stays identical and no audio is duplicated.
     }
     if(op.type==='update_media'){
       const node=document.nodes.find(n=>n.id===op.nodeId);insist(node&&['image','video'].includes(node.kind),'目标素材节点不存在','PATCH_TARGET_MISSING');
