@@ -7,20 +7,25 @@ import puppeteer from 'puppeteer-core';
 import {runtimeEnv,ROOT} from '../lib/workflow.mjs';
 const old={id:'old',description:'已导出',rendered:true,videoUrl:'/clip.mp4',previewUrl:'/preview.html',documentUrl:'/document.json',durationFrames:900,output:{width:1080,height:1920}};
 const current={...old,id:'new',description:'待导出',rendered:false,videoUrl:null};
-const project={id:'p',title:'耳机',request:{},currentRevisionId:'new',revisions:[old,current],assets:[],jobs:[],messages:[]};
+const project={id:'p',title:'耳机',request:{},deliveryStatus:'accepted',currentRevisionId:'new',revisions:[old,current],assets:[],jobs:[],messages:[]};
 const work={id:'mijia-v2',title:'米家相机 V2',durationSeconds:72,videoUrl:'/reference.mp4',packageUrl:'/reference.zip',note:'reference-author-v2'};
+const preset={id:'preset-fixture',title:'只读预设',durationSeconds:20,videoUrl:'/preset.mp4',packageUrl:null,note:'preset fixture',sha256:'a'.repeat(64)};
+const presetCopy={...project,id:'preset-copy',title:'只读预设副本',preset:{id:preset.id,sha256:preset.sha256}};
 let catalogFailure=false;const errors=[],requests=[];
 const server=http.createServer(async(req,res)=>{try{
  const url=new URL(req.url,'http://local');let data;
  if(url.pathname==='/api/commerce-projects')data={projects:[project],historyProjectIds:['p']};
- if(url.pathname==='/api/commerce-demos')data={presets:[]};
+ if(url.pathname==='/api/commerce-demos')data={presets:[preset]};
  if(url.pathname==='/api/commerce-finished'){if(catalogFailure){res.writeHead(500,{'Content-Type':'application/json'});return res.end(JSON.stringify({error:'参考成品校验失败'}));}data={works:[work]};}
  if(url.pathname==='/api/commerce/p')data={project};
  if(url.pathname==='/api/commerce-chat'&&req.method==='POST'){
   let body='';for await(const chunk of req)body+=chunk;const input=JSON.parse(body);requests.push(input);
+  if(input.action==='preset')data={project:presetCopy};
   if(input.action==='message'){const id='edit-'+requests.length;project.revisions.push({...current,id,parentId:project.currentRevisionId,description:input.message});project.currentRevisionId=id;project.messages.push({role:'user',text:input.message});}
-  data={project};
+  data??={project};
  }
+ if(url.pathname==='/api/commerce/preset-copy')data={project:presetCopy};
+ if(url.pathname==='/api/commerce-presets/preset-fixture/artifacts')data={presetId:preset.id,files:[]};
  if(url.pathname==='/document.json')data={scenes:[],nodes:[],resourceReceipts:[]};
  if(data){res.setHeader('Content-Type','application/json');return res.end(JSON.stringify(data));}
  if(url.pathname==='/editor-player.js'){res.setHeader('Content-Type','text/javascript');return res.end("customElements.define('hyperframes-player',class extends HTMLElement {pause(){} seek(){}})");}
@@ -33,12 +38,16 @@ const browser=await puppeteer.launch({executablePath:runtimeEnv().HYPERFRAMES_BR
 try{
  const page=await browser.newPage();page.on('pageerror',e=>errors.push(e.message));const base='http://127.0.0.1:'+server.address().port;
  await page.goto(base);await page.waitForSelector('#projects option[value="work:mijia-v2"]');
+ assert(await page.$('[data-scene-id="S07"]'),'the completed S07 scene is visible in the empty-workbench gallery');
  assert.equal(await page.$('#material-root'),null);assert.equal(await page.$('#history-examples'),null);
  for(const id of ['creation-target','business-scene','output-aspect'])assert(await page.$('#'+id));
  await page.select('#projects','p');await page.waitForFunction(()=>document.querySelector('#revisions').value==='new');
  assert.equal(await page.$eval('#send',el=>el.disabled),false,'reopening selects the editable current revision');
  await page.select('#revisions','old');await page.waitForFunction(()=>document.querySelector('#send').disabled);
  assert.equal(await page.$eval('#download',el=>el.hidden),false,'the prior exported version remains available explicitly');
+ assert.equal(await page.$eval('#human-review-link',el=>el.hidden),true,'historical video must not link to a review of the current revision');
+ assert.match(await page.$eval('#quality-status',el=>el.textContent),/历史版本/,'current acceptance must not label a historical revision accepted');
+ assert.equal(await page.$eval('#formal-download',el=>el.hidden),true);
  await page.reload();await page.waitForFunction(()=>document.querySelector('#revisions').value==='new'&&!document.querySelector('#send').disabled);
  await page.type('#message','把标题往上移一点，声音不变。');await page.click('#send');
  await page.waitForFunction(()=>document.querySelector('#revisions').value==='edit-1');
@@ -54,6 +63,18 @@ try{
  assert.equal(await page.$eval('#send',el=>el.disabled),true,'reference playback must not create an unrelated project from an edit message');
  assert.equal(await page.$eval('#human-review-link',el=>el.hidden),true);
  assert.equal(await page.$eval('#download',el=>el.hidden),true);
+ await page.select('#projects','p');await page.waitForFunction(()=>document.querySelector('#revisions').value==='edit-2');
+ await page.type('#message','尚未提交的草稿');
+ const requestCountBeforePreset=requests.length;
+ for(let i=0;i<20;i++){await page.select('#projects','preset:preset-fixture');await page.waitForFunction(()=>document.querySelector('#projects').value==='preset:preset-fixture');}
+ assert.equal(requests.length,requestCountBeforePreset,'read-only preset browsing must not call the mutation endpoint');
+ await page.select('#projects','p');await page.waitForFunction(()=>document.querySelector('#revisions').value==='edit-2');
+ assert.match(await page.$eval('#message',el=>el.value),/尚未提交的草稿/,'draft survives read-only browsing');
+ await page.select('#projects','preset:preset-fixture');await page.waitForFunction(()=>!document.querySelector('#case-edit').hidden);
+ await page.evaluate(()=>{document.querySelector('#case-edit').click();document.querySelector('#case-edit').click();});
+ await page.waitForFunction(()=>new URLSearchParams(location.search).get('project')==='preset-copy');
+ assert.equal(requests.filter(r=>r.action==='preset').length,1,'double click creates one explicit copy');
+ await page.select('#projects','work:mijia-v2');await page.waitForFunction(()=>document.querySelector('#projects').value==='work:mijia-v2');
  await page.reload();await page.waitForFunction(()=>document.querySelector('#projects').value==='work:mijia-v2');
  catalogFailure=true;await page.goto(base);await page.waitForSelector('#projects option[value="p"]');
  assert.match(await page.$eval('#error',el=>el.textContent),/校验失败/);assert.deepEqual(errors,[]);

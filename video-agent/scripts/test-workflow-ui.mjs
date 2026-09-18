@@ -33,21 +33,26 @@ const server=http.createServer(async(req,res)=>{try{
  }catch(e){res.writeHead(500);res.end(JSON.stringify({error:e.message}));}});
 await new Promise(r=>server.listen(0,'127.0.0.1',r));
 const browser=await puppeteer.launch({executablePath:runtimeEnv().HYPERFRAMES_BROWSER_PATH,headless:true,args:['--no-sandbox']});
-try{const page=await browser.newPage();page.on('pageerror',e=>errors.push(e.message));const base='http://127.0.0.1:'+server.address().port;
+try{const page=await browser.newPage();await page.setViewport({width:1440,height:1000});page.on('pageerror',e=>errors.push(e.message));const base='http://127.0.0.1:'+server.address().port;
  for(const entry of workflowEntries){
   await page.goto(base+'/?creation='+entry.alias);await page.waitForFunction(id=>document.querySelector('#business-scene').value===id,{},entry.id);
   if(entry.taskMode==='variant')assert.match(await page.$eval('#input-guidance',e=>e.textContent),/母版/);
   await page.$eval('#message',e=>{e.value='保持我的未提交需求';});await page.select('#business-scene','auto');await page.select('#business-scene',entry.id);
   assert.equal(await page.$eval('#message',e=>e.value),'保持我的未提交需求');
-  await page.click('[data-creation="'+entry.alias+'"]');assert.equal(await page.$eval('#business-scene',e=>e.value),entry.id);
+  await page.select('#business-scene','auto');await page.select('#business-scene',entry.id);assert.equal(await page.$eval('#business-scene',e=>e.value),entry.id);
  }
  assert.equal(calls.length,0);await page.goto(base);
- await page.waitForSelector('#plan-workflow:not([disabled])');await page.click('[data-creation="recut"]');await page.type('#message','教程删等待再出竖屏，原声保留');await page.click('#plan-workflow');
+ assert(await page.$eval('#business-scene',e=>e.closest('.composer-settings')?.querySelector('#creation-target')!=null));
+ const recut=workflowEntries.find(entry=>entry.alias==='recut');await page.waitForSelector('#plan-workflow:not([disabled])');await page.select('#business-scene',recut.id);await page.type('#message','教程删等待再出竖屏，原声保留');await page.click('#plan-workflow');
  await page.waitForFunction(()=>document.querySelector('#jobs').textContent.includes('保留原声的竖屏教程'));
+ assert.equal(await page.$eval('#progress-title',e=>e.textContent),'方案已完成，尚未生成视频');assert.equal(await page.$eval('#progress-percent',e=>e.textContent),'45%');assert(await page.$eval('#production-progress',e=>!e.hidden));assert(await page.$eval('#progress-action',e=>!e.hidden&&e.textContent==='按方案生成视频'));
+ assert.equal(await page.$eval('#production-progress',e=>e.parentElement.tagName),'HEADER','progress belongs between the workbench title and project actions');
  assert.equal(calls.filter(c=>c.action==='plan-workflow').length,1);assert(!calls.some(c=>['generate','audio-generate','export','message'].includes(c.action)));assert.deepEqual(errors,[]);
  const planningInput=calls.find(c=>c.action==='plan-workflow');assert.equal(planningInput.taskMode,'recut');assert.equal(planningInput.taskModeExplicit,true);assert.equal(planningInput.output.height,1920);
  console.log('PASS real browser planning button, result display and no generation request');
- const fileInput=await page.$('input[type="file"][multiple]');await fileInput.uploadFile(uploadFile);await page.click('#plan-workflow');
+ const fileInput=await page.$('input[type="file"][multiple]');await fileInput.uploadFile(uploadFile);
+ assert(await page.$eval('#send',e=>{const button=e.getBoundingClientRect(),chat=e.closest('.chat').getBoundingClientRect();return e.checkVisibility()&&button.bottom<=chat.bottom&&button.top>=chat.top;}),'send remains visible after attaching media');
+ await page.click('#plan-workflow');
  await page.waitForFunction(()=>document.querySelector('#send').disabled===false&&document.querySelectorAll('#uploads button').length===0);
  assert.equal(uploads,1);await page.click('#send');await page.waitForFunction(()=>document.querySelector('#message').value==='');
  assert.equal(uploads,1);assert.equal(calls.filter(c=>c.action==='message').length,1);

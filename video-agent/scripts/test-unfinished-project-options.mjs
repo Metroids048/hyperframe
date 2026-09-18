@@ -13,10 +13,10 @@ test('draft, interrupted and unexported projects remain reachable without claimi
   assert.deepEqual(finishedWorkOptions(projects,[],[]).map(p=>p.value),['done']);
 });
 
-test('archived projects and older showcase stay out while current and future work remain',()=>{
+test('archived projects stay out while completed scene works and future work remain reachable',()=>{
  const r={id:'r',rendered:true,videoUrl:'/clip'};
  const rows=[{id:'2bd26376-6826-45c1-a837-866e526db3f3',revisions:[],jobs:[{status:'running'}]},{id:'future',title:'新视频',revisions:[r]}];
- assert.match(unfinishedProjectOptions(rows)[0].label,/S03/);
+ assert.deepEqual(unfinishedProjectOptions(rows),[]);
  const items=finishedWorkOptions(rows,[{id:'old-preset',videoUrl:'/old'}],[{id:'mijia-v2',title:'米家'},{id:'s02-gpu',title:'旧显卡'}]);
- assert.deepEqual(items.map(x=>x.value),['work:mijia-v2','future']);
+ assert.deepEqual(items.map(x=>x.value),['work:mijia-v2','work:s02-gpu','future']);
 });

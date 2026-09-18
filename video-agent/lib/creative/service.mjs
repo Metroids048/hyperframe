@@ -28,7 +28,7 @@ import {CreativeError, insist, assetKindFromName, MAX_FILE_BYTES, MAX_ASSETS, st
 import {buildCommerceProject,patchCommerceProject,readNativeProject,writeCompiledProject,runHyperFrames,renderCommerceProject} from './runner.mjs';
 import {applyDocumentPatch,computeInvalidation} from './patch.mjs';
 import {requireCommerceMessagePlan,sceneNumber} from './intent.mjs';
-import {planCreativeEdit} from './model-edit.mjs';
+import {planCreativeEdit,completedEditSummary} from './model-edit.mjs';
 import {reviewEditedProject} from './edit-review.mjs';
 import {selectiveEffectRestore,allocatePublicationRevision} from './history.mjs';
 import {prepareCreativeAsset} from './image-asset.mjs';
@@ -106,7 +106,9 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
       const base=p.currentRevisionId;
       const document=base?(await readNativeProject(versionDirectory(p,revision(p)))).document:null;
       let route;
-      try{route=await routeWorkbenchMessage(p,input.message,{provider:routingProvider,document,taskMode:input.taskMode||input.request?.taskMode,taskModeExplicit:input.taskModeExplicit??input.request?.taskModeExplicit,scenarioId:input.scenarioId||input.request?.scenarioId||p.request?.scenarioId});}
+      const pending=p.pendingClarification;
+      const conversation=pending?.turns||p.messages.slice(-8).map(({role,text})=>({role,text}));
+      try{route=await routeWorkbenchMessage(p,input.message,{provider:routingProvider,document,taskMode:input.taskMode||input.request?.taskMode,taskModeExplicit:input.taskModeExplicit??input.request?.taskModeExplicit,scenarioId:input.scenarioId||input.request?.scenarioId||p.request?.scenarioId,conversation});}
       catch(error){
         const receipt=failureReceipt(error,{request:input.message,revisionId:base,targets:[{kind:'routing',requirement:input.message}]});
         (p.routingFailures??=[]).push({time:now(),message:input.message,baseRevisionId:base,idempotencyKey:input.idempotencyKey,code:error.code||'MESSAGE_ROUTE_FAILED',failureReceipt:receipt});
@@ -116,9 +118,15 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
       insist(p.currentRevisionId===base,'理解期间版本已变化，保留消息并请重试','REVISION_CONFLICT');
       (p.routingReceipts??=[]).push({time:now(),message:input.message,baseRevisionId:base,...route});
       let resultProject=p;
-      if(route.mode==='clarify'){p.messages.push({role:'user',text:input.message,time:now()},{role:'assistant',text:route.question,time:now()});}
-      else if(route.mode==='export')await enqueue(p,{...input,action:'export',routeDecision:route});
-      else if(route.mode==='plan')await enqueue(p,{...input,action:'plan-workflow',routeDecision:route});
+      const resolvedMessage=pending?[`原始需求：${pending.rootMessage}`,...pending.turns.slice(1).map(turn=>(turn.role==='assistant'?'澄清问题：':'用户补充：')+turn.text),`用户补充：${input.message}`].join('\n'):input.message;
+      const executionInput={...input,message:resolvedMessage,displayMessage:input.message};
+      if(route.mode==='clarify'){
+        const turns=[...(pending?.turns||[{role:'user',text:input.message}]),...(pending?[{role:'user',text:input.message}]:[]),{role:'assistant',text:route.question}];
+        p.pendingClarification={rootMessage:pending?.rootMessage||input.message,turns,updatedAt:now()};
+        p.messages.push({role:'user',text:input.message,time:now()},{role:'assistant',text:route.question,time:now()});
+      }
+      else if(route.mode==='export')await enqueue(p,{...executionInput,action:'export',routeDecision:route});
+      else if(route.mode==='plan')await enqueue(p,{...executionInput,action:'plan-workflow',routeDecision:route,autoExecute:route.autoExecute===true});
       else if(route.mode==='status')p.messages.push({role:'assistant',text:p.jobs.at(-1)?.error||p.jobs.at(-1)?.stage||'当前版本已保存。',time:now()});
       else if(['undo','redo','restore'].includes(route.mode))await navigate(p,{action:route.mode,revisionId:route.revisionId});
       else if(route.mode==='cancel'){const running=p.jobs.filter(active);if(!running.length)p.messages.push({role:'assistant',text:'当前没有正在运行的任务，工程和素材已保留。',time:now()});else {insist(running.length===1,'请在任务记录中选择要取消的任务','CANCEL_TARGET_AMBIGUOUS');await cancel(p,running[0].id);}}
@@ -130,7 +138,8 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
         if(resultProject.assets.length)await enqueue(resultProject,{action:'generate',message:input.message,idempotencyKey:input.idempotencyKey});
         else resultProject.messages.push({role:'assistant',text:'新制作已独立保存，请添加这条新视频要使用的素材。',time:now()});
         await save(resultProject);
-      }else await enqueue(p,{...input,action:base?'patch':'generate',routeDecision:route,taskMode:route.mode,taskModeExplicit:true});
+      }else await enqueue(p,{...executionInput,action:base?'patch':'generate',routeDecision:route,taskMode:route.mode,taskModeExplicit:true});
+      if(route.mode!=='clarify'&&!['status','cancel'].includes(route.mode))delete p.pendingClarification;
       (p.messageDispatches??=[]).push({key:input.idempotencyKey,projectId:resultProject.id,route});await save(p);
       return {project:view(resultProject),route};
     })();messageFlights.set(key,task);try{return await task;}finally{messageFlights.delete(key);}
@@ -316,7 +325,7 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
   async function candidateExport(p,job,r,signal){
     const dir=versionDirectory(p,r);job.revisionId=r.id;job.stage='导出候选 MP4';await save(p);
     if(!r.rendered){const release=await acquireRender({signal});try{const result=await renderCommerceProject({outputDir:r.directory,signal,onProgress:async progress=>{job.renderProgress={...progress,revisionId:r.id};job.stage='渲染画面 '+progress.percent+'%';await save(p);},onStage:async stage=>{job.stage=stage;await save(p);}},{root,outputRoot:directory(p)});r.mediaReview=result.mediaReview;job.qualitySummary=result.mediaReview;r.rendered=true;job.revisionId=r.id;await save(p);}finally{release();}}
-    job.stage='打包素材与完整历史';await save(p);
+    r.playbackReviewReady=await fs.access(path.join(dir,'final-review/watch.html')).then(()=>true,()=>false);job.stage='打包素材与完整历史';await save(p);
     job.packageEvidence=await exportCreativeHistory(root,directory(p),job.snapshot||structuredClone(p),r.id,path.join(dir,'history.zip'),{signal,assetRoot:directory(p)});r.historyPackaged=true;
   }
   async function execute(p,job){
@@ -503,7 +512,9 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
             const branch=job.input.branch===true||job.input.workflow?.taskMode==='variant';
             await publish(p,job,dir,next,job.input.message,{branch});
             job.planSummary=plan.summary;
-            job.summary=branch?'派生版本已独立保存，母版保持；检查结果见版本区，候选 MP4 待导出。':'修改已应用并保存新版本；检查结果见预览区，候选 MP4 待导出。';break;
+            const changed=(job.changeReceipt?.changedFields||[]).map(field=>({nodes:'画面对象',scenes:'镜头',audioGraph:'声音',captions:'字幕',transitions:'转场',output:'画幅',durationFrames:'时长'}[field]||field)).join('、');
+            const explanation=completedEditSummary(plan.summary);
+            job.summary=(branch?'派生版本已独立保存，母版保持。':'修改已应用并保存新版本。')+` 实际变化：${changed}。`+(explanation?` 方案依据：${explanation}`:'');break;
           }catch(error){
             await fs.writeFile(path.join(dir,`edit-failure-${attempt}.json`),JSON.stringify({revisionId:next.revisionId,error:error.message,code:error.code,issues:error.issues},null,2));
             const failureKey=JSON.stringify([error.code,error.issues||error.message]);failures.set(failureKey,(failures.get(failureKey)||0)+1);
@@ -521,7 +532,14 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
       }
       job.status='complete';delete job.code;delete job.error;job.completedAt=now();p.messages.push({role:'assistant',text:job.kind==='export'?'已导出指定版本。':job.summary||'预览检查通过，新版本已保存。',revisionId:job.revisionId,time:now()});
     }catch(e){job.failureReceipt=failureReceipt(e,{request:job.input.message||job.input.request?.message||p.request.message,revisionId:job.baseRevisionId,publishedRevisionId:job.revisionId,requirements:job.input.workflow?.requirements||[],targets:job.routeDecision?.targets||[]});job.status=signal.aborted?'cancelled':e.code==='NEEDS_INPUT'?'needs_user':(job.runId||['create','audio'].includes(job.kind))?'recoverable':'failed';job.error=signal.aborted?'已取消，上一有效版本保留':e.message;job.code=e.code||'CREATIVE_JOB_FAILED';job.gaps=e.gaps||job.gaps;job.completedAt=now();p.messages.push({role:'assistant',text:job.error,time:now()});}
-    finally{controllers.delete(job.id);delete job.snapshot;job.durationMs=Date.parse(job.completedAt)-Date.parse(job.startedAt);await save(p).catch(error=>{job.persistenceError=error.code||error.message;console.error('创作任务状态暂未写入，上一已提交版本保留：',p.id,job.id,error.code||error.message);});}
+    finally{
+      controllers.delete(job.id);delete job.snapshot;job.durationMs=Date.parse(job.completedAt)-Date.parse(job.startedAt);
+      await save(p).catch(error=>{job.persistenceError=error.code||error.message;console.error('创作任务状态暂未写入，上一已提交版本保留：',p.id,job.id,error.code||error.message);});
+      const order=p.workflowPlan?.workOrder;
+      if(job.status==='complete'&&job.kind==='plan'&&job.input.autoExecute&&p.workflowPlan?.status!=='needs_input'&&order?.baseRevisionId===p.currentRevisionId){
+        queueMicrotask(()=>enqueue(p,{action:p.currentRevisionId?'patch':'generate',message:job.input.message,displayMessage:null,suppressUserMessage:true,taskMode:order.mode,taskModeExplicit:true,scenarioId:order.scenario,planId:p.workflowPlan.id,fromPlanJobId:job.id,idempotencyKey:(job.idempotencyKey||job.id)+':execute'}).catch(async error=>{p.messages.push({role:'assistant',text:'方案已保存，但自动执行未能开始：'+error.message,time:now()});await save(p);}));
+      }
+    }
   }
   async function enqueue(p,input){
     const kind=input.action==='plan-workflow'?'plan':input.action==='audio-generate'?'audio':input.action==='generate'?'create':input.action==='render'||input.action==='export'?'export':'edit';
@@ -531,12 +549,12 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
     insist(!Array.from(uploads).some(k=>k.startsWith(p.id+':')),'请等待素材上传完成','UPLOAD_BUSY');
     if(input.baseRevisionId)insist(input.baseRevisionId===p.currentRevisionId,'页面版本已过期，请刷新后再修改','REVISION_CONFLICT');
     if(kind==='plan')input={...input,taskMode:input.taskMode||(!p.currentRevisionId?p.request.taskMode:undefined),taskModeExplicit:input.taskModeExplicit??Boolean(!p.currentRevisionId&&p.request.taskModeExplicit),output:structuredClone(input.output||p.request.output)};
-    if(!['export','plan'].includes(kind)){const current=p.revisions.find(r=>r.id===p.currentRevisionId);input={...input,workflow:workflowContract({...p.request,...input.request,...input,message:input.message||input.request?.message||p.request.message,taskMode:input.taskMode||input.request?.taskMode||(kind==='edit'?'edit':p.request.taskMode),taskModeExplicit:input.taskModeExplicit??input.request?.taskModeExplicit??Boolean(input.taskMode||input.request?.taskMode),assets:p.assets},{scenarioId:p.request.businessContract?.scenarioId||p.request.scenarioId,baseProjectId:p.id,baseRevisionId:current?.id})};if(input.workflow.taskMode==='variant')insist(current,'变体需要先打开已有原生工程','VARIANT_BASE_REQUIRED');}
+    if(!['export','plan'].includes(kind)){const current=p.revisions.find(r=>r.id===p.currentRevisionId),message=input.message||input.request?.message||p.request.message;const planned=input.planId&&p.workflowPlan?.id===input.planId?productionWorkflowFromPlan(p.workflowPlan,{message,assets:p.assets,baseRevisionId:current?.id||null}):null;input={...input,workflow:planned||workflowContract({...p.request,...input.request,...input,message,taskMode:input.taskMode||input.request?.taskMode||(kind==='edit'?'edit':p.request.taskMode),taskModeExplicit:input.taskModeExplicit??input.request?.taskModeExplicit??Boolean(input.taskMode||input.request?.taskMode),assets:p.assets},{scenarioId:p.request.businessContract?.scenarioId||p.request.scenarioId,baseProjectId:p.id,baseRevisionId:current?.id})};if(input.workflow.taskMode==='variant')insist(current,'变体需要先打开已有原生工程','VARIANT_BASE_REQUIRED');}
     if(kind==='create')insist(!p.currentRevisionId,'项目已有版本，请继续编辑或新建项目','PROJECT_EXISTS');else if(!['audio','plan'].includes(kind))revision(p,input.revisionId||p.currentRevisionId);
     if(kind==='audio'){insist(['speech','music'].includes(input.audio?.kind),'请选择旁白或纯音乐','AUDIO_KIND');insist(p.assets.length<MAX_ASSETS,'最多30个素材','ASSET_LIMIT');}
     if(kind==='export')insist(!p.jobs.some(j=>active(j)&&j.kind==='export'&&j.baseRevisionId===(input.revisionId||p.currentRevisionId)),'这个版本正在导出','EXPORT_BUSY');
     const job={id:'job-'+randomUUID(),kind,input:structuredClone(input),routeDecision:input.routeDecision,baseRevisionId:input.revisionId||p.currentRevisionId,status:'queued',createdAt:now(),idempotencyKey:input.idempotencyKey};if(kind==='export')job.snapshot={...structuredClone(p),jobs:p.jobs.map(({snapshot,...prior})=>structuredClone(prior))};p.jobs.push(job);
-    if(input.message)p.messages.push({role:'user',text:input.message,baseRevisionId:job.baseRevisionId,time:now()});await save(p);void execute(p,job).catch(error=>{job.status='failed';job.error=error.message;job.code=error.code||'CREATIVE_JOB_FAILED';controllers.delete(job.id);console.error('创作任务失败：',p.id,job.id,error.code||error.message);});return job;
+    if(input.message&&!input.suppressUserMessage)p.messages.push({role:'user',text:input.displayMessage||input.message,baseRevisionId:job.baseRevisionId,time:now()});await save(p);void execute(p,job).catch(error=>{job.status='failed';job.error=error.message;job.code=error.code||'CREATIVE_JOB_FAILED';controllers.delete(job.id);console.error('创作任务失败：',p.id,job.id,error.code||error.message);});return job;
   }
   async function navigate(p,input){
     insist(!p.jobs.some(j=>active(j)&&j.kind!=='export'),'编辑完成后可恢复版本','PROJECT_BUSY');
@@ -641,7 +659,7 @@ export async function creativeRoutes(service,req,res,url,{json,jsonBody,file}){
       if(name==='preview.html'){const source=await fs.readFile(path.join(dir,'index.html'),'utf8'),html=source.replace('</body>','<script src="assets/runtime.js"></script></body>');res.writeHead(200,{'Content-Type':mime['.html'],'Content-Length':Buffer.byteLength(html),'Cache-Control':'no-cache'});res.end(req.method==='HEAD'?undefined:html);return true;}
       await file(req,res,path.join(dir,name),mime[path.extname(name)]||'application/octet-stream');return true;
     }
-    const rm=/^revisions\/([a-zA-Z0-9_-]+)\/(preview.html|document.json|commerce-final.mp4|project.zip|history.zip|assets\/[a-zA-Z0-9_.-]+)$/.exec(action);
+    const rm=/^revisions\/([a-zA-Z0-9_-]+)\/(preview.html|document.json|commerce-final.mp4|project.zip|history.zip|final-review\/(?:watch.html|playback-manifest.json|cut-[0-9]{2}.mp4)|assets\/[a-zA-Z0-9_.-]+)$/.exec(action);
     if(rm){const r=service.revision(p,rm[1]),name=rm[2];
       if(name==='preview.html'){const source=await fs.readFile(path.join(service.versionDirectory(p,r),'index.html'),'utf8'),html=source.replace('</body>','<script src="assets/runtime.js"></script></body>');res.writeHead(200,{'Content-Type':mime['.html'],'Content-Length':Buffer.byteLength(html),'Cache-Control':'no-cache'});res.end(req.method==='HEAD'?undefined:html);return true;}
       let servedPath=path.join(service.versionDirectory(p,r),name);if(name==='commerce-final.mp4'){insist(r.rendered,'该版本尚未导出','NOT_EXPORTED');if(url.searchParams.get('delivery')==='formal')servedPath=await formalVideoSnapshot(ROOT,service.versionDirectory(p,r),{currentRevisionId:p.currentRevisionId,getCurrentRevisionId:()=>p.currentRevisionId});else res.setHeader('X-Delivery-Status','candidate');}await file(req,res,servedPath,mime[path.extname(name)]||'application/octet-stream',url.searchParams.has('download')?(name==='commerce-final.mp4'?'candidate-'+r.id+'.mp4':path.basename(name)):undefined);return true;}

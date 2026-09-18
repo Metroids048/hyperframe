@@ -1,9 +1,11 @@
 import library from './workspace-library.json' with {type:'json'};
+export const sceneShowcaseDefinitions=library.sceneShowcases||[];
 export function currentLibraryProjects(projects){return projects.filter(p=>!library.archivedProjectIds.includes(p.id)).map(p=>({...p,title:library.projectTitles[p.id]||p.title}));}
 export function finishedWorkOptions(projects,presets,works){
   projects=currentLibraryProjects(projects);
   works=works.filter(w=>!library.archivedWorkIds.includes(w.id));
   if(library.hidePresets)presets=[];
+  else presets=presets.filter(p=>!(library.archivedPresetIds||[]).includes(p.id));
   const visible=projects.filter(p=>p.visibility!=='test'&&p.testOnly!==true&&p.revisions?.some(r=>r.rendered&&r.videoUrl));
   const sources=new Set(visible.map(p=>p.id));
   // Group only known, unchanged imports. Never deduplicate by title or remove history.

@@ -43,7 +43,7 @@ export function localVoice(voice,instructions=''){
   insist(legacy[voice],'本地配音不支持该音色，请使用列出的中文音色或配置云配音');return legacy[voice];
 }
 export class CodexProvider extends CloudProvider {
-  constructor({workerFactory=options=>new SpeechWorker(options),skipLoginCheck=false,cacheRoot,reasoningEffort=process.env.VIDEO_AGENT_CODEX_REASONING_EFFORT||'low',timeoutMs=process.env.VIDEO_AGENT_MODEL_TIMEOUT_MS||600000,onInvocation}={}){super();this.timeoutMs=modelTimeoutMs(timeoutMs);this.reasoningEffort=reasoningEffort;this.onInvocation=onInvocation;this.bin=process.env.VIDEO_AGENT_CODEX_BIN||'codex';this.environment=subscriptionEnv();this.model=process.env.VIDEO_AGENT_CODEX_MODEL||process.env.VIDEO_AGENT_EDIT_MODEL||null;this.verifiedAt=null;this.loginCheckedAt=0;this.loggedIn=false;this.cacheRoot=cacheRoot||process.env.VIDEO_AGENT_CACHE_ROOT||path.join(ROOT,'data');this.asr=workerFactory({python:localPython(),env:this.environment});this.tts=workerFactory({python:localPython(),env:this.environment});if(!skipLoginCheck)void this.refreshLogin();}
+  constructor({workerFactory=options=>new SpeechWorker(options),skipLoginCheck=false,cacheRoot,reasoningEffort=process.env.VIDEO_AGENT_CODEX_REASONING_EFFORT||'high',timeoutMs=process.env.VIDEO_AGENT_MODEL_TIMEOUT_MS||600000,onInvocation}={}){super();this.timeoutMs=modelTimeoutMs(timeoutMs);this.reasoningEffort=reasoningEffort;this.onInvocation=onInvocation;this.bin=process.env.VIDEO_AGENT_CODEX_BIN||'codex';this.environment=subscriptionEnv();this.model=process.env.VIDEO_AGENT_CODEX_MODEL||process.env.VIDEO_AGENT_EDIT_MODEL||null;this.verifiedAt=null;this.loginCheckedAt=0;this.loggedIn=false;this.cacheRoot=cacheRoot||process.env.VIDEO_AGENT_CACHE_ROOT||path.join(ROOT,'data');this.asr=workerFactory({python:localPython(),env:this.environment});this.tts=workerFactory({python:localPython(),env:this.environment});if(!skipLoginCheck)void this.refreshLogin();}
   status(){
     const custom=process.env.VIDEO_AGENT_CODEX_TRANSPORT==='configured';
     return {
@@ -101,9 +101,9 @@ export class CodexProvider extends CloudProvider {
     }catch(error){if(error.capacity&&attempt+1<candidates.length&&!signal?.aborted)return await this.structured(instructions,input,schema,signal,attempt+1);if(error.capacity)error.message='可用模型当前都很繁忙，输入已保存，请稍后重试';throw error;}
     finally {await fs.writeFile(path.join(dir,'request.json'),JSON.stringify({...invocation,completedAt:new Date().toISOString()})).catch(()=>{});await working.cleanup();}
   }
-  async transcribe(file,signal) {
+  async transcribe(file,signal,{engine:requestedEngine}={}) {
     if(signal?.aborted)throw new EditError('任务已取消',409);
-    const engine=process.env.VIDEO_AGENT_ASR_ENGINE||'faster-whisper',model=process.env.VIDEO_AGENT_WHISPER_MODEL||'small';
+    const engine=requestedEngine||process.env.VIDEO_AGENT_ASR_ENGINE||'faster-whisper',model=process.env.VIDEO_AGENT_WHISPER_MODEL||'small';
     insist(['faster-whisper','whisperx'].includes(engine),'未支持的本地转写引擎');
     const sourceHash=await hashFile(file),runtime=await this.runtimeSignature('asr'),key=createHash('sha256').update(JSON.stringify({version:3,sourceHash,engine,model,runtime})).digest('hex');
     const dir=path.join(this.cacheRoot,'edit-transcripts'),target=path.join(dir,key+'.json');
@@ -113,6 +113,10 @@ export class CodexProvider extends CloudProvider {
     if(signal?.aborted)throw new EditError('任务已取消',409);await fs.mkdir(dir,{recursive:true});const pending=target+'.'+uid()+'.tmp';
     await fs.writeFile(pending,JSON.stringify({cacheKey:key,result}));await fs.rename(pending,target);
     return {...result,metrics:{...result.metrics,cacheHit:false}};
+  }
+  async alignSpeech(file,signal) {
+    try{return await this.transcribe(file,signal,{engine:'whisperx'});}
+    catch(error){if(signal?.aborted)throw error;throw Object.assign(Error('本地语音对齐工具未能完成；已保留原声音和已测时间，不需要重新上传素材'),{code:'SPEECH_ALIGNMENT_UNAVAILABLE',cause:error});}
   }
   async detectSpeech(file,signal){
     if(signal?.aborted)throw new EditError('任务已取消',409);

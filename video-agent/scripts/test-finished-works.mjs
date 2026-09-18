@@ -5,7 +5,13 @@ import path from 'node:path';
 import os from 'node:os';
 import {createHash} from 'node:crypto';
 import {readFinishedWorks,publicFinishedWork} from '../lib/creative/finished-works.mjs';
-import {finishedWorkOptions} from '../web/finished-work-options.mjs';
+import {finishedWorkOptions,sceneShowcaseDefinitions} from '../web/finished-work-options.mjs';
+
+test('the workbench exposes exactly eight distinct completed-scene entries',()=>{
+ assert.equal(sceneShowcaseDefinitions.length,8);
+ assert.deepEqual(sceneShowcaseDefinitions.map(item=>item.id),['S01','S02','S03','S04','S05','S06','S07','S08']);
+ assert.equal(new Set(sceneShowcaseDefinitions.map(item=>item.sourceId)).size,8);
+});
 
 test('M12-F02 groups by source identity while keeping same-title works and edited copy history reachable',()=>{
  const revision={id:'r1',rendered:true,videoUrl:'/clip.mp4'};
@@ -24,7 +30,7 @@ test('M12-F02 groups by source identity while keeping same-title works and edite
  assert.equal(unknown[0].group,'我的视频');
 });
 
-test('exported work remains selectable after an unrendered edit; test projects and duplicate presets stay out',()=>{
+test('exported work remains selectable after an unrendered edit; scene work remains reachable while test projects stay out',()=>{
  const projects=[{id:'p',title:'产品',currentRevisionId:'new',revisions:[{id:'old',rendered:true,videoUrl:'/old.mp4'},{id:'new',rendered:false}]},{id:'test',testOnly:true,revisions:[{rendered:true,videoUrl:'/test.mp4'}]},{id:'draft',revisions:[]}];
  const options=finishedWorkOptions(projects,[{id:'duplicate',sourceProjectId:'p',videoUrl:'/old.mp4'}],[{id:'mijia-v2',title:'米家'}]);
  assert.deepEqual(options.map(o=>o.value),['work:mijia-v2','p']);assert.match(options[1].label,/最近导出版/);

@@ -7,6 +7,8 @@ import {routeWorkbenchMessage} from '../lib/creative/message-routing.mjs';
 import {createCreativeService} from '../lib/creative/service.mjs';
 import {applyDocumentPatch} from '../lib/creative/patch.mjs';
 import {readNativeProject} from '../lib/creative/runner.mjs';
+import {productionWorkflowFromPlan} from '../lib/creative/workflow-design.mjs';
+import {completedEditSummary} from '../lib/creative/model-edit.mjs';
 
 const project={currentRevisionId:'r1',revisions:[{id:'r1'}],assets:[],jobs:[],request:{scenarioId:'product_demo'}};
 test('local download wording survives global routing integration and honors explicit mode',async()=>{
@@ -24,6 +26,25 @@ test('production approval receives saved plan and selected mode without weakenin
  assert.equal((await routeWorkbenchMessage(draft,message,{provider,taskMode:'recut',taskModeExplicit:true,scenarioId:'product_demo'})).mode,'recut');
  const conflicting={structured:async()=>({result:{mode:'create',quote:'另做一条',revisionId:null,assetIds:[],question:'',scenarioId:null}})};
  assert.equal((await routeWorkbenchMessage(draft,'另做一条',{provider:conflicting,taskMode:'recut',taskModeExplicit:true,scenarioId:'product_demo'})).source,'explicit-mode-conflict');
+});
+test('clarification replies keep the original request for the next planning or production turn',async()=>{
+ const dataDir=await fs.mkdtemp(path.join(ROOT,'outputs/clarification-chain-'));let routeCalls=0;
+ const routingProvider={structured:async(_,messages)=>{
+  const data=JSON.parse(messages[0].content);routeCalls++;
+  if(routeCalls===1)return {result:{mode:'clarify',quote:data.message,revisionId:null,assetIds:[],question:'画面风格和剪辑节奏都需要调整吗？',scenarioId:null,targets:[],preserve:[],reason:'需要确认范围'}};
+  assert(data.recentConversation.some(turn=>turn.text==='先根据素材给我做一条高质量商品视频'));
+  assert(data.recentConversation.some(turn=>turn.text.includes('画面风格和剪辑节奏')));
+  return {result:{mode:'plan',quote:data.message,revisionId:null,assetIds:[],question:'',scenarioId:null,targets:[],preserve:[],reason:'用户要求先给方案'}};
+ }};
+ const planningProvider={structured:async()=>({result:{mode:'create',scenario:'product_launch',objective:'形成可执行商品视频方案',auxiliaryModes:[],auxiliaryScenarios:[],requirements:[],resources:[],gaps:[],procedureSubtype:null,steps:[]}})};
+ const service=await createCreativeService({dataDir,routingProvider,planningProvider});
+ const p=await service.create({message:'',inferRequest:true});
+ await service.dispatchMessage(p,{message:'先根据素材给我做一条高质量商品视频',idempotencyKey:'clarification-first-1234'});
+ assert.equal(p.pendingClarification.rootMessage,'先根据素材给我做一条高质量商品视频');assert.equal(p.jobs.length,0);
+ await service.dispatchMessage(p,{message:'都需要，先给我方案',idempotencyKey:'clarification-second-123'});
+ const deadline=Date.now()+5000;while(p.jobs.some(j=>['queued','running'].includes(j.status))&&Date.now()<deadline)await new Promise(r=>setTimeout(r,10));
+ assert.equal(p.jobs[0].kind,'plan');assert.match(p.jobs[0].input.message,/原始需求：先根据素材给我做一条高质量商品视频/);assert.match(p.jobs[0].input.message,/用户补充：都需要，先给我方案/);
+ assert.equal(p.messages.filter(m=>m.role==='user').at(-1).text,'都需要，先给我方案');assert.equal(p.pendingClarification,undefined);
 });
 test('draft controls and explicit planning never become production; quoted and negated commands are not controls',async()=>{
  const draft={...project,currentRevisionId:null,revisions:[]};
@@ -79,6 +100,17 @@ test('whole-message controls and direct position edits bypass the model',async()
  assert.equal((await routeWorkbenchMessage(project,'字幕再往上移一点',{provider})).mode,'edit');
  assert.equal((await routeWorkbenchMessage(project,'音乐再轻一点，片尾自然淡出',{provider})).mode,'edit');
  assert.equal((await routeWorkbenchMessage(project,'字幕小一点，往上移，声音和其他画面不变',{provider})).mode,'edit');
+});
+test('plan then execute is a fast explicit route and its saved edit contract can drive execution',async()=>{
+ const message='给予视频内容，给我设计一套优化视频内容的方案，然后执行修改视频';
+ const provider={structured:()=>{throw Error('plan-and-execute routing must not wait for a model');}};
+ const route=await routeWorkbenchMessage(project,message,{provider,document:null});
+ assert.equal(route.mode,'plan');assert.equal(route.autoExecute,true);assert.equal(route.source,'explicit-plan-and-execute');
+ const requirement={id:'req-1',kind:'goal',field:'goal',quote:message,targetIds:[],excludeIds:[]};
+ const plan={id:'plan-edit',status:'planned_pending_observation',workOrder:{contractId:'contract-edit',baseRevisionId:'r1',mode:'edit',scenario:'product_demo',requirements:[requirement],sourceRequests:[message],assetScope:[],facts:[],gaps:[],steps:[],auxiliaryModes:[],auxiliaryScenarios:[]}};
+ const workflow=productionWorkflowFromPlan(plan,{message,assets:[],baseRevisionId:'r1'});
+ assert.equal(workflow.taskMode,'edit');assert.equal(workflow.parentContractId,'contract-edit');assert.equal(workflow.planningConsumption.planId,'plan-edit');
+ assert.equal(completedEditSummary('已设计三项优化。以下操作待执行器提交与验证；当前尚未执行。'),'已设计三项优化。');
 });
 test('semantic routing preserves compound original message and validates references',async()=>{
  const message='不要重做教程，删等待后另出一版竖屏，原声保留。';
