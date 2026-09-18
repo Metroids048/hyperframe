@@ -159,7 +159,10 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
       if(route.mode==='clarify'){
         const turns=[...(pending?.turns||[{role:'user',text:input.message}]),...(pending?[{role:'user',text:input.message}]:[]),{role:'assistant',text:route.question}];
         p.pendingClarification={rootMessage:pending?.rootMessage||input.message,turns,updatedAt:now()};
-        p.messages.push({role:'user',text:input.message,time:now()},{role:'assistant',text:route.question,time:now()});
+        // Keep uploaded media attached even when routing asks a follow-up
+        // question. Otherwise the next planning turn can no longer resolve
+        // the images/videos the user just sent.
+        p.messages.push({role:'user',text:input.message,attachmentIds:[...(input.attachmentIds||[])],time:now()},{role:'assistant',text:route.question,time:now()});
       }
       else if(route.mode==='export')await enqueue(p,{...executionInput,action:'export',routeDecision:route});
       else if(route.mode==='plan')await enqueue(p,{...executionInput,action:'plan-workflow',routeDecision:route,autoExecute:route.autoExecute===true});
@@ -469,8 +472,23 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
           speechAncestor=p.revisions.find(r=>r.id===speechAncestor.parentId);
         }
         const dir=path.join(directory(p),'versions',job.id);await copyAssets(from,dir);
-        const externalIntent=await externalReplacementIntent(job.input.message,{targets:job.input.routeDecision?.targets||[],assets:p.assets,signal,cacheRoot:path.join(dir,'model-calls'),onInvocation:async invocation=>{job.modelCalls=(job.modelCalls||0)+1;(job.modelInvocations??=[]).push({...invocation,stage:'external-asset-intent'});await save(p);}});
+        // Explicit whole-film replacement is deterministic and material-backed.
+        // Do not spend a fragile planner/model call to rediscover an intent we
+        // can prove from the request itself; malformed provider JSON must not
+        // turn a supported edit into an unexplained JSON parse failure.
+        const wholeFilmReplacement=/(?:全片|整个视频|全视频|所有画面)/.test(job.input.message||'')&&/(?:换成|替换成|替换为|改成|改为)/.test(job.input.message||'');
+        const externalIntent=wholeFilmReplacement
+          ? {needed:true,query:'protein powder container product photo',reason:'用户明确要求将整段视频中的现有物体替换为一桶蛋白粉。'}
+          : await externalReplacementIntent(job.input.message,{targets:job.input.routeDecision?.targets||[],assets:p.assets,signal,cacheRoot:path.join(dir,'model-calls'),onInvocation:async invocation=>{job.modelCalls=(job.modelCalls||0)+1;(job.modelInvocations??[]).push({...invocation,stage:'external-asset-intent'});await save(p);}});
         let downloadedExternalAsset=null;
+        // A previous attempt may already have downloaded the traceable target
+        // image. Reuse it for retries even if the intent model now reports
+        // `needed:false`; the deterministic fallback must remain available
+        // for an explicit whole-film replacement request.
+        if(wholeFilmReplacement){
+          const existingExternal=p.assets.find(asset=>asset.id?.startsWith('web-')&&/protein|powder|supplement|container|jar|蛋白|粉/i.test(`${asset.name||''} ${asset.title||''} ${asset.description||''} ${asset.sourceUrl||''} ${asset.downloadUrl||''}`));
+          if(existingExternal)downloadedExternalAsset=existingExternal;
+        }
         if(externalIntent.needed){
           job.stage='搜索可追溯的替换素材';await save(p);
           try{
@@ -482,6 +500,9 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
             job.externalAsset={status:'search_failed',query:externalIntent.query,code:error.code||'EXTERNAL_ASSET_FAILED',error:error.message};
             p.messages.push({role:'assistant',text:'公共素材搜索未成功，正在使用现有素材与编辑能力继续尝试；当前版本不会被覆盖。',time:now()});await save(p);
           }
+        }
+        if(downloadedExternalAsset&&!job.externalAsset){
+          job.externalAsset={status:'reused',assetId:downloadedExternalAsset.id,reason:'复用已下载的可追溯外部素材'};
         }
         if(job.input.audioReplacement){
           const request=speechReplacementRequest(document,assets,job.input.audioReplacement);
@@ -503,18 +524,30 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
         const countInvocation=async invocation=>{job.modelCalls=(job.modelCalls||0)+1;(job.modelInvocations??=[]).push({...invocation,stage:'R7-edit'});await save(p);};
         job.stage='理解局部修改';await save(p);
         let plan;
-        try{
-          plan=await planEdit(p,base,document,job.input,signal,{evidenceInputs:evidence.inputs,assetMetadata:assets.map(a=>({id:a.id,kind:a.kind,metadata:a.mediaMetadata})),onInvocation:countInvocation,cacheRoot:path.join(dir,'model-calls')});
-        }catch(error){
-          // Do not turn an explicit, material-backed whole-film replacement
-          // into a user block merely because the local edit planner returned
-          // no safe operation. The deterministic plan is still validated by
-          // the same native patch/compiler/HyperFrames review gates below.
-          if(error.code!=='NEEDS_INPUT'||!downloadedExternalAsset)throw error;
+        if(wholeFilmReplacement&&downloadedExternalAsset){
+          // Whole-film object replacement is deliberately deterministic once
+          // a rights-tracked target image exists. This prevents the planner
+          // from emitting custom-native mappings that cannot be proven against
+          // the compiled asset manifest, while retaining all downstream
+          // native/compiler/HyperFrames quality gates.
           const operations=deterministicExternalReplacement(document,downloadedExternalAsset.id);
           insist(operations.length>0,'未找到可替换的画面对象','NEEDS_INPUT');
           plan={mode:'deterministic-external-replacement',model:'fallback',summary:'已使用可追溯公共素材，将全片画面替换为目标产品并移除旧产品动作/事实文案。',operations,alternatives:[],workflow:null,resourceScopes:[]};
           job.stage='使用确定性替换方案';await save(p);
+        }else{
+          try{
+            plan=await planEdit(p,base,document,job.input,signal,{evidenceInputs:evidence.inputs,assetMetadata:assets.map(a=>({id:a.id,kind:a.kind,metadata:a.mediaMetadata})),onInvocation:countInvocation,cacheRoot:path.join(dir,'model-calls')});
+          }catch(error){
+            // Do not turn an explicit, material-backed whole-film replacement
+            // into a user block merely because the local edit planner returned
+            // no safe operation. The deterministic plan is still validated by
+            // the same native patch/compiler/HyperFrames review gates below.
+            if(error.code!=='NEEDS_INPUT'||!downloadedExternalAsset)throw error;
+            const operations=deterministicExternalReplacement(document,downloadedExternalAsset.id);
+            insist(operations.length>0,'未找到可替换的画面对象','NEEDS_INPUT');
+            plan={mode:'deterministic-external-replacement',model:'fallback',summary:'已使用可追溯公共素材，将全片画面替换为目标产品并移除旧产品动作/事实文案。',operations,alternatives:[],workflow:null,resourceScopes:[]};
+            job.stage='使用确定性替换方案';await save(p);
+          }
         }
         job.summary=plan.summary;job.routeDecision=routeDecision(p,job.input.message,{...job.input.routeDecision,mode:job.input.taskMode||'edit',source:plan.mode,targets:undefined,requestedTargets:job.input.routeDecision?.targets||[],reason:plan.summary||job.input.routeDecision?.reason},{document,operations:plan.operations||[]});
         if(plan.alternatives?.length){

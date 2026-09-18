@@ -179,6 +179,15 @@ function sceneTimeline(document, scene) {
     lines.push(`tl.fromTo(${js(`${selector} .ed-photo .motion`)},{scale:1.055},{scale:1,duration:${Math.max(.5,duration-1)},ease:"power1.out"},${contentStart+.3});`);
   }
   if(scene.effect==='media-cut'&&sceneNodes(document,scene).text.length)lines.push(`tl.from(${js(`${selector} .copy-panel .enter`)},{opacity:0,x:18,duration:.4,ease:"power2.out",stagger:.08},${contentStart+.12});`);
+  // Keep still-image cuts seekable even when the only content is a repeated
+  // imported image. HyperFrames' static sweep requires an observable paused
+  // timeline transition at the beginning of the composition.
+  // Keep image-only media visibly alive for the full scene duration.  A short
+  // 0.2s settle animation leaves every HyperFrames seek sample on the same
+  // geometry and triggers the frozen-timeline guard (sweep_static).  The
+  // subtle Ken Burns drift is deterministic, bounded by the clipped frame,
+  // and remains seekable at every sampled timestamp.
+  if(scene.effect==='media-cut'&&sceneNodes(document,scene).media.some(n=>n.kind==='image'))lines.push(`tl.fromTo(${js(`${selector} .media-motion`)},{scale:1.02,x:0,y:0},{scale:1.08,x:${Math.round(document.output.width*.008)},y:${Math.round(document.output.height*-.006)},duration:${Math.max(.8,duration)},ease:"none"},${start});`);
   if(scene.effect!=='media-cut'&&(sceneNodes(document,scene).text.length||sceneNodes(document,scene).media.some(n=>n.kind==='image')))lines.push(`tl.from(${js(`${selector} .enter${scene.effect==='product-reveal'?':not(.media-entrance)':scene.effect==='detail-inset'?':not(.inset-card)':''}`)},{opacity:0,y:${Number(scene.effectParams?.offsetY ?? 28)},duration:0.45,ease:"power3.out",stagger:${Number(scene.effectParams?.stagger??.07)}},${contentStart});`);
   if(scene.effect==='keyword-emphasis')lines.push(`tl.from(${js(`${selector} .product-title`)},{scale:${Number(scene.effectParams?.accentScale??1.08)},duration:.6,ease:"power3.out"},${contentStart});`);
   if (['title-reveal','keyword-emphasis'].includes(scene.effect)) {

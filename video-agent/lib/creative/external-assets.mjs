@@ -7,7 +7,7 @@ import {spawn} from 'node:child_process';
 
 const SEARCH_ORIGIN='https://commons.wikimedia.org';
 const KNOWN_COMMONS={
-  'protein powder container':{title:'File:Container of Protein Powder.jpg',url:'https://thumb.wikimedia.org/wikipedia/commons/thumb/4/42/Container_of_Protein_Powder.jpg/868px-Container_of_Protein_Powder.jpg',sourceUrl:'https://commons.wikimedia.org/wiki/File:Container_of_Protein_Powder.jpg',mime:'image/jpeg',bytes:null,license:'CC BY-SA 4.0',artist:'ShriniwasGajare',description:'Container of protein powder'},
+  'protein powder container':{title:'File:Container of Protein Powder.jpg',url:'https://upload.wikimedia.org/wikipedia/commons/4/42/Container_of_Protein_Powder.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original',sourceUrl:'https://commons.wikimedia.org/wiki/File:Container_of_Protein_Powder.jpg',mime:'image/jpeg',bytes:71967,license:'CC BY-SA 4.0',artist:'ShriniwasGajare',description:'Container of protein powder'},
 };
 const apiUrl=query=>`${SEARCH_ORIGIN}/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(query)}&gsrnamespace=6&gsrlimit=8&prop=imageinfo&iiprop=url|mime|size|extmetadata&iiurlwidth=1600&format=json&origin=*`;
 const headerValue=(metadata,key)=>metadata?.[key]?.value||metadata?.[key]?.text||'';
@@ -25,6 +25,24 @@ async function publicBytes(url,{signal,maxBytes=20*1024*1024}={}){
     child.stdout.on('data',chunk=>{size+=chunk.length;if(size>maxBytes){stop();reject(Object.assign(new Error('公共素材超过下载上限'),{code:'EXTERNAL_ASSET_TOO_LARGE'}));}else chunks.push(chunk);});
     child.stderr.on('data',chunk=>tail=(tail+chunk).slice(-2000));child.on('error',reject);child.on('close',code=>{signal?.removeEventListener('abort',stop);if(signal?.aborted)return reject(Object.assign(new Error('任务已取消'),{code:'ABORT_ERR'}));if(code!==0)return reject(Object.assign(new Error('公共素材网络请求失败：'+tail.trim()),{code:'EXTERNAL_ASSET_NETWORK'}));resolve(Buffer.concat(chunks));});
   });
+}
+
+function imageDownloadUrls(candidate){
+  const urls=[candidate.url,candidate.originalUrl,candidate.downloadUrl].filter(Boolean);
+  for(const url of [...urls]){
+    try{
+      const target=new URL(url);
+      if(target.hostname==='thumb.wikimedia.org'){
+        const match=/^\/wikipedia\/commons\/thumb\/(.+?)\/([^/]+)$/.exec(target.pathname);
+        if(match){
+          const parts=match[1].split('/');
+          const filename=match[2].replace(/^\d+px-/,'');
+          urls.push(`https://upload.wikimedia.org/wikipedia/commons/${parts.join('/')}/${filename}`);
+        }
+      }
+    }catch{}
+  }
+  return [...new Set(urls)];
 }
 
 const intentSchema={type:'object',additionalProperties:false,properties:{needed:{type:'boolean'},query:{type:'string'},reason:{type:'string'}},required:['needed','query','reason']};
@@ -48,6 +66,7 @@ export async function searchCommonsImage(query,{signal,fetchImpl=fetch}={}){
     return info&&/^image\/(?:jpeg|png|webp)$/i.test(mime)?{
       title:page.title,
       url:info.thumburl||info.url,
+      originalUrl:info.url,
       sourceUrl:info.descriptionurl||info.url,
       mime,
       bytes:info.size||null,
@@ -56,15 +75,24 @@ export async function searchCommonsImage(query,{signal,fetchImpl=fetch}={}){
       description:headerValue(info.extmetadata,'ImageDescription')||page.title,
     }:null;
   }).filter(Boolean).find(item=>/protein|powder|supplement|container|jar|桶|粉/i.test(`${item.title} ${item.description}`))||pages.map(page=>{
-    const info=page.imageinfo?.[0],mime=info?.mime||'';return info&&/^image\/(?:jpeg|png|webp)$/i.test(mime)?{title:page.title,url:info.thumburl||info.url,sourceUrl:info.descriptionurl||info.url,mime,bytes:info.size||null,license:headerValue(info.extmetadata,'LicenseShortName')||'未提供许可标记',artist:headerValue(info.extmetadata,'Artist')||'未提供作者',description:headerValue(info.extmetadata,'ImageDescription')||page.title}:null;
+    const info=page.imageinfo?.[0],mime=info?.mime||'';return info&&/^image\/(?:jpeg|png|webp)$/i.test(mime)?{title:page.title,url:info.thumburl||info.url,originalUrl:info.url,sourceUrl:info.descriptionurl||info.url,mime,bytes:info.size||null,license:headerValue(info.extmetadata,'LicenseShortName')||'未提供许可标记',artist:headerValue(info.extmetadata,'Artist')||'未提供作者',description:headerValue(info.extmetadata,'ImageDescription')||page.title}:null;
   }).filter(Boolean)[0];
   if(!candidate)throw Object.assign(new Error('没有找到可下载的公共图片候选'),{code:'EXTERNAL_ASSET_NOT_FOUND'});
   return {...candidate,query:cleanQuery(query)};
 }
 
 export async function downloadCommonsImage(candidate,{root,projectDirectory,signal,fetchImpl=fetch}={}){
-  let bytes;if(fetchImpl!==fetch){const response=await fetchImpl(candidate.url,{headers:{Accept:'image/*'},redirect:'error',signal});if(!response.ok)throw Object.assign(new Error('公共图片下载失败：HTTP '+response.status),{code:'EXTERNAL_ASSET_DOWNLOAD_FAILED'});bytes=Buffer.from(await response.arrayBuffer());}
-  else bytes=await publicBytes(candidate.url,{signal});
+  let bytes,lastError;
+  if(fetchImpl!==fetch){
+    for(const url of imageDownloadUrls(candidate)){
+      try{const response=await fetchImpl(url,{headers:{Accept:'image/*'},redirect:'error',signal});if(!response.ok)throw new Error('HTTP '+response.status);bytes=Buffer.from(await response.arrayBuffer());break;}catch(error){lastError=error;}
+    }
+  } else {
+    for(const url of imageDownloadUrls(candidate)){
+      try{bytes=await publicBytes(url,{signal});break;}catch(error){lastError=error;}
+    }
+  }
+  if(!bytes)throw Object.assign(new Error('公共图片下载失败：'+(lastError?.message||'没有可用下载地址')),{code:'EXTERNAL_ASSET_DOWNLOAD_FAILED',cause:lastError});
   const ext=candidate.mime==='image/png'?'.png':candidate.mime==='image/webp'?'.webp':'.jpg';
   const id='web-'+randomUUID(),relative=`uploads/${id}${ext}`,target=path.join(projectDirectory,relative);
   await fs.mkdir(path.dirname(target),{recursive:true});

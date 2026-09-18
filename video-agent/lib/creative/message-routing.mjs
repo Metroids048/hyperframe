@@ -62,6 +62,17 @@ async function legacyRoute(project,message,{provider,signal,document=null,taskMo
 }
 
 export async function routeWorkbenchMessage(project,message,options={}){
+  // Whole-film object replacement is a material-backed capability handled by
+  // the external-asset stage. Do not let the generic semantic router turn an
+  // explicit request into a clarification merely because the current assets
+  // do not already contain the requested object.
+  if(options.document&&project.currentRevisionId&&/(?:全片|整个视频|全视频|所有画面|全都|全部)/.test(String(message))&&/(?:换成|替换成|替换为|改成|改为)/.test(String(message))){
+    const decision=routeDecision(project,message,{mode:'edit',source:'exact-edit',quote:message,revisionId:null,assetIds:[],question:'',targets:[
+      {id:null,kind:'visual',requirement:message},
+      {id:null,kind:'timeline',requirement:'将全片视觉对象替换为用户指定的新对象，并保持时长与版本历史'},
+    ],preserve:['revision-history','unmentioned-objects'],reason:'明确的全片视觉对象替换，交由可追溯外部素材与原生候选链路执行'},{document:options.document,revision:options.revision});
+    return decision;
+  }
   const result=await routeUserMessage(project,message,{...options,
     localPlanner:options.document&&(!options.taskModeExplicit||options.taskMode==='edit')?()=>{
       const history=acceptedChanges(project),scope=conversationTargetScope(options.document,message,history);
