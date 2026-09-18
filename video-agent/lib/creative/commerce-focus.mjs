@@ -34,7 +34,7 @@ export function businessContract(input={}){
     objective:({product_launch:'吸引首次观看者继续了解商品',product_detail:'讲清商品结构与可信卖点',product_demo:'理解并复现必要操作',product_howto:'理解并复现必要操作',product_collection:'理解多款商品的搭配与系列关系',product_promotion:'理解优惠条件并采取行动',product_faq:'用证据回答具体选购疑问'}[scenarioId]||'明确电商内容目标'),
     product:structuredClone(input.product||{}),output:structuredClone(input.output||{}),audio,
     mustHave:structuredClone(input.mustHave||[]),mustNot:structuredClone(input.mustNot||input.product?.prohibited||[]),
-    explicitConstraints:explicitBusinessConstraints(message),
+    explicitConstraints:explicitBusinessConstraints(message,workflow),
     // Existing generated inputs remain inspectable; new product generation
     // is paused by the server-owned production policy.
     generatedFootageAllowed:false,deliverables:['candidate_mp4','editable_project','source_index','quality_report']};

@@ -1,3 +1,4 @@
+import {functionalResourceScore} from './editorial-strategy.mjs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
@@ -186,7 +187,7 @@ export class HyperFramesResourcePlanner {
   for(const r of this.catalog.resources||[])if(positive.some(q=>q.canonicalId===canonical(r))&&!found.some(f=>f.id===r.id))found.push({...r,score:1});
   const runtimeCanonical=a=>a.canonicalId||(a.id==='chromatic-split'?'chromatic-radial-split':a.id);
   const selected=this.adapters.filter(a=>adapterChecks.find(c=>c.id===a.id)?.eligible&&!denied.has(runtimeCanonical(a))&&(!positive.length||positive.some(r=>r.canonicalId===runtimeCanonical(a)))).map(a=>{
-   const sources=found.filter(r=>canonical(r)===runtimeCanonical(a));return {...a,canonicalId:runtimeCanonical(a),scope:positive.find(r=>r.canonicalId===runtimeCanonical(a))?.scope||null,scopes:requests.filter(r=>r.canonicalId===runtimeCanonical(a)),discoveryScore:sources.reduce((s,r)=>s+(r.score||0),0),sourceFiles:sources.map(r=>({path:r.path,sha256:r.sha256,commit:r.sourceCommit}))};
+   const sources=found.filter(r=>canonical(r)===runtimeCanonical(a));return {...a,canonicalId:runtimeCanonical(a),scope:positive.find(r=>r.canonicalId===runtimeCanonical(a))?.scope||null,scopes:requests.filter(r=>r.canonicalId===runtimeCanonical(a)),functionalMatch:functionalResourceScore(runtimeCanonical(a),need),discoveryScore:sources.reduce((s,r)=>s+(r.score||0),0)+functionalResourceScore(runtimeCanonical(a),need).score,sourceFiles:sources.map(r=>({path:r.path,sha256:r.sha256,commit:r.sourceCommit}))};
   }).filter(a=>positive.length||a.discoveryScore>0).sort((a,b)=>b.discoveryScore-a.discoveryScore||(b.score||0)-(a.score||0)).slice(0,5);
   const missing=positive.filter(r=>!selected.some(a=>a.canonicalId===r.canonicalId));
   const visible=found.filter((r,i)=>i<20||selected.some(a=>a.canonicalId===canonical(r)));

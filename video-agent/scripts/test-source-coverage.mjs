@@ -1,10 +1,11 @@
+import {canResumeJob} from '../lib/creative/recovery.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {selectStorySources,bindSourceSelectionDocument} from '../lib/creative/commerce-directors.mjs';
 import {buildEvidenceIndex,reusableInspection} from '../lib/creative/evidence-index.mjs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import {inspectSourceRanges,inspectSourceBoundaries} from '../lib/creative/source-inspection.mjs';
+import {inspectSourceRanges,inspectSourceBoundaries,inspectActionRanges} from '../lib/creative/source-inspection.mjs';
 import {ffmpeg,run,hashFile} from '../lib/edit/media.mjs';
 import {prepareCreativeAsset} from '../lib/creative/image-asset.mjs';
 
@@ -77,4 +78,47 @@ test('assembly binds selection to current executable nodes and rejects stale or 
  assert.equal(bound.ranges[0].sceneId,'detail');
  for(const nodes of [[node,node],[{...node,params:{...node.params,sourceStartSeconds:5}}],[{...node,durationFrames:90}]])
   assert.throws(()=>bindSourceSelectionDocument(selected(),{...doc,nodes},story,'run'),{code:'SOURCE_SELECTION'});
+});
+
+
+test('natural source tail may occupy its last output frame without claiming extended source evidence',()=>{
+ const fractional={...asset,mediaMetadata:{...asset.mediaMetadata,duration:20.01}};
+ const tail={...story,scenes:[{...story.scenes[0],durationSeconds:2+1/30,media:[{assetId:asset.id,sourceStartSeconds:18,playbackRate:1}]}]};
+ const selected=selectStorySources(tail,[fractional],material);
+ assert.equal(selected.ranges[0].sourceEndSeconds,20.01);
+ tail.scenes[0].durationSeconds+=1/30;
+ assert.throws(()=>selectStorySources(tail,[fractional],material),{code:'SOURCE_SELECTION'});
+});
+
+
+test('source boundary observation uses actual video end while retaining the longer audio range',async()=>{
+ const base=path.resolve('outputs/source-coverage-tests');await fs.mkdir(base,{recursive:true});
+ const dir=await fs.mkdtemp(path.join(base,'audio-tail-')),file=path.join(dir,'source.mp4');
+ await run(ffmpeg,['-y','-v','error','-f','lavfi','-i','color=c=blue:s=64x64:r=30:d=1','-f','lavfi','-i','sine=frequency=440:duration=1.2','-c:v','libx264','-pix_fmt','yuv420p','-c:a','aac',file]);
+ const current={...asset,compiledRef:'source.mp4',sha256:await hashFile(file),mediaMetadata:{duration:1.2}};
+ const boundaries=await inspectSourceBoundaries(dir,[current],[{assetId:asset.id,startSeconds:0,endSeconds:1.2}]);
+ assert.equal(boundaries.ranges[0].endSeconds,1.2);assert.equal(boundaries.sources[0].videoEndSeconds,1);
+ assert(Math.abs(Math.max(...boundaries.records.flatMap(r=>r.times))-29/30)<1e-6);
+ assert(boundaries.records.every(r=>r.endSeconds<=1));
+ const evidenceIndex=buildEvidenceIndex([current],[boundaries]);
+ const fullStory={transition:'cut',scenes:[{durationSeconds:1.2,media:[{assetId:asset.id,sourceStartSeconds:0}]}]};
+ const selected=selectStorySources(fullStory,[current],material,{evidenceIndex}).ranges[0];
+ assert.equal(selected.sourceEndSeconds,1.2);assert.equal(selected.visualSourceEndSeconds,1);
+ assert(Math.abs(selected.trailingAudioOnlySeconds-.2)<1e-6);assert.equal(selected.samplingCoverage.samplingSufficient,true);
+ const stale=structuredClone(boundaries);stale.sources[0].compiledSha256='stale';
+ const untrusted=buildEvidenceIndex([current],[stale]);assert.equal(untrusted.assets[0].videoEndSeconds,null);
+ assert.throws(()=>selectStorySources(fullStory,[current],material,{evidenceIndex:untrusted}),{code:'SOURCE_SELECTION'});
+
+ await assert.rejects(()=>inspectSourceRanges(dir,[current],[{assetId:asset.id,startSeconds:1.1,endSeconds:1.2}]),{code:'OBSERVATION_TIMESTAMP'});
+ await assert.rejects(()=>inspectActionRanges(dir,[current],[{assetId:asset.id,startSeconds:1.1,endSeconds:1.2}]),{code:'OBSERVATION_TIMESTAMP'});
+ const action=await inspectActionRanges(dir,[current],[{assetId:asset.id,startSeconds:.9,endSeconds:1.2}]);
+ assert.equal(action.clips[0].endSeconds,1);assert.equal(action.clips[0].requestedEndSeconds,1.2);
+});
+
+
+test('legacy zero-frame observation failure is resumable without lifting cumulative budgets',()=>{
+ const job={runId:'r',status:'recoverable',code:'OBSERVATION_BUDGET',error:'动作观察帧数量超出预算'};
+ assert.equal(canResumeJob(job),true);
+ assert.equal(canResumeJob({...job,error:'观察预算已用完；已有证据已保留'}),false);
+ assert.equal(canResumeJob({...job,code:'MODEL_BUDGET',modelCalls:128,maxModelCalls:128}),false);
 });

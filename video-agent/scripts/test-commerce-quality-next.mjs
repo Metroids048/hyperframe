@@ -44,7 +44,7 @@ test('repair ownership keeps layout local, routes source separately and stops en
   assert.equal(repairRoute(keyframeFailure([{severity:'major',repairKind:'layout',problem:'低对比'}])),'scene');
   assert.equal(repairRoute(keyframeFailure([{severity:'major',repairKind:'source-selection'}])),'source-selection');
   assert.equal(repairRoute(keyframeFailure([{severity:'major',repairKind:'fact-binding'}])),'fact-binding');
-  for(const code of ['HYPERFRAMES_MEDIA_FRAME','ENOENT','ISOLATION_UNAVAILABLE','CHECKPOINT_HASH'])assert.equal(repairRoute({code}),'environment');
+  for(const code of ['HYPERFRAMES_MEDIA_FRAME','ENOENT','ISOLATION_UNAVAILABLE','CHECKPOINT_HASH','OBSERVATION_TIMESTAMP'])assert.equal(repairRoute({code}),'environment');
   assert.equal(repairRoute({message:'当前处理阶段超时'}),'resume');
   assert.deepEqual(requiredRepairs([{severity:'minor',problem:'审美偏好'}]),[]);
 });
@@ -86,7 +86,7 @@ test('a shot can select an eligible resource outside the initial shortlist',()=>
 
 test('main kernel emits direction preview before authoring remaining shots and before assembly',async()=>{
   const dir=await fs.mkdtemp(path.join(os.tmpdir(),'early-direction-'));await fs.mkdir(path.join(dir,'evidence'));await fs.writeFile(path.join(dir,'evidence.json'),JSON.stringify({assets:[]}));
-  const brief={request:inferred,needsTranscription:false,needsNarration:false,needsCaptions:false,keepOriginalAudio:false,capabilities:[],constraints:[],gaps:[]};
+  const brief={request:inferred,needsTranscription:false,needsNarration:false,needsCaptions:false,keepOriginalAudio:true,capabilities:[],constraints:[],gaps:[]};
   const stories=[0,30].map(start=>({...scene,resourceId:'native-original',productionMethod:'original',media:[{...scene.media[0],sourceStartSeconds:start}]}));
   const answers=[brief,{observations:[observation],candidates:[],inspectRanges:[],gaps:[]},{selected:[],gaps:[],blockingGaps:[]},{...plan,scenes:stories,summary:'test',paragraphs:[{id:'p'}],inspectRanges:[],inspectActions:[],blockingGaps:[]}],events=[];
   const provider={structured:async()=>({result:answers.shift(),model:'injected-only'})};
@@ -98,7 +98,7 @@ test('main kernel emits direction preview before authoring remaining shots and b
 test('actual scene.author never replans footage for repeated static layout or missing media',async()=>{
   for(const mediaFailure of [false,true]){
     const dir=await fs.mkdtemp(path.join(os.tmpdir(),'repair-owner-'));await fs.mkdir(path.join(dir,'evidence'));await fs.writeFile(path.join(dir,'evidence.json'),JSON.stringify({assets:[]}));await fs.writeFile(path.join(dir,'still.png'),'injected-image');
-    const brief={request:inferred,needsTranscription:false,needsNarration:false,needsCaptions:false,keepOriginalAudio:false,capabilities:[],constraints:[],gaps:[]};
+    const brief={request:inferred,needsTranscription:false,needsNarration:false,needsCaptions:false,keepOriginalAudio:true,capabilities:[],constraints:[],gaps:[]};
     const source={html:'<h1 id="title"></h1>',css:'#title{font-size:64px}',timeline:'',parameters:[],objects:[{elementId:'title',ref:'title'}],motionTargets:[],textStyles:[]};
     const one={...scene,durationSeconds:24,media:[],resourceId:'native-original',productionMethod:'original'};
     const answers=[brief,{observations:[],candidates:[],inspectRanges:[],gaps:[]},{selected:[],gaps:[],blockingGaps:[]},{...plan,observations:[],audio:[],scenes:[one],summary:'test',paragraphs:[{id:'p'}],inspectRanges:[],inspectActions:[],blockingGaps:[]}];
@@ -127,7 +127,7 @@ test('story model request includes earlier broad frames together with newer acti
     const bytes=Buffer.from('injected-frame-'+i),file='evidence/test-'+i+'.jpg';await fs.writeFile(path.join(dir,file),bytes);
     batches.push({key:'test-'+i,tool:i?'assets.inspect_actions':'assets.inspect_ranges',records:[{...r,file,times:[r.startSeconds],sha256:resourceHash(bytes),sourceSha256:asset.sha256}]});
   }
-  const brief={request:inferred,needsNarration:false,needsTranscription:false,needsCaptions:false,keepOriginalAudio:false,capabilities:[],constraints:[],gaps:[]};
+  const brief={request:inferred,needsNarration:false,needsTranscription:false,needsCaptions:false,keepOriginalAudio:true,capabilities:[],constraints:[],gaps:[]};
   const stories=[{inspectRanges:[broad],inspectActions:[],scenes:[]},{inspectActions:[action],inspectRanges:[],scenes:[]},{...plan,scenes:[{...scene,resourceId:'native-original',durationSeconds:24}],paragraphs:[{id:'p'}],inspectRanges:[],inspectActions:[],blockingGaps:[]}];
   let calls=0;
   const provider={structured:async(_prompt,input)=>{
@@ -151,7 +151,7 @@ for(const recipe of [false,true,'resume'])test('real project.assemble preserves 
   const photo={...asset,id:'photo',kind:'image',compiledRef:'assets/photo.png',mediaMetadata:{width:1200,height:800}};
   const source={html:'<img id="photo"><div id="title"></div><div id="anchor"></div>',css:'#photo{position:absolute;left:700px;top:100px;width:1000px;height:800px;object-fit:contain}#title{position:absolute;left:100px;top:200px;width:500px;font-size:70px}#anchor{position:absolute;left:100px;top:900px;width:1600px;height:4px;background:#D7A77A}',timeline:'tl.from("#anchor",{scaleX:0,duration:0.8,ease:"power3.out"},0.2);',parameters:[],objects:[{elementId:'photo',ref:'media-1'},{elementId:'title',ref:'text-1'},{elementId:'anchor',ref:'decoration-1'}],motionTargets:['anchor'],textStyles:[]};
   const shot={...scene,durationSeconds:24,resourceId:recipe?'titlecard-reveal':'native-original',productionMethod:recipe==='resume'?'composition-adapt':recipe?'parameterized':'original',media:[{assetId:'photo',sourceStartSeconds:0,playbackRate:1,fit:'contain'}]};
-  const brief={request:inferred,needsTranscription:false,needsNarration:false,needsCaptions:false,keepOriginalAudio:false,capabilities:[],constraints:[],gaps:[]};
+  const brief={request:inferred,needsTranscription:false,needsNarration:false,needsCaptions:false,keepOriginalAudio:true,capabilities:[],constraints:[],gaps:[]};
   const answers=[brief,{observations:[{...observation,assetId:'photo'}],candidates:[],inspectRanges:[],gaps:[]},{selected:[],gaps:[],blockingGaps:[]},{...plan,audio:[],scenes:[shot],summary:'source preservation',paragraphs:[{id:'p'}],inspectRanges:[],inspectActions:[],blockingGaps:[]}];
   let authorCount=0,reviewCount=0;
   const io={catalog:{snapshot:{commit:'test'},context:async()=>({text:'test',records:[]}),candidates:()=>[{id:'titlecard-reveal',eligible:true,compatible:true}]},collectEvidence:async()=>({records:[],inputs:[]}),buildShot:async()=>{authorCount++;await fs.writeFile(path.join(dir,'checked.json'),JSON.stringify({source}));return {file:'checked.json',sceneId:'scene-01',sourceHash:resourceHash(source),receipt:{resourceId:shot.resourceId,sourceHash:resourceHash(source),method:recipe==='resume'&&authorCount===1?'parameterized':shot.productionMethod}};},verifyCustomProject:async()=>{},review:async()=>{reviewCount++;if(recipe==='resume'&&reviewCount===1)throw Error('test recovery');return {revisionId:'test'}}};

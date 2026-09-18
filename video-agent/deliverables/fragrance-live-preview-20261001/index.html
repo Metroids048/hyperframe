@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>香氛展示直播｜演示预告</title>
+  <script src="assets/gsap.min.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    @font-face { font-family: "Microsoft YaHei"; src: local("Microsoft YaHei"); }
+    @font-face { font-family: "PingFang SC"; src: local("PingFang SC"); }
+    body { margin: 0; background: #f6f0e9; }
+    #root { position: relative; width: 1080px; height: 1920px; overflow: hidden; background: #f6f0e9; color: #30252a; font-family: "Microsoft YaHei", "PingFang SC", sans-serif; }
+    .scene { position: absolute; inset: 0; opacity: 0; background: #f6f0e9; }
+    .media { position: absolute; overflow: hidden; background: #eadfd7; }
+    .media.landscape { left: 72px; top: 590px; width: 936px; height: 494px; }
+    .media.portrait { left: 203px; top: 360px; width: 674px; height: 1280px; }
+    video { width: 100%; height: 100%; object-fit: contain; display: block; }
+    .eyebrow { position: absolute; left: 72px; top: 112px; border: 1px solid #941c3a; padding: 12px 20px; color: #941c3a; font-size: 34px; line-height: 1; font-weight: 700; letter-spacing: .04em; z-index: 10; }
+    .heading { position: absolute; left: 72px; top: 260px; width: 936px; font-size: 82px; line-height: 1.16; letter-spacing: -.035em; font-weight: 800; z-index: 3; }
+    .subheading { position: absolute; left: 76px; top: 465px; font-size: 42px; line-height: 1.35; color: #941c3a; z-index: 3; }
+    .caption { position: absolute; left: 72px; bottom: 90px; width: 936px; padding: 26px 30px; border-top: 2px solid #941c3a; background: rgba(255,255,255,.92); font-size: 34px; line-height: 1.48; z-index: 8; }
+    .date { position: absolute; left: 72px; top: 260px; width: 936px; font-size: 78px; line-height: 1.15; letter-spacing: -.04em; font-weight: 800; z-index: 3; }
+    .time { position: absolute; left: 76px; top: 460px; color: #941c3a; font-size: 48px; font-weight: 700; z-index: 3; }
+    .cta { position: absolute; left: 72px; top: 260px; width: 936px; padding: 38px 40px; background: #941c3a; color: #fff; font-size: 60px; line-height: 1.18; font-weight: 800; z-index: 3; }
+    .detail { position: absolute; left: 72px; top: 440px; padding: 18px 22px; background: rgba(255,255,255,.96); color: #941c3a; font-size: 42px; line-height: 1.45; z-index: 3; }
+    .end-rule { position: absolute; left: 72px; top: 600px; width: 160px; height: 6px; background: #941c3a; z-index: 4; }
+  </style>
+</head>
+<body>
+  <main id="root" data-composition-id="fragrance-live-preview" data-start="0" data-duration="22" data-width="1080" data-height="1920">
+    <section id="scene-1" class="scene">
+      <div class="media landscape"><video id="scene-1-video" src="assets/fragrance-wide.mp4" data-start="0" data-duration="5" data-media-start="0.5" data-track-index="1" muted playsinline></video></div>
+      <div class="heading">香氛展示直播</div><div class="subheading">邀你观看</div>
+    </section>
+    <section id="scene-2" class="scene">
+      <div class="media portrait"><video id="scene-2-video" src="assets/fragrance-portrait.mp4" data-start="5" data-duration="6" data-media-start="0.5" data-track-index="1" muted playsinline></video></div>
+      <div class="heading">近看每一处<br>真实细节</div>
+    </section>
+    <section id="scene-3" class="scene">
+      <div class="media landscape"><video id="scene-3-video" src="assets/fragrance-wide.mp4" data-start="11" data-duration="6" data-media-start="9" data-track-index="1" muted playsinline></video></div>
+      <div class="date">2026 年 10 月 1 日</div><div class="time">北京时间 20:00</div>
+    </section>
+    <section id="scene-4" class="scene">
+      <div class="media portrait"><video id="scene-4-video" src="assets/fragrance-portrait.mp4" data-start="17" data-duration="5" data-media-start="7" data-track-index="1" muted playsinline></video></div>
+      <div class="cta">查看演示直播入口</div><div class="detail">2026 年 10 月 1 日<br>北京时间 20:00</div><div class="end-rule"></div>
+    </section>
+    <div class="eyebrow">虚构活动／非官方演示</div>
+    <div class="caption">香氛展示直播，邀你观看。<br>2026 年 10 月 1 日，北京时间 20:00。<br>参与方式：查看演示直播入口。</div>
+    <audio id="music" src="assets/music.wav" data-start="0" data-duration="22" data-track-index="2" data-volume="0.12"></audio>
+  </main>
+  <script>
+    window.__timelines = window.__timelines || {};
+    const tl = gsap.timeline({ paused: true });
+    tl.set('#scene-1', { opacity: 1 }, 0)
+      .to('#scene-1', { opacity: 0, duration: .6, ease: 'sine.inOut' }, 4.4)
+      .set('#scene-2', { opacity: 1 }, 4.4)
+      .to('#scene-2', { opacity: 0, duration: .6, ease: 'sine.inOut' }, 10.4)
+      .set('#scene-3', { opacity: 1 }, 10.4)
+      .to('#scene-3', { opacity: 0, duration: .6, ease: 'sine.inOut' }, 16.4)
+      .set('#scene-4', { opacity: 1 }, 16.4)
+      .from('#scene-1 .heading', { opacity: 0, y: 36, duration: .6, ease: 'power3.out' }, .18)
+      .from('#scene-1 .subheading', { opacity: 0, x: -22, duration: .45, ease: 'sine.out' }, .48)
+      .from('#scene-2 .heading', { opacity: 0, y: 30, duration: .6, ease: 'power2.out' }, 5.25)
+      .from('#scene-3 .date', { opacity: 0, y: 34, duration: .55, ease: 'power3.out' }, 11.25)
+      .from('#scene-3 .time', { opacity: 0, x: -22, duration: .45, ease: 'sine.out' }, 11.55)
+      .from('#scene-4 .cta', { opacity: 0, y: 28, duration: .55, ease: 'power3.out' }, 17.22)
+      .from('#scene-4 .detail', { opacity: 0, y: 20, duration: .45, ease: 'sine.out' }, 17.52)
+      .to('#scene-4', { opacity: 0, duration: .55, ease: 'sine.inOut' }, 21.45);
+    window.__timelines['fragrance-live-preview'] = tl;
+  </script>
+</body>
+</html>

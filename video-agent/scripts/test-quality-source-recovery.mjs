@@ -34,7 +34,7 @@ test('quality-only source changes invalidate review, while any planning or helpe
 test('historical stage proof must match the exact retained runtime source bytes',async()=>{
  const base=path.resolve('outputs/quality-source-tests');await fs.mkdir(base,{recursive:true});const dir=await fs.mkdtemp(path.join(base,'scope-'));
  const source="function produce(){registry.register('preview.review',async()=>2);}",hash=resourceHash(source);
- const required=['server.mjs','package-lock.json','scripts/native-scene-worker.mjs','scripts/native-scene-job.ps1','scripts/local-speak.py','scripts/local-transcribe.py','scripts/speech-worker.py','web/commerce.html','web/commerce.js','lib/creative/capabilities.mjs','lib/creative/production.mjs'];
+ const required=['config/voice_profiles.json','config/skills/product-understanding.md','config/skills/marketing-planner.md','config/skills/video-director.md','server.mjs','package-lock.json','scripts/native-scene-worker.mjs','scripts/native-scene-job.ps1','scripts/local-speak.py','scripts/local-transcribe.py','scripts/speech-worker.py','web/commerce.html','web/commerce.js','lib/creative/capabilities.mjs','lib/creative/production.mjs'];
  for(const file of required){await fs.mkdir(path.dirname(path.join(dir,file)),{recursive:true});await fs.writeFile(path.join(dir,file),file.endsWith('production.mjs')?source:'');}
  const proof=path.join(dir,'.cache/runtime-scope-sources',hash+'.mjs');await fs.mkdir(path.dirname(proof),{recursive:true});await fs.writeFile(proof,source);
  assert.equal((await captureRuntimeBuild(dir)).historicalProductionScopes[hash].planningAndAssembly,productionDependencyScopes(source).planningAndAssembly);

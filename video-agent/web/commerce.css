@@ -22,7 +22,9 @@ main{max-width:1480px;padding:24px;grid-template-columns:minmax(0,1.45fr) minmax
 body:not(.has-project) main{display:block;max-width:720px;padding-top:56px}body:not(.has-project) .preview{display:none}body:not(.has-project) .chat{min-height:auto}
 body.has-project .intro,body.has-project #creation-paths{display:none}
 .intro h1{font-size:34px;margin:0 0 8px}.intro p{margin-bottom:22px}
-#creation-paths{display:none}
+#creation-paths{display:block;margin:0 0 14px}
+#creation-paths>[data-creation]{margin:0 6px 8px 0}
+#input-guidance{margin:2px 0 0;color:var(--muted);font-size:12px}
 .messages{flex:0 1 auto;min-height:0;max-height:220px;margin:0 0 14px;padding-right:4px}.messages .bubble:not(:nth-last-child(-n+5)){display:none}.bubble{max-width:100%;padding:10px 12px}.assistant{padding-left:12px;background:#101419;color:#aebbc3}
 #editing-context{margin:0 0 10px;padding:9px 11px;border-color:#31423c;background:#111814;color:#b8d8cd}
 #edit-suggestions{display:flex;gap:6px;margin:0 0 10px;flex-wrap:wrap}#edit-suggestions button{font-size:12px;border:1px solid var(--line)}
@@ -33,12 +35,12 @@ body.has-project .intro,body.has-project #creation-paths{display:none}
 #audio-tools{margin:10px 0 0;border-top:1px solid var(--line);padding-top:10px}
 hyperframes-player{width:100%;max-height:calc(100vh - 190px);border-radius:14px;background:#050607}
 #revision-tools{padding:0 16px 12px}.downloads{padding:0 16px 14px}
-#artifact-files,#creation-summary,#object-tools,#production-quality,#details{display:none!important}
+#creation-summary,#object-tools,#production-quality,#details{display:none!important}
 #jobs{padding:0 16px 14px}#jobs>div:not(:last-child){display:none}
 #quality-status{font-size:12px;color:var(--muted);margin:6px 16px}#human-review-link,#formal-download{display:none!important}
 body.has-project .composer-settings{display:none!important}
 body.has-project #quality-status{display:none!important}
-@media(max-width:980px){main{grid-template-columns:1fr}.preview{position:static;min-height:420px;order:1}.chat{order:2;min-height:auto}.composer-footer{grid-template-columns:auto auto 1fr}.composer-footer #send{grid-column:3}.composer-footer #plan-workflow{display:none}}
+@media(max-width:980px){main{grid-template-columns:1fr}.preview{position:static;min-height:420px;order:1}.chat{order:2;min-height:auto}.composer-footer{grid-template-columns:auto auto 1fr}.composer-footer #send{grid-column:3}}
 @media(max-width:600px){header{padding:0 12px}.header-actions select{width:130px}.header-actions #open-package{display:none}main{padding:12px}.chat{padding:14px}.composer-footer{display:flex;flex-wrap:wrap}#composer-hint{display:none}}
 
 /* Conversation-first intake and visible production feedback. */
@@ -89,3 +91,5 @@ main{grid-template-columns:minmax(520px,620px) minmax(0,1fr)}
 .composer-footer #send{margin-left:auto;min-width:100px;box-shadow:0 0 0 1px rgba(103,227,189,.12)}
 @media(max-width:1280px){main{grid-template-columns:minmax(460px,540px) minmax(0,1fr)}header>#production-progress{width:min(460px,36vw)}}
 @media(max-width:980px){header{height:96px;align-items:flex-start;padding-top:14px}header>#production-progress{top:54px;width:calc(100% - 24px);max-width:none}main,body:not(.has-project) main{height:auto;min-height:calc(100vh - 96px);overflow:visible;display:flex;flex-direction:column;padding:10px}.chat{order:1;height:auto;min-height:620px}.preview{order:2;position:static;min-height:520px}.messages{min-height:220px}#composer{max-height:none;overflow:visible}.composer-footer{bottom:0}}
+
+.message-attachments{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.message-attachment{display:flex;flex-direction:column;gap:4px;max-width:190px;color:#9eabb1;font-size:11px}.message-attachment-media{display:block;width:180px;height:112px;object-fit:cover;border:1px solid #38434a;border-radius:8px;background:#080a0b}.message-attachment span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

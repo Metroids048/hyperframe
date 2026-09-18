@@ -57,7 +57,7 @@ await test('review rejects cutting inside a spoken word even if model approves',
   assert.equal(review.passed,false);assert.equal(review.issues[0].code,'cut_inside_word');assert.equal(review.evidence.audioListening,false);
 });
 await test('installed skill provenance is pinned and each adapter is readable',async()=>{
-  const caps=skillCapabilities();assert.equal(caps.skills.length,12);for(const skill of caps.skills){if(skill.source!=='project')assert.match(skill.sourceCommit,/^[a-f0-9]{40}$/);assert(skill.license);assert((await loadSkillInstructions([skill])).length>100);}
+  const caps=skillCapabilities();for(const id of ['timeline-edit','speech-captions','product-understanding','marketing-planner','video-director'])assert(caps.skills.some(skill=>skill.id===id),id+' must be registered');for(const skill of caps.skills){if(skill.source!=='project')assert.match(skill.sourceCommit,/^[a-f0-9]{40}$/);assert(skill.license);assert((await loadSkillInstructions([skill])).length>100);}
   assert.equal(selectSkills('hello').length,0);assert.equal(selectSkills('字幕翻译').some(s=>s.id==='speech-captions'),true);
 });
 await test('local voice respects explicit voice and rejects unknown names',()=>{

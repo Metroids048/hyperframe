@@ -10,7 +10,7 @@ import {createCreativeService} from '../lib/creative/service.mjs';
 import {normalizeCommerceRequest} from '../lib/creative/contracts.mjs';
 import {businessContract} from '../lib/creative/commerce-focus.mjs';
 import {resolveWorkflowIntent,productionContractMessage} from '../lib/creative/workflow-intent.mjs';
-import {explicitBusinessConstraints,validateBriefAudio} from '../lib/creative/business-constraints.mjs';
+import {explicitBusinessConstraints,validateBriefAudio,validateBusinessAudio} from '../lib/creative/business-constraints.mjs';
 const message='只在第二处用色散，其余不要；文字别挡商品。';
 const order=()=>({mode:'create',scenario:'general',objective:'说明商品',auxiliaryModes:[],auxiliaryScenarios:[],requirements:[{kind:'prohibit',quote:'其余不要',targetIds:[],excludeIds:[]}],resources:[],gaps:[],procedureSubtype:'not_applicable',steps:[]});
 const provider=result=>({structured:async()=>({result,model:'offline-test'})});
@@ -146,6 +146,52 @@ test('M01-F02 same-draft follow-up preserves sound and fact constraints instead 
  const third=validateWorkOrder({...order(),requirements:[{kind:'sound',quote:'现在允许添加背景音乐',targetIds:[],excludeIds:[]}],overrides:[{requirementId:music.id,replacementQuote:'现在允许添加背景音乐'}]},{message:'现在允许添加背景音乐',prior:second});
  assert(!third.requirements.some(r=>r.id===music.id));assert(third.requirements.some(r=>r.quote==='改标题'));assert.equal(third.facts.length,1);assert.equal(third.parentContractId,second.contractId);assert.equal(third.requirementChanges.length,1);assert(first.requirements.some(r=>r.id===music.id));
  assert.throws(()=>validateWorkOrder({...order(),requirements:[{kind:'change',quote:'改标题',targetIds:[],excludeIds:[]}],overrides:[{requirementId:music.id,replacementQuote:'改标题'}]},{message:'改标题',prior:second}),{code:'WORKFLOW_OVERRIDE_SCOPE'});
+});
+test('exact prior requirement echoes retain their original provenance; altered or new-project echoes fail',()=>{
+ const sound={kind:'sound',quote:'不加背景音乐',targetIds:[],excludeIds:[]};
+ const prior=validateWorkOrder({...order(),requirements:[sound]},{message:sound.quote});
+ const change={kind:'change',quote:'改标题',targetIds:[],excludeIds:[]};
+ const parsed={...order(),requirements:[sound,change]},original=structuredClone(parsed);
+ const next=validateWorkOrder(parsed,{message:change.quote,prior});
+ assert.deepEqual(parsed,original);assert.equal(next.requirements.length,2);
+ assert.equal(next.requirements[0].id,prior.requirements[0].id);assert.equal(next.requirements[0].inherited,true);
+ assert.deepEqual(next.sourceRequests,['不加背景音乐','改标题']);
+ for(const altered of [{...sound,quote:'允许背景音乐'},{...sound,kind:'fact'},{...sound,targetIds:['v1']}]){
+  assert.throws(()=>validateWorkOrder({...parsed,requirements:[altered,change]},{message:change.quote,prior,assets:[{id:'v1'}]}),{code:'WORK_ORDER_QUOTE'});
+ }
+ assert.throws(()=>validateWorkOrder(parsed,{message:change.quote,prior,baseRevisionId:'old'}),{code:'WORK_ORDER_QUOTE'});
+ assert.throws(()=>validateWorkOrder({...parsed,requirements:[{...sound,targetIds:['missing']},change]},{message:change.quote,prior}),{code:'WORK_ORDER_TARGET'});
+});
+test('draft-plan edits repair a mistaken native-edit mode once without inventing a base revision',async()=>{
+ const prior=validateWorkOrder({...order(),requirements:[{kind:'sound',quote:'不加背景音乐',targetIds:[],excludeIds:[]}]},{message:'不加背景音乐'});
+ const message='只规划：改标题，其他不变';
+ const valid={...order(),requirements:[{kind:'change',quote:'改标题',targetIds:[],excludeIds:[]}]};
+ let calls=0;
+ const plan=await planWorkbenchWorkflow({root:ROOT,message,prior,provider:{structured:async(_system,messages)=>{
+  calls++;if(calls===2)assert.equal(JSON.parse(messages[0].content).validationCorrection.code,'EDIT_BASE_REQUIRED');
+  return {result:calls===1?{...valid,mode:'edit'}:valid,model:'offline-test'};
+ }}});
+ assert.equal(calls,2);assert.equal(plan.workOrder.mode,'create');assert.equal(plan.workOrder.baseRevisionId,null);
+ assert(plan.workOrder.requirements.some(r=>r.quote==='不加背景音乐'&&r.inherited));
+ let blockedCalls=0;
+ await assert.rejects(planWorkbenchWorkflow({root:ROOT,message,prior,intake:{taskMode:'variant',taskModeExplicit:true},provider:{structured:async()=>{blockedCalls++;return {result:{...valid,mode:'variant'}};}}}),{code:'EDIT_BASE_REQUIRED'});
+ assert.equal(blockedCalls,1);
+});
+test('production audio honors source-backed compound original-sound preservation without weakening exclusions',()=>{
+ const message='完整保留原片中的画面顺序、必要动作和原声，不加背景音乐、不加旁白';
+ const requirements=[{kind:'preserve',quote:'完整保留原片中的画面顺序、必要动作和原声',targetIds:[],excludeIds:[]},{kind:'sound',quote:'不加背景音乐、不加旁白',targetIds:[],excludeIds:[]}];
+ const workflow=validateWorkOrder({...order(),mode:'recut',requirements},{message});
+ const assets=[{id:'v',kind:'video',mediaMetadata:{hasAudio:true}},{id:'music',kind:'audio'}];
+ assert.equal(explicitBusinessConstraints(message,workflow).original,'required');
+ assert.doesNotThrow(()=>validateBriefAudio(message,{needsNarration:false,keepOriginalAudio:true},workflow));
+ assert.doesNotThrow(()=>validateBusinessAudio(message,[{assetId:'v'}],assets,workflow));
+ assert.throws(()=>validateBusinessAudio(message,[],assets,workflow),{code:'AUDIO_CONSTRAINT'});
+ assert.throws(()=>validateBriefAudio(message,{keepOriginalAudio:false},workflow),{code:'AUDIO_CONSTRAINT'});
+ assert.doesNotThrow(()=>validateBusinessAudio(message,[],[{id:'v',kind:'video',mediaMetadata:{hasAudio:false}}],workflow));
+ assert.throws(()=>validateBusinessAudio(message,[{assetId:'music'}],assets,workflow),{code:'AUDIO_CONSTRAINT'});
+ assert.throws(()=>validateBriefAudio(message,{needsNarration:true,keepOriginalAudio:true},workflow),{code:'AUDIO_CONSTRAINT'});
+ for(const invalid of [{...workflow,sourceRequests:[]},{...workflow,requirements:requirements.map(r=>({...r,field:'sound.original',quote:'模型猜测的原声要求'}))}])assert.throws(()=>validateBriefAudio(message,{keepOriginalAudio:true},invalid),{code:'AUDIO_CONSTRAINT'});
+ assert.throws(()=>validateBriefAudio(message+'，不要原声',{keepOriginalAudio:true},workflow),{code:'AUDIO_CONSTRAINT'});
 });
 test('stage evidence cannot skip dependency, missing input or quality acceptance',()=>{
  const plan={workOrder:{baseRevisionId:null},stages:workflowStages(),blockers:[]};

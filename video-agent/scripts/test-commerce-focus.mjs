@@ -9,6 +9,7 @@ import {CapabilityCatalog} from '../lib/creative/capabilities.mjs';
 import {productionFingerprint} from '../lib/creative/input-fingerprint.mjs';
 import {invalidatedProductionCheckpoints} from '../lib/creative/runtime-build.mjs';
 import {commerceSkills} from '../lib/creative/commerce-skills.mjs';
+import {loadQualityContract,qualityCoverage,validateQualityContract} from '../lib/creative/quality-contract.mjs';
 
 const root=path.resolve(import.meta.dirname,'..');
 test('resource lock preserves semantic Skill bytes and rejects changed or malformed receipts',async()=>{
@@ -76,6 +77,16 @@ for(const [id,mutate,reason] of [
   ['S28',s=>{s.human={...s.human,source:'imported'};},'HUMAN_CONFIRMATION_PENDING'],
 ])test(id+' rejects invalid formal delivery while retaining candidate access',()=>{const s=fixture();mutate(s);const d=evaluateDelivery(s);assert.equal(d.status,'awaiting_review');assert.ok(d.reasonCodes.includes(reason));assert.equal(d.candidateAllowed,true);});
 test('S17 absent/corrupt runtime files fail closed',async()=>{const temp=await fs.mkdtemp(path.join(os.tmpdir(),'focus-missing-'));try{const d=await deliveryDecision(root,temp);assert.equal(d.status,'awaiting_review');assert.equal(d.candidateAllowed,true);}finally{await fs.rm(temp,{recursive:true,force:true});}});
+test('quality acceptance policy is validated, hashed, and exposes every required coverage item',async()=>{
+  const policy=await loadQualityContract(root);
+  assert.match(policy.policyHash,/^[a-f0-9]{64}$/);
+  assert.equal(policy.delivery.requiresFullVideoObservation,true);
+  const coverage=qualityCoverage(policy,{technical:{observed:['decode']}});
+  assert.deepEqual(coverage.technical.observed,['decode']);
+  assert(coverage.technical.unreviewed.includes('duration'));
+  assert.throws(()=>validateQualityContract({...policy,statuses:['pass']}),{code:'QUALITY_CONTRACT_INVALID'});
+  assert.throws(()=>validateQualityContract({...policy,delivery:{...policy.delivery,requiresHumanAcceptance:'yes'}}),{code:'QUALITY_CONTRACT_INVALID'});
+});
 test('S30 detector flags alone do not fabricate content defects',()=>{const s=fixture();s.media.freezeIntervals=[{startSeconds:1,endSeconds:4}];assert.equal(evaluateDelivery(s).status,'accepted');});
 test('S35 real catalog loads exact policy hashes; fingerprint follows policy',async()=>{
   const context=await(await CapabilityCatalog.open(root)).context('R1');assert.ok(context.records.some(r=>r.file==='agent.md'));assert.ok(context.records.some(r=>r.file==='prompts/commerce/commerce-focus.md'));

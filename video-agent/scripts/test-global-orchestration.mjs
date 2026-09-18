@@ -54,6 +54,12 @@ test('scope check blocks a pacing plan that changes explicitly protected sound',
  const before={revisionId:'r1',audioGraph:[{id:'a',startFrame:0}],nodes:[],captions:[],transitions:[]};const after={...before,audioGraph:[{id:'a',startFrame:20}]};
  assert.throws(()=>nativeChangeReceipt(before,after,'开头快一点，但声音别动',[{type:'trim_scene',sceneId:'s'}]),{code:'PRESERVE_VIOLATION'});
 });
+test('conversation edit cannot publish a semantic no-op as a successful new version',()=>{
+ const before={revisionId:'r1',durationFrames:90,output:{width:1920,height:1080},nodes:[{id:'n',kind:'text',params:{text:'标题'}}],scenes:[{id:'s',startFrame:0,durationFrames:90}],audioGraph:[],captions:[],transitions:[]};
+ assert.throws(()=>nativeChangeReceipt(before,structuredClone(before),'把标题改成标题',[{type:'update_text',nodeId:'n',text:'标题'}]),{code:'NO_VISIBLE_CHANGE'});
+ const after=structuredClone(before);after.nodes[0].params.text='新标题';
+ assert.deepEqual(nativeChangeReceipt(before,after,'把标题改成新标题',[{type:'update_text',nodeId:'n',text:'新标题'}]).changedFields,['nodes']);
+});
 test('selective transition restore preserves current captions and uses stable scene IDs',()=>{
  const current={scenes:[{id:'s1'},{id:'s2'}],transitions:[{id:'t',fromSceneId:'s1',toSceneId:'s2',effect:'chromatic-split',durationFrames:9}],captions:[{id:'c',style:{fontSize:30}}]};
  const previous=structuredClone(current);previous.transitions[0].effect='dissolve-transition';previous.captions[0].style.fontSize=50;

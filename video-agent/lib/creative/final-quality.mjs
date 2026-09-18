@@ -4,10 +4,15 @@ import {currentBinding} from './delivery-gate.mjs';
 import {ffmpeg,run,hashFile} from '../edit/media.mjs';
 import {CapabilityCatalog} from './capabilities.mjs';
 import {CodexProvider} from '../edit/codex-provider.mjs';
+import {loadQualityContract,pendingDimensions,qualityCoverage} from './quality-contract.mjs';
+import {prepareFinalPlaybackReview} from './final-playback-review.mjs';
+import {scoreCommerceVideo} from './quality-scoring.mjs';
 
 /** Deliberately a separate context reading exported frames, not preview self-scores. */
 export async function reviewFinalQuality(root,directory,document,{signal,provider}={}){
+  const qualityContract=await loadQualityContract(root);
   const binding=await currentBinding(root,directory,{candidate:true}),media=JSON.parse(await fs.readFile(path.join(directory,'media-review.json'),'utf8'));
+  const playback=await prepareFinalPlaybackReview(directory,document,{signal});
   const admission=JSON.parse(await fs.readFile(path.join(directory,'production-admission.json'),'utf8'));
   const duration=document.durationFrames/30;
   const times=new Set([0,Math.max(0,duration-1/30)]);
@@ -27,8 +32,11 @@ export async function reviewFinalQuality(root,directory,document,{signal,provide
     evidence.push({path:file,sha256:await hashFile(path.join(directory,file)),seconds:t});
     content.push({type:'input_text',text:`最终文件 ${file}，实际成片 ${t.toFixed(3)} 秒`},{type:'input_image',image_url:'data:image/jpeg;base64,'+(await fs.readFile(path.join(directory,file))).toString('base64')});
   }
-  const report={schemaVersion:1,recordType:'runtime_quality_report',binding,origin:document.production?.runId?'agent_generated':'scripted_runner',dimensions:{materials:admission.status==='pass'?'pass':'fail',technical:media.status==='media-contract-passed'?'pass':'fail',visual:'pending',actionContinuity:'pending',audioPerception:document.businessContract.audio==='silent'?'not_applicable':'pending',rights:admission.status==='pass'?'pass':'pending'},coverage:{method:'keyframes_keyframes_with_scene_tail',evidenceRefs:evidence.map(e=>e.path),videoRangesObserved:[],audioRangesObserved:[]},evidenceIndex:evidence,issues:[],unreviewed:['连续动作、节奏与完整观看','实际听感与音画同步',...(selected.length>40?['预算外时间点需分批审查']:[])],score:{total:null,max:100,components:{subject:null,shots:null,story:null,editing:null,motion:null,typography:null,audio:null,finish:null},status:'not_scored_until_full_video_and_human_review'},scenarioAssessment:{status:'pending',summary:''},humanAcceptance:{status:'pending',eventId:null,actorContext:null,revisionId:document.revisionId,submittedAt:null},deliveryDecision:{computedBy:'backend-commerce-focus-v1',status:'awaiting_review',reasonCodes:['HUMAN_CONFIRMATION_PENDING']}};
+  const report={schemaVersion:1,recordType:'runtime_quality_report',qualityPolicy:{id:qualityContract.id,policyHash:qualityContract.policyHash},binding,origin:document.production?.runId?'agent_generated':'scripted_runner',dimensions:{...pendingDimensions(qualityContract,{audioRequired:document.businessContract.audio!=='silent'}),materials:admission.status==='pass'?'pass':admission.status==='fail'?'fail':'pending',technical:media.status==='media-contract-passed'?'pass':'fail',rights:admission.status==='pass'?'pass':'pending'},coverage:{method:'keyframes_with_scene_tail',evidenceRefs:evidence.map(e=>e.path),videoRangesObserved:[],audioRangesObserved:[],requirements:qualityCoverage(qualityContract)},evidenceIndex:evidence,issues:[],unreviewed:['连续动作、节奏与完整观看','实际听感与音画同步',...(selected.length>40?['预算外时间点需分批审查']:[])],score:{total:null,max:100,components:{subject:null,shots:null,story:null,editing:null,motion:null,typography:null,audio:null,finish:null},status:'not_scored_until_full_video_and_human_review'},scenarioAssessment:{status:'pending',summary:''},humanAcceptance:{status:'pending',eventId:null,actorContext:null,revisionId:document.revisionId,submittedAt:null},deliveryDecision:{computedBy:'backend-commerce-focus-v1',status:'awaiting_review',reasonCodes:['HUMAN_CONFIRMATION_PENDING']}};
   const file=path.join(directory,'final-quality-report.json');await fs.writeFile(file,JSON.stringify(report,null,2));
+  report.playbackReview={manifest:'final-review/playback-manifest.json',watch:'final-review/watch.html',finalVideoSha256:playback.finalVideoSha256,clipCount:playback.clips.length,fullVideoObserved:false,audioPerceptionVerified:false};
+  report.editorialReview=document.editorialReview?{...document.editorialReview,currentRevisionMatch:document.editorialReview.sourceRevisionId===document.revisionId}:null;
+  if(document.provenance){report.origin='retained_provenance';report.provenance=structuredClone(document.provenance);}
   const own=!provider;provider??=new CodexProvider({cacheRoot:path.join(directory,'final-review/model-calls')});
   try{
     const guidance=await(await CapabilityCatalog.open(root)).context('R8');
@@ -38,6 +46,10 @@ export async function reviewFinalQuality(root,directory,document,{signal,provide
     report.dimensions.visual=report.issues.some(i=>['blocker','major'].includes(i.severity))?'fail':'pass';
     report.scenarioAssessment={status:'pending',summary:answer.result.summary+'（仅抽帧；完整业务目标待连续观片确认）'};
     await fs.writeFile(path.join(directory,'final-review/receipt.json'),JSON.stringify({binding,context:guidance.records,model:answer.model,observed:evidence,coverage:'keyframes_only',completedAt:new Date().toISOString()},null,2));
-  }finally{await fs.writeFile(file,JSON.stringify(report,null,2));if(own)await provider.close();}
+  }finally{
+    const commercial=scoreCommerceVideo({document,visualIssues:report.issues,mediaReview:media,playbackReview:report.playbackReview});
+    report.commercialQuality=commercial;report.score={total:commercial.score,max:100,components:commercial.components,status:commercial.status};report.deliveryDecision={...report.deliveryDecision,status:commercial.revision_required?'needs_revision':'awaiting_review',reasonCodes:commercial.revision_required?['COMMERCIAL_QUALITY_REVISION_REQUIRED','HUMAN_CONFIRMATION_PENDING']:['HUMAN_CONFIRMATION_PENDING']};
+    await fs.writeFile(path.join(directory,'quality_report.json'),JSON.stringify(commercial,null,2));await fs.writeFile(file,JSON.stringify(report,null,2));if(own)await provider.close();
+  }
   return report;
 }

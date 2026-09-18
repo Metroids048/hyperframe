@@ -36,8 +36,13 @@ export function buildEvidenceIndex(assets,batches=[],observations=[]){
       precisionLimitSeconds:batch.precisionLimitSeconds??null,continuousPlaybackVerified:false});
   }
   const unique=[...new Map(entries.map(e=>[e.id,e])).values()];
-  return {version:2,assets:assets.map(a=>({assetId:a.id,sourceSha256:a.sha256,duration:a.mediaMetadata?.duration,
-    ...(a.kind==='video'?{samplingCoverage:samplingCoverage(unique,{assetId:a.id,startSeconds:0,endSeconds:a.mediaMetadata.duration})}:{})})),entries:unique};
+  return {version:3,assets:assets.map(a=>{
+    const bounds=batches.flatMap(b=>b.sources||[]).filter(s=>s.assetId===a.id&&s.sourceSha256===a.sha256&&s.compiledSha256===(a.processing?.at(-1)?.outputSha256||a.sha256)&&Number.isFinite(s.videoEndSeconds)&&s.videoEndSeconds>0);
+    const videoEndSeconds=bounds.length?bounds[0].videoEndSeconds:null;
+    insist(bounds.every(s=>Math.abs(s.videoEndSeconds-videoEndSeconds)<1e-6),'同一媒体的实际视频终点证据冲突','CHECKPOINT_HASH');
+    return {assetId:a.id,sourceSha256:a.sha256,duration:a.mediaMetadata?.duration,videoEndSeconds,
+      ...(a.kind==='video'?{samplingCoverage:samplingCoverage(unique,{assetId:a.id,startSeconds:0,endSeconds:Math.min(a.mediaMetadata.duration,videoEndSeconds??a.mediaMetadata.duration)})}:{})};
+  }),entries:unique};
 }
 
 export function queryEvidence(index,{ranges=[],preferredRanges=[],preferredBatchKeys=[],requiredBatchKeys=[],assetIds=[],limit=12}={}){
@@ -53,7 +58,7 @@ export function queryEvidence(index,{ranges=[],preferredRanges=[],preferredBatch
   insist(required.length<=limit,'必要动作观察图片超过本次预算，不能静默遗漏','OBSERVATION_BUDGET');
   const groups=new Map();for(const e of relevant.filter(e=>!required.includes(e))){const k=[e.assetId,e.batchKey,e.startSeconds,e.endSeconds].join(':');if(!groups.has(k))groups.set(k,[]);groups.get(k).push(e);}
   const records=[...required];while(records.length<limit&&[...groups.values()].some(g=>g.length))for(const g of groups.values())if(g.length&&records.length<limit)records.push(g.shift());
-  return {records,requestedRanges:ranges,preferredRanges,samplingCoverage:ranges.map(r=>samplingCoverage(records,r)),continuousPlaybackVerified:false,omitted:relevant.filter(e=>!records.includes(e)).map(e=>({id:e.id,assetId:e.assetId,file:e.file,times:e.times})),state:relevant.length?'observed':'unobserved',truncated:records.length<relevant.length};
+  return {records,sourceBounds:index.assets,requestedRanges:ranges,preferredRanges,samplingCoverage:ranges.map(r=>samplingCoverage(records,r)),continuousPlaybackVerified:false,omitted:relevant.filter(e=>!records.includes(e)).map(e=>({id:e.id,assetId:e.assetId,file:e.file,times:e.times})),state:relevant.length?'observed':'unobserved',truncated:records.length<relevant.length};
 }
 
 export async function readEvidenceImages(directory,records){

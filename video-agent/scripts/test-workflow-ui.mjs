@@ -10,8 +10,9 @@ import {workflowEntries} from '../lib/creative/workflow-intent.mjs';
 const project={id:'draft',title:'规划测试',request:{},currentRevisionId:null,revisions:[],assets:[],jobs:[],messages:[]};
 const calls=[],errors=[];
 let uploads=0;
-const uploadDir=await fs.mkdtemp(path.join(os.tmpdir(),'workflow-upload-')),uploadFile=path.join(uploadDir,'source.webm');
+const uploadDir=await fs.mkdtemp(path.join(os.tmpdir(),'workflow-upload-')),uploadFile=path.join(uploadDir,'source.webm'),uploadImage=path.join(uploadDir,'product.jpg');
 await fs.writeFile(uploadFile,'mock transport fixture; not playable media');
+await fs.writeFile(uploadImage,'mock image fixture');
 const server=http.createServer(async(req,res)=>{try{
  const url=new URL(req.url,'http://local');let data;
  if(url.pathname==='/api/commerce-capabilities')data={workflowEntries,mediaGenerationPaused:true};
@@ -19,11 +20,12 @@ const server=http.createServer(async(req,res)=>{try{
  if(url.pathname==='/api/commerce-demos')data={presets:[]};
  if(url.pathname==='/api/commerce-finished')data={works:[]};
  if(url.pathname==='/api/commerce/draft')data={project};
- if(url.pathname==='/api/commerce/draft/assets'&&req.method==='POST'){for await(const b of req){}uploads++;const asset={id:'uploaded-'+uploads,kind:'video',name:'source.webm'};project.assets.push(asset);data={asset};}
+ if(url.pathname==='/api/commerce/draft/assets'&&req.method==='POST'){for await(const b of req){}uploads++;const name=decodeURIComponent(req.headers['x-file-name']||'source.webm');const asset={id:'uploaded-'+uploads,kind:name.endsWith('.jpg')?'image':'video',name};project.assets.push(asset);data={asset};}
  if(url.pathname==='/api/commerce-chat'){
   let body='';for await(const b of req)body+=b;const input=JSON.parse(body);calls.push(input);
   if(input.action==='plan-workflow')project.jobs=[{id:'plan',kind:'plan',status:'complete',workflowPlan:{workOrder:{objective:'保留原声的竖屏教程',scenario:'product_demo',mode:'variant',requirements:[],steps:[]},resources:[],nextAction:'补充母工程'}}];
-  else assert(['draft','message'].includes(input.action));data={project};
+  else if(input.action==='message'){await new Promise(resolve=>setTimeout(resolve,250));project.messages.push({role:'user',text:input.message,attachmentIds:input.attachmentIds||[]});data={project};}
+  else assert(input.action==='draft');data={project};
  }
  if(data){res.setHeader('Content-Type','application/json');return res.end(JSON.stringify(data));}
  if(url.pathname==='/editor-player.js'){res.setHeader('Content-Type','text/javascript');return res.end("customElements.define('hyperframes-player',class extends HTMLElement{pause(){}seek(){}})");}
@@ -34,6 +36,8 @@ const server=http.createServer(async(req,res)=>{try{
 await new Promise(r=>server.listen(0,'127.0.0.1',r));
 const browser=await puppeteer.launch({executablePath:runtimeEnv().HYPERFRAMES_BROWSER_PATH,headless:true,args:['--no-sandbox']});
 try{const page=await browser.newPage();await page.setViewport({width:1440,height:1000});page.on('pageerror',e=>errors.push(e.message));const base='http://127.0.0.1:'+server.address().port;
+ await page.goto(base);await page.waitForSelector('[data-creation="launch"]');
+ assert(await page.$$eval('[data-creation]',(nodes,count)=>nodes.length===count&&nodes.every(node=>{const rect=node.getBoundingClientRect();return node.checkVisibility()&&rect.width>0&&rect.height>0;}),workflowEntries.length),'all creation shortcuts must remain visible and clickable on a new project');
  for(const entry of workflowEntries){
   await page.goto(base+'/?creation='+entry.alias);await page.waitForFunction(id=>document.querySelector('#business-scene').value===id,{},entry.id);
   if(entry.taskMode==='variant')assert.match(await page.$eval('#input-guidance',e=>e.textContent),/母版/);
@@ -43,6 +47,9 @@ try{const page=await browser.newPage();await page.setViewport({width:1440,height
  }
  assert.equal(calls.length,0);await page.goto(base);
  assert(await page.$eval('#business-scene',e=>e.closest('.composer-settings')?.querySelector('#creation-target')!=null));
+ assert(await page.$eval('#plan-workflow',e=>{const rect=e.getBoundingClientRect();return e.checkVisibility()&&rect.width>0&&rect.height>0;}),'planning must remain available in the composer');
+ await page.setViewport({width:800,height:600});
+ assert(await page.$eval('#plan-workflow',e=>{const rect=e.getBoundingClientRect();return e.checkVisibility()&&rect.width>0&&rect.height>0;}),'planning must remain available at the responsive breakpoint');
  const recut=workflowEntries.find(entry=>entry.alias==='recut');await page.waitForSelector('#plan-workflow:not([disabled])');await page.select('#business-scene',recut.id);await page.type('#message','教程删等待再出竖屏，原声保留');await page.click('#plan-workflow');
  await page.waitForFunction(()=>document.querySelector('#jobs').textContent.includes('保留原声的竖屏教程'));
  assert.equal(await page.$eval('#progress-title',e=>e.textContent),'方案已完成，尚未生成视频');assert.equal(await page.$eval('#progress-percent',e=>e.textContent),'45%');assert(await page.$eval('#production-progress',e=>!e.hidden));assert(await page.$eval('#progress-action',e=>!e.hidden&&e.textContent==='按方案生成视频'));
@@ -61,4 +68,12 @@ try{const page=await browser.newPage();await page.setViewport({width:1440,height
  await page.goto(base+'/?project=draft');await page.waitForFunction(()=>document.querySelector('#projects').value==='draft');
  assert.equal(await page.$eval('#output-duration',e=>e.value),'10');assert.equal(await page.$eval('#output-aspect',e=>e.value),'16:9');
  console.log('PASS initial draft reload retains saved output instead of overwriting it with empty-page defaults');
-}finally{await browser.close();await new Promise(r=>server.close(r));await fs.unlink(uploadFile);await fs.rmdir(uploadDir);}
+ await page.$eval('#message',e=>{e.value='使用上传的图片和视频继续制作';e.dispatchEvent(new Event('input',{bubbles:true}));});
+ await (await page.$('input[type="file"][multiple]')).uploadFile(uploadImage,uploadFile);
+ await page.click('#send');
+ await page.waitForFunction(()=>document.querySelector('#progress-title')?.textContent==='正在提交修改…'||document.querySelector('#progress-title')?.textContent==='正在提交…');
+ assert.equal(await page.$$eval('.message-attachment',nodes=>nodes.length),2,'pending image/video previews must stay in the conversation while submitting');
+ await page.waitForFunction(()=>document.querySelector('#message').value==='');
+ assert.equal(await page.$$eval('.message-attachment',nodes=>nodes.length),2,'persisted image/video previews must remain after the response');
+ console.log('PASS submit state is explicit and uploaded image/video previews persist in conversation');
+}finally{await browser.close();await new Promise(r=>server.close(r));await fs.unlink(uploadFile);await fs.unlink(uploadImage);await fs.rmdir(uploadDir);}

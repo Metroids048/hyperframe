@@ -20,6 +20,7 @@ test('authorized material index preserves originals, distinguishes names and err
   await image(path.join(source,'深','一','二','三','四','五','六','清晰.png'),'green');
   for(let n=0;n<31;n++)await image(path.join(source,'大目录',n+'.png'),'yellow');
   await image(path.join(source,'outputs','new-product.png'),'red');await image(path.join(source,'poster-01.png'),'red');
+  for(const category of ['参考作品','Agent候选','历史输出'])await image(path.join(source,'S01_新品首发',category,'looks-like-source.png'),'red');
   const native=path.join(source,'改名工程');await image(path.join(native,'still.png'),'red');await fs.writeFile(path.join(native,'document.json'),'{}');await fs.writeFile(path.join(native,'hyperframes.json'),'{}');
   const outside=path.join(sandbox,'private');await image(path.join(outside,'secret.png'),'purple');
   await fs.symlink(outside,path.join(source,'外部链接'),process.platform==='win32'?'junction':'dir');

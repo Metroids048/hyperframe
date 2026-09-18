@@ -12,7 +12,11 @@ import {brandFontCSS,brandFontResources} from './brand-fonts.mjs';
 
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
 const js = value => JSON.stringify(String(value ?? '')).replaceAll('<','\\u003c');
-const sec = frames => (frames / FPS).toFixed(3).replace(/0+$/, '').replace(/\.$/, '');
+// Keep frame boundaries exact in the browser. Millisecond rounding can move a
+// 30 fps boundary forward (818 / 30 became 27.267), while the runtime seeks to
+// 27.266666…. That leaves the previous scene active for one frame and prevents
+// the next scene's media from seeking during deterministic checks/renders.
+const sec = frames => String(frames / FPS);
 const pct = n => `${Math.round(Number(n) * 10000) / 100}%`;
 
 function publicAsset(asset) {
@@ -69,7 +73,9 @@ function externalVideoLayers(document, assets, custom=new Map()) {
       const asset = assets[node.assetId];
       const mediaStart = Number(node.params?.sourceStartSeconds ?? asset.sourceStartSeconds ?? 0);
       const managed=custom.get(scene.id)?.managedVideoNodeIds?.includes(node.id);
-      layers.push(`${managed?`<div id="media-gate-${esc(node.id)}" style="position:absolute;inset:0;z-index:${40+document.scenes.indexOf(scene)*2};visibility:${node.startFrame===0?'visible':'hidden'}" data-layout-allow-overflow>`:''}<div id="media-wrap-${esc(node.id)}" data-object-id="${esc(node.id)}" data-scene-media="${esc(scene.id)}" class="video-layer media-entrance${managed?' managed-video':''}" data-layout-allow-overflow style="${managed?'':videoLayout(scene, order)}z-index:${40 + document.scenes.indexOf(scene) * 2}"><div class="media-motion motion"><video id="obj-${esc(node.id)}" src="${esc(publicAsset(asset))}" muted playsinline preload="auto" style="object-fit:${node.params?.fit === 'contain' ? 'contain' : 'cover'}" data-start="${sec(node.startFrame)}" data-duration="${sec(node.durationFrames)}" data-media-start="${mediaStart}" data-playback-rate="${Number(node.params?.playbackRate??1)}" data-track-index="${track++}"></video></div></div>${managed?'</div>':''}`);
+      // Gate every source layer. A plain cut must disappear at its end frame
+      // before an inset/native layout reveals the next source at the same cut.
+      layers.push(`<div id="media-gate-${esc(node.id)}" style="position:absolute;inset:0;z-index:${40+document.scenes.indexOf(scene)*2};visibility:${node.startFrame===0?'visible':'hidden'}" data-layout-allow-overflow><div id="media-wrap-${esc(node.id)}" data-object-id="${esc(node.id)}" data-scene-media="${esc(scene.id)}" class="video-layer media-entrance${managed?' managed-video':''}" data-layout-allow-overflow style="${managed?'':videoLayout(scene, order)}z-index:${40 + document.scenes.indexOf(scene) * 2}"><div class="media-motion motion"><video id="obj-${esc(node.id)}" src="${esc(publicAsset(asset))}" muted playsinline preload="auto" style="object-fit:${node.params?.fit === 'contain' ? 'contain' : 'cover'}" data-start="${sec(node.startFrame)}" data-duration="${sec(node.durationFrames)}" data-media-start="${mediaStart}" data-playback-rate="${Number(node.params?.playbackRate??1)}" data-track-index="${track++}"></video></div></div></div>`);
     });
   }
   return layers.join('\n');
@@ -275,7 +281,7 @@ export function compileDocument(document, preparedAssets, {audioRefs={}}={}) {
     window.__timelines = window.__timelines || {};
     const tl = gsap.timeline({paused:true});
     ${document.scenes.map(s=>`tl.set(${js('#'+s.id)},{clipPath:"inset(0%)"},${sec(s.startFrame)});tl.set(${js('#'+s.id)},{clipPath:"inset(100%)"},${sec(s.startFrame+s.durationFrames)});`).join('\n')}
-    ${document.nodes.filter(n=>custom.get(n.sceneId)?.managedVideoNodeIds?.includes(n.id)).map(n=>`tl.set(${js('#media-gate-'+n.id)},{visibility:"visible",clipPath:"none"},${sec(n.startFrame)});tl.set(${js('#media-gate-'+n.id)},{visibility:"hidden",clipPath:"inset(100%)"},${sec(n.startFrame+n.durationFrames)});`).join('\n')}
+    ${document.nodes.filter(n=>n.kind==='video').map(n=>`tl.set(${js('#media-gate-'+n.id)},{visibility:"visible",clipPath:"none"},${sec(n.startFrame)});tl.set(${js('#media-gate-'+n.id)},{visibility:"hidden",clipPath:"inset(100%)"},${sec(n.startFrame+n.durationFrames)});`).join('\n')}
     ${timeline}
     window.__timelines["commerce-root"] = tl;
     ${shader.script}

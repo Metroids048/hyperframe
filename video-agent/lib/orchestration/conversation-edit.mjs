@@ -37,6 +37,9 @@ export function validateConversationTargetScope(document,operations,scope){
 }
 export function nativeChangeReceipt(before,after,message,operations,scope=null){
   validateConversationTargetScope(before,operations,scope);
+  const visibleFields=['nodes','scenes','audioGraph','captions','transitions','output','durationFrames'];
+  const changedFields=visibleFields.filter(field=>!same(before[field],after[field]));
+  insist(changedFields.length,'这条修改没有产生实际画面、声音、字幕、转场、画幅或时长变化；请换一种说法或明确要修改的对象。','NO_VISIBLE_CHANGE');
   if(scope)for(const cue of before.captions||[])if(!scope.targetIds.includes(cue.id))insist(same(cue,after.captions?.find(c=>c.id===cue.id)),'未选中的字幕发生变化：'+cue.id,'PRESERVE_VIOLATION');
   const types=new Set(operations.map(o=>o.type));
   const structural=[...types].some(t=>['trim_scene','split_scene','set_scene_duration','retime_document','reorder_scenes','set_transition','change_output'].includes(t));
@@ -59,7 +62,7 @@ export function nativeChangeReceipt(before,after,message,operations,scope=null){
     checks.push({field:'untargeted-content',passed:true});
   }
   check('output',!types.has('change_output'));
-  return {baseRevision:before.revisionId,userRequest:message,...(scope?{requestedScope:structuredClone(scope)}:{}),targetSet:operations.map(o=>({type:o.type,id:o.nodeId||o.sceneId||o.fromSceneId||null})),preserveSet:checks.map(c=>c.field),changeSet:structuredClone(operations),validation:{passed:true,checks},newRevision:after.revisionId};
+  return {baseRevision:before.revisionId,userRequest:message,...(scope?{requestedScope:structuredClone(scope)}:{}),targetSet:operations.map(o=>({type:o.type,id:o.nodeId||o.sceneId||o.fromSceneId||null})),preserveSet:checks.map(c=>c.field),changeSet:structuredClone(operations),changedFields,validation:{passed:true,checks},newRevision:after.revisionId};
 }
 export function transitionRestorePlan(current,previous){
   insist(current.scenes.map(s=>s.id).join()===previous.scenes.map(s=>s.id).join(),'场景顺序已变化，不能直接恢复旧转场','REVISION_CONFLICT');

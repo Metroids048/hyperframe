@@ -26,3 +26,18 @@ test('explicit source and music boundaries retain exact frames instead of weight
  assert.throws(()=>solvePlannedDurations(300,[{durationSeconds:11,weight:1}]),e=>e.code==='INVALID_SCENE_TIME');
  assert.throws(()=>solvePlannedDurations(300,[{durationSeconds:-1,weight:1},{durationSeconds:null,weight:1}]),e=>e.code==='INVALID_SCENE_TIME');
 });
+
+
+test('approximate duration reaches native output without padding and exact requests stay exact',()=>{
+ const make=message=>normalizeCommerceRequest({message,inferRequest:true});
+ const p=plan();p.transition='cut';p.inferredRequest.output.durationSeconds=80;p.scenes[0].durationSeconds=2359/30;
+ const doc=documentFromModelPlan(make('总时长约80秒，保留自然动作。'),[],p);
+ assert.equal(doc.durationFrames,2359);assert.equal(doc.durationContract.actualFrames,2359);
+ assert.equal(doc.durationContract.targetFrames,2400);assert.equal(doc.durationContract.mode,'approximate');
+ assert.throws(()=>documentFromModelPlan(make('总时长80秒。'),[],p),e=>e.code==='INVALID_SCENE_TIME');
+ assert.throws(()=>documentFromModelPlan(make('总时长约80秒，但必须精确80秒。'),[],p),e=>e.code==='INVALID_SCENE_TIME');
+ assert.throws(()=>documentFromModelPlan(make('不是约80秒。'),[],p),e=>e.code==='INVALID_SCENE_TIME');
+ assert.throws(()=>documentFromModelPlan(make('约20秒展示动作，其余时长80秒。'),[],p),e=>e.code==='INVALID_SCENE_TIME');
+ p.scenes[0].durationSeconds=60;
+ assert.throws(()=>documentFromModelPlan(make('总时长约80秒。'),[],p),e=>e.code==='INVALID_SCENE_TIME');
+});

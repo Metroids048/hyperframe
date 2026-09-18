@@ -46,6 +46,7 @@ const commands =
         "test-workflow-intent",
         "test-material-roots",
         "test-source-coverage",
+        "test-product-remediation",
         "test-action-material-refresh",
         "test-action-integrity",
         "test-quality-source-recovery",

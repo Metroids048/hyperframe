@@ -1,0 +1,3 @@
+# Marketing Planner Skill
+
+Consume the persisted ProductBrief and business contract before shot design. Produce `marketing-plan.json` with a scene type, platform, audience, objective, first-three-seconds hook, story structure, shot strategy, caption strategy, music style, transition style, CTA and explicit rationale. Reference only ProductBrief selling points and evidence. Do not choose HTML or components. For launch work, structure Hook → life context → product → supported benefits → experience → reason to act. For detail conversion, structure pain → product → core benefits → details → use → CTA. The executable stage is `marketing.plan`.

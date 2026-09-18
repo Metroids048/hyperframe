@@ -1,0 +1,23 @@
+// Offline revalidation of this task's real evidence. Never edits the live project or run.
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+import {ROOT} from '../lib/workflow.mjs';
+import {buildEvidenceIndex} from '../lib/creative/evidence-index.mjs';
+import {selectStorySources} from '../lib/creative/commerce-directors.mjs';
+import {hashFile} from '../lib/edit/media.mjs';
+const dir=path.join(ROOT,'data/result-completion-projects/a10b1703-e9d9-43eb-b6ca-551cb0ea5555/versions/job-8e5fa77d-0542-4a15-9a99-f70a49eac8ab');
+const out=path.join(ROOT,'outputs/full-closeout/M02-F02');await fs.mkdir(out,{recursive:true});
+const read=async file=>JSON.parse(await fs.readFile(path.join(dir,file),'utf8'));
+const evidence=await read('evidence.json'),prior=await read('source-evidence-index.json'),run=await read('production-run.json'),material=await read('material-analysis.json'),failed=await read('failed-story-0.json');
+assert.equal(failed.error.code,'SOURCE_SELECTION');
+const assets=await Promise.all(evidence.assets.map(async a=>({id:a.assetId,kind:a.kind,sha256:a.sha256,mediaMetadata:a.metadata,processing:[{outputSha256:await hashFile(path.join(dir,'assets',a.assetId+'.mp4'))}]})));
+const batches=[...prior.entries.map(e=>({key:e.batchKey,tool:e.tool,precisionLimitSeconds:e.precisionLimitSeconds,records:[e]})),...(run.artifacts.boundaryInspections||[]),...(run.artifacts.storyInspections||[])];
+const index=buildEvidenceIndex(assets,batches);
+for(const entry of index.entries)assert.equal(await hashFile(path.join(dir,entry.file)),entry.sha256,'Observation bytes changed');
+const selection=selectStorySources(failed.story,assets,material,{evidenceIndex:index});
+assert(selection.ranges.every(r=>r.samplingCoverage.samplingSufficient&&!r.continuousPlaybackVerified));
+const tail=selection.ranges.at(-1);assert.equal(tail.sourceEndSeconds,78.623);assert.equal(tail.visualSourceEndSeconds,78.5);assert(tail.trailingAudioOnlySeconds>0);
+const result={time:new Date().toISOString(),status:'offline-validation-passed',liveIntegration:'pending-original-run-resume',projectId:'a10b1703-e9d9-43eb-b6ca-551cb0ea5555',runId:run.id,storySource:'failed-story-0.json',storySourceSha256:await hashFile(path.join(dir,'failed-story-0.json')),priorFailure:failed.error,sourceBounds:index.assets,selection,verifiedObservationFiles:index.entries.length,continuousPlaybackVerified:false,humanAcceptance:'not_performed'};
+await fs.writeFile(path.join(out,'existing-run-source-revalidation.json'),JSON.stringify(result,null,2)+'\n');
+console.log(JSON.stringify({status:result.status,rangeCount:selection.ranges.length,verifiedObservationFiles:result.verifiedObservationFiles,tail:{sourceEndSeconds:tail.sourceEndSeconds,visualSourceEndSeconds:tail.visualSourceEndSeconds,trailingAudioOnlySeconds:tail.trailingAudioOnlySeconds}}));

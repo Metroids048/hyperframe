@@ -1,0 +1,3 @@
+# Product Understanding Skill
+
+Run before marketing planning or video direction. Fuse user text, real image/video observations, verified product facts and brand information into the persisted `product-brief.json` contract. Every visual feature and selling point must cite a user fact or observed asset/time range. Audience, usage and platform recommendations remain hypotheses. Never infer facts from filenames, never upgrade uncertainty into a claim, and carry every unsupported statement into `forbidden_claims`. The executable stage is `product.understand`; a prompt-only summary is not completion.

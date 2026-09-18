@@ -2,6 +2,7 @@ import {resourceRequests,applyRequestedTransitions} from './resource-catalog.mjs
 import {assertCompleteNarration} from './narration-timing.mjs';
 import {explicitBusinessConstraints,validateBusinessAudio} from './business-constraints.mjs';
 import {fullOriginalAudioGraph} from './observation-audio.mjs';
+import {durationContract,plannedDurationFrames} from './duration-contract.mjs';
 import {createHash} from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -155,7 +156,10 @@ export function documentFromModelPlan(request,assets,plan){
   const design={...chooseDesign(request),...plan.design};
   for(const key of ['background','foreground','panel','accent','accentContrast'])insist(/^#[0-9a-f]{6}$/i.test(design[key]),'导演颜色必须为六位十六进制','INVALID_MODEL_PLAN');
   if(plan.transition)design.transition=plan.transition;
-  const target=Math.round(request.output.durationSeconds*FPS),overlap=design.transition==='cut'?0:9;
+  const overlap=design.transition==='cut'?0:9;
+  const durationPolicy=durationContract(request.message,request.output.durationSeconds);
+  const target=plannedDurationFrames(request.message,request.output.durationSeconds,plan.scenes,overlap);
+  request={...request,output:{...request.output,durationSeconds:target/FPS}};
   const durations=solvePlannedDurations(target,plan.scenes,overlap);
   const scenes=[],nodes=[],sourceBundles=[];
   plan.scenes.forEach((s,i)=>{
@@ -191,6 +195,7 @@ export function documentFromModelPlan(request,assets,plan){
   });
   const transitions=overlap?scenes.slice(1).map((s,i)=>({id:`transition-${i+1}`,fromSceneId:scenes[i].id,toSceneId:s.id,effect:design.transition,durationFrames:overlap,params:normalizeEffectParams(design.transition,{durationFrames:overlap})})):[];
   const document=createNativeDocument({projectId:request.projectId,output:request.output,brief:buildProductBrief({...request,assets}),design,assets,scenes,nodes,transitions,sourceBundles});
+  document.durationContract={...durationPolicy,actualFrames:target};
   applyRequestedTransitions(document,request.message);
 
   for(const scene of scenes.filter(s=>s.effect==='custom-native'))compileCustomSource(sourceBundles.find(b=>b.sceneId===scene.id),{scene,nodes:nodes.filter(n=>n.sceneId===scene.id),assets:byId});
@@ -204,7 +209,7 @@ export function documentFromModelPlan(request,assets,plan){
   });
   document.audioGraph=fullOriginalAudioGraph(request.message,assets,target)||document.audioGraph;
   assertCompleteNarration(document,assets);
-  validateBusinessAudio(request.message,document.audioGraph,assets);
+  validateBusinessAudio(request.message,document.audioGraph,assets,request.workflow||request.businessContract?.workflow);
   document.revisionId=stableId('rev',request.projectId,document.scenes,document.nodes,document.design,document.audioGraph,document.sourceBundles);
   assertNoUnknownFacts(document);return document;
 }

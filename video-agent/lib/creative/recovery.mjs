@@ -23,10 +23,12 @@ export function refreshActionMaterial(run, evidenceHash) {
   return true;
 }
 // Older runs mislabeled validation of an unexecuted inspection request as spent budget.
+// Legacy frame validation also used OBSERVATION_BUDGET for zero decoded frames.
+// These per-call validation errors are not a consumed run observation budget.
 // Actual model/step counters stay in the same run and are enforced by AgentKernel.
 export const budgetExhausted = job => {
   if(job?.code==='MODEL_BUDGET')return !(Number.isSafeInteger(job.maxModelCalls)&&job.modelCalls<job.maxModelCalls-(job.completionReserve||0));
-  return exhausted.has(job?.code)&&!(job.code==='OBSERVATION_BUDGET'&&job.error==='加密观察超过预算');
+  return exhausted.has(job?.code)&&!(job.code==='OBSERVATION_BUDGET'&&['加密观察超过预算','动作观察帧数量超出预算'].includes(job.error));
 };
 export const canResumeJob = job => Boolean(job?.runId || ['create','audio'].includes(job?.kind)) && !budgetExhausted(job) && ['recoverable', 'cancelled', 'failed', 'needs_user'].includes(job.status);
 // A rebuilt story has its own local repair allowance. Account-wide/run model

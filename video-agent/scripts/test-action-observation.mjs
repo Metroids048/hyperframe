@@ -10,5 +10,5 @@ const asset={id:'moka',kind:'video',compiledRef:'assets/source.webm',sha256:awai
 const report=await inspectActionRanges(directory,[asset],[{assetId:'moka',startSeconds:118,endSeconds:130,reason:'source observation engineering regression'}]);
 const times=report.records.flatMap(r=>r.times);assert(times.length>=40&&times.length<=48);assert(times.every((t,i)=>t>=118&&t<130&&(!i||t>times[i-1])));
 for(const record of [...report.records,...report.clips])assert.equal(await hashFile(path.join(directory,record.file)),record.sha256);
-const clip=await probe(path.join(directory,report.clips[0].file));assert(Math.abs(clip.duration-12)<0.06);assert.equal(clip.hasAudio,false);
+const clip=await probe(path.join(directory,report.clips[0].file));assert(Math.abs(clip.duration-12)<0.06);assert.equal(clip.hasAudio,asset.mediaMetadata.hasAudio);assert.equal(report.clips[0].perceptionVerified,false);
 await fs.writeFile(path.join(directory,'report.json'),JSON.stringify({status:'passed',scope:'Actual-source observation, timestamp and playable proxy checks; no creative quality claim',report,clip},null,2));console.log(JSON.stringify({status:'passed',directory,times}));

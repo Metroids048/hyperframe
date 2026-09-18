@@ -38,6 +38,17 @@ test('custom motion uses the actual scene duration without permitting a caller t
  assert.match(result.timeline,/"duration":2\.8/);assert.match(result.timeline,/,0\.4\)/);
  assert.throws(()=>compileCustomSource({...timed,parameters:[...bundle.parameters,{name:'sceneSeconds',value:100,min:1,max:100}]},{scene,nodes,assets:{}}),{code:'CUSTOM_PARAMETERS'});
 });
+test('compiled timeline keeps non-terminating frame boundaries exact',()=>{
+ const first={...scene,id:'boundary-a',startFrame:0,durationFrames:818};
+ const second={...scene,id:'boundary-b',startFrame:818,durationFrames:240};
+ const makeNodes=(target,suffix)=>nodes.map(node=>({...node,id:node.id+'-'+suffix,sceneId:target.id,localDurationFrames:target.durationFrames,durationFrames:target.durationFrames}));
+ const firstNodes=makeNodes(first,'a'),secondNodes=makeNodes(second,'b');
+ const makeSource=(target,suffix,targetNodes)=>({...bundle,id:'source-'+suffix,sceneId:target.id,objects:bundle.objects.map((object,index)=>({...object,elementId:object.elementId+'-'+suffix,nodeId:targetNodes[index].id})),html:bundle.html.replaceAll('headline','headline-'+suffix).replaceAll('drawing','drawing-'+suffix).replaceAll('route','route-'+suffix).replaceAll('dot','dot-'+suffix),css:bundle.css.replaceAll('#headline','#headline-'+suffix).replaceAll('#drawing','#drawing-'+suffix),timeline:bundle.timeline.replaceAll('#dot','#dot-'+suffix),motionTargets:['dot-'+suffix]});
+ const doc=createNativeDocument({projectId:'exact-boundary',output:document.output,brief:document.brief,design:document.design,assets:[],scenes:[first,second],nodes:[...firstNodes,...secondNodes],sourceBundles:[makeSource(first,'a',firstNodes),makeSource(second,'b',secondNodes)]});
+ const html=compileDocument(doc,[]).html;
+ assert.match(html,/id="boundary-a"[^>]*data-duration="27\.266666666666666"/);
+ assert.match(html,/id="boundary-b"[^>]*data-start="27\.266666666666666"/);
+});
 test('original SVG/HTML source compiles into named objects and finite parameter edits',()=>{const a=compileCustomSource(bundle,{scene,nodes,assets:{}});assert(a.html.includes('data-object-id="node-dot"'));assert(a.timeline.includes('"x":600'));const patched=applyDocumentPatch(document,[{type:'update_effect_params',sceneId:scene.id,params:{distance:350}}],{});assert.deepEqual(patched.sourceBundles,document.sourceBundles);assert.deepEqual(patched.nodes,document.nodes);assert(compileDocument(patched,[]).html.includes('"x":350'));assert.throws(()=>applyDocumentPatch(document,[{type:'update_effect_params',sceneId:scene.id,params:{distance:900}}],{}),{code:'CUSTOM_PARAMETERS'});});
 
 test('scoped original source edits preserve native content and support selective undo with later text retained',()=>{
@@ -122,6 +133,28 @@ test('static overlays preserve actual HyperFrames video source-time progression'
  const result=await verifyCustomProject(dir,doc,[asset]),samples=result.scenes[0].runtime.samples;
  assert(samples.every(s=>s.media.length===1&&Math.abs(s.media[0].currentTime-s.media[0].expected)<.037));
  assert(samples.at(-1).media[0].currentTime-samples[0].media[0].currentTime>6);
+});
+
+test('six-scene cold media verification tolerates initial decode startup',async()=>{
+ const {verifyCustomProject}=await import('../lib/creative/isolation.mjs');
+ const scenes=[],mediaNodes=[],titleNodes=[],assets=[],sources=[];
+ for(let i=0;i<6;i++){
+  const number=i+1,id='cold-scene-'+number,startFrame=i*60;
+  const currentScene={id,effect:'custom-native',effectParams:{},purpose:'cold-media-regression',startFrame,durationFrames:60};
+  const asset={id:'cold-video-'+number,kind:'video',compiledRef:'assets/cold-'+number+'.mp4',mediaMetadata:{duration:30,width:1920,height:1080,hasAudio:true}};
+  const video={id:'cold-footage-'+number,kind:'video',sceneId:id,semanticRole:'hero',assetId:asset.id,anchor:'scene-local',localStartFrame:0,localDurationFrames:60,durationFrames:60,params:{sourceStartSeconds:.25,playbackRate:1,fit:'contain'}};
+  const title={id:'cold-title-'+number,kind:'text',sceneId:id,semanticRole:'title',anchor:'scene-local',localStartFrame:0,localDurationFrames:60,durationFrames:60,params:{text:'Scene '+number}};
+  scenes.push(currentScene);assets.push(asset);mediaNodes.push(video);titleNodes.push(title);
+  sources.push({id:'cold-source-'+number,sceneId:id,contractVersion:2,html:`<div id="footage-${number}"></div><div id="title-${number}"></div>`,css:`#footage-${number}{position:absolute;inset:0;background:transparent}#title-${number}{position:absolute;left:40px;top:40px;color:white;font-size:32px}`,timeline:'',parameters:[],objects:[{elementId:'footage-'+number,nodeId:video.id},{elementId:'title-'+number,nodeId:title.id}],motionTargets:[]});
+ }
+ const doc=createNativeDocument({projectId:'six-cold-videos',output:document.output,brief:document.brief,design:document.design,assets,scenes,nodes:[...mediaNodes,...titleNodes],sourceBundles:sources});
+ const dir=await fixture('six-cold-videos');
+ for(let i=1;i<=6;i++)await fs.copyFile(path.join(ROOT,'assets/edit-samples/coffee.mp4'),path.join(dir,'assets/cold-'+i+'.mp4'));
+ await fs.writeFile(path.join(dir,'index.html'),compileDocument(doc,assets).html);
+ const result=await verifyCustomProject(dir,doc,assets);
+ assert.equal(result.scenes.length,6);
+ assert(result.scenes.every(item=>item.runtime.status==='passed'));
+ assert(result.scenes.every(item=>item.runtime.samples.some(sample=>sample.media.length===1)));
 });
 
 test('static mapped video passes pinned HyperFrames sweep without hiding a frozen timeline',async()=>{

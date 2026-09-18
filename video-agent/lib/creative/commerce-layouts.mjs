@@ -8,6 +8,10 @@ export function commerceLayoutSource(shot,design,output,assets){
   const grid=shot.resourceId==='grid-card-assemble',pivot=shot.resourceId==='video-text-pivot';
   if(!grid&&n>2||pivot&&(n!==1||assets.find(a=>a.id===media[0].assetId)?.kind!=='video'))return null;
   if(texts.length>(grid?n+1:3))return null;
+  const variant=shot.layoutVariant||'auto';
+  if(!['auto','step-strip','detail-focus'].includes(variant))return null;
+  if(variant==='step-strip'&&(!pivot||texts.length>2))return null;
+  if(variant==='detail-focus'&&(shot.resourceId!=='comparison-split'||n!==2))return null;
   const {width:w,height:h}=output,portrait=h>w,m=Math.round(Math.min(w,h)*.055),gap=Math.round(m*.55);
   const aspect=media.map(m=>{const a=assets.find(a=>a.id===m.assetId)?.mediaMetadata;return a?.width/a?.height||1;}),mostlyTall=aspect.every(r=>r<1);
   const html=[],css=[],timeline=[],objects=[],motionTargets=[];
@@ -22,7 +26,30 @@ export function commerceLayoutSource(shot,design,output,assets){
     box(id,x,y,width,height,`font-size:${Math.floor(size)}px;line-height:1.3;font-weight:${index?500:800};color:${design.foreground}`);objects.push({elementId:id,ref:'text-'+(index+1)});animate(id,index+1);
   };
   const image=(index,x,y,width,height)=>{const id='media'+(index+1);box(id,x,y,width,height,'object-fit:cover');if(assets.find(a=>a.id===media[index].assetId)?.kind==='image')html[html.length-1]=`<img id="${id}">`;objects.push({elementId:id,ref:'media-'+(index+1)});if(!pivot)animate(id,index,'x');};
-  if(grid){
+  if(variant==='step-strip'){
+    // The information rail occupies its own region: it cannot cover a hand or
+    // product in the live media. Keep the operation visible without media motion.
+    const railH=h*(portrait?.19:.17),titleW=texts.length===2?(w-2*m)*.42:w-2*m;
+    label(0,m,m,titleW,railH-m);
+    if(texts.length===2)label(1,m+titleW+gap,m,w-2*m-titleW-gap,railH-m);
+    image(0,m,railH+gap,w-2*m,h-railH-gap-m);
+    box('stepRule',m,railH,w-2*m,3,`background:${design.accent};transform-origin:left center`);
+    objects.push({elementId:'stepRule',ref:'decoration-1'});
+    motionTargets.push('stepRule');timeline.push('tl.from("#stepRule",{scaleX:0,duration:0.4,ease:"power2.out"},0.1);');
+  }else if(variant==='detail-focus'){
+    label(0,m,m,w-2*m,h*.1);
+    const top=h*.17,area=h-top-m;
+    if(portrait){
+      image(0,m,top,w-2*m,area*.55);
+      image(1,m,top+area*.58,(w-2*m)*.54,area*.42);
+      for(let i=1;i<texts.length;i++)label(i,w*.61,top+area*(.6+(i-1)*.18),w*.39-m,area*.16);
+    }else{
+      const primary=(w-2*m-gap)*.66,secondary=w-2*m-gap-primary;
+      image(0,m,top,primary,area);
+      image(1,m+primary+gap,top,secondary,area*.62);
+      for(let i=1;i<texts.length;i++)label(i,m+primary+gap,top+area*(.67+(i-1)*.17),secondary,area*.14);
+    }
+  }else if(grid){
     const heading=texts[0].role==='title'||texts.length===n+1,cols=portrait&&!mostlyTall&&n<=3?1:Math.min(n,2),rows=Math.ceil(n/cols),top=heading?h*.18:m;
     if(heading)label(0,m,m,w-2*m,h*.1);
     const cw=(w-2*m-gap*(cols-1))/cols,ch=(h-top-m-gap*(rows-1))/rows;

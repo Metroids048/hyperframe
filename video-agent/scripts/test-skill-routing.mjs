@@ -11,7 +11,7 @@ for(const [text,expected] of [
   ['用这些商品图片做一条有动效的电商宣传视频',['commerce-promo','hyperframes','media-use','hyperframes-animation']]
 ])for(const id of expected)assert(ids(text).has(id),`${text} should route ${id}`);
 const caps=skillCapabilities().skills;
-assert.equal(caps.length,12);
+for(const id of ['product-understanding','marketing-planner','video-director'])assert(caps.some(skill=>skill.id===id),id+' must be registered');
 assert.equal(caps.find(s=>s.id==='timeline-edit').implementation,'project-adapter');
 assert.equal(caps.find(s=>s.id==='faceless-explainer').implementation,'prompt-router');
 assert.equal(caps.find(s=>s.id==='hyperframes-creative').implementation,'composition-guidance');

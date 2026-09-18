@@ -23,5 +23,16 @@ export function assertCompleteNarration(document,assets){
 // Provider sentence chunks cannot serve as word-level evidence for per-object cuts.
 export function needsNarrationAlignment(transcript){
  const words=transcript?.words||[];
- return !words.length||words.some(w=>w.end-w.start>3||[...String(w.text||'')].filter(c=>/[\p{L}\p{N}]/u.test(c)).length>12);
+ return !words.length||words.some(w=>['sentence','segment','coarse'].includes(w.granularity)||w.end-w.start>3||[...String(w.text||'')].filter(c=>/[\p{L}\p{N}]/u.test(c)).length>12);
+}
+
+export async function measuredNarrationTranscript(provider,file,initial,signal) {
+ let transcript=initial,method='provider-subtitles',limitation=null;
+ if(needsNarrationAlignment(transcript)){transcript=await provider.transcribe(file,signal);method='local-asr';}
+ if(needsNarrationAlignment(transcript)&&typeof provider.alignSpeech==='function'){
+   try{const aligned=await provider.alignSpeech(file,signal);if(!needsNarrationAlignment(aligned)){transcript=aligned;method='local-forced-alignment';}else limitation='语音对齐仍为粗粒度实测时间；不得按字数推算内部词时间。';}
+   catch(error){if(signal?.aborted)throw error;limitation=error.code||'SPEECH_ALIGNMENT_UNAVAILABLE';}
+ }
+ insist(transcript?.words?.length,'旁白已生成，但没有取得实际语音时间戳','NO_SPEECH');
+ return {transcript,method,granularity:needsNarrationAlignment(transcript)?'coarse':'word-or-short-phrase',limitation};
 }

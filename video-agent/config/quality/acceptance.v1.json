@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "id": "quality-acceptance-v1",
+  "dimensions": [
+    "materials",
+    "technical",
+    "content",
+    "visual",
+    "actionContinuity",
+    "audioPerception",
+    "rights",
+    "humanAcceptance"
+  ],
+  "statuses": ["pending", "pass", "fail", "not_applicable", "blocked"],
+  "hardBlockers": [
+    "WRONG_PRODUCT",
+    "UNSUPPORTED_FACT",
+    "REQUIRED_ACTION_MISSING",
+    "SUBJECT_OBSCURED",
+    "EXPLICIT_EFFECT_FAILURE",
+    "AUDIO_REQUIREMENT_VIOLATION",
+    "RIGHTS_NOT_APPROVED",
+    "FINAL_FILE_UNVERIFIED",
+    "CURRENT_REVISION_MISMATCH"
+  ],
+  "coverage": {
+    "technical": ["decode", "duration", "dimensions", "tracks", "version"],
+    "content": ["contract", "facts", "shotPurpose", "sourceEvidence"],
+    "visual": ["keyframes", "sceneBoundaries", "textSafety"],
+    "motion": ["continuousPlayback", "transitions", "captionLifecycle"],
+    "audio": ["audioInput", "speech", "musicMix", "sync"]
+  },
+  "delivery": {
+    "candidateAllowed": true,
+    "requiresFullVideoObservation": true,
+    "requiresAudioObservation": true,
+    "requiresHumanAcceptance": true,
+    "unreviewedStatus": "pending"
+  },
+  "fallback": {
+    "preserveLastValidRevision": true,
+    "explicitEffectMayNotBeSubstituted": true,
+    "optionalDecorationMayBeRemoved": true,
+    "neverInventMediaOrFacts": true
+  }
+}

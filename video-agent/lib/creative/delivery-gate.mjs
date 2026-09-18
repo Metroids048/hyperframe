@@ -6,6 +6,7 @@ import {hashFile} from '../edit/media.mjs';
 import {CreativeError} from './contracts.mjs';
 import {constants} from 'node:fs';
 import {productionAdmission} from './commerce-focus.mjs';
+import {loadQualityContract} from './quality-contract.mjs';
 
 const read=async file=>JSON.parse(await fs.readFile(file,'utf8'));
 const hashPattern=/^[a-f0-9]{64}$/;
@@ -49,6 +50,7 @@ export function evaluateDelivery({binding,report,media,human,contract,admission,
 
 export async function deliveryDecision(root,directory,{currentRevisionId,human}={}){
   try{
+    const qualityContract=await loadQualityContract(root);
     const binding=await currentBinding(root,directory);
     const [report,media,contract,admission]=await Promise.all(['final-quality-report.json','media-review.json','business-contract.json','production-admission.json'].map(n=>read(path.join(directory,n))));
     human=await readHumanEvent(root,binding);
@@ -56,7 +58,10 @@ export async function deliveryDecision(root,directory,{currentRevisionId,human}=
     const base=await fs.realpath(directory);
     if(!(report.coverage?.evidenceRefs||[]).every(ref=>evidence.some(e=>e.path===ref)))evidenceValid=false;
     for(const item of evidence){if(!item||typeof item.path!=='string'||!hashPattern.test(item.sha256||'')){evidenceValid=false;break;}const file=await fs.realpath(path.resolve(base,item.path));if(!file.startsWith(base+path.sep)||await hashFile(file)!==item.sha256){evidenceValid=false;break;}}
-    return {...evaluateDelivery({binding,report,media,human,contract,admission,evidenceValid,currentRevisionId}),binding};
+    const decision=evaluateDelivery({binding,report,media,human,contract,admission,evidenceValid,currentRevisionId});
+    if(report?.qualityPolicy?.policyHash!==qualityContract.policyHash)decision.reasonCodes=[...new Set([...decision.reasonCodes,'QUALITY_POLICY_MISMATCH'])];
+    if(qualityContract.delivery.requiresAudioObservation&&contract?.audio!=='silent'&&!human?.audioObserved)decision.reasonCodes=[...new Set([...decision.reasonCodes,'AUDIO_UNREVIEWED'])];
+    return {...decision,status:decision.reasonCodes.length?'awaiting_review':'accepted',binding,qualityPolicy:{id:qualityContract.id,policyHash:qualityContract.policyHash}};
   }catch(error){return {computedBy:'backend-commerce-focus-v1',status:'awaiting_review',candidateAllowed:true,reasonCodes:['MISSING_OR_INVALID_EVIDENCE'],detail:error.code||error.message};}
 }
 

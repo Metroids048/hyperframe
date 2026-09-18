@@ -6,7 +6,7 @@ import {hashFile,probe} from '../edit/media.mjs';
 import {CreativeError,insist} from './contracts.mjs';
 
 const media=/\.(mp4|mov|webm|png|jpe?g|webp)$/i;
-const generatedDirectories=new Set(['outputs','output','exports','export','deliverables','versions','uploads','cache','node_modules','thumbs','thumbnails','previews','evidence','resources','导出','成片','缩略图']);
+const generatedDirectories=new Set(['outputs','output','exports','export','deliverables','versions','uploads','cache','node_modules','thumbs','thumbnails','previews','evidence','resources','导出','成片','缩略图','参考作品','Agent候选'.toLowerCase(),'历史输出']);
 const generatedFile=/^(?:contact(?:-sheet)?[-_.]|review[-_]|candidate[-_]|poster[-_.]|crop[-_]|frame[-_]|commerce-final\.)/i;
 const hash=text=>createHash('sha256').update(text).digest('hex');
 const canonical=file=>process.platform==='win32'?file.toLowerCase():file;
