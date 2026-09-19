@@ -87,6 +87,41 @@ function deterministicExternalReplacement(document, assetId){
   }
   return operations;
 }
+
+// A native upload is a complete source, not an extra cutaway. When the user
+// attaches a video and asks to edit "this video", bind the existing editable
+// scenes to that real asset in one deterministic transaction. This keeps the
+// project/revision model intact while avoiding planner guesses about source
+// ranges and, crucially, lets alignSourceAudio derive the new asset's real
+// audio ranges from the video nodes.
+function deterministicUploadedVideoEdit(document, asset, message) {
+  const videoNodes = document.nodes.filter(node => node.kind === 'video');
+  if (!videoNodes.length || !asset?.mediaMetadata?.duration) return null;
+  const operations = [];
+  // Keep the existing native scene/timeline contract (including custom scene
+  // animations) and map the complete uploaded source across that timeline.
+  // The source is time-stretched only when the host project has a different
+  // duration; no source frames are dropped and the bound audio follows the
+  // same rate through alignSourceAudio.
+  const rate = Number(asset.mediaMetadata.duration) / (document.durationFrames / 30);
+  for (const node of videoNodes) {
+    const scene = document.scenes.find(item => item.id === node.sceneId);
+    const sourceStartSeconds = Math.max(0, (scene?.startFrame || 0) / 30 * rate);
+    operations.push({type:'replace_asset', nodeId:node.id, assetId:asset.id});
+    operations.push({type:'update_media', nodeId:node.id, params:{sourceStartSeconds, playbackRate:rate}});
+  }
+  for (const track of document.audioGraph || []) {
+    const node = videoNodes.find(item => item.id === track.sourceNodeId);
+    if (node) operations.push({type:'update_audio', nodeId:track.id, assetId:asset.id, params:{assetId:asset.id, sourceNodeId:node.id}});
+  }
+  const quoted = String(message || '').match(/[“「『"]([^”」』"]{1,80})[”」』"]/u)?.[1]?.trim();
+  const firstText = document.nodes.find(node => node.kind === 'text');
+  if (quoted && firstText) {
+    operations.push({type:'update_text', nodeId:firstText.id, text:quoted});
+    if (/开头\s*2\s*秒|前\s*2\s*秒/u.test(String(message || ''))) operations.push({type:'set_node_duration', nodeId:firstText.id, durationFrames:60});
+  }
+  return {operations, summary:`已将上传视频 ${asset.name || asset.id} 绑定为当前工程主源，保留同一项目与原生版本历史，并按真实时长重排场景和原声。`};
+}
 export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO_AGENT_CREATIVE_DATA_DIR||path.join(root,'data/commerce-runs'),planner='model',audioTransport,audioEnv,routingProvider,planningProvider}={}){
   try{process.loadEnvFile(path.join(root,'.env'));}catch(error){if(error.code!=='ENOENT')throw error;}
   await fs.mkdir(dataDir,{recursive:true});
@@ -537,7 +572,17 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
         const countInvocation=async invocation=>{job.modelCalls=(job.modelCalls||0)+1;(job.modelInvocations??=[]).push({...invocation,stage:'R7-edit'});await save(p);};
         job.stage='理解局部修改';await save(p);
         let plan;
-        if(wholeFilmReplacement&&downloadedExternalAsset){
+        const uploadedVideo = (job.input.attachmentIds||[])
+          .map(id=>assets.find(asset=>asset.id===id))
+          .find(asset=>asset?.kind==='video' && asset.mediaMetadata?.duration)
+          || added.find(asset=>asset.kind==='video' && asset.mediaMetadata?.duration);
+        const uploadedVideoPlan = uploadedVideo && /(?:这段视频|刚上传|上传(?:的|视频)|本视频|该视频)/u.test(job.input.message||'')
+          ? deterministicUploadedVideoEdit(document, uploadedVideo, job.input.message)
+          : null;
+        if(uploadedVideoPlan){
+          plan={mode:'deterministic-uploaded-video',model:'local',summary:uploadedVideoPlan.summary,operations:uploadedVideoPlan.operations,alternatives:[],workflow:null,resourceScopes:[]};
+          job.stage='绑定上传视频并校验原声';await save(p);
+        }else if(wholeFilmReplacement&&downloadedExternalAsset){
           // Whole-film object replacement is deliberately deterministic once
           // a rights-tracked target image exists. This prevents the planner
           // from emitting custom-native mappings that cannot be proven against
@@ -625,7 +670,10 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
             job.changeReceipt=nativeChangeReceipt(document,next,job.input.message,[...operations,...(plan.repairs||[]).flatMap(r=>r.operations)],plan.targetScope);
             await fs.writeFile(path.join(dir,'edit.json'),JSON.stringify({message:job.input.message,baseRevisionId:base.id,routeDecision:job.routeDecision,changeReceipt:job.changeReceipt,...plan},null,2));
             const branch=job.input.branch===true||job.input.workflow?.taskMode==='variant';
-            await publish(p,job,dir,next,job.input.message,{branch});
+            const published=await publish(p,job,dir,next,job.input.message,{branch});
+            if(!branch){
+              await candidateExport(p,job,published,signal);
+            }
             job.planSummary=plan.summary;
             const changed=(job.changeReceipt?.changedFields||[]).map(field=>({nodes:'画面对象',scenes:'镜头',audioGraph:'声音',captions:'字幕',transitions:'转场',output:'画幅',durationFrames:'时长'}[field]||field)).join('、');
             const explanation=completedEditSummary(plan.summary);
@@ -678,6 +726,17 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
     const job={id:'job-'+randomUUID(),kind,input:structuredClone(input),routeDecision:input.routeDecision,baseRevisionId:input.revisionId||p.currentRevisionId,status:'queued',createdAt:now(),idempotencyKey:input.idempotencyKey};if(kind==='export')job.snapshot={...structuredClone(p),jobs:p.jobs.map(({snapshot,...prior})=>structuredClone(prior))};p.jobs.push(job);
     if(input.message&&!input.suppressUserMessage)p.messages.push({role:'user',text:input.displayMessage||input.message,attachmentIds:[...(input.attachmentIds||[])],baseRevisionId:job.baseRevisionId,time:now()});await save(p);void execute(p,job).catch(error=>{job.status='failed';job.error=error.message;job.code=error.code||'CREATIVE_JOB_FAILED';controllers.delete(job.id);console.error('创作任务失败：',p.id,job.id,error.code||error.message);});return job;
   }
+  async function waitForJob(p, jobId, {timeoutMs=300000, intervalMs=250}={}) {
+    const started=Date.now();
+    while(Date.now()-started <= timeoutMs){
+      const job=p.jobs.find(item=>item.id===jobId);
+      if(!job) throw new CreativeError('任务不存在','JOB_NOT_FOUND');
+      if(['complete','failed','recoverable','needs_user','cancelled'].includes(job.status)) return job;
+      await new Promise(resolve=>setTimeout(resolve, intervalMs));
+    }
+    const job=p.jobs.find(item=>item.id===jobId);
+    return job || {id:jobId,status:'queued',stage:'等待任务状态持久化'};
+  }
   async function navigate(p,input){
     insist(!p.jobs.some(j=>active(j)&&j.kind!=='export'),'编辑完成后可恢复版本','PROJECT_BUSY');
     const current=revision(p),previous={current:p.currentRevisionId,redo:[...p.redo]};let target;
@@ -708,7 +767,7 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
     if(!p.jobs.some(j=>result.operationId&&j.input?.operationId===result.operationId)&&!p.messages.some(m=>m.role==='user'&&m.text===input.message&&m.baseRevisionId===input.baseRevisionId))p.messages.push({role:'user',text:input.message,baseRevisionId:input.baseRevisionId,time:now()});
     p.messages.push({role:'assistant',text:result.summary,controlMessageId:key,controlStatus:result.status,time:now()});await save(p);
   }
-  return {openclawProjectContext,recordControlResult,artifacts,dispatchMessage,audioVoices:()=>new MiniMaxClient({root,env:audioEnv,transport:audioTransport}).execute('voices'),applyAudio:async(p,input)=>{const {document}=await readNativeProject(versionDirectory(p,revision(p)));const operations=await audioApplication(root,document,p.assets.find(a=>a.id===input.assetId),input);return enqueue(p,{...input,action:'patch',operations,message:(input.replaceTrackId?'替换已选':'添加已选')+(input.role==='narration'?'旁白':input.role==='original'?'原声':'背景音乐')});},productionPolicy:()=>productionPolicy(root),finishedWorks:()=>readFinishedWorks(root),materialRoots:async()=>(await discoverMaterialRoots(root)).map(publicMaterialRoot),attachMaterialRoot,get,has:id=>projects.has(id),view,create,loadPreset,presetFile,presets:async()=>(await refreshPresets()).map(publicPreset),unavailablePresets:async()=>(await refreshPresets()).unavailable||[],upload,importPackage,retryImport,enqueue,navigate,cancel,resume,authorizeBudget,revision,versionDirectory,list:()=>[...projects.values()].map(view).sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt))};
+  return {openclawProjectContext,recordControlResult,artifacts,dispatchMessage,audioVoices:()=>new MiniMaxClient({root,env:audioEnv,transport:audioTransport}).execute('voices'),applyAudio:async(p,input)=>{const {document}=await readNativeProject(versionDirectory(p,revision(p)));const operations=await audioApplication(root,document,p.assets.find(a=>a.id===input.assetId),input);return enqueue(p,{...input,action:'patch',operations,message:(input.replaceTrackId?'替换已选':'添加已选')+(input.role==='narration'?'旁白':input.role==='original'?'原声':'背景音乐')});},productionPolicy:()=>productionPolicy(root),finishedWorks:()=>readFinishedWorks(root),materialRoots:async()=>(await discoverMaterialRoots(root)).map(publicMaterialRoot),attachMaterialRoot,get,has:id=>projects.has(id),view,create,loadPreset,presetFile,presets:async()=>(await refreshPresets()).map(publicPreset),unavailablePresets:async()=>(await refreshPresets()).unavailable||[],upload,importPackage,retryImport,enqueue,waitForJob,navigate,cancel,resume,authorizeBudget,revision,versionDirectory,list:()=>[...projects.values()].map(view).sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt))};
 }
 
 export async function creativeRoutes(service,req,res,url,{json,jsonBody,file,dispatchMessage=service.dispatchMessage}){

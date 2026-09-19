@@ -89,15 +89,18 @@ async function openclawToolRoute(req,res){
   const existing=(await commerceEngine.getJournal()).operations?.[normalizedInput.operationId];
   if(existing?.status==='completed')return json(res,{ok:true,result:existing.result});
   if(existing&&['started','submission_unknown'].includes(existing.status))throw new InputError('operationId 可能已提交但结果未知，禁止重复导入附件',409);
-  const inboundRoot=path.resolve(process.env.OPENCLAW_INBOUND_MEDIA_DIR||path.join(process.env.HOME||'', '.openclaw','hyperframe','state','media','inbound'))+path.sep;
+  const inboundRootBase=path.resolve(process.env.OPENCLAW_INBOUND_MEDIA_DIR||path.join(process.env.HOME||'', '.openclaw','hyperframe','state','media','inbound'));
+  const inboundRoot=await fs.realpath(inboundRootBase).catch(()=>inboundRootBase);
   const projectId=String(normalizedInput.projectId||'');
   const project=creative.get(projectId);
   const importedAttachmentIds=[...(normalizedInput.attachmentIds||[])];
   for(const raw of attachmentPaths){
    const candidate=path.resolve(String(raw));
-   if(!candidate.startsWith(inboundRoot))throw new InputError('OpenClaw 附件路径不在受信入站目录内',403);
-   const stat=await fs.stat(candidate).catch(()=>null);if(!stat?.isFile())throw new InputError('OpenClaw 附件不存在',400);
-   const asset=await creative.upload(project,createReadStream(candidate),path.basename(candidate));
+   const candidateReal=await fs.realpath(candidate).catch(()=>null);
+   const relative=candidateReal?path.relative(inboundRoot,candidateReal):'..';
+   if(!candidateReal||!relative||path.isAbsolute(relative)||relative==='..'||relative.startsWith('..'+path.sep))throw new InputError('OpenClaw 附件路径不在受信入站目录内',403);
+   const stat=await fs.stat(candidateReal).catch(()=>null);if(!stat?.isFile())throw new InputError('OpenClaw 附件不存在',400);
+   const asset=await creative.upload(project,createReadStream(candidateReal),path.basename(candidateReal));
    if(asset?.id) importedAttachmentIds.push(asset.id);
   }
   normalizedInput.attachmentIds=[...new Set(importedAttachmentIds)];
@@ -251,7 +254,7 @@ const server=http.createServer(async(req,res)=>{
   const assets={'/creative-studio':['creative-studio.html','text/html; charset=utf-8'],'/creative-v2':['creative-v2.html','text/html; charset=utf-8'],'/creative-v2/text-demo/final.mp4':['../examples/creative-v2/text-demo/output/final.mp4','video/mp4'],'/creative-v2/image-demo/final.mp4':['../examples/creative-v2/image-demo/output/final.mp4','video/mp4'],'/creative-v2/video-demo/final.mp4':['../examples/creative-v2/video-demo/output/final.mp4','video/mp4'],'/creative-v2/mixed-demo/final.mp4':['../examples/creative-v2/mixed-demo/output/final.mp4','video/mp4'],'/':['commerce.html','text/html; charset=utf-8'],'/edit':['editor.html','text/html; charset=utf-8'],'/create':['index.html','text/html; charset=utf-8'],'/commerce':['commerce.html','text/html; charset=utf-8'],'/editor.js':['editor.js','text/javascript; charset=utf-8'],'/editor.css':['editor.css','text/css; charset=utf-8'],'/app.js':['app.js','text/javascript; charset=utf-8'],'/commerce.js':['commerce.js','text/javascript; charset=utf-8'],'/commerce.css':['commerce.css','text/css; charset=utf-8'],'/style.css':['style.css','text/css; charset=utf-8']};
   if(['GET','HEAD'].includes(req.method)&&assets[route])return await file(req,res,path.join(WEB,assets[route][0]),assets[route][1]);
   throw new InputError('找不到这个页面',404);
- }catch(e){if(res.headersSent){res.destroy();return;}const expected=e instanceof InputError||e instanceof EditError||e instanceof CreativeError||e instanceof MiniMaxError||typeof e?.code==='string'&&(e.code.startsWith('OPENCLAW_')||['UNTRUSTED_TOOL_CONTEXT','PROJECT_SCOPE_FORBIDDEN','REVISION_CONFLICT','IDEMPOTENCY_CONFLICT','OPERATION_UNKNOWN','OPERATION_PREVIOUSLY_FAILED','SHADOW_WRITE_BLOCKED','TOOL_NOT_REGISTERED','SCHEMA_INVALID','SERVICE_REQUIRED','RUNTIME_MODE_INVALID'].includes(e.code));if(!expected)console.error(e);json(res,{ok:false,error:expected?e.message:'操作暂时无法完成，请重试；详情已记录在本地日志。',code:e.code},e.status||500);}
+ }catch(e){if(res.headersSent){res.destroy();return;}const expected=e instanceof InputError||e instanceof EditError||e instanceof CreativeError||e instanceof MiniMaxError||typeof e?.code==='string'&&(e.code.startsWith('OPENCLAW_')||['UNTRUSTED_TOOL_CONTEXT','PROJECT_SCOPE_FORBIDDEN','REVISION_CONFLICT','IDEMPOTENCY_CONFLICT','OPERATION_UNKNOWN','OPERATION_PREVIOUSLY_FAILED','SHADOW_WRITE_BLOCKED','TOOL_NOT_REGISTERED','SCHEMA_INVALID','SERVICE_REQUIRED','RUNTIME_MODE_INVALID','BASE_REVISION_ID_REQUIRED','BASE_REVISION_ID_INVALID','PLAN_EMPTY','PLAN_INVALID','UNSUPPORTED_PATCH','PATCH_TARGET_MISSING','INVALID_TEXT','INVALID_PATCH','INVALID_TEXT_STYLE','INVALID_SCENE_TIME','INVALID_SCENE_ORDER','INVALID_OUTPUT','MISSING_ASSET','INVALID_EFFECT_PARAM'].includes(e.code));if(!expected)console.error(e);json(res,{ok:false,error:expected?e.message:'操作暂时无法完成，请重试；详情已记录在本地日志。',code:e.code,stage:e.stage||null,field:e.field||null,retryable:e.retryable??false,requestId:e.requestId||req.headers['x-request-id']||null},e.status||500);}
 });
 server.listen(PORT,'127.0.0.1',()=>console.log(`对话视频剪辑 http://127.0.0.1:${PORT}`));
 server.on('error',e=>{console.error(e.message);void writerLeases.release().finally(()=>process.exit(1));});

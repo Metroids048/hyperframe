@@ -1,5 +1,10 @@
 import { defineToolPlugin } from "openclaw/plugin-sdk/tool-plugin";
 import { Type } from "typebox";
+import fs from "node:fs";
+import fsp from "node:fs/promises";
+import path from "node:path";
+import os from "node:os";
+import crypto from "node:crypto";
 
 const TOOLS = [
   ["commerce_project_list", "List editable video projects so the user can choose one in chat."],
@@ -37,7 +42,7 @@ const schemas = {
   commerce_project_list: Type.Object({ query: Type.Optional({ type: "string", maxLength: 200 }), maxItems: Type.Optional({ type: "integer", minimum: 1, maximum: 50 }) }, { additionalProperties: false }),
   commerce_project_get: Type.Object({ projectId: idSchema }, { additionalProperties: false }),
   commerce_resource_search: Type.Object({ projectId: optionalId, query: Type.Optional({ type: "string", maxLength: 500 }) }, { additionalProperties: false }),
-  commerce_plan_validate: Type.Object({ projectId: idSchema, baseRevisionId: optionalId, requestedChanges: Type.Optional(changes), keep: Type.Optional(keep) }, { additionalProperties: false }),
+  commerce_plan_validate: Type.Object({ projectId: idSchema, baseRevisionId: baseRevision, requestedChanges: changes, keep }, { additionalProperties: false }),
   commerce_create_video: Type.Object({ projectId: idSchema, baseRevisionId: baseRevision, message: { type: "string", minLength: 1, maxLength: 20000 }, requestedChanges: changes, keep, ...nativeWriteFields, ...writeContext }, { additionalProperties: false }),
   commerce_edit_video: Type.Object({ projectId: idSchema, baseRevisionId: baseRevision, message: { type: "string", minLength: 1, maxLength: 20000 }, requestedChanges: changes, keep, ...nativeWriteFields, ...writeContext }, { additionalProperties: false }),
   commerce_generate_asset: Type.Object({ projectId: idSchema, baseRevisionId: baseRevision, message: { type: "string", minLength: 1, maxLength: 20000 }, requestedChanges: changes, keep, ...nativeWriteFields, ...writeContext }, { additionalProperties: false }),
@@ -48,9 +53,35 @@ const schemas = {
   commerce_artifact_list: Type.Object({ projectId: idSchema, revisionId: optionalId }, { additionalProperties: false })
 };
 
+let uploadRouteRegistered = false;
+function registerUploadRoute(api) {
+  if (uploadRouteRegistered || !api?.registerHttpRoute) return;
+  uploadRouteRegistered = true;
+  api.registerHttpRoute({ path: "/plugins/commerce-engine/upload", auth: "gateway", match: "exact", handler: async (req, res) => {
+    if (req.method !== "POST") { res.statusCode = 405; res.end("method not allowed"); return; }
+    const mime = String(req.headers["content-type"] || "application/octet-stream").split(";")[0].toLowerCase();
+    const rawName = String(req.headers["x-openclaw-file-name"] || "video.mp4");
+    let fileName; try { fileName = decodeURIComponent(rawName); } catch { fileName = rawName; }
+    fileName = path.basename(fileName).replace(/[^A-Za-z0-9._-]/g, "_").slice(-160) || "video.mp4";
+    const ext = path.extname(fileName).toLowerCase();
+    if (!["video/mp4", "video/quicktime", "video/webm"].includes(mime) || ![".mp4", ".mov", ".webm"].includes(ext)) { res.statusCode = 415; res.setHeader("content-type", "application/json"); res.end(JSON.stringify({ ok:false, error:"仅支持 MP4、MOV、WebM 视频" })); return; }
+    const limit = 1024 * 1024 * 1024;
+    const stateRoot = path.resolve(process.env.OPENCLAW_STATE_DIR || path.join(os.homedir(), ".openclaw", "hyperframe"));
+    const inbound = path.join(stateRoot, "media", "inbound"); await fsp.mkdir(inbound, {recursive:true, mode:0o700});
+    const id = crypto.randomUUID(); const target = path.join(inbound, `${id}-${fileName}`); const temp = `${target}.part`;
+    let bytes = 0;
+    try {
+      await new Promise((resolve, reject) => { const out = fs.createWriteStream(temp, {flags:"wx", mode:0o600}); const fail = e => { out.destroy(); reject(e); }; req.on("data", chunk => { bytes += chunk.length; if (bytes > limit) fail(Object.assign(new Error("视频超过 1 GiB 限制"), {statusCode:413})); else if (!out.write(chunk)) req.pause(); }); out.on("drain", () => req.resume()); req.on("end", () => out.end(resolve)); req.on("error", reject); out.on("error", reject); });
+      await fsp.rename(temp, target);
+      res.statusCode = 200; res.setHeader("content-type", "application/json"); res.end(JSON.stringify({ok:true, mediaPath:`media://inbound/${path.basename(target)}`, fileName, mimeType:mime, bytes, path:target}));
+    } catch (error) { await fsp.rm(temp, {force:true}).catch(()=>{}); res.statusCode = error.statusCode || 500; res.setHeader("content-type", "application/json"); res.end(JSON.stringify({ok:false, error:error.message || "视频上传失败"})); }
+  }});
+}
+
 function buildTool(name, description) {
   return { name, label: name, description, parameters: schemas[name],
-    factory({ config, toolContext }) {
+    factory({ config, toolContext, api }) {
+      registerUploadRoute(api);
       const sessionKey = toolContext.sessionKey;
       return { name, label: name, description, parameters: schemas[name],
         async execute(toolCallId, params, signal) {
@@ -68,7 +99,7 @@ function buildTool(name, description) {
               body: JSON.stringify({ tool: name, input, trustedContext }), signal
             });
             const authorizationPayload = await authorizationResponse.json().catch(() => ({ error: "authorization endpoint returned invalid JSON" }));
-            if (!authorizationResponse.ok) throw new Error(authorizationPayload.error || ("commerce authorization " + authorizationResponse.status));
+            if (!authorizationResponse.ok) { const error = new Error(authorizationPayload.error || ("commerce authorization " + authorizationResponse.status)); Object.assign(error, authorizationPayload); throw error; }
             input = { ...input, authorizationId: authorizationPayload.authorizationId, operationId: input.operationId || authorizationPayload.operationId };
           }
           const body = { tool: name, input, trustedContext };
@@ -76,7 +107,7 @@ function buildTool(name, description) {
             method: "POST", headers: { authorization: "Bearer " + token, "content-type": "application/json" }, body: JSON.stringify(body), signal
           });
           const payload = await response.json().catch(() => ({ error: "bridge returned invalid JSON" }));
-          if (!response.ok) throw new Error(payload.error || ("commerce bridge " + response.status));
+          if (!response.ok) { const error = new Error(payload.error || ("commerce bridge " + response.status)); Object.assign(error, payload); throw error; }
           return { content: [{ type: "text", text: JSON.stringify(payload) }] };
         }
       };
@@ -89,4 +120,7 @@ const configSchema = Type.Object({
   bridgeTokenEnv: Type.String({ pattern: "^[A-Z][A-Z0-9_]{2,80}$" }),
   workspaceId: Type.String({ minLength: 1, maxLength: 200 })
 });
-export default defineToolPlugin({ id: "commerce-engine", name: "Commerce Engine", description: "Controlled tools for the existing video-agent commerce service.", activation: { onStartup: true }, configSchema, tools: () => TOOLS.map(([name, description]) => buildTool(name, description)) });
+const pluginEntry = defineToolPlugin({ id: "commerce-engine", name: "Commerce Engine", description: "Controlled tools for the existing video-agent commerce service.", activation: { onStartup: true }, configSchema, tools: () => TOOLS.map(([name, description]) => buildTool(name, description)) });
+const registerTools = pluginEntry.register;
+pluginEntry.register = (api) => { registerUploadRoute(api); return registerTools(api); };
+export default pluginEntry;

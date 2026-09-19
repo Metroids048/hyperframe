@@ -10,7 +10,7 @@ import {customParameters,compileCustomSource} from './custom-source.mjs';
 import {alignSourceAudio} from './source-audio.mjs';
 import {projectNativeCaptions} from './captions.mjs';
 
-const allowed = new Set(['update_text_style','update_text', 'update_effect_params', 'set_scene_effect', 'replace_asset', 'set_scene_duration', 'reorder_scenes', 'set_transition', 'change_output','lock_scene','unlock_scene','update_media','retime_document']);
+const allowed = new Set(['update_text_style','update_text', 'update_effect_params', 'set_scene_effect', 'replace_asset', 'set_scene_duration', 'set_node_duration', 'reorder_scenes', 'set_transition', 'change_output','lock_scene','unlock_scene','update_media','retime_document']);
 for(const type of ['duplicate_media','add_audio','update_audio','remove_audio','split_scene','trim_scene','update_caption','update_caption_style','set_captions','remove_caption','update_custom_source'])allowed.add(type);
 
 export function applyDocumentPatch(input, operations, assets) {
@@ -54,15 +54,22 @@ export function applyDocumentPatch(input, operations, assets) {
       if(p.sourceStartSeconds!==undefined)insist(Number.isFinite(p.sourceStartSeconds)&&p.sourceStartSeconds>=0,'源入点无效','INVALID_SOURCE_RANGE');
       node.params={...node.params,...p};
     }
+    if(op.type==='set_node_duration'){
+      const node=document.nodes.find(n=>n.id===op.nodeId);insist(node,'目标对象不存在','PATCH_TARGET_MISSING');
+      insist(Number.isInteger(op.durationFrames)&&op.durationFrames>=1,'对象时长无效','INVALID_SCENE_TIME');
+      const scene=document.scenes.find(s=>s.id===node.sceneId);insist(scene&&((node.localStartFrame||0)+op.durationFrames)<=scene.durationFrames,'对象时长不能超出所属场景','INVALID_SCENE_TIME');
+      node.localDurationFrames=op.durationFrames;
+    }
     if(['add_audio','update_audio','remove_audio'].includes(op.type)){
       document.audioGraph??=[];const index=document.audioGraph.findIndex(a=>a.id===op.nodeId);
       if(op.type!=='add_audio')insist(index>=0,'目标音轨不存在','PATCH_TARGET_MISSING');
       if(op.type==='remove_audio'){const [removed]=document.audioGraph.splice(index,1);if(document.audioRequirements&&removed.role&&!document.audioGraph.some(t=>t.role===removed.role))document.audioRequirements[removed.role]=false;continue;}
-      const params=op.params||{};insist(Object.keys(params).every(k=>['startFrame','durationFrames','speechWindowFrames','sourceStartSeconds','playbackRate','volume','fadeInFrames','fadeOutFrames','ducking','role','sourceNodeId'].includes(k)),'不支持的音轨参数','INVALID_PATCH');
+      const params=op.params||{};insist(Object.keys(params).every(k=>['assetId','startFrame','durationFrames','speechWindowFrames','sourceStartSeconds','playbackRate','volume','fadeInFrames','fadeOutFrames','ducking','role','sourceNodeId'].includes(k)),'不支持的音轨参数','INVALID_PATCH');
       if(params.sourceNodeId)insist(document.nodes.some(n=>n.id===params.sourceNodeId&&n.kind==='video'&&n.assetId===(op.assetId||document.audioGraph[index]?.assetId)),'原声必须绑定同一真实视频对象','INVALID_AUDIO_ASSET');
       if(op.type==='add_audio'&&['music','original'].includes(params.role))document.audioRequirements={...document.audioRequirements,[params.role]:true};
       if(op.type==='add_audio'){insist(assets[op.assetId]?.mediaMetadata?.hasAudio,'素材没有可用声音','INVALID_AUDIO_ASSET');const id=op.nodeId||stableId('audio',input.revisionId,op,document.audioGraph.length);insist(/^[\w-]{1,100}$/.test(id)&&!document.audioGraph.some(t=>t.id===id),'音轨 ID 无效或重复','INVALID_AUDIO_ID');document.audioGraph.push({id,assetId:op.assetId,startFrame:0,sourceStartSeconds:0,playbackRate:1,volume:1,...params});}
       else {
+        if(params.assetId)insist(assets[params.assetId]?.mediaMetadata?.hasAudio,'素材没有可用声音','INVALID_AUDIO_ASSET');
         document.audioGraph[index]={...document.audioGraph[index],...params};
         // A requested audio-only timing edit deliberately separates this track.
         if(['startFrame','durationFrames','sourceStartSeconds','playbackRate'].some(k=>Object.hasOwn(params,k))){delete document.audioGraph[index].sourceNodeId;delete document.audioGraph[index].sceneId;}
