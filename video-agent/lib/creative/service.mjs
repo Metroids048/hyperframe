@@ -749,7 +749,16 @@ export async function creativeRoutes(service,req,res,url,{json,jsonBody,file,dis
       json(res,{ok:true,result});return true;
     }
     const p=service.get(input.projectId);
-    if(input.action==='message'){json(res,{ok:true,...await dispatchMessage(p,input)},202);return true;}
+    if(input.action==='message'){
+      // Do not hold the browser request open while routing/model work runs.
+      // The UI already polls the project, so acknowledge immediately and
+      // persist failures on the project/job for the normal status path.
+      const accepted={project:service.view(p),accepted:true,messageId:input.idempotencyKey};
+      void dispatchMessage(p,input).catch(error=>{
+        console.error('消息后台处理失败：',p.id,error.code||error.message);
+      });
+      json(res,{ok:true,...accepted},202);return true;
+    }
     if(input.action==='audio-new-submission'){
       const old=p.jobs.find(j=>j.id===input.jobId);
       insist(old?.kind==='audio'&&old.code==='MINIMAX_SUBMISSION_UNKNOWN'&&!active(old),'只能针对结果未知的声音任务授权新提交','INVALID_AUDIO_RECOVERY');

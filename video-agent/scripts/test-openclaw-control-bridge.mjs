@@ -19,7 +19,7 @@ try{
  let request;
  const rawSession=stableControlSessionKey(workspaceId,project.id),sessionKey=normalizedOpenClawSessionKey(rawSession);
  assert.ok(rawSession.startsWith('agent:commerce-control:'),'Gateway canonical session prefix must be included before authorization hashing');
- const operationId=stableControlOperationId(project.id,messageId,{message,baseRevisionId:'rev-1',attachmentIds:[]});
+ const operationId=stableControlOperationId(project.id,messageId,{message,baseRevisionId:'rev-1',attachmentIds:[],attachmentPaths:[]});
  const fetchImpl=async(_url,options)=>{
   request={headers:options.headers,body:JSON.parse(options.body)};
   const payload=JSON.parse(request.body.input[0].content[0].text);

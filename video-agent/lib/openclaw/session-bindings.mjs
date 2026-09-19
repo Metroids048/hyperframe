@@ -16,7 +16,10 @@ export function createOpenClawSessionBindings({file,workspaceId}){
   if(trustedContext.workspaceId!==workspaceId)fail('workspace scope mismatch','PROJECT_SCOPE_FORBIDDEN');
   if(typeof trustedContext.sessionKey!=='string'||!trustedContext.sessionKey.trim())fail('stable OpenClaw session missing');
   const sessionHash=hash(trustedContext.sessionKey),sessionKey='openclaw:'+sessionHash;
-  if(projectId==null)return {trusted:true,workspaceId,sessionKey,workspaceProjectId:null,agentId:trustedContext.agentId||null};
+  if(projectId==null)return serialize(async()=>{
+   const state=await read(target),existing=state.sessions[sessionHash];
+   return {trusted:true,workspaceId,sessionKey,workspaceProjectId:existing?.projectId||null,agentId:trustedContext.agentId||existing?.agentId||null};
+  });
   if(typeof projectId!=='string'||!projectId.trim())fail('projectId invalid','PROJECT_ID_INVALID',400);
   return serialize(async()=>{
    const state=await read(target),existing=state.sessions[sessionHash],now=new Date().toISOString();

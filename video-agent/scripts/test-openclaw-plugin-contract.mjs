@@ -52,8 +52,10 @@ test('real OpenClaw SDK registration exposes per-tool strict required fields', a
   assert.deepEqual(required.commerce_resource_search||[],[]);
   assert.deepEqual(required.commerce_project_get,['projectId']);
   assert.deepEqual(required.commerce_job_get,['projectId','jobId']);
-  assert.deepEqual(required.commerce_edit_video,['projectId','baseRevisionId','operationId','message','requestedChanges','keep','authorizationId']);
-  assert.deepEqual(required.commerce_generate_asset,['projectId','baseRevisionId','operationId','message','requestedChanges','keep','authorizationId']);
+  assert.deepEqual(required.commerce_edit_video,['projectId','baseRevisionId','message','requestedChanges','keep']);
+  assert.deepEqual(required.commerce_generate_asset,['projectId','baseRevisionId','message','requestedChanges','keep']);
+  assert.ok(tools.find(tool=>tool.name==='commerce_edit_video').parameters.properties.attachmentPaths,
+    'native Control UI attachment paths must be accepted as an optional server-validated field');
   for(const tool of tools)assert.equal(tool.parameters.additionalProperties,false,tool.name);
 });
 

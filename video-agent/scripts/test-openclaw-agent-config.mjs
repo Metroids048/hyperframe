@@ -15,7 +15,7 @@ assert.equal(config.gateway.auth.token,'${OPENCLAW_GATEWAY_TOKEN}');
 assert.equal(config.gateway.http.endpoints.responses.enabled,true);
 assert.equal(config.gateway.http.endpoints.responses.images.allowUrl,false);
 assert.equal(config.gateway.http.endpoints.responses.files.allowUrl,false);
-assert.equal(control.default,true);assert.equal(control.skills.length,12);assert.equal(control.tools.allow.length,11);
+assert.equal(control.default,true);assert.equal(control.skills.length,12);assert.equal(control.tools.allow.length,12);assert.ok(control.tools.allow.includes('commerce_project_list'));
 assert.deepEqual(stage.skills,[]);assert.deepEqual(stage.tools.allow,['commerce_project_get','commerce_resource_search','commerce_plan_validate']);
 assert.ok(writes.every(tool=>!stage.tools.allow.includes(tool)));
 assert.ok(dangerous.every(tool=>!control.tools.allow.includes(tool)&&!stage.tools.allow.includes(tool)));

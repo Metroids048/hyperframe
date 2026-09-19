@@ -1,0 +1,138 @@
+{
+  "timestamp": "2026-09-19T20:45:00+08:00",
+  "head": "218aa259552cef8e25f25afdb0609aacc3ea3a1e",
+  "runtime": {
+    "openclaw": "2026.6.11",
+    "node": "24.19.0",
+    "hyperframes": "0.8.33",
+    "controlBackendModel": "one-api/gpt-5.5",
+    "stageBackendModel": "one-api/gpt-5.5"
+  },
+  "changes": {
+    "U0": [
+      "startup rejects health-only or wrong-identity services",
+      "requires backend workspaceId/openclaw/commerce and gateway config/log/plugin identity",
+      "failure exits non-zero"
+    ],
+    "U1": [
+      "commerce_project_list allowlisted for commerce-control",
+      "native session binding remains fail-closed on project conflict",
+      "commerce_project_list now returns a stable per-project Control UI session route derived server-side"
+    ],
+    "U2": [
+      "native plugin requests /api/openclaw/authorize before writes",
+      "server binds trusted session/project and issues scoped authorization",
+      "authorizationId and operationId are injected server-side",
+      "native Control UI MediaPath uploads are accepted only from the OpenClaw inbound media directory and imported as project assets after server authorization binding"
+    ]
+  },
+  "checks": [
+    {
+      "command": "python3 scripts/openclaw-local.py status",
+      "status": "PASS",
+      "result": "gateway: ready; backend: ready"
+    },
+    {
+      "command": "python3 scripts/openclaw-local.py status against health-only gateway",
+      "status": "PASS",
+      "result": "non-zero; identity check failed"
+    },
+    {
+      "command": "node scripts/test-openclaw-plugin-contract.mjs",
+      "status": "PASS",
+      "result": "3 tests passed"
+    },
+    {
+      "command": "node scripts/test-openclaw-agent-config.mjs",
+      "status": "PASS",
+      "result": "14/14 passed"
+    },
+    {
+      "command": "node scripts/test-openclaw-security-boundary.mjs; node scripts/test-openclaw-facade.mjs; node scripts/test-openclaw-control-bridge.mjs; node scripts/test-openclaw-session-bindings.mjs",
+      "status": "PASS",
+      "result": "6/6; 8/8; 11/11; 6/6"
+    },
+    {
+      "command": "isolated live server POST /api/openclaw/authorize with real project and trusted session",
+      "status": "PASS",
+      "result": "HTTP 200; server returned authorizationId and operationId; no token logged"
+    },
+    {
+      "command": "live server native authorization negative probes",
+      "status": "PASS",
+      "result": "missing bearer HTTP 401; untrusted context HTTP 403"
+    },
+    {
+      "command": "live server commerce_project_list through /api/openclaw/tools",
+      "status": "PASS",
+      "result": "HTTP 200; real project name/currentRevisionId and stable per-project sessionRoute returned"
+    },
+    {
+      "command": "OpenClaw 2026.6.11 native agent --agent commerce-control --session-key verify-u1 --message '列出我的视频项目'",
+      "status": "PASS",
+      "result": "real Gateway model turn returned the project table; log shows only the intended commerce tools survived policy filtering"
+    },
+    {
+      "command": "authorized /api/openclaw/tools commerce_edit_video with OpenClaw inbound attachment path",
+      "status": "PASS",
+      "result": "HTTP 200; attachment copied into the bound project uploads and edit job queued"
+    },
+    {
+      "command": "unauthorized /api/openclaw/tools with attachment path but no server authorization",
+      "status": "PASS",
+      "result": "HTTP 403 before file import"
+    },
+    {
+      "command": "OpenClaw gateway call talk.catalog",
+      "status": "BLOCKED",
+      "result": "OpenAI and Google realtime providers are both configured=false; Microsoft is configured only for stt-tts and cannot back browser realtime Talk"
+    },
+    {
+      "command": "native Control UI first edit job-adce3b00-5f97-4ac4-b275-c39404862f38",
+      "status": "BLOCKED",
+      "result": "tool accepted and returned job, but backend recorded stage HTTP 502; no revision was published and no completion was claimed"
+    },
+    {
+      "command": "Native Control UI fresh session gpt55-test project bind + commerce_edit_video",
+      "status": "PASS",
+      "result": "real project c630dd26-1a36-4387-a48b-a4f61a945375 edited through WebUI; job job-77fda605-39b0-4bf6-a5a3-f6ab1d55d8db completed and published rev-3fed8dfd1dcc3abe"
+    },
+    {
+      "command": "Native Control UI commerce_job_get + commerce_export + commerce_job_get",
+      "status": "PASS",
+      "result": "export job job-00c91532-fa12-4f6b-a500-a6c6a64e542a completed; commerce-final.mp4 5855529 bytes"
+    },
+    {
+      "command": "HTTP playback/download endpoint + ffprobe/ffmpeg decode",
+      "status": "PASS",
+      "result": "HTTP 200, video/mp4, H.264/AAC, 1920x1080, duration 120s; full decode completed without errors"
+    }
+  ],
+  "browser": {
+    "status": "PASS",
+    "session": "agent:commerce-control:gpt55-test",
+    "projectId": "c630dd26-1a36-4387-a48b-a4f61a945375",
+    "editJobId": "job-77fda605-39b0-4bf6-a5a3-f6ab1d55d8db",
+    "revisionId": "rev-3fed8dfd1dcc3abe",
+    "exportJobId": "job-00c91532-fa12-4f6b-a500-a6c6a64e542a",
+    "playbackDownload": {
+      "status": "PASS",
+      "path": "/api/commerce/c630dd26-1a36-4387-a48b-a4f61a945375/revisions/rev-3fed8dfd1dcc3abe/commerce-final.mp4",
+      "contentType": "video/mp4",
+      "bytes": 5855529,
+      "durationSeconds": 120,
+      "resolution": "1920x1080",
+      "decode": "ffmpeg no errors"
+    },
+    "notes": "Native in-app media tab exposed video controls; HTTP endpoint and complete local decode verified playback-valid MP4."
+  },
+  "security": {
+    "tokensLogged": false,
+    "authorizationChecksPreserved": true,
+    "defaultRuntime": "legacy"
+  },
+  "voice": {
+    "status": "BLOCKED",
+    "reason": "talk.catalog reports no configured realtime provider; no credential was available to configure OpenAI/Google without inventing or exposing one."
+  }
+}

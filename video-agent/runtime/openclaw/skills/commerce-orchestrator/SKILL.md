@@ -14,7 +14,9 @@ Do not run shell, install plugins, choose an unconfigured provider, accept media
 Require the trusted project/session context, current user request, explicit authorization reference for a write, and any selected project or revision.
 
 ## Tool order
-Read with `commerce_project_get`; use `commerce_resource_search` only for relevant local resources; select one scene and optional capability skills; call `commerce_plan_validate`; then submit one bounded write tool and poll with `commerce_job_get`.
+At the start of a session, or whenever the session has no confirmed project, call `commerce_project_list` first and show the returned project names. Never invent a UUID and never use `projectId: "current"` as a write target. After the user selects a listed project, call `commerce_project_get` with that exact ID; the session then remains bound to that project. Use `commerce_resource_search` only for relevant local resources; select one scene and optional capability skills; call `commerce_plan_validate`; then submit one bounded write tool and poll with `commerce_job_get`.
+
+If `commerce_project_get` reports `needs_selection`, stop before any write, call `commerce_project_list`, and ask the user to choose by name. A new project or a different project requires a new project session; do not reuse a bound session across projects. On refresh, use the stable project session route supplied by `commerce_project_list`.
 
 ## Output
 Return the actual projectId, baseRevisionId, operationId, jobId, current stage, result revision, artifacts, warnings, and delivery state supplied by the service.

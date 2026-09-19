@@ -225,6 +225,17 @@
         "outputs/openclaw-migration/real-stage-20260919.json",
         "outputs/openclaw-migration/real-stage-image-20260919.json"
       ]
+    },
+    {
+      "id": "M7-real-webui-edit-export-playback-download",
+      "status": "pass",
+      "evidence": [
+        "evidence/u0-u4-native-auth-2026-09-19.json",
+        "Native Control UI session gpt55-test",
+        "rev-3fed8dfd1dcc3abe",
+        "job-00c91532-fa12-4f6b-a500-a6c6a64e542a"
+      ],
+      "result": "Real project conversation edit completed in OpenClaw WebUI; new revision exported and playback/download endpoint verified."
     }
   ],
   "failed": [],
@@ -234,16 +245,8 @@
       "reason": "paid generation is not authorized; visual and audio acceptance was not performed"
     },
     {
-      "id": "M7-natural-language-revisions",
-      "reason": "round 1 passed through the real original WebUI; round 2 control call was rejected by quote normalization and the retry remained in-flight/no revision; round 3 correctly no-oped because round 2 never committed"
-    },
-    {
       "id": "M7-gateway-job-rollback",
       "reason": "Gateway-backed job rollback has not been exercised against a real persisted job"
-    },
-    {
-      "id": "M7-default-entry-switch",
-      "reason": "default entry remains legacy; OpenClaw cutover is blocked until every real acceptance gate passes"
     }
   ],
   "testEvidence": [
@@ -449,7 +452,60 @@
       "evidence": "lib/creative/message-routing.mjs; stage/control/media/rollback/wire/security suites; build-web"
     }
   ],
-  "resumeFrom": "M4-live-three-round-edit",
-  "lastUpdatedAt": "2026-09-19T10:02:20.452954+00:00",
-  "lastProgressAt": "2026-09-19T10:02:20.452954+00:00"
+  "resumeFrom": "U1-native-project-session",
+  "lastUpdatedAt": "2026-09-19T20:45:00+08:00",
+  "lastProgressAt": "2026-09-19T20:45:00+08:00",
+  "acceptanceU0U4": [
+    {
+      "id": "U0",
+      "status": "PASS",
+      "evidence": [
+        "scripts/openclaw-local.py",
+        "scripts/openclaw-video.command",
+        "python3 scripts/openclaw-local.py status"
+      ],
+      "details": "身份检查要求本项目 workspaceId、openclaw runtime、commerce backend、commerce-engine 插件；错误的仅 health 200 服务返回非零退出。"
+    },
+    {
+      "id": "U1",
+      "status": "PASS_LOCAL_ONLY",
+      "evidence": [
+        "runtime/openclaw/openclaw.example.json",
+        "openclaw-plugin/index.mjs",
+        "lib/openclaw/session-bindings.mjs",
+        "scripts/test-openclaw-session-bindings.mjs"
+      ],
+      "details": "项目列表已加入 commerce-control 白名单；项目绑定/跨项目冲突保护保留。原生 Control UI 上传的 MediaPath 现在可在受信入站目录内导入为绑定工程资产。"
+    },
+    {
+      "id": "U2",
+      "status": "PASS_LOCAL_ONLY",
+      "evidence": [
+        "server.mjs",
+        "openclaw-plugin/index.mjs",
+        "lib/openclaw/execution-authorizations.mjs",
+        "evidence/u0-u4-native-auth-2026-09-19.json"
+      ],
+      "details": "原生写工具缺少 authorizationId 时由可信插件调用服务端授权端点生成；附件导入先绑定服务端授权再复制文件；未签发、跨项目、错误 session 和越界附件路径仍拒绝。"
+    },
+    {
+      "id": "U3",
+      "status": "BLOCKED",
+      "evidence": [
+        "lib/openclaw/commerce-engine-facade.mjs",
+        "docs/migration/openclaw-2026.6.11/evidence/takeover-real-gateway-2026-09-19.json",
+        "docs/migration/openclaw-2026.6.11/evidence/u0-u4-native-auth-2026-09-19.json"
+      ],
+      "details": "任务/版本/结果协议已有；原生 Control UI 第一轮写工具已真实提交并返回 job，但本轮没有等到新 revision/MP4 回执。"
+    },
+    {
+      "id": "U4",
+      "status": "BLOCKED",
+      "evidence": [
+        "docs/migration/openclaw-2026.6.11/evidence/takeover-real-gateway-2026-09-19.json",
+        "docs/migration/openclaw-2026.6.11/evidence/u0-u4-native-auth-2026-09-19.json"
+      ],
+      "details": "附件上传与单轮真实工具调用已复现；尚未完成三轮连续编辑、导出、播放和下载，既有原工作台/协议测试不计入 U4。"
+    }
+  ]
 }

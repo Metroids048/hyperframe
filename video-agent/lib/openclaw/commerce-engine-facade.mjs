@@ -54,6 +54,9 @@ function validateContext(context) {
 function baseResult({ tool, projectId = null, operationId = null, status = 'ok', ...rest }) {
   return { schemaVersion: 'openclaw-commerce.v1', tool, status, projectId, operationId, ...rest };
 }
+function displayProjectName(value) {
+  return value.name || value.title || value.request?.product?.name || value.request?.brand || '未命名视频';
+}
 
 export function runtimeMode(value = process.env.COMMERCE_AGENT_RUNTIME || 'legacy') {
   if (!['legacy', 'shadow', 'openclaw'].includes(value)) fail('COMMERCE_AGENT_RUNTIME 必须是 legacy、shadow 或 openclaw', 'RUNTIME_MODE_INVALID');
@@ -146,10 +149,14 @@ export function createCommerceEngineFacade(service, { journalPath, mode = runtim
       const projects = (typeof service.list === 'function' ? service.list() : [])
         .filter(value => !query || `${value.name || ''} ${value.initialText || ''} ${value.id}`.toLowerCase().includes(query))
         .slice(0, maxItems)
-        .map(value => ({ id: value.id, name: value.name || '未命名视频', currentRevisionId: value.currentRevisionId || null, updatedAt: value.updatedAt || null, revisionCount: Array.isArray(value.revisions) ? value.revisions.length : 0, activeJobs: Array.isArray(value.jobs) ? value.jobs.filter(job => ['queued', 'running', 'recoverable'].includes(job.status)).map(job => ({ id: job.id, status: job.status, stage: job.stage || null })) : [] }));
+        .map(value => ({ id: value.id, name: displayProjectName(value), currentRevisionId: value.currentRevisionId || null, updatedAt: value.updatedAt || null, revisionCount: Array.isArray(value.revisions) ? value.revisions.length : 0, sessionRoute: `/status/chat?session=agent:commerce-control:project-${sha(value.id).slice(0, 24)}`, activeJobs: Array.isArray(value.jobs) ? value.jobs.filter(job => ['queued', 'running', 'recoverable'].includes(job.status)).map(job => ({ id: job.id, status: job.status, stage: job.stage || null })) : [] }));
       return baseResult({ tool, projects, query: query || null });
     }
     if (tool === 'commerce_project_get') {
+      if (input.projectId === 'current' && !context.workspaceProjectId) {
+        const available = (typeof service.list === 'function' ? service.list() : []).slice(0, 20).map(value => ({ id: value.id, name: displayProjectName(value), currentRevisionId: value.currentRevisionId || null }));
+        return baseResult({ tool, projectId: null, status: 'needs_selection', selectionRequired: true, projects: available, message: '当前会话尚未绑定工程，请先调用 commerce_project_list 并选择一个真实项目。' });
+      }
       const { projectId, value } = project(input);
       if (context.workspaceProjectId && context.workspaceProjectId !== projectId) fail('工程不属于当前工作区', 'PROJECT_SCOPE_FORBIDDEN', 403);
       return baseResult({ tool, projectId, project: typeof service.openclawProjectContext==='function'?await service.openclawProjectContext(value):service.view(value) });

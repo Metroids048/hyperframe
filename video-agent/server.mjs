@@ -21,9 +21,15 @@ import {createCommerceEngineFacade} from './lib/openclaw/commerce-engine-facade.
 import {acquireDirectoryLeases} from './lib/openclaw/directory-lease.mjs';
 import {createOpenClawSessionBindings} from './lib/openclaw/session-bindings.mjs';
 import {createOpenClawExecutionAuthorizations} from './lib/openclaw/execution-authorizations.mjs';
-import {createCommerceAgentBridge} from './lib/openclaw/commerce-agent-bridge.mjs';
+import {createCommerceAgentBridge,stableControlOperationId} from './lib/openclaw/commerce-agent-bridge.mjs';
 
-const PORT=Number(process.env.VIDEO_AGENT_PORT||3020),DATA=path.resolve(process.env.VIDEO_AGENT_DATA_DIR||path.join(ROOT,'data/projects')),EDIT_DATA=path.resolve(process.env.VIDEO_AGENT_EDIT_DATA_DIR||path.join(ROOT,'data/edit-projects')),CREATIVE_DATA=path.resolve(process.env.VIDEO_AGENT_CREATIVE_DATA_DIR||path.join(ROOT,'data/commerce-runs')),OPENCLAW_JOURNAL=path.resolve(process.env.OPENCLAW_JOURNAL_PATH||path.join(ROOT,'data','openclaw-bridge','operations.json')),OPENCLAW_SESSIONS=path.resolve(process.env.OPENCLAW_SESSION_BINDINGS_PATH||path.join(ROOT,'data','openclaw-bridge','sessions.json')),OPENCLAW_AUTHORIZATIONS=path.resolve(process.env.OPENCLAW_AUTHORIZATIONS_PATH||path.join(ROOT,'data','openclaw-bridge','authorizations.json')),WEB=path.join(ROOT,'web-dist');
+const PORT=Number(process.env.VIDEO_AGENT_PORT||3020),DATA=path.resolve(process.env.VIDEO_AGENT_DATA_DIR||path.join(ROOT,'data/projects')),EDIT_DATA=path.resolve(process.env.VIDEO_AGENT_EDIT_DATA_DIR||path.join(ROOT,'data/edit-projects')),CREATIVE_DATA=path.resolve(process.env.VIDEO_AGENT_CREATIVE_DATA_DIR||path.join(ROOT,'data/commerce-runs'));
+// Test and recovery workers often use isolated project directories. Keep the
+// OpenClaw journal/session stores in that same data root unless callers give
+// explicit paths; otherwise an unrelated running server can lock startup.
+const ISOLATED_DATA_ROOT=process.env.VIDEO_AGENT_DATA_DIR||process.env.VIDEO_AGENT_EDIT_DATA_DIR||process.env.VIDEO_AGENT_CREATIVE_DATA_DIR;
+const OPENCLAW_ROOT=path.resolve(process.env.OPENCLAW_DATA_DIR||(ISOLATED_DATA_ROOT?path.join(path.dirname(path.resolve(ISOLATED_DATA_ROOT)),'openclaw-bridge'):path.join(ROOT,'data','openclaw-bridge')));
+const OPENCLAW_JOURNAL=path.resolve(process.env.OPENCLAW_JOURNAL_PATH||path.join(OPENCLAW_ROOT,'operations.json')),OPENCLAW_SESSIONS=path.resolve(process.env.OPENCLAW_SESSION_BINDINGS_PATH||path.join(OPENCLAW_ROOT,'sessions.json')),OPENCLAW_AUTHORIZATIONS=path.resolve(process.env.OPENCLAW_AUTHORIZATIONS_PATH||path.join(OPENCLAW_ROOT,'authorizations.json')),WEB=path.join(ROOT,'web-dist');
 const workspaceId=createHash('sha256').update(process.platform==='win32'?ROOT.replaceAll('\\','/').toLowerCase():ROOT).digest('hex');
 const writerLeases=await acquireDirectoryLeases([DATA,EDIT_DATA,CREATIVE_DATA,path.dirname(OPENCLAW_JOURNAL),path.dirname(OPENCLAW_SESSIONS),path.dirname(OPENCLAW_AUTHORIZATIONS)],{owner:'video-agent-server'});
 const editor=await createEditService({dataDir:EDIT_DATA});
@@ -63,10 +69,57 @@ async function openclawToolRoute(req,res){
  const input=await jsonBody(req,256000,'OpenClaw tool request');
  if(!input.trustedContext||input.trustedContext.trusted!==true)throw new InputError('Trusted tool context required',403);
  if(input.trustedContext.workspaceId!==workspaceId)throw new InputError('Workspace scope mismatch',403);
- if(input.input?.projectId!=null)creative.get(input.input.projectId);
- const trustedContext=await openclawSessions.bind(input.trustedContext,input.input?.projectId);
- const result=await commerceEngine.invoke(input.tool,input.input||{},trustedContext);
+ const requestedProject=input.input?.projectId;
+ if(requestedProject!=null && requestedProject!=='current')creative.get(requestedProject);
+ const trustedContext=await openclawSessions.bind(input.trustedContext,requestedProject==='current'?null:requestedProject);
+ const normalizedInput=requestedProject==='current'&&trustedContext.workspaceProjectId?{...(input.input||{}),projectId:trustedContext.workspaceProjectId}:input.input||{};
+ // Control UI uploads are materialized by OpenClaw under its inbound media
+ // directory. Import only those files, never arbitrary model-provided paths.
+ // The operation remains behind the normal project/session authorization.
+ const attachmentPaths=Array.isArray(normalizedInput.attachmentPaths)?normalizedInput.attachmentPaths:[];
+ if(attachmentPaths.length){
+  // Bind the server-issued authorization before touching any uploaded bytes.
+  // This keeps malformed or unauthorized tool calls side-effect free.
+  if(!normalizedInput.authorizationId||!normalizedInput.operationId)throw new InputError('OpenClaw 附件导入需要已签发的写授权',403);
+  await openclawAuthorizations.validateAndBind({tool:input.tool,input:normalizedInput,context:trustedContext});
+  // Idempotent retries must not materialize the same inbound file again. The
+  // first attempt records the imported asset ids in the operation journal;
+  // reuse that result (or fail closed while submission state is unknown)
+  // before touching the inbound filesystem on a retry.
+  const existing=(await commerceEngine.getJournal()).operations?.[normalizedInput.operationId];
+  if(existing?.status==='completed')return json(res,{ok:true,result:existing.result});
+  if(existing&&['started','submission_unknown'].includes(existing.status))throw new InputError('operationId 可能已提交但结果未知，禁止重复导入附件',409);
+  const inboundRoot=path.resolve(process.env.OPENCLAW_INBOUND_MEDIA_DIR||path.join(process.env.HOME||'', '.openclaw','hyperframe','state','media','inbound'))+path.sep;
+  const projectId=String(normalizedInput.projectId||'');
+  const project=creative.get(projectId);
+  const importedAttachmentIds=[...(normalizedInput.attachmentIds||[])];
+  for(const raw of attachmentPaths){
+   const candidate=path.resolve(String(raw));
+   if(!candidate.startsWith(inboundRoot))throw new InputError('OpenClaw 附件路径不在受信入站目录内',403);
+   const stat=await fs.stat(candidate).catch(()=>null);if(!stat?.isFile())throw new InputError('OpenClaw 附件不存在',400);
+   const asset=await creative.upload(project,createReadStream(candidate),path.basename(candidate));
+   if(asset?.id) importedAttachmentIds.push(asset.id);
+  }
+  normalizedInput.attachmentIds=[...new Set(importedAttachmentIds)];
+  delete normalizedInput.attachmentPaths;
+ }
+ const result=await commerceEngine.invoke(input.tool,normalizedInput,trustedContext);
  return json(res,{ok:true,result});
+}
+async function openclawAuthorizationRoute(req,res){
+ const configured=process.env.OPENCLAW_BRIDGE_TOKEN;
+ if(!configured||String(req.headers.authorization||'')!==('Bearer '+configured))throw new InputError('OpenClaw bridge authorization required',401);
+ const body=await jsonBody(req,256000,'OpenClaw authorization request');
+ if(!body.trustedContext||body.trustedContext.trusted!==true)throw new InputError('Trusted tool context required',403);
+ if(body.trustedContext.workspaceId!==workspaceId)throw new InputError('Workspace scope mismatch',403);
+ const input=body.input||{},projectId=String(input.projectId||'');if(!projectId)throw new InputError('projectId required',400);
+ const project=creative.get(projectId);
+ const context=await openclawSessions.bind(body.trustedContext,projectId);
+ const messageId=String(body.trustedContext.messageId||'');
+ if(!messageId)throw new InputError('OpenClaw inbound message identity required',403);
+ const operationId=input.operationId||stableControlOperationId(projectId,messageId,{message:String(input.message||body.tool),baseRevisionId:input.baseRevisionId??null,attachmentIds:input.attachmentIds||[],attachmentPaths:input.attachmentPaths||[]});
+ const authorization=await openclawAuthorizations.issue({projectId,baseRevisionId:input.baseRevisionId??null,messageId,message:String(input.message||body.tool),sessionKey:context.sessionKey,allowedTools:[body.tool]});
+ return json(res,{ok:true,authorizationId:authorization.authorizationId,operationId,projectId,baseRevisionId:project.currentRevisionId||null,expiresAt:authorization.expiresAt});
 }
 async function createProject(req){
  const type=req.headers['content-type']||'';if(!type.startsWith('multipart/form-data;'))throw new InputError('请使用表单上传');
@@ -115,6 +168,7 @@ const server=http.createServer(async(req,res)=>{
   const allowed=[`127.0.0.1:${PORT}`,`localhost:${PORT}`];if(!allowed.includes(req.headers.host))throw new InputError('无效的本地访问地址',403);
   const origin=req.headers.origin;if(origin&&!allowed.some(h=>origin===`http://${h}`))throw new InputError('此操作只允许在本地制作页面发起',403);
   const url=new URL(req.url,`http://127.0.0.1:${PORT}`),route=url.pathname;
+  if(req.method==='POST'&&route==='/api/openclaw/authorize')return await openclawAuthorizationRoute(req,res);
   if(req.method==='POST'&&route==='/api/openclaw/tools')return await openclawToolRoute(req,res);
   if(await deliveryRoutes(ROOT,req,res,url,{file,json,creative}))return;
   if(await editRoutes(editor,req,res,url,{json,jsonBody,file}))return;

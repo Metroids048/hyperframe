@@ -23,23 +23,28 @@ const changes = { type: "array", minItems: 1, maxItems: 100, items: { type: "obj
 const keep = { type: "array", maxItems: 100, items: { type: "string", minLength: 1, maxLength: 500 } };
 const writeContext = {
   attachmentIds: Type.Optional({ type: "array", maxItems: 30, items: idSchema }),
+  // OpenClaw Control UI stores local uploads as inbound MediaPaths. The
+  // model may copy those paths into this field; the backend validates the
+  // directory and imports them before the authorized operation runs.
+  attachmentPaths: Type.Optional({ type: "array", maxItems: 30, items: { type: "string", minLength: 1, maxLength: 1024 } }),
   taskMode: Type.Optional({ type: "string", enum: ["create", "edit", "recut", "variant"] }),
   scenarioId: Type.Optional({ type: "string", enum: ["product_launch", "product_detail", "product_demo", "product_collection", "product_promotion", "product_faq", "general"] }),
   workflowProfile: Type.Optional(idSchema),
   selectedNodeId: optionalId
 };
+const nativeWriteFields = { operationId: Type.Optional(idSchema), authorizationId: Type.Optional(idSchema) };
 const schemas = {
   commerce_project_list: Type.Object({ query: Type.Optional({ type: "string", maxLength: 200 }), maxItems: Type.Optional({ type: "integer", minimum: 1, maximum: 50 }) }, { additionalProperties: false }),
   commerce_project_get: Type.Object({ projectId: idSchema }, { additionalProperties: false }),
   commerce_resource_search: Type.Object({ projectId: optionalId, query: Type.Optional({ type: "string", maxLength: 500 }) }, { additionalProperties: false }),
   commerce_plan_validate: Type.Object({ projectId: idSchema, baseRevisionId: optionalId, requestedChanges: Type.Optional(changes), keep: Type.Optional(keep) }, { additionalProperties: false }),
-  commerce_create_video: Type.Object({ projectId: idSchema, baseRevisionId: baseRevision, operationId: idSchema, message: { type: "string", minLength: 1, maxLength: 20000 }, requestedChanges: changes, keep, authorizationId: idSchema, ...writeContext }, { additionalProperties: false }),
-  commerce_edit_video: Type.Object({ projectId: idSchema, baseRevisionId: baseRevision, operationId: idSchema, message: { type: "string", minLength: 1, maxLength: 20000 }, requestedChanges: changes, keep, authorizationId: idSchema, ...writeContext }, { additionalProperties: false }),
-  commerce_generate_asset: Type.Object({ projectId: idSchema, baseRevisionId: baseRevision, operationId: idSchema, message: { type: "string", minLength: 1, maxLength: 20000 }, requestedChanges: changes, keep, authorizationId: idSchema, ...writeContext }, { additionalProperties: false }),
+  commerce_create_video: Type.Object({ projectId: idSchema, baseRevisionId: baseRevision, message: { type: "string", minLength: 1, maxLength: 20000 }, requestedChanges: changes, keep, ...nativeWriteFields, ...writeContext }, { additionalProperties: false }),
+  commerce_edit_video: Type.Object({ projectId: idSchema, baseRevisionId: baseRevision, message: { type: "string", minLength: 1, maxLength: 20000 }, requestedChanges: changes, keep, ...nativeWriteFields, ...writeContext }, { additionalProperties: false }),
+  commerce_generate_asset: Type.Object({ projectId: idSchema, baseRevisionId: baseRevision, message: { type: "string", minLength: 1, maxLength: 20000 }, requestedChanges: changes, keep, ...nativeWriteFields, ...writeContext }, { additionalProperties: false }),
   commerce_job_get: Type.Object({ projectId: idSchema, jobId: idSchema }, { additionalProperties: false }),
-  commerce_job_control: Type.Object({ projectId: idSchema, baseRevisionId: baseRevision, operationId: idSchema, jobId: idSchema, action: { type: "string", enum: ["cancel", "resume"] }, requestedChanges: changes, keep, authorizationId: idSchema }, { additionalProperties: false }),
-  commerce_revision_control: Type.Object({ projectId: idSchema, baseRevisionId: baseRevision, operationId: idSchema, revisionId: optionalId, action: { type: "string", enum: ["undo", "redo", "restore"] }, requestedChanges: changes, keep, authorizationId: idSchema }, { additionalProperties: false }),
-  commerce_export: Type.Object({ projectId: idSchema, baseRevisionId: baseRevision, operationId: idSchema, revisionId: optionalId, requestedChanges: changes, keep, authorizationId: idSchema }, { additionalProperties: false }),
+  commerce_job_control: Type.Object({ projectId: idSchema, baseRevisionId: baseRevision, jobId: idSchema, action: { type: "string", enum: ["cancel", "resume"] }, requestedChanges: changes, keep, ...nativeWriteFields }, { additionalProperties: false }),
+  commerce_revision_control: Type.Object({ projectId: idSchema, baseRevisionId: baseRevision, revisionId: optionalId, action: { type: "string", enum: ["undo", "redo", "restore"] }, requestedChanges: changes, keep, ...nativeWriteFields }, { additionalProperties: false }),
+  commerce_export: Type.Object({ projectId: idSchema, baseRevisionId: baseRevision, revisionId: optionalId, requestedChanges: changes, keep, ...nativeWriteFields }, { additionalProperties: false }),
   commerce_artifact_list: Type.Object({ projectId: idSchema, revisionId: optionalId }, { additionalProperties: false })
 };
 
@@ -53,7 +58,20 @@ function buildTool(name, description) {
           if (signal?.aborted) throw new Error("tool call cancelled");
           const token = process.env[config.bridgeTokenEnv];
           if (!token) throw new Error("missing bridge token; commerce tool is blocked");
-          const body = { tool: name, input: params, trustedContext: { trusted: true, workspaceId: config.workspaceId, sessionKey, agentId: toolContext.agentId || null, toolCallId } };
+          const trustedContext = { trusted: true, workspaceId: config.workspaceId, sessionKey, agentId: toolContext.agentId || null, toolCallId,
+            messageId: toolContext.messageId || toolContext.inboundMessageId || `tool:${toolCallId}` };
+          let input = { ...params };
+          const writes = ["commerce_create_video","commerce_edit_video","commerce_generate_asset","commerce_job_control","commerce_revision_control","commerce_export"];
+          if (writes.includes(name) && !input.authorizationId) {
+            const authorizationResponse = await fetch(config.bridgeUrl.replace(/\/$/, "") + "/api/openclaw/authorize", {
+              method: "POST", headers: { authorization: "Bearer " + token, "content-type": "application/json" },
+              body: JSON.stringify({ tool: name, input, trustedContext }), signal
+            });
+            const authorizationPayload = await authorizationResponse.json().catch(() => ({ error: "authorization endpoint returned invalid JSON" }));
+            if (!authorizationResponse.ok) throw new Error(authorizationPayload.error || ("commerce authorization " + authorizationResponse.status));
+            input = { ...input, authorizationId: authorizationPayload.authorizationId, operationId: input.operationId || authorizationPayload.operationId };
+          }
+          const body = { tool: name, input, trustedContext };
           const response = await fetch(config.bridgeUrl.replace(/\/$/, "") + "/api/openclaw/tools", {
             method: "POST", headers: { authorization: "Bearer " + token, "content-type": "application/json" }, body: JSON.stringify(body), signal
           });
