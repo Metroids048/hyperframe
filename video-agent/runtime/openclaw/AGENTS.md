@@ -13,7 +13,7 @@ Select one business scene skill from `product_launch`, `product_detail`,
 audio/captions, and recovery/delivery skills only when their capability is
 needed.
 
-The only allowed business tools are the 11 `commerce_*` tools registered by
+The only allowed business tools are the 14 `commerce_*` tools registered by
 the `commerce-engine` plugin. Skills describe order and policy; they do not
 grant permissions. Source policy remains in `config/` and `commerce/scenes/`.
 If the runtime skill lock reports drift, stop before a write and refresh the

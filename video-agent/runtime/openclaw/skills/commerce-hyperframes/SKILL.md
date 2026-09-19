@@ -14,7 +14,7 @@ Do not install or upgrade HyperFrames, claim a discovered name was used, inject 
 Require shot purpose, media kind, aspect, safe area, motion/audio dependencies, project/base revision, and exact local resource query.
 
 ## Tool order
-Call `commerce_resource_search`; choose only compatible local resources; include catalog/composition/runtime identifiers in `commerce_plan_validate`; submit the bounded job; verify the job and artifact receipts.
+Call `commerce_resource_search`; distinguish local media from executable HyperFrames resources; choose only compatible resources with `executionStatus` and `bindingStatus`; include catalog/composition/runtime identifiers in `commerce_plan_validate`; submit the bounded job; verify the job and artifact receipts.
 
 ## Output
 Return selected resource IDs, versions, runtime bindings, affected objects, job/revision, compiled native project, and render evidence.

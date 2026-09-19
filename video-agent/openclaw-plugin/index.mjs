@@ -7,6 +7,7 @@ import os from "node:os";
 import crypto from "node:crypto";
 
 const TOOLS = [
+  ["commerce_project_create", "Create and bind a clean native commerce project for this OpenClaw session."],
   ["commerce_project_list", "List editable video projects so the user can choose one in chat."],
   ["commerce_project_get", "Read the current project, revision, objects, and delivery state."],
   ["commerce_resource_search", "Search executable local commerce resources without installing anything."],
@@ -39,6 +40,7 @@ const writeContext = {
 };
 const nativeWriteFields = { operationId: Type.Optional(idSchema), authorizationId: Type.Optional(idSchema) };
 const schemas = {
+  commerce_project_create: Type.Object({ name: Type.Optional({ type: "string", maxLength: 200 }), request: Type.Optional({ type: "object", additionalProperties: true }), ...nativeWriteFields }, { additionalProperties: false }),
   commerce_project_list: Type.Object({ query: Type.Optional({ type: "string", maxLength: 200 }), maxItems: Type.Optional({ type: "integer", minimum: 1, maximum: 50 }) }, { additionalProperties: false }),
   commerce_project_get: Type.Object({ projectId: idSchema }, { additionalProperties: false }),
   commerce_resource_search: Type.Object({ projectId: optionalId, query: Type.Optional({ type: "string", maxLength: 500 }) }, { additionalProperties: false }),
@@ -64,7 +66,7 @@ function registerUploadRoute(api) {
     let fileName; try { fileName = decodeURIComponent(rawName); } catch { fileName = rawName; }
     fileName = path.basename(fileName).replace(/[^A-Za-z0-9._-]/g, "_").slice(-160) || "video.mp4";
     const ext = path.extname(fileName).toLowerCase();
-    if (!["video/mp4", "video/quicktime", "video/webm"].includes(mime) || ![".mp4", ".mov", ".webm"].includes(ext)) { res.statusCode = 415; res.setHeader("content-type", "application/json"); res.end(JSON.stringify({ ok:false, error:"仅支持 MP4、MOV、WebM 视频" })); return; }
+    if (!["video/mp4", "video/quicktime", "video/webm", "application/octet-stream", ""].includes(mime) || ![".mp4", ".mov", ".webm"].includes(ext)) { res.statusCode = 415; res.setHeader("content-type", "application/json"); res.end(JSON.stringify({ ok:false, error:"仅支持 MP4、MOV、WebM 视频" })); return; }
     const limit = 1024 * 1024 * 1024;
     const stateRoot = path.resolve(process.env.OPENCLAW_STATE_DIR || path.join(os.homedir(), ".openclaw", "hyperframe"));
     const inbound = path.join(stateRoot, "media", "inbound"); await fsp.mkdir(inbound, {recursive:true, mode:0o700});
@@ -73,7 +75,8 @@ function registerUploadRoute(api) {
     try {
       await new Promise((resolve, reject) => { const out = fs.createWriteStream(temp, {flags:"wx", mode:0o600}); const fail = e => { out.destroy(); reject(e); }; req.on("data", chunk => { bytes += chunk.length; if (bytes > limit) fail(Object.assign(new Error("视频超过 1 GiB 限制"), {statusCode:413})); else if (!out.write(chunk)) req.pause(); }); out.on("drain", () => req.resume()); req.on("end", () => out.end(resolve)); req.on("error", reject); out.on("error", reject); });
       await fsp.rename(temp, target);
-      res.statusCode = 200; res.setHeader("content-type", "application/json"); res.end(JSON.stringify({ok:true, mediaPath:`media://inbound/${path.basename(target)}`, fileName, mimeType:mime, bytes, path:target}));
+      const detectedMime = mime === "application/octet-stream" || !mime ? (ext === ".mov" ? "video/quicktime" : ext === ".webm" ? "video/webm" : "video/mp4") : mime;
+      res.statusCode = 200; res.setHeader("content-type", "application/json"); res.end(JSON.stringify({ok:true, mediaPath:`media://inbound/${path.basename(target)}`, fileName, mimeType:detectedMime, bytes, path:target}));
     } catch (error) { await fsp.rm(temp, {force:true}).catch(()=>{}); res.statusCode = error.statusCode || 500; res.setHeader("content-type", "application/json"); res.end(JSON.stringify({ok:false, error:error.message || "视频上传失败"})); }
   }});
 }
@@ -92,7 +95,8 @@ function buildTool(name, description) {
           const trustedContext = { trusted: true, workspaceId: config.workspaceId, sessionKey, agentId: toolContext.agentId || null, toolCallId,
             messageId: toolContext.messageId || toolContext.inboundMessageId || `tool:${toolCallId}` };
           let input = { ...params };
-          const writes = ["commerce_create_video","commerce_edit_video","commerce_generate_asset","commerce_job_control","commerce_revision_control","commerce_export"];
+          if (name === "commerce_project_create") input = { ...input, projectId: "new" };
+  const writes = ["commerce_project_create","commerce_create_video","commerce_edit_video","commerce_generate_asset","commerce_job_control","commerce_revision_control","commerce_export"];
           if (writes.includes(name) && !input.authorizationId) {
             const authorizationResponse = await fetch(config.bridgeUrl.replace(/\/$/, "") + "/api/openclaw/authorize", {
               method: "POST", headers: { authorization: "Bearer " + token, "content-type": "application/json" },

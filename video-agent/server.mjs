@@ -70,8 +70,8 @@ async function openclawToolRoute(req,res){
  if(!input.trustedContext||input.trustedContext.trusted!==true)throw new InputError('Trusted tool context required',403);
  if(input.trustedContext.workspaceId!==workspaceId)throw new InputError('Workspace scope mismatch',403);
  const requestedProject=input.input?.projectId;
- if(requestedProject!=null && requestedProject!=='current')creative.get(requestedProject);
- const trustedContext=await openclawSessions.bind(input.trustedContext,requestedProject==='current'?null:requestedProject);
+ if(requestedProject!=null && !['current','new'].includes(requestedProject))creative.get(requestedProject);
+ const trustedContext=await openclawSessions.bind(input.trustedContext,['current','new'].includes(requestedProject)?null:requestedProject);
  const normalizedInput=requestedProject==='current'&&trustedContext.workspaceProjectId?{...(input.input||{}),projectId:trustedContext.workspaceProjectId}:input.input||{};
  // Control UI uploads are materialized by OpenClaw under its inbound media
  // directory. Import only those files, never arbitrary model-provided paths.
@@ -116,13 +116,13 @@ async function openclawAuthorizationRoute(req,res){
  if(!body.trustedContext||body.trustedContext.trusted!==true)throw new InputError('Trusted tool context required',403);
  if(body.trustedContext.workspaceId!==workspaceId)throw new InputError('Workspace scope mismatch',403);
  const input=body.input||{},projectId=String(input.projectId||'');if(!projectId)throw new InputError('projectId required',400);
- const project=creative.get(projectId);
- const context=await openclawSessions.bind(body.trustedContext,projectId);
+ if(projectId!=='new')creative.get(projectId);
+ const context=await openclawSessions.bind(body.trustedContext,projectId==='new'?null:projectId);
  const messageId=String(body.trustedContext.messageId||'');
  if(!messageId)throw new InputError('OpenClaw inbound message identity required',403);
  const operationId=input.operationId||stableControlOperationId(projectId,messageId,{message:String(input.message||body.tool),baseRevisionId:input.baseRevisionId??null,attachmentIds:input.attachmentIds||[],attachmentPaths:input.attachmentPaths||[]});
  const authorization=await openclawAuthorizations.issue({projectId,baseRevisionId:input.baseRevisionId??null,messageId,message:String(input.message||body.tool),sessionKey:context.sessionKey,allowedTools:[body.tool]});
- return json(res,{ok:true,authorizationId:authorization.authorizationId,operationId,projectId,baseRevisionId:project.currentRevisionId||null,expiresAt:authorization.expiresAt});
+ return json(res,{ok:true,authorizationId:authorization.authorizationId,operationId,projectId,baseRevisionId:projectId==='new'?null:creative.get(projectId).currentRevisionId||null,expiresAt:authorization.expiresAt});
 }
 async function createProject(req){
  const type=req.headers['content-type']||'';if(!type.startsWith('multipart/form-data;'))throw new InputError('请使用表单上传');

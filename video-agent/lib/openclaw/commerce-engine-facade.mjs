@@ -10,10 +10,12 @@ import {applyDocumentPatch} from '../creative/patch.mjs';
  */
 
 const WRITE_TOOLS = new Set([
+  'commerce_project_create',
   'commerce_create_video', 'commerce_edit_video', 'commerce_generate_asset',
   'commerce_job_control', 'commerce_revision_control', 'commerce_export',
 ]);
 const TOOL_NAMES = new Set([
+  'commerce_project_create',
   'commerce_project_list',
   'commerce_project_get', 'commerce_resource_search', 'commerce_plan_validate',
   ...WRITE_TOOLS, 'commerce_job_get', 'commerce_artifact_list',
@@ -122,33 +124,48 @@ export function createCommerceEngineFacade(service, { journalPath, mode = runtim
     if (!TOOL_NAMES.has(tool)) fail(`未知工具 ${tool}`, 'TOOL_NOT_REGISTERED', 404);
     plainObject(input, 'input'); validateContext(context);
     if (mode === 'shadow' && WRITE_TOOLS.has(tool)) fail('shadow 模式只允许只读决策', 'SHADOW_WRITE_BLOCKED', 403);
+    if (tool === 'commerce_project_create') {
+      required(input.operationId, 'operationId');
+      required(input.authorizationId, 'authorizationId');
+      if (context.workspaceProjectId) fail('当前会话已绑定工程，请先使用现有工程或新建会话', 'PROJECT_ALREADY_BOUND', 409);
+      if (typeof authorizeWrite !== 'function') fail('写操作缺少服务端授权校验器', 'OPENCLAW_AUTHORIZATION_VALIDATOR_REQUIRED', 500);
+      await authorizeWrite({ tool, input, context, project: null });
+      return recordOperation(input.operationId, { tool, input, workspaceId: context.workspaceId, sessionKey: context.sessionKey }, async () => {
+        const request = plainObject(input.request || {}, 'request');
+        const created = await service.create({...request, title: input.name || request.title});
+        return baseResult({ tool, projectId: created.id, operationId: input.operationId, status: 'ready', project: service.view(created), created: true });
+      });
+    }
     if (WRITE_TOOLS.has(tool)) {
       const { projectId, value } = writeInput(input, context);
       const operationId = input.operationId;
       if (typeof authorizeWrite !== 'function') fail('写操作缺少服务端授权校验器', 'OPENCLAW_AUTHORIZATION_VALIDATOR_REQUIRED', 500);
       await authorizeWrite({ tool, input, context, project: value });
-      return recordOperation(operationId, { tool, input, workspaceId: context.workspaceId, sessionKey: context.sessionKey }, async () => {
+      const execute = async () => {
         let job;
         if (tool === 'commerce_job_control') {
           required(input.jobId, 'jobId');
-          if (input.action === 'cancel') return baseResult({ tool, projectId, operationId, status: 'accepted', project: await service.cancel(value, input.jobId) });
-          if (input.action === 'resume') return baseResult({ tool, projectId, operationId, status: 'accepted', project: await service.resume(value, input.jobId) });
+          if (input.action === 'cancel') return recordOperation(operationId, { tool, input, workspaceId: context.workspaceId, sessionKey: context.sessionKey }, async () => baseResult({ tool, projectId, operationId, status: 'accepted', project: await service.cancel(value, input.jobId) }));
+          if (input.action === 'resume') return recordOperation(operationId, { tool, input, workspaceId: context.workspaceId, sessionKey: context.sessionKey }, async () => baseResult({ tool, projectId, operationId, status: 'accepted', project: await service.resume(value, input.jobId) }));
           fail('job_control action 仅支持 cancel 或 resume', 'SCHEMA_INVALID');
         }
         if (tool === 'commerce_revision_control') {
           if (!['undo', 'redo', 'restore'].includes(input.action)) fail('revision_control action 无效', 'SCHEMA_INVALID');
-          const result = await service.navigate(value, { action: input.action, revisionId: input.revisionId });
-          return baseResult({ tool, projectId, operationId, status: 'accepted', project: result });
+          return recordOperation(operationId, { tool, input, workspaceId: context.workspaceId, sessionKey: context.sessionKey }, async () => {
+            const result = await service.navigate(value, { action: input.action, revisionId: input.revisionId });
+            return baseResult({ tool, projectId, operationId, status: 'accepted', project: result });
+          });
         }
         const action = tool === 'commerce_create_video' ? 'generate'
           : tool === 'commerce_edit_video' ? 'patch'
           : tool === 'commerce_generate_asset' ? 'generate-asset' : 'export';
         const structuredOperations = Array.isArray(input.operations) && input.operations.every(op => op && PATCH_OPERATION_TYPES.has(op.type)) ? input.operations : (Array.isArray(input.requestedChanges) && input.requestedChanges.every(op => op && PATCH_OPERATION_TYPES.has(op.type)) ? input.requestedChanges : undefined);
-        job = await service.enqueue(value, { ...input, ...(structuredOperations ? {operations: structuredOperations} : {}), action, operationId, idempotencyKey: input.operationId });
+        job = await recordOperation(operationId, { tool, input, workspaceId: context.workspaceId, sessionKey: context.sessionKey }, async () => service.enqueue(value, { ...input, ...(structuredOperations ? {operations: structuredOperations} : {}), action, operationId, idempotencyKey: input.operationId }));
         const settled = typeof service.waitForJob === 'function' ? await service.waitForJob(value, job.id, {timeoutMs: Number(process.env.OPENCLAW_TOOL_WAIT_MS || 300000)}) : job;
         const ready = settled?.status === 'complete' && settled?.revisionId && value.revisions?.find(r => r.id === settled.revisionId)?.rendered;
-        return baseResult({ tool, projectId, operationId, status: ready ? 'ready' : (settled?.status || 'queued'), jobId: job.id, stage: settled.stage || job.stage || 'queued', revisionId: settled.revisionId || null, resultRevisionId: ready ? settled.revisionId : null, artifact: ready && typeof service.artifacts === 'function' ? await service.artifacts(value, settled.revisionId) : null, retryable: !ready && Boolean(settled.status === 'recoverable' || settled.status === 'queued' || settled.status === 'running') });
-      });
+        return baseResult({ tool, projectId, operationId, status: ready ? 'ready' : (settled?.status || 'queued'), jobId: job.id, stage: settled.stage || job.stage || 'queued', revisionId: settled.revisionId || null, resultRevisionId: ready ? settled.revisionId : null, artifact: ready && typeof service.artifacts === 'function' ? await service.artifacts(value, settled.revisionId) : null, error: settled.error || null, code: settled.code || null, failureReceipt: settled.failureReceipt || null, retryable: !ready && Boolean(settled.status === 'recoverable' || settled.status === 'queued' || settled.status === 'running' || settled.retryable) });
+      };
+      return execute();
     }
     if (tool === 'commerce_project_list') {
       const query = typeof input.query === 'string' ? input.query.trim().toLowerCase() : '';
@@ -169,8 +186,8 @@ export function createCommerceEngineFacade(service, { journalPath, mode = runtim
       return baseResult({ tool, projectId, project: typeof service.openclawProjectContext==='function'?await service.openclawProjectContext(value):service.view(value) });
     }
     if (tool === 'commerce_resource_search') {
-      const roots = typeof service.materialRoots === 'function' ? await service.materialRoots() : [];
-      return baseResult({ tool, projectId: input.projectId || null, resources: roots, query: input.query || null });
+      const result = typeof service.searchResources === 'function' ? await service.searchResources(input.query || '', input.projectId && input.projectId !== 'current' ? input.projectId : null) : {localMaterials: [], productionResources: [], unavailable: 'resource search service unavailable'};
+      return baseResult({ tool, projectId: input.projectId || null, ...result, query: input.query || null });
     }
     if (tool === 'commerce_plan_validate') {
       const { projectId, value } = project(input);
