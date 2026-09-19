@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "timestamp": "2026-09-19T08:55:28Z",
+  "openclawVersion": "2026.6.11",
+  "config": "runtime/openclaw/openclaw.example.json",
+  "staticChecks": {
+    "command": "node scripts/test-openclaw-agent-config.mjs",
+    "result": "14/14 pass",
+    "controlTools": 11,
+    "stageTools": 3,
+    "stageWriteTools": 0,
+    "elevatedTools": false,
+    "urlFetch": false,
+    "browserAndCanvasDenied": true
+  },
+  "realCliValidation": {
+    "command": "openclaw config validate --json",
+    "result": {"valid": true, "warnings": []},
+    "configPath": "runtime/openclaw/openclaw.example.json",
+    "environment": "bundled Node v24.19.0; placeholders resolved through environment variables; no model request"
+  },
+  "realGatewayStartup": {
+    "command": "openclaw gateway run --port 18789 --auth token",
+    "version": "2026.6.11",
+    "bind": "loopback",
+    "ready": true,
+    "loadedPlugins": ["commerce-engine", "memory-core", "openai"],
+    "rpcProbe": {"ok": true, "version": "2026.6.11", "capability": "connected_no_operator_scope"},
+    "shutdown": "SIGINT clean",
+    "externalCalls": 0,
+    "paidCalls": 0
+  },
+  "runtimeSkills": {
+    "command": "node scripts/test-openclaw-runtime-skills.mjs",
+    "result": "12/12 pass"
+  },
+  "securityIsolationFix": {
+    "file": "scripts/test-openclaw-security-boundary.mjs",
+    "change": "isolated OPENCLAW_AUTHORIZATIONS_PATH so the test cannot contend with a running legacy workbench lease",
+    "command": "node scripts/test-openclaw-security-boundary.mjs",
+    "result": "6/6 pass"
+  },
+  "sourceSha256": {
+    "runtime/openclaw/openclaw.example.json": "931392aec7bb1c769333c41b91d5c3d1fa61d57dd49ae64c8313576464b84a1b",
+    "scripts/test-openclaw-agent-config.mjs": "425d46d6d3bb1a1e19fd679b0fbfdda066633a5f7a6d529cd7e7bd36b463269f",
+    "scripts/test-openclaw-security-boundary.mjs": "3894c4afdca7a6ecc09433cc7dfe5aee9cfd7f2fce2f9d5a0eec716a7b7ccd2f"
+  },
+  "externalCalls": 0,
+  "paidCalls": 0,
+  "status": "pass_local_and_cli_config_only"
+}

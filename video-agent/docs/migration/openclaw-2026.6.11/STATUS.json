@@ -1,0 +1,455 @@
+{
+  "schemaVersion": 1,
+  "targetVersion": "v2026.6.11",
+  "baselineCommit": "218aa259552cef8e25f25afdb0609aacc3ea3a1e",
+  "phase": "M4",
+  "runningStep": "M4-live-three-round-edit",
+  "defaultEntry": {
+    "runtime": "legacy",
+    "env": "COMMERCE_AGENT_RUNTIME=legacy (default)",
+    "status": "preserved",
+    "reason": "OpenClaw remains opt-in until every real acceptance gate passes"
+  },
+  "completed": [
+    {
+      "id": "M0-baseline",
+      "status": "pass",
+      "evidence": [
+        "outputs/workspace-context.json",
+        "docs/migration/openclaw-2026.6.11/BASELINE.md"
+      ]
+    },
+    {
+      "id": "M0-version",
+      "status": "pass",
+      "evidence": [
+        "docs/migration/openclaw-2026.6.11/evidence/openclaw-package-v2026.6.11.json"
+      ]
+    },
+    {
+      "id": "M0-runtime-environment",
+      "status": "pass_with_limitation",
+      "evidence": [
+        "evidence/m0-runtime-environment-2026-09-19.json",
+        "Node 24.19.0, project FFmpeg/ffprobe, Chrome 153, and 369 font files observed; shell PATH still lacks node/npm"
+      ]
+    },
+    {
+      "id": "M1-facade",
+      "status": "pass",
+      "evidence": [
+        "lib/openclaw/commerce-engine-facade.mjs",
+        "scripts/test-openclaw-facade.mjs",
+        "scripts/test-openclaw-facade.mjs (8/8, authorization and unknown-state injection)"
+      ]
+    },
+    {
+      "id": "M2-plugin-source",
+      "status": "pass",
+      "evidence": [
+        "openclaw-plugin/openclaw.plugin.json",
+        "openclaw-plugin/index.mjs",
+        "scripts/test-openclaw-plugin-contract.mjs",
+        "evidence/openclaw-gateway-plugin-load-2026-09-19.json",
+        "evidence/openclaw-gateway-log-2026-09-19.txt",
+        "OpenClaw 2026.6.11 plugins validate: Plugin commerce-engine is valid",
+        "OpenClaw 2026.6.11 gateway health + runtime inspect: loaded/activated, 11 tools"
+      ]
+    },
+    {
+      "id": "M2-factory-plugin-installed-shape-reload",
+      "status": "pass",
+      "evidence": [
+        "evidence/openclaw-gateway-factory-reload-2026-09-19.json",
+        "openclaw-plugin/pnpm-lock.yaml",
+        "OpenClaw 2026.6.11 Gateway health ok; factory plugin loaded/activated with 11 tools and no runtime diagnostics"
+      ]
+    },
+    {
+      "id": "M3-stage-adapter-local-contract",
+      "status": "pass",
+      "evidence": [
+        "lib/openclaw/openclaw-stage-provider.mjs",
+        "lib/openclaw/provider-selection.mjs",
+        "scripts/test-openclaw-stage-provider.mjs (9/9 strict schema/image/cancel/receipt contracts)"
+      ]
+    },
+    {
+      "id": "M3-no-credentials-safe-block",
+      "status": "pass",
+      "evidence": [
+        "evidence/openclaw-stage-no-credentials-2026-09-19.json",
+        "OPENCLAW_STAGE_BLOCKED returned without a network request or Codex fallback"
+      ]
+    },
+    {
+      "id": "M5-local-routing-rollback-rehearsal",
+      "status": "pass",
+      "evidence": [
+        "scripts/test-openclaw-rollback.mjs",
+        "docs/migration/openclaw-2026.6.11/ROLLBACK.md"
+      ]
+    },
+    {
+      "id": "M5-single-writer-directory-lease",
+      "status": "pass",
+      "evidence": [
+        "lib/openclaw/directory-lease.mjs",
+        "scripts/test-openclaw-directory-lease.mjs (4/4)",
+        "evidence/openclaw-directory-lease-2026-09-19.json"
+      ]
+    },
+    {
+      "id": "M5-recovery-idempotency-fault-injection",
+      "status": "pass",
+      "evidence": [
+        "scripts/test-openclaw-facade.mjs (6/6)",
+        "evidence/openclaw-recovery-fault-injection-2026-09-19.json"
+      ]
+    },
+    {
+      "id": "M4-bridge-authz-local",
+      "status": "pass",
+      "evidence": [
+        "server.mjs",
+        "evidence/openclaw-bridge-authz-2026-09-19.json"
+      ]
+    },
+    {
+      "id": "M4-real-sdk-bridge-readonly-e2e",
+      "status": "pass",
+      "evidence": [
+        "evidence/openclaw-plugin-bridge-readonly-e2e-2026-09-19.json"
+      ]
+    },
+    {
+      "id": "M4-stable-session-project-binding-local",
+      "status": "pass",
+      "evidence": [
+        "lib/openclaw/session-bindings.mjs",
+        "scripts/test-openclaw-session-bindings.mjs (6/6)",
+        "evidence/openclaw-stable-session-binding-2026-09-19.json"
+      ]
+    },
+    {
+      "id": "M4-control-bridge-local-protocol",
+      "status": "pass_local_only",
+      "evidence": [
+        "lib/openclaw/commerce-agent-bridge.mjs",
+        "lib/openclaw/execution-authorizations.mjs",
+        "scripts/test-openclaw-control-bridge.mjs (11/11)",
+        "scripts/test-openclaw-webui-bridge.mjs (8/8)",
+        "evidence/openclaw-control-bridge-local-2026-09-19.json"
+      ]
+    },
+    {
+      "id": "M6-local-audio-caption-contracts",
+      "status": "pass",
+      "evidence": [
+        "scripts/test-caption-segmentation.mjs (6/6)",
+        "scripts/test-caption-scoped-edit.mjs (12/12)",
+        "scripts/test-audio-review-repair.mjs (2/2)",
+        "scripts/test-six-audio-contract.mjs (6/6)"
+      ]
+    },
+    {
+      "id": "M2-real-gateway-plugin-load",
+      "status": "pass",
+      "evidence": [
+        "evidence/openclaw-gateway-plugin-load-2026-09-19.json",
+        "evidence/openclaw-gateway-log-2026-09-19.txt",
+        "evidence/openclaw-gateway-health-2026-09-19.json",
+        "evidence/openclaw-gateway-health-2026-09-19.log"
+      ]
+    },
+    {
+      "id": "M2-runtime-skills-real-load",
+      "status": "pass",
+      "evidence": [
+        "runtime/openclaw/AGENTS.md",
+        "runtime/openclaw/skills-lock.json",
+        "scripts/test-openclaw-runtime-skills.mjs (12/12)",
+        "evidence/openclaw-runtime-skills-2026-09-19.json"
+      ]
+    },
+    {
+      "id": "M5-authorization-and-redaction-local",
+      "status": "pass_local_only",
+      "evidence": [
+        "scripts/test-openclaw-security-boundary.mjs (6/6)",
+        "scripts/test-openclaw-facade.mjs (missing authorization and missing validator fail before enqueue)",
+        "evidence/openclaw-control-bridge-local-2026-09-19.json"
+      ]
+    },
+    {
+      "id": "M6-local-regression",
+      "status": "pass_local_only",
+      "evidence": [
+        "evidence/m6-local-regression-2026-09-19.json",
+        "outputs/acceptance/2026-09-19T08-17-07-316Z/report.json (20/20)",
+        "outputs/upgrade/verification/core-2026-09-19T08-17-07.175Z/report.json",
+        "outputs/upgrade/ui/2026-09-19T08-19-09-828Z"
+      ]
+    },
+    {
+      "id": "M2-agent-config-validation",
+      "status": "pass_local_and_cli_config_only",
+      "evidence": [
+        "evidence/openclaw-agent-config-2026-09-19.json",
+        "runtime/openclaw/openclaw.example.json",
+        "OpenClaw 2026.6.11 config validate --json returned valid=true with no warnings"
+      ]
+    },
+    {
+      "id": "M2-configured-gateway-startup",
+      "status": "pass_no_model_calls",
+      "evidence": [
+        "evidence/openclaw-agent-config-2026-09-19.json",
+        "OpenClaw 2026.6.11 Gateway ready on loopback:18789; commerce-engine, memory-core and openai loaded; clean SIGINT shutdown"
+      ]
+    },
+    {
+      "id": "M5-security-boundary-isolation",
+      "status": "pass_local_only",
+      "evidence": [
+        "scripts/test-openclaw-security-boundary.mjs (6/6)",
+        "evidence/openclaw-agent-config-2026-09-19.json",
+        "temporary authorization lease path prevents contention with the legacy workbench"
+      ]
+    },
+    {
+      "id": "M3-real-provider-text-image",
+      "status": "pass",
+      "evidence": [
+        "evidence/takeover-real-gateway-2026-09-19.json",
+        "outputs/openclaw-migration/real-stage-20260919.json",
+        "outputs/openclaw-migration/real-stage-image-20260919.json"
+      ]
+    }
+  ],
+  "failed": [],
+  "blocked": [
+    {
+      "id": "M6-paid-and-media-acceptance",
+      "reason": "paid generation is not authorized; visual and audio acceptance was not performed"
+    },
+    {
+      "id": "M7-natural-language-revisions",
+      "reason": "round 1 passed through the real original WebUI; round 2 control call was rejected by quote normalization and the retry remained in-flight/no revision; round 3 correctly no-oped because round 2 never committed"
+    },
+    {
+      "id": "M7-gateway-job-rollback",
+      "reason": "Gateway-backed job rollback has not been exercised against a real persisted job"
+    },
+    {
+      "id": "M7-default-entry-switch",
+      "reason": "default entry remains legacy; OpenClaw cutover is blocked until every real acceptance gate passes"
+    }
+  ],
+  "testEvidence": [
+    {
+      "command": "node scripts/test-openclaw-stage-provider.mjs",
+      "status": "pass",
+      "evidence": "9/9 local stage adapter contract tests; no real model call"
+    },
+    {
+      "command": "node --check lib/openclaw/openclaw-stage-provider.mjs lib/openclaw/provider-selection.mjs",
+      "status": "pass"
+    },
+    {
+      "command": "node scripts/test-openclaw-facade.mjs",
+      "status": "pass",
+      "evidence": "8/8 including authorization, idempotency, unknown state, cancellation, and fail-closed validator contracts"
+    },
+    {
+      "command": "node scripts/test-openclaw-plugin-contract.mjs",
+      "status": "pass",
+      "evidence": "3 local pass, 1 local SDK skip; the skipped registration assertion passed separately against the isolated real OpenClaw 2026.6.11 SDK"
+    },
+    {
+      "command": "/Users/a1234/Desktop/ChatGPT.app/Contents/Resources/cua_node/bin/node scripts/workspace-context.mjs --fetch-soft",
+      "status": "pass"
+    },
+    {
+      "command": "/Users/a1234/Desktop/ChatGPT.app/Contents/Resources/cua_node/bin/node scripts/test-workspace-context.mjs",
+      "status": "pass"
+    },
+    {
+      "command": "/Users/a1234/Desktop/ChatGPT.app/Contents/Resources/cua_node/bin/node scripts/test-commerce-router-v2.mjs",
+      "status": "pass"
+    },
+    {
+      "command": "command -v node; command -v npm",
+      "status": "blocked",
+      "evidence": "both commands returned no path in the task shell"
+    },
+    {
+      "command": "node scripts/test-openclaw-rollback.mjs",
+      "status": "pass",
+      "evidence": "local provider routing rehearsal; no Gateway or media job started"
+    },
+    {
+      "command": "isolated server.mjs + curl /api/openclaw/tools (missing bearer, wrong workspace)",
+      "status": "pass",
+      "evidence": "evidence/openclaw-bridge-authz-2026-09-19.json"
+    },
+    {
+      "command": "node scripts/test-openclaw-facade.mjs",
+      "status": "pass",
+      "evidence": "4/4 including OPERATION_UNKNOWN fault injection"
+    },
+    {
+      "command": "caption/audio contract suites",
+      "status": "pass",
+      "evidence": "26/26 local tests; no real provider/listening"
+    },
+    {
+      "command": "audio provider split syntax + 26/26 audio/caption contracts",
+      "status": "pass",
+      "evidence": "OpenClaw stage remains structured-only; existing Codex audio worker retained"
+    },
+    {
+      "command": "evidence/local-regression-summary-2026-09-19.json",
+      "status": "pass",
+      "evidence": "local regression aggregation; real external gates explicitly blocked"
+    },
+    {
+      "command": "isolated OpenClaw 2026.6.11 gateway run + gateway health + plugins inspect --runtime",
+      "status": "pass",
+      "evidence": "commerce-engine loaded/activated; health ok; 11 tools; no model/media calls"
+    },
+    {
+      "command": "COMMERCE_AGENT_RUNTIME=openclaw without stage credentials",
+      "status": "blocked",
+      "evidence": "evidence/openclaw-stage-no-credentials-2026-09-19.json"
+    },
+    {
+      "command": "node scripts/test-openclaw-plugin-contract.mjs",
+      "status": "pass",
+      "evidence": "2/2 after defineToolPlugin SDK update"
+    },
+    {
+      "command": "isolated OpenClaw gateway health + plugins inspect (correct dependency layout, port 39879)",
+      "status": "pass",
+      "evidence": "evidence/openclaw-gateway-health-2026-09-19.json and .log"
+    },
+    {
+      "command": "openclaw plugins install --link (temporary copy) + plugins list --json",
+      "status": "pass",
+      "evidence": "evidence/openclaw-plugin-install-2026-09-19.json"
+    },
+    {
+      "command": "post-SDK-fix core contracts",
+      "status": "pass",
+      "evidence": "plugin contract 2/2; stage 4/4; rollback pass; facade process completed after prior observation timeout"
+    },
+    {
+      "command": "real OpenClaw SDK plugin runtime shape import",
+      "status": "pass",
+      "evidence": "evidence/openclaw-plugin-sdk-runtime-shape-2026-09-19.json"
+    },
+    {
+      "command": "local OpenClaw migration audit: facade/plugin/stage/rollback/router contracts + syntax",
+      "status": "pass",
+      "evidence": "evidence/local-openclaw-audit-2026-09-19.json",
+      "details": "facade 4/4, plugin 2/2, stage 9/9, rollback fail-closed/openclaw-to-legacy pass, router 7/7; no real model, browser, media, paid call, or Gateway job"
+    },
+    {
+      "command": "OpenClaw 2026.6.11 SDK plugin wrapper -> isolated server.mjs bridge -> commerce_resource_search",
+      "status": "pass",
+      "evidence": "evidence/openclaw-plugin-bridge-readonly-e2e-2026-09-19.json",
+      "details": "read-only; 2 resource roots, 89 videos, 37 images; no project, operation, model, media, or paid call"
+    },
+    {
+      "command": "OpenClaw 2026.6.11 CLI validate + real SDK per-tool schema registration",
+      "status": "pass",
+      "evidence": "evidence/openclaw-plugin-bridge-readonly-e2e-2026-09-19.json",
+      "details": "11 strict tool schemas; all writes require project/base revision/operation/changes/keep/authorization; isolated CLI emitted unrelated missing bundled-channel setup warnings"
+    },
+    {
+      "command": "test-openclaw-runtime-skills.mjs + OpenClaw 2026.6.11 skills list --agent commerce-audit --json",
+      "status": "pass",
+      "evidence": "evidence/openclaw-runtime-skills-2026-09-19.json",
+      "details": "12/12 hashed runtime skills; all eligible, model-visible and allowlisted from openclaw-workspace"
+    },
+    {
+      "command": "directory lease fault injection + two-server startup/release/restart",
+      "status": "pass",
+      "evidence": "evidence/openclaw-directory-lease-2026-09-19.json",
+      "details": "legacy/edit/commerce data directories reject a second writer and release on graceful shutdown"
+    },
+    {
+      "command": "facade recovery/idempotency/submission_unknown/cancel fault injection",
+      "status": "pass",
+      "evidence": "evidence/openclaw-recovery-fault-injection-2026-09-19.json",
+      "details": "6/6; unknown-charge operation is persisted and never replayed; failed same-key operation cannot return false success"
+    },
+    {
+      "command": "stable OpenClaw session factory and session-to-project binding contract",
+      "status": "pass",
+      "evidence": "evidence/openclaw-stable-session-binding-2026-09-19.json",
+      "details": "6/6 local binding tests plus real SDK factory read-only bridge E2E; raw session key is not persisted"
+    },
+    {
+      "command": "test-openclaw-control-bridge.mjs + test-openclaw-webui-bridge.mjs + test-openclaw-security-boundary.mjs",
+      "status": "pass_local_only",
+      "evidence": "evidence/openclaw-control-bridge-local-2026-09-19.json",
+      "details": "11/11 control and authorization; 8/8 original HTTP route protocol chain; 6/6 auth and redaction; deterministic Gateway harness, not a real model run"
+    },
+    {
+      "command": "current factory plugin in installed copy + OpenClaw 2026.6.11 Gateway health/inspect/validate",
+      "status": "pass",
+      "evidence": "evidence/openclaw-gateway-factory-reload-2026-09-19.json",
+      "details": "raw uninstalled source load first failed for missing typebox; installed locked dependency shape then loaded/activated 11 tools with no diagnostics"
+    },
+    {
+      "command": "M6 local scene/workflow/history/recovery/audio regression suites",
+      "status": "pass_local_only",
+      "evidence": "evidence/m6-local-regression-2026-09-19.json",
+      "details": "six scenes, general, recut/variant, continuation, revision history, portable import, recovery, captions, and audio contracts; no real model or listening review"
+    },
+    {
+      "command": "node scripts/acceptance.mjs + verify-editor.mjs core + verify-editor.mjs browser",
+      "status": "pass_legacy_regression",
+      "evidence": "outputs/acceptance/2026-09-19T08-17-07-316Z/report.json; outputs/upgrade/verification/core-2026-09-19T08-17-07.175Z/report.json; outputs/upgrade/ui/2026-09-19T08-19-09-828Z",
+      "details": "existing application real-Chrome and HyperFrames regression only; not a real OpenClaw control Agent acceptance"
+    },
+    {
+      "command": "node scripts/test-openclaw-agent-config.mjs + OpenClaw 2026.6.11 config validate --json",
+      "status": "pass_local_and_cli_config_only",
+      "evidence": "evidence/openclaw-agent-config-2026-09-19.json",
+      "details": "14/14 static checks; real CLI valid=true and warnings=[]; no model request"
+    },
+    {
+      "command": "OpenClaw targeted contracts after lease-isolation fix",
+      "status": "pass_local_only",
+      "evidence": "evidence/openclaw-agent-config-2026-09-19.json",
+      "details": "security 6/6, runtime skills 12/12, plugin, facade, bridge, session, stage, lease and rollback suites passed"
+    },
+    {
+      "command": "node scripts/verify-editor.mjs core + migration JSON parse",
+      "status": "pass",
+      "evidence": "outputs/upgrade/verification/core-2026-09-19T08-56-48.481Z/report.json",
+      "details": "existing editor/core regression passed after the test-isolation patch; all migration JSON parsed"
+    },
+    {
+      "command": "OpenClaw 2026.6.11 gateway run + gateway status --json",
+      "status": "pass_no_model_calls",
+      "evidence": "evidence/openclaw-agent-config-2026-09-19.json",
+      "details": "configured gateway reached ready, RPC probe reported version 2026.6.11, and process shut down cleanly; no model/media/paid call"
+    },
+    {
+      "command": "real OpenClaw 2026.6.11 -> CC Switch One-API gpt-5.6-sol; original browser round 1",
+      "status": "pass_limited",
+      "evidence": "evidence/takeover-real-gateway-2026-09-19.json"
+    },
+    {
+      "command": "quote-normalization fallback + targeted OpenClaw contracts",
+      "status": "pass_local_only",
+      "evidence": "lib/creative/message-routing.mjs; stage/control/media/rollback/wire/security suites; build-web"
+    }
+  ],
+  "resumeFrom": "M4-live-three-round-edit",
+  "lastUpdatedAt": "2026-09-19T10:02:20.452954+00:00",
+  "lastProgressAt": "2026-09-19T10:02:20.452954+00:00"
+}

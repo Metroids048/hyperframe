@@ -1,0 +1,22 @@
+{
+  "date": "2026-09-19",
+  "scope": "single-writer directory lease and restart recovery",
+  "unitFaultInjection": {
+    "command": "node scripts/test-openclaw-directory-lease.mjs",
+    "status": "pass",
+    "tests": "4/4",
+    "covers": ["active lock rejection", "normal release", "dead-pid stale lock recovery", "multi-directory deduplication and release"]
+  },
+  "serverE2E": {
+    "dataDirectories": ["temporary legacy projects", "temporary edit projects", "temporary commerce runs"],
+    "firstInstance": "started on 127.0.0.1:39882",
+    "secondInstance": "rejected with DATA_DIR_LOCKED and active pid metadata",
+    "firstShutdown": "SIGINT graceful release",
+    "restart": "same directories started successfully on 127.0.0.1:39883",
+    "finalLocks": 0,
+    "temporaryDataCleaned": true
+  },
+  "externalCalls": 0,
+  "mediaJobs": 0,
+  "paidCalls": 0
+}

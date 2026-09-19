@@ -9,6 +9,7 @@ export function scoreCommerceVideo({document,visualIssues=[],mediaReview,playbac
   const avgScene=duration/document.scenes.length,longScenes=document.scenes.filter(s=>s.durationFrames/(document.fps||30)>8).length;
   const captionNodes=document.nodes.filter(n=>n.kind==='text'),captionLengths=captionNodes.map(n=>[...(n.params?.text||'')].length);
   const enhanced=hf?.differentiation_budget?.enhanced_shots||0,emphasis=hf?.differentiation_budget?.product_emphasis_shots||0;
+  const hfPolicyPassed=hf?.differentiation_budget?.policy_passed;
   const hasAudio=(document.audioGraph||[]).some(track=>track.volume>0),audioRequired=document.businessContract?.audio!=='silent';
   const componentScores={
     product_exposure:clamp(45+(firstMedia.length?30:0)+(timeline?.shots?.some(s=>/商品|产品|主体|整体/.test(s.visual_focus?.primary||''))?15:0)+(emphasis?10:0)),
@@ -28,6 +29,7 @@ export function scoreCommerceVideo({document,visualIssues=[],mediaReview,playbac
   const issues=[];
   for(const [dimension,score] of Object.entries(componentScores))if(score<hardMinimum)issues.push({severity:score<45?'blocker':'major',dimension,score,problem:`${dimension} 低于商业最低线 ${hardMinimum}`,repair:`只修改与 ${dimension} 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。`});
   for(const issue of visualIssues)issues.push({...issue,dimension:issue.dimension||'visual'});
+  if(hfPolicyPassed===false)issues.push({severity:'major',dimension:'motion',score:componentScores.motion,problem:'HyperFrames 场景差异化策略未兑现',repair:'回到 DirectorTimeline，只补齐当前场景要求的布局、字幕或动效意图，不改变已正确的素材和声音。'});
   if(total<threshold&&!issues.some(i=>['blocker','major'].includes(i.severity))){const weakest=Object.entries(componentScores).sort((a,b)=>a[1]-b[1]).slice(0,2);issues.push({severity:'major',dimension:'overall',score:total,problem:`自动结构评分 ${total} 低于阈值 ${threshold}`,repair:'优先检查 '+weakest.map(([key])=>key).join('、')+' 对应的实际片段，依据可观察问题局部修复；不为提高分数增加无关效果。'});}
   const suggestions=issues.map(issue=>issue.repair).filter(Boolean);
   if(!playbackReview?.fullVideoObserved)suggestions.push('完成连续观片后校准节奏、动作和转场评分；自动分数不代签真人观看。');

@@ -3,7 +3,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
 import { spawnSync } from "node:child_process";
-import { codexRequest, codexFailure, codexWorkingDirectory } from "../lib/edit/codex-command.mjs";
+import { codexRequest, codexFailure, codexWorkingDirectory, retryableWithFallbackModel } from "../lib/edit/codex-command.mjs";
 import { runtimeTools, pythonExecutable } from "../lib/runtime-tools.mjs";
 import { localEditIntent } from "../lib/edit/local-edit-intents.mjs";
 import {
@@ -103,6 +103,14 @@ try {
       ),
       true,
     );
+  });
+  await test("configured fallback models cover quota, unavailable-model and timeout failures", () => {
+    assert.equal(retryableWithFallbackModel({code:"CODEX_LIMIT"}),true);
+    assert.equal(retryableWithFallbackModel({code:"CODEX_MODEL_UNAVAILABLE"}),true);
+    assert.equal(retryableWithFallbackModel({capacity:true,code:"CODEX_REQUEST_FAILED"}),true);
+    assert.equal(retryableWithFallbackModel({code:"CODEX_AUTH"}),false);
+    assert.equal(retryableWithFallbackModel({code:"CODEX_TIMEOUT"}),true);
+    assert.equal(retryableWithFallbackModel({code:"CODEX_REQUEST_FAILED"}),false);
   });
   await test("configured provider reports its own connection without requiring subscription login", async () => {
     const {CodexProvider}=await import('../lib/edit/codex-provider.mjs');

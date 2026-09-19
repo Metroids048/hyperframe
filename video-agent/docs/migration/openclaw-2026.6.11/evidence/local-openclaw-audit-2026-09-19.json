@@ -1,0 +1,26 @@
+{
+  "date": "2026-09-19",
+  "scope": "local-only OpenClaw migration audit",
+  "runtime": "/Users/a1234/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node v24.19.0",
+  "tests": [
+    {"command": "scripts/test-openclaw-facade.mjs", "status": "pass", "result": "4/4 including OPERATION_UNKNOWN fault injection"},
+    {"command": "scripts/test-openclaw-plugin-contract.mjs", "status": "pass", "result": "2/2"},
+    {"command": "scripts/test-openclaw-stage-provider.mjs", "status": "pass", "result": "9/9 local contract tests; strict schema and PNG/JPEG data URL size/order receipts; no real model call"},
+    {"command": "scripts/test-openclaw-rollback.mjs", "status": "pass", "result": "openclaw/shadow fail closed without credentials; explicit legacy provider routing rollback; no Gateway or media job"},
+    {"command": "scripts/test-commerce-router-v2.mjs", "status": "pass", "result": "7/7"},
+    {"command": "node --check server.mjs lib/openclaw/openclaw-stage-provider.mjs lib/openclaw/provider-selection.mjs", "status": "pass"}
+  ],
+  "hardening": {
+    "file": "server.mjs",
+    "result": "known OpenClaw boundary errors preserve intended status/code instead of generic 500"
+  },
+  "external_gates": {
+    "real_stage_model": "blocked: no OPENCLAW_STAGE_TOKEN/MODEL or target authorization",
+    "real_browser_webui": "blocked: no authorized OpenClaw WebUI/browser session",
+    "paid_media_visual_audio": "blocked: no new paid authorization and no real review",
+    "gateway_job_rollback": "not_run: requires a real authorized job"
+  },
+  "resumeFrom": "M3-real-provider",
+  "no_paid_calls": true,
+  "no_media_jobs": true
+}

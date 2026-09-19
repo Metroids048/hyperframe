@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "timestamp": "2026-09-19T08:31:36Z",
+  "runtime": "local protocol harness; no model/provider call",
+  "tests": [
+    {"script": "test-openclaw-control-bridge.mjs", "result": "11/11 pass"},
+    {"script": "test-openclaw-webui-bridge.mjs", "result": "8/8 pass"},
+    {"script": "test-openclaw-security-boundary.mjs", "result": "6/6 pass"},
+    {"script": "test-openclaw-facade.mjs", "result": "8/8 pass"}
+  ],
+  "verified": [
+    "legacy mode still calls the original dispatchMessage",
+    "openclaw mode does not invoke the legacy semantic router",
+    "shadow mode receives no write authorization and then executes the legacy path",
+    "the original /api/commerce-chat message route reaches the control protocol, /api/openclaw/tools, the shared facade, and the existing service job queue",
+    "server-issued authorization binds project, base revision, session, tool, and stable operation id",
+    "a write without an authorization validator or completed operation journal receipt fails closed",
+    "bridge and control bearer tokens plus raw session keys are absent from captured server output and persisted session mappings"
+  ],
+  "sourceHashes": {
+    "lib/openclaw/commerce-agent-bridge.mjs": "7f04ce9c1782014a7e59e7d3ba500b2fb67f9159e7ac1355e53bd228c8537214",
+    "lib/openclaw/execution-authorizations.mjs": "16cbf08895b2f24b2d3c6926f93b15e034e4642323d71e6d05b12b73b0f06962",
+    "server.mjs": "91485f5d6b370e1f098f5d36c88b6cc40339d75ceff6f20a523c7e2fdffcbc4a"
+  },
+  "limitations": [
+    "The control endpoint was a deterministic protocol harness, not a real OpenClaw Agent/model run.",
+    "The queued local test job had no provider credentials and made no external request.",
+    "A real browser request through a configured OpenClaw Gateway remains blocked."
+  ],
+  "status": "pass_local_only"
+}

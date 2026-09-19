@@ -21,6 +21,13 @@ export function resolveSkills(decision,{operations=[],document,revision,project}
   if(['edit','recut','variant'].includes(decision.mode)&&(state||project?.currentRevisionId))add('conversation-edit','existing-revision');
   if(decision.mode==='recut')add('rough-cut','mode:recut');
   if(decision.mode==='export')add('timeline-edit','mode:export');
+  if(['create','recut'].includes(decision.mode)&&!project?.currentRevisionId&&decision.scenario?.startsWith('product_')){
+    add('commerce-promo','business-scenario:'+decision.scenario);
+    add('product-understanding','production-stage:product.understand');
+    add('marketing-planner','production-stage:marketing.plan');
+    add('video-director','production-stage:video.direct');
+    add('hyperframes','production-stage:hyperframes.adapt');
+  }
   if(document?.scenes){add('hyperframes','native-document');if(document.businessContract?.scenarioId?.startsWith('product_'))add('commerce-promo','native-business-contract');}
   if(['undo','redo','restore','cancel','status','clarify'].includes(decision.mode))reasons.clear();
   const skills=registry.skills.filter(s=>reasons.has(s.id)).map(({instructions,snapshot,...s})=>s);

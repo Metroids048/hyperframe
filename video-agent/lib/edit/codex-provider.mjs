@@ -9,7 +9,7 @@ import {ROOT} from '../workflow.mjs';
 import {EditError,insist,uid} from './timeline.mjs';
 import {hashFile} from './media.mjs';
 import {SpeechWorker,localPython} from './speech-worker.mjs';
-import {codexRequest,codexFailure,modelTimeoutMs,codexWorkingDirectory} from './codex-command.mjs';
+import {codexRequest,codexFailure,modelTimeoutMs,codexWorkingDirectory,retryableWithFallbackModel} from './codex-command.mjs';
 import {speakElevenLabs} from './adapters/optional-providers.mjs';
 
 export function subscriptionEnv() {
@@ -98,7 +98,7 @@ export class CodexProvider extends CloudProvider {
         child.on('close',code=>{clearTimeout(timer);signal?.removeEventListener('abort',kill);if(signal?.aborted)return reject(new EditError('任务已取消',409));if(code!==0||timed){const diagnostic=tail.replace(/sk-[a-zA-Z0-9_-]+/g,'[redacted]').replace(/Bearer\s+\S+/gi,'Bearer [redacted]'),capacity=!timed&&/Selected model is at capacity|model.*temporarily unavailable/i.test(tail),failure=codexFailure(tail,{timed}),error=Object.assign(new EditError(failure.message,503),{capacity,code:failure.code});void fs.writeFile(path.join(dir,'failure.log'),diagnostic).catch(()=>{}).finally(()=>reject(error));return;}resolve();});
       });
       const result=JSON.parse(await fs.readFile(output,'utf8'));this.verifiedAt=new Date().toISOString();if(model)this.availableModel=model;return {result,usage:null,model:model||'Codex 默认模型',reasoningEffort:this.reasoningEffort,invocation,...(model!==this.model?{fallbackFrom:this.model}:{})};
-    }catch(error){if(error.capacity&&attempt+1<candidates.length&&!signal?.aborted)return await this.structured(instructions,input,schema,signal,attempt+1);if(error.capacity)error.message='可用模型当前都很繁忙，输入已保存，请稍后重试';throw error;}
+    }catch(error){const retryable=retryableWithFallbackModel(error);if(retryable&&attempt+1<candidates.length&&!signal?.aborted)return await this.structured(instructions,input,schema,signal,attempt+1);if(error.capacity)error.message='可用模型当前都很繁忙，输入已保存，请稍后重试';throw error;}
     finally {await fs.writeFile(path.join(dir,'request.json'),JSON.stringify({...invocation,completedAt:new Date().toISOString()})).catch(()=>{});await working.cleanup();}
   }
   async transcribe(file,signal,{engine:requestedEngine}={}) {

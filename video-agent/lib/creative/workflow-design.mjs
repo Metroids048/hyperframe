@@ -103,7 +103,7 @@ export function validateWorkOrder(parsed,{message,document=null,assets=[],prior=
 
 export async function planWorkbenchWorkflow({root,message,document=null,assets=[],prior=null,baseRevisionId=null,intake={},provider,catalog,signal}={}) {
   insist(typeof message==='string'&&message.trim()&&message.length<=16000,'需求需为1—16000字','MESSAGE_REQUIRED');
-  const own=!provider;provider??=new CodexProvider();
+  const own=!provider;if(!provider) provider=createStructuredProvider().provider;
   let answer,order;const validationRepairs=[];
   try {
     for(let attempt=0;attempt<2;attempt++){
@@ -142,3 +142,4 @@ export async function planWorkbenchWorkflow({root,message,document=null,assets=[
   ]);
   return result;
 }
+import {createStructuredProvider} from '../openclaw/provider-selection.mjs';

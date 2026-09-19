@@ -21,7 +21,7 @@ export const productBriefSchema=obj({
 
 export const marketingPlanSchema=obj({
   schema_version:{type:'integer',enum:[2]},
-  scene_type:{type:'string',enum:['product_launch','product_detail','product_tutorial','product_promotion','product_faq']},
+  scene_type:{type:'string',enum:['product_launch','product_detail','product_tutorial','product_collection','product_promotion','product_faq']},
   platform:str,
   audience:arr(str),
   marketing_objective:str,
@@ -64,6 +64,24 @@ export const directorTimelineSchema=obj({
 const clean=value=>String(value??'').trim();
 const knownEvidencePrefixes=['request.','material.','observation.','asset:','source:','fact-','selling-point-'];
 
+export const hyperframesScenarioPolicies={
+  product_launch:{purpose:'前三秒建立兴趣并形成商品记忆',minEnhancedRatio:.5,requiredIntentGroups:[['product-reveal','detail-emphasis'],['dynamic-typography','brand-system']],motion:'柔和推进、主体揭示和克制的生活方式字幕',transitions:'信息关系优先，避免每切点都加特效',layout:'真实商品占主画面，文字位于安全留白'},
+  product_detail:{purpose:'把卖点与可见证据准确连接',minEnhancedRatio:.5,requiredIntentGroups:[['detail-emphasis','guided-callout'],['spatial-layout']],motion:'局部放大、稳定标注和整体—细节联动',transitions:'整体到局部的动机转场，不能伪装比较',layout:'整体定位后进入局部，标注不误指'},
+  product_demo:{purpose:'让新手看清并复现必要动作',minEnhancedRatio:.2,requiredIntentGroups:[['natural-footage'],['guided-callout','spatial-layout']],motion:'动作优先，仅用步骤提示和必要局部强调',transitions:'关键动作内避免遮挡式转场',layout:'实拍主导，步骤条避开手部和操作区'},
+  product_collection:{purpose:'保持多款身份并解释组合关系',minEnhancedRatio:.5,requiredIntentGroups:[['spatial-layout'],['dynamic-typography','brand-system']],motion:'单款与群像布局切换、协调标签进入',transitions:'不通过形变混淆不同商品',layout:'网格/分屏只在关系需要时使用，身份标签稳定'},
+  product_promotion:{purpose:'让活动、条件和行动形成清晰转化节奏',minEnhancedRatio:.6,requiredIntentGroups:[['dynamic-typography'],['rhythmic-transition','brand-system']],motion:'重点文字与 CTA 按节拍进入，数字保持可读',transitions:'少量强节奏转场，不影响条件阅读',layout:'活动主题、条件和 CTA 分层，限制条件不可缩小隐藏'},
+  product_faq:{purpose:'先回答，再用证据和限制解释',minEnhancedRatio:.4,requiredIntentGroups:[['guided-callout','spatial-layout'],['dynamic-typography']],motion:'问题、答案、证据、限制分层出现',transitions:'按论证关系切换，不做广告式炫技',layout:'问题卡、答案、证据与限制使用不同但一致的层级'}
+};
+
+export function hyperframesScenarioPolicy(scenarioId){return structuredClone(hyperframesScenarioPolicies[scenarioId]||{purpose:'准确表达当前业务目的',minEnhancedRatio:0,requiredIntentGroups:[],motion:'按内容需要',transitions:'只在有表达目的时使用',layout:'主体和可读性优先'});}
+
+export function evaluateHyperFramesPolicy(scenarioId,{intents=[],shotCount=0,enhancedShots=0}={}){
+  const policy=hyperframesScenarioPolicy(scenarioId),present=new Set(intents),requiredEnhancedShots=shotCount?Math.min(shotCount,Math.max(1,Math.ceil(shotCount*policy.minEnhancedRatio))):0;
+  const missingIntentGroups=policy.requiredIntentGroups.filter(group=>!group.some(intent=>present.has(intent)));
+  const missingEnhancedShots=Math.max(0,requiredEnhancedShots-enhancedShots);
+  return {policy,requiredEnhancedShots,missingIntentGroups,missingEnhancedShots,passed:!missingIntentGroups.length&&!missingEnhancedShots};
+}
+
 export function validateProductBrief(value,assets=[]){
   insist(value?.schema_version===2,'ProductBrief schema 版本无效','PRODUCT_BRIEF');
   insist(clean(value.product_name)&&clean(value.category)&&clean(value.fusion_summary),'ProductBrief 缺少商品名称、类别或融合结论','PRODUCT_BRIEF');
@@ -86,7 +104,7 @@ export function validateProductBrief(value,assets=[]){
 
 export function validateMarketingPlan(value,productBrief,scenarioId){
   insist(value?.schema_version===2,'MarketingPlan schema 版本无效','MARKETING_PLAN');
-  const expected={product_launch:'product_launch',product_detail:'product_detail',product_demo:'product_tutorial',product_howto:'product_tutorial',product_promotion:'product_promotion',product_faq:'product_faq'}[scenarioId];
+  const expected={product_launch:'product_launch',product_detail:'product_detail',product_demo:'product_tutorial',product_howto:'product_tutorial',product_collection:'product_collection',product_promotion:'product_promotion',product_faq:'product_faq'}[scenarioId];
   if(expected)insist(value.scene_type===expected,'营销场景与制作合同不一致','MARKETING_SCENE');
   insist(value.audience.length&&clean(value.marketing_objective)&&clean(value.hook?.first_three_seconds),'MarketingPlan 缺少受众、目标或前三秒策略','MARKETING_PLAN');
   insist(value.story_structure.length>=3,'MarketingPlan 故事结构不足','MARKETING_PLAN');
@@ -174,8 +192,10 @@ export function buildHyperFramesDesignPlan({directorTimeline,story,creativeDirec
     };
   });
   const enhanced=bindings.filter(x=>x.enhanced).length,dynamic=bindings.filter(x=>x.animation.intents.includes('dynamic-typography')).length,emphasis=bindings.filter(x=>x.animation.intents.some(i=>['product-reveal','detail-emphasis','guided-callout'].includes(i))).length;
-  const plan={schema_version:2,runtime:'0.8.33',scenario_id:scenarioId,output,design_system:{background:story.design.background,foreground:story.design.foreground,panel:story.design.panel,accent:story.design.accent,font_family:story.design.fontFamily,motion_direction:creativeDirection.motionDirection,type_direction:creativeDirection.typeDirection},shot_bindings:bindings,differentiation_budget:{total_shots:bindings.length,enhanced_shots:enhanced,dynamic_typography_shots:dynamic,product_emphasis_shots:emphasis,advanced_ratio:bindings.length?enhanced/bindings.length:0},rules:['镜头目的先于组件选择','静态 hero frame 先于动画','商品主体与动作保护优先','只使用可执行且有回执的资源','动效必须可 seek 且有限']};
-  if(['product_launch','product_detail'].includes(scenarioId)&&bindings.some((_,i)=>story.scenes[i].text?.length))insist(enhanced>0&&emphasis>0,'核心商业场景没有兑现 HyperFrames 产品强调能力','HF_DIFFERENTIATION');
+  const intentCounts=Object.fromEntries([...new Set(bindings.flatMap(x=>x.animation.intents))].map(intent=>[intent,bindings.filter(x=>x.animation.intents.includes(intent)).length]));
+  const policyEvaluation=evaluateHyperFramesPolicy(scenarioId,{intents:Object.keys(intentCounts),shotCount:bindings.length,enhancedShots:enhanced});
+  const plan={schema_version:2,runtime:'0.8.33',scenario_id:scenarioId,output,design_system:{background:story.design.background,foreground:story.design.foreground,panel:story.design.panel,accent:story.design.accent,font_family:story.design.fontFamily,motion_direction:creativeDirection.motionDirection,type_direction:creativeDirection.typeDirection},shot_bindings:bindings,differentiation_budget:{total_shots:bindings.length,enhanced_shots:enhanced,dynamic_typography_shots:dynamic,product_emphasis_shots:emphasis,advanced_ratio:bindings.length?enhanced/bindings.length:0,intent_counts:intentCounts,required_enhanced_shots:policyEvaluation.requiredEnhancedShots,policy_passed:policyEvaluation.passed},scenario_policy:policyEvaluation.policy,rules:['镜头目的先于组件选择','静态 hero frame 先于动画','商品主体与动作保护优先','只使用可执行且有回执的资源','动效必须可 seek 且有限']};
+  insist(policyEvaluation.passed,'当前导演方案没有兑现 '+scenarioId+' 的 HyperFrames 场景策略：'+[...policyEvaluation.missingIntentGroups.map(group=>'缺少 '+group.join(' 或 ')),...(policyEvaluation.missingEnhancedShots?[`还需 ${policyEvaluation.missingEnhancedShots} 个差异化镜头`]:[])].join('；'),'HF_SCENARIO_POLICY');
   return plan;
 }
 

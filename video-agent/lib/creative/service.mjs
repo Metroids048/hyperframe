@@ -155,7 +155,19 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
       (p.routingReceipts??=[]).push({time:now(),message:input.message,baseRevisionId:base,...route});
       let resultProject=p;
       const resolvedMessage=pending?[`原始需求：${pending.rootMessage}`,...pending.turns.slice(1).map(turn=>(turn.role==='assistant'?'澄清问题：':'用户补充：')+turn.text),`用户补充：${input.message}`].join('\n'):input.message;
-      const executionInput={...input,message:resolvedMessage,displayMessage:input.message};
+      const explicitOutput=route.businessIntent?.outputConstraints;
+      const outputOverride=explicitOutput?Object.fromEntries(Object.entries({
+        durationSeconds:explicitOutput.durationSeconds,
+        width:explicitOutput.width,
+        height:explicitOutput.height,
+      }).filter(([,value])=>value!=null)):null;
+      if(outputOverride&&Object.keys(outputOverride).length){
+        p.request={...p.request,output:{...(p.request?.output||{}),...outputOverride}};
+      }
+      const executionInput={...input,message:resolvedMessage,displayMessage:input.message,
+        ...(outputOverride?{output:{...(input.output||p.request?.output||{}),...outputOverride}}:{}),
+        ...(input.request&&outputOverride?{request:{...input.request,output:{...(input.request.output||{}),...outputOverride}}}:{}),
+      };
       if(route.mode==='clarify'){
         const turns=[...(pending?.turns||[{role:'user',text:input.message}]),...(pending?[{role:'user',text:input.message}]:[]),{role:'assistant',text:route.question}];
         p.pendingClarification={rootMessage:pending?.rootMessage||input.message,turns,updatedAt:now()};
@@ -177,7 +189,7 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
         if(resultProject.assets.length)await enqueue(resultProject,{action:'generate',message:input.message,attachmentIds:[...(input.attachmentIds||[])],idempotencyKey:input.idempotencyKey});
         else resultProject.messages.push({role:'assistant',text:'新制作已独立保存，请添加这条新视频要使用的素材。',time:now()});
         await save(resultProject);
-      }else await enqueue(p,{...executionInput,action:base?'patch':'generate',routeDecision:route,taskMode:route.mode,taskModeExplicit:true});
+      }else await enqueue(p,{...executionInput,action:base?'patch':'generate',routeDecision:route,taskMode:route.mode,taskModeExplicit:true,scenarioId:route.scenarioId||route.scenario||input.scenarioId||input.request?.scenarioId});
       if(route.mode!=='clarify'&&!['status','cancel'].includes(route.mode))delete p.pendingClarification;
       (p.messageDispatches??=[]).push({key:input.idempotencyKey,projectId:resultProject.id,route});await save(p);
       return {project:view(resultProject),route};
@@ -399,6 +411,7 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
         try{await save(p);}catch(error){Object.assign(p,previous);throw error;}job.summary=`已打开完整工程，保留 ${p.revisions.length} 个版本，可以继续修改。`;
       }else if(job.kind==='create'){
         if(job.input.request)p.request={...p.request,...commerceIntake(job.input.request)};
+        if(job.input.workflow?.businessScenario||job.input.scenarioId){p.request={...p.request,scenarioId:job.input.workflow?.businessScenario||job.input.scenarioId,taskMode:job.input.workflow?.taskMode||job.input.taskMode||p.request.taskMode,workflow:job.input.workflow||p.request.workflow};p.request.businessContract=businessContract(p.request);}
         const target=p.request.target||'marketing';
         if(job.revisionId&&p.revisions.some(r=>r.id===job.revisionId)){
           await candidateExport(p,job,revision(p,job.revisionId),signal);
@@ -684,10 +697,21 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
   for(const p of projects.values())for(const job of p.jobs){
     if(job.status==='recoverable'&&job.code==='INTERRUPTED'&&!job.cancelRequestedAt&&(job.generationPlan||job.generationStarted))queueMicrotask(()=>resume(p,job.id).catch(async error=>{job.status='recoverable';job.code=error.code;job.error=error.message;await save(p);}));
   }
-  return {artifacts,dispatchMessage,audioVoices:()=>new MiniMaxClient({root,env:audioEnv,transport:audioTransport}).execute('voices'),applyAudio:async(p,input)=>{const {document}=await readNativeProject(versionDirectory(p,revision(p)));const operations=await audioApplication(root,document,p.assets.find(a=>a.id===input.assetId),input);return enqueue(p,{...input,action:'patch',operations,message:(input.replaceTrackId?'替换已选':'添加已选')+(input.role==='narration'?'旁白':input.role==='original'?'原声':'背景音乐')});},productionPolicy:()=>productionPolicy(root),finishedWorks:()=>readFinishedWorks(root),materialRoots:async()=>(await discoverMaterialRoots(root)).map(publicMaterialRoot),attachMaterialRoot,get,has:id=>projects.has(id),view,create,loadPreset,presetFile,presets:async()=>(await refreshPresets()).map(publicPreset),unavailablePresets:async()=>(await refreshPresets()).unavailable||[],upload,importPackage,retryImport,enqueue,navigate,cancel,resume,authorizeBudget,revision,versionDirectory,list:()=>[...projects.values()].map(view).sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt))};
+  async function openclawProjectContext(p){
+    const current=p.currentRevisionId?revision(p):null;
+    const document=current?(await readNativeProject(versionDirectory(p,current))).document:null;
+    return {id:p.id,title:p.title,currentRevisionId:p.currentRevisionId,request:p.request,assets:p.assets.map(({id,name,kind,mediaMetadata})=>({id,name,kind,mediaMetadata})),messages:p.messages.slice(-10),revisions:p.revisions.map(({id,parentId,summary})=>({id,parentId,summary})),document:document?{revisionId:document.revisionId,output:document.output,scenes:document.scenes,nodes:document.nodes,audioGraph:document.audioGraph,captions:document.captions,businessContract:document.businessContract}:null};
+  }
+  async function recordControlResult(p,input,result){
+    const key=input.idempotencyKey;
+    if(p.messages.some(m=>m.controlMessageId===key))return;
+    if(!p.jobs.some(j=>result.operationId&&j.input?.operationId===result.operationId)&&!p.messages.some(m=>m.role==='user'&&m.text===input.message&&m.baseRevisionId===input.baseRevisionId))p.messages.push({role:'user',text:input.message,baseRevisionId:input.baseRevisionId,time:now()});
+    p.messages.push({role:'assistant',text:result.summary,controlMessageId:key,controlStatus:result.status,time:now()});await save(p);
+  }
+  return {openclawProjectContext,recordControlResult,artifacts,dispatchMessage,audioVoices:()=>new MiniMaxClient({root,env:audioEnv,transport:audioTransport}).execute('voices'),applyAudio:async(p,input)=>{const {document}=await readNativeProject(versionDirectory(p,revision(p)));const operations=await audioApplication(root,document,p.assets.find(a=>a.id===input.assetId),input);return enqueue(p,{...input,action:'patch',operations,message:(input.replaceTrackId?'替换已选':'添加已选')+(input.role==='narration'?'旁白':input.role==='original'?'原声':'背景音乐')});},productionPolicy:()=>productionPolicy(root),finishedWorks:()=>readFinishedWorks(root),materialRoots:async()=>(await discoverMaterialRoots(root)).map(publicMaterialRoot),attachMaterialRoot,get,has:id=>projects.has(id),view,create,loadPreset,presetFile,presets:async()=>(await refreshPresets()).map(publicPreset),unavailablePresets:async()=>(await refreshPresets()).unavailable||[],upload,importPackage,retryImport,enqueue,navigate,cancel,resume,authorizeBudget,revision,versionDirectory,list:()=>[...projects.values()].map(view).sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt))};
 }
 
-export async function creativeRoutes(service,req,res,url,{json,jsonBody,file}){
+export async function creativeRoutes(service,req,res,url,{json,jsonBody,file,dispatchMessage=service.dispatchMessage}){
   if(req.method==='GET'&&url.pathname==='/api/commerce-capabilities'){json(res,{ok:true,workflowEntries,workflowPlanning:{action:'plan-workflow',productionStarted:false,skills:commerceSkills,stages:workflowStages()},...await service.productionPolicy(),audioProviders:{local:{speech:'not_verified',transcription:'not_verified',music:'local-files'},minimax:minimaxCapabilityStatus()}});return true;}
   if(req.method==='GET'&&url.pathname==='/api/commerce-material-roots'){json(res,{ok:true,roots:await service.materialRoots()});return true;}
   if(await humanReviewRoute(ROOT,service,req,res,url,{json,jsonBody}))return true;
@@ -725,7 +749,7 @@ export async function creativeRoutes(service,req,res,url,{json,jsonBody,file}){
       json(res,{ok:true,result});return true;
     }
     const p=service.get(input.projectId);
-    if(input.action==='message'){json(res,{ok:true,...await service.dispatchMessage(p,input)},202);return true;}
+    if(input.action==='message'){json(res,{ok:true,...await dispatchMessage(p,input)},202);return true;}
     if(input.action==='audio-new-submission'){
       const old=p.jobs.find(j=>j.id===input.jobId);
       insist(old?.kind==='audio'&&old.code==='MINIMAX_SUBMISSION_UNKNOWN'&&!active(old),'只能针对结果未知的声音任务授权新提交','INVALID_AUDIO_RECOVERY');

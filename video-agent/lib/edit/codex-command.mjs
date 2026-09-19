@@ -121,3 +121,12 @@ export function codexFailure(text, { timed = false } = {}) {
     message: "Codex 请求失败，请检查本机连接和网络后重试；视频和指令已保留。",
   };
 }
+
+export function retryableWithFallbackModel(error) {
+  return Boolean(
+    error?.capacity ||
+      ["CODEX_LIMIT", "CODEX_MODEL_UNAVAILABLE", "CODEX_TIMEOUT"].includes(
+        error?.code,
+      ),
+  );
+}

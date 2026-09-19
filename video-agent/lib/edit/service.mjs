@@ -12,6 +12,7 @@ import {uid,EditError,insist,initialTimeline,applyOperations,validateTimeline,du
 import {prepareAsset,prepareSpeech,prepareAnalysis,composeRevision,checkRevision,renderRevision,run,closePreviewChecks} from './media.mjs';
 import {CloudProvider} from './provider.mjs';
 import {CodexProvider} from './codex-provider.mjs';
+import {createMediaProvider} from '../openclaw/provider-selection.mjs';
 import {syncCaptionVoices} from './caption-voices.mjs';
 import {ProjectStore} from './project-store.mjs';
 import {measure,jobEvent} from './job-metrics.mjs';
@@ -27,7 +28,7 @@ import {parseRevisionNumber,undoNavigation,redoNavigation} from './revision-hist
 const activeStates=['queued','running'];
 const clone=x=>structuredClone(x);
 const fingerprint=x=>createHash('sha256').update(JSON.stringify(x)).digest('hex');
-export async function createEditService({dataDir=process.env.VIDEO_AGENT_EDIT_DATA_DIR||path.join(ROOT,'data/edit-projects'),provider=process.env.VIDEO_AGENT_EDIT_PROVIDER==='openai'?new CloudProvider():new CodexProvider(),configFile=process.env.VIDEO_AGENT_EDIT_CONFIG_FILE||path.join(ROOT,'config/edit.local.json'),mediaEngine={prepareAsset,prepareSpeech,prepareAnalysis,composeRevision,checkRevision,renderRevision,run}}={}) {
+export async function createEditService({dataDir=process.env.VIDEO_AGENT_EDIT_DATA_DIR||path.join(ROOT,'data/edit-projects'),provider=createMediaProvider({legacyCloud:true}),configFile=process.env.VIDEO_AGENT_EDIT_CONFIG_FILE||path.join(ROOT,'config/edit.local.json'),mediaEngine={prepareAsset,prepareSpeech,prepareAnalysis,composeRevision,checkRevision,renderRevision,run}}={}) {
   const {prepareAsset,prepareAnalysis,composeRevision,checkRevision,renderRevision,run}=mediaEngine;
   const prepareAudio=mediaEngine.prepareSpeech||prepareAnalysis;
   if(provider instanceof CloudProvider&&!(provider instanceof CodexProvider))try{provider.settings=JSON.parse(await fs.readFile(configFile,'utf8'));}catch(e){if(e.code!=='ENOENT')throw new EditError('本机模型配置无法读取');}

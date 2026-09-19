@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "timestamp": "2026-09-19T08:19:09Z",
+  "scope": "local regression only; no real OpenClaw model, paid media provider, listening review, or human visual acceptance",
+  "defaultEntry": "legacy",
+  "sceneAndWorkflow": [
+    {"script": "test-commerce-native.mjs", "result": "13/13 pass"},
+    {"script": "test-commerce-agent-v2.mjs", "result": "pass"},
+    {"script": "test-general-workflow.mjs", "result": "4/4 pass"},
+    {"script": "test-workflow-intent.mjs", "result": "19/19 pass"},
+    {"script": "test-workflow-selection.mjs", "result": "2/2 pass"}
+  ],
+  "continuationHistoryRecovery": [
+    {"script": "test-continuation.mjs", "result": "24/24 pass"},
+    {"script": "test-creative-continuation.mjs", "result": "5/5 pass"},
+    {"script": "test-revision-history.mjs", "result": "2/2 pass"},
+    {"script": "test-creative-portable.mjs", "result": "7/7 pass"},
+    {"script": "test-stale-stage-recovery.mjs", "result": "pass"},
+    {"script": "test-native-cut-checkpoint.mjs", "result": "2/2 pass"}
+  ],
+  "audioCaptions": [
+    {"script": "test-caption-segmentation.mjs", "result": "6/6 pass"},
+    {"script": "test-caption-scoped-edit.mjs", "result": "12/12 pass"},
+    {"script": "test-audio-review-repair.mjs", "result": "2/2 pass"},
+    {"script": "test-six-audio-contract.mjs", "result": "6/6 pass"}
+  ],
+  "existingEntryRegression": [
+    {"command": "node scripts/acceptance.mjs", "result": "20/20 pass", "report": "outputs/acceptance/2026-09-19T08-17-07-316Z/report.json", "coverage": "isolated API, real Chrome, real HyperFrames render"},
+    {"command": "node scripts/verify-editor.mjs core", "result": "pass", "report": "outputs/upgrade/verification/core-2026-09-19T08-17-07.175Z/report.json"},
+    {"command": "node scripts/verify-editor.mjs browser", "result": "pass", "report": "outputs/upgrade/ui/2026-09-19T08-19-09-828Z"},
+    {"script": "test-message-routing.mjs", "result": "12/12 pass"},
+    {"script": "test-commerce-focus-api.mjs", "result": "1/1 pass"}
+  ],
+  "limitations": [
+    "The real Chrome checks exercise the existing legacy application, not a credentialed OpenClaw control Agent.",
+    "Audio assertions are data and render contracts; no listening acceptance was performed.",
+    "No new paid generation was authorized or invoked.",
+    "No fixed-project migration-before/after full-film human comparison was performed."
+  ],
+  "status": "pass_local_only"
+}

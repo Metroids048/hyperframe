@@ -3,13 +3,16 @@ import fs from 'node:fs/promises';
 import {MiniMaxClient} from '../edit/adapters/minimax-client.mjs';
 import {hashFile,probe} from '../edit/media.mjs';
 import {insist,safeRelativePath} from './contracts.mjs';
-import {CodexProvider} from '../edit/codex-provider.mjs';
+import {createMediaProvider} from '../openclaw/provider-selection.mjs';
 import {createHash} from 'node:crypto';
 
 // The chat editor uses the same configured voice provider as voice selection.
 // A provider failure is surfaced; this never falls back to another engine.
 export async function generateSpeechAsset(root,directory,input,{signal,provider}={}){
-  const own=!provider;provider??=new CodexProvider();
+  // Audio generation remains on the existing audio provider. OpenClaw's
+  // commerce-stage adapter is intentionally structured-only and must never
+  // be mistaken for ASR/TTS; this preserves local speech/subtitle behavior.
+  const own=!provider;if(!provider) provider=createMediaProvider({skipLoginCheck:true});
   try{
     const catalog=await provider.speechVoiceCatalog(signal);
     insist(catalog.voices.some(v=>v.id===input.voice),'音色不属于当前配置的引擎','VOICE_NOT_FOUND');

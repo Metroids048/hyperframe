@@ -48,7 +48,7 @@ function imageDownloadUrls(candidate){
 const intentSchema={type:'object',additionalProperties:false,properties:{needed:{type:'boolean'},query:{type:'string'},reason:{type:'string'}},required:['needed','query','reason']};
 export async function externalReplacementIntent(message,{targets=[],assets=[],signal,cacheRoot,onInvocation,provider}={}){
   if(!targets.some(target=>['visual','timeline'].includes(target.kind)))return {needed:false,query:'',reason:'没有视觉替换目标'};
-  const own=!provider;provider??=new CodexProvider({cacheRoot,onInvocation});
+  const own=!provider;if(!provider) provider=createStructuredProvider({cacheRoot,onInvocation}).provider;
   try{
     const answer=await provider.structured('判断用户是否明确要求把现有视频或图片中的商品/物体替换成另一种、而工程现有素材不包含目标对象。只有这种视觉替换才needed=true；改标题、颜色、布局、字幕、声音、时长都必须false。needed=true时给出适合公共图片库检索的简短英文名词，包含对象形态，例如 protein powder container product photo，不要品牌。不要把搜索结果当成原物体的像素级修复；它只是新的可追溯视觉素材。',[{role:'user',content:JSON.stringify({message,targets,assets:assets.map(asset=>({id:asset.id,name:asset.name,kind:asset.kind}))})}],intentSchema,signal);
     return answer.result;
@@ -103,3 +103,4 @@ export async function downloadCommonsImage(candidate,{root,projectDirectory,sign
     sha256:createHash('sha256').update(bytes).digest('hex'),rights:{status:'source-review',sourceUrl:candidate.sourceUrl,license:candidate.license,artist:candidate.artist},externalSource:{provider:'wikimedia-commons',query:candidate.query||null,title:candidate.title,sourceUrl:candidate.sourceUrl,license:candidate.license,artist:candidate.artist,downloadUrl:candidate.url,description:candidate.description},
   };
 }
+import {createStructuredProvider} from '../openclaw/provider-selection.mjs';

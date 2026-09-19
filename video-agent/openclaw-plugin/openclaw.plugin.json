@@ -1,0 +1,50 @@
+{
+  "id": "commerce-engine",
+  "name": "Commerce Engine",
+  "description": "Controlled tools for the existing video-agent commerce service.",
+  "kind": "tool",
+  "activation": {
+    "onStartup": true
+  },
+  "enabledByDefault": false,
+  "configSchema": {
+    "type": "object",
+    "required": [
+      "bridgeUrl",
+      "bridgeTokenEnv",
+      "workspaceId"
+    ],
+    "properties": {
+      "bridgeUrl": {
+        "type": "string",
+        "pattern": "^https?://[^\\s]+$"
+      },
+      "bridgeTokenEnv": {
+        "type": "string",
+        "pattern": "^[A-Z][A-Z0-9_]{2,80}$"
+      },
+      "workspaceId": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 200
+      }
+    }
+  },
+  "version": "0.1.0",
+  "contracts": {
+    "tools": [
+      "commerce_project_list",
+      "commerce_project_get",
+      "commerce_resource_search",
+      "commerce_plan_validate",
+      "commerce_create_video",
+      "commerce_edit_video",
+      "commerce_generate_asset",
+      "commerce_job_get",
+      "commerce_job_control",
+      "commerce_revision_control",
+      "commerce_export",
+      "commerce_artifact_list"
+    ]
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "date": "2026-09-19",
+  "openclawVersion": "2026.6.11",
+  "scope": "real OpenClaw SDK plugin wrapper to isolated local video-agent bridge",
+  "pluginId": "commerce-engine",
+  "tool": "commerce_resource_search",
+  "executeSignature": "execute(toolCallId, params, signal)",
+  "result": {
+    "ok": true,
+    "status": "ok",
+    "resourceRootCount": 2,
+    "videos": 89,
+    "images": 37,
+    "projectId": null,
+    "operationId": null
+  },
+  "schemaContract": {
+    "toolCount": 11,
+    "perToolSchemas": true,
+    "additionalProperties": false,
+    "writeToolsRequire": [
+      "projectId",
+      "baseRevisionId",
+      "operationId",
+      "requestedChanges",
+      "keep",
+      "authorizationId"
+    ],
+    "realSdkRegistration": "pass"
+  },
+  "sessionContract": {
+    "toolFactory": true,
+    "trustedSource": "OpenClaw toolContext.sessionKey",
+    "missingSession": "blocked",
+    "serverPersistence": "sha256 session key only",
+    "projectBinding": "first valid project, then immutable for the session"
+  },
+  "pluginValidation": {
+    "command": "openclaw plugins validate --root /tmp/openclaw-plugin-e2e --entry index.mjs",
+    "status": "pass",
+    "output": "Plugin commerce-engine is valid.",
+    "environmentWarnings": [
+      "isolated package copy lacks generated setup modules for bundled imessage and telegram channels"
+    ]
+  },
+  "isolation": {
+    "bridgeUrl": "http://127.0.0.1:39881",
+    "temporaryDataDirectory": "/tmp/video-agent-openclaw-e2e-data",
+    "serverStoppedAfterProbe": true,
+    "writeSideEffects": false,
+    "modelCalls": 0,
+    "mediaJobs": 0,
+    "paidCalls": 0
+  },
+  "limitations": [
+    "This proves the real SDK wrapper, trusted context, bearer bridge and read-only facade path.",
+    "It does not prove a real OpenClaw WebUI/browser session or a stage model request."
+  ]
+}

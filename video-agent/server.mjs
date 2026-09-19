@@ -17,11 +17,21 @@ import {buildCommerceProject,patchCommerceProject,renderCommerceProject} from '.
 import {createCreativeService,creativeRoutes} from './lib/creative/service.mjs';
 import {CreativeError} from './lib/creative/contracts.mjs';
 import {MiniMaxError} from './lib/edit/adapters/minimax-client.mjs';
+import {createCommerceEngineFacade} from './lib/openclaw/commerce-engine-facade.mjs';
+import {acquireDirectoryLeases} from './lib/openclaw/directory-lease.mjs';
+import {createOpenClawSessionBindings} from './lib/openclaw/session-bindings.mjs';
+import {createOpenClawExecutionAuthorizations} from './lib/openclaw/execution-authorizations.mjs';
+import {createCommerceAgentBridge} from './lib/openclaw/commerce-agent-bridge.mjs';
 
-const PORT=Number(process.env.VIDEO_AGENT_PORT||3020),DATA=path.resolve(process.env.VIDEO_AGENT_DATA_DIR||path.join(ROOT,'data/projects')),WEB=path.join(ROOT,'web-dist');
+const PORT=Number(process.env.VIDEO_AGENT_PORT||3020),DATA=path.resolve(process.env.VIDEO_AGENT_DATA_DIR||path.join(ROOT,'data/projects')),EDIT_DATA=path.resolve(process.env.VIDEO_AGENT_EDIT_DATA_DIR||path.join(ROOT,'data/edit-projects')),CREATIVE_DATA=path.resolve(process.env.VIDEO_AGENT_CREATIVE_DATA_DIR||path.join(ROOT,'data/commerce-runs')),OPENCLAW_JOURNAL=path.resolve(process.env.OPENCLAW_JOURNAL_PATH||path.join(ROOT,'data','openclaw-bridge','operations.json')),OPENCLAW_SESSIONS=path.resolve(process.env.OPENCLAW_SESSION_BINDINGS_PATH||path.join(ROOT,'data','openclaw-bridge','sessions.json')),OPENCLAW_AUTHORIZATIONS=path.resolve(process.env.OPENCLAW_AUTHORIZATIONS_PATH||path.join(ROOT,'data','openclaw-bridge','authorizations.json')),WEB=path.join(ROOT,'web-dist');
 const workspaceId=createHash('sha256').update(process.platform==='win32'?ROOT.replaceAll('\\','/').toLowerCase():ROOT).digest('hex');
-const editor=await createEditService();
-const creative=await createCreativeService();
+const writerLeases=await acquireDirectoryLeases([DATA,EDIT_DATA,CREATIVE_DATA,path.dirname(OPENCLAW_JOURNAL),path.dirname(OPENCLAW_SESSIONS),path.dirname(OPENCLAW_AUTHORIZATIONS)],{owner:'video-agent-server'});
+const editor=await createEditService({dataDir:EDIT_DATA});
+const creative=await createCreativeService({dataDir:CREATIVE_DATA});
+const openclawAuthorizations=createOpenClawExecutionAuthorizations({file:OPENCLAW_AUTHORIZATIONS});
+const commerceEngine=createCommerceEngineFacade(creative,{journalPath:OPENCLAW_JOURNAL,authorizeWrite:request=>openclawAuthorizations.validateAndBind(request)});
+const openclawSessions=createOpenClawSessionBindings({file:OPENCLAW_SESSIONS,workspaceId});
+const commerceAgentBridge=createCommerceAgentBridge({workspaceId,legacyDispatch:creative.dispatchMessage,projectView:creative.view,authorizationStore:openclawAuthorizations,operationJournal:commerceEngine.getJournal,recordControlResult:creative.recordControlResult});
 const projects=new Map(),writes=new Map();let active=null,studioProject=null,studioBusy=false,accepting=true;
 await fs.mkdir(DATA,{recursive:true});
 async function save(p){const snapshot=JSON.stringify(p,null,2),file=path.join(DATA,p.id,'project.json');const task=(writes.get(p.id)||Promise.resolve()).catch(()=>{}).then(async()=>{await fs.writeFile(file+'.tmp',snapshot);await fs.rename(file+'.tmp',file);});writes.set(p.id,task);await task;}
@@ -45,6 +55,18 @@ async function jsonBody(req,max,label){
  try{input=JSON.parse(bytes.toString());}catch{throw new InputError(label+'格式不正确');}
  if(!input||typeof input!=='object'||Array.isArray(input))throw new InputError(label+'格式不正确');
  return input;
+}
+async function openclawToolRoute(req,res){
+ const configured=process.env.OPENCLAW_BRIDGE_TOKEN;
+ const authorization=String(req.headers.authorization||'');
+ if(!configured||authorization!==('Bearer '+configured))throw new InputError('OpenClaw bridge authorization required',401);
+ const input=await jsonBody(req,256000,'OpenClaw tool request');
+ if(!input.trustedContext||input.trustedContext.trusted!==true)throw new InputError('Trusted tool context required',403);
+ if(input.trustedContext.workspaceId!==workspaceId)throw new InputError('Workspace scope mismatch',403);
+ if(input.input?.projectId!=null)creative.get(input.input.projectId);
+ const trustedContext=await openclawSessions.bind(input.trustedContext,input.input?.projectId);
+ const result=await commerceEngine.invoke(input.tool,input.input||{},trustedContext);
+ return json(res,{ok:true,result});
 }
 async function createProject(req){
  const type=req.headers['content-type']||'';if(!type.startsWith('multipart/form-data;'))throw new InputError('请使用表单上传');
@@ -93,9 +115,10 @@ const server=http.createServer(async(req,res)=>{
   const allowed=[`127.0.0.1:${PORT}`,`localhost:${PORT}`];if(!allowed.includes(req.headers.host))throw new InputError('无效的本地访问地址',403);
   const origin=req.headers.origin;if(origin&&!allowed.some(h=>origin===`http://${h}`))throw new InputError('此操作只允许在本地制作页面发起',403);
   const url=new URL(req.url,`http://127.0.0.1:${PORT}`),route=url.pathname;
+  if(req.method==='POST'&&route==='/api/openclaw/tools')return await openclawToolRoute(req,res);
   if(await deliveryRoutes(ROOT,req,res,url,{file,json,creative}))return;
   if(await editRoutes(editor,req,res,url,{json,jsonBody,file}))return;
-  if(await creativeRoutes(creative,req,res,url,{json,jsonBody,file}))return;
+  if(await creativeRoutes(creative,req,res,url,{json,jsonBody,file,dispatchMessage:commerceAgentBridge.dispatchMessage}))return;
   // Native commerce projects use the same editable document/runner as the
   // CLI, exposed here through a small allow-listed bridge for the chat UI and
   // agent tools. Paths and file names never come from an arbitrary URL.
@@ -135,7 +158,7 @@ const server=http.createServer(async(req,res)=>{
    return await file(req,res,servedPath,type,kind==='video'?`candidate-${commerceFile[1]}.mp4`:null);
   }
   if(['GET','HEAD'].includes(req.method)&&route==='/editor-player.js')return await file(req,res,path.join(ROOT,'node_modules/hyperframes/dist/hyperframes-player.global.js'),'text/javascript; charset=utf-8');
-  if(req.method==='GET'&&route==='/api/health')return json(res,{ok:true,version:'0.7.0-conversation',workspaceId,workbench:'commerce',activeProjectId:active,studioProjectId:studioProject});
+  if(req.method==='GET'&&route==='/api/health')return json(res,{ok:true,version:'0.7.0-conversation',workspaceId,workbench:'commerce',agentRuntime:commerceAgentBridge.mode,activeProjectId:active,studioProjectId:studioProject});
   if(req.method==='POST'&&route==='/api/optimize'){const input=await jsonBody(req,16000,'需求描述');if(input.mode==='live'&&process.env.VIDEO_AGENT_LIVE_CODEX!=='1')throw new InputError('实时 Codex 当前未启用：上次模型连接超时。请使用演示整理，或手动补充；输入已保留。',503);return json(res,input.mode==='live'?await optimizePrompt(input.text):demoOptimize(input.text));}
   if(req.method==='GET'&&route==='/api/cases')return json(res,await Promise.all(cases.map(async c=>({...c,ready:await fs.access(path.join(ROOT,'showcase',c.id,'media.json')).then(()=>true).catch(()=>false),imageUrl:`/cases/${c.id}/image`,videoUrl:`/cases/${c.id}/video`}))));
   const ce=/^\/api\/cases\/([a-z]+)\/edit$/.exec(route);
@@ -174,11 +197,10 @@ const server=http.createServer(async(req,res)=>{
   const assets={'/creative-studio':['creative-studio.html','text/html; charset=utf-8'],'/creative-v2':['creative-v2.html','text/html; charset=utf-8'],'/creative-v2/text-demo/final.mp4':['../examples/creative-v2/text-demo/output/final.mp4','video/mp4'],'/creative-v2/image-demo/final.mp4':['../examples/creative-v2/image-demo/output/final.mp4','video/mp4'],'/creative-v2/video-demo/final.mp4':['../examples/creative-v2/video-demo/output/final.mp4','video/mp4'],'/creative-v2/mixed-demo/final.mp4':['../examples/creative-v2/mixed-demo/output/final.mp4','video/mp4'],'/':['commerce.html','text/html; charset=utf-8'],'/edit':['editor.html','text/html; charset=utf-8'],'/create':['index.html','text/html; charset=utf-8'],'/commerce':['commerce.html','text/html; charset=utf-8'],'/editor.js':['editor.js','text/javascript; charset=utf-8'],'/editor.css':['editor.css','text/css; charset=utf-8'],'/app.js':['app.js','text/javascript; charset=utf-8'],'/commerce.js':['commerce.js','text/javascript; charset=utf-8'],'/commerce.css':['commerce.css','text/css; charset=utf-8'],'/style.css':['style.css','text/css; charset=utf-8']};
   if(['GET','HEAD'].includes(req.method)&&assets[route])return await file(req,res,path.join(WEB,assets[route][0]),assets[route][1]);
   throw new InputError('找不到这个页面',404);
- }catch(e){if(res.headersSent){res.destroy();return;}const expected=e instanceof InputError||e instanceof EditError||e instanceof CreativeError||e instanceof MiniMaxError;if(!expected)console.error(e);json(res,{ok:false,error:expected?e.message:'操作暂时无法完成，请重试；详情已记录在本地日志。',code:e.code},e.status||500);}
+ }catch(e){if(res.headersSent){res.destroy();return;}const expected=e instanceof InputError||e instanceof EditError||e instanceof CreativeError||e instanceof MiniMaxError||typeof e?.code==='string'&&(e.code.startsWith('OPENCLAW_')||['UNTRUSTED_TOOL_CONTEXT','PROJECT_SCOPE_FORBIDDEN','REVISION_CONFLICT','IDEMPOTENCY_CONFLICT','OPERATION_UNKNOWN','OPERATION_PREVIOUSLY_FAILED','SHADOW_WRITE_BLOCKED','TOOL_NOT_REGISTERED','SCHEMA_INVALID','SERVICE_REQUIRED','RUNTIME_MODE_INVALID'].includes(e.code));if(!expected)console.error(e);json(res,{ok:false,error:expected?e.message:'操作暂时无法完成，请重试；详情已记录在本地日志。',code:e.code},e.status||500);}
 });
 server.listen(PORT,'127.0.0.1',()=>console.log(`对话视频剪辑 http://127.0.0.1:${PORT}`));
-server.on('error',e=>{console.error(e.message);process.exit(1);});
+server.on('error',e=>{console.error(e.message);void writerLeases.release().finally(()=>process.exit(1));});
 let closing=false;
-async function shutdown(){if(closing)return;closing=true;accepting=false;server.close();server.closeAllConnections?.();await editor.close();await Promise.allSettled([...writes.values()]);process.exit(0);}
+async function shutdown(){if(closing)return;closing=true;accepting=false;server.close();server.closeAllConnections?.();await editor.close();await creative.close?.();await Promise.allSettled([...writes.values()]);await writerLeases.release();process.exit(0);}
 process.on('SIGINT',()=>void shutdown());process.on('SIGTERM',()=>void shutdown());
-

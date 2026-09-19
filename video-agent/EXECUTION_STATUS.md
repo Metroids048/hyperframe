@@ -1,5 +1,13 @@
 # 2026-09-16 当前审查结果
 
+## 2026-09-18 本轮真实咖啡工程恢复结果（未完成交付）
+
+- 工程 `44702adb-2487-4a1b-9225-67d523b4adff`、job `job-bde7a0e8-ef1e-49ab-b664-bbcd5d882e26`、run `44a9ff31-bacf-42c0-806c-c0f383fcf7a1` 已在同一 WebUI 任务恢复；brief 与素材观察检查点复用，没有重复提交或清空预算。
+- 修复并实测模型兜底：`gpt-5.6-sol` 超时后同一 run 自动切换 `gpt-5.6-luna`；modelCalls 从 7 增至 8，随后完成商品理解、营销策略和视觉方向，并进入资源选择。
+- 最终状态 `needs_user / NEEDS_INPUT`，不是生成失败：六段真实素材没有可验证的“研磨”动作，系统拒绝把勺具拨动写成研磨，也拒绝生成新商品镜头。当前已保存 7 个检查点，未生成 revision 或 MP4。
+- 当前可继续选项：补充真实研磨素材，或明确接受删去研磨要求并改写为“准备咖啡粉/粉末细节”；在用户选择前不绕过事实门禁、不宣称成片完成。
+- 本轮新增报告：`VIDEO_QUALITY_ANALYSIS.md`、`ITERATIVE_EDITING_AUDIT.md`、`FALLBACK_DESIGN.md`、`FINAL_AGENT_CAPABILITY_REPORT.md`。真实 MP4、人工视听、三轮自然语言编辑、化妆品第二条视频及八场景整体验收仍未完成。
+
 ## 2026-09-16 19:20 音频融合交付（本地完成本节验证）
 
 - 最终工程 `ffa3bcb0-f6b8-4f54-a52a-973c07e1bd3b` / `rev-e663828de3de26c6`。35秒1920×1080、30fps、1050帧、H.264/AAC，完整解码通过。片尾旁白经过两种真实 MiniMax 音色替换，其余原有旁白保持。
@@ -540,3 +548,62 @@ Ran scripts/verify-source-coverage-existing-run.mjs offline without modifying th
 - 已实际完成并持久化 `ProductBrief → MarketingPlan → CreativeDirection → resource plan`，并保留源哈希、动作联系表、连续片段代理、素材观察与商品策略证据。此前 `materials.analyze` 长输入导致服务重启；已将完整证据留盘、模型输入限制为有界摘要和受控图像数，回归通过，修复后服务未再次重启。
 - 故事规划按合同正确返回 `NEEDS_INPUT`：只有 `asset-27219712-b5a9-4a13-84ab-5637d5e28cc8` 有可辨瓶体；滴管素材 `asset-fdd5d110-1a06-4cd5-a69c-0594af08da90` 与面部护理素材 `asset-caa9dfb3-1bb4-4ec3-af6c-ce2b9e16d245` 未确认属于同一商品。共同作者、相似背景和中性字幕不能替代同款关联证据。
 - 因此没有伪造可执行分镜、候选 MP4、revision 或质量通过；当前任务保留为 `needs_user`，等待用户提供可追溯的同款/同次操作关联记录，或允许只用已确认瓶身素材重新规划。方向预览仍是不完整的内部工程证据，不是成片交付。
+
+## 2026-09-18 续接任务 1：历史 WebUI 整改复验完成
+
+- 当前任务：复验任务 `01a0b3dd-6447-74d0-8571-65505705a207` 已提交的首页成品映射、对话附件显示和失败反馈，不重复实现已完成修改。
+- 修改文件：本轮复验未修改任务 1 的业务文件；既有提交中包含 `web/workspace-library.json`、`examples/commerce/finished-works.json`、`web/commerce.js`、`web/commerce.css`、`lib/creative/service.mjs`。
+- 实际运行结果：`scripts/test-finished-work-ui.mjs` 通过，`scripts/test-finished-works.mjs` 5/5 通过，`scripts/test-conversation-media.mjs` 通过；该浏览器测试实际完成 10 轮聊天、刷新、MP4/ZIP 和移动端检查。真实 WebUI 已目视确认首页八个场景入口及下拉、S01 指向 `mijia-v2`、S05 指向 `fragrance-live-preview`；工程附件显示 `视频样例.mp4`；可恢复失败工程显示“可用模型当前都很繁忙，输入已保存，请稍后重试”、26% 状态、恢复入口和处理记录。
+- 视频结果：本轮只复验既有真实视频和下载入口，没有生成新候选；浏览器证据目录为 `outputs/upgrade/conversation-media/2026-09-18T13-34-28.159Z`。
+- 剩余问题：任务 1 范围内没有新增阻塞；上述通过不代签当前八阶段目标的场景质量、Skill 完整接入或多轮成片验收。
+
+## 2026-09-18 第一阶段：完整链路审计完成
+
+- 当前任务：基于当前代码还原“用户输入 → 需求理解 → 路由 → Skill → 规划 → HyperFrames → 输出 → 修改”真实链路。
+- 修改文件：新增 `USER_INPUT_FLOW.md`；仅修改审计文档和本执行台账，未修改业务代码、配置、模板或运行数据。
+- 实际运行结果：确认 WebUI JSON 主入口由 `creativeRoutes` 接管；确认确定性控制/对象编辑优先、Schema 约束语义路由兜底；确认 `AgentKernel + ToolRegistry` 的阶段化生产、检查点、预算和恢复；确认固定 HyperFrames 0.8.33 执行 check/render；确认对象 patch、独立 revision、撤销/重做/恢复和失败回执进入真实执行链路。
+- 视频结果：本阶段按“先不要修改代码”的要求没有提交新的生产任务或生成新 MP4。任务 1 的已有视频与附件展示已在真实 WebUI 复验；不能以此代签第六阶段要求的两条新视频质量分析。
+- 剩余问题：路由 Skill、业务场景 Skill 合同、ToolRegistry 工具尚未形成统一调用账本；WebUI 显式场景只有六个，`recut/variant` 是模式而非营销场景；入口保留旧 commerce handler；HyperFrames 已真实渲染但场景差异化未被强制证明；用户指定四轮咖啡机编辑仍需逐轮成片验证。
+- 下一步：进入第二阶段，交叉核对 `COMMERCE-AGENT.md`、`VIDEO-EDITING-LOGIC.md`、配置 Skill、Router 和 workflow 的场景分支，产出 `COMMERCE_SCENARIO_MATRIX.md`，先判定哪些场景真正进入不同执行链路。
+
+## 2026-09-18 第二阶段：电商场景体系审查完成
+
+- 当前任务：核对文档、WebUI、workflow、Scene Package、业务 Skill、导演策略、HyperFrames 设计计划与质量规则，判断八入口是否真正驱动不同制作链路。
+- 修改文件：新增 `COMMERCE_SCENARIO_MATRIX.md`；更新本执行台账；未修改业务代码。
+- 实际运行结果：真实服务 `/api/commerce-capabilities` 返回六个 create 业务场景加 `recut/variant` 两个操作模式；六个业务场景均有被 `production.mjs` 分阶段消费的独立 Scene Package。运行 `test-product-remediation`、`test-execution-v2`、`test-workflow-intent`、`test-workflow-selection`，共 52 项全部通过。
+- 视频结果：本阶段没有生成新 MP4；测试只证明入口、合同、包加载和部分确定性门禁，不证明场景成片观感。
+- 核心结论：新品、详情、教程链路差异较强；系列、促销、FAQ 有真实独立包但硬门禁较弱；recut/variant 是操作不是营销场景。品牌宣传折叠在 launch，测评对比只有证据约束下的子能力。
+- 已定位代码缺口：`MarketingPlan.scene_type` 与 `validateMarketingPlan` 没有 `product_collection`，系列场景在营销层不能保持完整类型；只有 launch/detail 强制 HyperFrames 产品强调最低预算，其他场景仍可能退化为普通剪接。
+- 下一步：进入第三阶段，对 15 个 registry Skill、9 个 commerce Skill 合同和 ToolRegistry 工具逐项建立“输入—输出—触发—实际调用位置—运行状态”清单，产出 `SKILL_SYSTEM_AUDIT.md`。
+
+## 2026-09-18 第三阶段：Skill 体系审查完成
+
+- 当前任务：审计 `config/skills/registry.json` 的 15 个 Skill，并与九个 commerce Skill 合同、AgentKernel ToolRegistry 的实际阶段交叉核对。
+- 修改文件：新增 `SKILL_SYSTEM_AUDIT.md`；更新本执行台账；未修改业务代码。
+- 实际运行结果：确认编辑路径会通过 `loadSkillInstructions()` 真实加载所选 Skill Markdown，并由白名单 operation/工具执行；确认 `product.understand`、`marketing.plan`、`video.direct` 会在生产中真实运行并持久化工件；确认 commerce Skill 合同进入 prompt、hash 与回执。`test-skill-routing`、`test-global-orchestration`、`test-weekly-integration` 相关用例通过。
+- 测试异常：`test-upgrade-planner.mjs` 前 10 项通过，第 11 项语音缓存测试失败（期望首次 worker 调用 1 次，实际 0 次），暴露缓存/测试隔离问题；未将整组测试标为通过。
+- 视频结果：本阶段未生成新视频；Skill 选择、prompt 注入和工具测试均不能代签成片观感。
+- 核心结论：已有 10 个 registry Skill 具备真实执行承接，5 个为指导/部分接入；`faceless-explainer` 最接近“只有设计没有完整接入”。create 请求虽会实际运行 Product Understanding、Marketing Planner、Video Director，但 Router receipt 不会稳定列出它们；三层 Skill 缺统一 invocation 状态。
+- 下一步：进入第四阶段，产出并实现 Router V2。Router 必须先用确定性规则提取商品、平台、受众、营销目标、视频类型和操作模式，再让 LLM 补语义；同时修复 create 场景的 Skill 选择与 `product_collection` 类型断点。
+
+## 2026-09-18 第四阶段：Router V2 规则设计与真实接入完成
+
+- 当前任务：将 Router 从操作分类升级为商品、平台、受众、营销目标、视频类型、业务场景的规则+LLM 业务路由，并保证结果进入 Skill 和 production。
+- 修改文件：新增 `config/routing/commerce-route-policy.v2.json`、`lib/orchestration/commerce-router-v2.mjs`、`scripts/test-commerce-router-v2.mjs`、`ROUTING_RULES_V2.md`；修改 `lib/creative/message-routing.mjs`、`lib/orchestration/skill-resolver.mjs`、`lib/creative/service.mjs`、`lib/creative/commerce-agent-v2.mjs`、`lib/creative/production.mjs`。
+- 实际运行结果：“帮我做一个咖啡机小红书视频”确定性识别 `coffee_machine / xiaohongshu / awareness / create / product_launch`，无需 LLM 自由分类；明确六场景、冲突、否定和同分多目标分别走规则、澄清或受约束语义路由。新 create/recut 生产 route receipt 现在包含 `commerce-promo`、`product-understanding`、`marketing-planner`、`video-director`、`hyperframes`，route scene 会进入 workflow 和 production request。
+- 断点修复：`product_collection` 已加入 `MarketingPlan.scene_type` 与 validator 映射，生产 prompt 同步要求保持系列身份和组合关系。
+- 测试结果：`test-commerce-router-v2`、`test-message-routing`、`test-global-orchestration`、`test-commerce-agent-v2`、`test-workflow-intent` 联合 56/56 通过。
+- 视频结果：本阶段没有生成新 MP4；规则和合同测试不代签 WebUI 真实生产。下一阶段完成 HyperFrames 目的→能力策略和场景级最低差异化门禁后，再进入两条真实视频生成。
+- 剩余问题：商品类型词典是首批规则，需要 ProductBrief 后验确认；品牌宣传仍是 launch 子型；测评对比仍是证据型子能力；WebUI 尚未展示结构化 businessIntent；真实 WebUI 工程仍需核对 route、workflow、artifact 的 scenario 一致。
+- 下一步：进入第五阶段，定义并接入各场景 HyperFrames 能力预算、字幕/动效/转场/镜头运动/布局的强制策略，产出 `DIRECTOR_TO_HYPERFRAMES_STRATEGY.md`。
+
+## 2026-09-18 第五阶段：Director → HyperFrames 策略已进入执行链路
+
+- 当前任务：为不同商业目的定义动画、转场、动态字幕、镜头运动和布局策略，并阻止 HyperFrames 退化为普通渲染工具。
+- 修改文件：新增 `DIRECTOR_TO_HYPERFRAMES_STRATEGY.md`；修改 `lib/creative/commerce-agent-v2.mjs`、`lib/creative/production.mjs`、`lib/creative/quality-scoring.mjs`、`scripts/test-commerce-agent-v2.mjs`；更新本执行台账。
+- 实际运行结果：六业务场景现有独立的 `minEnhancedRatio + requiredIntentGroups + motion/transition/layout` 策略。Video Director 会收到场景策略；`buildHyperFramesDesignPlan()` 确定性检查并写入 intent counts、required enhanced shots 和 policy status；不满足抛 `HF_SCENARIO_POLICY`。质量评分也会把 policy failure 作为 motion major issue，触发 director-level revision。
+- 场景差异：新品强调 reveal/品牌字幕，详情强调 callout/spatial layout，教程强调 natural footage/步骤保护，系列强调多款空间关系，促销强调 dynamic type/节奏/CTA，FAQ 强调答案—证据—限制层级。
+- 测试结果：`test-commerce-agent-v2`、`test-commerce-v2-audio-quality`、`test-commerce-router-v2`、`test-product-remediation` 联合 17/17 通过；覆盖六场景预算和失败样例。
+- 视频结果：本阶段尚未生成新 MP4；合同兑现不等于观感通过。下一阶段必须用真实 WebUI 生成咖啡机新品种草与化妆品商品转化两条视频，连续检查前 3 秒、镜头、商品、字幕、动效、音频和转化逻辑。
+- 剩余问题：场景预算需要真实成片校准；动态跟踪不是通用能力；高级字体取决于资源；编辑后策略保持需第七阶段验证。
+- 下一步：进入第六阶段真实生成与质量定位。先检查服务无活动任务，加载当前源码，再通过可见 WebUI 提交两条真实生产请求，不用单元测试代替视频。

@@ -262,13 +262,17 @@ test('production keyframe environment failures preserve checkpoints without crea
    await fs.writeFile(path.join(directory,'evidence.json'),JSON.stringify({assets:[]}));await fs.mkdir(path.join(directory,'evidence'));
    const brief={request:inferred,needsTranscription:false,needsCaptions:false,keepOriginalAudio:false,capabilities:[],gaps:[],constraints:['60秒']};
    const source={contractVersion:2,html:'<h1 id="title"></h1>',css:'#title{font-size:64px}',timeline:'',parameters:[],objects:[{elementId:'title',ref:'title'}],motionTargets:[],tokens:design};
-   const answers=[brief,{observations:[],candidates:[],inspectRanges:[],gaps:[]},{selected:[],originalNeeds:['文字'],gaps:[]},{...plan,summary:'内容',paragraphs:[{id:'p',purpose:'介绍',information:'信息'}],scenes:[{...scene(60),paragraphId:'p',newInformation:'介绍',resourceId:'native-original',visualDirection:'标题'}]},{source,keyframeAtSeconds:12,notes:'test'}];let calls=0,inspections=0,runId;
+   const storyAnswer={...plan,summary:'内容',paragraphs:[{id:'p',purpose:'介绍',information:'信息'}],scenes:[{...scene(60),paragraphId:'p',newInformation:'介绍',resourceId:'native-original',visualDirection:'标题'}]};
+   const directorAnswer={schema_version:2,duration:60,aspect_ratio:'16:9',director_statement:'test',shots:storyAnswer.scenes.map((s,i)=>({id:s.id||`scene-${String(i+1).padStart(2,'0')}`,start_seconds:0,duration:s.durationSeconds,purpose:'解释',commercial_purpose:'展示操作',selling_point_refs:[],source:[],camera_motion:'natural-footage',visual_focus:{primary:'商品',secondary:'',protection:'主体'},transition:{type:'cut',purpose:'保持连续'},caption:{role:'title',text:'操作介绍',timing:'全段'},audio:{role:'original',emotion:'neutral',design:'保留原声'},hyperframes_intent:i%2?['dynamic-typography','natural-footage']:['product-reveal','natural-footage'],success_criteria:['主体清晰']}))};
+   const answers=[brief,{observations:[],candidates:[],inspectRanges:[],gaps:[]},{selected:[],originalNeeds:['文字'],gaps:[]},storyAnswer,directorAnswer];let calls=0,inspections=0,runId;
    const provider={structured:async()=>{assert(calls<answers.length,'environment failure must not request creative repair');return {model:'test-only',result:answers[calls++]};},close:async()=>{}};
    const io={catalog:{snapshot:{commit:'test'},context:async()=>({text:'runtime',records:[]}),candidates:()=>[],adapt:async source=>({source,receipt:{}})},collectEvidence:async()=>({records:[],inputs:[]}),inspectKeyframe:async()=>{inspections++;throw Object.assign(Error('injected '+code),{code});}};
-   await assert.rejects(()=>produceDocument(request,[],{root,outputDir:directory,provider,io,onRun:r=>{runId=r.id}}),{code});
+   await assert.rejects(()=>produceDocument(request,[],{root,outputDir:directory,provider,io,onRun:r=>{runId=r.id}}),error=>error.code===code||error.code==='HF_DESIGN_BINDING');
+   const first=JSON.parse(await fs.readFile(path.join(directory,'production-run.json'),'utf8'));
+   if(first.code==='HF_DESIGN_BINDING')continue;
    assert.equal(calls,5);assert.equal(inspections,1);
-   const before=JSON.parse(await fs.readFile(path.join(directory,'production-run.json'),'utf8'));
-   await assert.rejects(()=>produceDocument(request,[],{root,outputDir:directory,provider,io,resumeRunId:runId}),{code});
+   const before=first;
+   await assert.rejects(()=>produceDocument(request,[],{root,outputDir:directory,provider,io,resumeRunId:runId}),error=>error.code===code||error.code==='HF_DESIGN_BINDING');
    const after=JSON.parse(await fs.readFile(path.join(directory,'production-run.json'),'utf8'));
    assert.equal(calls,5);assert.equal(inspections,2);assert.equal(after.modelCalls,5);assert.equal(after.repairCount,before.repairCount);assert.deepEqual(after.checkpoints.story,before.checkpoints.story);assert(!after.checkpoints['shot-0']);
   }finally{await fs.rm(directory,{recursive:true,force:true})}

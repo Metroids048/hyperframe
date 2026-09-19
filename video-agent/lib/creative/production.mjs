@@ -46,8 +46,9 @@ import {brandFontResources} from './brand-fonts.mjs';
 import {productionFingerprint,verifyFingerprintMigration,legacyExplicitnessCompatibility} from './input-fingerprint.mjs';
 import {insist,FPS,MAX_SCENES} from './contracts.mjs';
 import {sourceWindowRecoveryTarget,replaceSourceWindow} from './quality-source-recovery.mjs';
-import {productBriefSchema,marketingPlanSchema,directorTimelineSchema,validateProductBrief,validateMarketingPlan,validateDirectorTimeline,directorTimelineSeed,buildHyperFramesDesignPlan,directorBinding} from './commerce-agent-v2.mjs';
+import {productBriefSchema,marketingPlanSchema,directorTimelineSchema,validateProductBrief,validateMarketingPlan,validateDirectorTimeline,directorTimelineSeed,buildHyperFramesDesignPlan,directorBinding,hyperframesScenarioPolicy} from './commerce-agent-v2.mjs';
 import {buildVoiceProfiles,audioRequirement,voiceCandidates} from './voice-matching.mjs';
+import {createStructuredProvider} from '../openclaw/provider-selection.mjs';
 
 const obj=properties=>({type:'object',additionalProperties:false,properties,required:Object.keys(properties)}),str={type:'string'},num={type:'number'},bool={type:'boolean'},list=items=>({type:'array',items});
 const briefSchema=obj({request:creationSchema.properties.inferredRequest,needsTranscription:bool,needsNarration:bool,needsCaptions:bool,keepOriginalAudio:bool,capabilities:list(str),gaps:list(str),constraints:list(str)});
@@ -89,7 +90,7 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
   const discovery=v3?await HyperFramesResourceCatalog.open(root):null;
   if(resumeRunId&&!v3&&request.commerceProfile==='commerce-focus-v1'){const contract=JSON.parse(await fs.readFile(path.join(outputDir,'business-contract.json'),'utf8'));insist(contract.originalRequest===request.message,'恢复合同已变化','CONTRACT_CHANGED');await assertProductionAdmission(root,contract,assets);currentContract=contract;}
   const catalog=io.catalog||await CapabilityCatalog.open(root),own=!provider;
-  provider??=new CodexProvider({cacheRoot:path.join(outputDir,'model-calls')});
+  if(!provider) provider=createStructuredProvider({cacheRoot:path.join(outputDir,'model-calls')}).provider;
   const store=new AgentRunStore(path.join(outputDir,'runs'));
   const implementation=loadedImplementation;
   const implementationHash=resourceHash(implementation);await fs.mkdir(path.join(outputDir,'implementations'),{recursive:true});await fs.writeFile(path.join(outputDir,'implementations',implementationHash+'.json'),JSON.stringify(implementation,null,2));
@@ -134,7 +135,7 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
     const input=[{role:'user',content:[{type:'input_text',text:JSON.stringify(data)},...images]}];
     const callNo=ctx.run.modelCalls+1,receipt={inputTextBytes:Buffer.byteLength(JSON.stringify(data)),imageBytes:images.reduce((n,i)=>n+(i.image_url?.length||0),0),guidanceBytes:Buffer.byteLength(guidance.text+extra),stage,workflowBinding:data.workflowBinding,context:guidance.records,inputHash:resourceHash(data),imageEvidence:selectEvidenceInputs(images,Infinity).inputs.map(i=>i.type==='input_text'?{label:i.text}:{imageHash:resourceHash(i.image_url)}),imageHashes:images.filter(i=>i.type==='input_image').map(i=>resourceHash(i.image_url)),implementationHash,resources,sceneRules,auxiliarySceneRules,startedAt:new Date().toISOString()};
     try{
-      if(!(provider instanceof CodexProvider)){counted=true;await ctx.recordModelCall({stage,provider:'injected-test-provider'});}
+      if(!(provider instanceof CodexProvider)&&!provider.recordsInvocations){counted=true;await ctx.recordModelCall({stage,provider:'injected-test-provider'});}
       const answer=await provider.structured(guidance.text+'\n'+extra,input,schema,signal);
       await fs.mkdir(path.dirname(cacheFile),{recursive:true});await fs.writeFile(cacheFile,JSON.stringify({result:answer.result,outputHash:resourceHash(answer.result),context:guidance.records}));
       Object.assign(receipt,{status:'completed',model:answer.model,usage:answer.usage??null,reasoningEffort:answer.reasoningEffort||provider.reasoningEffort||null,outputHash:resourceHash(answer.result)});return answer.result;
@@ -221,13 +222,15 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
         const result=batch.result||batch;
         return {...batch,result:{...result,records:(result.records||[]).slice(0,48),clips:(result.clips||[]).slice(0,8)}};
       });
-      material=canonicalizeSingleAssetReferences(await ask(ctx,'MA',{message:request.message,observations:result(ctx.run,'observe'),evidence:ev.selection,assets:assets.map(a=>({id:a.id,kind:a.kind,metadata:a.mediaMetadata})),attempt,priorMaterial:material||ctx.run.artifacts.priorActionMaterial||null,validationError:lastError?.message,actionInspections:boundedActionInspections},materialSchema,{images,extra:'从已观察证据建立真实商品素材库。facts每条有assetId和源秒数证据；hero/usage/detail/supporting是有理由的候选源区间。每个候选记录subject主体、action实际动作、clarity清晰度、composition构图、duplicateContent重复信息、originalAudio原声证据和observationLimit观察局限；没有观察或试听就明确未知，不能把推断填作测量。不要把素材文件名当证据。演示必须列完整动作依赖、初始和完成状态、归一化[x,y,width,height]保护区域。没有动作的上新actions可为空。未知事实列unsupportedClaims；不要编造操作。提供4Hz动作接触表时，按真实时间标签建立可见动作、初始状态和最终状态；保护区不确定可使用覆盖手与商品的保守合法区域。若有priorMaterial，保持其必要动作ID、依赖及必要性；新证据用于校正实际动作边界，不能为凑目标时长缩短动作或删除步骤。宽候选窗口不等于全段必要动作；仅按新图片时间标签修正，不能把未观察部分断言为等待。'}),assets);
+      material=canonicalizeSingleAssetReferences(await ask(ctx,'MA',{message:request.message,observations:result(ctx.run,'observe'),evidence:ev.selection,assets:assets.map(a=>({id:a.id,kind:a.kind,metadata:a.mediaMetadata})),attempt,priorMaterial:material||ctx.run.artifacts.priorActionMaterial||null,validationError:lastError?.message,actionInspections:boundedActionInspections},materialSchema,{images,extra:'从已观察证据建立真实商品素材库。facts每条有assetId和源秒数证据；hero/usage/detail/supporting是有理由的候选源区间。每个候选记录subject主体、action实际动作、clarity清晰度、composition构图、duplicateContent重复信息、originalAudio原声证据和observationLimit观察局限；没有观察或试听就明确未知，不能把推断填作测量。不要把素材文件名当证据。actions只记录源素材中实际观察到的必要动作，不是拟议分镜或成片时间轴；每个action及其evidence的startSeconds/endSeconds都必须是对应assetId内部的源秒数，且不得超过assets中该素材metadata.duration。演示必须列完整动作依赖、初始和完成状态、归一化[x,y,width,height]保护区域。没有动作的上新actions可为空。未知事实列unsupportedClaims；不要编造操作。提供4Hz动作接触表时，按真实时间标签建立可见动作、初始状态和最终状态；保护区不确定可使用覆盖手与商品的保守合法区域。若有priorMaterial，保持其必要动作ID、依赖及必要性；新证据用于校正实际动作边界，不能为凑目标时长缩短动作或删除步骤。宽候选窗口不等于全段必要动作；仅按新图片时间标签修正，不能把未观察部分断言为等待。'}),assets);
       try{validateMaterial(material,assets,{demo});for(const prior of ctx.run.artifacts.priorActionMaterial?.actions||[]){if(prior.importance!=='necessary')continue;const next=material.actions.find(a=>a.id===prior.id);insist(next&&next.importance==='necessary'&&next.assetId===prior.assetId&&prior.dependsOn.every(id=>next.dependsOn.includes(id)),'新增观察不能删除必要动作或其依赖：'+prior.id,'ACTION_OBLIGATION_CHANGED');}break;}catch(error){
         lastError=error;await saveJSON('failed-material-'+attempt+'.json',{material,error:{code:error.code,message:error.message}});
-        if(!demo||error.code!=='ACTION_EVIDENCE'||attempt)throw error;
-        const video=assets.find(a=>a.kind==='video'),duration=video?.mediaMetadata.duration||0,candidates=result(ctx.run,'observe').candidates.filter(c=>c.assetId===video?.id);
-        const windows=(candidates.length?candidates:[{assetId:video?.id,startSeconds:0,endSeconds:duration}]).slice(0,3).map((r,i,all)=>{const span=Math.min(12,r.endSeconds-r.startSeconds),start=i===0?r.startSeconds:i===all.length-1?r.endSeconds-span:r.startSeconds+(r.endSeconds-r.startSeconds-span)/2;return {assetId:video.id,startSeconds:Math.max(0,start),endSeconds:Math.min(duration,start+span),reason:i===0?'确认操作开始与第一步':i===all.length-1?'确认完成结果与收尾':'确认中段必要动作与依赖'};});
-        await onStage?.('密集检查操作开始、步骤与完成状态');await inspectWithBudget(windows,ctx,true);
+        if(attempt)throw error;
+        if(demo&&error.code==='ACTION_EVIDENCE'){
+          const video=assets.find(a=>a.kind==='video'),duration=video?.mediaMetadata.duration||0,candidates=result(ctx.run,'observe').candidates.filter(c=>c.assetId===video?.id);
+          const windows=(candidates.length?candidates:[{assetId:video?.id,startSeconds:0,endSeconds:duration}]).slice(0,3).map((r,i,all)=>{const span=Math.min(12,r.endSeconds-r.startSeconds),start=i===0?r.startSeconds:i===all.length-1?r.endSeconds-span:r.startSeconds+(r.endSeconds-r.startSeconds-span)/2;return {assetId:video.id,startSeconds:Math.max(0,start),endSeconds:Math.min(duration,start+span),reason:i===0?'确认操作开始与第一步':i===all.length-1?'确认完成结果与收尾':'确认中段必要动作与依赖'};});
+          await onStage?.('密集检查操作开始、步骤与完成状态');await inspectWithBudget(windows,ctx,true);
+        }else if(!['MATERIAL_EVIDENCE','ACTION_REGION','ACTION_ORDER'].includes(error.code))throw error;
       }
     }
     await saveJSON('material-analysis.json',material);
@@ -242,7 +245,7 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
   });
   registry.register('marketing.plan',async(_,ctx)=>{
     const product=result(ctx.run,'product');
-    const plan=await ask(ctx,'MP',{message:request.message,scenarioId:currentContract?.scenarioId,platform:request.platform||currentContract?.platform||null,output:result(ctx.run,'brief').request.output,productBrief:product,material:result(ctx.run,'material'),availableBusinessTemplates:scenePackage.templates.businessTemplates},marketingPlanSchema,{extra:'你是电商营销策略规划器，不写HTML、不选择具体组件。scene_type必须与当前scenarioId一致：product_demo或product_howto对应product_tutorial。先确定受众、商业目标和前三秒，再组织故事、镜头、字幕、音乐、转场与CTA策略。每个story_structure段落说明商业目的并只引用ProductBrief中真实selling_points.id和已有证据ref；没有可信CTA原文时用中性的“进一步了解”或“查看详情”，不得编造价格或优惠。rationale逐条解释为什么该策略适合商品、受众、平台和素材，不能只复述字段。新品种草突出Hook、生活场景、产品、卖点、体验、购买理由；详情转化突出痛点、产品、卖点、细节、使用、CTA。'});
+    const plan=await ask(ctx,'MP',{message:request.message,scenarioId:currentContract?.scenarioId,platform:request.platform||currentContract?.platform||null,output:result(ctx.run,'brief').request.output,productBrief:product,material:result(ctx.run,'material'),availableBusinessTemplates:scenePackage.templates.businessTemplates},marketingPlanSchema,{extra:'你是电商营销策略规划器，不写HTML、不选择具体组件。scene_type必须与当前scenarioId一致：product_demo或product_howto对应product_tutorial，product_collection对应product_collection。先确定受众、商业目标和前三秒，再组织故事、镜头、字幕、音乐、转场与CTA策略。每个story_structure段落说明商业目的并只引用ProductBrief中真实selling_points.id和已有证据ref；没有可信CTA原文时用中性的“进一步了解”或“查看详情”，不得编造价格或优惠。rationale逐条解释为什么该策略适合商品、受众、平台和素材，不能只复述字段。新品种草突出Hook、生活场景、产品、卖点、体验、购买理由；详情转化突出痛点、产品、卖点、细节、使用、CTA；系列展示必须保持每款身份、事实和组合关系。'});
     validateMarketingPlan(plan,product,currentContract?.scenarioId);return saveJSON('marketing-plan.json',plan);
   });
   registry.register('creative.direct',async(_,ctx)=>{
@@ -355,7 +358,8 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
   });
   registry.register('video.direct',async(_,ctx)=>{
     const story=result(ctx.run,'story'),seed=directorTimelineSeed(story,assets,result(ctx.run,'marketing'),result(ctx.run,'brief').request.output);
-    const timeline=await ask(ctx,'VD',{message:request.message,productBrief:result(ctx.run,'product'),marketingPlan:result(ctx.run,'marketing'),creativeDirection:result(ctx.run,'creative'),storyPlan:story,executionSeed:seed},directorTimelineSchema,{extra:'你是视频导演。只为已经验证的StoryPlan补充逐镜头商业目的、视觉焦点、镜头运动、字幕角色、音频情绪和HyperFrames表达意图；不得改变shot id、顺序、start_seconds、duration、素材asset_id或源入出点。source必须按executionSeed逐项原样复制数值并补充reason和evidence_refs。caption.text必须来自该镜头已有text，若没有屏幕文案则为空字符串；不能新造参数、性能、价格或优惠。每个镜头必须有唯一主要商业目的和可在成片中检查的success_criteria。前三秒镜头明确说明如何建立兴趣；卖点镜头绑定ProductBrief selling point；CTA镜头与MarketingPlan一致。camera_motion描述视觉策略，不要求伪造实拍相机运动；真实视频可用natural-footage。transition说明相邻信息关系，不为每个切点堆特效。'});
+    const hfPolicy=hyperframesScenarioPolicy(currentContract?.scenarioId);
+    const timeline=await ask(ctx,'VD',{message:request.message,productBrief:result(ctx.run,'product'),marketingPlan:result(ctx.run,'marketing'),creativeDirection:result(ctx.run,'creative'),storyPlan:story,executionSeed:seed,hyperframesScenarioPolicy:hfPolicy},directorTimelineSchema,{extra:'你是视频导演。只为已经验证的StoryPlan补充逐镜头商业目的、视觉焦点、镜头运动、字幕角色、音频情绪和HyperFrames表达意图；不得改变shot id、顺序、start_seconds、duration、素材asset_id或源入出点。source必须按executionSeed逐项原样复制数值并补充reason和evidence_refs。caption.text必须来自该镜头已有text，若没有屏幕文案则为空字符串；不能新造参数、性能、价格或优惠。每个镜头必须有唯一主要商业目的和可在成片中检查的success_criteria。前三秒镜头明确说明如何建立兴趣；卖点镜头绑定ProductBrief selling point；CTA镜头与MarketingPlan一致。camera_motion描述视觉策略，不要求伪造实拍相机运动；真实视频可用natural-footage。transition说明相邻信息关系，不为每个切点堆特效。必须兑现输入的 hyperframesScenarioPolicy：整片覆盖每组 requiredIntentGroups 中至少一个 intent，并达到 minEnhancedRatio；这不是每幕堆效果，教程仍以 natural-footage 和动作保护优先。'});
     validateDirectorTimeline(timeline,story,assets);return saveJSON('director-timeline.json',timeline);
   });
   registry.register('hyperframes.adapt',async(_,ctx)=>{

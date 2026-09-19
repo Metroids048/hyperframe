@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {validateProductBrief,validateMarketingPlan,validateDirectorTimeline,buildHyperFramesDesignPlan} from '../lib/creative/commerce-agent-v2.mjs';
+import {validateProductBrief,validateMarketingPlan,validateDirectorTimeline,buildHyperFramesDesignPlan,evaluateHyperFramesPolicy} from '../lib/creative/commerce-agent-v2.mjs';
 
 const assets=[{id:'coffee-video',kind:'video',mediaMetadata:{duration:20}},{id:'coffee-image',kind:'image',mediaMetadata:{}}];
 const product={schema_version:2,product_name:'咖啡机',category:'家用咖啡机',visual_features:[{feature:'紧凑机身',evidence_refs:[{ref:'asset:coffee-image@0-0',reason:'商品整体图可见'}]}],selling_points:[{id:'selling-point-1',text:'一键制作咖啡',evidence_refs:[{ref:'asset:coffee-video@1-4',reason:'真实操作和出杯画面'}],confidence:.9}],target_customer:['希望快速制作咖啡的都市用户'],usage_scenarios:['早晨居家咖啡'],brand_style:{tone:['温暖','精致'],visual_keywords:['晨光','咖啡棕'],colors:['#3B2418']},recommended_platform:['xiaohongshu'],forbidden_claims:['未提供时不得宣称具体萃取压力'],unknowns:['型号'],fusion_summary:'图片确认外观，视频确认操作和出杯。'};
@@ -15,5 +15,16 @@ const plan=buildHyperFramesDesignPlan({directorTimeline:director,story,creativeD
 assert.equal(plan.shot_bindings[0].component,'video-text-pivot');
 assert.equal(plan.differentiation_budget.enhanced_shots,1);
 assert.equal(plan.differentiation_budget.product_emphasis_shots,1);
+assert.equal(plan.differentiation_budget.policy_passed,true);
+const scenarioIntents={
+  product_launch:['product-reveal','dynamic-typography'],
+  product_detail:['guided-callout','spatial-layout'],
+  product_demo:['natural-footage','guided-callout'],
+  product_collection:['spatial-layout','brand-system'],
+  product_promotion:['dynamic-typography','rhythmic-transition'],
+  product_faq:['guided-callout','dynamic-typography']
+};
+for(const [scenarioId,intents] of Object.entries(scenarioIntents))assert.equal(evaluateHyperFramesPolicy(scenarioId,{intents,shotCount:4,enhancedShots:3}).passed,true,scenarioId);
+assert.equal(evaluateHyperFramesPolicy('product_promotion',{intents:['natural-footage'],shotCount:4,enhancedShots:0}).passed,false);
 assert.throws(()=>validateMarketingPlan({...marketing,scene_type:'product_detail'},product,'product_launch'),error=>error.code==='MARKETING_SCENE');
 console.log('PASS ProductBrief → MarketingPlan → DirectorTimeline → HyperFramesDesignPlan');

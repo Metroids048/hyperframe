@@ -1,6 +1,6 @@
 import path from 'node:path';
 import fs from 'node:fs/promises';
-import {CodexProvider} from '../edit/codex-provider.mjs';
+import {createMediaProvider} from '../openclaw/provider-selection.mjs';
 import {insist,stableId} from './contracts.mjs';
 import {hashFile} from '../edit/media.mjs';
 import {groupCaptionWords} from '../edit/caption-segmentation.mjs';
@@ -55,7 +55,9 @@ export function mergeRecognizedCaptions(document,recognized,{assetId,trackId}={}
 }
 
 export async function recognizeNativeCaptions(document,assets,directory,{assetId,trackId,signal,provider,language='source'}={}){
-  const own=!provider;provider??=new CodexProvider();const captions=[],records=[];
+  // ASR is an audio concern, not a commerce-stage model call. Keep the
+  // existing provider so OpenClaw mode cannot silently lose subtitles.
+  const own=!provider;if(!provider) provider=createMediaProvider({skipLoginCheck:true});const captions=[],records=[];
   try{
     const tracks=(document.audioGraph||[]).filter(a=>a.volume>0&&a.role!=='music'&&(!assetId||a.assetId===assetId)&&(!trackId||a.id===trackId));
     insist(tracks.length,'当前作品没有可识别的人声音轨','NO_CAPTION_AUDIO');

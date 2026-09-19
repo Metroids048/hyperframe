@@ -1,0 +1,28 @@
+{
+  "date": "2026-09-19",
+  "openclawVersion": "2026.6.11",
+  "unitContract": {
+    "command": "node scripts/test-openclaw-session-bindings.mjs",
+    "status": "pass",
+    "tests": "6/6",
+    "covers": [
+      "same OpenClaw session reuses one project binding",
+      "cross-project reuse is rejected with SESSION_PROJECT_CONFLICT",
+      "different sessions bind independently",
+      "unbound read-only calls do not create a mapping",
+      "workspace mismatch is rejected",
+      "only session hashes are persisted"
+    ]
+  },
+  "realSdkFactory": {
+    "toolFactories": 11,
+    "trustedContextSource": "OpenClaw toolContext.sessionKey",
+    "missingSession": "fail closed",
+    "readOnlyBridgeE2E": "pass",
+    "unboundSessionFileCreated": false
+  },
+  "serverBoundary": "project existence is checked by the current creative authority before binding",
+  "limitations": "No real browser/WebUI continuation session was available.",
+  "externalCalls": 0,
+  "paidCalls": 0
+}

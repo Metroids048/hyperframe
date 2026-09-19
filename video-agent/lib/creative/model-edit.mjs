@@ -27,7 +27,7 @@ async function planCreativeEditOnce(document,message,{signal,provider,selectedNo
   const exactResource=planExactTransitionResourceEdit(document,message,resourceScopes);if(exactResource)return exactResource;
   const simple=/^(?:价格|演示价)\s*(?:改成|改为|设为)\s*[¥￥]?\d+(?:\.\d+)?[，,。\s]*(?:其他不动[。！]?)?$/.test(message)||/^(?:(?:锁定|解锁)第[一二三四五六七八九十\d]+[幕段](?:的)?|第[一二三四五六七八九十\d]+[幕段](?:的)?(?:(?:内容|布局|时长|段内时间|绝对位置|和|与|、))*(?:锁定|解锁))(?:(?:内容|布局|时长|段内时间|绝对位置|和|与|、))*[。！]?$/.test(message)||/^第[一二三四五六七八九十\d]+[幕段](?:的)?标题(?:改成|改为)[“"][^”"]+[”"][。！]?$/.test(message);
   if(simple){const local=planCommerceMessage(document,message);if(local)return {...local,mode:'local-exact'};}
-  const own=!provider;provider??=new CodexProvider({onInvocation,cacheRoot});let answer;
+  const own=!provider;if(!provider) provider=createStructuredProvider({onInvocation,cacheRoot}).provider;let answer;
   const guidance=await (await CapabilityCatalog.open(root)).context('R7');
   let voiceCatalog=[];
   if(/配音|旁白|男声|女声|音色|语速|voice|speech/i.test(message))try{voiceCatalog=(await provider.speechVoiceCatalog?.(signal))?.voices?.map(v=>({id:v.id,name:v.name,description:v.description}))||[];}catch(error){if(signal?.aborted)throw error;}
@@ -58,3 +58,4 @@ export async function planCreativeEdit(document,message,options={}){
     return planCreativeEditOnce(document,message,{...options,planningRepair:{code:error.code,message:error.message,instruction:'修正结构化规划：requirements只能引用本轮原话；旧约束由服务自动继承。overrides.replacementQuote必须逐字等于本次requirements某一项的quote，不能引用未列入requirements的整句。替换项targetIds/excludeIds须与被替换的旧项一致，字段也须一致：声音字段由音乐/旁白/原声词识别，其他旧项field为preserve/change/goal时替换项kind须保持该字段；例如覆盖旧preserve样式要求，可用kind=preserve、quote逐字引用包含“现在”及本轮新样式和保留范围的原话，明确这轮保护的新范围，不能扩大对象。若不能安全替换，保留旧约束并说明缺口，不猜测删除要求。使用当前真实对象ID，不扩大操作或更换指定效果。'}});
   }
 }
+import {createStructuredProvider} from '../openclaw/provider-selection.mjs';

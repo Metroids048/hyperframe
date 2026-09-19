@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import sharp from 'sharp';
-import {CodexProvider} from '../edit/codex-provider.mjs';
+import {createStructuredProvider} from '../openclaw/provider-selection.mjs';
 import {CapabilityCatalog,resourceHash} from './capabilities.mjs';
 import {insist,FPS} from './contracts.mjs';
 import {projectNativeCaptions} from './captions.mjs';
@@ -30,7 +30,7 @@ export async function reviewEditedProject(root,directory,document,{runHyperFrame
   const invalidation=document.quality?.invalidation;
   const changed=new Set(invalidation?.fullRecompile?document.scenes.map(s=>s.id):invalidation?.changedScenes||[]);
   if(!changed.size)return {status:'unchanged-visual-content',engineering:'checked',revisionId:document.revisionId,issues:[],fullPlayback:'pending',humanReview:'pending',rights:'requires-publisher-review'};
-  const catalog=await CapabilityCatalog.open(root),guidance=await catalog.context('R6'),provider=new CodexProvider({cacheRoot:path.join(directory,'model-calls'),onInvocation}),reports=[];
+  const catalog=await CapabilityCatalog.open(root),guidance=await catalog.context('R6'),provider=createStructuredProvider({cacheRoot:path.join(directory,'model-calls'),onInvocation}).provider,reports=[];
   try{
     const scenes=document.scenes.filter(s=>changed.has(s.id));
     for(let offset=0;offset<scenes.length;offset+=3){

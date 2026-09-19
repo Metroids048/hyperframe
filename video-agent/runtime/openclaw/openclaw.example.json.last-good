@@ -1,0 +1,119 @@
+{
+  "meta": {
+    "lastTouchedVersion": "2026.6.11"
+  },
+  "gateway": {
+    "mode": "local",
+    "bind": "loopback",
+    "port": 18789,
+    "auth": {
+      "mode": "token",
+      "token": "${OPENCLAW_GATEWAY_TOKEN}"
+    },
+    "http": {
+      "endpoints": {
+        "responses": {
+          "enabled": true,
+          "images": {
+            "allowUrl": false,
+            "maxBytes": 8388608
+          },
+          "files": {
+            "allowUrl": false
+          }
+        },
+        "chatCompletions": {
+          "enabled": false
+        }
+      }
+    }
+  },
+  "agents": {
+    "list": [
+      {
+        "id": "commerce-control",
+        "default": true,
+        "workspace": "${VIDEO_AGENT_OPENCLAW_WORKSPACE}",
+        "model": {
+          "primary": "${OPENCLAW_COMMERCE_CONTROL_BACKEND_MODEL}"
+        },
+        "skills": [
+          "commerce-orchestrator",
+          "commerce-product-launch",
+          "commerce-product-detail",
+          "commerce-product-demo",
+          "commerce-product-collection",
+          "commerce-product-promotion",
+          "commerce-product-faq",
+          "commerce-general",
+          "commerce-edit-and-variant",
+          "commerce-hyperframes",
+          "commerce-audio-captions",
+          "commerce-recovery-delivery"
+        ],
+        "tools": {
+          "allow": [
+            "commerce_project_get",
+            "commerce_resource_search",
+            "commerce_plan_validate",
+            "commerce_create_video",
+            "commerce_edit_video",
+            "commerce_generate_asset",
+            "commerce_job_get",
+            "commerce_job_control",
+            "commerce_revision_control",
+            "commerce_export",
+            "commerce_artifact_list"
+          ],
+          "elevated": {
+            "enabled": false
+          }
+        }
+      },
+      {
+        "id": "commerce-stage",
+        "workspace": "${VIDEO_AGENT_OPENCLAW_STAGE_WORKSPACE}",
+        "model": {
+          "primary": "${OPENCLAW_COMMERCE_STAGE_BACKEND_MODEL}"
+        },
+        "skills": [],
+        "tools": {
+          "allow": [
+            "commerce_project_get",
+            "commerce_resource_search",
+            "commerce_plan_validate"
+          ],
+          "elevated": {
+            "enabled": false
+          }
+        }
+      }
+    ]
+  },
+  "plugins": {
+    "enabled": true,
+    "allow": [
+      "commerce-engine",
+      "memory-core"
+    ],
+    "deny": [
+      "browser",
+      "canvas"
+    ],
+    "load": {
+      "paths": [
+        "${VIDEO_AGENT_OPENCLAW_PLUGIN}"
+      ]
+    },
+    "entries": {
+      "commerce-engine": {
+        "enabled": true,
+        "config": {
+          "bridgeUrl": "${VIDEO_AGENT_BRIDGE_URL}",
+          "bridgeTokenEnv": "OPENCLAW_BRIDGE_TOKEN",
+          "workspaceId": "${VIDEO_AGENT_WORKSPACE_ID}"
+        }
+      }
+    }
+  }
+}

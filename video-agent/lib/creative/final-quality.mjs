@@ -37,7 +37,7 @@ export async function reviewFinalQuality(root,directory,document,{signal,provide
   report.playbackReview={manifest:'final-review/playback-manifest.json',watch:'final-review/watch.html',finalVideoSha256:playback.finalVideoSha256,clipCount:playback.clips.length,fullVideoObserved:false,audioPerceptionVerified:false};
   report.editorialReview=document.editorialReview?{...document.editorialReview,currentRevisionMatch:document.editorialReview.sourceRevisionId===document.revisionId}:null;
   if(document.provenance){report.origin='retained_provenance';report.provenance=structuredClone(document.provenance);}
-  const own=!provider;provider??=new CodexProvider({cacheRoot:path.join(directory,'final-review/model-calls')});
+  const own=!provider;if(!provider) provider=createStructuredProvider({cacheRoot:path.join(directory,'final-review/model-calls')}).provider;
   try{
     const guidance=await(await CapabilityCatalog.open(root)).context('R8');
     const schema={type:'object',additionalProperties:false,required:['summary','issues'],properties:{summary:{type:'string'},issues:{type:'array',items:{type:'object',additionalProperties:false,required:['severity','frame','problem','repair'],properties:{severity:{type:'string',enum:['blocker','major','minor']},frame:{type:'string',enum:evidence.map(e=>e.path)},problem:{type:'string'},repair:{type:'string'}}}}}};
@@ -53,3 +53,4 @@ export async function reviewFinalQuality(root,directory,document,{signal,provide
   }
   return report;
 }
+import {createStructuredProvider} from '../openclaw/provider-selection.mjs';

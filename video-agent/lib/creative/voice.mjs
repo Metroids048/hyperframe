@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
-import {CodexProvider} from '../edit/codex-provider.mjs';
+import {createMediaProvider} from '../openclaw/provider-selection.mjs';
 import {probe,hashFile} from '../edit/media.mjs';
 import {insist,stableId} from './contracts.mjs';
 
@@ -10,7 +10,7 @@ const schema={type:'object',additionalProperties:false,properties:{mode:{type:'s
 
 export async function creativeVoiceInteraction(project,message,directory,{signal,provider}={}){
   if(!project.auditions?.length&&!/试听|试音|先听/.test(message))return null;
-  const own=!provider;provider??=new CodexProvider();
+  const own=!provider;provider??=createMediaProvider();
   try{
     let catalog,catalogError;
     try{catalog=await provider.speechVoiceCatalog?.(signal);}catch(error){
