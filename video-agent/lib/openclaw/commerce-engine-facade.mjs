@@ -127,7 +127,6 @@ export function createCommerceEngineFacade(service, { journalPath, mode = runtim
     if (tool === 'commerce_project_create') {
       required(input.operationId, 'operationId');
       required(input.authorizationId, 'authorizationId');
-      if (context.workspaceProjectId) fail('当前会话已绑定工程，请先使用现有工程或新建会话', 'PROJECT_ALREADY_BOUND', 409);
       if (typeof authorizeWrite !== 'function') fail('写操作缺少服务端授权校验器', 'OPENCLAW_AUTHORIZATION_VALIDATOR_REQUIRED', 500);
       await authorizeWrite({ tool, input, context, project: null });
       return recordOperation(input.operationId, { tool, input, workspaceId: context.workspaceId, sessionKey: context.sessionKey }, async () => {
@@ -161,9 +160,11 @@ export function createCommerceEngineFacade(service, { journalPath, mode = runtim
           : tool === 'commerce_generate_asset' ? 'generate-asset' : 'export';
         const structuredOperations = Array.isArray(input.operations) && input.operations.every(op => op && PATCH_OPERATION_TYPES.has(op.type)) ? input.operations : (Array.isArray(input.requestedChanges) && input.requestedChanges.every(op => op && PATCH_OPERATION_TYPES.has(op.type)) ? input.requestedChanges : undefined);
         job = await recordOperation(operationId, { tool, input, workspaceId: context.workspaceId, sessionKey: context.sessionKey }, async () => service.enqueue(value, { ...input, ...(structuredOperations ? {operations: structuredOperations} : {}), action, operationId, idempotencyKey: input.operationId }));
-        const settled = typeof service.waitForJob === 'function' ? await service.waitForJob(value, job.id, {timeoutMs: Number(process.env.OPENCLAW_TOOL_WAIT_MS || 300000)}) : job;
-        const ready = settled?.status === 'complete' && settled?.revisionId && value.revisions?.find(r => r.id === settled.revisionId)?.rendered;
-        return baseResult({ tool, projectId, operationId, status: ready ? 'ready' : (settled?.status || 'queued'), jobId: job.id, stage: settled.stage || job.stage || 'queued', revisionId: settled.revisionId || null, resultRevisionId: ready ? settled.revisionId : null, artifact: ready && typeof service.artifacts === 'function' ? await service.artifacts(value, settled.revisionId) : null, error: settled.error || null, code: settled.code || null, failureReceipt: settled.failureReceipt || null, retryable: !ready && Boolean(settled.status === 'recoverable' || settled.status === 'queued' || settled.status === 'running' || settled.retryable) });
+        // Rendering continues in the service worker. A Gateway tool call must only
+        // acknowledge submission; waiting here can exceed OpenClaw's run timeout.
+        const current = value.jobs?.find(item => item.id === job.id) || job;
+        const ready = current?.status === 'complete' && current?.revisionId && value.revisions?.find(r => r.id === current.revisionId)?.rendered;
+        return baseResult({ tool, projectId, operationId, status: ready ? 'ready' : (current?.status || 'queued'), jobId: job.id, stage: current?.stage || job.stage || 'queued', revisionId: current?.revisionId || null, resultRevisionId: ready ? current.revisionId : null, artifact: ready && typeof service.artifacts === 'function' ? await service.artifacts(value, current.revisionId) : null, error: current?.error || null, code: current?.code || null, failureReceipt: current?.failureReceipt || null, retryable: !ready && Boolean(current?.status === 'recoverable' || current?.status === 'queued' || current?.status === 'running' || current?.retryable) });
       };
       return execute();
     }
@@ -196,10 +197,15 @@ export function createCommerceEngineFacade(service, { journalPath, mode = runtim
       if (!value.currentRevisionId && input.baseRevisionId !== null) validationFail('新建状态的基准版本必须明确为 null', 'BASE_REVISION_ID_INVALID', 'baseRevisionId');
       if (!Array.isArray(input.requestedChanges) || !input.requestedChanges.length) validationFail('requestedChanges 不能为空', 'PLAN_EMPTY', 'requestedChanges');
       if (!Array.isArray(input.keep)) validationFail('keep 必须为数组', 'SCHEMA_INVALID', 'keep');
-      if (typeof service.openclawProjectContext === 'function' && value.currentRevisionId) {
-        const context = await service.openclawProjectContext(value);
-        const assets = Object.fromEntries((value.assets || []).map(asset => [asset.id, asset]));
-        try { applyDocumentPatch(context.document, input.requestedChanges, assets); }
+      if (value.currentRevisionId) {
+        try {
+          if (typeof service.validateOpenclawOperations === 'function') await service.validateOpenclawOperations(value, input.requestedChanges);
+          else {
+            const projectContext = await service.openclawProjectContext(value);
+            const assets = Object.fromEntries((value.assets || []).map(asset => [asset.id, asset]));
+            applyDocumentPatch(projectContext.document, input.requestedChanges, assets);
+          }
+        }
         catch (error) { fail(error.message, error.code || 'PLAN_INVALID', 400, {stage:'validate', field:'requestedChanges', retryable:false}); }
       }
       return baseResult({ tool, projectId, validation: { valid: true, projectId, baseRevisionId: value.currentRevisionId || null, requestedChanges: input.requestedChanges, keep: input.keep, planHash: sha({projectId, baseRevisionId: value.currentRevisionId || null, requestedChanges: input.requestedChanges, keep: input.keep}) } });
@@ -210,7 +216,9 @@ export function createCommerceEngineFacade(service, { journalPath, mode = runtim
       return baseResult({ tool, projectId, job: { id: job.id, status: job.status, stage: job.stage, progress: job.renderProgress || null, revisionId: job.revisionId || null, error: job.error || null, resumable: Boolean(job.runId && job.status === 'recoverable') } });
     }
     if (tool === 'commerce_artifact_list') {
-      const { projectId, value } = project(input); const revisionId = input.revisionId || value.currentRevisionId; required(revisionId, 'revisionId');
+      const { projectId, value } = project(input); const revisionId = input.revisionId || value.currentRevisionId;
+      if (!revisionId) return baseResult({ tool, projectId, status: 'needs_revision', revisionId: null, artifacts: [], message: '当前工程还没有可交付版本。' });
+      required(revisionId, 'revisionId');
       return baseResult({ tool, projectId, ...(await service.artifacts(value, revisionId)) });
     }
     fail('工具实现缺失', 'TOOL_NOT_IMPLEMENTED', 501);

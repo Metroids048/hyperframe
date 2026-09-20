@@ -117,6 +117,8 @@ test('semantic routing preserves compound original message and validates referen
  let called=false;
  const provider={structured:async(_,messages)=>{called=true;const data=JSON.parse(messages[0].content);assert.equal(data.message,message);assert.equal(data.businessScenario,'product_demo');return {result:{mode:'variant',quote:'另出一版竖屏',revisionId:null,assetIds:[],question:''}};}};
  assert.equal((await routeWorkbenchMessage(project,message,{provider})).mode,'variant');assert(called);
+ const normalized=await routeWorkbenchMessage(project,message,{provider:{structured:async()=>({result:{mode:'variant',quote:'不要重做教程 删等待后另出一版竖屏 原声保留',revisionId:null,assetIds:[],question:''}})}});
+ assert.equal(normalized.quote,message);assert.equal(normalized.source,'semantic');
  await assert.rejects(()=>routeWorkbenchMessage(project,message,{provider:{structured:async()=>({result:{mode:'create',quote:'新建',assetIds:[]}})}}),{code:'MESSAGE_ROUTE_INVALID'});
 });
 test('new creation from open project is separate and double-submit reuses the same new draft',async()=>{

@@ -7,17 +7,22 @@ import os from "node:os";
 import crypto from "node:crypto";
 
 // Keep the ingress limit aligned with the Control UI patch and backend import
-// guard. Video uploads use a managed file path, but still need bounded ingress.
-const MAX_VIDEO_UPLOAD_BYTES = 15 * 1024 * 1024;
+// guard. This is the original-media ingress budget; the optional media
+// understanding budget is configured separately in OpenClaw.
+const DEFAULT_VIDEO_UPLOAD_BYTES = 64 * 1024 * 1024;
+const MAX_VIDEO_UPLOAD_BYTES = Number.isFinite(Number(process.env.OPENCLAW_VIDEO_UPLOAD_MAX_BYTES)) && Number(process.env.OPENCLAW_VIDEO_UPLOAD_MAX_BYTES) > 0
+  ? Math.floor(Number(process.env.OPENCLAW_VIDEO_UPLOAD_MAX_BYTES))
+  : DEFAULT_VIDEO_UPLOAD_BYTES;
+const MAX_VIDEO_UPLOAD_MIB = Math.round(MAX_VIDEO_UPLOAD_BYTES / 1024 / 1024);
 
 const TOOLS = [
   ["commerce_project_create", "Create and bind a clean native commerce project for this OpenClaw session."],
   ["commerce_project_list", "List editable video projects so the user can choose one in chat."],
   ["commerce_project_get", "Read the current project, revision, objects, and delivery state."],
   ["commerce_resource_search", "Search executable local commerce resources without installing anything."],
-  ["commerce_plan_validate", "Validate a plan, target scope, keep-set, and base revision."],
+  ["commerce_plan_validate", "Validate native edit operations before writing. For text use exactly {type:'update_text', nodeId:'<text node id>', text:'<new text>'}."],
   ["commerce_create_video", "Enqueue a bounded new video job and return its job id."],
-  ["commerce_edit_video", "Enqueue a bounded object-level edit and return its job id."],
+  ["commerce_edit_video", "Enqueue validated native object-level edits and return immediately with a job id. For text use exactly {type:'update_text', nodeId:'<text node id>', text:'<new text>'}."],
   ["commerce_generate_asset", "Enqueue an explicitly authorized asset generation job."],
   ["commerce_job_get", "Read a real job status and checkpoint."],
   ["commerce_job_control", "Cancel or resume a persisted job."],
@@ -28,14 +33,46 @@ const TOOLS = [
 
 const idSchema = { type: "string", minLength: 1, maxLength: 200 };
 const optionalId = Type.Optional(idSchema);
+const optionalNullableId = Type.Optional({ anyOf: [idSchema, { type: "null" }] });
 const baseRevision = { anyOf: [idSchema, { type: "null" }] };
-const changes = { type: "array", minItems: 1, maxItems: 100, items: { type: "object", additionalProperties: true } };
+const nativeOperationTypes = [
+  "add_text", "update_text_style", "update_text", "update_effect_params", "set_scene_effect",
+  "replace_asset", "set_scene_duration", "set_node_duration", "reorder_scenes", "set_transition",
+  "change_output", "lock_scene", "unlock_scene", "update_media", "retime_document", "duplicate_media",
+  "add_audio", "update_audio", "remove_audio", "split_scene", "trim_scene", "update_caption",
+  "update_caption_style", "set_captions", "remove_caption", "update_custom_source",
+  // Intent markers are accepted for create/export requests that do not patch
+  // an existing native document.
+  "create", "generate", "export"
+];
+const changes = {
+  type: "array",
+  minItems: 1,
+  maxItems: 100,
+  description: "Native operation list. To change visible text, use exactly {type:'update_text', nodeId:'the text node id', text:'replacement'}; do not invent operation names such as text_edit, replace_text, or update_object_field.",
+  items: {
+    type: "object",
+    required: ["type"],
+    properties: {
+      type: { type: "string", enum: nativeOperationTypes },
+      nodeId: { type: "string", minLength: 1, maxLength: 200, description: "Target node id. Required by update_text, update_text_style, update_media, update_audio, remove_audio, update_caption, update_caption_style, and remove_caption." },
+      sceneId: { type: "string", minLength: 1, maxLength: 200 },
+      text: { type: "string", minLength: 1, maxLength: 240, description: "Replacement text. Required by update_text and update_caption." },
+      params: { type: "object", additionalProperties: true },
+      durationFrames: { type: "integer", minimum: 1 },
+      localStartFrame: { type: "integer", minimum: 0 },
+      assetId: { type: "string", minLength: 1, maxLength: 200 },
+      action: { type: "string" }
+    },
+    additionalProperties: true
+  }
+};
 const keep = { type: "array", maxItems: 100, items: { type: "string", minLength: 1, maxLength: 500 } };
 const writeContext = {
   attachmentIds: Type.Optional({ type: "array", maxItems: 30, items: idSchema }),
-  // OpenClaw Control UI stores local uploads as inbound MediaPaths. The
-  // model may copy those paths into this field; the backend validates the
-  // directory and imports them before the authorized operation runs.
+  // OpenClaw Control UI stores local uploads behind opaque inbound receipts.
+  // Only media://inbound/<filename> values belong here; the backend resolves
+  // and imports them before the authorized operation runs.
   attachmentPaths: Type.Optional({ type: "array", maxItems: 30, items: { type: "string", minLength: 1, maxLength: 1024 } }),
   taskMode: Type.Optional({ type: "string", enum: ["create", "edit", "recut", "variant"] }),
   scenarioId: Type.Optional({ type: "string", enum: ["product_launch", "product_detail", "product_demo", "product_collection", "product_promotion", "product_faq", "general"] }),
@@ -61,17 +98,26 @@ const schemas = {
     ...nativeWriteFields, ...writeContext }, { additionalProperties: false }),
   commerce_job_get: Type.Object({ projectId: idSchema, jobId: idSchema }, { additionalProperties: false }),
   commerce_job_control: Type.Object({ projectId: idSchema, baseRevisionId: baseRevision, jobId: idSchema, action: { type: "string", enum: ["cancel", "resume"] }, requestedChanges: changes, keep, ...nativeWriteFields }, { additionalProperties: false }),
-  commerce_revision_control: Type.Object({ projectId: idSchema, baseRevisionId: baseRevision, revisionId: optionalId, action: { type: "string", enum: ["undo", "redo", "restore"] }, requestedChanges: changes, keep, ...nativeWriteFields }, { additionalProperties: false }),
-  commerce_export: Type.Object({ projectId: idSchema, baseRevisionId: baseRevision, revisionId: optionalId, requestedChanges: changes, keep, ...nativeWriteFields }, { additionalProperties: false }),
-  commerce_artifact_list: Type.Object({ projectId: idSchema, revisionId: optionalId }, { additionalProperties: false })
+  commerce_revision_control: Type.Object({ projectId: idSchema, baseRevisionId: baseRevision, revisionId: optionalNullableId, action: { type: "string", enum: ["undo", "redo", "restore"] }, requestedChanges: changes, keep, ...nativeWriteFields }, { additionalProperties: false }),
+  commerce_export: Type.Object({ projectId: idSchema, baseRevisionId: baseRevision, revisionId: optionalNullableId, requestedChanges: changes, keep, ...nativeWriteFields }, { additionalProperties: false }),
+  commerce_artifact_list: Type.Object({ projectId: idSchema, revisionId: optionalNullableId }, { additionalProperties: false })
 };
 
 let uploadRouteRegistered = false;
 function registerUploadRoute(api) {
   if (uploadRouteRegistered || !api?.registerHttpRoute) return;
   uploadRouteRegistered = true;
-  api.registerHttpRoute({ path: "/plugins/commerce-engine/upload", auth: "gateway", match: "exact", handler: async (req, res) => {
+  api.registerHttpRoute({ path: "/plugins/commerce-engine/upload", auth: "plugin", match: "exact", handler: async (req, res) => {
     if (req.method !== "POST") { res.statusCode = 405; res.end("method not allowed"); return; }
+    const host = String(req.headers.host || "");
+    const origin = String(req.headers.origin || "");
+    const remote = String(req.socket?.remoteAddress || "");
+    const loopbackRemote = remote === "127.0.0.1" || remote === "::1" || remote === "::ffff:127.0.0.1";
+    const loopbackHost = /^(?:127\.0\.0\.1|localhost|\[::1\]):\d+$/.test(host);
+    if (!loopbackRemote || !loopbackHost || origin !== `http://${host}`) {
+      res.statusCode = 403; res.setHeader("content-type", "application/json");
+      res.end(JSON.stringify({ok:false, error:"视频上传只允许从本机 Control UI 发起"})); return;
+    }
     const mime = String(req.headers["content-type"] || "application/octet-stream").split(";")[0].toLowerCase();
     const rawName = String(req.headers["x-openclaw-file-name"] || "video.mp4");
     let fileName; try { fileName = decodeURIComponent(rawName); } catch { fileName = rawName; }
@@ -82,7 +128,7 @@ function registerUploadRoute(api) {
     const declaredLength = Number(req.headers["content-length"] || 0);
     if (Number.isFinite(declaredLength) && declaredLength > limit) {
       res.statusCode = 413; res.setHeader("content-type", "application/json");
-      res.end(JSON.stringify({ok:false, error:"视频不能超过 15 MiB"})); return;
+      res.end(JSON.stringify({ok:false, error:`视频不能超过 ${MAX_VIDEO_UPLOAD_MIB} MiB`})); return;
     }
     // OPENCLAW_STATE_DIR is the one canonical root.  The backend imports from
     // <state>/media/inbound, so the plugin must use the same default when the
@@ -92,7 +138,7 @@ function registerUploadRoute(api) {
     const id = crypto.randomUUID(); const target = path.join(inbound, `${id}-${fileName}`); const temp = `${target}.part`;
     let bytes = 0;
     try {
-      await new Promise((resolve, reject) => { const out = fs.createWriteStream(temp, {flags:"wx", mode:0o600}); const fail = e => { out.destroy(); reject(e); }; req.on("data", chunk => { bytes += chunk.length; if (bytes > limit) fail(Object.assign(new Error("视频不能超过 15 MiB"), {statusCode:413})); else if (!out.write(chunk)) req.pause(); }); out.on("drain", () => req.resume()); req.on("end", () => out.end(resolve)); req.on("error", reject); out.on("error", reject); });
+      await new Promise((resolve, reject) => { const out = fs.createWriteStream(temp, {flags:"wx", mode:0o600}); const fail = e => { out.destroy(); reject(e); }; req.on("data", chunk => { bytes += chunk.length; if (bytes > limit) fail(Object.assign(new Error(`视频不能超过 ${MAX_VIDEO_UPLOAD_MIB} MiB`), {statusCode:413})); else if (!out.write(chunk)) req.pause(); }); out.on("drain", () => req.resume()); req.on("end", () => out.end(resolve)); req.on("error", reject); out.on("error", reject); });
       await fsp.rename(temp, target);
       const detectedMime = mime === "application/octet-stream" || !mime ? (ext === ".mov" ? "video/quicktime" : ext === ".webm" ? "video/webm" : "video/mp4") : mime;
       res.statusCode = 200; res.setHeader("content-type", "application/json"); res.end(JSON.stringify({ok:true, mediaPath:`media://inbound/${path.basename(target)}`, fileName, mimeType:detectedMime, bytes, path:target}));
@@ -115,15 +161,20 @@ function buildTool(name, description) {
             messageId: toolContext.messageId || toolContext.inboundMessageId || `tool:${toolCallId}` };
           let input = { ...params };
           if (name === "commerce_project_create") input = { ...input, projectId: "new" };
-  const writes = ["commerce_project_create","commerce_create_video","commerce_edit_video","commerce_generate_asset","commerce_job_control","commerce_revision_control","commerce_export"];
-          if (writes.includes(name) && !input.authorizationId) {
+          const writes = ["commerce_project_create","commerce_create_video","commerce_edit_video","commerce_generate_asset","commerce_job_control","commerce_revision_control","commerce_export"];
+          if (writes.includes(name)) {
+            // Tool arguments are model output. Never trust model-supplied
+            // authorization or idempotency identifiers for a write.
+            const authorizationInput = { ...input };
+            delete authorizationInput.authorizationId;
+            delete authorizationInput.operationId;
             const authorizationResponse = await fetch(config.bridgeUrl.replace(/\/$/, "") + "/api/openclaw/authorize", {
               method: "POST", headers: { authorization: "Bearer " + token, "content-type": "application/json" },
-              body: JSON.stringify({ tool: name, input, trustedContext }), signal
+              body: JSON.stringify({ tool: name, input: authorizationInput, trustedContext }), signal
             });
             const authorizationPayload = await authorizationResponse.json().catch(() => ({ error: "authorization endpoint returned invalid JSON" }));
             if (!authorizationResponse.ok) { const error = new Error(authorizationPayload.error || ("commerce authorization " + authorizationResponse.status)); Object.assign(error, authorizationPayload); throw error; }
-            input = { ...input, authorizationId: authorizationPayload.authorizationId, operationId: input.operationId || authorizationPayload.operationId };
+            input = { ...authorizationInput, authorizationId: authorizationPayload.authorizationId, operationId: authorizationPayload.operationId };
           }
           const body = { tool: name, input, trustedContext };
           const response = await fetch(config.bridgeUrl.replace(/\/$/, "") + "/api/openclaw/tools", {

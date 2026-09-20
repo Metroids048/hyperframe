@@ -34,6 +34,10 @@ test('plugin source uses server bridge and does not expose arbitrary execution',
   assert.match(source, /factory\(/);
   assert.match(source, /toolContext\.sessionKey/);
   assert.doesNotMatch(source, /sessionKey:\s*["']openclaw:["']\s*\+\s*\(context\.toolCallId/);
+  assert.match(source, /delete authorizationInput\.authorizationId/);
+  assert.match(source, /delete authorizationInput\.operationId/);
+  assert.match(source, /operationId: authorizationPayload\.operationId/);
+  assert.doesNotMatch(source, /writes\.includes\(name\) && !input\.authorizationId/);
   assert.doesNotMatch(source, /\bchild_process\b|\bspawn\b|\bexec\b|writeFile|NativeDocument/);
 });
 
@@ -56,6 +60,15 @@ test('real OpenClaw SDK registration exposes per-tool strict required fields', a
   assert.deepEqual(required.commerce_generate_asset,['projectId','baseRevisionId','message','requestedChanges','keep']);
   assert.ok(tools.find(tool=>tool.name==='commerce_edit_video').parameters.properties.attachmentPaths,
     'native Control UI attachment paths must be accepted as an optional server-validated field');
+  assert.ok(tools.find(tool=>tool.name==='commerce_artifact_list').parameters.properties.revisionId.anyOf,
+    'optional revision ids must accept the explicit null emitted by tool models');
+  const edit=tools.find(tool=>tool.name==='commerce_edit_video');
+  const operation=edit.parameters.properties.requestedChanges.items;
+  assert.ok(operation.required.includes('type'));
+  assert.ok(operation.properties.type.enum.includes('update_text'));
+  assert.match(edit.description,/update_text/);
+  assert.match(operation.properties.nodeId.description,/update_text/);
+  assert.match(operation.properties.text.description,/update_text/);
   for(const tool of tools)assert.equal(tool.parameters.additionalProperties,false,tool.name);
 });
 

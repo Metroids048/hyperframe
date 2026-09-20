@@ -26,7 +26,7 @@ import {ROOT} from '../workflow.mjs';
 import {acquireRender} from '../render-queue.mjs';
 import {linkOrCopy,hashFile,probe} from '../edit/media.mjs';
 import {CreativeError, insist, assetKindFromName, MAX_FILE_BYTES, MAX_ASSETS, stableId,safeRelativePath} from './contracts.mjs';
-import {buildCommerceProject,buildUploadedVideoProject,patchCommerceProject,readNativeProject,writeCompiledProject,runHyperFrames,renderCommerceProject} from './runner.mjs';
+import {buildCommerceProject,buildUploadedVideoProject,uploadedVideoTitle,patchCommerceProject,readNativeProject,writeCompiledProject,runHyperFrames,renderCommerceProject} from './runner.mjs';
 import {applyDocumentPatch,computeInvalidation} from './patch.mjs';
 import {requireCommerceMessagePlan,sceneNumber} from './intent.mjs';
 import {planCreativeEdit,completedEditSummary} from './model-edit.mjs';
@@ -113,15 +113,13 @@ function deterministicUploadedVideoEdit(document, asset, message) {
     if (node&&asset.mediaMetadata.hasAudio) operations.push({type:'update_audio', nodeId:track.id, assetId:asset.id, params:{assetId:asset.id, sourceNodeId:node.id,sourceStartSeconds:0,playbackRate:1,durationFrames:sourceFrames,startFrame:0}});
   }
   const text=String(message||'');
-  const quoted=text.match(/[“「『"]([^”」』"]{1,80})[”」』"]/u)?.[1]?.trim();
-  const natural=text.match(/(?:加上|加一个|添加|改成|改为)\s*(?:一个)?\s*([^，。！？,!?]{1,40}?)(?:几个字|标题|文字|，|。|！|！|$)/u)?.[1]?.trim();
-  const requestedText=quoted||natural;
+  const requestedText=uploadedVideoTitle(text);
   const firstText=document.nodes.find(node=>node.kind==='text');
   if(requestedText){
     if(firstText)operations.push({type:'update_text',nodeId:firstText.id,text:requestedText});
     else {
       const scene=document.scenes[0],duration=Math.min(60,scene.durationFrames);
-      operations.push({type:'add_text',sceneId:scene.id,text:requestedText,durationFrames:duration,localStartFrame:0,node:{id:'title-uploaded-'+asset.id.slice(-12),semanticRole:'title',params:{style:{}}}});
+      operations.push({type:'add_text',sceneId:scene.id,text:requestedText,durationFrames:duration,localStartFrame:0,node:{id:'title-uploaded-'+asset.id.slice(-12),semanticRole:'title',params:{immediate:true,style:{color:'#FFFFFF',fontSize:60,fontWeight:800}}}});
     }
     if (/开头\s*2\s*秒|前\s*2\s*秒/u.test(text)) {
       const titleNode=firstText||{id:'title-uploaded-'+asset.id.slice(-12)};
@@ -632,10 +630,10 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
           .map(id=>assets.find(asset=>asset.id===id))
           .find(asset=>asset?.kind==='video' && asset.mediaMetadata?.duration)
           || added.find(asset=>asset.kind==='video' && asset.mediaMetadata?.duration)
-          || (/(?:刚加的字|刚才的字|新增的字|这段视频|本视频|该视频)/u.test(job.input.message||'')
+          || (/(?:刚加的字|刚才的字|新增的字|新增(?:独立)?文字对象|这段视频|本视频|该视频)/u.test(job.input.message||'') || uploadedVideoTitle(job.input.message)
             ? assets.find(asset=>asset.kind==='video'&&document.nodes.some(node=>node.kind==='video'&&node.assetId===asset.id))
             : null);
-        const uploadedVideoPlan = uploadedVideo && /(?:这段视频|刚上传|上传(?:的|视频)|本视频|该视频|刚加的字|刚才的字|新增的字)/u.test(job.input.message||'')
+        const uploadedVideoPlan = uploadedVideo && (/(?:这段视频|刚上传|上传(?:的|视频)|本视频|该视频|刚加的字|刚才的字|新增的字)/u.test(job.input.message||'') || uploadedVideoTitle(job.input.message))
           ? deterministicUploadedVideoEdit(document, uploadedVideo, job.input.message)
           : null;
         if(uploadedVideoPlan){
@@ -820,13 +818,19 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
     const document=current?(await readNativeProject(versionDirectory(p,current))).document:null;
     return {id:p.id,title:p.title,currentRevisionId:p.currentRevisionId,request:p.request,assets:p.assets.map(({id,name,kind,mediaMetadata})=>({id,name,kind,mediaMetadata})),messages:p.messages.slice(-10),revisions:p.revisions.map(({id,parentId,summary})=>({id,parentId,summary})),document:document?{revisionId:document.revisionId,output:document.output,scenes:document.scenes,nodes:document.nodes,audioGraph:document.audioGraph,captions:document.captions,businessContract:document.businessContract}:null};
   }
+  async function validateOpenclawOperations(p,operations){
+    const current=revision(p);
+    const {document,assets}=await readNativeProject(versionDirectory(p,current));
+    applyDocumentPatch(document,operations,Object.fromEntries(assets.map(asset=>[asset.id,asset])));
+    return {revisionId:current.id,operationCount:operations.length};
+  }
   async function recordControlResult(p,input,result){
     const key=input.idempotencyKey;
     if(p.messages.some(m=>m.controlMessageId===key))return;
     if(!p.jobs.some(j=>result.operationId&&j.input?.operationId===result.operationId)&&!p.messages.some(m=>m.role==='user'&&m.text===input.message&&m.baseRevisionId===input.baseRevisionId))p.messages.push({role:'user',text:input.message,baseRevisionId:input.baseRevisionId,time:now()});
     p.messages.push({role:'assistant',text:result.summary,controlMessageId:key,controlStatus:result.status,time:now()});await save(p);
   }
-  return {openclawProjectContext,recordControlResult,artifacts,dispatchMessage,searchResources,audioVoices:()=>new MiniMaxClient({root,env:audioEnv,transport:audioTransport}).execute('voices'),applyAudio:async(p,input)=>{const {document}=await readNativeProject(versionDirectory(p,revision(p)));const operations=await audioApplication(root,document,p.assets.find(a=>a.id===input.assetId),input);return enqueue(p,{...input,action:'patch',operations,message:(input.replaceTrackId?'替换已选':'添加已选')+(input.role==='narration'?'旁白':input.role==='original'?'原声':'背景音乐')});},productionPolicy:()=>productionPolicy(root),finishedWorks:()=>readFinishedWorks(root),materialRoots:async()=>(await discoverMaterialRoots(root)).map(publicMaterialRoot),attachMaterialRoot,get,has:id=>projects.has(id),view,create,loadPreset,presetFile,presets:async()=>(await refreshPresets()).map(publicPreset),unavailablePresets:async()=>(await refreshPresets()).unavailable||[],upload,importPackage,retryImport,enqueue,waitForJob,navigate,cancel,resume,authorizeBudget,revision,versionDirectory,list:()=>[...projects.values()].map(view).sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt))};
+  return {openclawProjectContext,validateOpenclawOperations,recordControlResult,artifacts,dispatchMessage,searchResources,audioVoices:()=>new MiniMaxClient({root,env:audioEnv,transport:audioTransport}).execute('voices'),applyAudio:async(p,input)=>{const {document}=await readNativeProject(versionDirectory(p,revision(p)));const operations=await audioApplication(root,document,p.assets.find(a=>a.id===input.assetId),input);return enqueue(p,{...input,action:'patch',operations,message:(input.replaceTrackId?'替换已选':'添加已选')+(input.role==='narration'?'旁白':input.role==='original'?'原声':'背景音乐')});},productionPolicy:()=>productionPolicy(root),finishedWorks:()=>readFinishedWorks(root),materialRoots:async()=>(await discoverMaterialRoots(root)).map(publicMaterialRoot),attachMaterialRoot,get,has:id=>projects.has(id),view,create,loadPreset,presetFile,presets:async()=>(await refreshPresets()).map(publicPreset),unavailablePresets:async()=>(await refreshPresets()).unavailable||[],upload,importPackage,retryImport,enqueue,waitForJob,navigate,cancel,resume,authorizeBudget,revision,versionDirectory,list:()=>[...projects.values()].map(view).sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt))};
 }
 
 export async function creativeRoutes(service,req,res,url,{json,jsonBody,file,dispatchMessage=service.dispatchMessage}){

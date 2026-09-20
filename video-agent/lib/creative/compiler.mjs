@@ -44,7 +44,7 @@ function sceneNodes(document, scene) {
 
 function textEl(node, className) {
   if (!node) return '';
-  return `<div id="obj-${esc(node.id)}" class="${esc(className)} enter"${node.params.style?` style="${textStyleCSS(node.params.style)}"`:""}>${esc(node.params.text)}</div>`;
+  return `<div id="obj-${esc(node.id)}" class="${esc(className)} enter clip" data-start="${sec(node.startFrame)}" data-duration="${sec(node.durationFrames)}"${node.params.style?` style="${textStyleCSS(node.params.style)}"`:""}>${esc(node.params.text)}</div>`;
 }
 
 function internalImageMedia(media, assets, className = '') {
@@ -112,8 +112,11 @@ function renderScene(document, scene, assets) {
   const firstMedia = n.media[0];
   const secondMedia = n.media[1];
   const commonCopy = `<div class="copy-panel">${n.text.map(node=>textEl(node,{title:'product-title',feature:'product-subtitle',cta:'cta',price:'price'}[node.semanticRole]||'product-subtitle')).join('')}</div>`;
+  const textStart=n.text.length?Math.min(...n.text.map(node=>node.startFrame)):scene.startFrame;
+  const textEnd=n.text.length?Math.max(...n.text.map(node=>node.startFrame+node.durationFrames)):scene.startFrame+scene.durationFrames;
+  const timedCopy = `<div class="copy-panel clip" data-start="${sec(textStart)}" data-duration="${sec(textEnd-textStart)}">${n.text.map(node=>textEl(node,{title:'product-title',feature:'product-subtitle',cta:'cta',price:'price'}[node.semanticRole]||'product-subtitle')).join('')}</div>`;
   const media = mediaForScene(scene, n, assets);
-  if(scene.effect==='media-cut')return media+(n.text.length?`<div class="scene-content" style="justify-content:flex-end">${commonCopy}</div>`:'');
+  if(scene.effect==='media-cut')return media+(n.text.length?`<div class="scene-content" style="justify-content:flex-end">${timedCopy}</div>`:'');
 
   if (scene.effect === 'product-reveal' || scene.effect === 'image-pan-zoom') {
     if(!n.text.length)return media;
@@ -178,7 +181,12 @@ function sceneTimeline(document, scene) {
     lines.push(`tl.from(${js(`${selector} .ed-rule`)},{scaleX:0,duration:1.1,ease:"power2.inOut"},${contentStart});`);
     lines.push(`tl.fromTo(${js(`${selector} .ed-photo .motion`)},{scale:1.055},{scale:1,duration:${Math.max(.5,duration-1)},ease:"power1.out"},${contentStart+.3});`);
   }
-  if(scene.effect==='media-cut'&&sceneNodes(document,scene).text.length)lines.push(`tl.from(${js(`${selector} .copy-panel .enter`)},{opacity:0,x:18,duration:.4,ease:"power2.out",stagger:.08},${contentStart+.12});`);
+  if(scene.effect==='media-cut'&&sceneNodes(document,scene).text.length){
+    const immediate=sceneNodes(document,scene).text.some(node=>node.params?.immediate===true);
+    lines.push(immediate
+      ? `tl.set(${js(`${selector} .copy-panel .enter`)},{opacity:1,x:0},${start});`
+      : `tl.from(${js(`${selector} .copy-panel .enter`)},{opacity:0,x:18,duration:.4,ease:"power2.out",stagger:.08},${contentStart+.12});`);
+  }
   // Keep still-image cuts seekable even when the only content is a repeated
   // imported image. HyperFrames' static sweep requires an observable paused
   // timeline transition at the beginning of the composition.

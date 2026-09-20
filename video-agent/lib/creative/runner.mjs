@@ -119,6 +119,19 @@ export async function buildCommerceProject(input, {root = VIDEO_AGENT_ROOT} = {}
   return status;
 }
 
+/**
+ * Pull the user's requested opening copy from the upload message.  Uploads are
+ * source-first projects, so this is deliberately limited to explicit quoted
+ * copy or the common "加上...几个字" form; it must never invent product text.
+ */
+export function uploadedVideoTitle(message) {
+  const text = String(message || '');
+  const quoted = text.match(/[“「『"]([^”」』"]{1,80})[”」』"]/u)?.[1]?.trim();
+  const natural = text.match(/(?:加上|加一个|添加|改成|改为)\s*(?:一个)?\s*([^，。！？,!?]{1,40}?)(?:几个字|标题|文字|，|。|！|！|$)/u)?.[1]?.trim();
+  const title = quoted || natural;
+  return title && /(?:标题|文字|字幕|几个字|开头|前\s*(?:\d+|[一二三四五六七八九十]+)\s*秒|新品体验)/u.test(`${text} ${title}`) ? title : null;
+}
+
 /** Import one uploaded video as an independent, candidate-only native project. */
 export async function buildUploadedVideoProject(input, {root = VIDEO_AGENT_ROOT} = {}) {
   const request = normalizeCommerceRequest({...input, assets: input.assets, creativeMode: 'video'});
@@ -140,8 +153,25 @@ export async function buildUploadedVideoProject(input, {root = VIDEO_AGENT_ROOT}
   const design={id:'source-edit',background:'#111111',foreground:'#FFFFFF',panel:'#111111',accent:'#FFFFFF',accentContrast:'#111111',fontFamily:'"Microsoft YaHei", "PingFang SC", Arial, sans-serif',motionIntensity:0,transition:'dissolve-transition',safeAreas:{top:.06,right:.06,bottom:.07,left:.06},minReadFrames:48,easingFamily:'linear',output:{width,height}};
   const scene={id:'scene-01-uploaded-source',purpose:'source',startFrame:0,durationFrames,effect:'media-cut',effectParams:{}};
   const node={id:'video-'+source.id,sceneId:scene.id,semanticRole:'hero',kind:'video',assetId:source.id,anchor:'scene-local',localStartFrame:0,startFrame:0,localDurationFrames:durationFrames,durationFrames,params:{sourceStartSeconds:0,playbackRate:1,fit:'cover'}};
-  const document=createNativeDocument({projectId:request.projectId,output:{width,height,durationSeconds:durationFrames/30},brief,design,assets:prepared,scenes:[scene],nodes:[node],transitions:[]});
+  const title = uploadedVideoTitle(input.message);
+  const nodes=[node];
+  if(title){
+    nodes.push({
+      id:stableId('title',request.projectId,source.id,title),
+      sceneId:scene.id,
+      semanticRole:'title',
+      kind:'text',
+      anchor:'scene-local',
+      localStartFrame:0,
+      startFrame:0,
+      localDurationFrames:Math.min(60,durationFrames),
+      durationFrames:Math.min(60,durationFrames),
+      params:{text:title,immediate:true,style:{color:'#FFFFFF',fontSize:60,fontWeight:800}},
+    });
+  }
+  const document=createNativeDocument({projectId:request.projectId,output:{width,height,durationSeconds:durationFrames/30},brief,design,assets:prepared,scenes:[scene],nodes,transitions:[]});
   document.scenePackage={kind:'uploaded-source',sourceAssetId:source.id,candidateOnly:true};
+  if(title)document.scenePackage.titleNodeId=nodes.at(-1).id;
   document.businessContract={...businessContract({...request,scenarioId:'general',taskMode:'recut',message:request.message}),scenarioId:'general',taskMode:'recut',candidateOnly:true};
   document.audioRequirements={original:Boolean(source.mediaMetadata.hasAudio)};
   if(source.mediaMetadata.hasAudio)document.audioGraph=[{id:stableId('audio',node.id),assetId:source.id,role:'original',sourceNodeId:node.id,sceneId:scene.id,startFrame:0,durationFrames,sourceStartSeconds:0,playbackRate:1,volume:1}];

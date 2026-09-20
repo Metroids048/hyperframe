@@ -1,31 +1,45 @@
 # OpenClaw 原生闭环定点修复状态
 
-状态：**BLOCKED（未达到本轮唯一完成标准）**。原生 2026.6.11 Control UI、真实视频上传入口、计划校验和编辑后自动导出已经接通；A/C 已在原生页面完成。B 的真实上传文件已进入 `assetId`，并已实现“上传视频作为主源”的受控绑定与原声重绑定路径；带 AAC 音轨的真实 MP4 已通过原生预览、渲染并生成新修订，但旧工程的自定义场景和历史操作标签在独立画面复核中被正确拦截，未伪装成完成。新建项目路径仍被电商素材准入门禁拦截（用户上传素材缺少商品身份、用途审核与覆盖证据），需要下一轮把“用户上传原片候选”接入候选状态而不是继承旧工程语义。 
+状态：**TECH_PASS / READY_FOR_HUMAN_REVIEW**。原生 OpenClaw 2026.6.11 Control UI 的视频上传、受控素材绑定、计划校验、异步任务、自动导出、状态查询、播放和下载闭环均已实际通过。未把自动检查写成人工完整观片或试听；`USER_ACCEPTED` 仍须由真实操作者对指定 revision 提交。
 
-基线：分支 `codex/webui-agent-workflow`，HEAD `d480fac73c1a8d1ad5a303aa312611f7879e7e41`，OpenClaw `2026.6.11`，HyperFrames `0.8.33`，Control UI/Gateway 已启动，后端端口 `3024`。
+基线：分支 `codex/webui-agent-workflow`，OpenClaw `2026.6.11`，HyperFrames `0.8.33`。本地未提交修改、素材、工程和历史 revisions 均保留。
 
-已落地的可重装修改：
+## 已解决根因
 
-- `openclaw-plugin/index.mjs` 注册受 Gateway 认证保护的 `POST /plugins/commerce-engine/upload`，真实流式写入 inbound media，返回 `media://inbound/...`、`assetId` 导入所需路径、MIME、字节数；浏览器不接触管理员 token。
-- `scripts/patch-openclaw-2026.6.11.mjs` 对目标版本 UI bundle 和 attachment normalizer 做结构校验的可重放源码补丁。UI 接受 MP4/MOV/WebM，单个视频与拖拽入口统一限制为 15 MiB，并把视频直接上传到 Gateway，再以受控路径引用，避免把完整视频 base64 放进模型消息；normalizer 传递受控路径。已移除上传认证调试日志。
-- `server.mjs` 对入站附件做 `realpath` + `relative` 边界校验，并返回 `code/stage/field/retryable/requestId`。
-- `lib/openclaw/commerce-engine-facade.mjs` 强制已有工程使用真实 `baseRevisionId`，计划验证实际运行原生 patch，拒绝空计划、未知操作和不存在对象；写任务等待持久化任务完成并返回 `resultRevisionId`/artifact。
-- `lib/creative/service.mjs` 编辑发布后自动导出同一版本，并提供持久化任务等待，不再把 `accepted/queued/revision saved` 当成视频完成。
+- 原生 UI 视频请求的认证上下文没有进入上传 helper，导致选择文件后 `401` 且附件消失。补丁现在从真实 Control UI 状态传递 token；上传路由使用插件认证，并限制 loopback、Host 和 Origin。
+- 视频原片上限错误继承了媒体理解预算。原片上传现独立支持 MP4/MOV/WebM，默认 `64 MiB`；视频不以 Base64 塞进聊天消息。
+- 上传回执、session/project 绑定、空 revision 和写授权边界已收敛，写操作只接受服务端签发授权和受管 `media://inbound/...` receipt。
+- `commerce_edit_video` 曾在工具调用内同步等待最长 300 秒渲染，与 Gateway run timeout 冲突。现在入队后立即返回真实 job，后续由 `commerce_job_get` 与 `commerce_artifact_list` 查询。
+- 插件 schema 曾把 `requestedChanges` 暴露为任意对象，模型连续生成 `update_object_field`、`text_edit`、`replace_text`。schema 现在明确列出原生 operation，并指定文本格式 `{"type":"update_text","nodeId":"...","text":"..."}`。
+- 正确 `update_text` 曾把裁剪后的工程摘要传给 patch validator，因缺少完整文档字段而报 `Cannot read properties of undefined (reading 'find')`。校验现从当前 revision 的完整 `document.json` 和 assets 执行。
+- 语义路由曾把任意模型 quote 自动改写成整条用户消息，可能把模型发明的引用洗成合法证据。现在仅允许空白和标点归一化等价的 quote 修复。
 
-视频理解配置已写入 `runtime/openclaw/openclaw.example.json` 与本机私有配置：只处理第一个附件，`maxBytes=15 MiB`。当前 One-API 中的 gpt-5.6 模型仍只声明 `text,image` 输入；未提供 Google/Qwen/Moonshot 等视频理解凭据前，上传与保存可用，但“直接问视频内容”仍是待接入能力。
+## 原生页面证据
 
-原生浏览器验收：
+- 4,639,484-byte `product.mp4` 在真实文件选择器中立即显示附件卡，并写入 inbound 目录；草稿移除后没有误发送或修改工程。
+- 26,606,513-byte 原片通过同一原生上传链路进入 inbound，绑定为项目 `8e608f0a-7a74-445f-85db-52aaf72fa38b` 的真实视频 asset `asset-b3957e58-e8f6-478c-b70b-b9ec84003d46`。
+- 第一版保留为 `rev-308fd19f1911f02e`，标题为“新品体验”。旧的错误自动修订 `rev-b83966ce1fb8c67d` 仍保留作历史证据，没有覆盖第一版。
+- 第二轮“只把刚加的字改成周末新品”任务 `job-78d3ed1c-93dd-4282-86ea-2eb34fce7da6` 已完成，当前 revision 为 `rev-b0729b3c8d3f0ccf`。
+- 重启后，真实 Control UI 用唯一操作 `update_text` 调用 `commerce_plan_validate`，返回 `ok`、`valid: true`，不再出现插件 error，也没有执行额外修改。
+- 同一页面调用 `commerce_job_get` 与 `commerce_artifact_list`，返回新 revision 的真实播放和下载链接，不再引用旧 `severity` 版本。
+- 浏览器实际加载播放链接：`readyState=4`、`1280x720`、`duration=78.633333`、`paused=false`、`currentTime=15.525358`、无媒体错误。
+- 下载返回 `200`、`Content-Disposition: attachment; filename="candidate-commerce-final.mp4"`、`Content-Length: 38654298`；Range 播放返回 `206` 和 `Content-Range: bytes 0-1023/38654298`。
 
-- A PASS：会话 `codex-acceptance-a2-20260919`，项目 `d233be29-9021-48ca-b057-474c3097be6a`，中文局部标题编辑后自动生成并在同一会话返回播放/下载路径；版本 `rev-381a71deeff727a0`，MP4 SHA-256 `d1843f93e8a6a6bbf45770b898e71346da8c7fe57de262b9eeeb853da2be46d8`，35 秒，1920×1080，30fps，AAC，完整解码通过。
-- C PASS：同一项目再次修改得到 `rev-7e00a02bc2981e3b`，旧版本保留，刷新后项目状态仍可读；新 MP4 SHA-256 `6f8f3d6682cd11f24f20c239c93cd43a38a4e88045be3df0604919155ce8fca2`。
-- B BLOCKED：真实 MP4 通过原生 upload route 入站并返回真实 `assetId`；新路径已准备真实媒体元数据、按源时长绑定视频节点、显式更新关联原声并自动导出。带 AAC 的复跑产生了新修订和 MP4，但独立画面复核发现旧工程的自定义场景/历史标签与上传素材语义不一致，随后自定义运行时隔离检查失败，上一有效版本保留。无音频文件仍会被 `INVALID_AUDIO_ASSET` 正确拒绝。新建项目试验被 `COMMERCE_MATERIALS_BLOCKED` 阻断，原因是用户上传素材尚未有商品身份、用途权利和覆盖登记。
+## 当前成片证据
 
-本轮验证命令：
+- 文件：`data/result-completion-projects/8e608f0a-7a74-445f-85db-52aaf72fa38b/versions/job-78d3ed1c-93dd-4282-86ea-2eb34fce7da6/commerce-final.mp4`
+- SHA-256：`b8add9e0b6b24919eadac9ffb2a0a8b9ddee90d1bdde013111fe34ce441c7fb2`
+- 38,654,298 bytes，78.634 秒，1280x720，30 fps，2359 帧，H.264；AAC 48 kHz 双声道。
+- FFmpeg `-xerror` 全文件解码通过。0 秒和 1.9 秒显示“周末新品”；2.1 秒标题与底板消失；78.5 秒片尾无标题残留。
+- 文档保持同一原资产、source start 0、playbackRate 1、volume 1 和完整 2359 帧。导出会把源 AAC 重编码/重采样到 48 kHz，因此只声明业务参数与原声内容链路保留，不声明 bit-exact。
 
-- `node --check`：plugin、facade、service、server 通过。
-- `scripts/test-openclaw-facade.mjs` 通过。
-- `scripts/test-openclaw-plugin-contract.mjs` 通过（3/3）。
-- `scripts/test-openclaw-security-boundary.mjs` 通过（6/6）。
-- Gateway/backend `python3 scripts/openclaw-local.py status`：两者 ready。
+## 验证
 
-启动入口：在 `video-agent/` 运行 `python3 scripts/openclaw-local.py start`，原生页面为 `http://127.0.0.1:18789/chat`。普通操作是打开原生聊天、选择项目、点击“附加文件”选择 MP4、输入中文修改要求并等待页面返回播放/下载结果。
+- OpenClaw 专项：上传合同、插件合同 3/3、session binding 8/8、facade 12/12、WebUI bridge 8/8、安全边界 6/6、上传标题测试全部通过。
+- `node --check`、`git diff --check` 通过。
+- `node scripts/verify-editor.mjs core` 通过。
+- `node scripts/verify-editor.mjs browser` 通过；真实浏览器剪辑、播放、导出、移动端和刷新恢复均通过。
+- `npm test` 的实际步骤 `node scripts/build-web.mjs` 与 `node scripts/acceptance.mjs` 通过，acceptance 为 20/20。本机打包 Node 目录没有 `npm` 可执行文件，因此按 `package.json` 等价拆分执行。
+- Gateway/backend：`python3 scripts/openclaw-local.py status` 均为 ready。
+
+入口：`http://127.0.0.1:18789/status/chat?session=main`。播放：`http://127.0.0.1:3024/api/commerce/8e608f0a-7a74-445f-85db-52aaf72fa38b/revisions/rev-b0729b3c8d3f0ccf/commerce-final.mp4`。下载在该 URL 后加 `?download=1`。

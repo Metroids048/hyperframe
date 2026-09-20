@@ -21,6 +21,42 @@ test('facade reads the existing service without creating a second authority', as
   assert.deepEqual(service.list().map(x => x.id), [p.id]);
 });
 
+test('explicit project creation succeeds even when the native session was previously bound', async () => {
+  const service = await createCreativeService({root, dataDir});
+  const previous = await service.create({message: 'previous session project', inferRequest: true});
+  const facade = createCommerceEngineFacade(service, {journalPath: path.join(root, 'ops-rebind-create.json'), authorizeWrite});
+  const result = await facade.invoke('commerce_project_create', {projectId:'new', name:'fresh upload project', request:{message:'fresh upload'}, operationId:'op-project-create-rebind-0001', authorizationId:'auth-local-test'}, {...context, workspaceProjectId:previous.id});
+  assert.equal(result.status, 'ready');
+  assert.equal(result.created, true);
+  assert.notEqual(result.projectId, previous.id);
+});
+
+test('artifact listing on a draft project reports needs_revision instead of throwing on null', async () => {
+  const service = await createCreativeService({root, dataDir});
+  const draft = await service.create({message:'empty artifact project', inferRequest:true});
+  const facade = createCommerceEngineFacade(service, {journalPath:path.join(root,'ops-empty-artifacts.json'), authorizeWrite});
+  const result = await facade.invoke('commerce_artifact_list', {projectId:draft.id, revisionId:null}, {...context, workspaceProjectId:draft.id});
+  assert.equal(result.status, 'needs_revision');
+  assert.deepEqual(result.artifacts, []);
+});
+
+test('plan validation delegates to the service full-document validator', async () => {
+  const p={id:'project-plan',currentRevisionId:'rev-current',jobs:[],assets:[]};
+  let validated;
+  const service={
+    get:id=>id===p.id?p:null,
+    enqueue:async()=>{},
+    view:value=>value,
+    validateOpenclawOperations:async(value,operations)=>{assert.equal(value,p);validated=operations;},
+    openclawProjectContext:async()=>{throw new Error('summary document must not be used for patch validation');},
+  };
+  const facade=createCommerceEngineFacade(service,{journalPath:path.join(root,'ops-plan-validator.json'),authorizeWrite});
+  const requestedChanges=[{type:'update_text',nodeId:'title-1',text:'周末新品'}];
+  const result=await facade.invoke('commerce_plan_validate',{projectId:p.id,baseRevisionId:p.currentRevisionId,requestedChanges,keep:['everything else']},{...context,workspaceProjectId:p.id});
+  assert.deepEqual(validated,requestedChanges);
+  assert.equal(result.validation.valid,true);
+});
+
 test('write operations are idempotent and reject same-key different payloads', async () => {
   const service = await createCreativeService({root, dataDir});
   const p = await service.create({message: 'idempotency test', inferRequest: true});
@@ -30,6 +66,31 @@ test('write operations are idempotent and reject same-key different payloads', a
   const b = await facade.invoke('commerce_create_video', input, {...context, workspaceProjectId: p.id});
   assert.equal(a.jobId, b.jobId);
   await assert.rejects(() => facade.invoke('commerce_create_video', {...input, message: 'different'}, {...context, workspaceProjectId: p.id}), {code: 'IDEMPOTENCY_CONFLICT'});
+});
+
+test('write operations acknowledge enqueue without waiting for the render', async () => {
+  const p = {id: 'project-async', currentRevisionId: null, revisions: [], jobs: []};
+  let waitCalls = 0;
+  const service = {
+    get: id => id === p.id ? p : null,
+    enqueue: async () => {
+      const job = {id: 'job-async', status: 'queued', stage: 'queued'};
+      p.jobs.push(job);
+      return job;
+    },
+    waitForJob: async () => {
+      waitCalls += 1;
+      throw new Error('facade must not wait for a render');
+    },
+    view: value => value,
+  };
+  const facade = createCommerceEngineFacade(service, {journalPath: path.join(root, 'ops-async.json'), authorizeWrite});
+  const input = {projectId: p.id, operationId: 'op-async-0001', baseRevisionId: null, authorizationId: 'auth-local-test', requestedChanges: [{type:'create'}], keep: [], message: 'queue and return'};
+  const result = await facade.invoke('commerce_create_video', input, {...context, workspaceProjectId: p.id});
+  assert.equal(result.status, 'queued');
+  assert.equal(result.jobId, 'job-async');
+  assert.equal(result.retryable, true);
+  assert.equal(waitCalls, 0);
 });
 
 test('facade enforces revision and workspace boundaries and shadow blocks writes', async () => {

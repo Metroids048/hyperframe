@@ -38,7 +38,9 @@ try {
 const PORT=Number(process.env.VIDEO_AGENT_PORT||3020),DATA=path.resolve(process.env.VIDEO_AGENT_DATA_DIR||path.join(ROOT,'data/projects')),EDIT_DATA=path.resolve(process.env.VIDEO_AGENT_EDIT_DATA_DIR||path.join(ROOT,'data/edit-projects')),CREATIVE_DATA=path.resolve(process.env.VIDEO_AGENT_CREATIVE_DATA_DIR||path.join(ROOT,'data/commerce-runs'));
 const OPENCLAW_STATE_ROOT=path.resolve(process.env.OPENCLAW_STATE_DIR||path.join(process.env.HOME||'', '.openclaw','hyperframe','state'));
 const OPENCLAW_INBOUND_ROOT=path.resolve(process.env.OPENCLAW_INBOUND_MEDIA_DIR||path.join(OPENCLAW_STATE_ROOT,'media','inbound'));
-const OPENCLAW_MAX_VIDEO_BYTES=15*1024*1024;
+const DEFAULT_OPENCLAW_VIDEO_UPLOAD_BYTES=64*1024*1024;
+const OPENCLAW_MAX_VIDEO_BYTES=Number.isFinite(Number(process.env.OPENCLAW_VIDEO_UPLOAD_MAX_BYTES))&&Number(process.env.OPENCLAW_VIDEO_UPLOAD_MAX_BYTES)>0?Math.floor(Number(process.env.OPENCLAW_VIDEO_UPLOAD_MAX_BYTES)):DEFAULT_OPENCLAW_VIDEO_UPLOAD_BYTES;
+const OPENCLAW_MAX_VIDEO_MIB=Math.round(OPENCLAW_MAX_VIDEO_BYTES/1024/1024);
 // Test and recovery workers often use isolated project directories. Keep the
 // OpenClaw journal/session stores in that same data root unless callers give
 // explicit paths; otherwise an unrelated running server can lock startup.
@@ -111,9 +113,11 @@ async function openclawToolRoute(req,res){
   const importedAttachmentIds=[...(normalizedInput.attachmentIds||[])];
   for(const raw of attachmentPaths){
    // Native Control UI video uploads return a server-issued media:// receipt.
-   // Resolve that receipt inside the canonical inbound root; absolute paths
-   // remain accepted only for the same trusted directory for compatibility.
+   // Resolve only the opaque receipt issued by the upload endpoint. Never
+   // accept model-supplied local paths, even when they happen to be inbound.
    const ref=String(raw);
+   if(/^https?:\/\//i.test(ref))throw new InputError('视频附件不能使用远程 URL，请通过附件按钮上传 MP4、MOV 或 WebM 视频',400);
+   if(!ref.startsWith('media://inbound/'))throw new InputError('视频附件路径无效，请通过附件按钮上传 MP4、MOV 或 WebM 视频',400);
    const candidate=ref.startsWith('media://inbound/')
     ? path.join(inboundRoot, path.basename(ref.slice('media://inbound/'.length)))
     : path.resolve(ref);
@@ -121,7 +125,7 @@ async function openclawToolRoute(req,res){
    const relative=candidateReal?path.relative(inboundRoot,candidateReal):'..';
    if(!candidateReal||!relative||path.isAbsolute(relative)||relative==='..'||relative.startsWith('..'+path.sep))throw new InputError('OpenClaw 附件路径不在受信入站目录内',403);
    const stat=await fs.stat(candidateReal).catch(()=>null);if(!stat?.isFile())throw new InputError('OpenClaw 附件不存在',400);
-   if(stat.size>OPENCLAW_MAX_VIDEO_BYTES)throw new InputError('OpenClaw 视频不能超过 15 MiB',413);
+   if(stat.size>OPENCLAW_MAX_VIDEO_BYTES)throw new InputError(`OpenClaw 视频不能超过 ${OPENCLAW_MAX_VIDEO_MIB} MiB`,413);
    if(!/\.(?:mp4|mov|webm)$/i.test(path.basename(candidateReal)))throw new InputError('OpenClaw 仅支持 MP4、MOV、WebM 视频',415);
    const asset=await creative.upload(project,createReadStream(candidateReal),path.basename(candidateReal));
    if(asset?.id) importedAttachmentIds.push(asset.id);
@@ -130,6 +134,12 @@ async function openclawToolRoute(req,res){
   delete normalizedInput.attachmentPaths;
  }
  const result=await commerceEngine.invoke(input.tool,normalizedInput,trustedContext);
+ if(input.tool==='commerce_project_create'&&result?.created===true&&result?.projectId){
+  // Creating a project is the one explicit operation allowed to advance a
+  // native Control UI session to a new project. Other cross-project access
+  // remains rejected by bind().
+  await openclawSessions.replace(input.trustedContext,result.projectId);
+ }
  return json(res,{ok:true,result});
 }
 async function openclawAuthorizationRoute(req,res){
@@ -143,7 +153,7 @@ async function openclawAuthorizationRoute(req,res){
  const context=await openclawSessions.bind(body.trustedContext,projectId==='new'?null:projectId);
  const messageId=String(body.trustedContext.messageId||'');
  if(!messageId)throw new InputError('OpenClaw inbound message identity required',403);
- const operationId=input.operationId||stableControlOperationId(projectId,messageId,{message:String(input.message||body.tool),baseRevisionId:input.baseRevisionId??null,attachmentIds:input.attachmentIds||[],attachmentPaths:input.attachmentPaths||[]});
+ const operationId=stableControlOperationId(projectId,messageId,{message:String(input.message||body.tool),baseRevisionId:input.baseRevisionId??null,attachmentIds:input.attachmentIds||[],attachmentPaths:input.attachmentPaths||[]});
  const authorization=await openclawAuthorizations.issue({projectId,baseRevisionId:input.baseRevisionId??null,messageId,message:String(input.message||body.tool),sessionKey:context.sessionKey,allowedTools:[body.tool]});
  return json(res,{ok:true,authorizationId:authorization.authorizationId,operationId,projectId,baseRevisionId:projectId==='new'?null:creative.get(projectId).currentRevisionId||null,expiresAt:authorization.expiresAt});
 }

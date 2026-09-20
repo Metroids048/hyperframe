@@ -28,12 +28,15 @@ const child=spawn(process.execPath,['server.mjs'],{cwd:root,env:{...process.env,
 child.stdout.on('data',chunk=>{serverOutput+=chunk.toString();});child.stderr.on('data',chunk=>{serverOutput+=chunk.toString();});
 async function ready(){for(let i=0;i<100;i++){try{const response=await fetch(`http://127.0.0.1:${appPort}/api/health`);if(response.ok)return response.json();}catch{}await new Promise(resolve=>setTimeout(resolve,100));}throw new Error('video-agent startup timeout\n'+serverOutput);}
 async function post(value){const response=await fetch(`http://127.0.0.1:${appPort}/api/commerce-chat`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(value)});const body=await response.json();assert.ok(response.ok,JSON.stringify(body));return body;}
+async function project(projectId){const response=await fetch(`http://127.0.0.1:${appPort}/api/commerce/${projectId}`);const body=await response.json();assert.ok(response.ok,JSON.stringify(body));return body.project;}
+async function waitForControl(projectId){for(let i=0;i<100;i++){const value=await project(projectId);if(gatewayCalls&&value.jobs?.length)return value;await new Promise(resolve=>setTimeout(resolve,100));}throw new Error('background OpenClaw control dispatch timeout\n'+serverOutput);}
 
 try{
  const health=await ready();workspaceId=health.workspaceId;
  const draft=await post({action:'draft',request:{message:'make a local migration test',inferRequest:true}}),projectId=draft.project.id;
  const message=await post({action:'message',projectId,message:'Create from existing authorized assets only',baseRevisionId:null,idempotencyKey:'message-webui-bridge-0001',attachmentIds:[],taskMode:'create'});
- assert.equal(gatewayCalls,1);assert.equal(message.control.tool,'commerce_create_video');assert.equal(message.project.id,projectId);assert.ok(message.project.jobs.some(job=>job.id===message.control.jobId));
+ assert.equal(message.accepted,true);assert.equal(message.project.id,projectId);
+ const settled=await waitForControl(projectId);assert.equal(gatewayCalls,1);assert.ok(settled.jobs.length);
  const operations=JSON.parse(await fs.readFile(path.join(temp,'bridge','operations.json'),'utf8'));assert.equal(Object.values(operations.operations).length,1);assert.equal(Object.values(operations.operations)[0].status,'completed');
  const sessions=await fs.readFile(path.join(temp,'bridge','sessions.json'),'utf8');assert.ok(!sessions.includes('commerce-control:'));
  assert.ok(!serverOutput.includes(bridgeToken));assert.ok(!serverOutput.includes(controlToken));
