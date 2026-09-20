@@ -76,7 +76,7 @@ async function openclawToolRoute(req,res){
  // Control UI uploads are materialized by OpenClaw under its inbound media
  // directory. Import only those files, never arbitrary model-provided paths.
  // The operation remains behind the normal project/session authorization.
- const attachmentPaths=Array.isArray(normalizedInput.attachmentPaths)?normalizedInput.attachmentPaths:[];
+  const attachmentPaths=Array.isArray(normalizedInput.attachmentPaths)?normalizedInput.attachmentPaths:[];
  if(attachmentPaths.length){
   // Bind the server-issued authorization before touching any uploaded bytes.
   // This keeps malformed or unauthorized tool calls side-effect free.
@@ -95,7 +95,13 @@ async function openclawToolRoute(req,res){
   const project=creative.get(projectId);
   const importedAttachmentIds=[...(normalizedInput.attachmentIds||[])];
   for(const raw of attachmentPaths){
-   const candidate=path.resolve(String(raw));
+   // Native Control UI video uploads return a server-issued media:// receipt.
+   // Resolve that receipt inside the canonical inbound root; absolute paths
+   // remain accepted only for the same trusted directory for compatibility.
+   const ref=String(raw);
+   const candidate=ref.startsWith('media://inbound/')
+    ? path.join(inboundRoot, path.basename(ref.slice('media://inbound/'.length)))
+    : path.resolve(ref);
    const candidateReal=await fs.realpath(candidate).catch(()=>null);
    const relative=candidateReal?path.relative(inboundRoot,candidateReal):'..';
    if(!candidateReal||!relative||path.isAbsolute(relative)||relative==='..'||relative.startsWith('..'+path.sep))throw new InputError('OpenClaw 附件路径不在受信入站目录内',403);

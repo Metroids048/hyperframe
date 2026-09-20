@@ -346,7 +346,14 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
     // Model output may omit scene IDs; these are runtime identity, not creative content.
     if(story?.scenes)story.scenes=story.scenes.map((scene,index)=>({...scene,id:scene.id||`scene-${String(index+1).padStart(2,'0')}`}));
 
-    if(story.narrationRevision){validateNarrationRevision(request,result(ctx.run,'narration'),ctx.run.artifacts.narrationHistory||[],story.narrationRevision);return saveJSON('story-plan.json',story);}
+    if(story.narrationRevision){
+      // A model may echo a narration-revision object even when narration is
+      // disabled and the request explicitly keeps the source audio.  In that
+      // case it is not an authorized audio change; retain the original track
+      // and continue with the visual-only story plan.
+      if(result(ctx.run,'narration')?.enabled===true)validateNarrationRevision(request,result(ctx.run,'narration'),ctx.run.artifacts.narrationHistory||[],story.narrationRevision);
+      else story={...story,narrationRevision:null};
+    }
     if(story.inspectActions?.length){validateActionRanges(story.inspectActions,assets);return saveJSON('story-plan.json',story);}
     if(story.inspectRanges?.length){validateInspectionRanges(story.inspectRanges,assets);return saveJSON('story-plan.json',story);}
     if(story.blockingGaps?.length){

@@ -47,7 +47,14 @@ const schemas = {
   commerce_plan_validate: Type.Object({ projectId: idSchema, baseRevisionId: baseRevision, requestedChanges: changes, keep }, { additionalProperties: false }),
   commerce_create_video: Type.Object({ projectId: idSchema, baseRevisionId: baseRevision, message: { type: "string", minLength: 1, maxLength: 20000 }, requestedChanges: changes, keep, ...nativeWriteFields, ...writeContext }, { additionalProperties: false }),
   commerce_edit_video: Type.Object({ projectId: idSchema, baseRevisionId: baseRevision, message: { type: "string", minLength: 1, maxLength: 20000 }, requestedChanges: changes, keep, ...nativeWriteFields, ...writeContext }, { additionalProperties: false }),
-  commerce_generate_asset: Type.Object({ projectId: idSchema, baseRevisionId: baseRevision, message: { type: "string", minLength: 1, maxLength: 20000 }, requestedChanges: changes, keep, ...nativeWriteFields, ...writeContext }, { additionalProperties: false }),
+  commerce_generate_asset: Type.Object({ projectId: idSchema, baseRevisionId: baseRevision, message: { type: "string", minLength: 1, maxLength: 20000 }, requestedChanges: changes, keep,
+    // These fields are part of the executor contract.  Keep them explicit so
+    // capability probing can distinguish an image request from the default
+    // video branch and can bind an already-approved source asset.
+    assetKind: Type.Optional({ type: "string", enum: ["image", "video"] }),
+    target: Type.Optional({ type: "string", enum: ["image", "video"] }),
+    sourceAssetId: Type.Optional(idSchema),
+    ...nativeWriteFields, ...writeContext }, { additionalProperties: false }),
   commerce_job_get: Type.Object({ projectId: idSchema, jobId: idSchema }, { additionalProperties: false }),
   commerce_job_control: Type.Object({ projectId: idSchema, baseRevisionId: baseRevision, jobId: idSchema, action: { type: "string", enum: ["cancel", "resume"] }, requestedChanges: changes, keep, ...nativeWriteFields }, { additionalProperties: false }),
   commerce_revision_control: Type.Object({ projectId: idSchema, baseRevisionId: baseRevision, revisionId: optionalId, action: { type: "string", enum: ["undo", "redo", "restore"] }, requestedChanges: changes, keep, ...nativeWriteFields }, { additionalProperties: false }),
@@ -68,7 +75,10 @@ function registerUploadRoute(api) {
     const ext = path.extname(fileName).toLowerCase();
     if (!["video/mp4", "video/quicktime", "video/webm", "application/octet-stream", ""].includes(mime) || ![".mp4", ".mov", ".webm"].includes(ext)) { res.statusCode = 415; res.setHeader("content-type", "application/json"); res.end(JSON.stringify({ ok:false, error:"仅支持 MP4、MOV、WebM 视频" })); return; }
     const limit = 1024 * 1024 * 1024;
-    const stateRoot = path.resolve(process.env.OPENCLAW_STATE_DIR || path.join(os.homedir(), ".openclaw", "hyperframe"));
+    // OPENCLAW_STATE_DIR is the one canonical root.  The backend imports from
+    // <state>/media/inbound, so the plugin must use the same default when the
+    // environment is not explicitly configured.
+    const stateRoot = path.resolve(process.env.OPENCLAW_STATE_DIR || path.join(os.homedir(), ".openclaw", "hyperframe", "state"));
     const inbound = path.join(stateRoot, "media", "inbound"); await fsp.mkdir(inbound, {recursive:true, mode:0o700});
     const id = crypto.randomUUID(); const target = path.join(inbound, `${id}-${fileName}`); const temp = `${target}.part`;
     let bytes = 0;

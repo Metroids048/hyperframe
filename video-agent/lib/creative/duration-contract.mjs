@@ -7,7 +7,14 @@ export function durationContract(message,targetSeconds){
  const approximate=[...text.matchAll(/(?:大约|约|大概|大致|about|approximately)\s*(\d+(?:\.\d+)?)\s*(?:秒|seconds?|s\b)/gi)]
   .some(m=>Math.round(Number(m[1])*FPS)===targetFrames);
  const exact=/(?:严格|精确|必须|恰好|正好|exactly)[^。！？\n]{0,12}(?:\d+(?:\.\d+)?)\s*(?:秒|seconds?)/i.test(text)||/(?:不要|不是|不能|并非)\s*(?:大约|约|大概|about)/i.test(text);
- const toleranceFrames=approximate&&!exact?Math.floor(targetFrames*.05):0;
+ // Container durations often land between two output-frame boundaries (for
+ // example 120.022s at 30fps rounds to 3601 frames).  An explicit request to
+ // preserve a complete source must not force a synthetic hold/loop merely to
+ // satisfy that quantisation boundary.  Keep exact timing for ordinary plans,
+ // but permit the one-frame source-boundary discrepancy in this narrow case.
+ const completeSource=/完整[^。！？\n]{0,18}(?:时长|视频|素材)|preserv(?:e|ing)[^\n]{0,24}(?:full|complete|source)/i.test(text)
+  &&/(?:不要裁剪|不要截短|不(?:裁剪|截短)|keep[^\n]{0,12}(?:full|complete))/i.test(text);
+ const toleranceFrames=approximate&&!exact?Math.floor(targetFrames*.05):completeSource?1:0;
  return {version:1,mode:toleranceFrames?'approximate':'exact',targetFrames,minFrames:targetFrames-toleranceFrames,maxFrames:targetFrames+toleranceFrames,toleranceRatio:toleranceFrames?.05:0};
 }
 

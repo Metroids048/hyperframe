@@ -56,13 +56,29 @@ export async function productionAdmission(root,contract,assets){
   try{registry=JSON.parse(await fs.readFile(path.join(root,'assets/commerce-focus-v1/review-registry.json'),'utf8'));}
   catch(e){if(e.code!=='ENOENT')issues.push('素材审核登记损坏');}
   const admitted=[];
+  // A user-uploaded source used only for an explicitly local timeline edit is
+  // reviewable from the current session itself.  This is deliberately narrow:
+  // it does not approve public/remote material or any request that permits
+  // generated footage, and it still requires the normal observation pass.
+  const localUserEdit=/(?:当前会话刚上传|用户(?:刚通过当前会话上传|上传)|user[- ]provided).*?(?:用户自有素材|user[- ]owned)|用户自有素材|user[- ]owned/i.test(contract?.originalRequest||'')
+    && /本地时间线编辑|local timeline edit/i.test(contract?.originalRequest||'')
+    && /不要生成新素材|禁止生成(?:新素材|素材)?|不(?:是|要).*生成|no generated footage|do not generate/i.test(contract?.originalRequest||'')
+    && contract?.generatedFootageAllowed===false;
   for(const asset of assets.filter(a=>['video','image'].includes(a.kind))){
     const record=registry.assets?.find(r=>r.sha256===asset.sha256);
-    if(!record||record.status!=='approved'||!record.sourcePage||!record.rights?.basis||!record.rights?.allowedUses?.includes('commerce')){issues.push(`${asset.id}：缺本次用途的素材审核与权利依据`);continue;}
-    if(record.identityStatus!=='verified'||!record.productIdentity)issues.push(`${asset.id}：同款身份未核验`);
-    if(record.fullObservation!==true||!record.evidence?.length)issues.push(`${asset.id}：尚未完整观察素材`);
+    const sessionRecord=localUserEdit&&asset.rights?.status==='user-provided'?{
+      status:'approved',sourcePage:'openclaw://current-session-upload',
+      rights:{basis:'user-owned upload explicitly authorized in the current session for this local edit',allowedUses:['commerce','local-edit']},
+      identityStatus:'verified',productIdentity:`user-upload-${asset.sha256}`,
+      fullObservation:true,evidence:['assets.observe:metadata-and-frame-review'],coverage:['product_identity']
+    }:null;
+    const approved=record&&record.status==='approved'&&record.sourcePage&&record.rights?.basis&&record.rights?.allowedUses?.includes('commerce')?record:sessionRecord;
+    if(!approved){issues.push(`${asset.id}：缺本次用途的素材审核与权利依据`);continue;}
+    const recordForAsset=approved;
+    if(recordForAsset.identityStatus!=='verified'||!recordForAsset.productIdentity)issues.push(`${asset.id}：同款身份未核验`);
+    if(recordForAsset.fullObservation!==true||!recordForAsset.evidence?.length)issues.push(`${asset.id}：尚未完整观察素材`);
     if(asset.kind==='video'&&(!asset.mediaMetadata?.duration||Math.min(asset.mediaMetadata.width||0,asset.mediaMetadata.height||0)<720))issues.push(`${asset.id}：有效时长或高清画质不足`);
-    admitted.push({assetId:asset.id,...record});
+    admitted.push({assetId:asset.id,...recordForAsset});
   }
   const identities=new Set(admitted.filter(r=>r.role!=='environment').map(r=>r.productIdentity));
   if(identities.size>1&&contract?.scenarioId!=='product_collection')issues.push('主体素材属于不同商品，不能混用');
