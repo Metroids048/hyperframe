@@ -80,7 +80,7 @@ def main():
                                     plugin_path = plugin_path.replace('${' + key + '}', str(value))
                                 plugin_root = Path(plugin_path).expanduser()
                                 plugin_ok = bool(plugin_path) and (plugin_root.is_file() or (plugin_root / 'index.mjs').is_file())
-                                config_ok = bool(config_path) and config_file.resolve().is_file() and EXPECTED_VERSION == config_data.get('meta', {}).get('lastTouchedVersion') and 'commerce_project_list' in allow and plugin_ok
+                                config_ok = bool(config_path) and config_file.resolve().is_file() and EXPECTED_VERSION == config_data.get('meta', {}).get('lastTouchedVersion') and 'video_project_list' in allow and plugin_ok
                                 log = log_path.read_text(errors='replace')
                                 log_ok = 'commerce-engine' in log and 'http server listening' in log
                                 version_output = subprocess.run([str(NODE), str(CLI), '--version'], capture_output=True, text=True, timeout=5).stdout

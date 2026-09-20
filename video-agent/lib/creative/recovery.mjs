@@ -1,4 +1,25 @@
 const exhausted = new Set(['MODEL_BUDGET', 'STEP_BUDGET', 'STORY_REPAIR_BUDGET', 'OBSERVATION_BUDGET', 'REPAIR_NO_PROGRESS']);
+
+// Normalize provider-specific failures before workflow recovery decisions.
+// A temporary transport problem may preserve a candidate for later review;
+// auth, schema, safety and input failures must remain visible failures.
+export function providerFailureClass(error) {
+  const code=String(error?.code||'').toUpperCase();
+  if (!code) return 'unknown';
+  if (/AUTH|UNAUTHORIZED|FORBIDDEN|CONFIG|API_KEY/.test(code)) return 'auth_config';
+  if (/RATE_LIMIT|THROTTL|\bLIMIT\b/.test(code)) return 'rate_limit';
+  if (/TIMEOUT|ETIMEDOUT|NETWORK|ECONN|HTTP_ERROR|REQUEST_FAILED|TEMPORARY|UNAVAILABLE/.test(code)) return 'temporary';
+  if (/SCHEMA|INVALID_JSON|MALFORMED|PARSE/.test(code)) return 'invalid_result';
+  if (/CONTENT|SAFETY|POLICY|REVIEW_FAILED|FACT/.test(code)) return 'review_failed';
+  if (/CANCEL/.test(code)) return 'cancelled';
+  if (/BUDGET|QUOTA/.test(code)) return 'budget';
+  if (/NEEDS_INPUT|MISSING|REQUIRED/.test(code)) return 'missing_input';
+  return 'unknown';
+}
+
+export function isRecoverableProviderFailure(error) {
+  return ['temporary','rate_limit'].includes(providerFailureClass(error));
+}
 // Invalidate every historical variant of a changed stage, not only the latest
 // checkpoint. Otherwise kernel idempotency can resurrect an older successful call.
 export function invalidateStageResults(run, keys, reason) {

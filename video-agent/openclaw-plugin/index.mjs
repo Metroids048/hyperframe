@@ -16,19 +16,12 @@ const MAX_VIDEO_UPLOAD_BYTES = Number.isFinite(Number(process.env.OPENCLAW_VIDEO
 const MAX_VIDEO_UPLOAD_MIB = Math.round(MAX_VIDEO_UPLOAD_BYTES / 1024 / 1024);
 
 const TOOLS = [
-  ["commerce_project_create", "Create and bind a clean native commerce project for this OpenClaw session."],
-  ["commerce_project_list", "List editable video projects so the user can choose one in chat."],
-  ["commerce_project_get", "Read the current project, revision, objects, and delivery state."],
-  ["commerce_resource_search", "Search executable local commerce resources without installing anything."],
-  ["commerce_plan_validate", "Validate native edit operations before writing. For text use exactly {type:'update_text', nodeId:'<text node id>', text:'<new text>'}."],
-  ["commerce_create_video", "Enqueue a bounded new video job and return its job id."],
-  ["commerce_edit_video", "Enqueue validated native object-level edits and return immediately with a job id. For text use exactly {type:'update_text', nodeId:'<text node id>', text:'<new text>'}."],
-  ["commerce_generate_asset", "Enqueue an explicitly authorized asset generation job."],
-  ["commerce_job_get", "Read a real job status and checkpoint."],
-  ["commerce_job_control", "Cancel or resume a persisted job."],
-  ["commerce_revision_control", "Undo, redo, or restore a validated revision."],
-  ["commerce_export", "Enqueue export for a validated revision."],
-  ["commerce_artifact_list", "List authorized artifacts for a revision."]
+  ["video_task", "Run a natural-language video task through the existing Video Agent and preserve the editable project."],
+  ["video_project_list", "List editable video projects so the user can choose one in chat."],
+  ["video_project_open", "Read the current editable project and delivery state."],
+  ["video_job_status", "Read a real video job status and checkpoint."],
+  ["video_result", "List the authorized artifacts for a video revision."],
+  ["video_cancel", "Cancel a persisted video job."]
 ];
 
 const idSchema = { type: "string", minLength: 1, maxLength: 200 };
@@ -39,34 +32,45 @@ const nativeOperationTypes = [
   "add_text", "update_text_style", "update_text", "update_effect_params", "set_scene_effect",
   "replace_asset", "set_scene_duration", "set_node_duration", "reorder_scenes", "set_transition",
   "change_output", "lock_scene", "unlock_scene", "update_media", "retime_document", "duplicate_media",
-  "add_audio", "update_audio", "remove_audio", "split_scene", "trim_scene", "update_caption",
+  "add_audio", "update_audio", "remove_audio", "split_scene", "trim_scene", "generate_captions", "regenerate_speech", "update_caption",
   "update_caption_style", "set_captions", "remove_caption", "update_custom_source",
   // Intent markers are accepted for create/export requests that do not patch
   // an existing native document.
   "create", "generate", "export"
 ];
-const changes = {
-  type: "array",
-  minItems: 1,
-  maxItems: 100,
-  description: "Native operation list. To change visible text, use exactly {type:'update_text', nodeId:'the text node id', text:'replacement'}; do not invent operation names such as text_edit, replace_text, or update_object_field.",
-  items: {
-    type: "object",
-    required: ["type"],
-    properties: {
-      type: { type: "string", enum: nativeOperationTypes },
-      nodeId: { type: "string", minLength: 1, maxLength: 200, description: "Target node id. Required by update_text, update_text_style, update_media, update_audio, remove_audio, update_caption, update_caption_style, and remove_caption." },
-      sceneId: { type: "string", minLength: 1, maxLength: 200 },
-      text: { type: "string", minLength: 1, maxLength: 240, description: "Replacement text. Required by update_text and update_caption." },
-      params: { type: "object", additionalProperties: true },
-      durationFrames: { type: "integer", minimum: 1 },
-      localStartFrame: { type: "integer", minimum: 0 },
-      assetId: { type: "string", minLength: 1, maxLength: 200 },
-      action: { type: "string" }
-    },
-    additionalProperties: true
-  }
+const operationFields = {
+  nodeId: { type: "string", minLength: 1, maxLength: 200 }, sceneId: { type: "string", minLength: 1, maxLength: 200 },
+  assetId: { type: "string", minLength: 1, maxLength: 200 }, text: { type: "string", minLength: 1, maxLength: 240 },
+  durationFrames: { type: "integer", minimum: 1 }, localStartFrame: { type: "integer", minimum: 0 },
+  sceneIds: { type: "array", minItems: 1, maxItems: 100, items: { type: "string", minLength: 1, maxLength: 200 } },
+  fromSceneId: { type: "string", minLength: 1, maxLength: 200 }, toSceneId: { type: "string", minLength: 1, maxLength: 200 },
+  effect: { type: "string", minLength: 1, maxLength: 100 }, width: { type: "integer", minimum: 1 }, height: { type: "integer", minimum: 1 },
+  params: { type: "object", additionalProperties: false, properties: {
+    language: { type: "string", enum: ["zh", "en", "source"] }, voice: { type: "string", minLength: 1, maxLength: 100 }, rate: { type: "number", minimum: 0.5, maximum: 2 },
+    fit: { type: "string", maxLength: 30 }, sourceStartSeconds: { type: "number", minimum: 0 }, playbackRate: { type: "number", minimum: 0.1, maximum: 5 },
+    offsetY: { type: "number" }, offsetYDelta: { type: "number" }, color: { type: "string", pattern: "^#[0-9A-Fa-f]{6}$" }, fontSize: { type: "number", minimum: 12, maximum: 240 }, fontWeight: { type: "integer", minimum: 100, maximum: 900 },
+    atFrame: { type: "integer", minimum: 1 }, startFrame: { type: "integer", minimum: 0 }, endFrame: { type: "integer", minimum: 1 }, volume: { type: "number", minimum: 0, maximum: 2 }, role: { type: "string", maxLength: 40 }, newId: { type: "string", minLength: 1, maxLength: 200 },
+    html: { type: "string", maxLength: 20000 }, css: { type: "string", maxLength: 30000 }, timeline: { type: "string", maxLength: 30000 },
+    parameters: { type: "array", maxItems: 100, items: { type: "object", additionalProperties: false, properties: { name: { type: "string", maxLength: 100 }, value: { type: "number" }, min: { type: "number" }, max: { type: "number" } }, required: ["name", "value", "min", "max"] } },
+    objects: { type: "array", maxItems: 100, items: { type: "object", additionalProperties: false, properties: { elementId: { type: "string", maxLength: 200 }, nodeId: { type: "string", maxLength: 200 } }, required: ["elementId", "nodeId"] } },
+    motionTargets: { type: "array", maxItems: 100, items: { type: "string", maxLength: 200 } },
+    textStyles: { type: "array", maxItems: 100, items: { type: "object", additionalProperties: false, properties: { elementId: { type: "string", maxLength: 200 }, match: { type: "string", maxLength: 200 }, fontSize: { type: "number" }, fontWeight: { type: "number" }, color: { type: "string", pattern: "^#[0-9A-Fa-f]{6}$" } }, required: ["elementId", "match", "fontSize", "fontWeight", "color"] } },
+    values: { type: "array", maxItems: 100, items: { type: "object", additionalProperties: false, properties: { name: { type: "string", maxLength: 100 }, value: { type: "number" } }, required: ["name", "value"] } }
+    ,captions: { type: "array", maxItems: 500, items: { type: "object", additionalProperties: false, properties: { id: { type: "string", maxLength: 200 }, text: { type: "string", maxLength: 500 }, startFrame: { type: "integer", minimum: 0 }, endFrame: { type: "integer", minimum: 1 }, assetId: { type: "string", maxLength: 200 }, sourceStartSeconds: { type: "number", minimum: 0 }, sourceEndSeconds: { type: "number", minimum: 0 } }, required: ["id", "text", "startFrame", "endFrame"] } }
+  } }
 };
+function operation(type, required){
+  const properties={type:{const:type}};for(const key of required)properties[key]=operationFields[key];
+  for(const key of Object.keys(operationFields))if(!required.includes(key)&&key!=='type')properties[key]=operationFields[key];
+  return {type:"object",required:["type",...required],properties,additionalProperties:false};
+}
+const operationSchemas=[
+  operation("update_text",["nodeId","text"]), operation("update_caption",["nodeId","text"]), operation("update_text_style",["nodeId","params"]), operation("update_caption_style",["params"]),
+  operation("generate_captions",["params"]), operation("regenerate_speech",["nodeId","params"]), operation("replace_asset",["nodeId","assetId"]), operation("update_media",["nodeId","params"]), operation("update_audio",["nodeId","params"]), operation("remove_audio",["nodeId"]), operation("remove_caption",["nodeId"]),
+  operation("set_scene_duration",["sceneId","durationFrames"]), operation("set_node_duration",["nodeId","durationFrames"]), operation("set_scene_effect",["sceneId","effect"]), operation("update_effect_params",["sceneId","params"]), operation("set_transition",["fromSceneId","toSceneId","effect","durationFrames"]), operation("change_output",["width","height"]), operation("reorder_scenes",["sceneIds"]), operation("lock_scene",["sceneId"]), operation("unlock_scene",["sceneId"]), operation("split_scene",["sceneId","params"]), operation("trim_scene",["sceneId","params"]), operation("duplicate_media",["sceneId","nodeId","params"]), operation("add_audio",["assetId","params"]), operation("retime_document",["durationFrames"]), operation("update_custom_source",["sceneId","params"]),
+  operation("add_text",["sceneId","text"]), operation("set_captions",["params"]), operation("create",[]), operation("generate",[]), operation("export",[])
+];
+const changes={type:"array",minItems:1,maxItems:100,description:"按操作类型使用严格参数；业务生成操作先预检后执行。",items:{oneOf:operationSchemas}};
 const keep = { type: "array", maxItems: 100, items: { type: "string", minLength: 1, maxLength: 500 } };
 const writeContext = {
   attachmentIds: Type.Optional({ type: "array", maxItems: 30, items: idSchema }),
@@ -81,26 +85,12 @@ const writeContext = {
 };
 const nativeWriteFields = { operationId: Type.Optional(idSchema), authorizationId: Type.Optional(idSchema) };
 const schemas = {
-  commerce_project_create: Type.Object({ name: Type.Optional({ type: "string", maxLength: 200 }), request: Type.Optional({ type: "object", additionalProperties: true }), ...nativeWriteFields }, { additionalProperties: false }),
-  commerce_project_list: Type.Object({ query: Type.Optional({ type: "string", maxLength: 200 }), maxItems: Type.Optional({ type: "integer", minimum: 1, maximum: 50 }) }, { additionalProperties: false }),
-  commerce_project_get: Type.Object({ projectId: idSchema }, { additionalProperties: false }),
-  commerce_resource_search: Type.Object({ projectId: optionalId, query: Type.Optional({ type: "string", maxLength: 500 }) }, { additionalProperties: false }),
-  commerce_plan_validate: Type.Object({ projectId: idSchema, baseRevisionId: baseRevision, requestedChanges: changes, keep }, { additionalProperties: false }),
-  commerce_create_video: Type.Object({ projectId: idSchema, baseRevisionId: baseRevision, message: { type: "string", minLength: 1, maxLength: 20000 }, requestedChanges: changes, keep, ...nativeWriteFields, ...writeContext }, { additionalProperties: false }),
-  commerce_edit_video: Type.Object({ projectId: idSchema, baseRevisionId: baseRevision, message: { type: "string", minLength: 1, maxLength: 20000 }, requestedChanges: changes, keep, ...nativeWriteFields, ...writeContext }, { additionalProperties: false }),
-  commerce_generate_asset: Type.Object({ projectId: idSchema, baseRevisionId: baseRevision, message: { type: "string", minLength: 1, maxLength: 20000 }, requestedChanges: changes, keep,
-    // These fields are part of the executor contract.  Keep them explicit so
-    // capability probing can distinguish an image request from the default
-    // video branch and can bind an already-approved source asset.
-    assetKind: Type.Optional({ type: "string", enum: ["image", "video"] }),
-    target: Type.Optional({ type: "string", enum: ["image", "video"] }),
-    sourceAssetId: Type.Optional(idSchema),
-    ...nativeWriteFields, ...writeContext }, { additionalProperties: false }),
-  commerce_job_get: Type.Object({ projectId: idSchema, jobId: idSchema }, { additionalProperties: false }),
-  commerce_job_control: Type.Object({ projectId: idSchema, baseRevisionId: baseRevision, jobId: idSchema, action: { type: "string", enum: ["cancel", "resume"] }, requestedChanges: changes, keep, ...nativeWriteFields }, { additionalProperties: false }),
-  commerce_revision_control: Type.Object({ projectId: idSchema, baseRevisionId: baseRevision, revisionId: optionalNullableId, action: { type: "string", enum: ["undo", "redo", "restore"] }, requestedChanges: changes, keep, ...nativeWriteFields }, { additionalProperties: false }),
-  commerce_export: Type.Object({ projectId: idSchema, baseRevisionId: baseRevision, revisionId: optionalNullableId, requestedChanges: changes, keep, ...nativeWriteFields }, { additionalProperties: false }),
-  commerce_artifact_list: Type.Object({ projectId: idSchema, revisionId: optionalNullableId }, { additionalProperties: false })
+  video_task: Type.Object({ projectId: idSchema, message: { type: "string", minLength: 1, maxLength: 20000 }, attachmentIds: Type.Optional({ type: "array", maxItems: 30, items: idSchema }), baseRevisionId: baseRevision, selectedNodeId: optionalId }, { additionalProperties: false }),
+  video_project_list: Type.Object({ query: Type.Optional({ type: "string", maxLength: 200 }), maxItems: Type.Optional({ type: "integer", minimum: 1, maximum: 50 }) }, { additionalProperties: false }),
+  video_project_open: Type.Object({ projectId: idSchema }, { additionalProperties: false }),
+  video_job_status: Type.Object({ projectId: idSchema, jobId: idSchema }, { additionalProperties: false }),
+  video_result: Type.Object({ projectId: idSchema, revisionId: optionalNullableId }, { additionalProperties: false }),
+  video_cancel: Type.Object({ projectId: idSchema, baseRevisionId: baseRevision, jobId: idSchema }, { additionalProperties: false })
 };
 
 let uploadRouteRegistered = false;
@@ -160,8 +150,7 @@ function buildTool(name, description) {
           const trustedContext = { trusted: true, workspaceId: config.workspaceId, sessionKey, agentId: toolContext.agentId || null, toolCallId,
             messageId: toolContext.messageId || toolContext.inboundMessageId || `tool:${toolCallId}` };
           let input = { ...params };
-          if (name === "commerce_project_create") input = { ...input, projectId: "new" };
-          const writes = ["commerce_project_create","commerce_create_video","commerce_edit_video","commerce_generate_asset","commerce_job_control","commerce_revision_control","commerce_export"];
+          const writes = ["video_task","video_cancel"];
           if (writes.includes(name)) {
             // Tool arguments are model output. Never trust model-supplied
             // authorization or idempotency identifiers for a write.

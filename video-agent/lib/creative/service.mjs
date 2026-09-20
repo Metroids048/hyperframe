@@ -14,7 +14,7 @@ import {humanReviewRoute} from './human-review.mjs';
 import {deliveryDecision,formalVideoSnapshot} from './delivery-gate.mjs';
 import {businessContract,FOCUS_PROFILE} from './commerce-focus.mjs';
 import {AgentRunStore} from '../edit/agent-kernel.mjs';
-import {budgetExhausted,canResumeJob} from './recovery.mjs';
+import {budgetExhausted,canResumeJob,isRecoverableProviderFailure} from './recovery.mjs';
 import {bindResourceChecks} from './resource-receipts.mjs';
 import fs from 'node:fs/promises';
 import {createReadStream,createWriteStream} from 'node:fs';
@@ -66,25 +66,6 @@ function deterministicExternalReplacement(document, assetId){
   for(const node of document.nodes){
     if(['image','video'].includes(node.kind))operations.push({type:'replace_asset',nodeId:node.id,assetId});
   }
-  for(const scene of document.scenes){
-    if(scene.effect==='custom-native')operations.push({type:'set_scene_effect',sceneId:scene.id,effect:'media-cut',params:null});
-  }
-  const copy={
-    '精油护理':'蛋白粉产品',
-    '双手托举，瓶身完整可见':'包装与质地，整体可见',
-    '黑色标签与白色“OIL”字样':'包装标签与粉末质地',
-    '实拍：双手托举瓶身':'产品包装展示',
-    '滴管靠近掌心':'取用蛋白粉',
-    '掌心可见液体/油滴':'粉末与包装细节',
-    '滴管靠近面部':'产品近景展示',
-    '手部涂抹面颊':'颗粒与包装细节',
-    'OIL':'蛋白粉',
-    '滴管取用 · 掌心 · 面颊':'包装展示 · 粉末细节 · 产品信息',
-  };
-  for(const node of document.nodes.filter(n=>n.kind==='text')){
-    const next=copy[node.params?.text];
-    if(next&&next!==node.params.text)operations.push({type:'update_text',nodeId:node.id,text:next});
-  }
   return operations;
 }
 
@@ -94,41 +75,42 @@ function deterministicExternalReplacement(document, assetId){
 // project/revision model intact while avoiding planner guesses about source
 // ranges and, crucially, lets alignSourceAudio derive the new asset's real
 // audio ranges from the video nodes.
-function deterministicUploadedVideoEdit(document, asset, message) {
-  const videoNodes = document.nodes.filter(node => node.kind === 'video');
-  if (!videoNodes.length || !asset?.mediaMetadata?.duration) return null;
-  const operations = [];
-  // A source edit preserves the source clock.  The initial-upload path creates
-  // one scene at the probed duration; if this helper is used by a legacy
-  // document, resize that one scene explicitly instead of silently changing
-  // playbackRate to fit an unrelated host timeline.
-  const sourceFrames=Math.round(Number(asset.mediaMetadata.duration)*30);
-  if(document.scenes.length===1&&document.scenes[0].durationFrames!==sourceFrames)operations.push({type:'set_scene_duration',sceneId:document.scenes[0].id,durationFrames:sourceFrames});
-  for (const node of videoNodes) {
-    operations.push({type:'replace_asset', nodeId:node.id, assetId:asset.id});
-    operations.push({type:'update_media', nodeId:node.id, params:{sourceStartSeconds:0, playbackRate:1}});
+// Only exact, fully covered text continuations are safe to execute locally.
+// Source/media edits and compound requests remain in the regular edit planner.
+function deterministicUploadedVideoEdit(document, message) {
+  const text=String(message||'').trim();
+  const nodes=document.nodes.filter(node=>node.kind==='text');
+  if(!nodes.length)return null;
+  const recent=document.scenePackage?.titleNodeId?nodes.find(n=>n.id===document.scenePackage.titleNodeId):nodes.at(-1);
+  const replace=/(?:标题|文字)?\s*[“「『"]([^”」』"]+)[”」』"]\s*(?:改成|改为|换成)\s*[“「『"]([^”」』"]+)[”」』"]/u.exec(text);
+  if(replace){
+    const matches=nodes.filter(n=>n.params?.text===replace[1]);
+    if(matches.length!==1)return null;
+    return {operations:[{type:'update_text',nodeId:matches[0].id,text:replace[2]}],summary:'只替换指定标题文字，素材、源区间、声音、时长和动效保持。'};
   }
-  for (const track of document.audioGraph || []) {
-    const node = videoNodes.find(item => item.id === track.sourceNodeId);
-    if (node&&asset.mediaMetadata.hasAudio) operations.push({type:'update_audio', nodeId:track.id, assetId:asset.id, params:{assetId:asset.id, sourceNodeId:node.id,sourceStartSeconds:0,playbackRate:1,durationFrames:sourceFrames,startFrame:0}});
+  if(/^(?:把)?(?:刚加的字|刚才的字|新增的字|这个标题)(?:再)?小一点[。！!\s]*$/u.test(text)){
+    const size=recent?.params?.style?.fontSize;
+    if(!Number.isFinite(size))return null;
+    return {operations:[{type:'update_text_style',nodeId:recent.id,params:{fontSize:Math.max(12,Math.round(size*.85))}}],summary:'只缩小刚才新增的文字，素材、源区间、声音和时长保持。'};
   }
-  const text=String(message||'');
-  const requestedText=uploadedVideoTitle(text);
-  const firstText=document.nodes.find(node=>node.kind==='text');
-  if(requestedText){
-    if(firstText)operations.push({type:'update_text',nodeId:firstText.id,text:requestedText});
-    else {
-      const scene=document.scenes[0],duration=Math.min(60,scene.durationFrames);
-      operations.push({type:'add_text',sceneId:scene.id,text:requestedText,durationFrames:duration,localStartFrame:0,node:{id:'title-uploaded-'+asset.id.slice(-12),semanticRole:'title',params:{immediate:true,style:{color:'#FFFFFF',fontSize:60,fontWeight:800}}}});
-    }
-    if (/开头\s*2\s*秒|前\s*2\s*秒/u.test(text)) {
-      const titleNode=firstText||{id:'title-uploaded-'+asset.id.slice(-12)};
-      const add=operations.find(op=>op.type==='add_text'&&op.node?.id===titleNode.id);
-      if(!add) operations.push({type:'set_node_duration',nodeId:titleNode.id,durationFrames:Math.min(60,sourceFrames)});
-      else add.durationFrames=Math.min(60,sourceFrames);
-    }
+  if(/^(?:把)?(?:刚加的字|刚才的字|新增的字|文字|这个标题)(?:再)?(?:往)?上移一点[。！!\s]*$/u.test(text)){
+    return {operations:[{type:'update_text_style',nodeId:recent.id,params:{offsetY:Math.max(-400,(recent.params?.style?.offsetY||0)-40)}}],summary:'只上移刚才新增的文字，素材、源区间、声音和时长保持。'};
   }
-  return {operations, summary:`已将上传视频 ${asset.name || asset.id} 作为当前工程主源，按原片真实时长与 1 倍速保留画面和原声。`};
+  return null;
+}
+
+function initialVideoMode(message){
+  const text=String(message||'').trim();
+  const marketing=/(?:制作|生成|做|剪成|重剪|策划).{0,16}(?:广告|营销片|种草|新品|宣传片|详情)|(?:广告|营销片|种草|宣传片).{0,16}(?:制作|生成|做|剪)/u.test(text);
+  const localChange=/(?:只在|仅在|开头|前\s*(?:\d+|[一二三四五六七八九十]+)\s*秒).{0,20}(?:加|添加|改|放).{0,12}(?:字|文字|标题|字幕)|(?:加|添加|改).{0,16}(?:字|文字|标题|字幕)/u.test(text);
+  const preservation=/(?:保留|保持).{0,16}(?:原片|原视频|原声|声音|时长|画幅).{0,8}(?:不变|不动|完整)?|(?:其他|其它|其余|别的).{0,8}(?:都)?(?:不变|不动|别改)/u.test(text);
+  return !marketing&&localChange&&preservation?'source-edit':'produce';
+}
+function needsExternalReplacementIntent(message,routeDecision={}){
+  const text=String(message||'').trim();
+  if(routeDecision.targets?.some(t=>t.kind==='visual'&&t.action==='replace'))return true;
+  return /(?:全片|整片|整个视频|所有画面|全部镜头).{0,20}(?:替换|换成|改成|改为).{0,40}(?:商品|产品|主体|素材|图片|照片)/u.test(text)
+    ||/(?:把|将).{0,20}(?:商品|产品|主体).{0,12}(?:替换|换成|改成|改为).{0,20}(?:全片|整片|整个视频|所有画面)/u.test(text);
 }
 export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO_AGENT_CREATIVE_DATA_DIR||path.join(root,'data/commerce-runs'),planner='model',audioTransport,audioEnv,routingProvider,planningProvider}={}){
   try{process.loadEnvFile(path.join(root,'.env'));}catch(error){if(error.code!=='ENOENT')throw error;}
@@ -430,7 +412,7 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
       await fs.writeFile(path.join(dir,'check.log'),await runHyperFrames(dir,'check',[],{signal}));
       if(job.kind==='edit'&&document.production){
         job.stage='复核修改范围的实际画面';await save(p);
-        const quality=await reviewEditedProject(root,dir,document,{runHyperFrames,signal,message:job.input?.message||'',changeReceipt:job.changeReceipt,round:job.repairCount||0,onInvocation:async invocation=>{job.modelCalls=(job.modelCalls||0)+1;(job.modelInvocations??=[]).push({...invocation,stage:'R6-edit'});await save(p);}}).catch(error=>{if(signal?.aborted||!['CODEX_TIMEOUT','CODEX_LIMIT','CODEX_MODEL_UNAVAILABLE','CODEX_REQUEST_FAILED'].includes(error.code))throw error;return {status:'pending-model-review',engineering:'checked',revisionId:document.revisionId,issues:[],unreviewed:['visual','continuity','audio-perception'],humanReview:'pending',blocker:{code:error.code,message:error.message},candidateOnly:true};});
+      const quality=await reviewEditedProject(root,dir,document,{runHyperFrames,signal,message:job.input?.message||'',changeReceipt:job.changeReceipt,round:job.repairCount||0,onInvocation:async invocation=>{job.modelCalls=(job.modelCalls||0)+1;(job.modelInvocations??=[]).push({...invocation,stage:'R6-edit'});await save(p);}}).catch(error=>{if(signal?.aborted||!isRecoverableProviderFailure(error))throw error;return {status:'pending-model-review',engineering:'checked',revisionId:document.revisionId,issues:[],unreviewed:['visual','continuity','audio-perception'],humanReview:'pending',blocker:{code:error.code,message:error.message},candidateOnly:true};});
         job.qualitySummary=quality;
         if(quality.status==='needs-repair')throw Object.assign(Error('局部画面检查发现需要修复的问题'),{code:'EDIT_VISUAL_REVIEW',issues:quality.issues});
         document.quality=quality;bindResourceChecks(document,{engineering:true,visual:quality.status});await fs.writeFile(path.join(dir,'resource-receipts.json'),JSON.stringify(document.resourceReceipts||[],null,2));await fs.writeFile(path.join(dir,'document.json'),JSON.stringify(document,null,2));await fs.writeFile(path.join(dir,'quality-report.json'),JSON.stringify(quality,null,2));
@@ -449,10 +431,12 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
     const dir=versionDirectory(p,r);job.revisionId=r.id;job.stage='导出候选 MP4';await save(p);
     if(!r.rendered){const release=await acquireRender({signal});try{const result=await renderCommerceProject({outputDir:r.directory,signal,onProgress:async progress=>{job.renderProgress={...progress,revisionId:r.id};job.stage='渲染画面 '+progress.percent+'%';await save(p);},onStage:async stage=>{job.stage=stage;await save(p);}},{root,outputRoot:directory(p)});r.mediaReview=result.mediaReview;job.qualitySummary=result.mediaReview;r.rendered=true;job.revisionId=r.id;await save(p);}finally{release();}}
     r.playbackReviewReady=await fs.access(path.join(dir,'final-review/watch.html')).then(()=>true,()=>false);
+    // Persist MP4 readiness separately from the optional history archive.
+    r.deliveryStatus='video_ready';r.videoReadyAt=now();job.videoReadyAt=r.videoReadyAt;job.packageStatus='pending';await save(p);
     const commercialQuality=JSON.parse(await fs.readFile(path.join(dir,'quality_report.json'),'utf8').catch(error=>{if(error.code==='ENOENT')return 'null';throw error;}));
     if(commercialQuality){r.commercialQuality=commercialQuality;job.commercialQuality=commercialQuality;if(job.kind==='create'&&commercialQuality.revision_required){job.autoQualityRevision={sourceRevisionId:r.id,score:commercialQuality.score,issues:commercialQuality.issues.filter(issue=>['blocker','major'].includes(issue.severity)).slice(0,8),suggestions:commercialQuality.suggestions.slice(0,8)};}}
-    job.stage='打包素材与完整历史';await save(p);
-    job.packageEvidence=await exportCreativeHistory(root,directory(p),job.snapshot||structuredClone(p),r.id,path.join(dir,'history.zip'),{signal,assetRoot:directory(p)});r.historyPackaged=true;
+    job.stage='打包素材与完整历史';job.packageStatus='running';await save(p);
+    job.packageEvidence=await exportCreativeHistory(root,directory(p),job.snapshot||structuredClone(p),r.id,path.join(dir,'history.zip'),{signal,assetRoot:directory(p)});r.historyPackaged=true;r.deliveryStatus='video_and_history_ready';job.packageStatus='complete';await save(p);
   }
   async function execute(p,job){
     const controller=new AbortController();controllers.set(job.id,controller);const signal=controller.signal;
@@ -495,7 +479,8 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
         const target=p.request.target||'marketing';
         const uploadedSource=p.currentRevisionId==null
           && (job.input.attachmentIds||[]).map(id=>p.assets.find(a=>a.id===id)).find(a=>a?.kind==='video'&&a.mediaMetadata?.duration);
-        const sourceEditRequested=Boolean(uploadedSource&&/(?:标题|文字|字幕|开头|加上|添加|改成|改为|保留.{0,8}(?:时长|原声|声音)|别的都别动)/u.test(job.input.message||''));
+        // Uploaded media is not an edit merely because captions are mentioned.
+        const sourceEditRequested=Boolean(uploadedSource&&initialVideoMode(job.input.message)==='source-edit');
         if(sourceEditRequested){
           job.stage='建立上传原片初始工程';await save(p);
           const dir=path.join(directory(p),'versions',job.id);
@@ -578,19 +563,15 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
         // Do not spend a fragile planner/model call to rediscover an intent we
         // can prove from the request itself; malformed provider JSON must not
         // turn a supported edit into an unexplained JSON parse failure.
-        const wholeFilmReplacement=/(?:全片|整个视频|全视频|所有画面)/.test(job.input.message||'')&&/(?:换成|替换成|替换为|改成|改为)/.test(job.input.message||'');
-        const externalIntent=wholeFilmReplacement
-          ? {needed:true,query:'protein powder container product photo',reason:'用户明确要求将整段视频中的现有物体替换为一桶蛋白粉。'}
-          : await externalReplacementIntent(job.input.message,{targets:job.input.routeDecision?.targets||[],assets:p.assets,signal,cacheRoot:path.join(dir,'model-calls'),onInvocation:async invocation=>{job.modelCalls=(job.modelCalls||0)+1;(job.modelInvocations??[]).push({...invocation,stage:'external-asset-intent'});await save(p);}});
+        // Replacement intent must come from the current request and approved assets.
+        const externalIntent=needsExternalReplacementIntent(job.input.message,job.input.routeDecision)
+          ? await externalReplacementIntent(job.input.message,{targets:job.input.routeDecision?.targets||[],assets:p.assets,signal,cacheRoot:path.join(dir,'model-calls'),onInvocation:async invocation=>{job.modelCalls=(job.modelCalls||0)+1;(job.modelInvocations??[]).push({...invocation,stage:'external-asset-intent'});await save(p);}})
+          : {needed:false,skipped:'no-explicit-external-replacement'};
         let downloadedExternalAsset=null;
         // A previous attempt may already have downloaded the traceable target
         // image. Reuse it for retries even if the intent model now reports
         // `needed:false`; the deterministic fallback must remain available
         // for an explicit whole-film replacement request.
-        if(wholeFilmReplacement){
-          const existingExternal=p.assets.find(asset=>asset.id?.startsWith('web-')&&/protein|powder|supplement|container|jar|蛋白|粉/i.test(`${asset.name||''} ${asset.title||''} ${asset.description||''} ${asset.sourceUrl||''} ${asset.downloadUrl||''}`));
-          if(existingExternal)downloadedExternalAsset=existingExternal;
-        }
         if(externalIntent.needed){
           job.stage='搜索可追溯的替换素材';await save(p);
           try{
@@ -639,7 +620,7 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
         if(uploadedVideoPlan){
           plan={mode:'deterministic-uploaded-video',model:'local',summary:uploadedVideoPlan.summary,operations:uploadedVideoPlan.operations,alternatives:[],workflow:null,resourceScopes:[]};
           job.stage='绑定上传视频并校验原声';await save(p);
-        }else if(wholeFilmReplacement&&downloadedExternalAsset){
+        }else if(externalIntent.needed&&downloadedExternalAsset){
           // Whole-film object replacement is deliberately deterministic once
           // a rights-tracked target image exists. This prevents the planner
           // from emitting custom-native mappings that cannot be proven against
@@ -657,7 +638,7 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
             // into a user block merely because the local edit planner returned
             // no safe operation. The deterministic plan is still validated by
             // the same native patch/compiler/HyperFrames review gates below.
-            if(error.code!=='NEEDS_INPUT'||!downloadedExternalAsset)throw error;
+            if(error.code!=='NEEDS_INPUT'||!downloadedExternalAsset||!externalIntent.needed)throw error;
             const operations=deterministicExternalReplacement(document,downloadedExternalAsset.id);
             insist(operations.length>0,'未找到可替换的画面对象','NEEDS_INPUT');
             plan={mode:'deterministic-external-replacement',model:'fallback',summary:'已使用可追溯公共素材，将全片画面替换为目标产品并移除旧产品动作/事实文案。',operations,alternatives:[],workflow:null,resourceScopes:[]};
@@ -820,9 +801,21 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
   }
   async function validateOpenclawOperations(p,operations){
     const current=revision(p);
+    insist(current,'当前工程没有可编辑版本','REVISION_REQUIRED');
     const {document,assets}=await readNativeProject(versionDirectory(p,current));
-    applyDocumentPatch(document,operations,Object.fromEntries(assets.map(asset=>[asset.id,asset])));
-    return {revisionId:current.id,operationCount:operations.length};
+    insist(Array.isArray(operations)&&operations.length>0,'至少需要一个受控操作','OPERATION_REQUIRED');
+    const generation=[];const patch=[];
+    for(const op of operations){
+      insist(op&&typeof op.type==='string','操作缺少 type','OPERATION_SCHEMA');
+      if(op.type==='generate_captions'){insist(!op.text&&!op.sceneId,'字幕生成不能携带文案或场景字段','OPERATION_SCHEMA');generation.push(op);continue;}
+      if(op.type==='regenerate_speech'){insist(op.nodeId,'旁白重生成必须指定现有音轨','OPERATION_SCHEMA');insist(document.audioGraph?.some(t=>t.id===op.nodeId&&['narration','voiceover'].includes(t.role)),'旁白音轨不存在或不是可重生成音轨','PATCH_TARGET_MISSING');generation.push(op);continue;}
+      patch.push(op);
+    }
+    // Generation operations are side-effectful and are only checked for their
+    // stable targets here.  They are expanded into native patch operations by
+    // the executor after the job is authorized; never run them in preflight.
+    if(patch.length)applyDocumentPatch(structuredClone(document),patch,Object.fromEntries(assets.map(asset=>[asset.id,asset])));
+    return {revisionId:current.id,operationCount:operations.length,generationOperations:generation.map(({type,nodeId,assetId,params})=>({type,nodeId:nodeId||null,assetId:assetId||null,params:params||{}})),sideEffects:false};
   }
   async function recordControlResult(p,input,result){
     const key=input.idempotencyKey;

@@ -10,11 +10,14 @@ import {applyDocumentPatch} from '../creative/patch.mjs';
  */
 
 const WRITE_TOOLS = new Set([
+  'video_task',
   'commerce_project_create',
   'commerce_create_video', 'commerce_edit_video', 'commerce_generate_asset',
   'commerce_job_control', 'commerce_revision_control', 'commerce_export',
 ]);
 const TOOL_NAMES = new Set([
+  'video_task',
+  'video_project_list', 'video_project_open', 'video_job_status', 'video_result', 'video_cancel',
   'commerce_project_create',
   'commerce_project_list',
   'commerce_project_get', 'commerce_resource_search', 'commerce_plan_validate',
@@ -124,6 +127,35 @@ export function createCommerceEngineFacade(service, { journalPath, mode = runtim
     if (!TOOL_NAMES.has(tool)) fail(`未知工具 ${tool}`, 'TOOL_NOT_REGISTERED', 404);
     plainObject(input, 'input'); validateContext(context);
     if (mode === 'shadow' && WRITE_TOOLS.has(tool)) fail('shadow 模式只允许只读决策', 'SHADOW_WRITE_BLOCKED', 403);
+    if (tool === 'video_project_list') { const result = await invoke('commerce_project_list', input, context); return {...result, tool}; }
+    if (tool === 'video_project_open') { const result = await invoke('commerce_project_get', input, context); return {...result, tool}; }
+    if (tool === 'video_job_status') { const result = await invoke('commerce_job_get', input, context); return {...result, tool}; }
+    if (tool === 'video_result') { const result = await invoke('commerce_artifact_list', input, context); return {...result, tool}; }
+    if (tool === 'video_cancel') {
+      const {projectId, value} = project(input); required(input.operationId, 'operationId'); required(input.authorizationId, 'authorizationId'); required(input.jobId, 'jobId');
+      if ((value.currentRevisionId || null) !== (input.baseRevisionId || null)) fail('已有工程编辑必须提供当前基准版本', 'REVISION_CONFLICT', 409);
+      if (typeof authorizeWrite !== 'function') fail('写操作缺少服务端授权校验器', 'OPENCLAW_AUTHORIZATION_VALIDATOR_REQUIRED', 500);
+      await authorizeWrite({tool, input, context, project:value});
+      return recordOperation(input.operationId, {tool, input, workspaceId:context.workspaceId, sessionKey:context.sessionKey}, async () => baseResult({tool, projectId, operationId:input.operationId, status:'accepted', project:await service.cancel(value, input.jobId)}));
+    }
+    if (tool === 'video_task') {
+      const { projectId, value } = project(input);
+      required(input.operationId, 'operationId');
+      required(input.authorizationId, 'authorizationId');
+      if (typeof input.message !== 'string' || !input.message.trim()) fail('message 不能为空', 'SCHEMA_INVALID');
+      if (!Object.hasOwn(input, 'baseRevisionId')) fail('baseRevisionId 缺失', 'BASE_REVISION_ID_INVALID');
+      if ((value.currentRevisionId || null) !== (input.baseRevisionId || null)) fail('已有工程编辑必须提供当前基准版本', 'REVISION_CONFLICT', 409);
+      if (!Array.isArray(input.attachmentIds)) input.attachmentIds=[];
+      if (typeof authorizeWrite !== 'function') fail('写操作缺少服务端授权校验器', 'OPENCLAW_AUTHORIZATION_VALIDATOR_REQUIRED', 500);
+      await authorizeWrite({ tool, input, context, project: value });
+      return recordOperation(input.operationId, { tool, input, workspaceId: context.workspaceId, sessionKey: context.sessionKey }, async () => {
+        // Routing can involve a configured model and must never hold the
+        // OpenClaw tool request open. The existing service persists the
+        // message, job and any failure receipt; status is read separately.
+        void service.dispatchMessage(value, { message: input.message, attachmentIds: input.attachmentIds, selectedNodeId: input.selectedNodeId || null, baseRevisionId: input.baseRevisionId || null, idempotencyKey: input.operationId }).catch(() => {});
+        return baseResult({ tool, projectId, operationId: input.operationId, status: 'queued', project: service.view(service.get(projectId)), route: null });
+      });
+    }
     if (tool === 'commerce_project_create') {
       required(input.operationId, 'operationId');
       required(input.authorizationId, 'authorizationId');

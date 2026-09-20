@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import {createHash, randomUUID} from 'node:crypto';
 
-const WRITE_TOOLS=new Set(['commerce_project_create','commerce_create_video','commerce_edit_video','commerce_generate_asset','commerce_job_control','commerce_revision_control','commerce_export']);
+const WRITE_TOOLS=new Set(['video_task','video_cancel','commerce_project_create','commerce_create_video','commerce_edit_video','commerce_generate_asset','commerce_job_control','commerce_revision_control','commerce_export']);
 const hash=value=>createHash('sha256').update(JSON.stringify(value)).digest('hex');
 function fail(message,code='OPENCLAW_AUTHORIZATION_INVALID',status=403){const error=new Error(message);error.code=code;error.status=status;throw error;}
 async function read(file){try{return JSON.parse(await fs.readFile(file,'utf8'));}catch(error){if(error.code!=='ENOENT')throw error;return {schemaVersion:1,authorizations:{},messages:{}};}}

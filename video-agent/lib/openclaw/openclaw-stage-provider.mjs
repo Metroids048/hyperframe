@@ -1,5 +1,6 @@
 import {createHash, randomUUID} from 'node:crypto';
-function fail(message, code='OPENCLAW_STAGE_BLOCKED', status=503){const e=new Error(message);e.code=code;e.status=status;return e;}
+function safeUpstream(value){return String(value??'').replace(/Bearer\s+\S+/gi,'Bearer [redacted]').replace(/(?:sk|key|token)[-_]?[a-z0-9_-]{8,}/gi,'[redacted]').slice(0,500);}
+function fail(message, code='OPENCLAW_STAGE_BLOCKED', status=503,details={}){const e=new Error(safeUpstream(message));e.code=code;e.status=status;Object.assign(e,details);return e;}
 function sha(value){return createHash('sha256').update(typeof value==='string'||Buffer.isBuffer(value)?value:JSON.stringify(value)).digest('hex');}
 function invalid(path,message){throw fail(path+' '+message,'OPENCLAW_STAGE_SCHEMA_INVALID',502);}
 function matches(value,schema){try{check(value,schema);return true;}catch(error){if(error.code==='OPENCLAW_STAGE_SCHEMA_INVALID')return false;throw error;}}
@@ -91,7 +92,7 @@ export class OpenClawStageProvider {
    await this.onInvocation?.(receipt);
    const response=await this.fetchImpl(this.baseUrl,{method:'POST',headers:{authorization:'Bearer '+this.token,'content-type':'application/json'},body:JSON.stringify(request),signal:controller.signal});
    let body;try{body=await response.json();}catch{throw fail('stage returned invalid JSON','OPENCLAW_STAGE_RESPONSE_INVALID',502);}
-   if(!response.ok){const code=response.status===401||response.status===403?'OPENCLAW_STAGE_AUTH':response.status===429?'OPENCLAW_STAGE_RATE_LIMIT':'OPENCLAW_STAGE_HTTP_ERROR';throw fail('stage HTTP '+response.status,code,response.status===429?429:503);}
+   if(!response.ok){const code=response.status===401||response.status===403?'OPENCLAW_STAGE_AUTH':response.status===429?'OPENCLAW_STAGE_RATE_LIMIT':'OPENCLAW_STAGE_HTTP_ERROR';const requestId=response.headers.get('x-request-id')||response.headers.get('request-id')||null;const retryAfter=response.headers.get('retry-after')||null;const upstream=body?.error?.message||body?.error||body?.message||null;throw fail(upstream||'stage HTTP '+response.status,code,response.status,{httpStatus:response.status,requestId:requestId?safeUpstream(requestId):null,retryAfter:retryAfter?safeUpstream(retryAfter):null,provider:this.model});}
    const result=stageResult(body);check(result,schema);
    receipt.usage=body.usage||'unknown';await this.onReceipt?.({...receipt,status:'pass'});
    return {result,usage:body.usage||null,model:this.model,invocation:receipt};

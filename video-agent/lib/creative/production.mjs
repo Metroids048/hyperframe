@@ -48,7 +48,7 @@ import {insist,FPS,MAX_SCENES} from './contracts.mjs';
 import {sourceWindowRecoveryTarget,replaceSourceWindow} from './quality-source-recovery.mjs';
 import {productBriefSchema,marketingPlanSchema,directorTimelineSchema,validateProductBrief,validateMarketingPlan,validateDirectorTimeline,directorTimelineSeed,buildHyperFramesDesignPlan,directorBinding,hyperframesScenarioPolicy} from './commerce-agent-v2.mjs';
 import {buildVoiceProfiles,audioRequirement,voiceCandidates} from './voice-matching.mjs';
-import {createStructuredProvider} from '../openclaw/provider-selection.mjs';
+import {createStructuredProvider,createMediaProvider} from '../openclaw/provider-selection.mjs';
 
 const obj=properties=>({type:'object',additionalProperties:false,properties,required:Object.keys(properties)}),str={type:'string'},num={type:'number'},bool={type:'boolean'},list=items=>({type:'array',items});
 const briefSchema=obj({request:creationSchema.properties.inferredRequest,needsTranscription:bool,needsNarration:bool,needsCaptions:bool,keepOriginalAudio:bool,capabilities:list(str),gaps:list(str),constraints:list(str)});
@@ -89,8 +89,22 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
   let scenePackage=v3?await loadScenePackage(root,currentContract?.scenarioId):null;
   const discovery=v3?await HyperFramesResourceCatalog.open(root):null;
   if(resumeRunId&&!v3&&request.commerceProfile==='commerce-focus-v1'){const contract=JSON.parse(await fs.readFile(path.join(outputDir,'business-contract.json'),'utf8'));insist(contract.originalRequest===request.message,'恢复合同已变化','CONTRACT_CHANGED');await assertProductionAdmission(root,contract,assets);currentContract=contract;}
-  const catalog=io.catalog||await CapabilityCatalog.open(root),own=!provider;
+  const catalog=io.catalog||await CapabilityCatalog.open(root);
+  let own=!provider;
   if(!provider) provider=createStructuredProvider({cacheRoot:path.join(outputDir,'model-calls')}).provider;
+  // OpenClaw's stage provider is intentionally structured-only.  Production
+  // still needs the existing media worker for voice catalogs, TTS and ASR, so
+  // compose it around the same stage instance instead of pretending the stage
+  // endpoint implements media methods.  Forward stage receipts and invocation
+  // hooks so budgets, caches and provenance remain attached to this run.
+  if(typeof provider.speak!=='function'||typeof provider.transcribe!=='function'||typeof provider.speechVoiceCatalog!=='function'){
+    const stage=provider;
+    const media=createMediaProvider({stageProvider:stage,cacheRoot:path.join(outputDir,'model-calls')});
+    const stageInvocation=stage.onInvocation,stageReceipt=stage.onReceipt;
+    stage.onInvocation=async invocation=>{await stageInvocation?.(invocation);await media.onInvocation?.(invocation);};
+    stage.onReceipt=async receipt=>{await stageReceipt?.(receipt);await media.onReceipt?.(receipt);};
+    provider=media;own=true;
+  }
   const store=new AgentRunStore(path.join(outputDir,'runs'));
   const implementation=loadedImplementation;
   const implementationHash=resourceHash(implementation);await fs.mkdir(path.join(outputDir,'implementations'),{recursive:true});await fs.writeFile(path.join(outputDir,'implementations',implementationHash+'.json'),JSON.stringify(implementation,null,2));
@@ -139,7 +153,7 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
       const answer=await provider.structured(guidance.text+'\n'+extra,input,schema,signal);
       await fs.mkdir(path.dirname(cacheFile),{recursive:true});await fs.writeFile(cacheFile,JSON.stringify({result:answer.result,outputHash:resourceHash(answer.result),context:guidance.records}));
       Object.assign(receipt,{status:'completed',model:answer.model,usage:answer.usage??null,reasoningEffort:answer.reasoningEffort||provider.reasoningEffort||null,outputHash:resourceHash(answer.result)});return answer.result;
-    }catch(error){Object.assign(receipt,{status:'failed',error:error.message,code:error.code});throw error;}
+    }catch(error){Object.assign(receipt,{status:'failed',error:error.message,code:error.code,httpStatus:error.httpStatus||error.status||null,requestId:error.requestId||null,retryAfter:error.retryAfter||null,provider:error.provider||provider.constructor?.name||null});throw error;}
     finally{provider.onInvocation=previous;await fs.mkdir(path.join(outputDir,'receipts'),{recursive:true});await fs.writeFile(path.join(outputDir,'receipts',String(callNo).padStart(3,'0')+'-'+stage+'.json'),JSON.stringify({...receipt,counted,elapsedMs:Date.now()-Date.parse(receipt.startedAt)},null,2));}
   }
   async function evidenceImages(){if(visualInputs.length)return visualInputs;const evidence=await readJSON('evidence.json');for(const a of evidence.assets){const samples=a.kind==='image'?a.samples:[];for(const s of samples){const bytes=await fs.readFile(path.join(outputDir,s.file));visualInputs.push({type:'input_text',text:'素材 '+a.assetId},{type:'input_image',image_url:'data:image/jpeg;base64,'+bytes.toString('base64')});}}
@@ -811,5 +825,5 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
     const run=resumeRunId?await kernel.resume(resumeRunId,{signal,inputFingerprint:fingerprint}):await kernel.start({userRequest:request.message,projectId:request.projectId,inputFingerprint:fingerprint},{signal});
     if(run.status!=='completed')throw Object.assign(Error(run.error||run.gaps?.join('；')||'任务待恢复'),{code:run.code||(run.status==='needs_user'?'NEEDS_INPUT':'PRODUCTION_INCOMPLETE'),runId:run.id,gaps:run.gaps});
     const finalDocument=await readJSON('document.json');if(v3){scenePackage??=await loadScenePackage(root,result(run,'brief')?.productionBinding?.contract?.scenarioId);insist(scenePackage,'完成工程缺少有效场景规则包','SCENE_PACKAGE');finalDocument.scenePackage={id:scenePackage.id,version:scenePackage.version,hash:scenePackage.hash};finalDocument.productBrief=result(run,'product');finalDocument.marketingPlan=result(run,'marketing');finalDocument.creativeDirection=result(run,'creative');finalDocument.directorTimeline=result(run,'director');finalDocument.hyperframesDesignPlan=result(run,'hyperframes');finalDocument.catalogHash=discovery.data.contentHash;await saveJSON('document.json',finalDocument);}return finalDocument;
-  }finally{if(own)await provider.close();}
+  }finally{if(own&&provider?.close)await provider.close();}
 }

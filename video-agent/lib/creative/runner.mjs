@@ -143,7 +143,7 @@ export async function buildUploadedVideoProject(input, {root = VIDEO_AGENT_ROOT}
     const item=await prepareCreativeAsset(root,asset,path.join(outputDir,'assets'),{signal:input.signal});
     item.compiledRef=`assets/${path.basename(item.normalizedRef)}`;prepared.push(item);
   }
-  const source=prepared.find(a=>a.kind==='video');
+  const source=(request.sourceAssetId&&prepared.find(a=>a.id===request.sourceAssetId&&a.kind==='video'))||prepared.find(a=>a.kind==='video');
   if(!source) throw new Error('原片导入需要视频素材');
   const requested=input.output||{};
   const width=Math.min(1920,Math.max(64,Number(requested.width??source.mediaMetadata.width??1080)))&~1;
