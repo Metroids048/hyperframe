@@ -8,6 +8,7 @@ import http from 'node:http';
 import fs from 'node:fs/promises';
 import {createReadStream} from 'node:fs';
 import path from 'node:path';
+import os from 'node:os';
 import {randomUUID,createHash} from 'node:crypto';
 import sharp from 'sharp';
 import {optimizePrompt} from './lib/planner.mjs';
@@ -23,7 +24,21 @@ import {createOpenClawSessionBindings} from './lib/openclaw/session-bindings.mjs
 import {createOpenClawExecutionAuthorizations} from './lib/openclaw/execution-authorizations.mjs';
 import {createCommerceAgentBridge,stableControlOperationId} from './lib/openclaw/commerce-agent-bridge.mjs';
 
+// The native OpenClaw gateway and the workbench are launched by separate
+// processes.  The gateway's launch agent persists their shared, non-source
+// configuration in environment.json; without loading it here the bridge
+// rejects every tool call even though the UI upload itself succeeded.  Never
+// overwrite an explicitly supplied process environment and never log values.
+try {
+ const environmentFile=process.env.OPENCLAW_ENVIRONMENT_FILE||path.join(os.homedir(),'.openclaw','hyperframe','environment.json');
+ const configured=JSON.parse(await fs.readFile(environmentFile,'utf8'));
+ for(const [key,value] of Object.entries(configured||{}))if(process.env[key]==null&&typeof value==='string'&&value)process.env[key]=value;
+} catch(error) { if(!['ENOENT','ENOTDIR','EACCES'].includes(error.code)) throw error; }
+
 const PORT=Number(process.env.VIDEO_AGENT_PORT||3020),DATA=path.resolve(process.env.VIDEO_AGENT_DATA_DIR||path.join(ROOT,'data/projects')),EDIT_DATA=path.resolve(process.env.VIDEO_AGENT_EDIT_DATA_DIR||path.join(ROOT,'data/edit-projects')),CREATIVE_DATA=path.resolve(process.env.VIDEO_AGENT_CREATIVE_DATA_DIR||path.join(ROOT,'data/commerce-runs'));
+const OPENCLAW_STATE_ROOT=path.resolve(process.env.OPENCLAW_STATE_DIR||path.join(process.env.HOME||'', '.openclaw','hyperframe','state'));
+const OPENCLAW_INBOUND_ROOT=path.resolve(process.env.OPENCLAW_INBOUND_MEDIA_DIR||path.join(OPENCLAW_STATE_ROOT,'media','inbound'));
+const OPENCLAW_MAX_VIDEO_BYTES=15*1024*1024;
 // Test and recovery workers often use isolated project directories. Keep the
 // OpenClaw journal/session stores in that same data root unless callers give
 // explicit paths; otherwise an unrelated running server can lock startup.
@@ -89,7 +104,7 @@ async function openclawToolRoute(req,res){
   const existing=(await commerceEngine.getJournal()).operations?.[normalizedInput.operationId];
   if(existing?.status==='completed')return json(res,{ok:true,result:existing.result});
   if(existing&&['started','submission_unknown'].includes(existing.status))throw new InputError('operationId 可能已提交但结果未知，禁止重复导入附件',409);
-  const inboundRootBase=path.resolve(process.env.OPENCLAW_INBOUND_MEDIA_DIR||path.join(process.env.HOME||'', '.openclaw','hyperframe','state','media','inbound'));
+  const inboundRootBase=OPENCLAW_INBOUND_ROOT;
   const inboundRoot=await fs.realpath(inboundRootBase).catch(()=>inboundRootBase);
   const projectId=String(normalizedInput.projectId||'');
   const project=creative.get(projectId);
@@ -106,6 +121,8 @@ async function openclawToolRoute(req,res){
    const relative=candidateReal?path.relative(inboundRoot,candidateReal):'..';
    if(!candidateReal||!relative||path.isAbsolute(relative)||relative==='..'||relative.startsWith('..'+path.sep))throw new InputError('OpenClaw 附件路径不在受信入站目录内',403);
    const stat=await fs.stat(candidateReal).catch(()=>null);if(!stat?.isFile())throw new InputError('OpenClaw 附件不存在',400);
+   if(stat.size>OPENCLAW_MAX_VIDEO_BYTES)throw new InputError('OpenClaw 视频不能超过 15 MiB',413);
+   if(!/\.(?:mp4|mov|webm)$/i.test(path.basename(candidateReal)))throw new InputError('OpenClaw 仅支持 MP4、MOV、WebM 视频',415);
    const asset=await creative.upload(project,createReadStream(candidateReal),path.basename(candidateReal));
    if(asset?.id) importedAttachmentIds.push(asset.id);
   }
@@ -221,7 +238,7 @@ const server=http.createServer(async(req,res)=>{
    return await file(req,res,servedPath,type,kind==='video'?`candidate-${commerceFile[1]}.mp4`:null);
   }
   if(['GET','HEAD'].includes(req.method)&&route==='/editor-player.js')return await file(req,res,path.join(ROOT,'node_modules/hyperframes/dist/hyperframes-player.global.js'),'text/javascript; charset=utf-8');
-  if(req.method==='GET'&&route==='/api/health')return json(res,{ok:true,version:'0.7.0-conversation',workspaceId,workbench:'commerce',agentRuntime:commerceAgentBridge.mode,activeProjectId:active,studioProjectId:studioProject});
+  if(req.method==='GET'&&route==='/api/health')return json(res,{ok:true,version:'0.7.0-conversation',workspaceId,workbench:'commerce',agentRuntime:commerceAgentBridge.mode,activeProjectId:active,studioProjectId:studioProject,openclawMedia:{stateRoot:OPENCLAW_STATE_ROOT,inboundRoot:OPENCLAW_INBOUND_ROOT}});
   if(req.method==='POST'&&route==='/api/optimize'){const input=await jsonBody(req,16000,'需求描述');if(input.mode==='live'&&process.env.VIDEO_AGENT_LIVE_CODEX!=='1')throw new InputError('实时 Codex 当前未启用：上次模型连接超时。请使用演示整理，或手动补充；输入已保留。',503);return json(res,input.mode==='live'?await optimizePrompt(input.text):demoOptimize(input.text));}
   if(req.method==='GET'&&route==='/api/cases')return json(res,await Promise.all(cases.map(async c=>({...c,ready:await fs.access(path.join(ROOT,'showcase',c.id,'media.json')).then(()=>true).catch(()=>false),imageUrl:`/cases/${c.id}/image`,videoUrl:`/cases/${c.id}/video`}))));
   const ce=/^\/api\/cases\/([a-z]+)\/edit$/.exec(route);
@@ -262,7 +279,7 @@ const server=http.createServer(async(req,res)=>{
   throw new InputError('找不到这个页面',404);
  }catch(e){if(res.headersSent){res.destroy();return;}const expected=e instanceof InputError||e instanceof EditError||e instanceof CreativeError||e instanceof MiniMaxError||typeof e?.code==='string'&&(e.code.startsWith('OPENCLAW_')||['UNTRUSTED_TOOL_CONTEXT','PROJECT_SCOPE_FORBIDDEN','REVISION_CONFLICT','IDEMPOTENCY_CONFLICT','OPERATION_UNKNOWN','OPERATION_PREVIOUSLY_FAILED','SHADOW_WRITE_BLOCKED','TOOL_NOT_REGISTERED','SCHEMA_INVALID','SERVICE_REQUIRED','RUNTIME_MODE_INVALID','BASE_REVISION_ID_REQUIRED','BASE_REVISION_ID_INVALID','PLAN_EMPTY','PLAN_INVALID','UNSUPPORTED_PATCH','PATCH_TARGET_MISSING','INVALID_TEXT','INVALID_PATCH','INVALID_TEXT_STYLE','INVALID_SCENE_TIME','INVALID_SCENE_ORDER','INVALID_OUTPUT','MISSING_ASSET','INVALID_EFFECT_PARAM'].includes(e.code));if(!expected)console.error(e);json(res,{ok:false,error:expected?e.message:'操作暂时无法完成，请重试；详情已记录在本地日志。',code:e.code,stage:e.stage||null,field:e.field||null,retryable:e.retryable??false,requestId:e.requestId||req.headers['x-request-id']||null},e.status||500);}
 });
-server.listen(PORT,'127.0.0.1',()=>console.log(`对话视频剪辑 http://127.0.0.1:${PORT}`));
+server.listen(PORT,'127.0.0.1',()=>console.log(`对话视频剪辑 http://127.0.0.1:${PORT}；OpenClaw inbound=${OPENCLAW_INBOUND_ROOT}`));
 server.on('error',e=>{console.error(e.message);void writerLeases.release().finally(()=>process.exit(1));});
 let closing=false;
 async function shutdown(){if(closing)return;closing=true;accepting=false;server.close();server.closeAllConnections?.();await editor.close();await creative.close?.();await Promise.allSettled([...writes.values()]);await writerLeases.release();process.exit(0);}

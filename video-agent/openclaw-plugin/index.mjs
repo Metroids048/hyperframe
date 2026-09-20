@@ -6,6 +6,10 @@ import path from "node:path";
 import os from "node:os";
 import crypto from "node:crypto";
 
+// Keep the ingress limit aligned with the Control UI patch and backend import
+// guard. Video uploads use a managed file path, but still need bounded ingress.
+const MAX_VIDEO_UPLOAD_BYTES = 15 * 1024 * 1024;
+
 const TOOLS = [
   ["commerce_project_create", "Create and bind a clean native commerce project for this OpenClaw session."],
   ["commerce_project_list", "List editable video projects so the user can choose one in chat."],
@@ -74,16 +78,21 @@ function registerUploadRoute(api) {
     fileName = path.basename(fileName).replace(/[^A-Za-z0-9._-]/g, "_").slice(-160) || "video.mp4";
     const ext = path.extname(fileName).toLowerCase();
     if (!["video/mp4", "video/quicktime", "video/webm", "application/octet-stream", ""].includes(mime) || ![".mp4", ".mov", ".webm"].includes(ext)) { res.statusCode = 415; res.setHeader("content-type", "application/json"); res.end(JSON.stringify({ ok:false, error:"仅支持 MP4、MOV、WebM 视频" })); return; }
-    const limit = 1024 * 1024 * 1024;
+    const limit = MAX_VIDEO_UPLOAD_BYTES;
+    const declaredLength = Number(req.headers["content-length"] || 0);
+    if (Number.isFinite(declaredLength) && declaredLength > limit) {
+      res.statusCode = 413; res.setHeader("content-type", "application/json");
+      res.end(JSON.stringify({ok:false, error:"视频不能超过 15 MiB"})); return;
+    }
     // OPENCLAW_STATE_DIR is the one canonical root.  The backend imports from
     // <state>/media/inbound, so the plugin must use the same default when the
     // environment is not explicitly configured.
     const stateRoot = path.resolve(process.env.OPENCLAW_STATE_DIR || path.join(os.homedir(), ".openclaw", "hyperframe", "state"));
-    const inbound = path.join(stateRoot, "media", "inbound"); await fsp.mkdir(inbound, {recursive:true, mode:0o700});
+    const inbound = path.resolve(process.env.OPENCLAW_INBOUND_MEDIA_DIR || path.join(stateRoot, "media", "inbound")); await fsp.mkdir(inbound, {recursive:true, mode:0o700});
     const id = crypto.randomUUID(); const target = path.join(inbound, `${id}-${fileName}`); const temp = `${target}.part`;
     let bytes = 0;
     try {
-      await new Promise((resolve, reject) => { const out = fs.createWriteStream(temp, {flags:"wx", mode:0o600}); const fail = e => { out.destroy(); reject(e); }; req.on("data", chunk => { bytes += chunk.length; if (bytes > limit) fail(Object.assign(new Error("视频超过 1 GiB 限制"), {statusCode:413})); else if (!out.write(chunk)) req.pause(); }); out.on("drain", () => req.resume()); req.on("end", () => out.end(resolve)); req.on("error", reject); out.on("error", reject); });
+      await new Promise((resolve, reject) => { const out = fs.createWriteStream(temp, {flags:"wx", mode:0o600}); const fail = e => { out.destroy(); reject(e); }; req.on("data", chunk => { bytes += chunk.length; if (bytes > limit) fail(Object.assign(new Error("视频不能超过 15 MiB"), {statusCode:413})); else if (!out.write(chunk)) req.pause(); }); out.on("drain", () => req.resume()); req.on("end", () => out.end(resolve)); req.on("error", reject); out.on("error", reject); });
       await fsp.rename(temp, target);
       const detectedMime = mime === "application/octet-stream" || !mime ? (ext === ".mov" ? "video/quicktime" : ext === ".webm" ? "video/webm" : "video/mp4") : mime;
       res.statusCode = 200; res.setHeader("content-type", "application/json"); res.end(JSON.stringify({ok:true, mediaPath:`media://inbound/${path.basename(target)}`, fileName, mimeType:detectedMime, bytes, path:target}));

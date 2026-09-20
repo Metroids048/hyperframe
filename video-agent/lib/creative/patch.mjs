@@ -10,7 +10,7 @@ import {customParameters,compileCustomSource} from './custom-source.mjs';
 import {alignSourceAudio} from './source-audio.mjs';
 import {projectNativeCaptions} from './captions.mjs';
 
-const allowed = new Set(['update_text_style','update_text', 'update_effect_params', 'set_scene_effect', 'replace_asset', 'set_scene_duration', 'set_node_duration', 'reorder_scenes', 'set_transition', 'change_output','lock_scene','unlock_scene','update_media','retime_document']);
+const allowed = new Set(['add_text','update_text_style','update_text', 'update_effect_params', 'set_scene_effect', 'replace_asset', 'set_scene_duration', 'set_node_duration', 'reorder_scenes', 'set_transition', 'change_output','lock_scene','unlock_scene','update_media','retime_document']);
 for(const type of ['duplicate_media','add_audio','update_audio','remove_audio','split_scene','trim_scene','update_caption','update_caption_style','set_captions','remove_caption','update_custom_source'])allowed.add(type);
 
 export function applyDocumentPatch(input, operations, assets) {
@@ -46,6 +46,15 @@ export function applyDocumentPatch(input, operations, assets) {
       insist(document.nodes.length<300&&document.nodes.filter(n=>n.sceneId===op.sceneId&&['image','video'].includes(n.kind)).length<4,'同屏窗口超出原生预算','INVALID_PATCH');
       document.nodes.push({...structuredClone(node),id:p.newId});
       // Copy only a visual window; source timing stays identical and no audio is duplicated.
+    }
+    if(op.type==='add_text'){
+      const scene=document.scenes.find(s=>s.id===op.sceneId);insist(scene,'目标场景不存在','PATCH_TARGET_MISSING');
+      const node=op.node||{};insist(typeof node.id==='string'&&/^[a-zA-Z][\w-]{0,99}$/.test(node.id)&&!document.nodes.some(n=>n.id===node.id),'新增文字对象ID无效或重复','INVALID_NODE_ID');
+      const text=String(op.text??node.params?.text??'').trim();insist(text&&[...text].length<=240,'文字必须为 1～240 字','INVALID_TEXT');
+      const start=Math.max(0,Number.isInteger(op.localStartFrame)?op.localStartFrame:Number(node.localStartFrame||0));
+      const duration=Number.isInteger(op.durationFrames)?op.durationFrames:Number(node.durationFrames??scene.durationFrames-start);
+      insist(duration>=1&&start+duration<=scene.durationFrames,'新增文字对象时长超出所属场景','INVALID_SCENE_TIME');
+      document.nodes.push({id:node.id,sceneId:scene.id,semanticRole:node.semanticRole||'title',kind:'text',anchor:'scene-local',localStartFrame:start,startFrame:scene.startFrame+start,localDurationFrames:duration,durationFrames:duration,params:{...(node.params||{}),text}});
     }
     if(op.type==='update_media'){
       const node=document.nodes.find(n=>n.id===op.nodeId);insist(node&&['image','video'].includes(node.kind),'目标素材节点不存在','PATCH_TARGET_MISSING');

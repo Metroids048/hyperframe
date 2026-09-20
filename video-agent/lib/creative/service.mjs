@@ -26,7 +26,7 @@ import {ROOT} from '../workflow.mjs';
 import {acquireRender} from '../render-queue.mjs';
 import {linkOrCopy,hashFile,probe} from '../edit/media.mjs';
 import {CreativeError, insist, assetKindFromName, MAX_FILE_BYTES, MAX_ASSETS, stableId,safeRelativePath} from './contracts.mjs';
-import {buildCommerceProject,patchCommerceProject,readNativeProject,writeCompiledProject,runHyperFrames,renderCommerceProject} from './runner.mjs';
+import {buildCommerceProject,buildUploadedVideoProject,patchCommerceProject,readNativeProject,writeCompiledProject,runHyperFrames,renderCommerceProject} from './runner.mjs';
 import {applyDocumentPatch,computeInvalidation} from './patch.mjs';
 import {requireCommerceMessagePlan,sceneNumber} from './intent.mjs';
 import {planCreativeEdit,completedEditSummary} from './model-edit.mjs';
@@ -98,33 +98,50 @@ function deterministicUploadedVideoEdit(document, asset, message) {
   const videoNodes = document.nodes.filter(node => node.kind === 'video');
   if (!videoNodes.length || !asset?.mediaMetadata?.duration) return null;
   const operations = [];
-  // Keep the existing native scene/timeline contract (including custom scene
-  // animations) and map the complete uploaded source across that timeline.
-  // The source is time-stretched only when the host project has a different
-  // duration; no source frames are dropped and the bound audio follows the
-  // same rate through alignSourceAudio.
-  const rate = Number(asset.mediaMetadata.duration) / (document.durationFrames / 30);
+  // A source edit preserves the source clock.  The initial-upload path creates
+  // one scene at the probed duration; if this helper is used by a legacy
+  // document, resize that one scene explicitly instead of silently changing
+  // playbackRate to fit an unrelated host timeline.
+  const sourceFrames=Math.round(Number(asset.mediaMetadata.duration)*30);
+  if(document.scenes.length===1&&document.scenes[0].durationFrames!==sourceFrames)operations.push({type:'set_scene_duration',sceneId:document.scenes[0].id,durationFrames:sourceFrames});
   for (const node of videoNodes) {
-    const scene = document.scenes.find(item => item.id === node.sceneId);
-    const sourceStartSeconds = Math.max(0, (scene?.startFrame || 0) / 30 * rate);
     operations.push({type:'replace_asset', nodeId:node.id, assetId:asset.id});
-    operations.push({type:'update_media', nodeId:node.id, params:{sourceStartSeconds, playbackRate:rate}});
+    operations.push({type:'update_media', nodeId:node.id, params:{sourceStartSeconds:0, playbackRate:1}});
   }
   for (const track of document.audioGraph || []) {
     const node = videoNodes.find(item => item.id === track.sourceNodeId);
-    if (node) operations.push({type:'update_audio', nodeId:track.id, assetId:asset.id, params:{assetId:asset.id, sourceNodeId:node.id}});
+    if (node&&asset.mediaMetadata.hasAudio) operations.push({type:'update_audio', nodeId:track.id, assetId:asset.id, params:{assetId:asset.id, sourceNodeId:node.id,sourceStartSeconds:0,playbackRate:1,durationFrames:sourceFrames,startFrame:0}});
   }
-  const quoted = String(message || '').match(/[“「『"]([^”」』"]{1,80})[”」』"]/u)?.[1]?.trim();
-  const firstText = document.nodes.find(node => node.kind === 'text');
-  if (quoted && firstText) {
-    operations.push({type:'update_text', nodeId:firstText.id, text:quoted});
-    if (/开头\s*2\s*秒|前\s*2\s*秒/u.test(String(message || ''))) operations.push({type:'set_node_duration', nodeId:firstText.id, durationFrames:60});
+  const text=String(message||'');
+  const quoted=text.match(/[“「『"]([^”」』"]{1,80})[”」』"]/u)?.[1]?.trim();
+  const natural=text.match(/(?:加上|加一个|添加|改成|改为)\s*(?:一个)?\s*([^，。！？,!?]{1,40}?)(?:几个字|标题|文字|，|。|！|！|$)/u)?.[1]?.trim();
+  const requestedText=quoted||natural;
+  const firstText=document.nodes.find(node=>node.kind==='text');
+  if(requestedText){
+    if(firstText)operations.push({type:'update_text',nodeId:firstText.id,text:requestedText});
+    else {
+      const scene=document.scenes[0],duration=Math.min(60,scene.durationFrames);
+      operations.push({type:'add_text',sceneId:scene.id,text:requestedText,durationFrames:duration,localStartFrame:0,node:{id:'title-uploaded-'+asset.id.slice(-12),semanticRole:'title',params:{style:{}}}});
+    }
+    if (/开头\s*2\s*秒|前\s*2\s*秒/u.test(text)) {
+      const titleNode=firstText||{id:'title-uploaded-'+asset.id.slice(-12)};
+      const add=operations.find(op=>op.type==='add_text'&&op.node?.id===titleNode.id);
+      if(!add) operations.push({type:'set_node_duration',nodeId:titleNode.id,durationFrames:Math.min(60,sourceFrames)});
+      else add.durationFrames=Math.min(60,sourceFrames);
+    }
   }
-  return {operations, summary:`已将上传视频 ${asset.name || asset.id} 绑定为当前工程主源，保留同一项目与原生版本历史，并按真实时长重排场景和原声。`};
+  return {operations, summary:`已将上传视频 ${asset.name || asset.id} 作为当前工程主源，按原片真实时长与 1 倍速保留画面和原声。`};
 }
 export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO_AGENT_CREATIVE_DATA_DIR||path.join(root,'data/commerce-runs'),planner='model',audioTransport,audioEnv,routingProvider,planningProvider}={}){
   try{process.loadEnvFile(path.join(root,'.env'));}catch(error){if(error.code!=='ENOENT')throw error;}
   await fs.mkdir(dataDir,{recursive:true});
+  // OpenClaw is not necessarily served from the same origin as the native
+  // workbench.  Relative artifact paths make a successful job look broken in
+  // that case (the browser resolves them against the gateway).  Keep the
+  // public origin explicit and overridable for a reverse proxy, while using
+  // the local service port for the default desktop setup.
+  const artifactBase=String(process.env.VIDEO_AGENT_PUBLIC_BASE_URL||process.env.COMMERCE_PUBLIC_BASE_URL||`http://127.0.0.1:${process.env.VIDEO_AGENT_PORT||process.env.PORT||3024}`).replace(/\/$/,'');
+  const artifactUrl=p=>new URL(p,artifactBase).toString();
   // Verify demo media when the gallery is requested, not before health/startup.
   let presets=[],presetStamp='',presetRefresh=null;
   async function refreshPresets(){
@@ -139,7 +156,7 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
   async function artifacts(p,revisionId){
     const r=revision(p,revisionId),base=versionDirectory(p,r),files=[];
     for(const name of [...(r.rendered?['commerce-final.mp4']:[]),...(r.historyPackaged?['history.zip']:r.packaged?['project.zip']:[])]){
-      try{files.push({name,...await artifactFile(path.join(base,name),`/api/commerce/${p.id}/revisions/${r.id}/${name}?download=1`)});}
+      try{files.push({name,...await artifactFile(path.join(base,name),artifactUrl(`/api/commerce/${p.id}/revisions/${r.id}/${name}?download=1`))});}
       catch(error){if(error.code!=='ENOENT')throw error;files.push({name,unavailable:'文件缺失，请核对该版本导出记录'});}
     }
     return {projectId:p.id,revisionId:r.id,files};
@@ -160,7 +177,7 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
   }
   const get=id=>{const p=projects.get(id);if(!p)throw new CreativeError('原生项目不存在','PROJECT_NOT_FOUND',404);return p;};
   const revision=(p,id=p.currentRevisionId)=>{const r=p.revisions.find(r=>r.id===id);if(!r)throw new CreativeError('版本不存在','REVISION_NOT_FOUND',404);return r;};
-  const view=p=>({...structuredClone(p),deliveryStatus:p.request?.commerceProfile==='commerce-focus-v1'?'awaiting_review':'legacy_unverified',jobs:p.jobs.map(({snapshot,...job})=>({...job,...(job.directionPreview?{directionPreview:{...job.directionPreview,previewUrl:`/api/commerce/${p.id}/jobs/${job.id}/direction/watch.html`}}:{}),resumeAllowed:canResumeJob(job),budgetExhausted:budgetExhausted(job)})),auditions:(p.auditions||[]).map(a=>({...a,url:`/api/commerce/${p.id}/auditions/${a.id}.wav`})),revisions:p.revisions.map(r=>({...r,previewUrl:`/api/commerce/${p.id}/revisions/${r.id}/preview.html`,videoUrl:r.rendered?`/api/commerce/${p.id}/revisions/${r.id}/commerce-final.mp4`:null,documentUrl:`/api/commerce/${p.id}/revisions/${r.id}/document.json`,packageUrl:r.historyPackaged?`/api/commerce/${p.id}/revisions/${r.id}/history.zip`:r.packaged?`/api/commerce/${p.id}/revisions/${r.id}/project.zip`:null}))});
+  const view=p=>({...structuredClone(p),artifactBaseUrl:artifactBase,deliveryStatus:p.request?.commerceProfile==='commerce-focus-v1'?'awaiting_review':'legacy_unverified',jobs:p.jobs.map(({snapshot,...job})=>({...job,...(job.directionPreview?{directionPreview:{...job.directionPreview,previewUrl:artifactUrl(`/api/commerce/${p.id}/jobs/${job.id}/direction/watch.html`)}}:{}),resumeAllowed:canResumeJob(job),budgetExhausted:budgetExhausted(job)})),auditions:(p.auditions||[]).map(a=>({...a,url:artifactUrl(`/api/commerce/${p.id}/auditions/${a.id}.wav`)})),revisions:p.revisions.map(r=>({...r,previewUrl:artifactUrl(`/api/commerce/${p.id}/revisions/${r.id}/preview.html`),videoUrl:r.rendered?artifactUrl(`/api/commerce/${p.id}/revisions/${r.id}/commerce-final.mp4`):null,documentUrl:artifactUrl(`/api/commerce/${p.id}/revisions/${r.id}/document.json`),packageUrl:r.historyPackaged?artifactUrl(`/api/commerce/${p.id}/revisions/${r.id}/history.zip`):r.packaged?artifactUrl(`/api/commerce/${p.id}/revisions/${r.id}/project.zip`):null}))});
   async function create(input={}){
     const p={schemaVersion:1,id:randomUUID(),title:String(input.title||input.product?.name||'新创作'),createdAt:now(),updatedAt:now(),request:input,assets:[],revisions:[],currentRevisionId:null,jobs:[],messages:[],redo:[]};
     await fs.mkdir(path.join(directory(p),'uploads'),{recursive:true});projects.set(p.id,p);try{await save(p);}catch(error){projects.delete(p.id);throw error;}return p;
@@ -478,6 +495,15 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
         if(job.input.request)p.request={...p.request,...commerceIntake(job.input.request)};
         if(job.input.workflow?.businessScenario||job.input.scenarioId){p.request={...p.request,scenarioId:job.input.workflow?.businessScenario||job.input.scenarioId,taskMode:job.input.workflow?.taskMode||job.input.taskMode||p.request.taskMode,workflow:job.input.workflow||p.request.workflow};p.request.businessContract=businessContract(p.request);}
         const target=p.request.target||'marketing';
+        const uploadedSource=p.currentRevisionId==null
+          && (job.input.attachmentIds||[]).map(id=>p.assets.find(a=>a.id===id)).find(a=>a?.kind==='video'&&a.mediaMetadata?.duration);
+        const sourceEditRequested=Boolean(uploadedSource&&/(?:标题|文字|字幕|开头|加上|添加|改成|改为|保留.{0,8}(?:时长|原声|声音)|别的都别动)/u.test(job.input.message||''));
+        if(sourceEditRequested){
+          job.stage='建立上传原片初始工程';await save(p);
+          const dir=path.join(directory(p),'versions',job.id);
+          await buildUploadedVideoProject({...p.request,projectId:p.id,assets:p.assets,outputDir:path.relative(root,dir).replaceAll('\\','/'),message:job.input.message,signal,onStage:async stage=>{job.stage=stage;await save(p);}},{root});
+          const {document}=await readNativeProject(dir);p.title=document.brief.name;const created=await publish(p,job,dir,document,'上传原片初始版本');await candidateExport(p,job,created,signal);job.summary='已按上传原片的真实时长建立独立可编辑工程，并导出候选视频。';job.status='complete';job.completedAt=now();p.messages.push({role:'assistant',text:job.summary,time:now()});return;
+        }
         if(job.revisionId&&p.revisions.some(r=>r.id===job.revisionId)){
           await candidateExport(p,job,revision(p,job.revisionId),signal);
           job.status='complete';job.completedAt=now();return;
@@ -605,8 +631,11 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
         const uploadedVideo = (job.input.attachmentIds||[])
           .map(id=>assets.find(asset=>asset.id===id))
           .find(asset=>asset?.kind==='video' && asset.mediaMetadata?.duration)
-          || added.find(asset=>asset.kind==='video' && asset.mediaMetadata?.duration);
-        const uploadedVideoPlan = uploadedVideo && /(?:这段视频|刚上传|上传(?:的|视频)|本视频|该视频)/u.test(job.input.message||'')
+          || added.find(asset=>asset.kind==='video' && asset.mediaMetadata?.duration)
+          || (/(?:刚加的字|刚才的字|新增的字|这段视频|本视频|该视频)/u.test(job.input.message||'')
+            ? assets.find(asset=>asset.kind==='video'&&document.nodes.some(node=>node.kind==='video'&&node.assetId===asset.id))
+            : null);
+        const uploadedVideoPlan = uploadedVideo && /(?:这段视频|刚上传|上传(?:的|视频)|本视频|该视频|刚加的字|刚才的字|新增的字)/u.test(job.input.message||'')
           ? deterministicUploadedVideoEdit(document, uploadedVideo, job.input.message)
           : null;
         if(uploadedVideoPlan){

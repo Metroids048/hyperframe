@@ -21,7 +21,7 @@ const TOOL_NAMES = new Set([
   ...WRITE_TOOLS, 'commerce_job_get', 'commerce_artifact_list',
 ]);
 const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,199}$/;
-const PATCH_OPERATION_TYPES = new Set(['update_text_style','update_text','update_effect_params','set_scene_effect','replace_asset','set_scene_duration','set_node_duration','reorder_scenes','set_transition','change_output','lock_scene','unlock_scene','update_media','retime_document','duplicate_media','add_audio','update_audio','remove_audio','split_scene','trim_scene','update_caption','update_caption_style','set_captions','remove_caption','update_custom_source']);
+const PATCH_OPERATION_TYPES = new Set(['add_text','update_text_style','update_text','update_effect_params','set_scene_effect','replace_asset','set_scene_duration','set_node_duration','reorder_scenes','set_transition','change_output','lock_scene','unlock_scene','update_media','retime_document','duplicate_media','add_audio','update_audio','remove_audio','split_scene','trim_scene','update_caption','update_caption_style','set_captions','remove_caption','update_custom_source']);
 
 function fail(message, code = 'OPENCLAW_TOOL_INVALID', status = 400, meta = {}) {
   const error = new Error(message); error.code = code; error.status = status; error.stage = meta.stage || 'validate'; error.field = meta.field || null; error.retryable = meta.retryable ?? false; if (meta.requestId) error.requestId = meta.requestId; throw error;

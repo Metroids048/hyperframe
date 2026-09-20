@@ -7,10 +7,12 @@
 已落地的可重装修改：
 
 - `openclaw-plugin/index.mjs` 注册受 Gateway 认证保护的 `POST /plugins/commerce-engine/upload`，真实流式写入 inbound media，返回 `media://inbound/...`、`assetId` 导入所需路径、MIME、字节数；浏览器不接触管理员 token。
-- `scripts/patch-openclaw-2026.6.11.mjs` 对目标版本 UI bundle 和 attachment normalizer 做 SHA 前置校验的源码补丁。UI 接受 MP4/MOV/WebM，并把视频直接上传到 Gateway，再以受控路径引用，避免把完整视频 base64 放进模型消息；normalizer 传递受控路径。
+- `scripts/patch-openclaw-2026.6.11.mjs` 对目标版本 UI bundle 和 attachment normalizer 做结构校验的可重放源码补丁。UI 接受 MP4/MOV/WebM，单个视频与拖拽入口统一限制为 15 MiB，并把视频直接上传到 Gateway，再以受控路径引用，避免把完整视频 base64 放进模型消息；normalizer 传递受控路径。已移除上传认证调试日志。
 - `server.mjs` 对入站附件做 `realpath` + `relative` 边界校验，并返回 `code/stage/field/retryable/requestId`。
 - `lib/openclaw/commerce-engine-facade.mjs` 强制已有工程使用真实 `baseRevisionId`，计划验证实际运行原生 patch，拒绝空计划、未知操作和不存在对象；写任务等待持久化任务完成并返回 `resultRevisionId`/artifact。
 - `lib/creative/service.mjs` 编辑发布后自动导出同一版本，并提供持久化任务等待，不再把 `accepted/queued/revision saved` 当成视频完成。
+
+视频理解配置已写入 `runtime/openclaw/openclaw.example.json` 与本机私有配置：只处理第一个附件，`maxBytes=15 MiB`。当前 One-API 中的 gpt-5.6 模型仍只声明 `text,image` 输入；未提供 Google/Qwen/Moonshot 等视频理解凭据前，上传与保存可用，但“直接问视频内容”仍是待接入能力。
 
 原生浏览器验收：
 

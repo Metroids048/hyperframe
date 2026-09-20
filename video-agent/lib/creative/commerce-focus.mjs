@@ -56,23 +56,12 @@ export async function productionAdmission(root,contract,assets){
   try{registry=JSON.parse(await fs.readFile(path.join(root,'assets/commerce-focus-v1/review-registry.json'),'utf8'));}
   catch(e){if(e.code!=='ENOENT')issues.push('素材审核登记损坏');}
   const admitted=[];
-  // A user-uploaded source used only for an explicitly local timeline edit is
-  // reviewable from the current session itself.  This is deliberately narrow:
-  // it does not approve public/remote material or any request that permits
-  // generated footage, and it still requires the normal observation pass.
-  const localUserEdit=/(?:当前会话刚上传|用户(?:刚通过当前会话上传|上传)|user[- ]provided).*?(?:用户自有素材|user[- ]owned)|用户自有素材|user[- ]owned/i.test(contract?.originalRequest||'')
-    && /本地时间线编辑|local timeline edit/i.test(contract?.originalRequest||'')
-    && /不要生成新素材|禁止生成(?:新素材|素材)?|不(?:是|要).*生成|no generated footage|do not generate/i.test(contract?.originalRequest||'')
-    && contract?.generatedFootageAllowed===false;
   for(const asset of assets.filter(a=>['video','image'].includes(a.kind))){
     const record=registry.assets?.find(r=>r.sha256===asset.sha256);
-    const sessionRecord=localUserEdit&&asset.rights?.status==='user-provided'?{
-      status:'approved',sourcePage:'openclaw://current-session-upload',
-      rights:{basis:'user-owned upload explicitly authorized in the current session for this local edit',allowedUses:['commerce','local-edit']},
-      identityStatus:'verified',productIdentity:`user-upload-${asset.sha256}`,
-      fullObservation:true,evidence:['assets.observe:metadata-and-frame-review'],coverage:['product_identity']
-    }:null;
-    const approved=record&&record.status==='approved'&&record.sourcePage&&record.rights?.basis&&record.rights?.allowedUses?.includes('commerce')?record:sessionRecord;
+    // A session upload is a real input, not a formal commercial review record.
+    // Candidate editing handles it without upgrading rights, identity, or
+    // observation state; formal production still requires the registry entry.
+    const approved=record&&record.status==='approved'&&record.sourcePage&&record.rights?.basis&&record.rights?.allowedUses?.includes('commerce')?record:null;
     if(!approved){issues.push(`${asset.id}：缺本次用途的素材审核与权利依据`);continue;}
     const recordForAsset=approved;
     if(recordForAsset.identityStatus!=='verified'||!recordForAsset.productIdentity)issues.push(`${asset.id}：同款身份未核验`);

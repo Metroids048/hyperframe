@@ -5,13 +5,14 @@ import {businessContract,candidateAdmission,assertProductionAdmission,assertRequ
 import {prepareHyperFramesWorkspace,assertHyperFramesCapture} from './hf-workspace.mjs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import crypto from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import {spawn,spawnSync} from 'node:child_process';
-import {normalizeCommerceRequest, safeRelativePath} from './contracts.mjs';
+import {normalizeCommerceRequest, safeRelativePath, stableId} from './contracts.mjs';
 import {prepareCreativeAsset} from './image-asset.mjs';
 import {planCommerceDocument} from './director.mjs';
 import {compileDocument, designMarkdown} from './compiler.mjs';
-import {documentSummary, validateDocument} from './document.mjs';
+import {createNativeDocument, documentSummary, validateDocument} from './document.mjs';
 import {applyDocumentPatch, computeInvalidation} from './patch.mjs';
 import {requireCommerceMessagePlan} from './intent.mjs';
 import {planWithModel,repairPlannedDocument} from './model-director.mjs';
@@ -116,6 +117,45 @@ export async function buildCommerceProject(input, {root = VIDEO_AGENT_ROOT} = {}
     await fs.writeFile(path.join(outputDir, 'status.json'), JSON.stringify(status, null, 2));
   }
   return status;
+}
+
+/** Import one uploaded video as an independent, candidate-only native project. */
+export async function buildUploadedVideoProject(input, {root = VIDEO_AGENT_ROOT} = {}) {
+  const request = normalizeCommerceRequest({...input, assets: input.assets, creativeMode: 'video'});
+  const outputDir = request.outputDir ? safeRelativePath(root, request.outputDir) : path.join(root, 'data/commerce-runs', request.projectId);
+  await fs.mkdir(path.join(outputDir, 'assets'), {recursive: true});
+  const prepared=[];
+  for(const asset of request.assets){
+    await input.onStage?.(`准备原片 ${prepared.length+1}/${request.assets.length}`);
+    const item=await prepareCreativeAsset(root,asset,path.join(outputDir,'assets'),{signal:input.signal});
+    item.compiledRef=`assets/${path.basename(item.normalizedRef)}`;prepared.push(item);
+  }
+  const source=prepared.find(a=>a.kind==='video');
+  if(!source) throw new Error('原片导入需要视频素材');
+  const requested=input.output||{};
+  const width=Math.min(1920,Math.max(64,Number(requested.width??source.mediaMetadata.width??1080)))&~1;
+  const height=Math.min(1920,Math.max(64,Number(requested.height??source.mediaMetadata.height??1920)))&~1;
+  const durationFrames=Math.max(150,Math.min(18000,Math.round(source.mediaMetadata.duration*30)));
+  const brief={id:stableId('brief',request.projectId,source.id),productId:null,name:source.name,facts:[],price:null,cta:'',audience:null,prohibited:[],assetIds:prepared.filter(a=>a.kind!=='audio').map(a=>a.id),assumptions:['原片编辑候选；商品身份与商业审核尚未确认。']};
+  const design={id:'source-edit',background:'#111111',foreground:'#FFFFFF',panel:'#111111',accent:'#FFFFFF',accentContrast:'#111111',fontFamily:'"Microsoft YaHei", "PingFang SC", Arial, sans-serif',motionIntensity:0,transition:'dissolve-transition',safeAreas:{top:.06,right:.06,bottom:.07,left:.06},minReadFrames:48,easingFamily:'linear',output:{width,height}};
+  const scene={id:'scene-01-uploaded-source',purpose:'source',startFrame:0,durationFrames,effect:'media-cut',effectParams:{}};
+  const node={id:'video-'+source.id,sceneId:scene.id,semanticRole:'hero',kind:'video',assetId:source.id,anchor:'scene-local',localStartFrame:0,startFrame:0,localDurationFrames:durationFrames,durationFrames,params:{sourceStartSeconds:0,playbackRate:1,fit:'cover'}};
+  const document=createNativeDocument({projectId:request.projectId,output:{width,height,durationSeconds:durationFrames/30},brief,design,assets:prepared,scenes:[scene],nodes:[node],transitions:[]});
+  document.scenePackage={kind:'uploaded-source',sourceAssetId:source.id,candidateOnly:true};
+  document.businessContract={...businessContract({...request,scenarioId:'general',taskMode:'recut',message:request.message}),scenarioId:'general',taskMode:'recut',candidateOnly:true};
+  document.audioRequirements={original:Boolean(source.mediaMetadata.hasAudio)};
+  if(source.mediaMetadata.hasAudio)document.audioGraph=[{id:stableId('audio',node.id),assetId:source.id,role:'original',sourceNodeId:node.id,sceneId:scene.id,startFrame:0,durationFrames,sourceStartSeconds:0,playbackRate:1,volume:1}];
+  const admission={status:'candidate_only',candidateOnly:true,contractHash:crypto.createHash('sha256').update(JSON.stringify(document.businessContract)).digest('hex'),assets:prepared.filter(a=>['video','image'].includes(a.kind)).map(a=>({assetId:a.id,sha256:a.sha256,identityStatus:'unknown',fullObservation:false,evidence:[],coverage:[],rights:a.rights||{status:'user-provided'}}))};
+  await fs.writeFile(path.join(outputDir,'business-contract.json'),JSON.stringify(document.businessContract,null,2));
+  await fs.writeFile(path.join(outputDir,'production-admission.json'),JSON.stringify(admission,null,2));
+  await fs.writeFile(path.join(outputDir,'resource-lock.json'),JSON.stringify({runtime:'0.8.33',commit:'local-upload-source',files:[],execution:'native uploaded-source compiler',license:'asset rights reviewed separately'},null,2));
+  await copyGsap(outputDir);await writeAttribution(outputDir,prepared);
+  const audioRefs=await prepareNativeAudio(outputDir,document,prepared,{signal:input.signal});
+  const compiled=compileDocument(document,prepared,{audioRefs});
+  await fs.writeFile(path.join(outputDir,'index.html'),compiled.html);await fs.writeFile(path.join(outputDir,'document.json'),JSON.stringify(document,null,2));await fs.writeFile(path.join(outputDir,'object-map.json'),JSON.stringify(compiled.objectMap,null,2));await fs.writeFile(path.join(outputDir,'manifest.json'),JSON.stringify(compiled.manifest,null,2));await fs.writeFile(path.join(outputDir,'DESIGN.md'),designMarkdown(document));await fs.writeFile(path.join(outputDir,'hyperframes.json'),JSON.stringify({version:1,entry:'index.html'},null,2));
+  await verifyCustomProject(outputDir,document,prepared,{signal:input.signal});
+  const status={state:'composed',projectId:request.projectId,outputDir:path.relative(root,outputDir).split(path.sep).join('/'),document:documentSummary(document),rendered:false,candidateOnly:true};
+  await fs.writeFile(path.join(outputDir,'status.json'),JSON.stringify(status,null,2));return status;
 }
 
 async function resolveOutputDir(root, requested) {

@@ -14,7 +14,7 @@ test('manifest declares exact tool contract and required server-only configurati
   assert.equal(manifest.kind, 'tool');
   assert.equal(manifest.enabledByDefault, false);
   assert.deepEqual(manifest.contracts.tools, [
-    'commerce_project_list', 'commerce_project_get', 'commerce_resource_search', 'commerce_plan_validate',
+    'commerce_project_create', 'commerce_project_list', 'commerce_project_get', 'commerce_resource_search', 'commerce_plan_validate',
     'commerce_create_video', 'commerce_edit_video', 'commerce_generate_asset',
     'commerce_job_get', 'commerce_job_control', 'commerce_revision_control',
     'commerce_export', 'commerce_artifact_list'
