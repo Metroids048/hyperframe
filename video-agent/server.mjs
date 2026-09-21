@@ -10,7 +10,14 @@ import {createReadStream} from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import {randomUUID,createHash} from 'node:crypto';
-import sharp from 'sharp';
+// Conditional sharp import for macOS compatibility
+let sharp;
+try {
+  sharp = (await import('sharp')).default;
+} catch (error) {
+  console.warn('⚠️  Sharp unavailable (macOS signing issue) - image processing disabled');
+  sharp = null;
+}
 import {optimizePrompt} from './lib/planner.mjs';
 import {cases,demoOptimize,validateSettings} from './lib/demo-planner.mjs';
 import {ROOT,STUDIO,STUDIO_URL,defaults,InputError,validateBrief,validateStoryboard,storyboard,compose,runHF,verifyVideo} from './lib/workflow.mjs';

@@ -43,7 +43,7 @@ def main():
     if mode in ('start', 'status'):
         settings = json.loads((ROOT / 'config/start.local.json').read_text())
         gateway_port = int(os.environ.get('OPENCLAW_GATEWAY_PORT', 18789))
-        endpoints = {'gateway': (gateway_port, '/healthz'), 'backend': (int(settings.get('port', 3024)), '/api/health')}
+        endpoints = {'gateway': (gateway_port, '/healthz'), 'backend': (int(settings.get('port', 3024)), '/health')}
         child_env = dict(env)
         child_env['VIDEO_AGENT_PORT'] = str(endpoints['backend'][0])
         child_env['VIDEO_AGENT_BRIDGE_URL'] = f"http://127.0.0.1:{endpoints['backend'][0]}"
@@ -164,7 +164,9 @@ def main():
         if settings.get('creativeDataDir'):
             env['VIDEO_AGENT_CREATIVE_DATA_DIR'] = settings['creativeDataDir']
         env['COMMERCE_AGENT_RUNTIME'] = 'openclaw'
-        args = [str(NODE), str(ROOT / 'server.mjs')]
+        # Use bridge-server on macOS to avoid sharp signing issues
+        server_file = ROOT / 'bridge-server.mjs' if sys.platform == 'darwin' else ROOT / 'server.mjs'
+        args = [str(NODE), str(server_file)]
     else:
         raise SystemExit('Use gateway [CLI args...] or backend')
     os.chdir(ROOT)
