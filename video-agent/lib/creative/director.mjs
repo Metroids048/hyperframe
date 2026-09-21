@@ -171,9 +171,17 @@ export function planCommerceDocument(request, preparedAssets) {
   const document=createNativeDocument({projectId: request.projectId, output: request.output, brief, design, assets: preparedAssets, scenes, nodes, transitions});
   // Sound requests must survive parameterized planning, just like model planning.
   const message=request.message||'';
-  const music=/(?:使用|用|配合).{0,30}(?:配乐|原创.*(?:节拍|音轨))/.test(message)&&!/(?:不加|不要|无需|不使用).{0,6}(?:音乐|配乐)/.test(message);
+
+  // Detect music requirements: explicit requests or background music mentions
+  const music=(/(?:加入|添加|配上?|需要|用上?|使用|用|配合).{0,30}(?:音乐|配乐|BGM|背景音乐|伴奏|原创.*(?:节拍|音轨))/.test(message)&&!/(?:不加|不要|无需|不使用).{0,6}(?:音乐|配乐)/.test(message));
+
+  // Detect narration requirements: voiceover, narration, commentary requests
+  const narration=(/(?:加入|添加|配上?|需要|用上?|生成|制作).{0,20}(?:讲解|旁白|配音|口播|解说|人声|语音)/.test(message)&&!/(?:不加|不要|无需).{0,6}(?:讲解|旁白|配音)/.test(message));
+
+  // Detect original audio preservation
   const original=/保留.{0,12}原声/.test(message)&&!/(?:不保留|去掉|删除).{0,6}原声/.test(message);
-  document.audioRequirements={music,original};
+
+  document.audioRequirements={music,narration,original};
   if(music){const asset=preparedAssets.find(a=>a.kind==='audio'&&a.mediaMetadata?.hasAudio);if(asset)document.audioGraph.push({id:stableId('audio',document.projectId,'music'),assetId:asset.id,role:'music',startFrame:0,durationFrames:Math.min(document.durationFrames,Math.floor(asset.mediaMetadata.duration*30)),sourceStartSeconds:0,playbackRate:1,volume:.3,fadeInFrames:15,fadeOutFrames:30});}
   if(original)for(const node of document.nodes.filter(n=>n.kind==='video')){if(preparedAssets.find(a=>a.id===node.assetId)?.mediaMetadata?.hasAudio)document.audioGraph.push({id:stableId('audio',node.id),assetId:node.assetId,role:'original',sourceNodeId:node.id,sceneId:node.sceneId,startFrame:node.startFrame,durationFrames:node.durationFrames,sourceStartSeconds:node.params.sourceStartSeconds||0,playbackRate:1,volume:1});}
   return document;

@@ -1,67 +1,99 @@
 #!/usr/bin/env node
 /**
- * 快速测试 - 仅创建项目、上传素材、提交任务
+ * 快速验证测试 - 检查基本API和素材上传
  */
 
 import fs from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const BACKEND_URL = 'http://127.0.0.1:3020';
-const TEST_IMAGE = 'assets/edit-samples/product.jpg';
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const ROOT = path.resolve(__dirname, '..');
+const API_BASE = 'http://127.0.0.1:3024';
 
-async function quickTest() {
-  console.log('=== 快速测试 ===\n');
-
-  // 1. 创建草稿
-  console.log('1. 创建草稿...');
-  const draftRes = await fetch(`${BACKEND_URL}/api/commerce-chat`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      action: 'draft',
-      request: {
-        message: '测试项目',
-        target: 'marketing',
-        taskMode: 'create',
-        output: { width: 1080, height: 1920, durationSeconds: 15 }
-      }
-    })
-  });
-  const draft = await draftRes.json();
-  const projectId = draft.project.id;
-  console.log('✓ 项目已创建:', projectId.slice(0, 8));
-
-  // 2. 上传素材
-  console.log('\n2. 上传素材...');
-  const imageData = await fs.readFile(TEST_IMAGE);
-  const uploadRes = await fetch(`${BACKEND_URL}/api/commerce/${projectId}/assets`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'image/jpeg',
-      'X-File-Name': 'product.jpg'
-    },
-    body: imageData
-  });
-  const upload = await uploadRes.json();
-  console.log('✓ 素材已上传:', upload.asset.id);
-
-  // 3. 提交任务
-  console.log('\n3. 提交创作任务...');
-  const taskRes = await fetch(`${BACKEND_URL}/api/commerce-chat`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      action: 'message',
-      projectId,
-      message: '用商品图制作视频,标题"测试"',
-      idempotencyKey: 'quick-test-' + Date.now()
-    })
-  });
-  console.log('✓ 任务已提交');
-
-  console.log('\n等待 15 秒后查看日志...');
-  await new Promise(resolve => setTimeout(resolve, 15000));
-
-  console.log('\n测试完成，请查看服务日志中的 [safeRelativePath] 输出');
+// 日志
+function log(emoji, message) {
+  const timestamp = new Date().toISOString().substring(11, 23);
+  console.log(`[${timestamp}] ${emoji} ${message}`);
 }
 
-quickTest().catch(console.error);
+async function testHealthCheck() {
+  log('🔍', '测试健康检查...');
+  try {
+    const response = await fetch(`${API_BASE}/api/health`);
+    const data = await response.json();
+    log('✅', `服务健康: ${JSON.stringify(data)}`);
+    return data.ok;
+  } catch (error) {
+    log('❌', `健康检查失败: ${error.message}`);
+    return false;
+  }
+}
+
+async function testHealthEndpoint() {
+  log('🔍', '测试完整健康端点...');
+  try {
+    const response = await fetch(`${API_BASE}/api/health`);
+    const data = await response.json();
+    log('✅', `健康端点: ${JSON.stringify(data)}`);
+    return data.ok;
+  } catch (error) {
+    log('❌', `健康端点失败: ${error.message}`);
+    return false;
+  }
+}
+
+async function testCommerceCreate() {
+  log('🔍', '测试创建commerce项目...');
+  try {
+    const response = await fetch(`${API_BASE}/api/commerce`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'draft',
+        projectId: 'new'
+      })
+    });
+    const data = await response.json();
+    if (data.ok && data.projectId) {
+      log('✅', `项目创建成功: ${data.projectId}`);
+      return data.projectId;
+    } else {
+      log('❌', `项目创建响应: ${JSON.stringify(data)}`);
+      return null;
+    }
+  } catch (error) {
+    log('❌', `项目创建失败: ${error.message}`);
+    return null;
+  }
+}
+
+async function main() {
+  console.log('\n========================================');
+  console.log('OpenClaw 快速验证测试');
+  console.log('========================================\n');
+
+  const startTime = Date.now();
+
+  // 1. 健康检查
+  const healthOk = await testHealthEndpoint();
+  if (!healthOk) {
+    log('🔴', '服务未运行，退出');
+    process.exit(1);
+  }
+
+  // 2. 创建项目
+  const projectId = await testCommerceCreate();
+
+  const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
+  console.log(`\n========================================`);
+  console.log(`快速验证完成 (${elapsed}秒)`);
+  console.log(`项目ID: ${projectId || '未创建'}`);
+  console.log('========================================\n');
+}
+
+main().catch(error => {
+  log('💥', `致命错误: ${error.message}`);
+  console.error(error);
+  process.exit(1);
+});

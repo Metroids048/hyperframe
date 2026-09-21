@@ -6,11 +6,11 @@ import {OpenClawMediaProvider} from './media-provider.mjs';
 // inside Video Agent. The direct provider can still be selected explicitly for
 // a migration canary, while the legacy OpenClaw stage remains opt-in only.
 function directProvider(options={}){
-  const kind=String(process.env.VIDEO_AGENT_PLANNER_PROVIDER||'codex').toLowerCase();
+  const kind=String(process.env.VIDEO_AGENT_PLANNER_PROVIDER||'openclaw').toLowerCase();
   if(kind==='openclaw')return new OpenClawStageProvider(options);
   if(kind==='openai'||kind==='cloud')return new CloudProvider(options);
-  if(kind!=='codex')throw Object.assign(new Error('VIDEO_AGENT_PLANNER_PROVIDER must be codex, openai, or openclaw'),{code:'PLANNER_PROVIDER_INVALID'});
-  return new CodexProvider({skipLoginCheck:true,...options});
+  if(kind==='codex')return new CodexProvider({skipLoginCheck:true,...options});
+  throw Object.assign(new Error('VIDEO_AGENT_PLANNER_PROVIDER must be codex, openai, or openclaw'),{code:'PLANNER_PROVIDER_INVALID'});
 }
 export function createMediaProvider({legacyCloud=false,...options}={}){
   const runtime=runtimeSelection();
@@ -21,7 +21,7 @@ export function createMediaProvider({legacyCloud=false,...options}={}){
   if(runtime==='openclaw')return directProvider(options);
   return legacyCloud&&process.env.VIDEO_AGENT_EDIT_PROVIDER==='openai'?new CloudProvider():new CodexProvider(options);
 }
-export function runtimeSelection(value=process.env.COMMERCE_AGENT_RUNTIME||'legacy'){if(!['legacy','shadow','openclaw'].includes(value)){const e=new Error('COMMERCE_AGENT_RUNTIME invalid');e.code='RUNTIME_MODE_INVALID';throw e;}return value;}
+export function runtimeSelection(value=process.env.COMMERCE_AGENT_RUNTIME||'openclaw'){if(!['legacy','shadow','openclaw'].includes(value)){const e=new Error('COMMERCE_AGENT_RUNTIME invalid');e.code='RUNTIME_MODE_INVALID';throw e;}return value;}
 export function createStructuredProvider({provider,cacheRoot,onInvocation}={}){
   if(provider)return {provider,owned:false,runtime:'injected'};
   const runtime=runtimeSelection();

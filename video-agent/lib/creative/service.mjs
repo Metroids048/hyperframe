@@ -296,21 +296,45 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
       if(job.status==='queued'||job.status==='running'||job.status==='recoverable'){
         const retryable=Boolean(error?.capacity||isRecoverableProviderFailure(error)||['CODEX_LIMIT','CODEX_TIMEOUT','CODEX_REQUEST_FAILED','OPENCLAW_CONTROL_RATE_LIMIT','OPENCLAW_CONTROL_TIMEOUT'].includes(error?.code));
         job.status=retryable?'recoverable':'failed';
-        job.stage=retryable?'等待路由重试':'路由失败';
+        job.stage=retryable?'等待自动重试':'路由失败';
         job.error=error?.message||'路由失败';
         job.code=error?.code||'MESSAGE_ROUTE_FAILED';
         job.retryable=retryable;
         job.completedAt=retryable?null:now();
-        if(retryable&&job.retryCount<3&&!job.retryScheduled){
-          job.retryCount+=1;job.retryScheduled=true;
-          // 改进的指数退避算法：1秒 -> 2秒 -> 4秒（带随机抖动避免雪崩）
-          const baseDelay = Math.pow(2, job.retryCount - 1) * 1000;
-          const jitter = Math.random() * 500; // 0-500ms 随机抖动
-          const retryDelay = baseDelay + jitter;
+        // 扩展重试策略：在 5 分钟内最多重试 10 次
+        // 退避策略：1s, 2s, 4s, 8s, 15s, 30s, 60s, 60s, 60s, 60s
+        const maxRetries=parseInt(process.env.VIDEO_AGENT_MAX_RETRY_COUNT)||10;
+        const retryTimeoutMs=parseInt(process.env.VIDEO_AGENT_RETRY_TIMEOUT_MS)||300000;
+        if(retryable&&job.retryCount<maxRetries&&!job.retryScheduled){
+          const firstRetryAt=job.firstRetryAt||Date.now();
+          const elapsedMs=Date.now()-new Date(firstRetryAt).getTime();
+          // 如果超过重试窗口，不再自动重试
+          if(elapsedMs>retryTimeoutMs){
+            job.status='recoverable';
+            job.stage='自动重试已超时，可手动恢复';
+            job.retryable=true;
+            job.manualRecoveryAvailable=true;
+            await save(p);
+            return;
+          }
+          job.retryCount+=1;
+          job.retryScheduled=true;
+          if(!job.firstRetryAt)job.firstRetryAt=new Date().toISOString();
+          // 改进的指数退避：1s -> 2s -> 4s -> 8s -> 15s -> 30s -> 60s(上限)
+          const baseDelay=Math.min(Math.pow(2,job.retryCount-1)*1000,60000);
+          const jitter=Math.random()*500;
+          const retryDelay=baseDelay+jitter;
           job.nextRetryAt=new Date(Date.now()+retryDelay).toISOString();
+          job.stage=`等待自动重试 (${job.retryCount}/${maxRetries}，${Math.round(retryDelay/1000)}秒后)`;
           await save(p);
-          setTimeout(async()=>{job.retryScheduled=false;job.status='queued';job.stage='等待路由重试';job.error=null;try{await save(p);await dispatchMessage(p,{...job.input},job);}catch(retryError){job.status='recoverable';job.stage='等待路由恢复';job.error=retryError?.message||'路由重试失败';job.code=retryError?.code||'MESSAGE_ROUTE_RETRY_FAILED';job.retryable=true;job.completedAt=null;try{await save(p);}catch(persistError){job.persistenceError=persistError?.message||'路由重试状态保存失败';console.error('video route retry persistence error',persistError);}}},retryDelay);
+          setTimeout(async()=>{job.retryScheduled=false;job.status='queued';job.stage='路由重试中';job.error=null;try{await save(p);await dispatchMessage(p,{...job.input},job);}catch(retryError){job.status='recoverable';job.stage='等待路由恢复';job.error=retryError?.message||'路由重试失败';job.code=retryError?.code||'MESSAGE_ROUTE_RETRY_FAILED';job.retryable=true;job.completedAt=null;try{await save(p);}catch(persistError){job.persistenceError=persistError?.message||'路由重试状态保存失败';console.error('video route retry persistence error',persistError);}}},retryDelay);
           return;
+        }
+        // 重试次数用尽，但仍然可以手动恢复
+        if(retryable){
+          job.status='recoverable';
+          job.stage='自动重试已用尽，可手动恢复';
+          job.manualRecoveryAvailable=true;
         }
         try { await save(p); }
         catch (persistError) {
@@ -650,7 +674,7 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
         }
         job.stage='观察素材与设计分镜';await save(p);
         const dir=path.join(directory(p),'versions',job.id);
-        await buildCommerceProject({...p.request,projectId:p.id,assets:p.assets,outputDir:path.relative(root,dir).replaceAll('\\','/'),render:false,planning:planner,signal,resumeRunId:job.resumeRunId,onRun:async run=>{syncRun(job,run);await save(p);},onStage:async stage=>{job.stage=stage;await save(p);}},{root});
+        await buildCommerceProject({...p.request,projectId:p.id,assets:p.assets,outputDir:path.relative(root,dir).replaceAll('\\','/'),render:false,planning:'model',signal,resumeRunId:job.resumeRunId,onRun:async run=>{syncRun(job,run);await save(p);},onStage:async stage=>{job.stage=stage;await save(p);}},{root});
         const {document}=await readNativeProject(dir);p.title=document.brief.name;job.stage='检查原生预览';await save(p);const created=await publish(p,job,dir,document,'初始创作');await candidateExport(p,job,created,signal);job.summary='候选 MP4 与原生工程已导出，等待画面与人工审查。';
       }else if(job.kind==='edit'){
         const base=revision(p,job.baseRevisionId),from=versionDirectory(p,base),{document,assets}=await readNativeProject(from);

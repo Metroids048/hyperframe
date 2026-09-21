@@ -1,0 +1,76 @@
+{
+  "version": 4,
+  "source": "prompts/commerce/v4/",
+  "description": "V4 提示词系统 - 系统化、结构化、可维护",
+  "created": "2026-09-21",
+  "files": [
+    {
+      "id": "00-system-core",
+      "file": "00-system-core.md",
+      "description": "系统核心规则（所有阶段必读）",
+      "stages": ["*"]
+    },
+    {
+      "id": "01-input-understanding",
+      "file": "01-input-understanding.md",
+      "description": "用户输入理解与路由",
+      "stages": ["R1", "PU", "MP"]
+    },
+    {
+      "id": "02-asset-analysis",
+      "file": "02-asset-analysis.md",
+      "description": "素材分析与充分性判断",
+      "stages": ["R2", "PU"]
+    },
+    {
+      "id": "03-hyperframes-resources",
+      "file": "03-hyperframes-resources.md",
+      "description": "HyperFrames 资源智能调度",
+      "stages": ["R3", "HF"]
+    },
+    {
+      "id": "04-director-storyboard",
+      "file": "04-director-storyboard.md",
+      "description": "视频导演与分镜设计",
+      "stages": ["R4", "CD", "VD"]
+    },
+    {
+      "id": "05-quality-review",
+      "file": "05-quality-review.md",
+      "description": "质量审查与问题修复",
+      "stages": ["R5", "R8"]
+    },
+    {
+      "id": "99-troubleshooting",
+      "file": "99-troubleshooting.md",
+      "description": "故障排查与兜底策略",
+      "stages": ["*"]
+    }
+  ],
+  "stageMapping": {
+    "R0": ["00-system-core", "99-troubleshooting"],
+    "R1": ["00-system-core", "01-input-understanding", "99-troubleshooting"],
+    "R2": ["00-system-core", "02-asset-analysis", "99-troubleshooting"],
+    "R3": ["00-system-core", "03-hyperframes-resources", "99-troubleshooting"],
+    "R4": ["00-system-core", "04-director-storyboard", "99-troubleshooting"],
+    "R5": ["00-system-core", "05-quality-review", "99-troubleshooting"],
+    "R8": ["00-system-core", "05-quality-review", "99-troubleshooting"],
+    "PU": ["00-system-core", "01-input-understanding", "02-asset-analysis", "99-troubleshooting"],
+    "MP": ["00-system-core", "01-input-understanding", "99-troubleshooting"],
+    "CD": ["00-system-core", "04-director-storyboard", "99-troubleshooting"],
+    "VD": ["00-system-core", "04-director-storyboard", "99-troubleshooting"],
+    "HF": ["00-system-core", "03-hyperframes-resources", "99-troubleshooting"]
+  },
+  "features": {
+    "structured_input_understanding": true,
+    "asset_sufficiency_check": true,
+    "intelligent_resource_selection": true,
+    "fallback_strategies": true,
+    "quality_review_independence": true
+  },
+  "compatibility": {
+    "min_hyperframes_version": "0.8.33",
+    "replaces": ["R0-R8", "commerce-focus.md"],
+    "fallback_to_v3": true
+  }
+}

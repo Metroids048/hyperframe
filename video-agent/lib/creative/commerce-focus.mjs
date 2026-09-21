@@ -28,7 +28,18 @@ export function businessContract(input={}){
   const scenarioId=explicit?aliases[explicit]:null;
   // All six business scenes share the same runtime contract; visual style remains a separate choice.
   if(explicit&&!scenarioId)throw new CreativeError('无法识别业务目的，请说明需要的具体剪辑操作','SCENARIO_UNSUPPORTED');
-  const audio=negated('静音')||negated('声音')? 'original':(/静音|无声|不要声音/.test(message)?'silent':/保留.*原声/.test(message)?'original':'unspecified');
+  // Audio field determination: detect explicit audio requirements
+  // Priority: silent > original > narration/music > unspecified
+  const hasNarrationRequest=/(?:加入|添加|配上?|需要|用).{0,20}(?:讲解|旁白|配音|口播|解说|人声|语音|narration|voiceover)/.test(message);
+  const hasMusicRequest=/(?:加入|添加|配上?|需要|用).{0,20}(?:音乐|配乐|BGM|背景音乐|伴奏|background.*music)/.test(message);
+  const hasCaptionRequest=/(?:加入|添加|配上?|需要|用).{0,20}(?:字幕|subtitle|caption)/.test(message);
+  const requestsAudio=hasNarrationRequest||hasMusicRequest||hasCaptionRequest;
+
+  const audio=negated('静音')||negated('声音')? 'original'
+    :(/静音|无声|不要声音/.test(message)?'silent'
+    :/保留.*原声/.test(message)?'original'
+    :requestsAudio?'with_narration_or_music'
+    :'unspecified');
   return {schemaVersion:1,profile:FOCUS_PROFILE,scenarioId,originalRequest:message,taskMode:workflow.taskMode,workflowProfile:workflow.workflowProfile,workflow:{...workflow,businessScenario:scenarioId},
     persona:{creator:'商家／内容运营（待用户研究验证）',viewer:['product_howto','product_demo'].includes(scenarioId)?'第一次操作的新手':'首次了解商品的消费者'},
     objective:({product_launch:'吸引首次观看者继续了解商品',product_detail:'讲清商品结构与可信卖点',product_demo:'理解并复现必要操作',product_howto:'理解并复现必要操作',product_collection:'理解多款商品的搭配与系列关系',product_promotion:'理解优惠条件并采取行动',product_faq:'用证据回答具体选购疑问'}[scenarioId]||'明确电商内容目标'),

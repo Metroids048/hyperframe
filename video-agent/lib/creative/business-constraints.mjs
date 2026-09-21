@@ -5,10 +5,17 @@ import {insist} from './contracts.mjs';
 export function explicitBusinessConstraints(message='',workflow=null) {
  const clauses=String(message).split(/[，,。！？\n;；]/);
  const denied=word=>clauses.some(c=>new RegExp('(?:不要|不加|不配|不用|不保留|禁止|无需|不需要|不写|不标|不展示|不显示|不添加)\\s*(?:(?:任何|背景|新的|额外的?|添加|再|旁白|配音|音乐|配乐|BGM|和|及|、|与)\\s*)*(?:'+word+')(?!太大|太响|过大|过响|盖过)','i').test(c));
+ const requested=word=>new RegExp('(?:加入|添加|配上?|需要|用上?|生成|制作).{0,20}(?:'+word+')','i').test(message);
  const silent=/静音|无声|不要任何声音|不要声音/.test(message)&&!/(?:不要|不需|无需)静音/.test(message);
+
+ // Detect positive audio requirements
+ const needsNarration=requested('讲解|旁白|配音|口播|解说|人声|语音|narration|voiceover');
+ const needsMusic=requested('音乐|配乐|BGM|背景音乐|伴奏|background.*music');
+ const needsCaptions=requested('字幕|subtitle|caption');
+
  const policy={schemaVersion:1,originalRequest:String(message),
-  narration:silent||denied('旁白|配音|口播')?'forbidden':'unspecified',
-  music:silent||denied('音乐|配乐|BGM')?'forbidden':'unspecified',
+  narration:silent||denied('旁白|配音|口播')?'forbidden':(needsNarration||needsCaptions)?'required':'unspecified',
+  music:silent||denied('音乐|配乐|BGM')?'forbidden':needsMusic?'required':'unspecified',
   original:silent||denied('原声')?'forbidden':/保留[^。！？\n]{0,8}原声/.test(message)?'required':'unspecified',
   price:denied('价格|价钱|报价|售价')?'forbidden':'unspecified',silent};
  // Validated workflow requirements carry semantic scope across compound clauses.
