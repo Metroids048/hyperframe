@@ -14,7 +14,19 @@ Do not use when required actions or completion evidence are absent; still images
 Require observable preparation, ordered action evidence, completion state, cautions supported by facts, project/base revision, and authorization.
 
 ## Tool order
-Read project; search action-capable resources; validate result preview, preparation, steps, supported caution, completion, ending; submit job; poll and list artifacts.
+
+### For NEW product demo video (user provided product info/assets)
+1. Call `video_task` with `projectId: null`, `baseRevisionId: null`, `attachmentPaths: [...]`, and demo video request
+2. Service auto-creates project and generates demo video
+3. If queued/running, report the real stage and stop this turn; call `video_job_status` only once when the user explicitly asks for status
+4. Call `video_result` only after a real revision exists
+
+### For EDITING existing demo video
+1. Call `video_project_open` to get current `projectId` and `baseRevisionId`
+2. Call `video_task` with `projectId`, `baseRevisionId`, and edit request
+3. Call `video_job_status` once only when status was requested or the task is terminal; call `video_result` only after a real revision exists
+
+**Key: User provides product assets → NEW project with projectId:null**
 
 ## Output
 Return ordered step/source ranges, dependencies, captions, native objects, real job/revision, video, and review evidence.

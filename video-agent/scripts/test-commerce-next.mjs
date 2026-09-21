@@ -240,7 +240,8 @@ test('narration rejects a voice outside the injected provider catalog before syn
 test('exhausted repairs cannot be resumed while cancellations and transient interruptions can',()=>{
  for(const code of ['MODEL_BUDGET','STEP_BUDGET','STORY_REPAIR_BUDGET']){const job={runId:'run',status:'recoverable',code};assert(budgetExhausted(job));assert.equal(canResumeJob(job),false);}
  assert(canResumeJob({runId:'run',status:'recoverable',code:'VISUAL_REVIEW_FAILED',modelCalls:62,maxModelCalls:128}));
- assert(canResumeJob({runId:'run',status:'cancelled'}));assert(canResumeJob({runId:'run',status:'recoverable',code:'INTERRUPTED'}));assert.equal(canResumeJob({runId:'run',status:'running'}),false);
+assert(canResumeJob({runId:'run',status:'cancelled'}));assert(canResumeJob({runId:'run',status:'recoverable',code:'INTERRUPTED'}));assert.equal(canResumeJob({runId:'run',status:'running'}),false);
+assert(canResumeJob({routeJob:true,status:'recoverable',code:'CODEX_REQUEST_FAILED'}));
 });
 
 test('action observations are bounded to declared videos and twelve-second ranges',()=>{

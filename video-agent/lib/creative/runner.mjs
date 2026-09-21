@@ -129,7 +129,7 @@ export function uploadedVideoTitle(message) {
   const quoted = text.match(/[“「『"]([^”」』"]{1,80})[”」』"]/u)?.[1]?.trim();
   const natural = text.match(/(?:加上|加一个|添加|改成|改为)\s*(?:一个)?\s*([^，。！？,!?]{1,40}?)(?:几个字|标题|文字|，|。|！|！|$)/u)?.[1]?.trim();
   const title = quoted || natural;
-  return title && /(?:标题|文字|字幕|几个字|开头|前\s*(?:\d+|[一二三四五六七八九十]+)\s*秒|新品体验)/u.test(`${text} ${title}`) ? title : null;
+  return title && /(?:标题|文字|字幕|几个字|开头|前\s*(?:\d+|[一二三四五六七八九十]+)\s*秒|新品体验|\b(?:title|text|caption)\b|\b(?:at\s+the\s+)?beginning\b|\bopening\b|\bfirst\s+(?:\d+(?:\.\d+)?|one|two|three|four|five)\s*seconds?\b)/iu.test(`${text} ${title}`) ? title : null;
 }
 
 /** Import one uploaded video as an independent, candidate-only native project. */

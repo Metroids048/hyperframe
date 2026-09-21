@@ -46,6 +46,22 @@ export async function generateCommerceAsset(options){
  const pending=generateAsset(options).finally(()=>requestsInFlight.delete(key));requestsInFlight.set(key,pending);return pending;
 }
 async function generateAsset({root,project,job,kind,prompt,sourceAsset,duration=8,role,save,signal=new AbortController().signal,io={}}){
+ // 演示模式：跳过实际生成，直接使用现有素材
+ if(process.env.OPENCLAW_DEMO_MODE==='true'){
+  const demoAsset={
+   id:'demo-'+sourceAsset.id,
+   kind:sourceAsset.kind,
+   name:'[演示模式] '+sourceAsset.name,
+   path:sourceAsset.path,
+   role:role||sourceAsset.role,
+   rights:{status:'demo'},
+   demoMode:true,
+   sourceAssetId:sourceAsset.id
+  };
+  (job.providerCalls??=[]).push({provider:'runninghub',type:'demo-skip',recordId:'demo',at:new Date().toISOString(),note:'演示模式已启用，跳过视频生成'});
+  await save();
+  return demoAsset;
+ }
  insist(process.env.RUNNINGHUB_API_KEY,'缺少服务端 RUNNINGHUB_API_KEY；生成分支暂停，已有素材仍可剪辑','GENERATION_KEY');
  const config=JSON.parse(await fs.readFile(path.join(root,'config/runninghub.local.json'),'utf8').catch(e=>{if(e.code==='ENOENT')return '{}';throw e;}));
  const profile=config[kind],aspect=outputAspect(project.request.output);submissionSpec(profile,{prompt,image:'pending-upload',duration,aspect});
@@ -64,7 +80,8 @@ async function generateAsset({root,project,job,kind,prompt,sourceAsset,duration=
   insist(response.ok,'RunningHub HTTP '+response.status,'PROVIDER_HTTP');return response.json();
  };
  if(record?.status==='downloaded'){
-  insist(hash(await fs.readFile(safeRelativePath(root,record.asset.path)))===record.sha256,'已生成文件哈希改变','PROVENANCE_CHANGED');return record.asset;
+  const recordPath=record.asset.originalRef||record.asset.path;
+  insist(hash(await fs.readFile(safeRelativePath(root,recordPath)))===record.sha256,'已生成文件哈希改变','PROVENANCE_CHANGED');return record.asset;
  }
  if(!record?.providerTaskId){
   insist(!record||record.status==='prepared','提交结果不确定，必须按已有记录对账，禁止再次付费提交','PROVIDER_RECONCILIATION');

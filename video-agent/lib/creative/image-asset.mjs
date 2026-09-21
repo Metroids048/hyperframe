@@ -16,9 +16,11 @@ async function hashFile(file) {
 }
 
 export async function prepareCreativeAsset(root, asset, targetDir,{signal}={}) {
-  const source = safeRelativePath(root, asset.path);
+  // OpenClaw 模式下使用绝对路径 originalRef，否则使用相对路径 path
+  const assetPath = asset.originalRef || asset.path;
+  const source = safeRelativePath(root, assetPath);
   const stat = await fs.stat(source).catch(() => null);
-  insist(stat?.isFile(), `素材不存在：${asset.path}`, 'MISSING_ASSET');
+  insist(stat?.isFile(), `素材不存在：${assetPath}`, 'MISSING_ASSET');
   insist(stat.size > 0 && stat.size <= MAX_FILE_BYTES, `素材大小无效：${asset.path}`, 'INVALID_ASSET_SIZE');
   await fs.mkdir(targetDir, {recursive: true});
   const sha256 = await hashFile(source);

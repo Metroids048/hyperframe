@@ -47,10 +47,11 @@ export async function fillGenerationGaps({root,project,job,save,signal,generate=
    if(shot.sha256)insist(await hashFile(safeRelativePath(root,asset.path))===shot.sha256,'已完成镜头内容已变更，不能复用','PROVENANCE_CHANGED');continue;
   }
   insist(!/(?:不要|不许|无需|禁止|不得)[^。！？\n]{0,12}(?:生成|生图|生视频)/.test(job.generationPlan.originalPrompt),'缺失镜头且本次禁止生成','GENERATION_DISABLED');
-  if(shot.sourceSha256){const source=project.assets.find(a=>a.id===shot.sourceAssetId);insist(source&&await hashFile(safeRelativePath(root,source.path))===shot.sourceSha256,'镜头计划的商品源素材已变更，请重新规划','PROVENANCE_CHANGED');}
+  if(shot.sourceSha256){const source=project.assets.find(a=>a.id===shot.sourceAssetId);const sourcePath=source.originalRef||source.path;insist(source&&await hashFile(safeRelativePath(root,sourcePath))===shot.sourceSha256,'镜头计划的商品源素材已变更，请重新规划','PROVENANCE_CHANGED');}
   shot.status='running';job.stage='生成镜头：'+shot.purpose;await save();
   try{const asset=await generate({root,project,job,kind:'video',role:shot.id,sourceAsset:project.assets.find(a=>a.id===shot.sourceAssetId),prompt:shot.prompt,duration:shot.durationSeconds,save,signal});
-   if(!project.assets.some(a=>a.id===asset.id))project.assets.push(asset);shot.assetId=asset.id;shot.sha256=await hashFile(safeRelativePath(root,asset.path));shot.status='complete';shot.acceptance={status:'downloaded-media-decoded',visual:'pending'};shot.completedAt=new Date().toISOString();await save();
+   const assetPath=asset.originalRef||asset.path;
+   if(!project.assets.some(a=>a.id===asset.id))project.assets.push(asset);shot.assetId=asset.id;shot.sha256=await hashFile(safeRelativePath(root,assetPath));shot.status='complete';shot.acceptance={status:'downloaded-media-decoded',visual:'pending'};shot.completedAt=new Date().toISOString();await save();
   }catch(e){shot.status=signal.aborted?'cancelled':'failed';shot.error={code:e.code,message:e.message};await save();throw e;}
  }
 }

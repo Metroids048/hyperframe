@@ -110,6 +110,16 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
   const implementationHash=resourceHash(implementation);await fs.mkdir(path.join(outputDir,'implementations'),{recursive:true});await fs.writeFile(path.join(outputDir,'implementations',implementationHash+'.json'),JSON.stringify(implementation,null,2));
   const fingerprintInput={request,assets:assets.map(a=>[a.id,a.sha256]),resources:catalog.snapshot?.commit,prompts:await fs.readFile(path.join(root,'prompts/commerce/manifest.json'),'utf8'),pipeline:v3?3:1,scenePackageHash:await scenePackageFingerprint(root,currentContract?.scenarioId),catalogHash:discovery?.data.contentHash||null,implementationHash,model:provider.model||null,reasoningEffort:provider.reasoningEffort||'low'},fingerprint=productionFingerprint(fingerprintInput);
   if(!resumeRunId)await fs.writeFile(path.join(outputDir,'run-input.json'),JSON.stringify(fingerprintInput,null,2),{flag:'wx'});
+  // Initialize compiledRef for all assets if not already set
+  for(const asset of assets){
+    if(!asset.compiledRef){
+      // For user-uploaded assets, use the normalized or original path relative to outputDir
+      const sourcePath=asset.normalizedRef||asset.originalRef||asset.path;
+      if(sourcePath){
+        asset.compiledRef=path.isAbsolute(sourcePath)?path.relative(outputDir,sourcePath):sourcePath;
+      }
+    }
+  }
   const byId=Object.fromEntries(assets.map(a=>[a.id,a]));let visualInputs=[];
   const fontContract={systemFamilies:['Microsoft YaHei','Arial'],brandFonts:brandFontResources(assets).map(f=>({...f,sourceName:byId[f.assetId].name||byId[f.assetId].path})),inheritProjectFont:true,unregisteredFamilies:'not available'};
   const allowedFontFamilies=[...fontContract.systemFamilies,...fontContract.brandFonts.map(f=>f.family)],runtimeStorySchema=structuredClone(storySchema);
@@ -207,11 +217,30 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
     const evidence=io.collectEvidence?await io.collectEvidence(assets):await collectCreativeEvidence(assets,outputDir,root,signal);visualInputs=evidence.inputs;
     let observation=canonicalizeSingleAssetReferences(await ask(ctx,'R2',{message:request.message,brief,assets:evidence.records,sourceMetadata:assets.map(a=>({id:a.id,...a.mediaMetadata}))},observationSchema,{images:visualInputs,extra:'分别列出可观察的候选动作源区间。如果间隔抽帧无法确认关键动作起止，inspectRanges列出至多6段、每段不超过45秒的需要加密观察区间；应用将执行真实工具再给你结果。不可只写「需要检查」后继续把不确定片段当确认。不要先写视觉场景。'}),assets);
     for(let attempt=0;attempt<2;attempt++){
+      const validationDetails=[];
+      const lengthCheck=observation.inspectRanges.length>6;
+      validationDetails.push({check:'length',value:observation.inspectRanges.length,limit:6,pass:!lengthCheck});
+      observation.inspectRanges.forEach((r,i)=>{
+        const asset=byId[r.assetId];
+        const checks={
+          index:i,
+          assetId:r.assetId,
+          assetExists:!!asset,
+          isVideo:asset?.kind==='video',
+          startNonNegative:r.startSeconds>=0,
+          endAfterStart:r.endSeconds>r.startSeconds,
+          endWithinDuration:asset?.mediaMetadata?.duration?r.endSeconds<=asset.mediaMetadata.duration:false,
+          duration:asset?.mediaMetadata?.duration||null
+        };
+        validationDetails.push(checks);
+      });
       const invalid=observation.inspectRanges.length>6||observation.inspectRanges.some(r=>!byId[r.assetId]||byId[r.assetId].kind!=='video'||r.startSeconds<0||r.endSeconds<=r.startSeconds||r.endSeconds>byId[r.assetId].mediaMetadata.duration);
+      await saveJSON('inspection-validation-'+attempt+'.json',{invalid,validationDetails,byIdKeys:Object.keys(byId),assetsCount:assets.length});
       if(!invalid)break;
       await saveJSON('invalid-inspection-request-'+attempt+'.json',{observation,executed:false,limits:{maxRanges:6,maxSecondsPerRange:45}});
       insist(attempt===0,'加密观察请求仍不合法；没有执行超额抽帧','INVALID_OBSERVATION_REQUEST');
-      observation=canonicalizeSingleAssetReferences(await ask(ctx,'R2',{brief,prior:observation,metadata:assets.map(a=>({id:a.id,...a.mediaMetadata})),validationError:'inspectRanges只能使用列出的精确assetId，最多6段，每段必须在源片内且不超过45秒。请缩小到需要确认的关键动作边界；未观察范围保留为未知。尚未执行加密抽帧。'},observationSchema,{images:visualInputs,extra:'仅修正观察申请与事实边界，不能伪造已观察。严格遵守6段和45秒上限。'}),assets);
+      const assetDurations = assets.map(a => `${a.id}: ${a.mediaMetadata?.duration || '未知'}秒`).join(', ');
+      observation=canonicalizeSingleAssetReferences(await ask(ctx,'R2',{brief,prior:observation,metadata:assets.map(a=>({id:a.id,...a.mediaMetadata})),validationError:`inspectRanges只能使用列出的精确assetId，最多6段，每段必须在源片内且不超过45秒。视频时长: ${assetDurations}。endSeconds必须 <= 视频时长，不能超出。请缩小到需要确认的关键动作边界；未观察范围保留为未知。尚未执行加密抽帧。`},observationSchema,{images:visualInputs,extra:'仅修正观察申请与事实边界，不能伪造已观察。严格遵守6段和45秒上限。特别注意：endSeconds不能超过视频实际时长。'}),assets);
     }
     if(observation.inspectRanges.length){const allocation=boundObservationRanges(observation.inspectRanges,assets);await saveJSON('inspection-allocation.json',allocation);observation={...observation,inspectRanges:allocation.selected,gaps:[...observation.gaps,...allocation.omitted.map(r=>'尚未加密观察 '+r.assetId+' '+r.startSeconds+'—'+r.endSeconds+'秒；不能当作动作边界已确认')]};const dense=io.denseImages?await io.denseImages(observation.inspectRanges):await denseImages(observation.inspectRanges);visualInputs=[...selectEvidenceInputs(visualInputs,2).inputs,...dense];observation=canonicalizeSingleAssetReferences(await ask(ctx,'R2',{brief,prior:observation,metadata:assets.map(a=>({id:a.id,...a.mediaMetadata}))},observationSchema,{images:dense,extra:'这是实际加密观察结果。修正动作与起止，保留未确认的局限。inspectRanges现在为空；仍不足以完成必需动作则写gaps，不虚构。'}),assets);}
     for(let attempt=0;attempt<3;attempt++){

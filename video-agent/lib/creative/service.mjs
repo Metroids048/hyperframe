@@ -8,6 +8,8 @@ import {productionPolicy,assertMediaGenerationAllowed} from './production-policy
 import {minimaxCapabilityStatus} from '../edit/adapters/minimax.mjs';
 import {applyDirectorRevisionIntent} from './director-revision.mjs';
 import {MiniMaxClient} from '../edit/adapters/minimax-client.mjs';
+import {withProjectLock} from './project-lock.mjs';
+import {startPeriodicCleanup} from './resource-cleanup.mjs';
 import {failureReceipt,commerceSkills} from './commerce-skills.mjs';
 import {generateSpeechAsset,generateAudioAsset,audioApplication,speechReplacementRequest,preserveCaptionStyles} from './audio-assets.mjs';
 import {humanReviewRoute} from './human-review.mjs';
@@ -51,6 +53,9 @@ import {exportCreativeHistory,unpackCreativeHistory,restoreCreativeHistory,MAX_P
 import {externalReplacementIntent,searchCommonsImage,downloadCommonsImage} from './external-assets.mjs';
 
 const active=j=>['queued','running'].includes(j.status);
+// A route acknowledgement is an active status record, but it must not block
+// the child production job that the route is about to create.
+const productionActive=j=>active(j)&&!j.routeJob;
 const now=()=>new Date().toISOString();
 const mime={'.woff2':'font/woff2','.js':'text/javascript','.html':'text/html; charset=utf-8','.json':'application/json','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.mp4':'video/mp4','.mov':'video/quicktime','.webm':'video/webm','.wav':'audio/wav','.m4a':'audio/mp4','.mp3':'audio/mpeg','.zip':'application/zip'};
 
@@ -131,6 +136,10 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
     return presetRefresh;
   }
   const projects=new Map(),writes=new Map(),uploads=new Set(),controllers=new Map();
+
+  // 启动定期资源清理任务（每 5 分钟清理一次过期锁和临时文件）
+  const stopCleanup = startPeriodicCleanup(dataDir, 300000);
+
   const directory=p=>path.join(dataDir,p.id);
   const versionDirectory=(p,r)=>path.join(directory(p),r.directory);
   async function artifacts(p,revisionId){
@@ -149,7 +158,7 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
   function syncRun(job,run){job.runId=run.id;job.checkpoints=Object.entries(run.checkpoints||{}).filter(([,v])=>v.status==='completed').map(([k])=>k);job.modelCalls=run.modelCalls;job.maxModelCalls=run.maxModelCalls??(run.code==='MODEL_BUDGET'?run.modelCalls:null);job.completionReserve=run.completionReserve||0;job.budgetSource=run.budgetSource||'legacy-application-estimate';job.runStage=run.stage;job.completedShots=job.checkpoints.filter(k=>/^shot-\d+$/.test(k)).length;job.gaps=run.gaps||[];job.quality=run.verification;job.directionPreview=run.artifacts?.directionPreview;}
   for(const id of await fs.readdir(dataDir)){
     if(!/^[a-zA-Z0-9_-]{1,100}$/.test(id))continue;
-    try{const p=JSON.parse(await fs.readFile(path.join(dataDir,id,'native-project.json'),'utf8'));for(const j of p.jobs.filter(active)){j.status=j.cancelRequestedAt?'cancelled':(j.runId||['create','audio'].includes(j.kind))?'recoverable':'failed';j.error=j.runId?'服务重启，已完成的制作检查点可恢复':'服务重启中断了任务，输入和上一有效版本已保留';j.code='INTERRUPTED';}
+    try{const p=JSON.parse(await fs.readFile(path.join(dataDir,id,'native-project.json'),'utf8'));for(const j of p.jobs.filter(active)){j.status=j.cancelRequestedAt?'cancelled':(j.routeJob?'recoverable':(j.runId||['create','audio'].includes(j.kind))?'recoverable':'failed');j.error=j.routeJob?'服务重启，路由任务可重试':(j.runId?'服务重启，已完成的制作检查点可恢复':'服务重启中断了任务，输入和上一有效版本已保留');j.code='INTERRUPTED';}
       // Older preview copies are derived artifacts, never a second composition entry.
       for(const r of p.revisions){const dir=versionDirectory(p,r),preview=path.join(dir,'preview.html');const copy=await fs.readFile(preview,'utf8').catch(()=>null);if(copy!==null){const source=await fs.readFile(path.join(dir,'index.html'),'utf8');insist(copy===source.replace('</body>','<script src="assets/runtime.js"></script></body>'),'预览副本存在未知修改，已保留文件','PREVIEW_MIGRATION_CONFLICT');await fs.rename(preview,path.join(dir,'preview.html.evidence'));}}
       for(const job of p.jobs)if(job.runId){const run=await runStore(p,job).get(job.runId);if(run)syncRun(job,run);}
@@ -180,25 +189,46 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
     return {localMaterials,productionResources,unavailable,query:text||null};
   }
   const messageFlights=new Map();
-  async function dispatchMessage(p,input){
+  async function dispatchMessage(p,input,routeJob=null){
     insist(typeof input.idempotencyKey==='string'&&input.idempotencyKey.length>=16,'消息需要稳定编号','MESSAGE_ID_REQUIRED');
     const key=p.id+':'+input.idempotencyKey;
     if(messageFlights.has(key))return messageFlights.get(key);
     const task=(async()=>{
       const previous=p.messageDispatches?.find(r=>r.key===input.idempotencyKey);
-      if(previous)return {project:view(get(previous.projectId)),route:previous.route};
+      if(previous){
+        if(routeJob){const child=routeJob.childJobId&&p.jobs.find(j=>j.id===routeJob.childJobId);routeJob.status=child&&active(child)?'running':'complete';routeJob.stage=child?(active(child)?'已创建制作任务':'路由与子任务已完成'):'已保存需求';if(!active(child))routeJob.completedAt=routeJob.completedAt||now();await save(p);}
+        return {project:view(get(previous.projectId)),route:previous.route,jobId:routeJob?.id||previous.jobId||null};
+      }
+      if(routeJob){routeJob.status='running';routeJob.stage='理解需求';routeJob.startedAt=now();await save(p);}
       insist(!input.baseRevisionId||input.baseRevisionId===p.currentRevisionId,'页面版本已过期','REVISION_CONFLICT');
       const base=p.currentRevisionId;
       const document=base?(await readNativeProject(versionDirectory(p,revision(p)))).document:null;
       let route;
       const pending=p.pendingClarification;
       const conversation=pending?.turns||p.messages.slice(-8).map(({role,text})=>({role,text}));
-      try{route=await routeWorkbenchMessage(p,input.message,{provider:routingProvider,document,taskMode:input.taskMode||input.request?.taskMode,taskModeExplicit:input.taskModeExplicit??input.request?.taskModeExplicit,scenarioId:input.scenarioId||input.request?.scenarioId||p.request?.scenarioId,conversation});}
+      const uploadedSource=p.currentRevisionId==null
+        && (input.attachmentIds||[]).map(id=>p.assets.find(a=>a.id===id)).find(a=>a?.kind==='video'&&a.mediaMetadata?.duration);
+      const sourceEditIntent=Boolean(uploadedSource&&(
+        initialVideoMode(input.message)==='source-edit'
+        || uploadedVideoTitle(input.message)
+      ));
+      try{
+        // Routing a fresh uploaded source through the ordinary "edit existing
+        // revision" clarifier loses the user's small change because no native
+        // revision exists yet.  Select the deterministic source-first create
+        // route before the model router in this one unambiguous case.
+        route=sourceEditIntent
+          ? {mode:'create',scenarioId:'general',scenario:'general',taskMode:'recut',taskModeExplicit:true,assetIds:[uploadedSource.id],reason:'fresh-upload-source-edit'}
+          : await routeWorkbenchMessage(p,input.message,{provider:routingProvider,document,taskMode:input.taskMode||input.request?.taskMode,taskModeExplicit:input.taskModeExplicit??input.request?.taskModeExplicit,scenarioId:input.scenarioId||input.request?.scenarioId||p.request?.scenarioId,conversation});
+      }
       catch(error){
         const receipt=failureReceipt(error,{request:input.message,revisionId:base,targets:[{kind:'routing',requirement:input.message}]});
         (p.routingFailures??=[]).push({time:now(),message:input.message,baseRevisionId:base,idempotencyKey:input.idempotencyKey,code:error.code||'MESSAGE_ROUTE_FAILED',failureReceipt:receipt});
         p.messages.push({role:'user',text:input.message,attachmentIds:[...(input.attachmentIds||[])],time:now()},{role:'assistant',text:error.message+'；当前版本保留。',time:now()});
-        await save(p);throw error;
+        if(routeJob){
+          const retryable=Boolean(error?.capacity||isRecoverableProviderFailure(error)||['CODEX_LIMIT','CODEX_TIMEOUT','CODEX_REQUEST_FAILED','OPENCLAW_CONTROL_RATE_LIMIT','OPENCLAW_CONTROL_TIMEOUT'].includes(error?.code));
+          routeJob.status=retryable?'recoverable':'failed';routeJob.stage=retryable?'等待路由重试':'路由失败';routeJob.error=error.message;routeJob.code=error.code||'MESSAGE_ROUTE_FAILED';routeJob.retryable=retryable;routeJob.failureReceipt=receipt;routeJob.completedAt=retryable?null:now();await save(p);
+        }throw error;
       }
       insist(p.currentRevisionId===base,'理解期间版本已变化，保留消息并请重试','REVISION_CONFLICT');
       (p.routingReceipts??=[]).push({time:now(),message:input.message,baseRevisionId:base,...route});
@@ -240,9 +270,59 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
         await save(resultProject);
       }else await enqueue(p,{...executionInput,action:base?'patch':'generate',routeDecision:route,taskMode:route.mode,taskModeExplicit:true,scenarioId:route.scenarioId||route.scenario||input.scenarioId||input.request?.scenarioId});
       if(route.mode!=='clarify'&&!['status','cancel'].includes(route.mode))delete p.pendingClarification;
-      (p.messageDispatches??=[]).push({key:input.idempotencyKey,projectId:resultProject.id,route});await save(p);
-      return {project:view(resultProject),route};
+      const childJob=resultProject.jobs.filter(j=>j!==routeJob&&j.createdAt).at(-1);
+      if(routeJob){
+        routeJob.childProjectId=resultProject.id;
+        routeJob.childJobId=childJob?.id||null;
+        routeJob.stage=childJob?(active(childJob)?'已创建制作任务':'路由与子任务已完成'):'已保存需求';
+        routeJob.status=childJob&&active(childJob)?'running':'complete';
+        if(!childJob||!active(childJob))routeJob.completedAt=now();
+      }
+      (p.messageDispatches??=[]).push({key:input.idempotencyKey,projectId:resultProject.id,route,jobId:routeJob?.id||null,childJobId:routeJob?.childJobId||null});await save(p);
+      return {project:view(resultProject),route,jobId:routeJob?.id||null,childJobId:routeJob?.childJobId||null};
     })();messageFlights.set(key,task);try{return await task;}finally{messageFlights.delete(key);}
+  }
+  async function submitMessage(p,input){
+    insist(typeof input.idempotencyKey==='string'&&input.idempotencyKey.length>=16,'消息需要稳定编号','MESSAGE_ID_REQUIRED');
+    const prior=p.messageDispatches?.find(r=>r.key===input.idempotencyKey),existing=prior&&p.jobs.find(j=>j.id===prior.jobId);
+    if(existing)return existing;
+    const job={id:'job-'+randomUUID(),kind:'route',status:'queued',stage:'等待路由',progress:0,createdAt:now(),input:{message:input.message,baseRevisionId:input.baseRevisionId??null,attachmentIds:[...(input.attachmentIds||[])],idempotencyKey:input.idempotencyKey},routeJob:true,retryCount:0};
+    p.jobs.push(job);await save(p);
+    // The route job is the durable acknowledgement boundary.  If dispatch
+    // fails before it can record a typed routing failure, persist that failure
+    // on the same task instead of dropping the exception or leaving a false
+    // queued state behind.
+    void dispatchMessage(p,input,job).catch(async error=>{
+      if(job.status==='queued'||job.status==='running'||job.status==='recoverable'){
+        const retryable=Boolean(error?.capacity||isRecoverableProviderFailure(error)||['CODEX_LIMIT','CODEX_TIMEOUT','CODEX_REQUEST_FAILED','OPENCLAW_CONTROL_RATE_LIMIT','OPENCLAW_CONTROL_TIMEOUT'].includes(error?.code));
+        job.status=retryable?'recoverable':'failed';
+        job.stage=retryable?'等待路由重试':'路由失败';
+        job.error=error?.message||'路由失败';
+        job.code=error?.code||'MESSAGE_ROUTE_FAILED';
+        job.retryable=retryable;
+        job.completedAt=retryable?null:now();
+        if(retryable&&job.retryCount<3&&!job.retryScheduled){
+          job.retryCount+=1;job.retryScheduled=true;
+          // 改进的指数退避算法：1秒 -> 2秒 -> 4秒（带随机抖动避免雪崩）
+          const baseDelay = Math.pow(2, job.retryCount - 1) * 1000;
+          const jitter = Math.random() * 500; // 0-500ms 随机抖动
+          const retryDelay = baseDelay + jitter;
+          job.nextRetryAt=new Date(Date.now()+retryDelay).toISOString();
+          await save(p);
+          setTimeout(async()=>{job.retryScheduled=false;job.status='queued';job.stage='等待路由重试';job.error=null;try{await save(p);await dispatchMessage(p,{...job.input},job);}catch(retryError){job.status='recoverable';job.stage='等待路由恢复';job.error=retryError?.message||'路由重试失败';job.code=retryError?.code||'MESSAGE_ROUTE_RETRY_FAILED';job.retryable=true;job.completedAt=null;try{await save(p);}catch(persistError){job.persistenceError=persistError?.message||'路由重试状态保存失败';console.error('video route retry persistence error',persistError);}}},retryDelay);
+          return;
+        }
+        try { await save(p); }
+        catch (persistError) {
+          // The task is already marked failed in memory. Keep a diagnostic for
+          // the next status read instead of silently discarding a persistence
+          // error from the acknowledgement path.
+          job.persistenceError=persistError?.message||'任务失败状态保存失败';
+          console.error('video route failure persistence error', persistError);
+        }
+      }
+    });
+    return job;
   }
   const presetFlights=new Map();
   async function presetFile(id){
@@ -289,7 +369,7 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
     p.messages=[{role:'user',text:preset.input,time:now()},{role:'assistant',text:preset.note,revisionId:document.revisionId,time:now()}];await save(p);return p;
   }
   async function upload(p,req,name){
-    insist(!p.jobs.some(j=>active(j)&&j.kind!=='export'),'请等待当前编辑完成','PROJECT_BUSY');
+    insist(!p.jobs.some(j=>productionActive(j)&&j.kind!=='export'),'请等待当前编辑完成','PROJECT_BUSY');
     insist(p.assets.length+Array.from(uploads).filter(x=>x.startsWith(p.id+':')).length<MAX_ASSETS,'最多上传30个素材','TOO_MANY_ASSETS');
     const kind=assetKindFromName(name);insist(kind,'不支持的素材格式','UNSUPPORTED_ASSET');
     const id='asset-'+randomUUID(),rel=`uploads/${id}${path.extname(name).toLowerCase()}`,target=path.join(directory(p),rel),key=p.id+':'+id;uploads.add(key);
@@ -297,7 +377,21 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
       await pipeline(req,new Transform({transform(chunk,encoding,callback){size+=chunk.length;if(size>(kind==='font'?MAX_FONT_BYTES:MAX_FILE_BYTES))return callback(new CreativeError(kind==='font'?'字体最大 10 MiB':'每个素材最多1 GiB','ASSET_TOO_LARGE',413));callback(null,chunk);}}),createWriteStream(target,{flags:'wx'}));
       insist(size>0,'素材不能为空','INVALID_ASSET');
       if(kind==='font'){insist(size<=MAX_FONT_BYTES,'字体最大 10 MiB','FONT_INVALID');await inspectBrandFont(target);}
-      const asset={id,kind,name:path.basename(name),path:path.relative(root,target).replaceAll('\\','/'),bytes:size,rights:{status:'user-provided'}};
+      // OpenClaw 模式: 使用相对于项目目录的路径
+      const isOpenclawMode = target.includes('.openclaw') || dataDir.includes('.openclaw');
+      const assetPath = isOpenclawMode
+        ? path.relative(directory(p), target).replaceAll('\\', '/')  // 相对于项目目录
+        : path.relative(root, target).replaceAll('\\', '/');         // 相对于 root
+      const asset = {
+        id,
+        kind,
+        name: path.basename(name),
+        path: assetPath,
+        originalRef: target,
+        normalizedRef: assetPath,
+        bytes: size,
+        rights: { status: 'user-provided' }
+      };
       if(kind==='video'){
         try{asset.mediaMetadata=await probe(target);insist(asset.mediaMetadata?.duration>0,'视频无法解析或时长无效','INVALID_VIDEO_ASSET');}
         catch(error){throw new CreativeError('视频无法解析，请确认文件完整且为合法 MP4/MOV/WebM','INVALID_VIDEO_ASSET',415);}
@@ -330,7 +424,10 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
       p.request={...p.request,pipelineVersion:3,materialRoot:{id:selected.id,label:selected.label,indexHash:selected.indexHash,assetIds:entries.map(e=>e.id)}};await save(p);return p;
     }catch(error){
       const ids=new Set(added.map(a=>a.id));p.assets=p.assets.filter(a=>!ids.has(a.id));
-      for(const asset of added)await fs.unlink(safeRelativePath(root,asset.path)).catch(()=>{});
+      for(const asset of added){
+        const cleanupPath=asset.originalRef||asset.path;
+        await fs.unlink(safeRelativePath(root,cleanupPath)).catch(()=>{});
+      }
       await save(p);throw error;
     }
   }
@@ -420,12 +517,19 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
     }finally{release();}
     await linkOrCopy(path.join(root,'node_modules/hyperframes/dist/hyperframe-runtime.js'),path.join(dir,'assets/runtime.js'));
     insist(!signal?.aborted,'任务已取消','CANCELLED');
-    insist(branch||p.currentRevisionId===job.baseRevisionId,'当前版本已变化，结果保留但不能覆盖新版本','REVISION_CONFLICT');
-    insist(!p.revisions.some(r=>r.id===document.revisionId),'发布版本ID与现有历史重复，已保留新工程','REVISION_DUPLICATE');
-    const r={id:document.revisionId,parentId:job.baseRevisionId,directory:path.relative(directory(p),dir).replaceAll('\\','/'),createdAt:now(),description,durationFrames:document.durationFrames,output:document.output,rendered:false,branch};
-    if(defer)return r;
-    const previous={current:p.currentRevisionId,redo:p.redo};p.revisions.push(r);if(!branch){p.currentRevisionId=r.id;p.redo=[];}job.revisionId=r.id;
-    try{await save(p);}catch(error){p.revisions=p.revisions.filter(v=>v!==r);p.currentRevisionId=previous.current;p.redo=previous.redo;delete job.revisionId;throw error;}return r;
+
+    // 使用项目锁保护版本检查和更新，防止并发竞态
+    const r = await withProjectLock(directory(p), async () => {
+      insist(branch||p.currentRevisionId===job.baseRevisionId,'当前版本已变化，结果保留但不能覆盖新版本','REVISION_CONFLICT');
+      insist(!p.revisions.some(r=>r.id===document.revisionId),'发布版本ID与现有历史重复，已保留新工程','REVISION_DUPLICATE');
+      const r={id:document.revisionId,parentId:job.baseRevisionId,directory:path.relative(directory(p),dir).replaceAll('\\','/'),createdAt:now(),description,durationFrames:document.durationFrames,output:document.output,rendered:false,branch};
+      if(defer)return r;
+      const previous={current:p.currentRevisionId,redo:p.redo};p.revisions.push(r);if(!branch){p.currentRevisionId=r.id;p.redo=[];}job.revisionId=r.id;
+      try{await save(p);}catch(error){p.revisions=p.revisions.filter(v=>v!==r);p.currentRevisionId=previous.current;p.redo=previous.redo;delete job.revisionId;throw error;}
+      return r;
+    });
+
+    return r;
   }
   async function candidateExport(p,job,r,signal){
     const dir=versionDirectory(p,r);job.revisionId=r.id;job.stage='导出候选 MP4';await save(p);
@@ -434,7 +538,7 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
     // Persist MP4 readiness separately from the optional history archive.
     r.deliveryStatus='video_ready';r.videoReadyAt=now();job.videoReadyAt=r.videoReadyAt;job.packageStatus='pending';await save(p);
     const commercialQuality=JSON.parse(await fs.readFile(path.join(dir,'quality_report.json'),'utf8').catch(error=>{if(error.code==='ENOENT')return 'null';throw error;}));
-    if(commercialQuality){r.commercialQuality=commercialQuality;job.commercialQuality=commercialQuality;if(job.kind==='create'&&commercialQuality.revision_required){job.autoQualityRevision={sourceRevisionId:r.id,score:commercialQuality.score,issues:commercialQuality.issues.filter(issue=>['blocker','major'].includes(issue.severity)).slice(0,8),suggestions:commercialQuality.suggestions.slice(0,8)};}}
+    if(commercialQuality){r.commercialQuality=commercialQuality;job.commercialQuality=commercialQuality;if(job.kind==='create'&&!job.skipAutoQualityRevision&&commercialQuality.revision_required){job.autoQualityRevision={sourceRevisionId:r.id,score:commercialQuality.score,issues:commercialQuality.issues.filter(issue=>['blocker','major'].includes(issue.severity)).slice(0,8),suggestions:commercialQuality.suggestions.slice(0,8)};}}
     job.stage='打包素材与完整历史';job.packageStatus='running';await save(p);
     job.packageEvidence=await exportCreativeHistory(root,directory(p),job.snapshot||structuredClone(p),r.id,path.join(dir,'history.zip'),{signal,assetRoot:directory(p)});r.historyPackaged=true;r.deliveryStatus='video_and_history_ready';job.packageStatus='complete';await save(p);
   }
@@ -477,15 +581,29 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
         if(job.input.request)p.request={...p.request,...commerceIntake(job.input.request)};
         if(job.input.workflow?.businessScenario||job.input.scenarioId){p.request={...p.request,scenarioId:job.input.workflow?.businessScenario||job.input.scenarioId,taskMode:job.input.workflow?.taskMode||job.input.taskMode||p.request.taskMode,workflow:job.input.workflow||p.request.workflow};p.request.businessContract=businessContract(p.request);}
         const target=p.request.target||'marketing';
+        // A fresh uploaded video plus a concrete local edit is already a
+        // complete source-first workflow. Build the native source project in
+        // one transaction so the request does not get misrouted to a
+        // clarification asking the user to open/bind an existing project.
         const uploadedSource=p.currentRevisionId==null
           && (job.input.attachmentIds||[]).map(id=>p.assets.find(a=>a.id===id)).find(a=>a?.kind==='video'&&a.mediaMetadata?.duration);
-        // Uploaded media is not an edit merely because captions are mentioned.
-        const sourceEditRequested=Boolean(uploadedSource&&initialVideoMode(job.input.message)==='source-edit');
+        const sourceEditRequested=Boolean(uploadedSource&&(
+          initialVideoMode(job.input.message)==='source-edit'
+          // An explicit title/文字 request is a safe source-first edit even
+          // when the preservation clause lists several fields (画面、原声、
+          // 时长、画幅) and therefore exceeds the shortcut regex window.
+          || uploadedVideoTitle(job.input.message)
+        ));
         if(sourceEditRequested){
+          // A source-first edit is intentionally scoped to the user's
+          // requested overlay/preservation changes. Do not turn a low
+          // commercial score (for example, an input with no audio) into an
+          // unrelated director rewrite that asks for new user input.
+          job.skipAutoQualityRevision=true;
           job.stage='建立上传原片初始工程';await save(p);
           const dir=path.join(directory(p),'versions',job.id);
           await buildUploadedVideoProject({...p.request,projectId:p.id,assets:p.assets,outputDir:path.relative(root,dir).replaceAll('\\','/'),message:job.input.message,signal,onStage:async stage=>{job.stage=stage;await save(p);}},{root});
-          const {document}=await readNativeProject(dir);p.title=document.brief.name;const created=await publish(p,job,dir,document,'上传原片初始版本');await candidateExport(p,job,created,signal);job.summary='已按上传原片的真实时长建立独立可编辑工程，并导出候选视频。';job.status='complete';job.completedAt=now();p.messages.push({role:'assistant',text:job.summary,time:now()});return;
+          const {document}=await readNativeProject(dir);p.title=document.brief.name;const created=await publish(p,job,dir,document,'上传原片初始版本');await candidateExport(p,job,created,signal);job.summary='已按上传原片的真实时长建立独立可编辑工程，并应用本轮局部修改，导出候选视频。';job.status='complete';job.completedAt=now();p.messages.push({role:'assistant',text:job.summary,time:now()});return;
         }
         if(job.revisionId&&p.revisions.some(r=>r.id===job.revisionId)){
           await candidateExport(p,job,revision(p,job.revisionId),signal);
@@ -564,9 +682,8 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
         // can prove from the request itself; malformed provider JSON must not
         // turn a supported edit into an unexplained JSON parse failure.
         // Replacement intent must come from the current request and approved assets.
-        const externalIntent=needsExternalReplacementIntent(job.input.message,job.input.routeDecision)
-          ? await externalReplacementIntent(job.input.message,{targets:job.input.routeDecision?.targets||[],assets:p.assets,signal,cacheRoot:path.join(dir,'model-calls'),onInvocation:async invocation=>{job.modelCalls=(job.modelCalls||0)+1;(job.modelInvocations??[]).push({...invocation,stage:'external-asset-intent'});await save(p);}})
-          : {needed:false,skipped:'no-explicit-external-replacement'};
+        // 已禁用外部替换快捷判断 - 统一走完整编辑规划
+        const externalIntent={needed:false,skipped:'unified-edit-path'};
         let downloadedExternalAsset=null;
         // A previous attempt may already have downloaded the traceable target
         // image. Reuse it for retries even if the intent model now reports
@@ -735,6 +852,22 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
     }catch(e){job.failureReceipt=failureReceipt(e,{request:job.input.message||job.input.request?.message||p.request.message,revisionId:job.baseRevisionId,publishedRevisionId:job.revisionId,requirements:job.input.workflow?.requirements||[],targets:job.routeDecision?.targets||[]});job.status=signal.aborted?'cancelled':e.code==='NEEDS_INPUT'?'needs_user':(job.runId||['create','audio'].includes(job.kind))?'recoverable':'failed';job.error=signal.aborted?'已取消，上一有效版本保留':e.message;job.code=e.code||'CREATIVE_JOB_FAILED';job.gaps=e.gaps||job.gaps;job.completedAt=now();p.messages.push({role:'assistant',text:job.error,time:now()});}
     finally{
       controllers.delete(job.id);delete job.snapshot;job.durationMs=Date.parse(job.completedAt)-Date.parse(job.startedAt);
+      // Route jobs are the durable acknowledgement boundary for asynchronous
+      // children. Close the parent when its child reaches a terminal state so
+      // OpenClaw status never remains "running" after the requested work is
+      // actually done.
+      for(const routeJob of p.jobs.filter(item=>item.routeJob&&item.childJobId===job.id)){
+        if(active(job)){
+          routeJob.status='running';
+          routeJob.stage='已创建制作任务';
+        }else{
+          routeJob.status=job.status;
+          routeJob.stage=job.status==='complete'?'路由与子任务已完成':`子任务${job.stage||'已结束'}`;
+          routeJob.error=job.error||null;
+          routeJob.code=job.code||null;
+          routeJob.completedAt=routeJob.completedAt||now();
+        }
+      }
       await save(p).catch(error=>{job.persistenceError=error.code||error.message;console.error('创作任务状态暂未写入，上一已提交版本保留：',p.id,job.id,error.code||error.message);});
       const order=p.workflowPlan?.workOrder;
       if(job.status==='complete'&&job.kind==='plan'&&job.input.autoExecute&&p.workflowPlan?.status!=='needs_input'&&order?.baseRevisionId===p.currentRevisionId){
@@ -753,7 +886,7 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
     const kind=input.action==='plan-workflow'?'plan':input.action==='audio-generate'?'audio':input.action==='generate-asset'?'asset':input.action==='generate'?'create':input.action==='render'||input.action==='export'?'export':'edit';
     if(input.idempotencyKey){const old=p.jobs.find(j=>j.idempotencyKey===input.idempotencyKey);if(old)return old;}
     if(kind==='create'&&['image','video'].includes(input.request?.target||p.request.target))await assertMediaGenerationAllowed(root);
-    insist(!p.jobs.some(j=>active(j)&&j.kind!=='export')||kind==='export','当前创作仍在进行','PROJECT_BUSY');
+    insist(!p.jobs.some(j=>productionActive(j)&&j.kind!=='export')||kind==='export','当前创作仍在进行','PROJECT_BUSY');
     insist(!Array.from(uploads).some(k=>k.startsWith(p.id+':')),'请等待素材上传完成','UPLOAD_BUSY');
     if(input.baseRevisionId)insist(input.baseRevisionId===p.currentRevisionId,'页面版本已过期，请刷新后再修改','REVISION_CONFLICT');
     if(kind==='plan')input={...input,taskMode:input.taskMode||(!p.currentRevisionId?p.request.taskMode:undefined),taskModeExplicit:input.taskModeExplicit??Boolean(!p.currentRevisionId&&p.request.taskModeExplicit),output:structuredClone(input.output||p.request.output)};
@@ -776,7 +909,7 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
     return job || {id:jobId,status:'queued',stage:'等待任务状态持久化'};
   }
   async function navigate(p,input){
-    insist(!p.jobs.some(j=>active(j)&&j.kind!=='export'),'编辑完成后可恢复版本','PROJECT_BUSY');
+    insist(!p.jobs.some(j=>productionActive(j)&&j.kind!=='export'),'编辑完成后可恢复版本','PROJECT_BUSY');
     const current=revision(p),previous={current:p.currentRevisionId,redo:[...p.redo]};let target;
     if(input.action==='undo'){target=current.parentId;insist(target,'已经是初始版本','NO_UNDO');p.redo.push(current.id);}
     else if(input.action==='redo'){target=p.redo.pop();insist(target,'没有可重做版本','NO_REDO');}
@@ -786,13 +919,13 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
   async function cancel(p,id){const job=p.jobs.find(j=>j.id===id);insist(job&&active(job),'任务不可取消','INVALID_CANCEL');job.cancelRequestedAt=now();job.stage='正在取消';await save(p);controllers.get(id)?.abort();return view(p);}
   async function authorizeBudget(p,input){
     const job=p.jobs.find(j=>j.id===input.jobId);insist(job?.runId&&!active(job),'只能为暂停的原任务批准预算','INVALID_BUDGET');
-    insist(!p.jobs.some(j=>active(j)&&j.kind!=='export'),'项目已有任务在执行','PROJECT_BUSY');
+    insist(!p.jobs.some(j=>productionActive(j)&&j.kind!=='export'),'项目已有任务在执行','PROJECT_BUSY');
     const run=await runStore(p,job).authorizeBudget(job.runId,{maxModelCalls:input.maxModelCalls,completionReserve:input.completionReserve??6,authorizationId:input.idempotencyKey,source:'explicit-webui-approval'});
     syncRun(job,run);await save(p);return view(p);
   }
-  async function resume(p,id){const job=p.jobs.find(j=>j.id===id);insist(canResumeJob(job),budgetExhausted(job)?'本轮修复预算已耗尽，已保留检查点和缺陷；不能重复恢复同一轮':'任务没有可恢复检查点','INVALID_RESUME');insist(!p.jobs.some(j=>active(j)&&j.kind!=='export'),'项目已有任务在执行','PROJECT_BUSY');insist(p.currentRevisionId===(job.revisionId||job.baseRevisionId),'基准版本已变化，保留旧任务但不能覆盖新版本','REVISION_CONFLICT');delete job.cancelRequestedAt;if(job.kind==='audio')job.input.audio.retryKnownFailure=true;job.resumeRunId=job.runId;job.status='queued';delete job.error;delete job.code;delete job.completedAt;await save(p);void execute(p,job).catch(error=>{job.status='recoverable';job.error=error.message;});return view(p);}
+  async function resume(p,id){const job=p.jobs.find(j=>j.id===id);insist(canResumeJob(job),budgetExhausted(job)?'本轮修复预算已耗尽，已保留检查点和缺陷；不能重复恢复同一轮':'任务没有可恢复检查点','INVALID_RESUME');insist(!p.jobs.some(j=>productionActive(j)&&j.kind!=='export'),'项目已有任务在执行','PROJECT_BUSY');if(job.routeJob){job.status='queued';job.stage='等待路由恢复';job.error=null;job.code=null;job.retryScheduled=false;job.input={...job.input,idempotencyKey:job.input?.idempotencyKey||job.id};await save(p);void dispatchMessage(p,{...job.input},job).catch(async error=>{job.status='recoverable';job.stage='等待路由恢复';job.error=error?.message||'路由恢复失败';job.code=error?.code||'MESSAGE_ROUTE_RESUME_FAILED';job.retryable=true;try{await save(p);}catch(persistError){job.persistenceError=persistError?.message||'路由恢复状态保存失败';console.error('video route resume persistence error',persistError);}});return view(p);}insist(p.currentRevisionId===(job.revisionId||job.baseRevisionId),'基准版本已变化，保留旧任务但不能覆盖新版本','REVISION_CONFLICT');delete job.cancelRequestedAt;if(job.kind==='audio')job.input.audio.retryKnownFailure=true;job.resumeRunId=job.runId;job.status='queued';delete job.error;delete job.code;delete job.completedAt;await save(p);void execute(p,job).catch(error=>{job.status='recoverable';job.error=error.message;});return view(p);}
   for(const p of projects.values())for(const job of p.jobs){
-    if(job.status==='recoverable'&&job.code==='INTERRUPTED'&&!job.cancelRequestedAt&&(job.generationPlan||job.generationStarted))queueMicrotask(()=>resume(p,job.id).catch(async error=>{job.status='recoverable';job.code=error.code;job.error=error.message;await save(p);}));
+    if(job.status==='recoverable'&&job.code==='INTERRUPTED'&&!job.cancelRequestedAt&&(job.routeJob||(job.generationPlan||job.generationStarted)))queueMicrotask(()=>resume(p,job.id).catch(async error=>{job.status='recoverable';job.code=error.code;job.error=error.message;await save(p);}));
   }
   async function openclawProjectContext(p){
     const current=p.currentRevisionId?revision(p):null;
@@ -823,7 +956,7 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
     if(!p.jobs.some(j=>result.operationId&&j.input?.operationId===result.operationId)&&!p.messages.some(m=>m.role==='user'&&m.text===input.message&&m.baseRevisionId===input.baseRevisionId))p.messages.push({role:'user',text:input.message,baseRevisionId:input.baseRevisionId,time:now()});
     p.messages.push({role:'assistant',text:result.summary,controlMessageId:key,controlStatus:result.status,time:now()});await save(p);
   }
-  return {openclawProjectContext,validateOpenclawOperations,recordControlResult,artifacts,dispatchMessage,searchResources,audioVoices:()=>new MiniMaxClient({root,env:audioEnv,transport:audioTransport}).execute('voices'),applyAudio:async(p,input)=>{const {document}=await readNativeProject(versionDirectory(p,revision(p)));const operations=await audioApplication(root,document,p.assets.find(a=>a.id===input.assetId),input);return enqueue(p,{...input,action:'patch',operations,message:(input.replaceTrackId?'替换已选':'添加已选')+(input.role==='narration'?'旁白':input.role==='original'?'原声':'背景音乐')});},productionPolicy:()=>productionPolicy(root),finishedWorks:()=>readFinishedWorks(root),materialRoots:async()=>(await discoverMaterialRoots(root)).map(publicMaterialRoot),attachMaterialRoot,get,has:id=>projects.has(id),view,create,loadPreset,presetFile,presets:async()=>(await refreshPresets()).map(publicPreset),unavailablePresets:async()=>(await refreshPresets()).unavailable||[],upload,importPackage,retryImport,enqueue,waitForJob,navigate,cancel,resume,authorizeBudget,revision,versionDirectory,list:()=>[...projects.values()].map(view).sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt))};
+  return {openclawProjectContext,validateOpenclawOperations,recordControlResult,artifacts,dispatchMessage,submitMessage,searchResources,audioVoices:()=>new MiniMaxClient({root,env:audioEnv,transport:audioTransport}).execute('voices'),applyAudio:async(p,input)=>{const {document}=await readNativeProject(versionDirectory(p,revision(p)));const operations=await audioApplication(root,document,p.assets.find(a=>a.id===input.assetId),input);return enqueue(p,{...input,action:'patch',operations,message:(input.replaceTrackId?'替换已选':'添加已选')+(input.role==='narration'?'旁白':input.role==='original'?'原声':'背景音乐')});},productionPolicy:()=>productionPolicy(root),finishedWorks:()=>readFinishedWorks(root),materialRoots:async()=>(await discoverMaterialRoots(root)).map(publicMaterialRoot),attachMaterialRoot,get,has:id=>projects.has(id),view,create,loadPreset,presetFile,presets:async()=>(await refreshPresets()).map(publicPreset),unavailablePresets:async()=>(await refreshPresets()).unavailable||[],upload,importPackage,retryImport,enqueue,waitForJob,navigate,cancel,resume,authorizeBudget,revision,versionDirectory,list:()=>[...projects.values()].map(view).sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt))};
 }
 
 export async function creativeRoutes(service,req,res,url,{json,jsonBody,file,dispatchMessage=service.dispatchMessage}){

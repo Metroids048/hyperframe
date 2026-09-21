@@ -13,12 +13,7 @@ test('manifest declares exact tool contract and required server-only configurati
   assert.equal(manifest.id, 'commerce-engine');
   assert.equal(manifest.kind, 'tool');
   assert.equal(manifest.enabledByDefault, false);
-  assert.deepEqual(manifest.contracts.tools, [
-    'commerce_project_create', 'commerce_project_list', 'commerce_project_get', 'commerce_resource_search', 'commerce_plan_validate',
-    'commerce_create_video', 'commerce_edit_video', 'commerce_generate_asset',
-    'commerce_job_get', 'commerce_job_control', 'commerce_revision_control',
-    'commerce_export', 'commerce_artifact_list'
-  ]);
+  assert.deepEqual(manifest.contracts.tools, ['video_task','video_project_list','video_project_open','video_job_status','video_result','video_cancel']);
   assert.deepEqual(manifest.configSchema.required, ['bridgeUrl', 'bridgeTokenEnv', 'workspaceId']);
   assert.equal(packageJson.dependencies.typebox, '^1.1.39');
   assert.equal(packageJson.packageManager, 'pnpm@11.19.0');
@@ -52,23 +47,17 @@ test('real OpenClaw SDK registration exposes per-tool strict required fields', a
   await plugin.register({pluginConfig:{bridgeUrl:'http://127.0.0.1',bridgeTokenEnv:'OPENCLAW_BRIDGE_TOKEN',workspaceId:'test'},registerTool:tool=>registrations.push(tool)});
   const tools=registrations.map(tool=>typeof tool==='function'?tool({sessionKey:'agent:test:conversation',agentId:'test',workspaceDir:root}):tool).filter(Boolean);
   const required=Object.fromEntries(tools.map(tool=>[tool.name,tool.parameters.required||[]]));
-  assert.deepEqual(required.commerce_project_list||[],[]);
-  assert.deepEqual(required.commerce_resource_search||[],[]);
-  assert.deepEqual(required.commerce_project_get,['projectId']);
-  assert.deepEqual(required.commerce_job_get,['projectId','jobId']);
-  assert.deepEqual(required.commerce_edit_video,['projectId','baseRevisionId','message','requestedChanges','keep']);
-  assert.deepEqual(required.commerce_generate_asset,['projectId','baseRevisionId','message','requestedChanges','keep']);
-  assert.ok(tools.find(tool=>tool.name==='commerce_edit_video').parameters.properties.attachmentPaths,
+  assert.deepEqual(required.video_project_list||[],[]);
+  assert.deepEqual(required.video_project_open,['projectId']);
+  assert.deepEqual(required.video_job_status,['projectId','jobId']);
+  assert.deepEqual(required.video_task,['message']);
+  assert.deepEqual(required.video_cancel,['projectId','jobId']);
+  assert.ok(tools.find(tool=>tool.name==='video_task').parameters.properties.attachmentPaths,
     'native Control UI attachment paths must be accepted as an optional server-validated field');
-  assert.ok(tools.find(tool=>tool.name==='commerce_artifact_list').parameters.properties.revisionId.anyOf,
+  assert.ok(tools.find(tool=>tool.name==='video_result').parameters.properties.revisionId.anyOf,
     'optional revision ids must accept the explicit null emitted by tool models');
-  const edit=tools.find(tool=>tool.name==='commerce_edit_video');
-  const operation=edit.parameters.properties.requestedChanges.items;
-  assert.ok(operation.required.includes('type'));
-  assert.ok(operation.properties.type.enum.includes('update_text'));
-  assert.match(edit.description,/update_text/);
-  assert.match(operation.properties.nodeId.description,/update_text/);
-  assert.match(operation.properties.text.description,/update_text/);
+  const task=tools.find(tool=>tool.name==='video_task');
+  assert.match(task.description,/natural-language video task/);
   for(const tool of tools)assert.equal(tool.parameters.additionalProperties,false,tool.name);
 });
 

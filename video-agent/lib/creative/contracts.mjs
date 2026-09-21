@@ -48,11 +48,51 @@ export function assetKindFromName(name = '') {
 
 export function safeRelativePath(root, candidate) {
   insist(typeof candidate === 'string' && candidate.trim(), '素材路径不能为空', 'INVALID_ASSET_PATH');
-  insist(!path.isAbsolute(candidate), '素材路径必须相对于 video-agent 工作目录', 'INVALID_ASSET_PATH');
-  const resolved = path.resolve(root, candidate);
-  const normalizedRoot = path.resolve(root) + path.sep;
-  insist(resolved === path.resolve(root) || resolved.startsWith(normalizedRoot), '素材路径不能离开项目目录', 'INVALID_ASSET_PATH');
-  return resolved;
+
+  // OpenClaw 模式检测：检查 root 或 candidate 是否涉及 OpenClaw 目录
+  const openclawStateRoot = process.env.OPENCLAW_STATE_DIR || path.join(process.env.HOME || '', '.openclaw', 'hyperframe', 'state');
+  const isOpenclawMode = root.includes('.openclaw') ||
+                         root.includes('state/projects') ||
+                         candidate.includes('.openclaw') ||
+                         (candidate.startsWith('../') && path.resolve(root, candidate).includes('.openclaw'));
+
+  if (!path.isAbsolute(candidate)) {
+    const resolved = path.resolve(root, candidate);
+    const normalizedRoot = path.resolve(root) + path.sep;
+
+    // OpenClaw 模式允许访问 state 根目录下的所有内容
+    if (isOpenclawMode) {
+      const normalizedStateRoot = path.resolve(openclawStateRoot) + path.sep;
+      insist(
+        resolved === path.resolve(root) ||
+        resolved.startsWith(normalizedRoot) ||
+        resolved.startsWith(normalizedStateRoot),
+        '素材路径不能离开 OpenClaw 状态目录',
+        'INVALID_ASSET_PATH'
+      );
+    } else {
+      insist(
+        resolved === path.resolve(root) || resolved.startsWith(normalizedRoot),
+        '素材路径不能离开项目目录',
+        'INVALID_ASSET_PATH'
+      );
+    }
+
+    return resolved;
+  }
+
+  // 绝对路径:仅在 OpenClaw 模式下允许
+  insist(isOpenclawMode, '素材路径必须相对于 video-agent 工作目录', 'INVALID_ASSET_PATH');
+
+  const normalizedStateRoot = path.resolve(openclawStateRoot);
+  const normalizedCandidate = path.resolve(candidate);
+  insist(
+    normalizedCandidate === normalizedStateRoot || normalizedCandidate.startsWith(normalizedStateRoot + path.sep),
+    '绝对路径必须在 OpenClaw 状态目录内',
+    'INVALID_ASSET_PATH'
+  );
+
+  return candidate;
 }
 
 export function validateOutput(output = {}) {

@@ -11,7 +11,7 @@ import {alignSourceAudio} from './source-audio.mjs';
 import {projectNativeCaptions} from './captions.mjs';
 
 const allowed = new Set(['add_text','update_text_style','update_text', 'update_effect_params', 'set_scene_effect', 'replace_asset', 'set_scene_duration', 'set_node_duration', 'reorder_scenes', 'set_transition', 'change_output','lock_scene','unlock_scene','update_media','retime_document']);
-for(const type of ['duplicate_media','add_audio','update_audio','remove_audio','split_scene','trim_scene','update_caption','update_caption_style','set_captions','remove_caption','update_custom_source'])allowed.add(type);
+for(const type of ['duplicate_media','add_audio','update_audio','remove_audio','split_scene','trim_scene','update_caption','update_caption_style','set_captions','remove_caption','update_custom_source','change_music','adjust_rhythm','add_subtitles'])allowed.add(type);
 
 export function applyDocumentPatch(input, operations, assets) {
   insist(Array.isArray(operations) && operations.length > 0 && operations.length <= 100, '修改清单必须为 1～100 项', 'INVALID_PATCH');
@@ -203,6 +203,80 @@ export function applyDocumentPatch(input, operations, assets) {
         if (scene && document.nodes.some(n => n.sceneId === scene.id && n.kind === 'video')) {
           bundle.css = String(bundle.css || '').replace(/(#scene-bg\{[^}]*?)background:(?!transparent)[^;}]*(;?)/, '$1background:transparent$2');
         }
+      }
+    }
+    if (op.type === 'change_music') {
+      // 更换背景音乐：移除现有音乐轨道，标记需要重新生成
+      document.audioGraph = (document.audioGraph || []).filter(a => a.role !== 'music');
+      document.audioRequirements = {...document.audioRequirements, music: true};
+      // 将音乐风格偏好存储在 brief 中供后续生成使用
+      if (op.style || op.params?.mood) {
+        document.brief = {...document.brief, musicStyle: op.style || op.params.mood};
+      }
+    }
+    if (op.type === 'adjust_rhythm') {
+      // 调整节奏：这是一个复杂操作，需要修改场景时长和转场
+      const params = op.params || {};
+      const totalDuration = document.scenes.reduce((sum, s) => sum + s.durationFrames, 0);
+
+      // 简化实现：根据描述调整场景播放速率（通过修改视频节点的 playbackRate）
+      for (const scene of document.scenes) {
+        const sceneStart = scene.startFrame;
+        const sceneEnd = scene.startFrame + scene.durationFrames;
+
+        // 判断场景是否在需要加速的时间范围内
+        let speedFactor = 1.0;
+        if (params.fastStart && sceneStart < params.fastStart * 30) {
+          speedFactor = 1.3; // 加速 30%
+        } else if (params.slowEnd && sceneEnd > (totalDuration / 30 - params.slowEnd) * 30) {
+          speedFactor = 0.8; // 减速 20%
+        }
+
+        // 应用速率到视频节点
+        for (const node of document.nodes.filter(n => n.sceneId === scene.id && n.kind === 'video')) {
+          node.params = {...node.params, playbackRate: speedFactor};
+        }
+      }
+    }
+    if (op.type === 'add_subtitles') {
+      // 添加字幕：在指定时机添加字幕文本
+      const params = op.params || {};
+      const texts = params.texts || [];
+
+      if (texts.length === 0) continue;
+
+      // 根据 timing 策略确定字幕出现的场景
+      const targetScenes = params.timing === 'key-moments'
+        ? document.scenes.filter((s, i) => i % Math.ceil(document.scenes.length / texts.length) === 0).slice(0, texts.length)
+        : document.scenes.slice(0, texts.length);
+
+      // 为每个文本创建字幕对象
+      for (let i = 0; i < texts.length && i < targetScenes.length; i++) {
+        const scene = targetScenes[i];
+        const text = texts[i];
+        const cueId = stableId('subtitle', scene.id, i);
+
+        // 检查是否已存在相同 ID 的字幕
+        if (!document.captions) document.captions = [];
+        if (document.captions.some(c => c.id === cueId)) continue;
+
+        // 创建字幕对象
+        const startFrame = scene.startFrame + Math.floor(scene.durationFrames * 0.1); // 场景开始后 10%
+        const durationFrames = Math.min(60, scene.durationFrames * 0.8); // 持续 2 秒或场景的 80%
+
+        document.captions.push({
+          id: cueId,
+          text: text,
+          startFrame: startFrame,
+          durationFrames: durationFrames,
+          style: {
+            fontSize: 32,
+            fontWeight: 600,
+            color: '#FFFFFF',
+            offsetY: -100,
+            ...(params.animation === 'fade' ? {fadeIn: 15, fadeOut: 15} : {})
+          }
+        });
       }
     }
   }

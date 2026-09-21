@@ -17,6 +17,7 @@ python3 scripts/openclaw-local.py start
 echo ""
 echo "打开带本机认证的 OpenClaw 视频对话入口…"
 # OpenClaw CLI 负责读取私有配置并把认证 URL 交给系统浏览器；token 不会
-# 经过终端输出，也不会写入仓库。这里不依赖 PATH 中存在 openclaw 命令。
-python3 scripts/openclaw-local.py gateway dashboard
+# 经过终端输出，也不会写入仓库。dashboard 是顶层命令（不是 gateway 子命令），
+# --yes 让入口在 Gateway 已经启动或刚被拉起时都能稳定打开。
+python3 scripts/openclaw-local.py dashboard --yes
 echo "已打开 OpenClaw。现在可以直接对话编辑视频项目。"

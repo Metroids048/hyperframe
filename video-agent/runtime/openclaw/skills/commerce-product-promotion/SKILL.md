@@ -14,7 +14,19 @@ Do not infer price, discount, dates, stock, urgency, platform mechanics, or lega
 Require verified event identity, value, dates/conditions, participation method, product evidence, project/base revision, and authorization.
 
 ## Tool order
-Read project; search suitable resources; validate event identity, participation value, verified terms, action; submit job; poll and list artifacts.
+
+### For NEW product promotion video (user provided product info/assets)
+1. Call `video_task` with `projectId: null`, `baseRevisionId: null`, `attachmentPaths: [...]`, and promotion video request
+2. Service auto-creates project and generates promotion video
+3. If queued/running, report the real stage and stop this turn; call `video_job_status` only once when the user explicitly asks for status
+4. Call `video_result` only after a real revision exists
+
+### For EDITING existing promotion video
+1. Call `video_project_open` to get current `projectId` and `baseRevisionId`
+2. Call `video_task` with `projectId`, `baseRevisionId`, and edit request
+3. Call `video_job_status` once only when status was requested or the task is terminal; call `video_result` only after a real revision exists
+
+**Key: User provides product assets → NEW project with projectId:null**
 
 ## Output
 Return exact term-to-text/evidence mapping, native text objects, job/revision, candidate video, and quality state.

@@ -14,7 +14,20 @@ Do not install or upgrade HyperFrames, claim a discovered name was used, inject 
 Require shot purpose, media kind, aspect, safe area, motion/audio dependencies, project/base revision, and exact local resource query.
 
 ## Tool order
-Call `commerce_resource_search`; distinguish local media from executable HyperFrames resources; choose only compatible resources with `executionStatus` and `bindingStatus`; include catalog/composition/runtime identifiers in `commerce_plan_validate`; submit the bounded job; verify the job and artifact receipts.
+
+### For NEW projects (user requesting video with HyperFrames effects/transitions)
+1. Call `video_task` with `projectId: null`, `baseRevisionId: null`, `attachmentPaths: [...]`, and HyperFrames request
+2. Service auto-creates project, resolves local media and compatible HyperFrames resources internally
+3. If queued/running, report the real stage and stop this turn; call `video_job_status` only once when the user explicitly asks for status
+4. Call `video_result` only after a real revision exists and then verify receipts, selected resource IDs, versions, and render evidence
+
+### For EDITING existing project with HyperFrames
+1. Call `video_project_open` to get current `projectId` and `baseRevisionId`
+2. Call `video_task` with `projectId`, `baseRevisionId`, and HyperFrames composition request
+3. Call `video_job_status` once only when status was requested or the task is terminal
+4. Call `video_result` only after a real revision exists
+
+**Key: User provides media/description → NEW project with projectId:null**
 
 ## Output
 Return selected resource IDs, versions, runtime bindings, affected objects, job/revision, compiled native project, and render evidence.

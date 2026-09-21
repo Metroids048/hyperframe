@@ -16,10 +16,10 @@ const MAX_VIDEO_UPLOAD_BYTES = Number.isFinite(Number(process.env.OPENCLAW_VIDEO
 const MAX_VIDEO_UPLOAD_MIB = Math.round(MAX_VIDEO_UPLOAD_BYTES / 1024 / 1024);
 
 const TOOLS = [
-  ["video_task", "Run a natural-language video task through the existing Video Agent and preserve the editable project."],
+  ["video_task", "Submit a natural-language video task and preserve the editable project. A queued/running result is a successful asynchronous acknowledgement: report its real projectId/jobId/stage and stop; do not poll in the same turn."],
   ["video_project_list", "List editable video projects so the user can choose one in chat."],
   ["video_project_open", "Read the current editable project and delivery state."],
-  ["video_job_status", "Read a real video job status and checkpoint."],
+  ["video_job_status", "Read a real video job status and checkpoint when the user explicitly asks for status; do not call repeatedly while a task is running."],
   ["video_result", "List the authorized artifacts for a video revision."],
   ["video_cancel", "Cancel a persisted video job."]
 ];
@@ -85,12 +85,16 @@ const writeContext = {
 };
 const nativeWriteFields = { operationId: Type.Optional(idSchema), authorizationId: Type.Optional(idSchema) };
 const schemas = {
-  video_task: Type.Object({ projectId: idSchema, message: { type: "string", minLength: 1, maxLength: 20000 }, attachmentIds: Type.Optional({ type: "array", maxItems: 30, items: idSchema }), baseRevisionId: baseRevision, selectedNodeId: optionalId }, { additionalProperties: false }),
+  // A task without an explicit project is a valid new task. The authorization
+  // route creates the native editable project and returns its identity before
+  // the write reaches the engine. Keeping this nullable here is required for
+  // both text-only requests and Control UI uploads.
+  video_task: Type.Object({ projectId: Type.Optional({ anyOf: [idSchema, { type: "null" }] }), message: { type: "string", minLength: 1, maxLength: 20000 }, attachmentIds: Type.Optional({ type: "array", maxItems: 30, items: idSchema }), attachmentPaths: Type.Optional({ type: "array", maxItems: 30, items: { type: "string", minLength: 1, maxLength: 1024 } }), baseRevisionId: Type.Optional(baseRevision), selectedNodeId: optionalId }, { additionalProperties: false }),
   video_project_list: Type.Object({ query: Type.Optional({ type: "string", maxLength: 200 }), maxItems: Type.Optional({ type: "integer", minimum: 1, maximum: 50 }) }, { additionalProperties: false }),
   video_project_open: Type.Object({ projectId: idSchema }, { additionalProperties: false }),
   video_job_status: Type.Object({ projectId: idSchema, jobId: idSchema }, { additionalProperties: false }),
   video_result: Type.Object({ projectId: idSchema, revisionId: optionalNullableId }, { additionalProperties: false }),
-  video_cancel: Type.Object({ projectId: idSchema, baseRevisionId: baseRevision, jobId: idSchema }, { additionalProperties: false })
+  video_cancel: Type.Object({ projectId: idSchema, baseRevisionId: Type.Optional(baseRevision), jobId: idSchema }, { additionalProperties: false })
 };
 
 let uploadRouteRegistered = false;
@@ -98,27 +102,28 @@ function registerUploadRoute(api) {
   if (uploadRouteRegistered || !api?.registerHttpRoute) return;
   uploadRouteRegistered = true;
   api.registerHttpRoute({ path: "/plugins/commerce-engine/upload", auth: "plugin", match: "exact", handler: async (req, res) => {
-    if (req.method !== "POST") { res.statusCode = 405; res.end("method not allowed"); return; }
+    if (req.method !== "POST") { res.statusCode = 405; res.end("method not allowed"); return true; }
     const host = String(req.headers.host || "");
     const origin = String(req.headers.origin || "");
     const remote = String(req.socket?.remoteAddress || "");
     const loopbackRemote = remote === "127.0.0.1" || remote === "::1" || remote === "::ffff:127.0.0.1";
     const loopbackHost = /^(?:127\.0\.0\.1|localhost|\[::1\]):\d+$/.test(host);
-    if (!loopbackRemote || !loopbackHost || origin !== `http://${host}`) {
+    const localOrigin = !origin || /^https?:\/\/(?:127\.0\.0\.1|localhost|\[::1\])(?::\d+)?$/i.test(origin);
+    if (!loopbackRemote || !loopbackHost || !localOrigin) {
       res.statusCode = 403; res.setHeader("content-type", "application/json");
-      res.end(JSON.stringify({ok:false, error:"视频上传只允许从本机 Control UI 发起"})); return;
+      res.end(JSON.stringify({ok:false, error:"视频上传只允许从本机 Control UI 发起"})); return true;
     }
     const mime = String(req.headers["content-type"] || "application/octet-stream").split(";")[0].toLowerCase();
     const rawName = String(req.headers["x-openclaw-file-name"] || "video.mp4");
     let fileName; try { fileName = decodeURIComponent(rawName); } catch { fileName = rawName; }
     fileName = path.basename(fileName).replace(/[^A-Za-z0-9._-]/g, "_").slice(-160) || "video.mp4";
     const ext = path.extname(fileName).toLowerCase();
-    if (!["video/mp4", "video/quicktime", "video/webm", "application/octet-stream", ""].includes(mime) || ![".mp4", ".mov", ".webm"].includes(ext)) { res.statusCode = 415; res.setHeader("content-type", "application/json"); res.end(JSON.stringify({ ok:false, error:"仅支持 MP4、MOV、WebM 视频" })); return; }
+    if (!["video/mp4", "video/quicktime", "video/webm", "application/octet-stream", ""].includes(mime) || ![".mp4", ".mov", ".webm"].includes(ext)) { res.statusCode = 415; res.setHeader("content-type", "application/json"); res.end(JSON.stringify({ ok:false, error:"仅支持 MP4、MOV、WebM 视频" })); return true; }
     const limit = MAX_VIDEO_UPLOAD_BYTES;
     const declaredLength = Number(req.headers["content-length"] || 0);
     if (Number.isFinite(declaredLength) && declaredLength > limit) {
       res.statusCode = 413; res.setHeader("content-type", "application/json");
-      res.end(JSON.stringify({ok:false, error:`视频不能超过 ${MAX_VIDEO_UPLOAD_MIB} MiB`})); return;
+      res.end(JSON.stringify({ok:false, error:`视频不能超过 ${MAX_VIDEO_UPLOAD_MIB} MiB`})); return true;
     }
     // OPENCLAW_STATE_DIR is the one canonical root.  The backend imports from
     // <state>/media/inbound, so the plugin must use the same default when the
@@ -131,8 +136,8 @@ function registerUploadRoute(api) {
       await new Promise((resolve, reject) => { const out = fs.createWriteStream(temp, {flags:"wx", mode:0o600}); const fail = e => { out.destroy(); reject(e); }; req.on("data", chunk => { bytes += chunk.length; if (bytes > limit) fail(Object.assign(new Error(`视频不能超过 ${MAX_VIDEO_UPLOAD_MIB} MiB`), {statusCode:413})); else if (!out.write(chunk)) req.pause(); }); out.on("drain", () => req.resume()); req.on("end", () => out.end(resolve)); req.on("error", reject); out.on("error", reject); });
       await fsp.rename(temp, target);
       const detectedMime = mime === "application/octet-stream" || !mime ? (ext === ".mov" ? "video/quicktime" : ext === ".webm" ? "video/webm" : "video/mp4") : mime;
-      res.statusCode = 200; res.setHeader("content-type", "application/json"); res.end(JSON.stringify({ok:true, mediaPath:`media://inbound/${path.basename(target)}`, fileName, mimeType:detectedMime, bytes, path:target}));
-    } catch (error) { await fsp.rm(temp, {force:true}).catch(()=>{}); res.statusCode = error.statusCode || 500; res.setHeader("content-type", "application/json"); res.end(JSON.stringify({ok:false, error:error.message || "视频上传失败"})); }
+      res.statusCode = 200; res.setHeader("content-type", "application/json"); res.end(JSON.stringify({ok:true, mediaPath:`media://inbound/${path.basename(target)}`, fileName, mimeType:detectedMime, bytes, path:target})); return true;
+    } catch (error) { await fsp.rm(temp, {force:true}).catch(()=>{}); res.statusCode = error.statusCode || 500; res.setHeader("content-type", "application/json"); res.end(JSON.stringify({ok:false, error:error.message || "视频上传失败"})); return true; }
   }});
 }
 
@@ -163,7 +168,15 @@ function buildTool(name, description) {
             });
             const authorizationPayload = await authorizationResponse.json().catch(() => ({ error: "authorization endpoint returned invalid JSON" }));
             if (!authorizationResponse.ok) { const error = new Error(authorizationPayload.error || ("commerce authorization " + authorizationResponse.status)); Object.assign(error, authorizationPayload); throw error; }
-            input = { ...authorizationInput, authorizationId: authorizationPayload.authorizationId, operationId: authorizationPayload.operationId };
+            input = { ...authorizationInput,
+              projectId: authorizationPayload.projectId || authorizationInput.projectId,
+              // `null` is the authoritative base for a draft/new project. Do
+              // not use ?? here: it would erase the property and make the
+              // facade report the misleading "baseRevisionId missing" error.
+              baseRevisionId: Object.hasOwn(authorizationPayload, "baseRevisionId") ? authorizationPayload.baseRevisionId : authorizationInput.baseRevisionId,
+              authorizationId: authorizationPayload.authorizationId,
+              operationId: authorizationPayload.operationId
+            };
           }
           const body = { tool: name, input, trustedContext };
           const response = await fetch(config.bridgeUrl.replace(/\/$/, "") + "/api/openclaw/tools", {

@@ -35,8 +35,10 @@ try {
  for(const [key,value] of Object.entries(configured||{}))if(process.env[key]==null&&typeof value==='string'&&value)process.env[key]=value;
 } catch(error) { if(!['ENOENT','ENOTDIR','EACCES'].includes(error.code)) throw error; }
 
-const PORT=Number(process.env.VIDEO_AGENT_PORT||3020),DATA=path.resolve(process.env.VIDEO_AGENT_DATA_DIR||path.join(ROOT,'data/projects')),EDIT_DATA=path.resolve(process.env.VIDEO_AGENT_EDIT_DATA_DIR||path.join(ROOT,'data/edit-projects')),CREATIVE_DATA=path.resolve(process.env.VIDEO_AGENT_CREATIVE_DATA_DIR||path.join(ROOT,'data/commerce-runs'));
+const PORT=Number(process.env.VIDEO_AGENT_PORT||3020),DATA=path.resolve(process.env.VIDEO_AGENT_DATA_DIR||path.join(ROOT,'data/projects')),EDIT_DATA=path.resolve(process.env.VIDEO_AGENT_EDIT_DATA_DIR||path.join(ROOT,'data/edit-projects'));
+// OpenClaw 模式下,统一使用 STATE_ROOT 下的 projects 目录,避免相对路径问题
 const OPENCLAW_STATE_ROOT=path.resolve(process.env.OPENCLAW_STATE_DIR||path.join(process.env.HOME||'', '.openclaw','hyperframe','state'));
+const CREATIVE_DATA=path.resolve(process.env.VIDEO_AGENT_CREATIVE_DATA_DIR||path.join(OPENCLAW_STATE_ROOT,'projects'));
 const OPENCLAW_INBOUND_ROOT=path.resolve(process.env.OPENCLAW_INBOUND_MEDIA_DIR||path.join(OPENCLAW_STATE_ROOT,'media','inbound'));
 const DEFAULT_OPENCLAW_VIDEO_UPLOAD_BYTES=64*1024*1024;
 const OPENCLAW_MAX_VIDEO_BYTES=Number.isFinite(Number(process.env.OPENCLAW_VIDEO_UPLOAD_MAX_BYTES))&&Number(process.env.OPENCLAW_VIDEO_UPLOAD_MAX_BYTES)>0?Math.floor(Number(process.env.OPENCLAW_VIDEO_UPLOAD_MAX_BYTES)):DEFAULT_OPENCLAW_VIDEO_UPLOAD_BYTES;
@@ -87,9 +89,39 @@ async function openclawToolRoute(req,res){
  if(!input.trustedContext||input.trustedContext.trusted!==true)throw new InputError('Trusted tool context required',403);
  if(input.trustedContext.workspaceId!==workspaceId)throw new InputError('Workspace scope mismatch',403);
  const requestedProject=input.input?.projectId;
- if(requestedProject!=null && !['current','new'].includes(requestedProject))creative.get(requestedProject);
- const trustedContext=await openclawSessions.bind(input.trustedContext,['current','new'].includes(requestedProject)?null:requestedProject);
- const normalizedInput=requestedProject==='current'&&trustedContext.workspaceProjectId?{...(input.input||{}),projectId:trustedContext.workspaceProjectId}:input.input||{};
+ const hasProject=id=>typeof id==='string'&&id.trim()&&typeof creative.has==='function'&&creative.has(id);
+ if(requestedProject!=null && !['current','new'].includes(requestedProject) && !hasProject(requestedProject)){
+  // A model can occasionally repeat a stale UUID.  Reads should report a
+  // typed not-found result so the agent can recover; do not let a bad read
+  // poison the trusted session or turn into a generic plugin error.
+  if(input.tool==='video_project_open'){
+   const projects=typeof creative.list==='function'?creative.list().slice(0,20).map(project=>({id:project.id,name:project.title||project.name||'未命名视频',currentRevisionId:project.currentRevisionId||null})):[];
+   return json(res,{ok:true,result:{schemaVersion:'openclaw-commerce.v1',tool:'video_project_open',status:'not_found',projectId:String(requestedProject),operationId:null,projects,message:'工程不存在；可使用 video_project_list 查看真实工程'}});
+  }
+  throw new InputError('原生项目不存在，请使用真实工程 ID 或省略工程 ID创建新任务',404);
+ }
+ let trustedContext;
+ // Any explicit, valid project is an intentional session transition.  The
+ // low-level bind() primitive still rejects accidental cross-project access;
+ // this route uses replace() only after the server has validated the project
+ // and the tool's authorization has been checked.
+ if(requestedProject && !['current','new'].includes(requestedProject)) trustedContext=await openclawSessions.replace(input.trustedContext,requestedProject);
+ else trustedContext=await openclawSessions.bind(input.trustedContext,null);
+ let normalizedInput=requestedProject==='current'&&trustedContext.workspaceProjectId?{...(input.input||{}),projectId:trustedContext.workspaceProjectId}:{...(input.input||{})};
+ // Models may place the Control UI's opaque media receipt in either field:
+ // `attachmentPaths` is the documented form, while some providers naturally
+ // treat the receipt as an attachment id. Canonicalize both before import so
+ // a valid upload can never become a phantom asset id and an empty project.
+ const receiptIds=Array.isArray(normalizedInput.attachmentIds)
+  ? normalizedInput.attachmentIds.filter(value=>typeof value==='string'&&value.startsWith('media://inbound/'))
+  : [];
+ if(receiptIds.length){
+  normalizedInput={
+   ...normalizedInput,
+   attachmentPaths:[...(Array.isArray(normalizedInput.attachmentPaths)?normalizedInput.attachmentPaths:[]),...receiptIds],
+   attachmentIds:normalizedInput.attachmentIds.filter(value=>!receiptIds.includes(value))
+  };
+ }
  // Control UI uploads are materialized by OpenClaw under its inbound media
  // directory. Import only those files, never arbitrary model-provided paths.
  // The operation remains behind the normal project/session authorization.
@@ -108,8 +140,14 @@ async function openclawToolRoute(req,res){
   if(existing&&['started','submission_unknown'].includes(existing.status))throw new InputError('operationId 可能已提交但结果未知，禁止重复导入附件',409);
   const inboundRootBase=OPENCLAW_INBOUND_ROOT;
   const inboundRoot=await fs.realpath(inboundRootBase).catch(()=>inboundRootBase);
-  const projectId=String(normalizedInput.projectId||'');
-  const project=creative.get(projectId);
+  let projectId=String(normalizedInput.projectId||'');
+  let project=projectId&&hasProject(projectId)?creative.get(projectId):null;
+  if(!project && input.tool==='video_task' && typeof creative.create==='function'){
+   project=await creative.create({message:String(normalizedInput.message||''),inferRequest:true,taskMode:'create',taskModeExplicit:true,commerceProfile:'commerce-focus-v1',source:'openclaw-request'});
+   projectId=project.id;normalizedInput.projectId=projectId;normalizedInput.baseRevisionId=null;
+   trustedContext=await openclawSessions.replace(input.trustedContext,projectId);
+  }
+  if(!project)throw new InputError('视频附件导入需要有效工程',400);
   const importedAttachmentIds=[...(normalizedInput.attachmentIds||[])];
   for(const raw of attachmentPaths){
    // Native Control UI video uploads return a server-issued media:// receipt.
@@ -148,14 +186,43 @@ async function openclawAuthorizationRoute(req,res){
  const body=await jsonBody(req,256000,'OpenClaw authorization request');
  if(!body.trustedContext||body.trustedContext.trusted!==true)throw new InputError('Trusted tool context required',403);
  if(body.trustedContext.workspaceId!==workspaceId)throw new InputError('Workspace scope mismatch',403);
- const input=body.input||{},projectId=String(input.projectId||'');if(!projectId)throw new InputError('projectId required',400);
- if(projectId!=='new')creative.get(projectId);
- const context=await openclawSessions.bind(body.trustedContext,projectId==='new'?null:projectId);
+ const input=body.input||{},requestedProjectId=input.projectId==null||input.projectId===''?'':String(input.projectId);
+ const hasProject=id=>typeof id==='string'&&id.trim()&&typeof creative.has==='function'&&creative.has(id);
+ const attachmentCount=(Array.isArray(input.attachmentIds)?input.attachmentIds.length:0)+(Array.isArray(input.attachmentPaths)?input.attachmentPaths.length:0);
+ const session=await openclawSessions.bind(body.trustedContext,null);
+ const currentProjectId=hasProject(session.workspaceProjectId)?session.workspaceProjectId:null;
+ let projectId;
+ if(body.tool==='video_task'){
+  // Project binding is a convenience for continuing a conversation, not a
+  // prerequisite.  A new upload starts a new editable project; a text-only
+  // follow-up reuses the current project when one exists; an invalid/stale
+  // model UUID is never trusted and falls back to the same rules.
+  if(requestedProjectId==='new') projectId=null;
+  else if(requestedProjectId&&requestedProjectId!=='current'&&hasProject(requestedProjectId)) projectId=requestedProjectId;
+  else if(requestedProjectId==='current') projectId=currentProjectId;
+  else if(requestedProjectId&&!hasProject(requestedProjectId)) projectId=attachmentCount?null:currentProjectId;
+  else projectId=attachmentCount?null:currentProjectId;
+  if(!projectId){
+   const created=await creative.create({message:String(input.message||''),inferRequest:true,taskMode:'create',taskModeExplicit:true,commerceProfile:'commerce-focus-v1',source:'openclaw-request'});
+   projectId=created.id;await openclawSessions.replace(body.trustedContext,projectId);
+  }
+ } else {
+  projectId=requestedProjectId||currentProjectId;
+  if(!projectId||!hasProject(projectId))throw new InputError('该工具需要真实工程 ID，请先使用 video_project_list',404);
+ }
+ const project=creative.get(projectId);
+ const context=await openclawSessions.replace(body.trustedContext,projectId);
  const messageId=String(body.trustedContext.messageId||'');
  if(!messageId)throw new InputError('OpenClaw inbound message identity required',403);
- const operationId=stableControlOperationId(projectId,messageId,{message:String(input.message||body.tool),baseRevisionId:input.baseRevisionId??null,attachmentIds:input.attachmentIds||[],attachmentPaths:input.attachmentPaths||[]});
- const authorization=await openclawAuthorizations.issue({projectId,baseRevisionId:input.baseRevisionId??null,messageId,message:String(input.message||body.tool),sessionKey:context.sessionKey,allowedTools:[body.tool]});
- return json(res,{ok:true,authorizationId:authorization.authorizationId,operationId,projectId,baseRevisionId:projectId==='new'?null:creative.get(projectId).currentRevisionId||null,expiresAt:authorization.expiresAt});
+ const currentRevisionId=project.currentRevisionId||null;
+ // Treat omitted, null, and the literal string "null" as "use the current
+ // revision".  Preserve any other explicit value so a genuine stale edit
+ // still fails closed with REVISION_CONFLICT.
+ const suppliedBase=input.baseRevisionId;
+ const baseRevisionId=typeof suppliedBase==='string'&&suppliedBase.trim()&&suppliedBase!=='null'?suppliedBase:currentRevisionId;
+ const operationId=stableControlOperationId(projectId,messageId,{message:String(input.message||body.tool),baseRevisionId,attachmentIds:input.attachmentIds||[],attachmentPaths:input.attachmentPaths||[]});
+ const authorization=await openclawAuthorizations.issue({projectId,baseRevisionId,messageId,message:String(input.message||body.tool),sessionKey:context.sessionKey,allowedTools:[body.tool]});
+ return json(res,{ok:true,authorizationId:authorization.authorizationId,operationId,projectId,baseRevisionId,expiresAt:authorization.expiresAt});
 }
 async function createProject(req){
  const type=req.headers['content-type']||'';if(!type.startsWith('multipart/form-data;'))throw new InputError('请使用表单上传');

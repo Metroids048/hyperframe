@@ -6,7 +6,7 @@ export async function deliveryRoutes(root,req,res,url,{file,json,creative}){
  if(!['GET','HEAD'].includes(req.method)||!(/^\/results$|^\/delivery-assets\//.test(url.pathname)))return false;
  const contract=JSON.parse(await fs.readFile(path.join(root,'docs/result-completion/delivery-contract.json'))),entries=JSON.parse(await fs.readFile(path.join(root,'docs/result-completion/results.json')));
  const base=await fs.realpath(root);
- const resolveAsset=async asset=>{try{const target=await fs.realpath(path.resolve(root,asset.path)),relative=path.relative(base,target),stat=await fs.stat(target);return !relative.startsWith('..')&&!path.isAbsolute(relative)&&stat.isFile()&&stat.size>0?target:null;}catch{return null;}};
+ const resolveAsset=async asset=>{try{const assetPath=asset.originalRef||asset.path;const target=await fs.realpath(path.resolve(root,assetPath)),relative=path.relative(base,target),stat=await fs.stat(target);return !relative.startsWith('..')&&!path.isAbsolute(relative)&&stat.isFile()&&stat.size>0?target:null;}catch{return null;}};
  for(const entry of entries){
   if(entry.projectId&&creative?.has(entry.projectId)){
    const project=creative.get(entry.projectId),job=project.jobs.at(-1),revision=project.revisions.find(r=>r.id===project.currentRevisionId);

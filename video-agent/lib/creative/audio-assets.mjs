@@ -76,7 +76,8 @@ export function speechReplacementRequest(document,assets,input){
 
 export async function audioApplication(root,document,asset,{replaceTrackId,role,volume,startFrame=0,windowDurationFrames,captions=false}={}){
   insist(asset?.kind==='audio','请选择已落地的音频素材','INVALID_AUDIO_ASSET');
-  const metadata=await probe(safeRelativePath(root,asset.path));
+  const assetPath = asset.originalRef || asset.path;
+  const metadata=await probe(safeRelativePath(root,assetPath));
   insist(metadata.hasAudio&&metadata.duration>0,'声音未通过媒体检查','INVALID_AUDIO_ASSET');
   const old=replaceTrackId?document.audioGraph?.find(t=>t.id===replaceTrackId):null;
   insist(!replaceTrackId||old,'要替换的音轨不属于当前版本','PATCH_TARGET_MISSING');

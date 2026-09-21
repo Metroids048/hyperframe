@@ -14,7 +14,20 @@ Do not send audio to the structured stage provider, change provider/voice, synth
 Require current audio graph/caption objects, exact requested change, source timing, selected authorized voice/provider if any, base revision, keep-set, and authorization.
 
 ## Tool order
-Read project; validate target audio/caption objects and independent timing; submit `commerce_edit_video` with explicit changes/keep-set; poll the real job and inspect artifacts/review state.
+
+### For NEW projects with audio/caption work
+1. Call `video_task` with `projectId: null`, `baseRevisionId: null`, `attachmentPaths: [...]`, and audio/caption request
+2. Service auto-creates project and processes audio
+3. If queued/running, report the real stage and stop this turn; call `video_job_status` only once when the user explicitly asks for status
+4. Call `video_result` only after a real revision exists
+
+### For EDITING existing project's audio/captions
+1. Call `video_project_open` to get current `projectId`, `baseRevisionId`, and validate audio/caption objects
+2. Call `video_task` with `projectId`, `baseRevisionId`, explicit changes and keep-set
+3. Call `video_job_status` once only when status was requested or the task is terminal; call `video_result` only after a real revision exists
+4. Inspect artifacts and review state only after a real revision exists
+
+**Key: User uploads video needing audio work → NEW project with projectId:null**
 
 ## Output
 Return affected object IDs, provider/cache receipt when used, measured duration/alignment, updated revision, artifacts, and separate listening-review status.

@@ -21,7 +21,8 @@ async function originalInputs(root,entry){
   const assets=ids?ids.map(id=>source.assets.find(a=>a.id===id)):source.assets;
   const records=[];
   for(const asset of assets){
-    const {real,stat}=await checkedFile(asset.path);
+    const assetPath=asset.originalRef||asset.path;
+    const {real,stat}=await checkedFile(assetPath);
     const hash=createHash('sha256');for await(const chunk of createReadStream(real))hash.update(chunk);const sha256=hash.digest('hex');
     if(asset.sha256)insist(asset.sha256===sha256,'预设原始素材哈希已改变','PRESET_INPUT_CHANGED');
     records.push({...asset,bytes:stat.size,sha256});

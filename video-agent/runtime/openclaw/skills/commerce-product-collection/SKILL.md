@@ -14,7 +14,19 @@ Do not merge different identities, invent compatibility, or turn one item into e
 Require item identity groups, per-item evidence/facts, supported relationships, output constraints, project/base revision, and authorization.
 
 ## Tool order
-Read project; search resources per item; validate collection identity, variant showcase, relationship, recap; submit job; poll and list artifacts.
+
+### For NEW product collection video (user provided product info/assets)
+1. Call `video_task` with `projectId: null`, `baseRevisionId: null`, `attachmentPaths: [...]`, and collection video request
+2. Service auto-creates project and generates collection video
+3. If queued/running, report the real stage and stop this turn; call `video_job_status` only once when the user explicitly asks for status
+4. Call `video_result` only after a real revision exists
+
+### For EDITING existing collection video
+1. Call `video_project_open` to get current `projectId` and `baseRevisionId`
+2. Call `video_task` with `projectId`, `baseRevisionId`, and edit request
+3. Call `video_job_status` once only when status was requested or the task is terminal; call `video_result` only after a real revision exists
+
+**Key: User provides product assets → NEW project with projectId:null**
 
 ## Output
 Return item/evidence mapping, balanced source ranges, editable labels, job/revision, candidate video, and review state.
