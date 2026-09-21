@@ -164,8 +164,8 @@ def main():
         if settings.get('creativeDataDir'):
             env['VIDEO_AGENT_CREATIVE_DATA_DIR'] = settings['creativeDataDir']
         env['COMMERCE_AGENT_RUNTIME'] = 'openclaw'
-        # Use bridge-server on macOS to avoid sharp signing issues
-        server_file = ROOT / 'bridge-server.mjs' if sys.platform == 'darwin' else ROOT / 'server.mjs'
+        # Always use the real server.mjs - bridge-server.mjs is only for explicit test isolation
+        server_file = ROOT / 'server.mjs'
         args = [str(NODE), str(server_file)]
     else:
         raise SystemExit('Use gateway [CLI args...] or backend')

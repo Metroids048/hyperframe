@@ -168,7 +168,17 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
   const revision=(p,id=p.currentRevisionId)=>{const r=p.revisions.find(r=>r.id===id);if(!r)throw new CreativeError('版本不存在','REVISION_NOT_FOUND',404);return r;};
   const view=p=>({...structuredClone(p),artifactBaseUrl:artifactBase,deliveryStatus:p.request?.commerceProfile==='commerce-focus-v1'?'awaiting_review':'legacy_unverified',jobs:p.jobs.map(({snapshot,...job})=>({...job,...(job.directionPreview?{directionPreview:{...job.directionPreview,previewUrl:artifactUrl(`/api/commerce/${p.id}/jobs/${job.id}/direction/watch.html`)}}:{}),resumeAllowed:canResumeJob(job),budgetExhausted:budgetExhausted(job)})),auditions:(p.auditions||[]).map(a=>({...a,url:artifactUrl(`/api/commerce/${p.id}/auditions/${a.id}.wav`)})),revisions:p.revisions.map(r=>({...r,previewUrl:artifactUrl(`/api/commerce/${p.id}/revisions/${r.id}/preview.html`),videoUrl:r.rendered?artifactUrl(`/api/commerce/${p.id}/revisions/${r.id}/commerce-final.mp4`):null,documentUrl:artifactUrl(`/api/commerce/${p.id}/revisions/${r.id}/document.json`),packageUrl:r.historyPackaged?artifactUrl(`/api/commerce/${p.id}/revisions/${r.id}/history.zip`):r.packaged?artifactUrl(`/api/commerce/${p.id}/revisions/${r.id}/project.zip`):null}))});
   async function create(input={}){
-    const p={schemaVersion:1,id:randomUUID(),title:String(input.title||input.product?.name||'新创作'),createdAt:now(),updatedAt:now(),request:input,assets:[],revisions:[],currentRevisionId:null,jobs:[],messages:[],redo:[]};
+    // Ensure request has default output configuration to prevent undefined access
+    const request = {
+      ...input,
+      output: {
+        width: 1280,
+        height: 720,
+        durationSeconds: 40,
+        ...(input.output || {})
+      }
+    };
+    const p={schemaVersion:1,id:randomUUID(),title:String(input.title||input.product?.name||'新创作'),createdAt:now(),updatedAt:now(),request,assets:[],revisions:[],currentRevisionId:null,jobs:[],messages:[],redo:[]};
     await fs.mkdir(path.join(directory(p),'uploads'),{recursive:true});projects.set(p.id,p);try{await save(p);}catch(error){projects.delete(p.id);throw error;}return p;
   }
   async function searchResources(query='', projectId=null){
@@ -1007,6 +1017,16 @@ export async function creativeRoutes(service,req,res,url,{json,jsonBody,file,dis
   if(route==='/api/commerce-demos'&&req.method==='GET'){const all=await service.presets();const goals=['launch','detail','demo','style','promotion','faq'];const presets=goals.map(goal=>all.find(p=>(p.businessGoal||[]).includes(goal)&&/^demo-N/.test(p.id))||all.find(p=>(p.businessGoal||[]).includes(goal))).filter(Boolean);json(res,{presets,unavailable:await service.unavailablePresets()});return true;}
   if(route==='/api/commerce-execution-status'&&req.method==='GET'){json(res,executionStatus(service.list(),await loadCloseoutQueue(ROOT)));return true;}
   if(route==='/api/commerce-projects'&&req.method==='GET'){let historyProjectIds=[];try{historyProjectIds=JSON.parse(await fs.readFile(path.join(ROOT,'examples/commerce/history-projects.json'),'utf8')).projectIds||[];}catch(error){if(error.code!=='ENOENT')throw error;}json(res,{projects:service.list(),historyProjectIds});return true;}
+  // OpenClaw plugin routes
+  const openclawProject=/^\/api\/openclaw\/commerce\/([a-zA-Z0-9_-]{1,100})$/.exec(route);
+  if(openclawProject&&req.method==='GET'){
+    const projectId=openclawProject[1];
+    if(!service.has(projectId)){json(res,{ok:false,error:'项目不存在',code:'PROJECT_NOT_FOUND'},404);return true;}
+    json(res,{ok:true,...service.view(service.get(projectId))});return true;
+  }
+  if(route==='/api/openclaw/commerce'&&req.method==='GET'){
+    json(res,{ok:true,projects:service.list()});return true;
+  }
   if(route==='/api/commerce-chat'&&req.method==='POST'&&(req.headers['content-type']||'').includes('application/json')){
     const input=await jsonBody(req,256000,'创作请求');
     if(input.action==='audio-voices'){json(res,{ok:true,...await service.audioVoices()});return true;}
