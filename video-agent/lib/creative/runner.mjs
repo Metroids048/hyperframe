@@ -145,17 +145,21 @@ export async function buildUploadedVideoProject(input, {root = VIDEO_AGENT_ROOT}
   }
   const source=(request.sourceAssetId&&prepared.find(a=>a.id===request.sourceAssetId&&a.kind==='video'))||prepared.find(a=>a.kind==='video');
   if(!source) throw new Error('原片导入需要视频素材');
+  const rebuildAll=Boolean(input.rebuildAllUploadedVideoSources);
+  const sources=rebuildAll?prepared.filter(a=>a.kind==='video'):[source];
+  if(rebuildAll&&sources.length<2)throw new Error('完整上传时间线至少需要两段视频素材');
   const requested=input.output||{};
   const width=Math.min(1920,Math.max(64,Number(requested.width??source.mediaMetadata.width??1080)))&~1;
   const height=Math.min(1920,Math.max(64,Number(requested.height??source.mediaMetadata.height??1920)))&~1;
   const durationFrames=Math.max(150,Math.min(18000,Math.round(source.mediaMetadata.duration*30)));
   const brief={id:stableId('brief',request.projectId,source.id),productId:null,name:source.name,facts:[],price:null,cta:'',audience:null,prohibited:[],assetIds:prepared.filter(a=>a.kind!=='audio').map(a=>a.id),assumptions:['原片编辑候选；商品身份与商业审核尚未确认。']};
   const design={id:'source-edit',background:'#111111',foreground:'#FFFFFF',panel:'#111111',accent:'#FFFFFF',accentContrast:'#111111',fontFamily:'"Microsoft YaHei", "PingFang SC", Arial, sans-serif',motionIntensity:0,transition:'dissolve-transition',safeAreas:{top:.06,right:.06,bottom:.07,left:.06},minReadFrames:48,easingFamily:'linear',output:{width,height}};
-  const scene={id:'scene-01-uploaded-source',purpose:'source',startFrame:0,durationFrames,effect:'media-cut',effectParams:{}};
-  const node={id:'video-'+source.id,sceneId:scene.id,semanticRole:'hero',kind:'video',assetId:source.id,anchor:'scene-local',localStartFrame:0,startFrame:0,localDurationFrames:durationFrames,durationFrames,params:{sourceStartSeconds:0,playbackRate:1,fit:'cover'}};
-  const title = uploadedVideoTitle(input.message);
-  const nodes=[node];
+  const sceneDurations=sources.map(clip=>Math.max(1,Math.min(18000,Math.round(clip.mediaMetadata.duration*30))));
+  const scenes=sources.map((clip,index)=>({id:rebuildAll?`scene-${String(index+1).padStart(2,'0')}-uploaded-source`:'scene-01-uploaded-source',purpose:'source',startFrame:0,durationFrames:sceneDurations[index],effect:'media-cut',effectParams:{}}));
+  const nodes=sources.map((clip,index)=>({id:'video-'+clip.id,sceneId:scenes[index].id,semanticRole:'hero',kind:'video',assetId:clip.id,anchor:'scene-local',localStartFrame:0,startFrame:0,localDurationFrames:sceneDurations[index],durationFrames:sceneDurations[index],params:{sourceStartSeconds:0,playbackRate:1,fit:'cover'}}));
+  const title = rebuildAll?null:uploadedVideoTitle(input.message);
   if(title){
+    const scene=scenes[0],node=nodes[0],titleDuration=Math.min(60,scene.durationFrames);
     nodes.push({
       id:stableId('title',request.projectId,source.id,title),
       sceneId:scene.id,
@@ -164,17 +168,25 @@ export async function buildUploadedVideoProject(input, {root = VIDEO_AGENT_ROOT}
       anchor:'scene-local',
       localStartFrame:0,
       startFrame:0,
-      localDurationFrames:Math.min(60,durationFrames),
-      durationFrames:Math.min(60,durationFrames),
+      localDurationFrames:titleDuration,
+      durationFrames:titleDuration,
       params:{text:title,immediate:true,style:{color:'#FFFFFF',fontSize:60,fontWeight:800}},
     });
   }
-  const document=createNativeDocument({projectId:request.projectId,output:{width,height,durationSeconds:durationFrames/30},brief,design,assets:prepared,scenes:[scene],nodes,transitions:[]});
-  document.scenePackage={kind:'uploaded-source',sourceAssetId:source.id,candidateOnly:true};
+  if(rebuildAll){
+    const credit=input.message?.match(/([A-Za-z][A-Za-z0-9 .'-]{1,80}\s*·\s*CC\s*BY\s*\d+(?:\.\d+)?)/i)?.[1]?.trim();
+    if(credit){
+      const scene=scenes.at(-1),duration=scene.durationFrames,localStart=Math.max(0,duration-Math.min(90,duration));
+      nodes.push({id:stableId('credit',request.projectId,credit),sceneId:scene.id,semanticRole:'caption',kind:'text',anchor:'scene-local',localStartFrame:localStart,startFrame:0,localDurationFrames:duration-localStart,durationFrames:duration-localStart,params:{text:credit,immediate:true,style:{color:'#FFFFFF',fontSize:28,fontWeight:600}}});
+    }
+  }
+  const document=createNativeDocument({projectId:request.projectId,output:{width,height,durationSeconds:rebuildAll?sceneDurations.reduce((sum,frames)=>sum+frames,0)/30:durationFrames/30},brief,design,assets:prepared,scenes,nodes,transitions:[]});
+  document.scenePackage=rebuildAll?{kind:'uploaded-source-timeline',sourceAssetIds:sources.map(item=>item.id),candidateOnly:true}:{kind:'uploaded-source',sourceAssetId:source.id,candidateOnly:true};
   if(title)document.scenePackage.titleNodeId=nodes.at(-1).id;
   document.businessContract={...businessContract({...request,scenarioId:'general',taskMode:'recut',message:request.message}),scenarioId:'general',taskMode:'recut',candidateOnly:true};
-  document.audioRequirements={original:Boolean(source.mediaMetadata.hasAudio)};
-  if(source.mediaMetadata.hasAudio)document.audioGraph=[{id:stableId('audio',node.id),assetId:source.id,role:'original',sourceNodeId:node.id,sceneId:scene.id,startFrame:0,durationFrames,sourceStartSeconds:0,playbackRate:1,volume:1}];
+  document.audioRequirements={original:sources.some(item=>item.mediaMetadata.hasAudio)};
+  document.audioGraph=sources.filter(item=>item.mediaMetadata.hasAudio).map((clip,index)=>({id:stableId('audio','video-'+clip.id),assetId:clip.id,role:'original',sourceNodeId:'video-'+clip.id,sceneId:scenes[index].id,startFrame:scenes[index].startFrame,durationFrames:sceneDurations[index],sourceStartSeconds:0,playbackRate:1,volume:1}));
+  validateDocument(document,Object.fromEntries(prepared.map(item=>[item.id,item])));
   const admission={status:'candidate_only',candidateOnly:true,contractHash:crypto.createHash('sha256').update(JSON.stringify(document.businessContract)).digest('hex'),assets:prepared.filter(a=>['video','image'].includes(a.kind)).map(a=>({assetId:a.id,sha256:a.sha256,identityStatus:'unknown',fullObservation:false,evidence:[],coverage:[],rights:a.rights||{status:'user-provided'}}))};
   await fs.writeFile(path.join(outputDir,'business-contract.json'),JSON.stringify(document.businessContract,null,2));
   await fs.writeFile(path.join(outputDir,'production-admission.json'),JSON.stringify(admission,null,2));

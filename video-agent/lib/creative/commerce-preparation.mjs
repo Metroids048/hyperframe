@@ -65,7 +65,12 @@ export function buildCommercePreparation(input={}, {project=null,mediaAcquisitio
   }
   if(mediaAcquisitionPolicy.external_media_download==='rights-gated')acquisitionSteps.push({id:'external_media_download',status:'rights-gated',label:'外部素材下载需权利核验'});
   const blockingGaps=[];
-  if(intent.scenario.status==='conflict')blockingGaps.push({field:'scenarioId',question:'文字目标与已选场景冲突，请确认本轮以哪个场景为准'});
+  // A repair message can quote the source sequence (研磨、填粉、组装…)
+  // while the selected business scenario remains product_launch.  In an
+  // existing project that sequence is data to rebuild, not a request to
+  // switch the business scenario to product_demo.
+  const explicitSourceRebuild=Boolean(project?.currentRevisionId&&['edit','recut'].includes(taskMode)&&input.scenarioId&&/(?:重建|按原始顺序|六段(?:素材|视频)|完整时间线)/u.test(message));
+  if(intent.scenario.status==='conflict'&&!explicitSourceRebuild)blockingGaps.push({field:'scenarioId',question:'文字目标与已选场景冲突，请确认本轮以哪个场景为准'});
   else if(intent.scenario.status==='ambiguous')blockingGaps.push({field:'scenarioId',question:'这轮同时包含多个主要场景，请确认最优先的一个目标'});
   if(!hasVisual&&!acquisitionSteps.some(step=>['available','rights-gated'].includes(step.status)))blockingGaps.push({field:'visuals',question:'当前没有可执行的素材来源，请提供一份商品图片或视频'});
   if(taskMode==='variant'&&!project?.currentRevisionId)blockingGaps.push({field:'baseRevisionId',question:'请打开要派生的真实成片工程'});

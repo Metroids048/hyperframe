@@ -4,13 +4,25 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import {ROOT} from '../lib/workflow.mjs';
 import {routeWorkbenchMessage} from '../lib/creative/message-routing.mjs';
-import {createCreativeService} from '../lib/creative/service.mjs';
+import {createCreativeService,isUploadedSourceWorkflow,isUploadedSourceRebuildWorkflow} from '../lib/creative/service.mjs';
 import {applyDocumentPatch} from '../lib/creative/patch.mjs';
 import {readNativeProject} from '../lib/creative/runner.mjs';
 import {productionWorkflowFromPlan} from '../lib/creative/workflow-design.mjs';
 import {completedEditSummary} from '../lib/creative/model-edit.mjs';
 
 const project={currentRevisionId:'r1',revisions:[{id:'r1'}],assets:[],jobs:[],request:{scenarioId:'product_demo'}};
+test('production briefs that only preserve uploaded media do not enter single-source edit shortcut',()=>{
+ const brief='用上传的六段咖啡实拍制作一条新品种草片，保留原声，不加旁白和音乐。';
+ assert.equal(isUploadedSourceWorkflow(brief,{kind:'video',mediaMetadata:{duration:8}}),false);
+ assert.equal(isUploadedSourceWorkflow('把这条上传的视频里的咖啡袋替换成蛋白粉，保留声音和时间轴',{kind:'video',mediaMetadata:{duration:8}}),true);
+});
+test('explicit rebuild requests route every unbound uploaded video into a new editable draft',()=>{
+ const project={currentRevisionId:'r1',assets:Array.from({length:6},(_,i)=>({id:'asset-'+i,kind:'video'}))};
+ const document={scenes:[{media:[{assetId:'asset-0'}]}]};
+ assert.equal(isUploadedSourceRebuildWorkflow('确认按原始顺序把六段上传素材重建为完整时间线并生成新候选',project,document),true);
+ assert.equal(isUploadedSourceRebuildWorkflow('保留原声，不加旁白和音乐',project,document),false);
+ assert.equal(isUploadedSourceRebuildWorkflow('把第一个镜头改成更清晰的开头',project,{scenes:[{media:[{assetId:'asset-0'},{assetId:'asset-1'},{assetId:'asset-2'},{assetId:'asset-3'},{assetId:'asset-4'},{assetId:'asset-5'}]}]}),false);
+});
 test('fresh uploaded source edits enter backend workflow without a native-base clarification',async()=>{
  const dataDir=await fs.mkdtemp(path.join(ROOT,'outputs/source-workflow-routing-'));
  const service=await createCreativeService({dataDir,routingProvider:{structured:async()=>{throw Error('source workflow must not ask the router to clarify');}}});

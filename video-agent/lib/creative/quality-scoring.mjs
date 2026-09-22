@@ -14,7 +14,7 @@ function boundObservedIssue(issue,mediaReview,playbackReview){
  * score remains the legacy engineering score for report compatibility; it
  * must never be presented as an aesthetic or listening pass.
  */
-export function scoreCommerceVideo({document={},visualIssues=[],mediaReview={},playbackReview={}}={}){
+export function scoreCommerceVideo({document={},visualIssues=[],mediaReview={},playbackReview={},observedQuality=null}={}){
   const scenes=Array.isArray(document.scenes)?document.scenes:[],nodes=Array.isArray(document.nodes)?document.nodes:[],transitions=Array.isArray(document.transitions)?document.transitions:[];
   const fps=document.fps||30,duration=(document.durationFrames||0)/fps,firstScene=scenes[0],timeline=document.directorTimeline||{},marketing=document.marketingPlan||{},hf=document.hyperframesDesignPlan||{};
   const firstDirector=timeline.shots?.[0],firstMedia=nodes.filter(n=>['image','video'].includes(n.kind)&&n.startFrame<3*fps);
@@ -44,32 +44,37 @@ export function scoreCommerceVideo({document={},visualIssues=[],mediaReview={},p
   if(mediaReview.status&&mediaReview.status!=='media-contract-passed')for(const key of dimensions)componentScores[key]=clamp(componentScores[key]-25);
   const weights={product_exposure:.16,first_three_seconds:.18,pacing:.12,captions:.1,motion:.12,transitions:.08,audio:.12,commercial_conversion:.12};
   const engineeringScore=clamp(Object.entries(weights).reduce((sum,[key,weight])=>sum+componentScores[key]*weight,0));
-  const threshold=78,hardMinimum=65,issues=[];
-  for(const [dimension,score] of Object.entries(componentScores))if(score<hardMinimum)issues.push({severity:score<45?'blocker':'major',dimension,score,problem:`${dimension} 低于商业最低线 ${hardMinimum}`,repair:`只修改与 ${dimension} 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。`,evidenceRefs:[]});
+  const threshold=78,hardMinimum=65,issues=[],engineeringDiagnostics=[];
+  // Engineering proxies can diagnose missing structure, but they are not
+  // evidence that a viewer found the film attractive or persuasive.
+  for(const [dimension,score] of Object.entries(componentScores))if(score<hardMinimum)engineeringDiagnostics.push({severity:score<45?'blocker':'major',dimension,score,problem:`${dimension} 低于工程诊断线 ${hardMinimum}`,repair:`检查 ${dimension} 的实际片段；只有观察到具体问题时才修改。`});
   issues.push(...boundIssues);
   if(hfPolicyPassed===false)issues.push({severity:'major',dimension:'motion',score:componentScores.motion,problem:'HyperFrames 场景差异化策略未兑现',repair:'回到 DirectorTimeline，只补齐当前场景要求的布局、字幕或动效意图，不改变已正确的素材和声音。',evidenceRefs:[]});
   const observedCoverage=fullVideoObserved&&(!audioRequired||audioPerceptionVerified);
-  if(observedCoverage&&engineeringScore<threshold&&!issues.some(i=>['blocker','major'].includes(i.severity))){const weakest=Object.entries(componentScores).sort((a,b)=>a[1]-b[1]).slice(0,2);issues.push({severity:'major',dimension:'overall',score:engineeringScore,problem:`自动结构评分 ${engineeringScore} 低于商业阈值 ${threshold}`,repair:'优先检查 '+weakest.map(([key])=>key).join('、')+' 对应的实际片段，依据可观察问题局部修复；不为提高分数增加无关效果。',evidenceRefs:[]});}
+  // Do not turn an uncalibrated structure score into a commercial-quality
+  // failure. An independent reviewer may add an observedQuality result.
   const suggestions=issues.map(issue=>issue.repair).filter(Boolean);
   const unreviewed=[];
   if(!fullVideoObserved){unreviewed.push('连续观片、节奏和动作完整性');suggestions.push('完成连续观片后再判断节奏、动作和转场；抽帧只证明抽帧时刻。');}
   if(audioRequired&&!audioPerceptionVerified){unreviewed.push('实际听感、发音、音乐／旁白／原声关系');suggestions.push('完成实际试听后再判断声音情绪、清晰度和音画同步；电平检查不代替听感。');}
   const revisionRequired=issues.some(i=>['blocker','major'].includes(i.severity))||(!observedCoverage&&Boolean(mediaReview.sha256)&&boundIssues.some(i=>['blocker','major'].includes(i.severity)));
-  const status=revisionRequired?'needs_revision':observedCoverage?'candidate_passed':'review_incomplete';
-  const observedComponents=observedCoverage?{...componentScores}:Object.fromEntries(dimensions.map(key=>[key,null]));
+  const status=revisionRequired?'needs_revision':(observedCoverage&&Number.isFinite(observedQuality?.score))?'candidate_reviewed':'review_incomplete';
+  const observedComponents=observedQuality?.components||Object.fromEntries(dimensions.map(key=>[key,null]));
   const evidenceBound=boundIssues.filter(i=>i.severity).every(i=>i.evidenceBound||!i.evidenceRefs?.length);
   return {
     schema_version:3,
     assessment_basis:'engineering_heuristics_bound_to_actual_mp4; observed_quality_requires_coverage',
     score:engineeringScore,
     engineering_score:engineeringScore,
-    observed_score:observedCoverage?engineeringScore:null,
-    score_meaning:'score measures engineering completeness and reported defects; it is not a commercial-quality or listening pass',
+    observed_score:Number.isFinite(observedQuality?.score)?observedQuality.score:null,
+    observed_quality_basis:observedQuality?.basis||'pending_independent_media_review',
+    score_meaning:'engineering_score measures implementation completeness; observed_score is supplied only by an independent media review and is never copied from engineering_score',
     threshold,
     hard_minimum:hardMinimum,
     components:componentScores,
-    observed_components:observedComponents,
+    observed_components:observedQuality?.components||observedComponents,
     issues,
+    engineering_diagnostics:engineeringDiagnostics,
     suggestions:[...new Set(suggestions)],
     revision_required:revisionRequired,
     coverage:{actual_mp4:Boolean(mediaReview.sha256),revision_id:mediaReview.revisionId||playbackReview.revisionId||null,final_mp4_sha256:mediaReview.sha256||playbackReview.finalVideoSha256||null,full_video_observed:fullVideoObserved,audio_required:audioRequired,audio_perception_verified:audioPerceptionVerified,evidence_bound:evidenceBound,unreviewed},

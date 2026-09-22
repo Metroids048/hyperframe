@@ -12,5 +12,5 @@ export class OpenClawMediaProvider extends CodexProvider {
  status(){return {...super.status(),configured:!!this.stage.token,checkingLogin:false,provider:'OpenClaw',model:this.stage.model,auth:'server-configured Gateway',verifiedAt:this.verifiedAt};}
  async refreshLogin(){return !!this.stage?.token;}
  async structured(...args){const result=await this.stage.structured(...args);this.verifiedAt=new Date().toISOString();return result;}
- async close(){await this.stage.close();await super.close();}
+ async close(){await this.stage?.close?.();await super.close();}
 }

@@ -23,9 +23,10 @@ export async function prepareFinalPlaybackReview(directory,document,{signal}={})
     await run(ffmpeg,['-y','-v','error','-ss',String(window.start),'-i',source,'-t',String(window.end-window.start),'-map','0:v:0','-map','0:a:0?','-vf','scale=960:960:force_original_aspect_ratio=decrease','-c:v','libx264','-preset','ultrafast','-crf','25','-c:a','aac','-pix_fmt','yuv420p',path.join(folder,file)],{signal,timeout:60000});
     clips.push({...window,file,sha256:await hashFile(path.join(folder,file)),metadata:await probe(path.join(folder,file),signal)});
   }
-  const manifest={version:1,revisionId:document.revisionId,finalVideoSha256:sha256,fullVideo:'../commerce-final.mp4',metadata,clips,
+  const manifest={version:2,revisionId:document.revisionId,finalVideoSha256:sha256,fullVideo:'../commerce-final.mp4',metadata,clips,
+    coverage:{method:'bounded_playback_windows',videoRangesPrepared:clips.map(c=>({start:c.start,end:c.end,file:c.file})),audioRangesPrepared:clips.filter(c=>c.metadata?.hasAudio).map(c=>({start:c.start,end:c.end,file:c.file})),fullVideoObserved:false,audioPerceptionVerified:false},
     fullVideoObserved:false,audioPerceptionVerified:false,status:'awaiting_review',
-    reviewTasks:['完整观看全片并试听','回看每个切点与字幕切换','核对商品、动作、声音与合同','记录缺陷时间和当前版本']};
+    reviewTasks:['完整观看全片并试听','回看每个切点与字幕切换','核对商品、动作、声音与合同','记录缺陷时间和当前版本'],unreviewed:['完整连续运动、节奏与动作闭环','实际听感、音画同步和音乐是否压住重点']};
   await fs.writeFile(path.join(folder,'playback-manifest.json'),JSON.stringify(manifest,null,2));
   // All interpolated values are generated numeric times or bounded filenames.
   const html='<!doctype html><meta charset="utf-8"><title>成片连续审阅</title><style>body{max-width:1000px;margin:24px auto;padding:0 20px;font:16px system-ui;background:#151515;color:#eee}video{width:100%;max-height:70vh}section{margin:32px 0}a{color:#9bd7ff}</style><h1>成片连续审阅 · 待确认</h1><p>请先完整观看并试听，再回看切点。生成审阅文件不代表画面、动作或声音已通过。</p><video controls preload="metadata" src="../commerce-final.mp4"></video>'+clips.map(c=>`<section><h2>${c.kind} · ${c.start.toFixed(2)}–${c.end.toFixed(2)} 秒</h2><video controls preload="none" src="${c.file}"></video></section>`).join('');

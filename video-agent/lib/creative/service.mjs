@@ -154,8 +154,34 @@ export function isUploadedSourceWorkflow(message,hasUploadedSource){
   if(!hasUploadedSource)return false;
   const text=String(message||'');
   const refersToSource=/(?:这(?:条|段|个)?视频|本视频|该视频|视频中|视频里|上传(?:的|视频)?|素材|原片|原视频)/u.test(text);
-  const requestsWork=/(?:编辑|修改|调整|替换|换成|改成|改为|重剪|裁剪|加上|添加|去掉|移除|保留)/u.test(text);
+  // "保留原声/素材" is a production constraint, not an instruction to
+  // treat a multi-asset brief as a single uploaded-source edit.  The old
+  // shortcut matched that wording and silently discarded every video after
+  // the first one.  Keep the shortcut for explicit source edits only.
+  // Do not treat the noun phrase “可编辑时间线” as an edit command. A
+  // rebuild brief commonly contains that phrase while asking for a complete
+  // multi-asset timeline; routing it to the single-source shortcut silently
+  // drops every clip after the first one.
+  const requestsWork=/(?:(?<!可)编辑|修改|调整|替换|换成|改成|改为|重剪|裁剪|加上|添加|去掉|移除)/u.test(text);
   return refersToSource&&requestsWork;
+}
+// A prior candidate may contain only the first uploaded clip even though the
+// project still owns the complete upload set.  When the user explicitly asks
+// to rebuild that set in order, route it through the existing new-project
+// branch so every tracked source is copied into a fresh editable timeline.
+// This stays narrow: ordinary edits and preservation constraints never trigger
+// a rebuild implicitly.
+export function isUploadedSourceRebuildWorkflow(message,project,document){
+  const text=String(message||'');
+  const videos=(project?.assets||[]).filter(asset=>asset?.kind==='video');
+  if(!project?.currentRevisionId||videos.length<2)return false;
+  const bound=new Set([
+    ...(document?.scenes||[]).flatMap(scene=>(scene?.media||[]).map(media=>media.assetId).filter(Boolean)),
+    ...(document?.nodes||[]).map(node=>node?.assetId).filter(Boolean),
+  ]);
+  if(bound.size>=videos.length)return false;
+  return /(?:重建|重新制作|按原始顺序|全部(?:上传)?素材|六段(?:素材|视频)|完整时间线)/u.test(text)
+    && /(?:素材|视频|时间线|候选|片)/u.test(text);
 }
 function needsExternalReplacementIntent(message,routeDecision={}){
   const text=String(message||'').trim();
@@ -326,12 +352,15 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
           : null)
       );
       const sourceEditIntent=isUploadedSourceWorkflow(input.message,uploadedSource);
+      const sourceRebuildIntent=isUploadedSourceRebuildWorkflow(input.message,p,document);
       try{
         // Routing a fresh uploaded source through the ordinary "edit existing
         // revision" clarifier loses the user's small change because no native
         // revision exists yet.  Select the deterministic source-first create
         // route before the model router in this one unambiguous case.
-        route=sourceEditIntent
+        route=sourceRebuildIntent
+          ? {mode:'create',scenarioId:input.scenarioId||p.request?.scenarioId||analyzeCommerceRouting(input.message).scenario.id||'general',scenario:input.scenarioId||p.request?.scenarioId||analyzeCommerceRouting(input.message).scenario.id||'general',taskMode:'create',taskModeExplicit:true,assetIds:p.assets.filter(asset=>asset.kind==='video').map(asset=>asset.id),targets:[{id:null,kind:'visual',requirement:input.message}],preserve:['source-assets','unmentioned-objects','revision-history'],reason:'explicit-upload-source-rebuild'}
+          : sourceEditIntent
           ? {mode:'create',scenarioId:input.scenarioId||p.request?.scenarioId||analyzeCommerceRouting(input.message).scenario.id||'general',scenario:input.scenarioId||p.request?.scenarioId||analyzeCommerceRouting(input.message).scenario.id||'general',taskMode:input.taskMode==='create'?'recut':(input.taskMode||'recut'),taskModeExplicit:true,assetIds:[uploadedSource.id],targets:[{id:null,kind:'visual',requirement:input.message}],preserve:['source-assets','unmentioned-objects','revision-history'],reason:'fresh-upload-source-workflow'}
           : await routeWorkbenchMessage(p,input.message,{provider:routingProvider,document,taskMode:input.taskMode||input.request?.taskMode,taskModeExplicit:input.taskModeExplicit??input.request?.taskModeExplicit,scenarioId:input.scenarioId||input.request?.scenarioId||p.request?.scenarioId,conversation});
       }
@@ -379,7 +408,7 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
         request.businessContract=businessContract(request);resultProject=await create(request);
         for(const id of route.assetIds){const asset=p.assets.find(a=>a.id===id),source=safeRelativePath(root,asset.path),target=path.join(directory(resultProject),'uploads',asset.id+path.extname(source));await linkOrCopy(source,target);resultProject.assets.push({...structuredClone(asset),path:path.relative(root,target).replaceAll('\\','/')});}
         resultProject.creationSource={projectId:p.id,revisionId:base,assetIds:route.assetIds};await save(resultProject);
-        if(resultProject.assets.length)await enqueue(resultProject,{action:'generate',message:input.message,attachmentIds:[...(input.attachmentIds||[])],idempotencyKey:input.idempotencyKey});
+        if(resultProject.assets.length)await enqueue(resultProject,{action:'generate',message:input.message,attachmentIds:[...(input.attachmentIds||[])],idempotencyKey:input.idempotencyKey,routeDecision:route});
         else resultProject.messages.push({role:'assistant',text:'新制作已独立保存，请添加这条新视频要使用的素材。',time:now()});
         await save(resultProject);
       }else await enqueue(p,{...executionInput,action:base?'patch':'generate',routeDecision:route,taskMode:route.taskMode||route.mode,taskModeExplicit:true,scenarioId:route.scenarioId||route.scenario||input.scenarioId||input.request?.scenarioId});
@@ -758,7 +787,8 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
             ? p.assets.find(a=>a?.kind==='video'&&a.mediaMetadata?.duration)
             : null)
         );
-        const sourceWorkflowRequested=isUploadedSourceWorkflow(job.input.message,uploadedSource);
+        const sourceRebuildWorkflow=job.input.routeDecision?.reason==='explicit-upload-source-rebuild';
+        const sourceWorkflowRequested=!sourceRebuildWorkflow&&isUploadedSourceWorkflow(job.input.message,uploadedSource);
         if(sourceWorkflowRequested){
           const objectReplacementRequested=/(?:替换|换成|改成|改为)/u.test(job.input.message||'')
             && /(?:袋|蛋白粉|商品|产品|主体|物体|对象)/u.test(job.input.message||'')
@@ -798,7 +828,7 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
           job.skipAutoQualityRevision=true;
           job.stage='建立上传原片初始工程';await save(p);
           const dir=path.join(directory(p),'versions',job.id);
-          await buildUploadedVideoProject({...p.request,projectId:p.id,assets:p.assets,outputDir:path.relative(root,dir).replaceAll('\\','/'),message:job.input.message,signal,onStage:async stage=>{job.stage=stage;await save(p);}},{root});
+          await buildUploadedVideoProject({...p.request,projectId:p.id,assets:p.assets,outputDir:path.relative(root,dir).replaceAll('\\','/'),message:job.input.message,rebuildAllUploadedVideoSources:sourceRebuildWorkflow,signal,onStage:async stage=>{job.stage=stage;await save(p);}},{root});
           const {document}=await readNativeProject(dir);p.title=document.brief.name;const created=await publish(p,job,dir,document,'上传原片初始版本');await candidateExport(p,job,created,signal);job.summary=isUploadedSourceShortcut(job.input.message,uploadedSource)?'已按上传原片的真实时长建立独立可编辑工程，并应用本轮局部修改，导出候选视频。':'已按上传原片的真实时长建立独立可编辑工程并导出候选视频，后续编辑将基于该工程继续执行。';job.status='complete';job.completedAt=now();p.messages.push({role:'assistant',text:job.summary,time:now()});return;
         }
         if(job.revisionId&&p.revisions.some(r=>r.id===job.revisionId)){

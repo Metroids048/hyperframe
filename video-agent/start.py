@@ -8,7 +8,7 @@
   python start.py              交互菜单
   python start.py all          构建前端并启动后端（完整项目）
   python start.py frontend     只构建前端
-  python start.py backend      只启动后端（需已有 web-dist）
+  python start.py backend      只启动后端（需已有 web-dist，不打开工作台）
   python start.py push         把当前工程、素材和本机配置推送到 origin
   python start.py stop         停止后端
   python start.py status       查看状态
@@ -381,8 +381,6 @@ def dispatch(action: str) -> int:
         build_frontend()
     elif action == "backend":
         start_backend(rebuild=False)
-        if ready():
-            open_browser()
     elif action == "stop":
         stop_backend()
     elif action == "status":

@@ -3,6 +3,11 @@ import {resourceHash} from './capabilities.mjs';
 
 export const nativeRecipeContract={version:4,layoutVariants:{'video-text-pivot':['auto','step-strip'],'comparison-split':['auto','detail-focus']},resources:['lt-mask-reveal','titlecard-reveal','kinetic-type-beats',...commerceLayoutResources],methods:['footage-cut','parameterized','composition-adapt','original'],limits:{media:4,texts:5,maxTextCharacters:80,minSeconds:2},resourceLimits:{'lt-mask-reveal':{media:1,texts:2},'titlecard-reveal':{media:1,texts:2},'kinetic-type-beats':{media:0,texts:3,maxTextCharacters:32,minSeconds:3},'comparison-split':{media:2,texts:3,minSeconds:3},'grid-card-assemble':{media:4,texts:5,minSeconds:3},'video-text-pivot':{media:1,texts:3,minSeconds:3,requiresVideo:true}}};
 
+export function isCoreExpressiveShot(shot={}){
+ const text=[shot.purpose,shot.newInformation,shot.visualDirection,shot.editorialDecision?.placementReason].join(' ');
+ return shot.coreExpressive===true||shot.priority==='hero'||/(?:hero|hook|卖点|核心|开场|片尾|结尾|cta|行动)/i.test(text);
+}
+
 /** Reviewed local implementations derived from the pinned source blueprints.
  * Text and media are bound by the native compiler, never interpolated as HTML.
  * Unrepresentable requests keep the original authoring route.
@@ -10,6 +15,10 @@ export const nativeRecipeContract={version:4,layoutVariants:{'video-text-pivot':
 export function instantiateNativeRecipe(shot,design,output,assets){
   const method=shot.productionMethod;
   if(!['footage-cut','parameterized'].includes(method))return null;
+  // Stable recipes remain useful for supporting information. Core memory
+  // points must opt into composition-adapt/original so a generic plate cannot
+  // silently become the whole creative idea.
+  if(method==='parameterized'&&isCoreExpressiveShot(shot)&&shot.allowParameterizedCore!==true)return null;
   if(shot.layoutVariant&&shot.layoutVariant!=='auto'&&!commerceLayoutResources.includes(shot.resourceId))return null;
   if(method==='parameterized'&&shot.resourceId==='kinetic-type-beats'){
     if(shot.media.length||!shot.text.length||shot.text.length>3||shot.text.some(t=>[...t.text].length>32)||shot.durationSeconds<3)return null;
