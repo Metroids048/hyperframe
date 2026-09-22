@@ -48,7 +48,13 @@ export function buildCommercePreparation(input={}, {project=null,mediaAcquisitio
   const product=input.product||project?.request?.product||intent.product||null;
   const platform=input.platform||intent.platform?.id||project?.request?.platform||null;
   const inferred=intent.outputConstraints||{};
-  const output={width:1080,height:1920,durationSeconds:30,...(project?.request?.output||{}),...Object.fromEntries(Object.entries(inferred).filter(([key,value])=>['width','height','durationSeconds'].includes(key)&&value!=null)),...(input.output||{})};
+  // A draft created only to persist preparation receives generic service
+  // defaults. They are not user choices and must not override platform-aware
+  // orchestration defaults.
+  const inheritedOutput=project?.request?.source==='openclaw-preparation'&&!project?.currentRevisionId
+    ? {}
+    : (project?.request?.output||{});
+  const output={width:1080,height:1920,durationSeconds:30,...inheritedOutput,...Object.fromEntries(Object.entries(inferred).filter(([key,value])=>['width','height','durationSeconds'].includes(key)&&value!=null)),...(input.output||{})};
   const audio=audioPlan(message,input.audio||project?.request?.audioRequirements);
   const assets=project?.assets||[];
   const hasVisual=assets.some(asset=>['image','video'].includes(asset.kind));

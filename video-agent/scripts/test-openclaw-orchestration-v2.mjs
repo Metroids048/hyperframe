@@ -5,6 +5,7 @@ import path from 'node:path';
 import test from 'node:test';
 
 import {createCommerceEngineFacade} from '../lib/openclaw/commerce-engine-facade.mjs';
+import {buildCommercePreparation} from '../lib/creative/commerce-preparation.mjs';
 import {businessContract} from '../lib/creative/commerce-focus.mjs';
 import {productionPolicy} from '../lib/creative/production-policy.mjs';
 import {bindOpenClawJobProgress,createOpenClawProgressNotifier,progressEventText} from '../lib/openclaw/progress-notifier.mjs';
@@ -14,6 +15,13 @@ const context={trusted:true,workspaceId:'workspace-v2',sessionKey:'openclaw:sess
 function fakeProject(){
   return {id:'project-v2',title:'Coffee launch',currentRevisionId:null,assets:[],revisions:[],jobs:[],request:{}};
 }
+
+test('xiaohongshu preparation drafts use portrait defaults instead of service placeholders',()=>{
+  const project={...fakeProject(),request:{source:'openclaw-preparation',output:{width:1280,height:720,durationSeconds:40}}};
+  const preparation=buildCommercePreparation({message:'帮我做一个适合小红书的咖啡机新品种草视频。',taskMode:'create',scenarioId:'product_launch',platform:'小红书'},{project,mediaAcquisitionPolicy:{local_library:'allowed',web_research:'allowed',runninghub_generation:'allowed'}});
+  assert.deepEqual(preparation.output,{width:1080,height:1920,durationSeconds:30});
+  assert.match(preparation.optimizedBrief,/画幅：1080:1920/);
+});
 
 test('controlled orchestration tools are model-visible and video_task preserves structured intent',async()=>{
   const project=fakeProject();

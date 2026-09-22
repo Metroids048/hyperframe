@@ -22,6 +22,18 @@ ROOT = Path(os.environ.get('VIDEO_AGENT_ROOT') or Path(__file__).resolve().paren
 HOST = Path.home() / '.openclaw/hyperframe'
 EXPECTED_VERSION = '2026.6.11'
 
+def sync_runtime_workspace():
+    """Deploy the reviewed OpenClaw contract before starting local services."""
+    source = ROOT / 'runtime/openclaw'
+    target = HOST / 'workspace'
+    target.mkdir(parents=True, exist_ok=True)
+    for name in ('AGENTS.md', 'skills-lock.json'):
+        shutil.copy2(source / name, target / name)
+    for skill_file in sorted((source / 'skills').glob('*/SKILL.md')):
+        destination = target / 'skills' / skill_file.parent.name / 'SKILL.md'
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(skill_file, destination)
+
 def find_node():
     configured = os.environ.get('OPENCLAW_NODE') or os.environ.get('VIDEO_AGENT_NODE')
     candidates = [configured, str(ROOT / 'node_modules/.bin/node'), shutil.which('node'), str(Path.home() / '.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node')]
@@ -45,6 +57,8 @@ def main():
     env['PATH'] = str(NODE.parent) + os.pathsep + env.get('PATH', '')
     mode = sys.argv[1] if len(sys.argv) > 1 else 'gateway'
     if mode in ('start', 'status'):
+        if mode == 'start':
+            sync_runtime_workspace()
         settings = json.loads((ROOT / 'config/start.local.json').read_text())
         gateway_port = int(os.environ.get('OPENCLAW_GATEWAY_PORT', 18789))
         endpoints = {'gateway': (gateway_port, '/healthz'), 'backend': (int(settings.get('port', 3024)), '/health')}
