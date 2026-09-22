@@ -126,10 +126,14 @@ export async function planWorkbenchWorkflow({root,message,document=null,assets=[
   }
   const blockers=[...order.gaps.filter(g=>g.blocking).map(g=>({code:'MISSING_INPUT',field:g.field,nextAction:g.question})),
     ...resources.filter(r=>r.requirement.required&&!['resolved','excluded','source_pending_observation'].includes(r.status)).map(r=>({code:'RESOURCE_UNAVAILABLE',field:r.requirement.quote,nextAction:'保留指定要求；补齐兼容执行器或明确选择替代，不自动偷换'}))];
-  if(!assets.some(a=>['image','video'].includes(a.kind))&&!document)blockers.push({code:'MISSING_ASSETS',field:'visuals',nextAction:'提供目标素材；已保存需求，不生成占位素材'});
+  const acquisitionPolicy=intake.mediaAcquisitionPolicy||{};
+  const canAcquireMedia=['local_library','web_research','runninghub_generation'].some(key=>acquisitionPolicy[key]==='allowed')
+    || acquisitionPolicy.external_media_download==='rights-gated';
+  if(!assets.some(a=>['image','video'].includes(a.kind))&&!document&&!canAcquireMedia)blockers.push({code:'MISSING_ASSETS',field:'visuals',nextAction:'当前服务端素材获取策略没有可执行来源，请提供一份商品图片或视频'});
   for(const blocker of blockers)blocker.recovery=recoveryDecision({code:blocker.code});
   const result={schemaVersion:1,validationRepairs,id:'plan-'+hash({order,skills,resources}).slice(0,20),workOrder:order,skills,
     scenePackage:packageRules?{id:packageRules.id,hash:packageRules.hash,stages:Object.fromEntries(['R1','R2','R3','R4','R5','R6'].map(s=>[s,sceneContext(packageRules,s)]))}:null,
+    mediaAcquisition:{policy:structuredClone(acquisitionPolicy),required:!assets.some(a=>['image','video'].includes(a.kind))&&!document,status:canAcquireMedia?'planned':'not_available'},
     auxiliaryPackages,resources,stages:workflowStages(order.mode),blockers,status:blockers.length?'needs_input':'planned_pending_observation',
     nextAction:blockers[0]?.nextAction||'按制作单观察真实素材；计划完成不代表准入或质量通过',
     provenance:{model:answer.model||'injected-test-provider',catalogHash:catalog.discovery.data.contentHash,runtime:'0.8.33'},

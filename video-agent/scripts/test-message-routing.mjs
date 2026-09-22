@@ -11,6 +11,20 @@ import {productionWorkflowFromPlan} from '../lib/creative/workflow-design.mjs';
 import {completedEditSummary} from '../lib/creative/model-edit.mjs';
 
 const project={currentRevisionId:'r1',revisions:[{id:'r1'}],assets:[],jobs:[],request:{scenarioId:'product_demo'}};
+test('fresh uploaded source edits enter backend workflow without a native-base clarification',async()=>{
+ const dataDir=await fs.mkdtemp(path.join(ROOT,'outputs/source-workflow-routing-'));
+ const service=await createCreativeService({dataDir,routingProvider:{structured:async()=>{throw Error('source workflow must not ask the router to clarify');}}});
+ const p=await service.create({message:'',inferRequest:true});
+ p.assets.push({id:'asset-source-video',kind:'video',name:'source.mp4',path:'missing-source.mp4',mediaMetadata:{duration:10,width:1280,height:720,hasAudio:true}});
+ await service.dispatchMessage(p,{message:'把这条上传的视频里的咖啡袋替换成蛋白粉，保留声音和时间轴',attachmentIds:['asset-source-video'],idempotencyKey:'source-workflow-routing-123456'});
+ const deadline=Date.now()+5000;
+ while(p.jobs.some(job=>['queued','running'].includes(job.status))&&Date.now()<deadline)await new Promise(resolve=>setTimeout(resolve,20));
+ const receipt=p.routingReceipts.at(-1);
+ assert.equal(receipt.mode,'create');
+ assert.equal(receipt.reason,'fresh-upload-source-workflow');
+ assert.equal(p.jobs[0].kind,'create');
+ assert.notEqual(p.messages.at(-1)?.text,'请先打开要修改或派生的原生工程。');
+});
 test('local download wording survives global routing integration and honors explicit mode',async()=>{
  const provider={structured:()=>{throw Error('unnecessary model for download');}};
  for(const message of ['下载当前视频为MP4','请导出当前版本']){

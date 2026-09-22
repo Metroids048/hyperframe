@@ -12,6 +12,9 @@ OPENCLAW_BIN="/Users/a1234/.local/share/hyperframe-openclaw/2026.6.11/node_modul
 
 echo "🚀 启动 OpenClaw Gateway..."
 
+# Re-apply the pinned runtime compatibility fix after upgrades/restarts.
+"$NODE_BIN" "$PROJECT_ROOT/scripts/repair-openclaw-runtime.mjs"
+
 # 检查环境文件
 if [ ! -f "$OPENCLAW_DIR/environment.json" ]; then
   echo "❌ 错误: 环境文件不存在: $OPENCLAW_DIR/environment.json"
@@ -20,12 +23,7 @@ fi
 
 # 加载环境变量
 echo "📦 加载环境变量..."
-source <(cat "$OPENCLAW_DIR/environment.json" | $NODE_BIN -e "
-const env = JSON.parse(require('fs').readFileSync('/dev/stdin', 'utf8'));
-for (const [key, value] of Object.entries(env)) {
-  console.log('export ' + key + '=\"' + value + '\"');
-}
-")
+eval "$(cat "$OPENCLAW_DIR/environment.json" | $NODE_BIN -e "const env = JSON.parse(require('fs').readFileSync('/dev/stdin', 'utf8')); for (const [key, value] of Object.entries(env)) console.log('export ' + key + '=\"' + value + '\"');")"
 
 # 检查配置文件
 if [ ! -f "$OPENCLAW_DIR/openclaw.json" ]; then
@@ -44,11 +42,15 @@ if [ -f "$OPENCLAW_DIR/gateway.pid" ]; then
 fi
 
 # 启动 Gateway
+# Explicitly pin config/state so restart does not depend on shell export parsing.
+export OPENCLAW_CONFIG_PATH="$OPENCLAW_DIR/openclaw.json"
+export OPENCLAW_STATE_DIR="$OPENCLAW_DIR/state"
+export VIDEO_AGENT_BRIDGE_URL="${VIDEO_AGENT_BRIDGE_URL:-http://127.0.0.1:3024}"
 cd "$OPENCLAW_DIR"
 echo "🌟 启动 Gateway (端口: 18789)..."
 
-node /Users/a1234/.local/share/hyperframe-openclaw/2026.6.11/node_modules/.pnpm/openclaw@2026.6.11/node_modules/openclaw/openclaw.mjs \
-  gateway > "$OPENCLAW_DIR/gateway.log" 2>&1 &
+nohup "$NODE_BIN" "$OPENCLAW_BIN" \
+  gateway run > "$OPENCLAW_DIR/gateway.log" 2>&1 < /dev/null &
 
 GATEWAY_PID=$!
 echo $GATEWAY_PID > "$OPENCLAW_DIR/gateway.pid"
@@ -66,7 +68,7 @@ if ps -p $GATEWAY_PID > /dev/null 2>&1; then
     echo "   - 日志: $OPENCLAW_DIR/gateway.log"
     echo ""
     echo "📱 访问 WebUI:"
-    echo "   http://127.0.0.1:18789/chat?agent=commerce-control&session=main"
+    echo "   http://127.0.0.1:18789/chat?agent=commerce-control"
     exit 0
   else
     echo "❌ Gateway 进程存在但端口未监听"

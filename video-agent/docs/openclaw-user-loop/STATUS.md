@@ -42,4 +42,6 @@
 - `npm test` 的实际步骤 `node scripts/build-web.mjs` 与 `node scripts/acceptance.mjs` 通过，acceptance 为 20/20。本机打包 Node 目录没有 `npm` 可执行文件，因此按 `package.json` 等价拆分执行。
 - Gateway/backend：`python3 scripts/openclaw-local.py status` 均为 ready。
 
-入口：`http://127.0.0.1:18789/status/chat?session=main`。播放：`http://127.0.0.1:3024/api/commerce/8e608f0a-7a74-445f-85db-52aaf72fa38b/revisions/rev-b0729b3c8d3f0ccf/commerce-final.mp4`。下载在该 URL 后加 `?download=1`。
+入口：`http://127.0.0.1:18789/chat?agent=commerce-control`。播放：`http://127.0.0.1:3024/api/commerce/8e608f0a-7a74-445f-85db-52aaf72fa38b/revisions/rev-b0729b3c8d3f0ccf/commerce-final.mp4`。下载在该 URL 后加 `?download=1`。
+
+**注意**：不要在 URL 中使用 `session=main` 参数，这会导致 "unknown parent session" 错误。

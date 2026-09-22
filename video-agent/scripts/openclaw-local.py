@@ -14,7 +14,11 @@ import time
 import shutil
 import urllib.request
 
-ROOT = Path(__file__).resolve().parents[1]
+# Finder-launched .command files can be allowed to read Desktop while the
+# system Python process is denied direct script access by macOS privacy
+# controls.  The launcher may stage this file in /tmp; keep the real project
+# root explicit so child backend/gateway processes still use this checkout.
+ROOT = Path(os.environ.get('VIDEO_AGENT_ROOT') or Path(__file__).resolve().parents[1]).resolve()
 HOST = Path.home() / '.openclaw/hyperframe'
 EXPECTED_VERSION = '2026.6.11'
 
@@ -47,6 +51,9 @@ def main():
         child_env = dict(env)
         child_env['VIDEO_AGENT_PORT'] = str(endpoints['backend'][0])
         child_env['VIDEO_AGENT_BRIDGE_URL'] = f"http://127.0.0.1:{endpoints['backend'][0]}"
+        # The Gateway loads the commerce plugin in its own child process. Keep
+        # the bridge endpoint in that environment too; otherwise the plugin's
+        # ${VIDEO_AGENT_BRIDGE_URL} config cannot resolve after a Finder restart.
         if settings.get('dataDir'): child_env['VIDEO_AGENT_DATA_DIR'] = str(settings['dataDir'])
         if settings.get('editDataDir'): child_env['VIDEO_AGENT_EDIT_DATA_DIR'] = str(settings['editDataDir'])
         if settings.get('creativeDataDir'): child_env['VIDEO_AGENT_CREATIVE_DATA_DIR'] = str(settings['creativeDataDir'])

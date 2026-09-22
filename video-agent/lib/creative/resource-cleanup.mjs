@@ -138,6 +138,7 @@ export function startPeriodicCleanup(dataDir, intervalMs = 300000) {
       console.error('[ResourceCleanup] 定期清理失败:', error);
     }
   }, intervalMs);
+  timer.unref?.();
 
   // 返回停止函数
   return () => {

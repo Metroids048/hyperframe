@@ -16,15 +16,17 @@ Require the trusted session context and current user request. A selected project
 ## Tool order
 
 ### For NEW requests (with or without uploaded files)
-1. Call `video_task` directly with these parameters:
+1. Call `video_prepare` with the natural-language request and any structured intake fields. Display its `optimizedBrief`, `product`, `platform`, `marketingObjective`, `taskMode`, `scenarioId`, `output`, `audio`, `assumptions`, `blockingGaps`, acquisition steps, and selected skills.
+2. Call `video_resource_search` using the preparation queries. If product facts or visual references need evidence, call `video_web_research`; treat returned media as reference-only unless a separate rights check approves it.
+3. If preparation returns `needs_input`, ask only its first blocking question and do not start production. Otherwise call `video_task` with the preparation context and these parameters:
    - `projectId: null`
    - `baseRevisionId: null`
    - `attachmentPaths: [...]` or `attachmentIds: [...]` when the Control UI supplied them
    - `message: "user's natural language request"`
    - `operationId: "unique-id"`
    - `authorizationId: "from-context"`
-2. The service will automatically create a new project and return `projectId` and `baseRevisionId`
-3. If the returned job is already terminal, call `video_job_status` once and then `video_result`; if it is queued/running, report the real job and stop this turn instead of polling repeatedly
+4. The service will automatically create a new project and return `projectId` and `baseRevisionId`
+5. If the returned job is already terminal, call `video_job_status` once and then `video_result`; if it is queued/running, report the business stage and stop this turn instead of polling repeatedly. Internal IDs stay hidden unless diagnostic details were requested.
 
 **Example video_task call for new project:**
 ```json
@@ -73,7 +75,7 @@ For a text-only request, use the same call with `projectId: null`, `baseRevision
 - **Uploaded paths are opaque `media://inbound/...` receipts; never rewrite them as local filesystem paths.**
 
 ## Output
-Return the actual projectId, baseRevisionId, operationId, jobId, current stage, result revision, artifacts, warnings, and delivery state supplied by the service.
+Return the current business stage, artifacts, warnings, delivery state, MP4 preview/download, native project entry, and HyperFrames summary supplied by the service. Retain projectId, baseRevisionId, operationId, jobId, and revisionId internally; show them only in explicit diagnostic output.
 
 ## Preserve
 Carry an explicit keep-set for all unmentioned native objects, facts, source ranges, audio, captions, history, and delivery evidence.

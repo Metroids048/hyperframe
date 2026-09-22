@@ -46,9 +46,8 @@ export function businessContract(input={}){
     product:structuredClone(input.product||{}),output:structuredClone(input.output||{}),audio,
     mustHave:structuredClone(input.mustHave||[]),mustNot:structuredClone(input.mustNot||input.product?.prohibited||[]),
     explicitConstraints:explicitBusinessConstraints(message,workflow),
-    // Existing generated inputs remain inspectable; new product generation
-    // is paused by the server-owned production policy.
-    generatedFootageAllowed:false,deliverables:['candidate_mp4','editable_project','source_index','quality_report']};
+    mediaAcquisitionPolicy:input.mediaAcquisitionPolicy?structuredClone(input.mediaAcquisitionPolicy):null,
+    deliverables:['candidate_mp4','editable_project','source_index','quality_report']};
 }
 
 /** Uses a local, source-hash keyed review registry, never client approval flags. */

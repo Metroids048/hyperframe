@@ -30,6 +30,7 @@ import {acquireDirectoryLeases} from './lib/openclaw/directory-lease.mjs';
 import {createOpenClawSessionBindings} from './lib/openclaw/session-bindings.mjs';
 import {createOpenClawExecutionAuthorizations} from './lib/openclaw/execution-authorizations.mjs';
 import {createCommerceAgentBridge,stableControlOperationId} from './lib/openclaw/commerce-agent-bridge.mjs';
+import {bindOpenClawJobProgress,createOpenClawProgressNotifier} from './lib/openclaw/progress-notifier.mjs';
 
 // The native OpenClaw gateway and the workbench are launched by separate
 // processes.  The gateway's launch agent persists their shared, non-source
@@ -61,6 +62,7 @@ const writerLeases=await acquireDirectoryLeases([DATA,EDIT_DATA,CREATIVE_DATA,pa
 const editor=await createEditService({dataDir:EDIT_DATA});
 const creative=await createCreativeService({dataDir:CREATIVE_DATA});
 const openclawAuthorizations=createOpenClawExecutionAuthorizations({file:OPENCLAW_AUTHORIZATIONS});
+const openclawProgressNotifier=createOpenClawProgressNotifier();
 const commerceEngine=createCommerceEngineFacade(creative,{journalPath:OPENCLAW_JOURNAL,authorizeWrite:request=>openclawAuthorizations.validateAndBind(request)});
 const openclawSessions=createOpenClawSessionBindings({file:OPENCLAW_SESSIONS,workspaceId});
 const commerceAgentBridge=createCommerceAgentBridge({workspaceId,legacyDispatch:creative.dispatchMessage,projectView:creative.view,authorizationStore:openclawAuthorizations,operationJournal:commerceEngine.getJournal,recordControlResult:creative.recordControlResult});
@@ -179,6 +181,10 @@ async function openclawToolRoute(req,res){
   delete normalizedInput.attachmentPaths;
  }
  const result=await commerceEngine.invoke(input.tool,normalizedInput,trustedContext);
+ if(input.tool==='video_task'&&result?.projectId&&result?.jobId&&typeof creative.subscribeJobProgress==='function'){
+  const progress=bindOpenClawJobProgress({service:creative,notifier:openclawProgressNotifier,projectId:result.projectId,jobId:result.jobId,sessionKey:input.trustedContext.sessionKey});
+  result.proactiveProgress={status:progress.status,sessionBound:true,percentPolicy:'real-render-progress-only'};
+ }
  if(input.tool==='commerce_project_create'&&result?.created===true&&result?.projectId){
   // Creating a project is the one explicit operation allowed to advance a
   // native Control UI session to a new project. Other cross-project access
@@ -198,6 +204,9 @@ async function openclawAuthorizationRoute(req,res){
  const attachmentCount=(Array.isArray(input.attachmentIds)?input.attachmentIds.length:0)+(Array.isArray(input.attachmentPaths)?input.attachmentPaths.length:0);
  const session=await openclawSessions.bind(body.trustedContext,null);
  const currentProjectId=hasProject(session.workspaceProjectId)?session.workspaceProjectId:null;
+ const messageText=String(input.message||'');
+ const explicitNewTask=/(?:新建|创建|制作|生成|做一条|做个|宣传片|营销片|新品|商品视频|产品视频)/u.test(messageText)
+   && !/(?:把|将|修改|编辑|调整|替换|换成|改成|改为|第[一二三四五六七八九十0-9]+个镜头|这条视频|本视频|原片|原视频)/u.test(messageText);
  let projectId;
  if(body.tool==='video_task'){
   // Project binding is a convenience for continuing a conversation, not a
@@ -208,7 +217,7 @@ async function openclawAuthorizationRoute(req,res){
   else if(requestedProjectId&&requestedProjectId!=='current'&&hasProject(requestedProjectId)) projectId=requestedProjectId;
   else if(requestedProjectId==='current') projectId=currentProjectId;
   else if(requestedProjectId&&!hasProject(requestedProjectId)) projectId=attachmentCount?null:currentProjectId;
-  else projectId=attachmentCount?null:currentProjectId;
+  else projectId=(attachmentCount||explicitNewTask)?null:currentProjectId;
   if(!projectId){
    const created=await creative.create({message:String(input.message||''),inferRequest:true,taskMode:'create',taskModeExplicit:true,commerceProfile:'commerce-focus-v1',source:'openclaw-request'});
    projectId=created.id;await openclawSessions.replace(body.trustedContext,projectId);
@@ -227,7 +236,7 @@ async function openclawAuthorizationRoute(req,res){
  // still fails closed with REVISION_CONFLICT.
  const suppliedBase=input.baseRevisionId;
  const baseRevisionId=typeof suppliedBase==='string'&&suppliedBase.trim()&&suppliedBase!=='null'?suppliedBase:currentRevisionId;
- const operationId=stableControlOperationId(projectId,messageId,{message:String(input.message||body.tool),baseRevisionId,attachmentIds:input.attachmentIds||[],attachmentPaths:input.attachmentPaths||[]});
+ const operationId=stableControlOperationId(projectId,messageId,{message:String(input.message||body.tool),baseRevisionId,attachmentIds:input.attachmentIds||[],attachmentPaths:input.attachmentPaths||[],taskMode:input.taskMode||null,scenarioId:input.scenarioId||null,workflowProfile:input.workflowProfile||null,selectedNodeId:input.selectedNodeId||null,platform:input.platform||null,output:input.output||null,audio:input.audio||null});
  const authorization=await openclawAuthorizations.issue({projectId,baseRevisionId,messageId,message:String(input.message||body.tool),sessionKey:context.sessionKey,allowedTools:[body.tool]});
  return json(res,{ok:true,authorizationId:authorization.authorizationId,operationId,projectId,baseRevisionId,expiresAt:authorization.expiresAt});
 }

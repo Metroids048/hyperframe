@@ -13,7 +13,7 @@ test('manifest declares exact tool contract and required server-only configurati
   assert.equal(manifest.id, 'commerce-engine');
   assert.equal(manifest.kind, 'tool');
   assert.equal(manifest.enabledByDefault, false);
-  assert.deepEqual(manifest.contracts.tools, ['video_task','video_project_list','video_project_open','video_job_status','video_result','video_cancel']);
+  assert.deepEqual(manifest.contracts.tools, ['video_prepare','video_resource_search','video_web_research','video_task','video_project_list','video_project_open','video_job_status','video_result','video_cancel']);
   assert.deepEqual(manifest.configSchema.required, ['bridgeUrl', 'bridgeTokenEnv', 'workspaceId']);
   assert.equal(packageJson.dependencies.typebox, '^1.1.39');
   assert.equal(packageJson.packageManager, 'pnpm@11.19.0');
@@ -57,6 +57,7 @@ test('real OpenClaw SDK registration exposes per-tool strict required fields', a
   assert.ok(tools.find(tool=>tool.name==='video_result').parameters.properties.revisionId.anyOf,
     'optional revision ids must accept the explicit null emitted by tool models');
   const task=tools.find(tool=>tool.name==='video_task');
+  for(const field of ['taskMode','scenarioId','workflowProfile','selectedNodeId','platform','output','audio'])assert.ok(task.parameters.properties[field],field);
   assert.match(task.description,/natural-language video task/);
   for(const tool of tools)assert.equal(tool.parameters.additionalProperties,false,tool.name);
 });

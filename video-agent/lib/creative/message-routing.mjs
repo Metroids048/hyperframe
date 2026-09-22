@@ -31,6 +31,12 @@ async function legacyRoute(project,message,{provider,signal,document=null,taskMo
     if(/^(?:不要|别|不必|无需)(?:取消|停止|撤销|重做)$/.test(text)||/^(?:“[^”]+”|"[^"]+")$/.test(text))
       return {mode:'clarify',quote:message,revisionId:null,assetIds:[],question:'当前是草稿，请补充要制作或规划的具体内容。',source:'draft-control-data'};
     if(taskModeExplicit&&taskMode==='variant')return {mode:'clarify',quote:message,revisionId:null,assetIds:[],question:'请先打开要派生的母工程，再创建变体。',source:'missing-variant-base'};
+    // FIXED: 明确 create 模式 + 已上传素材 → 应直接创作，不拦截
+    if(taskModeExplicit&&taskMode==='create'&&project.assets.length>0&&project.assets.some(a=>a.kind==='video'))
+      return {mode:'create',quote:message,revisionId:null,
+        assetIds:project.assets.filter(a=>a.kind==='video').map(a=>a.id),
+        question:'',scenarioId,source:'explicit-create-with-video-assets',
+        reason:'用户明确创作模式并上传视频素材',businessIntent};
     if(!scenarioId&&taskModeExplicit&&taskMode==='recut')return {mode:'recut',quote:message,revisionId:null,assetIds:[],question:'',source:'new-draft'};
     if(businessIntent?.scenario.status==='conflict')return {mode:'clarify',quote:message,revisionId:null,assetIds:[],question:'所选业务场景与文字目的不同，请确认本次以哪个场景为准。',source:'explicit-scenario-conflict',reason:'business-rule-v2-conflict',businessIntent};
     if(businessIntent?.creationRequested&&businessIntent.scenario.status==='resolved'&&(!taskModeExplicit||taskMode==='create'))return {mode:'create',quote:message,revisionId:null,assetIds:[],question:'',scenarioId:businessIntent.scenario.id,source:'business-rule-v2',reason:'商品、平台和营销目的由确定性业务规则解析',businessIntent};
@@ -61,6 +67,26 @@ async function legacyRoute(project,message,{provider,signal,document=null,taskMo
     insist(Array.isArray(result.assetIds)&&result.assetIds.every(id=>project.assets.some(a=>a.id===id)),'复用素材不属于当前工程','MESSAGE_ROUTE_INVALID');
     if(result.mode==='restore')insist(project.revisions.some(r=>r.id===result.revisionId),'恢复版本不存在','REVISION_NOT_FOUND');
     if(result.mode==='clarify')insist(result.question?.trim(),'路由缺少最小澄清问题','MESSAGE_ROUTE_INVALID');
+    // FIXED: 上传视频素材 + 创作意图 → 应识别为 create 而非 edit
+    // 当用户上传视频并提出编辑需求时，这是"基于素材创作新成片"，不是"编辑现有工程"
+    // 必须在 missing-base 检查之前执行，否则会被拦截
+    if(!project.currentRevisionId && ['edit','variant','recut'].includes(result.mode) &&
+       project.assets.some(a=>a.kind==='video') &&
+       /(?:替换|改成|换成|创作|制作|生成|把.*改|让.*变|添加|加上|剪成|重剪|裁剪|竖屏)/.test(message)){
+      return {
+        mode:'create',
+        quote:result.quote,
+        revisionId:null,
+        assetIds:project.assets.filter(a=>a.kind==='video').map(a=>a.id),
+        question:'',
+        scenarioId:result.scenarioId||null,
+        targets:result.targets||[],
+        preserve:result.preserve||['unmentioned-objects','source-assets','revision-history'],
+        source:'upload-video-creation',
+        reason:'用户上传视频素材并提出创作需求，应基于素材创作新成片而非要求打开工程',
+        businessIntent
+      };
+    }
     if(!project.currentRevisionId&&['edit','variant','undo','redo','restore'].includes(result.mode))return {mode:'clarify',quote:message,revisionId:null,assetIds:[],question:'请先打开要修改或派生的原生工程。',source:'missing-base'};
     if(!project.currentRevisionId&&scenarioId&&['create','recut','variant','edit'].includes(result.mode)){
       insist(Object.hasOwn(result,'scenarioId'),'缺少文字业务目的的核对结果','MESSAGE_ROUTE_INVALID');

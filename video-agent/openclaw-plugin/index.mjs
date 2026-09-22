@@ -16,7 +16,10 @@ const MAX_VIDEO_UPLOAD_BYTES = Number.isFinite(Number(process.env.OPENCLAW_VIDEO
 const MAX_VIDEO_UPLOAD_MIB = Math.round(MAX_VIDEO_UPLOAD_BYTES / 1024 / 1024);
 
 const TOOLS = [
-  ["video_task", "Submit a natural-language video task and preserve the editable project. A queued/running result is a successful asynchronous acknowledgement: report its real projectId/jobId/stage and stop; do not poll in the same turn."],
+  ["video_prepare", "Synchronously optimize the request, identify product/platform/scene/mode/output/audio, inspect acquisition policy, and return real preparation/research/resource receipts before production."],
+  ["video_resource_search", "Search the server-owned local material and HyperFrames 0.8.33 catalog. Returns candidates, compatibility, runtime, and execution status without side effects."],
+  ["video_web_research", "Run controlled read-only commerce research against public pages. Returns URL, title, evidence, usage type, and rights restrictions; never downloads media."],
+  ["video_task", "Submit a prepared natural-language video task and preserve the editable project. A queued/running result is a successful asynchronous acknowledgement: show the business stage and keep internal IDs hidden unless diagnostic details were requested; do not poll in the same turn."],
   ["video_project_list", "List editable video projects so the user can choose one in chat."],
   ["video_project_open", "Read the current editable project and delivery state."],
   ["video_job_status", "Read a real video job status and checkpoint when the user explicitly asks for status; do not call repeatedly while a task is running."],
@@ -83,13 +86,28 @@ const writeContext = {
   workflowProfile: Type.Optional(idSchema),
   selectedNodeId: optionalId
 };
+const outputSchema = Type.Optional(Type.Object({
+  width: Type.Optional({type:"integer",minimum:1,maximum:16384}), height: Type.Optional({type:"integer",minimum:1,maximum:16384}), durationSeconds: Type.Optional({type:"number",minimum:1,maximum:3600}), fps: Type.Optional({type:"number",minimum:1,maximum:120})
+},{additionalProperties:false}));
+const audioSchema = Type.Optional(Type.Object({
+  mode: Type.Optional({type:"string",maxLength:40}), narration: Type.Optional({type:"string",maxLength:200}), music: Type.Optional({type:"string",maxLength:200}), original: Type.Optional({type:"string",maxLength:200}), voice: Type.Optional({type:"string",maxLength:100})
+},{additionalProperties:false}));
+const orchestrationFields = {
+  taskMode: Type.Optional({ type: "string", enum: ["create", "edit", "recut", "variant"] }),
+  scenarioId: Type.Optional({ type: "string", enum: ["product_launch", "product_detail", "product_demo", "product_collection", "product_promotion", "product_faq", "general"] }),
+  workflowProfile: Type.Optional(idSchema), selectedNodeId: optionalId,
+  platform: Type.Optional({type:"string",maxLength:80}), output: outputSchema, audio: audioSchema,
+};
 const nativeWriteFields = { operationId: Type.Optional(idSchema), authorizationId: Type.Optional(idSchema) };
 const schemas = {
   // A task without an explicit project is a valid new task. The authorization
   // route creates the native editable project and returns its identity before
   // the write reaches the engine. Keeping this nullable here is required for
   // both text-only requests and Control UI uploads.
-  video_task: Type.Object({ projectId: Type.Optional({ anyOf: [idSchema, { type: "null" }] }), message: { type: "string", minLength: 1, maxLength: 20000 }, attachmentIds: Type.Optional({ type: "array", maxItems: 30, items: idSchema }), attachmentPaths: Type.Optional({ type: "array", maxItems: 30, items: { type: "string", minLength: 1, maxLength: 1024 } }), baseRevisionId: Type.Optional(baseRevision), selectedNodeId: optionalId }, { additionalProperties: false }),
+  video_prepare: Type.Object({ projectId: Type.Optional({ anyOf: [idSchema, { type: "null" }] }), message: { type: "string", minLength: 1, maxLength: 20000 }, ...writeContext, ...orchestrationFields }, { additionalProperties: false }),
+  video_resource_search: Type.Object({ projectId: Type.Optional({ anyOf: [idSchema, { type: "null" }] }), query: {type:"string",minLength:1,maxLength:500} }, { additionalProperties: false }),
+  video_web_research: Type.Object({ projectId: Type.Optional({ anyOf: [idSchema, { type: "null" }] }), query: Type.Optional({type:"string",maxLength:500}), urls: Type.Optional({type:"array",maxItems:3,items:{type:"string",minLength:1,maxLength:2048}}), maxItems: Type.Optional({type:"integer",minimum:1,maximum:10}) }, { additionalProperties: false }),
+  video_task: Type.Object({ projectId: Type.Optional({ anyOf: [idSchema, { type: "null" }] }), message: { type: "string", minLength: 1, maxLength: 20000 }, ...writeContext, ...orchestrationFields, baseRevisionId: Type.Optional(baseRevision) }, { additionalProperties: false }),
   video_project_list: Type.Object({ query: Type.Optional({ type: "string", maxLength: 200 }), maxItems: Type.Optional({ type: "integer", minimum: 1, maximum: 50 }) }, { additionalProperties: false }),
   video_project_open: Type.Object({ projectId: idSchema }, { additionalProperties: false }),
   video_job_status: Type.Object({ projectId: idSchema, jobId: idSchema }, { additionalProperties: false }),
@@ -98,6 +116,19 @@ const schemas = {
 };
 
 let uploadRouteRegistered = false;
+function resolveConfigValue(value, envName) {
+  const configured = String(value || '').trim();
+  if (configured && !configured.includes('${')) return configured;
+  return String(process.env[envName] || '').trim();
+}
+function resolveBridgeUrl(config) {
+  const value = resolveConfigValue(config?.bridgeUrl, 'VIDEO_AGENT_BRIDGE_URL');
+  if (!/^https?:\/\/[^\s]+$/.test(value)) throw new Error('commerce bridge URL is not configured');
+  return value.replace(/\/$/, '');
+}
+function resolveWorkspaceId(config) {
+  return resolveConfigValue(config?.workspaceId, 'VIDEO_AGENT_WORKSPACE_ID');
+}
 function registerUploadRoute(api) {
   if (uploadRouteRegistered || !api?.registerHttpRoute) return;
   uploadRouteRegistered = true;
@@ -152,7 +183,7 @@ function buildTool(name, description) {
           if (signal?.aborted) throw new Error("tool call cancelled");
           const token = process.env[config.bridgeTokenEnv];
           if (!token) throw new Error("missing bridge token; commerce tool is blocked");
-          const trustedContext = { trusted: true, workspaceId: config.workspaceId, sessionKey, agentId: toolContext.agentId || null, toolCallId,
+          const trustedContext = { trusted: true, workspaceId: resolveWorkspaceId(config), sessionKey, agentId: toolContext.agentId || null, toolCallId,
             messageId: toolContext.messageId || toolContext.inboundMessageId || `tool:${toolCallId}` };
           let input = { ...params };
           const writes = ["video_task","video_cancel"];
@@ -162,7 +193,7 @@ function buildTool(name, description) {
             const authorizationInput = { ...input };
             delete authorizationInput.authorizationId;
             delete authorizationInput.operationId;
-            const authorizationResponse = await fetch(config.bridgeUrl.replace(/\/$/, "") + "/api/openclaw/authorize", {
+            const authorizationResponse = await fetch(resolveBridgeUrl(config) + "/api/openclaw/authorize", {
               method: "POST", headers: { authorization: "Bearer " + token, "content-type": "application/json" },
               body: JSON.stringify({ tool: name, input: authorizationInput, trustedContext }), signal
             });
@@ -179,7 +210,8 @@ function buildTool(name, description) {
             };
           }
           const body = { tool: name, input, trustedContext };
-          const response = await fetch(config.bridgeUrl.replace(/\/$/, "") + "/api/openclaw/tools", {
+          const bridge = resolveBridgeUrl(config);
+          const response = await fetch(bridge + "/api/openclaw/tools", {
             method: "POST", headers: { authorization: "Bearer " + token, "content-type": "application/json" }, body: JSON.stringify(body), signal
           });
           const payload = await response.json().catch(() => ({ error: "bridge returned invalid JSON" }));

@@ -75,7 +75,7 @@ test('M10: visual review failure remains recoverable with the same persisted run
 test('M03: all six business scenes load distinct packages and preserve style separation',async()=>{
  const ids=['product_launch','product_demo','product_detail','product_collection','product_promotion','product_faq'];
  const packs=await Promise.all(ids.map(id=>loadScenePackage(root,id)));assert.equal(new Set(packs.map(p=>p.id)).size,6);
- for(const pack of packs){assert.equal(pack.generatedFootageAllowed,false);assert.ok(pack.files['QUALITY_RUBRIC.json'].content.businessObjective||pack.businessObjective);assert.ok(pack.files['TEMPLATES.json'].content.businessTemplates.length);}
+ for(const pack of packs){assert.equal(pack.mediaAcquisitionPolicySource,'server');assert.equal(Object.hasOwn(pack,'generatedFootageAllowed'),false);assert.ok(pack.files['QUALITY_RUBRIC.json'].content.businessObjective||pack.businessObjective);assert.ok(pack.files['TEMPLATES.json'].content.businessTemplates.length);}
  assert.equal((await scenePackageFingerprint(root)).length,64);
  for(const [alias,id] of [['detail','product_detail'],['style','product_collection'],['promotion','product_promotion'],['faq','product_faq']])assert.equal((await loadScenePackage(root,alias)).id,id);
  for(const id of ids.slice(2)){const c=businessContract({message:'制作一个'+id,scenarioId:id,output:{width:1920,height:1080,durationSeconds:20}});assert.equal(c.scenarioId,id);}
@@ -138,16 +138,21 @@ test('M01/M02 real failure: repeated burned-in title goes to story owner, not il
  assert.match(normalized.source.css,/#root\{width:1920px;background:transparent/);
 });
 
-test('M01: server policy blocks new image/video before credentials and preserves local workflows',async()=>{
- assert.equal((await productionPolicy(root)).mediaGenerationPaused,true);
- await assert.rejects(generateCommerceAsset({root}),{code:'MEDIA_GENERATION_PAUSED'});
+test('M01: server policy permits configured generation and still blocks before credentials',async()=>{
+ assert.equal((await productionPolicy(root)).mediaAcquisitionPolicy.runninghub_generation,'allowed');
+ const priorKey=process.env.RUNNINGHUB_API_KEY;delete process.env.RUNNINGHUB_API_KEY;
+ try{await assert.rejects(generateCommerceAsset({root,project:{id:'credential-gate',request:{output:{width:1080,height:1920}}},kind:'video',prompt:'test',sourceAsset:{id:'source'},role:'raw-shot'}),{code:'GENERATION_KEY'});}
+ finally{if(priorKey===undefined)delete process.env.RUNNINGHUB_API_KEY;else process.env.RUNNINGHUB_API_KEY=priorKey;}
  const dataDir=await fs.mkdtemp(path.join(os.tmpdir(),'execution-v2-'));
  try {
   const service=await createCreativeService({root,dataDir});
   for(const target of ['image','video']){
    const p=await service.create({target,output:{width:1080,height:1920,durationSeconds:24}});
-   await assert.rejects(service.enqueue(p,{action:'generate',request:{target}}),{code:'MEDIA_GENERATION_PAUSED'});
-   assert.equal(p.jobs.length,0);
+   const submitted=await service.enqueue(p,{action:'generate',request:{target}});
+   const terminal=await service.waitForJob(p,submitted.id,{timeoutMs:5000,intervalMs:10});
+   assert.equal(terminal.status,'recoverable');
+   assert.equal(terminal.code,'GENERATION_INPUT');
+   assert.equal(p.jobs.length,1);
   }
   assert.equal(commerceIntake({target:'marketing'}).pipelineVersion,3);
  } finally { await fs.rm(dataDir,{recursive:true,force:true}); }
@@ -156,18 +161,18 @@ test('M01: server policy blocks new image/video before credentials and preserves
 test('M01: policy is server-owned, malformed config fails closed and no config preserves other workspaces',async()=>{
  const sandbox=await fs.mkdtemp(path.join(os.tmpdir(),'execution-policy-'));
  try {
-  assert.equal((await productionPolicy(sandbox)).mediaGenerationPaused,false);
+  assert.equal((await productionPolicy(sandbox)).mediaAcquisitionPolicy.runninghub_generation,'blocked');
   await fs.mkdir(path.join(sandbox,'config'));
   await fs.writeFile(path.join(sandbox,'config/commerce.json'),'{broken');
   await assert.rejects(assertMediaGenerationAllowed(sandbox),SyntaxError);
  } finally { await fs.rm(sandbox,{recursive:true,force:true}); }
 });
 
-test('M01: real runtime context loads hashed scope and paused-generation policy',async()=>{
+test('M01: real runtime context loads hashed scope and server-owned acquisition policy',async()=>{
  const context=await (await CapabilityCatalog.open(root)).context('R1');
- assert.ok(context.records.some(r=>r.file==='agent.md'));
- assert.match(context.text,/暂停新商品图片／视频/);
- assert.match(context.text,/详情.*系列.*促销.*问答/);
+ assert.match(context.text,/mediaAcquisitionPolicy/);
+ assert.match(context.text,/RunningHub/);
+ for(const scene of ['product_detail','product_collection','product_promotion','product_faq'])assert.match(context.text,new RegExp(scene));
 });
 
 test('M01-3/4: explicit exclusions survive a template trying to add music, narration or price',()=>{

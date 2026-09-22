@@ -24,11 +24,14 @@
 - HyperFrames 原生组件和资源复用
 - 商品视频制作（上新、详情、演示、系列、促销、FAQ）
 
-**当前未授权**（需明确说明缺口）：
-- 生成图片（DALL-E、Midjourney 等）
-- 生成视频（Runway、Pika 等）
+**服务端策略控制**：
+- 图片／视频缺失镜头生成只服从 `mediaAcquisitionPolicy`，不得在 Prompt 中自行禁止或放行
+- 策略允许 `runninghub_generation` 时，只有服务端凭证、能力配置和调用授权齐全才可提交，并保存真实 job、prompt、source、asset 与 hash
+- 外部媒体下载服从 `external_media_download` 的权利门禁；网络页面默认只作事实或视觉参考，不能自动复用媒体
+
+**仍需独立明确授权**：
 - 数字人/虚拟主播
-- 付费外部 API
+- `mediaAcquisitionPolicy` 未列出的付费外部 API
 
 ### 质量标准
 

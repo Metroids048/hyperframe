@@ -16,10 +16,11 @@ Require shot purpose, media kind, aspect, safe area, motion/audio dependencies, 
 ## Tool order
 
 ### For NEW projects (user requesting video with HyperFrames effects/transitions)
-1. Call `video_task` with `projectId: null`, `baseRevisionId: null`, `attachmentPaths: [...]`, and HyperFrames request
-2. Service auto-creates project, resolves local media and compatible HyperFrames resources internally
-3. If queued/running, report the real stage and stop this turn; call `video_job_status` only once when the user explicitly asks for status
-4. Call `video_result` only after a real revision exists and then verify receipts, selected resource IDs, versions, and render evidence
+1. Call `video_resource_search` with the exact shot-purpose query before production.
+2. Call `video_task` with `projectId: null`, `baseRevisionId: null`, `attachmentPaths: [...]`, the prepared intent, and HyperFrames request.
+3. Service auto-creates project, binds compatible HyperFrames resources, and persists a `hyperframes-resource-receipt.json` alongside the native revision.
+4. If queued/running, report the real business stage without exposing internal IDs and stop this turn; call `video_job_status` only once when the user explicitly asks for status.
+5. Call `video_result` only after a real revision exists and then verify receipts, selected resource IDs, versions, and render evidence.
 
 ### For EDITING existing project with HyperFrames
 1. Call `video_project_open` to get current `projectId` and `baseRevisionId`
@@ -30,7 +31,7 @@ Require shot purpose, media kind, aspect, safe area, motion/audio dependencies, 
 **Key: User provides media/description → NEW project with projectId:null**
 
 ## Output
-Return selected resource IDs, versions, runtime bindings, affected objects, job/revision, compiled native project, and render evidence.
+Return selected resource names/counts, versions, runtime bindings, affected shots, compiled native project, and render evidence. Keep job/revision IDs internal unless diagnostics were explicitly requested.
 
 ## Preserve
 Keep HyperFrames pinned to 0.8.33, source media/facts, object editability, safe areas, audio timing, and unselected objects.

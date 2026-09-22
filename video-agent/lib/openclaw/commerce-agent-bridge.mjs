@@ -12,10 +12,10 @@ function controlResult(body){
  }
  throw fail('OpenClaw control did not return the required result contract','OPENCLAW_CONTROL_RESPONSE_INVALID',502);
 }
-const CONTROL_TOOLS=['video_task','video_project_list','video_project_open','video_job_status','video_result','video_cancel'];
+const CONTROL_TOOLS=['video_prepare','video_resource_search','video_web_research','video_task','video_project_list','video_project_open','video_job_status','video_result','video_cancel'];
 const CONTROL_TOOLS_WITH_LIST=['video_project_list',...CONTROL_TOOLS];
-function resultToolSchema(){return {type:'function',name:'return_control_result',description:'Return the authoritative outcome after using commerce tools. This function has no side effects.',parameters:{type:'object',additionalProperties:false,required:['status','tool','operationId','summary'],properties:{status:{type:'string',enum:['queued','read_only','needs_input','blocked']},tool:{anyOf:[{type:'string',enum:CONTROL_TOOLS},{type:'null'}]},operationId:{anyOf:[{type:'string'},{type:'null'}]},jobId:{anyOf:[{type:'string'},{type:'null'}]},summary:{type:'string'},question:{anyOf:[{type:'string'},{type:'null'}]}}}};}
-function resultToolSchemaWithProjectList(){return {type:'function',name:'return_control_result',description:'Return the authoritative outcome after using commerce tools. This function has no side effects.',parameters:{type:'object',additionalProperties:false,required:['status','tool','operationId','summary'],properties:{status:{type:'string',enum:['queued','read_only','needs_input','blocked']},tool:{anyOf:[{type:'string',enum:CONTROL_TOOLS_WITH_LIST},{type:'null'}]},operationId:{anyOf:[{type:'string'},{type:'null'}]},jobId:{anyOf:[{type:'string'},{type:'null'}]},summary:{type:'string'},question:{anyOf:[{type:'string'},{type:'null'}]}}}};}
+function resultToolSchema(){return {type:'function',name:'return_control_result',description:'Return the authoritative outcome after using commerce tools. This function has no side effects.',parameters:{type:'object',additionalProperties:false,required:['status','tool','operationId','summary'],properties:{status:{type:'string',enum:['prepared','queued','read_only','needs_input','blocked']},tool:{anyOf:[{type:'string',enum:CONTROL_TOOLS},{type:'null'}]},operationId:{anyOf:[{type:'string'},{type:'null'}]},jobId:{anyOf:[{type:'string'},{type:'null'}]},summary:{type:'string'},question:{anyOf:[{type:'string'},{type:'null'}]}}}};}
+function resultToolSchemaWithProjectList(){return {type:'function',name:'return_control_result',description:'Return the authoritative outcome after using commerce tools. This function has no side effects.',parameters:{type:'object',additionalProperties:false,required:['status','tool','operationId','summary'],properties:{status:{type:'string',enum:['prepared','queued','read_only','needs_input','blocked']},tool:{anyOf:[{type:'string',enum:CONTROL_TOOLS_WITH_LIST},{type:'null'}]},operationId:{anyOf:[{type:'string'},{type:'null'}]},jobId:{anyOf:[{type:'string'},{type:'null'}]},summary:{type:'string'},question:{anyOf:[{type:'string'},{type:'null'}]}}}};}
 
 export function stableControlSessionKey(workspaceId,projectId){return 'agent:commerce-control:commerce-control:'+digest({workspaceId,projectId});}
 export function stableControlOperationId(projectId,messageId,payload){return 'op-'+digest({projectId,messageId,payload}).slice(0,48);}
@@ -28,38 +28,36 @@ export function createCommerceAgentBridge({workspaceId,legacyDispatch,projectVie
   if((input.baseRevisionId??null)!==(project.currentRevisionId??null))throw fail('page revision changed before OpenClaw dispatch','REVISION_CONFLICT',409);
   if(!token||!model)throw fail('OpenClaw control token/model missing');
   const rawSessionKey=stableControlSessionKey(workspaceId,project.id),sessionKey=normalizedOpenClawSessionKey(rawSessionKey);
-  const messageId=input.idempotencyKey,operationId=stableControlOperationId(project.id,messageId,{message:input.message,baseRevisionId:input.baseRevisionId??null,attachmentIds:input.attachmentIds||[],attachmentPaths:input.attachmentPaths||[]});
+  const messageId=input.idempotencyKey,operationId=stableControlOperationId(project.id,messageId,{message:input.message,baseRevisionId:input.baseRevisionId??null,attachmentIds:input.attachmentIds||[],attachmentPaths:input.attachmentPaths||[],taskMode:input.taskMode||null,scenarioId:input.scenarioId||null,workflowProfile:input.workflowProfile||null,selectedNodeId:input.selectedNodeId||null,platform:input.platform||null,output:input.output||null,audio:input.audio||null});
   const authorization=readOnly?null:await authorizationStore.issue({projectId:project.id,baseRevisionId:input.baseRevisionId??null,messageId,message:input.message,sessionKey,allowedTools:openClawWriteTools});
-  const payload={projectId:project.id,baseRevisionId:input.baseRevisionId??null,messageId,operationId,authorizationId:authorization?.authorizationId||null,message:String(input.message||''),attachmentIds:[...(input.attachmentIds||[])],attachmentPaths:[...(input.attachmentPaths||[])],taskMode:input.taskMode||null,scenarioId:input.scenarioId||null,workflowProfile:input.workflowProfile||null,selectedNodeId:input.selectedNodeId||null,readOnly,language:'zh-CN'};
-  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),60000);
-  // 简化 payload：只保留核心字段和 authorizationId
-  const simplifiedPayload={
-    message:payload.message,
-    projectId:payload.projectId||null,
-    authorizationId:payload.authorizationId||null,
-    operationId:payload.operationId,
-    messageId:payload.messageId,
-    attachmentIds:payload.attachmentIds||[],
-    attachmentPaths:payload.attachmentPaths||[]
-  };
-  const request={model,input:[{type:'message',role:'user',content:[{type:'input_text',text:JSON.stringify(simplifiedPayload)}]}],instructions:readOnly?'Parse the JSON. Return read-only status without calling any write tool. Reply in Chinese (简体中文).':`Parse the JSON payload and handle video editing requests. IMPORTANT: Always reply in Chinese (简体中文) for all user-facing messages, summaries, questions, and error descriptions.
+  const payload={projectId:project.id,baseRevisionId:input.baseRevisionId??null,messageId,operationId,authorizationId:authorization?.authorizationId||null,message:String(input.message||''),attachmentIds:[...(input.attachmentIds||[])],attachmentPaths:[...(input.attachmentPaths||[])],taskMode:input.taskMode||null,scenarioId:input.scenarioId||null,workflowProfile:input.workflowProfile||null,selectedNodeId:input.selectedNodeId||null,platform:input.platform||null,output:input.output||null,audio:input.audio||null,readOnly,language:'zh-CN'};
+  // FIXED: 使用函数参数已配置的 timeoutMs（默认 300000），不要重新声明覆盖它
+  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),timeoutMs);
+
+  // FIXED: 不再删除关键字段，完整传递所有业务上下文
+  // 这些字段对 Scene/Workflow/Revision 至关重要
+  const request={model,input:[{type:'message',role:'user',content:[{type:'input_text',text:JSON.stringify(payload)}]}],instructions:readOnly?'Parse the JSON. Return read-only status without calling any write tool. Reply in Chinese (简体中文).':`Parse the JSON payload and handle video editing requests. IMPORTANT: Always reply in Chinese (简体中文) for all user-facing messages, summaries, questions, and error descriptions.
 
 WORKFLOW:
-1. For ANY creation request (new video, product video, edit request), ALWAYS call video_task directly. The payload already contains projectId (may be null for new projects).
-2. NEVER ask the user to select a project or provide a projectId. The server automatically creates projects when projectId is null.
-3. NEVER call video_project_list unless the user explicitly says "show me my projects" or "list projects".
-4. NEVER call video_project_open unless the user explicitly references a specific existing project.
-5. For follow-up edits in the same conversation, the payload already contains the correct projectId - use it as-is.
+1. For any normal production request, first call video_prepare (projectId may be null). The preparation result is synchronous and must be shown to the user as the optimized brief, intent, scene, output, audio, acquisition policy, research status, and resource candidates.
+2. Call video_resource_search for the scene-specific HyperFrames query and video_web_research when product facts or visual references need public evidence. These are controlled read-only tools; never use browser, web_search, shell, read, or filesystem.
+3. Only after preparation, resource search, and any needed research call video_task. If preparation returns needs_input, ask only its first blocking question and do not submit production. The payload already contains projectId (may be null for new projects).
+4. NEVER ask the user to select a project or provide a projectId. The server automatically creates projects when projectId is null.
+5. NEVER call video_project_list unless the user explicitly says "show me my projects" or "list projects".
+6. NEVER call video_project_open unless the user explicitly references a specific existing project.
+7. For follow-up edits in the same conversation, the payload already contains the correct projectId - use it as-is.
 
 CRITICAL RULES:
 - NEVER call tools named "read", "search", "validate" - they don't exist
-- ONLY use: video_task, video_project_list, video_project_open, video_job_status, video_result, video_cancel
-- For 95% of requests, call video_task immediately without asking anything
-- Copy ALL payload fields EXACTLY as-is when calling video_task (projectId, baseRevisionId, operationId, authorizationId, message, attachmentIds, attachmentPaths, taskMode, scenarioId, workflowProfile, selectedNodeId)
+- ONLY use: video_prepare, video_resource_search, video_web_research, video_task, video_project_list, video_project_open, video_job_status, video_result, video_cancel
+- Do not skip preparation to get to an asynchronous job acknowledgement.
+- Copy ALL payload fields EXACTLY as-is when calling video_task (projectId, baseRevisionId, operationId, authorizationId, message, attachmentIds, attachmentPaths, taskMode, scenarioId, workflowProfile, selectedNodeId, platform, output, audio)
 - NEVER modify projectId, baseRevisionId, or any other field in the payload
 - If projectId is null/empty in payload, that means "create new project" - call video_task with it as-is
 - Never invent UUIDs, revision IDs, or modify attachment paths
-- If a tool returns status=needs_input, return that status with the question to the user
+- If a tool returns status=needs_input, return that status with the question to the user. This is an awaiting-input checkpoint, NOT a completed task: never describe it as 完成/Done, never claim the job stopped permanently, and include requiredInputs, actionRequired and resumeAllowed when present.
+- If video_job_status returns job.status=needs_user, call return_control_result with status=needs_input and preserve the real stage, question, requiredInputs and resumeAllowed. Tell the user exactly what was searched and what upload/input will resume the same project/job.
+- For a queued/running video_task acknowledgement, show the real business stage and say production is continuing asynchronously. Keep projectId, jobId, revisionId, and operationId internal unless the user explicitly requests diagnostic details. Do not imply invisible polling; proactive system events carry later stage changes.
 - NEVER ask "要新建项目还是继续编辑" - just call video_task
 
 ERROR HANDLING:
@@ -69,9 +67,9 @@ ERROR HANDLING:
 - For any other error, return status=blocked with the error message.
 
 EXAMPLES OF CORRECT BEHAVIOR:
-User: "帮我制作咖啡机的商品视频" → Immediately call video_task with payload as-is (projectId will be null, server creates it)
-User: "把第一个镜头改成3秒" → Immediately call video_task with payload as-is (projectId already set from conversation)
-User: "上传一个视频素材" → Immediately call video_task with payload as-is
+User: "帮我制作咖啡机的商品视频" → Call video_prepare, resource search/research as needed, then video_task with the complete payload
+User: "把第一个镜头改成3秒" → Call video_prepare, then video_task with the existing project context
+User: "上传一个视频素材" → Prepare and inspect the source context before video_task
 User: "显示我的项目列表" → Call video_project_list (only exception)
 
 WRONG BEHAVIOR - NEVER DO THIS:

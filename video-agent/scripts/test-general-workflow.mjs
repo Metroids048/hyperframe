@@ -9,7 +9,7 @@ const root=path.resolve(import.meta.dirname,'..');
 
 test('general reaches a versioned controlled runtime package with resolvable policy receipts',async()=>{
  const contract=businessContract({message:'为原片加章节角标，保留原顺序和声音',scenarioId:'general'});
- assert.equal(contract.scenarioId,'general');assert.equal(contract.generatedFootageAllowed,false);
+ assert.equal(contract.scenarioId,'general');assert.equal(Object.hasOwn(contract,'generatedFootageAllowed'),false);
  const pack=await loadScenePackage(root,'general');assert.equal(pack.id,'general');assert(pack.templates.businessTemplates.every(t=>t.fixedCopy===false));
  for(const stage of ['R1','R2','MA','CD','R3','R4','R5','R6'])for(const name of Object.keys(sceneContext(pack,stage).rules)){
   const entry=pack.files[name],actual=await fs.readFile(path.join(root,'commerce/scenes/general',entry.sourceFile||name));assert.equal(resourceHash(actual),entry.sha256);

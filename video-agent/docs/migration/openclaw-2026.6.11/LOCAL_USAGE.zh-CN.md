@@ -22,9 +22,12 @@ python3 scripts/openclaw-local.py status
 ```
 
 它会启动本项目的 Gateway 与视频桥接，并打开 OpenClaw 原生 Control UI：
-`http://127.0.0.1:18789/status/chat?session=main`。这是 OpenClaw 自己的对话页面，
+`http://127.0.0.1:18789/chat?agent=commerce-control`。这是 OpenClaw 自己的对话页面，
 不是把工作台伪装成 OpenClaw 页面。首次打开若提示认证，在页面中粘贴本机
 Gateway token；快捷脚本不会读取、打印或拼接 token。
+
+**重要**：不要在 URL 中添加 `session=main` 参数。新会话应该让 OpenClaw 自动创建，
+而不是引用不存在的 parent session。
 
 进入对话后可以直接说“列出我的视频项目”，`commerce-control` 已被明确放行
 `commerce_project_list`，Agent 会从真实项目库展示可编辑工程，再读取目标工程的当前

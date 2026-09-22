@@ -614,3 +614,17 @@ Ran scripts/verify-source-coverage-existing-run.mjs offline without modifying th
 - 视频结果：本阶段尚未生成新 MP4；合同兑现不等于观感通过。下一阶段必须用真实 WebUI 生成咖啡机新品种草与化妆品商品转化两条视频，连续检查前 3 秒、镜头、商品、字幕、动效、音频和转化逻辑。
 - 剩余问题：场景预算需要真实成片校准；动态跟踪不是通用能力；高级字体取决于资源；编辑后策略保持需第七阶段验证。
 - 下一步：进入第六阶段真实生成与质量定位。先检查服务无活动任务，加载当前源码，再通过可见 WebUI 提交两条真实生产请求，不用单元测试代替视频。
+
+## 2026-09-22 电商视频成片质量专项 Q1 启动
+
+- 基线：`codex/webui-agent-workflow` @ `8c63901a122ff679f256ab0aca029503eb0d7963`，本地工作树 dirty；按 workspace-context 结果保留全部既有 OpenClaw/WebUI 收尾改动，未 reset/clean/覆盖。
+- 本轮范围：只深做 A 单品上新／种草质感片与 B 卖点／使用演示证据片，合同见 `docs/commerce-quality-q1/TASK.md`，状态见 `docs/commerce-quality-q1/STATUS.json`。旧八场景合同保留但不作为本轮新片结束条件。
+- 已选真实样本候选：A 键盘竖屏上新项目 `e86e3d64-04c5-46c8-9a41-be92bba6acac`（30 秒，1080×1920，多 revision，当前可播放 `rev-e7ec29a35fa4680d`）；B 即食饭使用流程项目 `5378f35d-138f-4a6f-9a82-7b0e3cf1c63b`（约 63.7 秒，1920×1080，当前可播放 `rev-f621644fe0c35684`）。它们的用户请求、素材、revision 和 MP4 均已在本地确认；后续 BASE/TARGET/AUTO 必须继续绑定这些真实文件或同一素材集。
+- 已确认根因：`quality-scoring.mjs` 主要按计划／工程字段计分，声音在没有听感覆盖时仍可接近高分；`visual-direction-evidence.mjs` 固定米家样片三帧；素材动作观察明确是静态图而非连续视频。当前代码已有导演重规划保护、原生 HyperFrames 检查和音频边界检查，不能删除这些保护来“提高分数”。
+- 当前进行中：参考方案选择、MP4／revision 绑定的实际质量反馈、素材候选用途与局部修复证据。尚未宣称 A/B AUTO、TARGET、第三商品或用户验收通过。
+
+## 2026-09-22 OpenClaw Commerce Agent Orchestration V2 接管
+
+- 按用户最新指令暂停 Commerce Quality Q1；保留已有 Q1 文件与证据，不继续新增质量优化，直到 P0 真实 WebUI 验收完成。
+- P0 主链目标：同步需求准备、受控商品研究、素材获取策略、HyperFrames 资源检索与制作单完成后，再启动异步 production；后台阶段通过原 OpenClaw session 主动回传。
+- 当前仍需以 CASE A/B/C 的真实 WebUI、Activity、MP4、播放器、下载、revision 与 HyperFrames receipt 证据作为结束条件；代码和单元测试通过不代签完成。

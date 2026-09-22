@@ -612,6 +612,14 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
     }
     const audioRefs=await prepareNativeAudio(outputDir,document,assets,{signal});const compiled=compileDocument(document,assets,{audioRefs});await fs.writeFile(path.join(outputDir,'index.html'),compiled.html);await saveJSON('document.json',document);await saveJSON('object-map.json',compiled.objectMap);await saveJSON('manifest.json',compiled.manifest);await fs.writeFile(path.join(outputDir,'DESIGN.md'),designMarkdown(document));await fs.writeFile(path.join(outputDir,'STORYBOARD.md'),'# Storyboard\n\n'+result(ctx.run,'story').summary+'\n\n'+document.storyPlan.scenes.map(s=>s.sceneId+' · '+s.newInformation).join('\n'));
     await saveJSON('resource-receipts.json',document.resourceReceipts);
+    const orchestration=request.orchestrationPreparation||{};
+    await saveJSON('hyperframes-resource-receipt.json',{
+      schemaVersion:1,runtime:'0.8.33',queries:orchestration.resourceReceipt?.queries||[],
+      candidateResources:orchestration.resourceReceipt?.candidateResources||[],
+      selectedResources:document.resourceReceipts.map(receipt=>({resourceId:receipt.resourceId,sceneId:receipt.sceneId,method:receipt.method||receipt.execution||null,compatibility:receipt.compatibility||null,runtime:'0.8.33'})),
+      reason:orchestration.resourceReceipt?.reason||'由 HyperFrames 资源规划阶段按镜头目的与兼容性选择',
+      shotBindings:document.resourceReceipts.map(receipt=>({shotId:receipt.sceneId,purpose:document.storyPlan?.scenes.find(scene=>scene.sceneId===receipt.sceneId)?.newInformation||null,resource:receipt.resourceId,method:receipt.method||receipt.execution||null})),
+    });
     await catalog.lockUsedResources?.(outputDir);await saveJSON('hyperframes.json',{version:1,entry:'index.html'});
     await (io.verifyCustomProject||verifyCustomProject)(outputDir,document,assets,{signal});
     await fs.writeFile(path.join(outputDir,'check.log'),await runHyperFrames(outputDir,'check',[],{signal}));return {revisionId:document.revisionId,durationFrames:document.durationFrames};

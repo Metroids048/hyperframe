@@ -19,6 +19,7 @@ const WRITE_TOOLS = new Set([
 const TOOL_NAMES = new Set([
   'video_task',
   'video_project_list', 'video_project_open', 'video_job_status', 'video_result', 'video_cancel',
+  'video_prepare','video_resource_search','video_web_research',
   'commerce_project_create',
   'commerce_project_list',
   'commerce_project_get', 'commerce_resource_search', 'commerce_plan_validate',
@@ -72,7 +73,7 @@ export function runtimeMode(value = process.env.COMMERCE_AGENT_RUNTIME || 'legac
   return value;
 }
 
-export function createCommerceEngineFacade(service, { journalPath, mode = runtimeMode(), authorizeWrite } = {}) {
+export function createCommerceEngineFacade(service, { journalPath, mode = runtimeMode(), authorizeWrite, fetchImpl=globalThis.fetch } = {}) {
   if (!service || typeof service.get !== 'function' || typeof service.enqueue !== 'function') fail('需要现有 commerce service 实例', 'SERVICE_REQUIRED', 500);
   const journalFile = journalPath || path.join(process.cwd(), 'data', 'openclaw-bridge', 'operations.json');
   let journalFlight = Promise.resolve();
@@ -111,6 +112,15 @@ export function createCommerceEngineFacade(service, { journalPath, mode = runtim
     const projectId = required(input.projectId, 'projectId');
     return { projectId, value: service.get(projectId) };
   }
+  async function optionalProject(input,context) {
+    const requested=input.projectId&&input.projectId!=='current'?input.projectId:context.workspaceProjectId;
+    if(!requested){
+      if(typeof service.create!=='function')fail('视频服务未就绪，无法创建准备草稿','SERVICE_NOT_READY',503);
+      const value=await service.create({message:input.message||'',inferRequest:true,taskMode:input.taskMode||'create',taskModeExplicit:Boolean(input.taskMode),scenarioId:input.scenarioId||null,workflowProfile:input.workflowProfile||null,platform:input.platform||null,output:input.output||null,audio:input.audio||null,source:'openclaw-preparation'});
+      return {projectId:value.id,value};
+    }
+    return {projectId:required(requested,'projectId'),value:service.get(requested)};
+  }
   function writeInput(input, context) {
     const { projectId, value } = project(input);
     required(input.operationId, 'operationId');
@@ -139,6 +149,21 @@ export function createCommerceEngineFacade(service, { journalPath, mode = runtim
       await authorizeWrite({tool, input, context, project:value});
       return recordOperation(input.operationId, {tool, input, workspaceId:context.workspaceId, sessionKey:context.sessionKey}, async () => baseResult({tool, projectId, operationId:input.operationId, status:'accepted', project:await service.cancel(value, input.jobId)}));
     }
+    if (tool === 'video_prepare') {
+      const {projectId,value}=await optionalProject(input,context);
+      const preparation=await service.prepareTask(value,{...input,projectId});
+      return baseResult({tool,projectId,status:preparation.status==='needs_input'?'needs_input':'prepared',preparation,optimizedBrief:preparation.optimizedBrief,blockingGaps:preparation.blockingGaps,resourceReceipt:preparation.resourceReceipt,research:preparation.research});
+    }
+    if (tool === 'video_resource_search') {
+      const projectId=input.projectId&&input.projectId!=='current'?input.projectId:(context.workspaceProjectId||null);
+      const result=await service.searchResources(input.query||'',projectId);
+      return baseResult({tool,projectId,...result,query:input.query||null});
+    }
+    if (tool === 'video_web_research') {
+      const projectId=input.projectId&&input.projectId!=='current'?input.projectId:(context.workspaceProjectId||null);
+      const result=await service.searchWeb(input.query||'',{urls:input.urls||[],maxItems:input.maxItems||5});
+      return baseResult({tool,projectId,...result});
+    }
     if (tool === 'video_task') {
       // A project is a server-side implementation detail, not a user-facing
       // prerequisite.  The authorization route normally creates it before
@@ -160,8 +185,13 @@ export function createCommerceEngineFacade(service, { journalPath, mode = runtim
           attachmentIds: input.attachmentIds || [],
           message: input.message || '',
           inferRequest: true,
-          taskMode: 'create',
-          taskModeExplicit: true,
+          taskMode: input.taskMode || 'create',
+          taskModeExplicit: Boolean(input.taskMode),
+          scenarioId: input.scenarioId || null,
+          workflowProfile: input.workflowProfile || null,
+          platform: input.platform || null,
+          output: input.output || null,
+          audio: input.audio || null,
           commerceProfile: 'commerce-focus-v1'
         });
         projectId = created.id;
@@ -197,15 +227,25 @@ export function createCommerceEngineFacade(service, { journalPath, mode = runtim
         // Routing can involve a configured model and must never hold the
         // OpenClaw tool request open. The existing service persists the
         // message, job and any failure receipt; status is read separately.
+        const cached=value.orchestrationPreparation;
+        const preparation=cached?.originalRequest===input.message&&!(input.attachmentIds?.length||input.attachmentPaths?.length)
+          ? structuredClone(cached)
+          : typeof service.prepareTask==='function'?await service.prepareTask(value,{...input,projectId}):null;
+        if(preparation?.status==='needs_input'){
+          const gap=preparation.blockingGaps?.[0]||null;
+          return baseResult({tool,projectId,operationId:input.operationId,status:'needs_input',preparation,blockingGaps:preparation.blockingGaps||[],question:gap?.question||'需要补充一项关键信息后才能继续制作',actionRequired:true,productionStarted:false});
+        }
+        const messageId=typeof context.messageId==='string'&&context.messageId.length>=16?context.messageId:input.operationId;
+        const submission={...structuredClone(input),projectId,baseRevisionId:input.baseRevisionId??null,messageId,idempotencyKey:messageId,attachmentIds:[...(input.attachmentIds||[])],attachmentPaths:[...(input.attachmentPaths||[])],preparation};
         const job = typeof service.submitMessage === 'function'
-          ? await service.submitMessage(value, { message: input.message, attachmentIds: input.attachmentIds, selectedNodeId: input.selectedNodeId || null, baseRevisionId: input.baseRevisionId || null, idempotencyKey: input.operationId })
-          : await service.enqueue(value, { action: value.currentRevisionId ? 'patch' : 'generate', message: input.message, attachmentIds: input.attachmentIds, baseRevisionId: input.baseRevisionId || null, idempotencyKey: input.operationId });
+          ? await service.submitMessage(value, submission)
+          : await service.enqueue(value, { ...submission, action: value.currentRevisionId ? 'patch' : 'generate', idempotencyKey: input.operationId });
         // The route worker may advance the durable record to `running` before
         // this acknowledgement is serialized.  Keep the public tool contract
         // asynchronous: `queued` means accepted and the real stage/jobId are
         // authoritative, while a later status read reports `running`.
         const acknowledgementStatus=['queued','running'].includes(job.status)?'queued':(job.status||'queued');
-        return baseResult({ tool, projectId, operationId: input.operationId, status: acknowledgementStatus, jobId: job.id, stage: job.stage || '等待路由', project: service.view(service.get(projectId)), route: null });
+        return baseResult({ tool, projectId, operationId: input.operationId, status: acknowledgementStatus, jobId: job.id, stage: job.stage || '等待路由', businessProgress:job.businessProgress||null, preparation, project: service.view(service.get(projectId)), route: null });
       });
     }
     if (tool === 'commerce_project_create') {
@@ -300,14 +340,37 @@ export function createCommerceEngineFacade(service, { journalPath, mode = runtim
       if (!job) fail('任务不存在', 'JOB_NOT_FOUND', 404);
       const childProject = job.childProjectId && job.childProjectId !== projectId && typeof service.get === 'function' ? service.get(job.childProjectId) : value;
       const child = job.childJobId ? childProject.jobs.find(item => item.id === job.childJobId) : null;
-      const effective = child && job.status === 'running' ? child : job;
-      return baseResult({ tool, projectId, childProjectId: job.childProjectId || null, job: { id: job.id, status: effective.status, stage: effective.stage || job.stage, progress: effective.renderProgress || null, revisionId: effective.revisionId || null, childJobId: child?.id || null, error: effective.error || job.error || null, failureReceipt: job.failureReceipt || effective.failureReceipt || null, resumable: canResumeJob(job) } });
+      // A route job is only an envelope around the real production job.
+      // Read the child even after the envelope was acknowledged as running.
+      const effective = child || job;
+      const rawProgress = effective.renderProgress;
+      const percent = Number.isFinite(rawProgress?.percent) ? rawProgress.percent : Number.isFinite(rawProgress?.completed) && Number.isFinite(rawProgress?.total) && rawProgress.total > 0 ? Math.round(rawProgress.completed / rawProgress.total * 100) : null;
+      const error=effective.error||job.error||null;
+      return baseResult({ tool, projectId, childProjectId: job.childProjectId || null, job: { id: job.id, status: effective.status, stage: effective.stage || job.stage, businessProgress:effective.businessProgress||job.businessProgress||null, preparation:effective.preparation||job.preparation||null, progress: rawProgress, percent, revisionId: effective.revisionId || null, childJobId: child?.id || null, error, question: effective.question || job.question || (effective.status==='needs_user'?error:null), requiredInputs: effective.requiredInputs || job.requiredInputs || effective.gaps || job.gaps || [], actionRequired: effective.status==='needs_user', resumeAllowed: canResumeJob(effective), failureReceipt: job.failureReceipt || effective.failureReceipt || null, externalAsset: effective.externalAsset || job.externalAsset || null } });
     }
     if (tool === 'commerce_artifact_list') {
-      const { projectId, value } = project(input); const revisionId = input.revisionId || value.currentRevisionId;
-      if (!revisionId) return baseResult({ tool, projectId, status: 'needs_revision', revisionId: null, artifacts: [], message: '当前工程还没有可交付版本。' });
+      const { projectId, value } = project(input);
+      const childRef = [...(value.jobs || [])].reverse().find(item => item.childProjectId && item.childJobId);
+      const artifactProject = childRef && typeof service.get === 'function' ? service.get(childRef.childProjectId) : value;
+      const revisionId = input.revisionId || artifactProject.currentRevisionId;
+      if (!revisionId) {
+        const latest=[...(artifactProject.jobs||[])].reverse().find(item=>['needs_user','recoverable','failed'].includes(item.status));
+        return baseResult({ tool, projectId, status: latest?.status==='needs_user'?'needs_user':'needs_revision', revisionId: null, artifacts: [], message: latest?.question||latest?.error||'当前工程还没有可交付版本。', question: latest?.question||latest?.error||null, requiredInputs: latest?.requiredInputs||latest?.gaps||[], actionRequired: latest?.status==='needs_user', resumeAllowed: latest?canResumeJob(latest):false });
+      }
       required(revisionId, 'revisionId');
-      return baseResult({ tool, projectId, ...(await service.artifacts(value, revisionId)) });
+      const result = await service.artifacts(artifactProject, revisionId);
+      const rendered = (typeof service.view === 'function' ? service.view(artifactProject).revisions : artifactProject.revisions)?.find(item => item.id === revisionId);
+      const urls = rendered ? { previewUrl: rendered.previewUrl || null, videoUrl: rendered.videoUrl || null, downloadUrl: rendered.videoUrl ? rendered.videoUrl + '?download=1' : null } : { previewUrl: null, videoUrl: null, downloadUrl: null };
+      let httpRange={supported:false,status:null,contentRange:null,error:null};
+      if(urls.videoUrl&&typeof fetchImpl==='function'){
+        try{
+          const response=await fetchImpl(urls.videoUrl,{headers:{range:'bytes=0-0'}});
+          httpRange={supported:response.status===206,status:response.status,contentRange:response.headers.get('content-range'),error:null};
+          await response.body?.cancel?.();
+        }catch(error){httpRange.error=error.code||error.message;}
+      }
+      const deliveryValid=Boolean(result.deliveryValidation?.exists&&result.deliveryValidation?.actualPlayable&&httpRange.supported&&urls.previewUrl&&urls.downloadUrl);
+      return baseResult({ tool, projectId, artifactProjectId: artifactProject.id, status:deliveryValid?'ready':'delivery_invalid', ...result, ...urls, nativeProjectUrl:rendered?.packageUrl||null, httpRange, deliveryValid });
     }
     fail('工具实现缺失', 'TOOL_NOT_IMPLEMENTED', 501);
   }
