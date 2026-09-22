@@ -8,12 +8,14 @@
  * 3. Control Agent 指令与实现保持一致
  */
 
-import {createCreativeService} from '../lib/creative/service.mjs';
+import {createCreativeService,isUploadedSourceShortcut} from '../lib/creative/service.mjs';
 import {createCommerceEngineFacade} from '../lib/openclaw/commerce-engine-facade.mjs';
 import assert from 'node:assert';
 import {mkdtemp,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
+import {analyzeCommerceRouting} from '../lib/orchestration/commerce-router-v2.mjs';
+import {safeRelativePath} from '../lib/creative/contracts.mjs';
 
 const root = process.cwd();
 
@@ -185,6 +187,36 @@ await test('不存在的 projectId 返回 PROJECT_NOT_FOUND', async () => {
   } finally {
     await rm(dataDir, {recursive: true, force: true});
   }
+});
+
+// 回归 F02/F08：OpenClaw 附件导入先建工程时，不能丢失自然语言中的
+// 竖屏、时长和复杂营销意图；标题引号不能把完整制作误判成原片加字。
+await test('复杂营销请求保留显式输出约束且不降级为标题快捷路径', async () => {
+  const message = '做一条45秒竖屏商品种草视频，开头标题使用“掌机开箱：便携游戏体验”，包含多镜头、旁白、字幕和音乐。';
+  assert.equal(isUploadedSourceShortcut(message,true),false);
+  assert.equal(isUploadedSourceShortcut('保留原片时长不变，只在开头加标题“掌机开箱”',true),true);
+  const intent = analyzeCommerceRouting(message, {});
+  assert.deepEqual(
+    {width:intent.outputConstraints.width,height:intent.outputConstraints.height,durationSeconds:intent.outputConstraints.durationSeconds},
+    {width:1080,height:1920,durationSeconds:45}
+  );
+  const dataDir = await mkdtemp(path.join(tmpdir(), 'openclaw-test-output-'));
+  try {
+    const service = await createCreativeService({root, dataDir});
+    const project = await service.create({message, inferRequest:true, taskMode:'create', taskModeExplicit:true});
+    assert.deepEqual(
+      {width:project.request.output.width,height:project.request.output.height,durationSeconds:project.request.output.durationSeconds},
+      {width:1080,height:1920,durationSeconds:45}
+    );
+  } finally {
+    await rm(dataDir, {recursive:true, force:true});
+  }
+});
+
+await test('OpenClaw 上传资产允许受管项目内 originalRef 且拒绝越界绝对路径', async () => {
+  const projectRoot = path.join(root, 'data', 'result-completion-projects');
+  assert.equal(safeRelativePath(root, path.join(projectRoot, 'example.webm')), path.join(projectRoot, 'example.webm'));
+  assert.throws(() => safeRelativePath(root, path.join(root, '..', 'outside.webm')), {code: 'INVALID_ASSET_PATH'});
 });
 
 console.log('\n✅ 所有测试通过!');

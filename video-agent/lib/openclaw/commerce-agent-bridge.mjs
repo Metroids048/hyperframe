@@ -30,28 +30,55 @@ export function createCommerceAgentBridge({workspaceId,legacyDispatch,projectVie
   const rawSessionKey=stableControlSessionKey(workspaceId,project.id),sessionKey=normalizedOpenClawSessionKey(rawSessionKey);
   const messageId=input.idempotencyKey,operationId=stableControlOperationId(project.id,messageId,{message:input.message,baseRevisionId:input.baseRevisionId??null,attachmentIds:input.attachmentIds||[],attachmentPaths:input.attachmentPaths||[]});
   const authorization=readOnly?null:await authorizationStore.issue({projectId:project.id,baseRevisionId:input.baseRevisionId??null,messageId,message:input.message,sessionKey,allowedTools:openClawWriteTools});
-  const payload={projectId:project.id,baseRevisionId:input.baseRevisionId??null,messageId,operationId,authorizationId:authorization?.authorizationId||null,message:String(input.message||''),attachmentIds:[...(input.attachmentIds||[])],attachmentPaths:[...(input.attachmentPaths||[])],taskMode:input.taskMode||null,scenarioId:input.scenarioId||null,workflowProfile:input.workflowProfile||null,selectedNodeId:input.selectedNodeId||null,readOnly};
+  const payload={projectId:project.id,baseRevisionId:input.baseRevisionId??null,messageId,operationId,authorizationId:authorization?.authorizationId||null,message:String(input.message||''),attachmentIds:[...(input.attachmentIds||[])],attachmentPaths:[...(input.attachmentPaths||[])],taskMode:input.taskMode||null,scenarioId:input.scenarioId||null,workflowProfile:input.workflowProfile||null,selectedNodeId:input.selectedNodeId||null,readOnly,language:'zh-CN'};
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),60000);
-  const request={model,input:[{type:'message',role:'user',content:[{type:'input_text',text:JSON.stringify(payload)}]}],instructions:readOnly?'Parse the JSON. Return read-only status without calling any write tool.':`Parse the JSON payload and handle video editing requests.
+  // 简化 payload：只保留核心字段和 authorizationId
+  const simplifiedPayload={
+    message:payload.message,
+    projectId:payload.projectId||null,
+    authorizationId:payload.authorizationId||null,
+    operationId:payload.operationId,
+    messageId:payload.messageId,
+    attachmentIds:payload.attachmentIds||[],
+    attachmentPaths:payload.attachmentPaths||[]
+  };
+  const request={model,input:[{type:'message',role:'user',content:[{type:'input_text',text:JSON.stringify(simplifiedPayload)}]}],instructions:readOnly?'Parse the JSON. Return read-only status without calling any write tool. Reply in Chinese (简体中文).':`Parse the JSON payload and handle video editing requests. IMPORTANT: Always reply in Chinese (简体中文) for all user-facing messages, summaries, questions, and error descriptions.
 
 WORKFLOW:
-1. For ANY ordinary request (text-only creation, uploaded media, editing existing project), call video_task directly with the payload's projectId and baseRevisionId as-is.
-2. The server auto-creates projects when projectId is null/missing. Never ask the user to "create a project first" or "select a project" unless they explicitly want to browse existing ones.
-3. Use video_project_list ONLY when the user explicitly asks to browse/list/select from existing projects.
-4. Use video_project_open ONLY to inspect an existing project's details before editing it.
+1. For ANY creation request (new video, product video, edit request), ALWAYS call video_task directly. The payload already contains projectId (may be null for new projects).
+2. NEVER ask the user to select a project or provide a projectId. The server automatically creates projects when projectId is null.
+3. NEVER call video_project_list unless the user explicitly says "show me my projects" or "list projects".
+4. NEVER call video_project_open unless the user explicitly references a specific existing project.
+5. For follow-up edits in the same conversation, the payload already contains the correct projectId - use it as-is.
 
 CRITICAL RULES:
 - NEVER call tools named "read", "search", "validate" - they don't exist
 - ONLY use: video_task, video_project_list, video_project_open, video_job_status, video_result, video_cancel
-- Copy ALL payload fields as-is when calling video_task (projectId, baseRevisionId, operationId, authorizationId, message, attachmentIds, attachmentPaths, taskMode, scenarioId, workflowProfile, selectedNodeId)
+- For 95% of requests, call video_task immediately without asking anything
+- Copy ALL payload fields EXACTLY as-is when calling video_task (projectId, baseRevisionId, operationId, authorizationId, message, attachmentIds, attachmentPaths, taskMode, scenarioId, workflowProfile, selectedNodeId)
+- NEVER modify projectId, baseRevisionId, or any other field in the payload
+- If projectId is null/empty in payload, that means "create new project" - call video_task with it as-is
 - Never invent UUIDs, revision IDs, or modify attachment paths
 - If a tool returns status=needs_input, return that status with the question to the user
+- NEVER ask "要新建项目还是继续编辑" - just call video_task
 
 ERROR HANDLING:
 - REVISION_CONFLICT: Project was edited elsewhere. Tell user to refresh and retry.
 - SERVICE_NOT_READY: Video service is not running. Tell user to start the service.
-- PROJECT_NOT_FOUND: Only possible if user explicitly named a specific project ID that doesn't exist. Show available projects.
-- For any other error, return status=blocked with the error message.`,tools:[resultToolSchemaWithProjectList()],tool_choice:{type:'function',name:'return_control_result'},user:rawSessionKey,stream:false};
+- PROJECT_NOT_FOUND: Should never happen because server auto-creates projects. If it does, call video_task again.
+- For any other error, return status=blocked with the error message.
+
+EXAMPLES OF CORRECT BEHAVIOR:
+User: "帮我制作咖啡机的商品视频" → Immediately call video_task with payload as-is (projectId will be null, server creates it)
+User: "把第一个镜头改成3秒" → Immediately call video_task with payload as-is (projectId already set from conversation)
+User: "上传一个视频素材" → Immediately call video_task with payload as-is
+User: "显示我的项目列表" → Call video_project_list (only exception)
+
+WRONG BEHAVIOR - NEVER DO THIS:
+❌ Asking "要新建项目还是继续编辑现有项目？"
+❌ Asking "需要我传入当前 projectId 继续替换吗？"
+❌ Calling video_project_list when user just wants to create/edit a video
+❌ Modifying projectId or baseRevisionId in the payload`,tools:[resultToolSchemaWithProjectList()],tool_choice:{type:'function',name:'return_control_result'},user:rawSessionKey,stream:false};
   const receipt={mode,projectId:project.id,messageId,operationId,sessionHash:digest(rawSessionKey),requestHash:digest(request),model,status:'started'};
   try{
    const response=await fetchImpl(baseUrl,{method:'POST',headers:{authorization:'Bearer '+token,'content-type':'application/json','x-openclaw-session-key':rawSessionKey},body:JSON.stringify(request),signal:controller.signal});

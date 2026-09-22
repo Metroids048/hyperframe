@@ -51,6 +51,7 @@ import {executionStatus} from './execution-status.mjs';
 import {loadCloseoutQueue} from './full-closeout-state.mjs';
 import {exportCreativeHistory,unpackCreativeHistory,restoreCreativeHistory,MAX_PACKAGE_BYTES} from './portable.mjs';
 import {externalReplacementIntent,searchCommonsImage,downloadCommonsImage} from './external-assets.mjs';
+import {analyzeCommerceRouting} from '../orchestration/commerce-router-v2.mjs';
 
 const active=j=>['queued','running'].includes(j.status);
 // A route acknowledgement is an active status record, but it must not block
@@ -104,12 +105,15 @@ function deterministicUploadedVideoEdit(document, message) {
   return null;
 }
 
-function initialVideoMode(message){
+export function initialVideoMode(message){
   const text=String(message||'').trim();
   const marketing=/(?:制作|生成|做|剪成|重剪|策划).{0,16}(?:广告|营销片|种草|新品|宣传片|详情)|(?:广告|营销片|种草|宣传片).{0,16}(?:制作|生成|做|剪)/u.test(text);
   const localChange=/(?:只在|仅在|开头|前\s*(?:\d+|[一二三四五六七八九十]+)\s*秒).{0,20}(?:加|添加|改|放).{0,12}(?:字|文字|标题|字幕)|(?:加|添加|改).{0,16}(?:字|文字|标题|字幕)/u.test(text);
   const preservation=/(?:保留|保持).{0,16}(?:原片|原视频|原声|声音|时长|画幅).{0,8}(?:不变|不动|完整)?|(?:其他|其它|其余|别的).{0,8}(?:都)?(?:不变|不动|别改)/u.test(text);
   return !marketing&&localChange&&preservation?'source-edit':'produce';
+}
+export function isUploadedSourceShortcut(message,hasUploadedSource){
+  return Boolean(hasUploadedSource&&initialVideoMode(message)==='source-edit');
 }
 function needsExternalReplacementIntent(message,routeDecision={}){
   const text=String(message||'').trim();
@@ -168,13 +172,21 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
   const revision=(p,id=p.currentRevisionId)=>{const r=p.revisions.find(r=>r.id===id);if(!r)throw new CreativeError('版本不存在','REVISION_NOT_FOUND',404);return r;};
   const view=p=>({...structuredClone(p),artifactBaseUrl:artifactBase,deliveryStatus:p.request?.commerceProfile==='commerce-focus-v1'?'awaiting_review':'legacy_unverified',jobs:p.jobs.map(({snapshot,...job})=>({...job,...(job.directionPreview?{directionPreview:{...job.directionPreview,previewUrl:artifactUrl(`/api/commerce/${p.id}/jobs/${job.id}/direction/watch.html`)}}:{}),resumeAllowed:canResumeJob(job),budgetExhausted:budgetExhausted(job)})),auditions:(p.auditions||[]).map(a=>({...a,url:artifactUrl(`/api/commerce/${p.id}/auditions/${a.id}.wav`)})),revisions:p.revisions.map(r=>({...r,previewUrl:artifactUrl(`/api/commerce/${p.id}/revisions/${r.id}/preview.html`),videoUrl:r.rendered?artifactUrl(`/api/commerce/${p.id}/revisions/${r.id}/commerce-final.mp4`):null,documentUrl:artifactUrl(`/api/commerce/${p.id}/revisions/${r.id}/document.json`),packageUrl:r.historyPackaged?artifactUrl(`/api/commerce/${p.id}/revisions/${r.id}/history.zip`):r.packaged?artifactUrl(`/api/commerce/${p.id}/revisions/${r.id}/project.zip`):null}))});
   async function create(input={}){
-    // Ensure request has default output configuration to prevent undefined access
+    // Preserve explicit natural-language output constraints even when the
+    // OpenClaw attachment import creates the project before routing. The
+    // bridge intentionally creates with only the message and assets, so
+    // falling back to the demo landscape defaults here silently loses a
+    // user's requested portrait/duration contract.
+    const inferredOutput = !input.output || Object.keys(input.output).length===0
+      ? analyzeCommerceRouting(String(input.message||''), {}).outputConstraints
+      : null;
     const request = {
       ...input,
       output: {
         width: 1280,
         height: 720,
         durationSeconds: 40,
+        ...(inferredOutput||{}),
         ...(input.output || {})
       }
     };
@@ -220,7 +232,6 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
         && (input.attachmentIds||[]).map(id=>p.assets.find(a=>a.id===id)).find(a=>a?.kind==='video'&&a.mediaMetadata?.duration);
       const sourceEditIntent=Boolean(uploadedSource&&(
         initialVideoMode(input.message)==='source-edit'
-        || uploadedVideoTitle(input.message)
       ));
       try{
         // Routing a fresh uploaded source through the ordinary "edit existing
@@ -304,13 +315,17 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
     // queued state behind.
     void dispatchMessage(p,input,job).catch(async error=>{
       if(job.status==='queued'||job.status==='running'||job.status==='recoverable'){
-        const retryable=Boolean(error?.capacity||isRecoverableProviderFailure(error)||['CODEX_LIMIT','CODEX_TIMEOUT','CODEX_REQUEST_FAILED','OPENCLAW_CONTROL_RATE_LIMIT','OPENCLAW_CONTROL_TIMEOUT'].includes(error?.code));
+        const retryable=Boolean(error?.capacity||isRecoverableProviderFailure(error)||['CODEX_LIMIT','CODEX_TIMEOUT','CODEX_REQUEST_FAILED','OPENCLAW_CONTROL_RATE_LIMIT','OPENCLAW_CONTROL_TIMEOUT','SESSION_PROJECT_CONFLICT'].includes(error?.code));
         job.status=retryable?'recoverable':'failed';
         job.stage=retryable?'等待自动重试':'路由失败';
         job.error=error?.message||'路由失败';
         job.code=error?.code||'MESSAGE_ROUTE_FAILED';
         job.retryable=retryable;
         job.completedAt=retryable?null:now();
+        if(error?.code==='SESSION_PROJECT_CONFLICT'){
+          job.stage='会话绑定冲突，等待自动重试';
+          job.error='OpenClaw 会话绑定冲突，系统将自动重试。';
+        }
         // 扩展重试策略：在 5 分钟内最多重试 10 次
         // 退避策略：1s, 2s, 4s, 8s, 15s, 30s, 60s, 60s, 60s, 60s
         const maxRetries=parseInt(process.env.VIDEO_AGENT_MAX_RETRY_COUNT)||10;
@@ -621,13 +636,7 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
         // clarification asking the user to open/bind an existing project.
         const uploadedSource=p.currentRevisionId==null
           && (job.input.attachmentIds||[]).map(id=>p.assets.find(a=>a.id===id)).find(a=>a?.kind==='video'&&a.mediaMetadata?.duration);
-        const sourceEditRequested=Boolean(uploadedSource&&(
-          initialVideoMode(job.input.message)==='source-edit'
-          // An explicit title/文字 request is a safe source-first edit even
-          // when the preservation clause lists several fields (画面、原声、
-          // 时长、画幅) and therefore exceeds the shortcut regex window.
-          || uploadedVideoTitle(job.input.message)
-        ));
+        const sourceEditRequested=isUploadedSourceShortcut(job.input.message,uploadedSource);
         if(sourceEditRequested){
           // A source-first edit is intentionally scoped to the user's
           // requested overlay/preservation changes. Do not turn a low

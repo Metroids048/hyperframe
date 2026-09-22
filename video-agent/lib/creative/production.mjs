@@ -32,7 +32,7 @@ import {ToolRegistry} from '../edit/tool-registry.mjs';
 import {CodexProvider} from '../edit/codex-provider.mjs';
 import {ffmpeg,run as mediaRun,probe,hashFile} from '../edit/media.mjs';
 import {CapabilityCatalog,resourceHash,normalizeShotSource} from './capabilities.mjs';
-import {creationSchema,collectCreativeEvidence,documentFromModelPlan,validateInferredRequest,validateObservations} from './model-director.mjs';
+import {creationSchema,collectCreativeEvidence,documentFromModelPlan,validateInferredRequest,validateObservations,canonicalizeObservationRows} from './model-director.mjs';
 import {CUSTOM_SOURCE_CONTRACT} from './custom-source.mjs';
 import {compileDocument,designMarkdown} from './compiler.mjs';
 import {prepareNativeAudio} from './audio.mjs';
@@ -244,11 +244,14 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
     }
     if(observation.inspectRanges.length){const allocation=boundObservationRanges(observation.inspectRanges,assets);await saveJSON('inspection-allocation.json',allocation);observation={...observation,inspectRanges:allocation.selected,gaps:[...observation.gaps,...allocation.omitted.map(r=>'尚未加密观察 '+r.assetId+' '+r.startSeconds+'—'+r.endSeconds+'秒；不能当作动作边界已确认')]};const dense=io.denseImages?await io.denseImages(observation.inspectRanges):await denseImages(observation.inspectRanges);visualInputs=[...selectEvidenceInputs(visualInputs,2).inputs,...dense];observation=canonicalizeSingleAssetReferences(await ask(ctx,'R2',{brief,prior:observation,metadata:assets.map(a=>({id:a.id,...a.mediaMetadata}))},observationSchema,{images:dense,extra:'这是实际加密观察结果。修正动作与起止，保留未确认的局限。inspectRanges现在为空；仍不足以完成必需动作则写gaps，不虚构。'}),assets);}
     for(let attempt=0;attempt<3;attempt++){
+      observation={...observation,observations:canonicalizeObservationRows(observation.observations)};
       try{validateObservations(assets,observation.observations);break;}catch(error){
         await saveJSON('failed-observation-'+attempt+'.json',{observation,error:{code:error.code,message:error.message}});if(attempt===2)throw error;
         observation=canonicalizeSingleAssetReferences(await ask(ctx,'R2',{message:request.message,brief,prior:observation,validationError:error.message,attempt,metadata:assets.map(a=>({id:a.id,...a.mediaMetadata}))},observationSchema,{images:visualInputs,extra:'修正观察合同。框是归一化[x,y,width,height]，不是右下坐标；无法确认可留空。只需观察获准使用的素材，其余不能借相似外观建立同型号关系。inspectRanges为空，不重复已执行的抽帧。'}),assets);
       }
     }
+    observation={...observation,observations:canonicalizeObservationRows(observation.observations)};
+    validateObservations(assets,observation.observations);
     const transcripts=[];if(needsSourceSpeechEvidence(brief,currentContract,assets)){for(const a of assets.filter(a=>a.mediaMetadata.hasAudio&&!a.generatedVoice&&(brief.needsTranscription||a.kind==='video'))){const transcript=await provider.transcribe(path.join(outputDir,a.compiledRef),signal);transcripts.push({assetId:a.id,sourceSha256:a.sha256,transcript});}await saveJSON('transcripts.json',transcripts);const audioStatus=observationAudioStatus(brief,transcripts);await saveJSON('observation-audio-status.json',audioStatus);if(audioStatus.limitation)observation.gaps.push(audioStatus.limitation);}
     await saveJSON('transcripts.json',transcripts);return saveJSON('observations.json',observation);
   });
@@ -394,8 +397,20 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
       // disabled and the request explicitly keeps the source audio.  In that
       // case it is not an authorized audio change; retain the original track
       // and continue with the visual-only story plan.
-      if(result(ctx.run,'narration')?.enabled===true)validateNarrationRevision(request,result(ctx.run,'narration'),ctx.run.artifacts.narrationHistory||[],story.narrationRevision);
-      else story={...story,narrationRevision:null};
+      if(result(ctx.run,'narration')?.enabled===true){
+        const proposal=story.narrationRevision;
+        try{
+          validateNarrationRevision(request,result(ctx.run,'narration'),ctx.run.artifacts.narrationHistory||[],proposal);
+        }catch(error){
+          // Narration shortening is an optional internal optimization. A
+          // malformed model proposal must not turn a valid full production
+          // into a recoverable user task; retain the measured narration and
+          // let timing verification decide whether a real repair is needed.
+          if(error.code!=='NARRATION_REVISION_INVALID')throw error;
+          story={...story,narrationRevision:null};
+          await saveJSON('narration-revision-rejected.json',{code:error.code,message:error.message,proposal});
+        }
+      }else story={...story,narrationRevision:null};
     }
     if(story.inspectActions?.length){validateActionRanges(story.inspectActions,assets);return saveJSON('story-plan.json',story);}
     if(story.inspectRanges?.length){validateInspectionRanges(story.inspectRanges,assets);return saveJSON('story-plan.json',story);}

@@ -76,6 +76,7 @@ export class OpenClawStageProvider {
   this.reasoningEffort='configured';this.invocationCount=0;
   if(typeof fetchImpl!=='function')throw fail('fetch unavailable','OPENCLAW_STAGE_RUNTIME_INVALID',500);
  }
+ status(){return {configured:Boolean(this.token&&this.model),provider:'OpenClaw',model:this.model,voiceModel:null,auth:'server-configured Gateway',checkingLogin:false};}
  async structured(instructions,input,schema,signal){
   if(!this.token||!this.model)throw fail('OpenClaw stage token/model missing');
   if(this.model!=='openclaw/commerce-stage')throw fail('stage must target the isolated commerce-stage Agent','OPENCLAW_STAGE_TARGET_INVALID',400);
@@ -86,13 +87,23 @@ export class OpenClawStageProvider {
   const invocation=++this.invocationCount;
   // A provider serves several production stages; none may inherit another stage's session.
   const user='commerce-stage:'+sha({runId:this.runId,invocation});
-  const request={model:this.model,instructions:String(instructions),input:gatewayInput(input),tools:[{type:'function',name:'return_stage_result',description:'Return the structured stage result; no side effects.',parameters:schema,strict:true}],tool_choice:{type:'function',name:'return_stage_result'},user,stream:false};
+  const baseInstructions=String(instructions),tool=[{type:'function',name:'return_stage_result',description:'Return the structured stage result; no side effects.',parameters:schema,strict:true}];
+  const request={model:this.model,instructions:baseInstructions,input:gatewayInput(input),tools:tool,tool_choice:{type:'function',name:'return_stage_result'},user,stream:false};
   const receipt={runId:this.runId,stage:'commerce-stage',invocation,attempt:1,model:this.model,requestHash:sha(request),sessionHash:sha(user),images,usage:'unknown'};
   try{
    await this.onInvocation?.(receipt);
-   const response=await this.fetchImpl(this.baseUrl,{method:'POST',headers:{authorization:'Bearer '+this.token,'content-type':'application/json'},body:JSON.stringify(request),signal:controller.signal});
-   let body;try{body=await response.json();}catch{throw fail('stage returned invalid JSON','OPENCLAW_STAGE_RESPONSE_INVALID',502);}
-   if(!response.ok){const code=response.status===401||response.status===403?'OPENCLAW_STAGE_AUTH':response.status===429?'OPENCLAW_STAGE_RATE_LIMIT':'OPENCLAW_STAGE_HTTP_ERROR';const requestId=response.headers.get('x-request-id')||response.headers.get('request-id')||null;const retryAfter=response.headers.get('retry-after')||null;const upstream=body?.error?.message||body?.error||body?.message||null;throw fail(upstream||'stage HTTP '+response.status,code,response.status,{httpStatus:response.status,requestId:requestId?safeUpstream(requestId):null,retryAfter:retryAfter?safeUpstream(retryAfter):null,provider:this.model});}
+   let body,response,attempt=0;
+   while(true){
+    attempt++;
+    const current={...request,instructions:attempt===1?baseInstructions:baseInstructions+'\n\n契约重试：必须只调用一次 return_stage_result，并将完整结构化结果作为该调用参数返回；不要输出普通文本。'};
+    response=await this.fetchImpl(this.baseUrl,{method:'POST',headers:{authorization:'Bearer '+this.token,'content-type':'application/json'},body:JSON.stringify(current),signal:controller.signal});
+    try{body=await response.json();}catch{throw fail('stage returned invalid JSON','OPENCLAW_STAGE_RESPONSE_INVALID',502);}
+    if(response.ok)break;
+    const upstream=body?.error?.message||body?.error||body?.message||'';
+    const retryable=attempt===1&&/tool_choice|required|return_stage_result|did not produce/i.test(String(upstream));
+    if(retryable)continue;
+    const code=response.status===401||response.status===403?'OPENCLAW_STAGE_AUTH':response.status===429?'OPENCLAW_STAGE_RATE_LIMIT':'OPENCLAW_STAGE_HTTP_ERROR';const requestId=response.headers.get('x-request-id')||response.headers.get('request-id')||null;const retryAfter=response.headers.get('retry-after')||null;throw fail(upstream||'stage HTTP '+response.status,code,response.status,{httpStatus:response.status,requestId:requestId?safeUpstream(requestId):null,retryAfter:retryAfter?safeUpstream(retryAfter):null,provider:this.model});
+   }
    const result=stageResult(body);check(result,schema);
    receipt.usage=body.usage||'unknown';await this.onReceipt?.({...receipt,status:'pass'});
    return {result,usage:body.usage||null,model:this.model,invocation:receipt};

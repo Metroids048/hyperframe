@@ -60,7 +60,15 @@ export async function createEditService({dataDir=process.env.VIDEO_AGENT_EDIT_DA
     for(const r of safe.revisions){const base=`/api/edit-projects/${p.id}/revisions/${r.id}`;r.previewUrl=base+'/preview.html';r.videoUrl=r.render?.status==='complete'?base+'/video':null;r.subtitlesUrl=base+'/subtitles';r.packageUrl=r.render?.status==='complete'?base+'/package':null;}
     return safe;
   }
-  function capabilities(){return {...provider.status(),verifiedAt:provider.verifiedAt||[...projects.values()].flatMap(p=>p.jobs).filter(j=>j.cloudVerifiedAt).map(j=>j.cloudVerifiedAt).sort().at(-1)||null,maxFileBytes:1024**3,maxDuration:600,fps:30,engine:'HyperFrames 0.8.33',timelineSchemaVersions:[1,2],defaultAutoExport:false,localTools:['trim','reorder','speed','crop','overlay','transition','caption','audio','versions','export'],...skillCapabilities()};}
+  function capabilities(){
+    let status;
+    try{
+      status=typeof provider.status==='function'?provider.status():{configured:false,provider:'unknown',model:null,checkingLogin:false};
+    }catch(error){
+      status={configured:false,provider:'unknown',model:null,checkingLogin:false};
+    }
+    return {...status,verifiedAt:provider.verifiedAt||[...projects.values()].flatMap(p=>p.jobs).filter(j=>j.cloudVerifiedAt).map(j=>j.cloudVerifiedAt).sort().at(-1)||null,maxFileBytes:1024**3,maxDuration:600,fps:30,engine:'HyperFrames 0.8.33',timelineSchemaVersions:[1,2],defaultAutoExport:false,localTools:['trim','reorder','speed','crop','overlay','transition','caption','audio','versions','export'],...skillCapabilities()};
+  }
   let connectedAt=provider.settings?.verifiedAt||null,connecting=false;
   async function connect(input) {
     if(provider instanceof CodexProvider){await provider.refreshLogin?.();await provider.structured('只输出 ok=true',[{role:'user',content:'验证视频剪辑订阅连接'}],{type:'object',properties:{ok:{type:'boolean'}},required:['ok'],additionalProperties:false});connectedAt=provider.verifiedAt;return {...capabilities(),verifiedAt:connectedAt};}

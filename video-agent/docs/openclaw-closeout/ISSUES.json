@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "issues": [
+    {
+      "id": "OBS-001",
+      "severity": "P1",
+      "status": "observed-and-open",
+      "title": "Existing OpenClaw session reply initialization conflict",
+      "reproduction": "OpenClaw session agent:commerce-control:dashboard:893d1459-5c98-4bb3-98c8-79a15f882c0d shows Error: reply session initialization conflicted after an accepted Video Task",
+      "rootCause": "OpenClaw reply/session path produced accepted task but prior session emitted initialization conflict; fresh session succeeded. Needs regression after final A/B.",
+      "fix": null,
+      "regression": null,
+      "evidence": [
+        "native browser screenshot/state from 2026-09-21"
+      ],
+      "closeCondition": "Fresh session completes a real A0 without plugin/session conflict; regression recorded."
+    },
+    {
+      "id": "F02-F08-001",
+      "severity": "P1",
+      "status": "fixed-awaiting-live-regression",
+      "title": "Complex uploaded marketing request lost output contract and was routed as source edit",
+      "reproduction": "A0 project 14f1e670-3177-4cd9-9d0f-a942fc387a88 stored 1280x720/40 despite 1080x1920/45; routeDecision taskMode recut; title quote triggered uploadedVideoTitle shortcut",
+      "rootCause": "creative.create defaulted demo output before routing; sourceEditIntent treated any quoted title as source-edit",
+      "fix": "Infer explicit output constraints in create() and require initialVideoMode(source-edit) for source-edit shortcut",
+      "regression": "scripts/test-openclaw-fixes-2026-09-21.mjs passes 6/6; live A0 rerun pending",
+      "evidence": [
+        "data/result-completion-projects/14f1e670-3177-4cd9-9d0f-a942fc387a88/native-project.json",
+        "browser session 2c216a09-6446-44c1-b257-711cd3a2e821"
+      ]
+    },
+    {
+      "id": "F01-OBS-001",
+      "severity": "P1",
+      "status": "fixed-awaiting-live-regression",
+      "title": "真实上传素材的工程绝对 originalRef 被 safeRelativePath 错误拒绝",
+      "reproduction": "OpenClaw A0 恢复在规划阶段报素材路径必须相对于 video-agent 工作目录",
+      "rootCause": "绝对路径合同只允许 OpenClaw state 根，未允许受管 Video Agent 工程根内 originalRef",
+      "fix": "safeRelativePath 改为基于 canonical containment 允许 Video Agent 根或显式 state 根，拒绝越界路径",
+      "evidence": [
+        "project c6cd5bb8-f3b8-4a49-a03e-6b45e16726b5",
+        "job-9fdc6db7-0bac-4312-82b7-6417ac726191",
+        "job-442a92f2-1c5d-4843-bb56-1263a690bb52"
+      ],
+      "closeCondition": "解锁后同一工程恢复并进入完整创建/渲染，且 path/originalRef/hash 一致"
+    },
+    {
+      "id": "F13-OBS-001",
+      "severity": "P1",
+      "status": "fixed-awaiting-live-regression",
+      "title": "导演模型返回分镜但漏 observations，真实任务在文档校验阻断",
+      "reproduction": "A0 job-442a92f2-1c5d-4843-bb56-1263a690bb52 报 MISSING_OBSERVATION",
+      "rootCause": "provider structured output 未返回所选素材的 observation 行",
+      "fix": "使用已生成 evidence.json 绑定中性观察记录，保留真实样本/hash，不补写事实",
+      "evidence": [
+        "versions/job-442a92f2-1c5d-4843-bb56-1263a690bb52/evidence.json"
+      ],
+      "closeCondition": "恢复后分镜校验、渲染和实际观片通过"
+    },
+    {
+      "id": "F13-NARR-001",
+      "severity": "P1",
+      "status": "fixed-awaiting-live-regression",
+      "title": "可选旁白缩短建议不合格时错误阻断整单",
+      "reproduction": "A0 recovery job-94f64d1b... 在安排整片内容与节奏阶段报 NARRATION_REVISION_INVALID",
+      "rootCause": "模型返回的 narrationRevision 未满足新的台词与冲突依据契约，但内部可选优化异常被直接抛出为 recoverable",
+      "fix": "production.story.plan 对 NARRATION_REVISION_INVALID 保留已生成旁白并继续 timing/渲染，记录 narration-revision-rejected.json；保护/循环错误仍然阻断",
+      "evidence": [
+        "video-agent/lib/creative/production.mjs",
+        "scripts/test-narration-revision.mjs",
+        "scripts/test-openclaw-fixes-2026-09-21.mjs"
+      ],
+      "closeCondition": "同一 OpenClaw 项目恢复后完成 A0 timing、渲染、实际观片且旁白/字幕/混音存在"
+    }
+  ]
+}

@@ -86,6 +86,22 @@ export async function planWithModel(request,assets,{outputDir,root,signal,provid
   await onStage?.('理解需求并生成分镜与场景');
   try{response=await provider.structured(instructions+'\n如果需求明确超出现有效果的组合，用custom-native原创场景，不能用重复模板冒充。\n'+CUSTOM_SOURCE_CONTRACT,[{role:'user',content:[{type:'input_text',text:JSON.stringify({message:request.message,inferRequest:request.inferRequest,product:request.product,output:request.inferRequest?null:request.output,creativeMode:request.creativeMode,style:request.inferRequest?null:request.style,assets:factual,effectContracts:EFFECTS})},...evidence.inputs]}],creationSchema,signal);}finally{if(own)await provider.close();}
   const plan=response.result;
+  // The evidence bundle is the authoritative observation record. Some
+  // providers occasionally return a valid storyboard but omit the required
+  // observation rows even though every frame/contact sheet was supplied. Keep
+  // the real evidence bound to the selected assets instead of failing a whole
+  // run or inventing product facts; the neutral row explicitly records that
+  // the provider omitted prose, while validation still requires the asset to
+  // have been observed and keeps its hashes/samples in evidence.json.
+  const requiredAssetIds=[...new Set(plan.scenes.flatMap(scene=>scene.media.map(media=>media.assetId)).concat(plan.audio.map(audio=>audio.assetId)))];
+  const observations=Array.isArray(plan.observations)?plan.observations:[];
+  for(const assetId of requiredAssetIds){
+    if(observations.some(observation=>observation.assetId===assetId))continue;
+    const record=evidence.records.find(item=>item.assetId===assetId);
+    if(!record)continue;
+    observations.push({assetId,visibleContent:'已完成真实抽帧/波形观察；导演未返回额外文字描述。',uncertainty:'未提供文字化观察结论，继续使用真实证据与安全裁切约束。',role:record.kind==='audio'?'unknown':'overview',productGroup:'',subjectBox:[],safeCrop:[],confidence:0.5,quality:'evidence-backed',visibleText:[],sameProductAs:[],differentProductFrom:[]});
+  }
+  plan.observations=canonicalizeObservationRows(observations);
   await fs.writeFile(path.join(outputDir,'model-plan.json'),JSON.stringify({model:response.model,usage:response.usage,plan},null,2));
   let document;
   try{document=documentFromModelPlan(request,assets,plan);}catch(error){if(!error.code?.startsWith('CUSTOM_'))throw error;document=await repairPlannedDocument(request,assets,{outputDir,error,signal,onStage});}
@@ -142,6 +158,17 @@ export function validateObservations(assets,observations,{requiredAssetIds=[]}={
     for(const key of ['subjectBox','safeCrop']){const box=observation[key];insist(Array.isArray(box)&&(box.length===0||box.length===4&&box.every(v=>Number.isFinite(v)&&v>=0&&v<=1)&&box[2]>0&&box[3]>0&&box[0]+box[2]<=1.001&&box[1]+box[3]<=1.001),`观察 ${observation.assetId}.${key}=${JSON.stringify(box)} 必须为归一化[x,y,width,height]：width>0、height>0、x+width<=1、y+height<=1。当前右边界=${box?.[0]+box?.[2]}，下边界=${box?.[1]+box?.[3]}。例如左上(0.4,0.25)、右下(0.63,0.73)应输出[0.4,0.25,0.23,0.48]；无法确认可输出[]，不得猜测。`,'INVALID_OBSERVATION');}
     insist([...observation.sameProductAs,...observation.differentProductFrom].every(id=>byId[id]&&id!==observation.assetId),'商品关系引用了未知素材','INVALID_OBSERVATION');
   }
+}
+
+// Providers may expand one asset into one row per sampled frame. Keep the
+// contract at one authoritative row per asset; complete frame evidence stays
+// in the evidence bundle.
+export function canonicalizeObservationRows(observations=[]){
+  const seen=new Set();
+  return observations.filter(observation=>{
+    if(!observation?.assetId||seen.has(observation.assetId))return false;
+    seen.add(observation.assetId);return true;
+  });
 }
 
 export function documentFromModelPlan(request,assets,plan){

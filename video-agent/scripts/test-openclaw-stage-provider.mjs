@@ -23,6 +23,14 @@ await provider.structured('next stage',[{role:'user',content:'plain text'}],sche
 assert.notEqual(seen.user,firstSession);assert.equal(seen.input[0].content,'plain text');
 await assert.rejects(()=>new OpenClawStageProvider({token:'x',model:'openclaw/commerce-control',fetchImpl}).structured('x',[],schema),e=>e.code==='OPENCLAW_STAGE_TARGET_INVALID');
 await assert.rejects(()=>new OpenClawStageProvider({token:'x',fetchImpl:async()=>({ok:true,json:async()=>({output_text:'{"ok":true,"text":"done"}'})})}).structured('x',[],schema),e=>e.code==='OPENCLAW_STAGE_SCHEMA_INVALID');
+let retryCalls=0;
+const retryProvider=new OpenClawStageProvider({token:'x',fetchImpl:async()=>{
+ retryCalls++;
+ if(retryCalls===1)return {ok:false,status:500,headers:{get:()=>null},json:async()=>({error:{message:'tool_choice required a return_stage_result tool call, but the agent did not produce one'}})};
+ return {ok:true,status:200,headers:{get:()=>null},json:async()=>({output:[{type:'function_call',name:'return_stage_result',arguments:JSON.stringify({ok:true,text:'retried'})}]})};
+}});
+assert.equal((await retryProvider.structured('x',[],schema)).result.text,'retried');
+assert.equal(retryCalls,2,'tool-choice contract failures should receive one bounded retry');
 const timeoutReceipts=[];
 await assert.rejects(()=>new OpenClawStageProvider({token:'x',timeoutMs:5,onReceipt:r=>timeoutReceipts.push(r),fetchImpl:async(_url,{signal})=>new Promise((_,reject)=>signal.addEventListener('abort',()=>reject(new DOMException('aborted','AbortError'))))}).structured('x',[],schema),e=>e.code==='OPENCLAW_STAGE_TIMEOUT');
 assert.equal(timeoutReceipts[0].errorCode,'OPENCLAW_STAGE_TIMEOUT');

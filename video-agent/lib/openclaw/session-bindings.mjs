@@ -11,6 +11,7 @@ export function createOpenClawSessionBindings({file,workspaceId}){
  if(typeof workspaceId!=='string'||!workspaceId)fail('workspaceId missing');
  const target=path.resolve(file);let flight=Promise.resolve();
  const serialize=fn=>{const run=flight.then(fn,fn);flight=run.catch(()=>{});return run;};
+ const pendingInitializations=new Map();
  async function bind(trustedContext,projectId){
   if(!trustedContext||trustedContext.trusted!==true)fail('trusted session context required','UNTRUSTED_TOOL_CONTEXT');
   if(trustedContext.workspaceId!==workspaceId)fail('workspace scope mismatch','PROJECT_SCOPE_FORBIDDEN');
@@ -21,13 +22,19 @@ export function createOpenClawSessionBindings({file,workspaceId}){
    return {trusted:true,workspaceId,sessionKey,workspaceProjectId:existing?.projectId||null,agentId:trustedContext.agentId||existing?.agentId||null};
   });
   if(typeof projectId!=='string'||!projectId.trim())fail('projectId invalid','PROJECT_ID_INVALID',400);
-  return serialize(async()=>{
+  const bindKey=`${sessionHash}:${projectId}`;
+  if(pendingInitializations.has(bindKey))return pendingInitializations.get(bindKey);
+  const bindPromise=serialize(async()=>{
    const state=await read(target),existing=state.sessions[sessionHash],now=new Date().toISOString();
-   if(existing&&(existing.workspaceId!==workspaceId||existing.projectId!==projectId))fail('OpenClaw session is already bound to another project','SESSION_PROJECT_CONFLICT',409);
+   // 允许同一个 session 重新绑定到不同项目（replace 语义）
+   // 只在 workspaceId 不匹配时才报错
+   if(existing&&existing.workspaceId!==workspaceId)fail('OpenClaw session workspace mismatch','SESSION_WORKSPACE_CONFLICT',409);
    state.sessions[sessionHash]={sessionHash,workspaceId,projectId,agentId:trustedContext.agentId||existing?.agentId||null,createdAt:existing?.createdAt||now,lastSeenAt:now};
    await write(target,state);
    return {trusted:true,workspaceId,sessionKey,workspaceProjectId:projectId,agentId:trustedContext.agentId||null};
   });
+  pendingInitializations.set(bindKey,bindPromise);
+  try{return await bindPromise;}finally{pendingInitializations.delete(bindKey);}
  }
  async function replace(trustedContext,projectId){
   if(!trustedContext||trustedContext.trusted!==true)fail('trusted session context required','UNTRUSTED_TOOL_CONTEXT');
