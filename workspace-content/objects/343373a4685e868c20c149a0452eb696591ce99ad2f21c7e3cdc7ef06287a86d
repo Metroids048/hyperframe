@@ -1,0 +1,60 @@
+{
+  "index": 5,
+  "before": {
+    "purpose": "安静收尾",
+    "effect": "end-card",
+    "weight": 1,
+    "durationSeconds": 2.5,
+    "reason": "使用已有标题卡完成完整结束。",
+    "media": [
+      {
+        "assetId": "asset-20c27ed0-26a8-428f-a232-2042a6e946a1",
+        "sourceStartSeconds": 66.1,
+        "playbackRate": 1,
+        "fit": "contain"
+      }
+    ],
+    "text": [
+      {
+        "role": "title",
+        "text": "Mijia Compact Camera",
+        "factRefs": []
+      }
+    ],
+    "paragraphId": "p6",
+    "newInformation": "回到品牌标题卡，结束观看路径。",
+    "resourceId": "titlecard-reveal",
+    "visualDirection": "保留原有标题卡留白与字样，不叠加CTA、价格或额外说明。",
+    "productionMethod": "footage-cut",
+    "id": "scene-06"
+  },
+  "after": {
+    "purpose": "安静收尾",
+    "effect": "end-card",
+    "weight": 1,
+    "durationSeconds": 2.5,
+    "reason": "移除与源片“Mijia Compact Camera”标题重复的新增文字，仅保留已有标题卡完成自然收尾。",
+    "media": [
+      {
+        "assetId": "asset-20c27ed0-26a8-428f-a232-2042a6e946a1",
+        "sourceStartSeconds": 66.1,
+        "playbackRate": 1,
+        "fit": "contain"
+      }
+    ],
+    "text": [],
+    "paragraphId": "p6",
+    "newInformation": "回到已有“Mijia Compact Camera”标题卡，结束观看路径。",
+    "resourceId": "titlecard-reveal",
+    "visualDirection": "保留原有标题卡留白与字样，不叠加CTA、价格或额外说明。",
+    "productionMethod": "footage-cut"
+  },
+  "reason": [
+    {
+      "severity": "major",
+      "repairKind": "text-contract",
+      "problem": "静态关键帧 1.133 秒（源 67.233 秒）中，源片已有的“Mijia Compact Camera”标题与新增文字对象 node-ac51ff9f0b6463a0 的同名文字重复叠加，形成两组不同字号、位置和基线的重叠标题。画面中心可见明显文字冲突，破坏收尾卡的留白与可读性。证据：合成关键帧 keyframes/scene-06-e3c7703d773bcf93/frames/frame-00-at-1.133s.png；同刻未包装源画面已包含该标题，addedTextObjects明确包含新增叠层。影响：观众会感到标题重复或排版错误，且不符合“不叠加额外说明、保留原有标题卡留白与字样”的镜头说明。最小修复：由故事导演修订文字对象合同，移除本镜头新增文字对象 node-ac51ff9f0b6463a0，仅保留源片标题；保持 asset-20c27ed0-26a8-428f-a232-2042a6e946a1、源区间 66.100–68.567 秒、2.5 秒时长和静音合同不变。验证：重新生成该关键帧并确认画面只出现一组源片标题，随后检查入点与末帧仍为连续标题卡。",
+      "repair": "删除新增文本对象 node-ac51ff9f0b6463a0；不得通过色块遮盖或裁切源片已有标题来修复。"
+    }
+  ]
+}

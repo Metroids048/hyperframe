@@ -1,0 +1,19 @@
+PASS runtime seeks + screenshots agree with strict MP4
+PASS new revision reuses browser and content-addressed media cache
+PASS samples retain affected beginning/middle/end and global tail
+PASS runtime errors, external resources and overflowing captions fail preview
+PASS fractional caption end uses integer frame bounds without floating-point false positives
+PASS cancel during browser wait closes page and next request recovers
+file:///Users/a1234/Desktop/hyperframe-main/video-agent/lib/edit/preview-check.mjs:137
+  }catch(e){if(signal?.aborted)throw failCancelled();if(controller.signal.aborted)throw new EditError('预览检查超时，输入已保留',422);if(e instanceof EditError)throw e;throw new EditError('预览检查未通过：'+e.message,422);}
+                                                                                        ^
+
+EditError: 预览检查超时，输入已保留
+    at checkPreviewRuntime (file:///Users/a1234/Desktop/hyperframe-main/video-agent/lib/edit/preview-check.mjs:137:89)
+    at async file:///Users/a1234/Desktop/hyperframe-main/video-agent/scripts/test-upgrade-preview.mjs:63:168
+    at async test (file:///Users/a1234/Desktop/hyperframe-main/video-agent/scripts/test-upgrade-preview.mjs:28:30)
+    at async file:///Users/a1234/Desktop/hyperframe-main/video-agent/scripts/test-upgrade-preview.mjs:62:3 {
+  status: 422
+}
+
+Node.js v24.19.0

@@ -1,0 +1,97 @@
+{
+  "alternatives": [],
+  "operations": [
+    {
+      "assetId": null,
+      "durationFrames": null,
+      "effect": null,
+      "fromSceneId": null,
+      "height": null,
+      "nodeId": "audio-4124aaefa824859c",
+      "paramsJson": "{\"voice\":\"Chinese (Mandarin)_Reliable_Executive\"}",
+      "sceneId": null,
+      "sceneIds": null,
+      "source": null,
+      "text": null,
+      "toSceneId": null,
+      "type": "regenerate_speech",
+      "width": null
+    }
+  ],
+  "summary": "计划仅替换片尾旁白音色，由执行器保留原朗读文案和语速、重新测量并同步对应字幕；字幕样式及其他声音、画面、转场保持。尚未执行或验证。",
+  "workflow": {
+    "assumptions": [],
+    "gaps": [
+      "输入未提供原合成语速参数，因此不填写猜测的rate；执行器须继承目标旁白的原合成参数，不以playbackRate代替合成语速。无法恢复原参数时保留当前版本并报告缺口。",
+      "基准版本为rev-cd7c6ea7ebdf228e。仅重新生成audio-4124aaefa824859c并更新cue-d18b235a237e72cf的音源关联和同步时间，保留字幕文字、fontSize=31、color=#DDE2E6、offsetY=-120。",
+      "旧声音保护项包含多音轨及画面，无法用本轮局部目标安全地等范围覆盖，故overrides为空，不删除或扩大旧约束；服务端须将本轮明确授权限定到片尾旁白音色及对应字幕同步。",
+      "执行后须核验31至35秒原声音窗口、31秒相邻切点、字幕同步及尾音完整性，重新编译并检查混音；保持1050帧、1920×1080、配乐全部参数及其余对象。新声音若超出120帧窗口，不擅自加速、截断或延长画面。",
+      "检查成功后由版本服务生成新修订并绑定工程与源码bundle；失败保留基准版本。当前未生成、测量、试听或预览新声音。"
+    ],
+    "objective": "让观众在片尾通过指定的沉稳高管音色听清原有部位回顾，并保持原片的观看节奏。",
+    "overrides": [],
+    "requirements": [
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "只把片尾最后一段旁白换成 MiniMax 的“沉稳高管”音色（Chinese (Mandarin)_Reliable_Executive）",
+        "startSeconds": null,
+        "targetIds": ["audio-4124aaefa824859c"]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "保持原旁白文案和语速",
+        "startSeconds": null,
+        "targetIds": ["audio-4124aaefa824859c"]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "只为这一段重新测量声音并对齐字幕",
+        "startSeconds": null,
+        "targetIds": ["audio-4124aaefa824859c", "cue-d18b235a237e72cf"]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "保留字幕的字号、颜色和位置",
+        "startSeconds": null,
+        "targetIds": ["cue-d18b235a237e72cf"]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": ["audio-4124aaefa824859c"],
+        "kind": "preserve",
+        "quote": "不动其他声音、配乐",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "画面和转场",
+        "startSeconds": null,
+        "targetIds": [
+          "scene-01",
+          "scene-02",
+          "scene-03",
+          "scene-04",
+          "scene-05",
+          "scene-06",
+          "scene-07",
+          "scene-08",
+          "scene-09",
+          "scene-10",
+          "transition-ddec311a475f5ee1"
+        ]
+      }
+    ],
+    "taskMode": "edit"
+  }
+}

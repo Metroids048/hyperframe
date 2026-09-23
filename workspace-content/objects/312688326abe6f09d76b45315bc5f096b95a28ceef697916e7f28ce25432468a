@@ -1,0 +1,107 @@
+{
+  "source": {
+    "html": "<div id=\"root\"><div id=\"media-1\"></div><div id=\"text-1\">黑色紧凑型相机</div></div>",
+    "css": "#root{position:relative;width:1920px;height:1080px;background:transparent;overflow:hidden;font-family:Arial,sans-serif}#media-1{position:absolute;inset:0;background:transparent}#text-1{position:absolute;left:72px;top:72px;padding:8px 12px;background:rgba(255,255,255,0.82);border:1px solid #6B6B6B;border-radius:2px;color:#171717;font-size:52px;font-weight:700;line-height:1.1;white-space:nowrap;z-index:2}\n#media-1{background:transparent;opacity:1;z-index:1}",
+    "timeline": "",
+    "parameters": [],
+    "objects": [
+      {
+        "elementId": "media-1",
+        "ref": "media-1"
+      },
+      {
+        "elementId": "text-1",
+        "ref": "text-1"
+      }
+    ],
+    "motionTargets": [],
+    "textStyles": [
+      {
+        "elementId": "text-1",
+        "match": "黑色紧凑型相机",
+        "fontSize": 52,
+        "fontWeight": 700,
+        "color": "#171717"
+      }
+    ],
+    "contractVersion": 2,
+    "tokens": {
+      "background": "#F3F1EE",
+      "foreground": "#171717",
+      "panel": "#FFFFFF",
+      "accent": "#6B6B6B",
+      "accentContrast": "#FFFFFF"
+    }
+  },
+  "binding": {
+    "shotHash": "e6f794eca85065410261caac611dbe6c1e9589cd691f8f6051d0bc4f367bc439",
+    "designHash": "036051f9d3793223589140192d5f1ec1a5fd167cbbef6f6f2b84f7356621b8c5",
+    "outputHash": "f1745ca0f6847b0a63c40d6a41a12117e9f01a445e03fe45a7ac4c4e6836e9da"
+  },
+  "evidence": {
+    "inspectionVersion": 3,
+    "validationFiles": [
+      [
+        "lib/creative/custom-source.mjs",
+        "c1b2a00a6a6dd27dbc6ee2fcef5e226d972375ae0056808f40f630982c816894"
+      ],
+      [
+        "lib/creative/isolation.mjs",
+        "6d232d5019810af7d1ba75aca99e074b76841da20fb3fc7b55dfe1d7b43aaf0a"
+      ],
+      [
+        "lib/creative/isolation-protocol.mjs",
+        "b5344dfc6663b9a5a41461475ab08ecf141d7230d0e3b5bb1debf1c310e4ca7d"
+      ],
+      [
+        "scripts/native-scene-worker.mjs",
+        "c9fdeb53f010be5b70a29371a7305be0039e30a8a0660e9f36d237a006905d7c"
+      ]
+    ],
+    "inputHash": "84be12fad63a677e1211656f45c0ccd368f471e06bc1063ed999bf5add2d0c32",
+    "sceneId": "scene-01",
+    "sourceRevisionId": "rev-77b6f25b60b91e10",
+    "globalSeconds": 2.2666666666666666,
+    "image": "frames/frame-00-at-2.267s.png",
+    "imageHash": "c38d5c12d183084ce9fbaa0d50a1ad224a4843e1b1a05914bfe6a9651cb9cc7b",
+    "engineering": "static-frame-checked",
+    "checkScope": {
+      "kind": "static-keyframe",
+      "atSeconds": 2.2666666666666666,
+      "fullTimeline": "pending-assembly",
+      "mediaExtraction": "checked"
+    },
+    "animation": "not-yet-authored",
+    "imagePath": "/Users/a1234/Desktop/hyperframe-main/video-agent/data/result-completion-projects/2ba994d0-d750-494c-99ec-0f5527add49a/versions/job-27c1e043-2842-4953-8cf8-dcfdaf421ab8/keyframes/scene-01-84be12fad63a677e/frames/frame-00-at-2.267s.png",
+    "folder": "keyframes/scene-01-84be12fad63a677e"
+  },
+  "review": {
+    "issues": [
+      {
+        "severity": "minor",
+        "repairKind": "text-timing",
+        "problem": "标题“黑色紧凑型相机”在本镜头约2.267秒出现，但当前证据只覆盖静态关键帧，未验证其与取出动作的出现时机及阅读时长是否合适。",
+        "repair": "复核0.000–2.967秒连续画面，确保标题在相机主体建立后出现并保持足够阅读时间；必要时仅调整标题入出点。"
+      },
+      {
+        "severity": "minor",
+        "repairKind": "source-selection",
+        "problem": "仅提供源4.117秒入点、7.084秒末帧及6.384秒关键帧，无法确认3秒镜头内取出动作是否连续完成，也无法确认末帧是否仍保持清晰商品展示。",
+        "repair": "检查4.117–7.084秒连续源片及首末帧；若动作在边界处被截断，调整至完整取出并稳定展示相机的连续区间。"
+      },
+      {
+        "severity": "minor",
+        "repairKind": "layout",
+        "problem": "静态关键帧中标题白底标签位于左上方并覆盖手臂/背景区域，未遮挡相机，但需确认在后续动作变化中不会移入手部或商品轮廓。",
+        "repair": "保持标题独立可编辑，复核全镜头保护区；若动作进入标签区域，缩小或移至安全留白处。"
+      },
+      {
+        "severity": "minor",
+        "repairKind": "text-evidence",
+        "problem": "当前仅核对静态画面，未检查源片原声与动作同步；业务合同禁止旁白和音乐。",
+        "repair": "在最终音频审查中确认仅保留对应源片原声，并核对剪辑边界处无错配或额外音乐。"
+      }
+    ],
+    "summary": "静态关键帧显示商品与标题层级基本清晰，标题未明显遮挡相机；但连续动作完整性、标题动态时机及声音仍未被当前证据充分验证。"
+  }
+}

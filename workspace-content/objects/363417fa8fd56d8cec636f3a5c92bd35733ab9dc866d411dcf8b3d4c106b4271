@@ -1,0 +1,443 @@
+{
+  "id": "54d3c8e5-049f-4072-bb7e-3f46752a7466",
+  "type": "video-edit",
+  "schemaVersion": 2,
+  "name": "offline-exact",
+  "initialText": "",
+  "assets": {
+    "a93f124c-8bb0-4863-a4cc-233e686d43f3": {
+      "id": "a93f124c-8bb0-4863-a4cc-233e686d43f3",
+      "name": "offline-exact.mp4",
+      "original": "original.mp4",
+      "status": "ready",
+      "size": 11,
+      "createdAt": "2026-09-18T01:02:11.001Z",
+      "kind": "video",
+      "frames": 300,
+      "duration": 10,
+      "width": 640,
+      "height": 360,
+      "hasAudio": true,
+      "work": "work.mp4",
+      "thumbnails": [],
+      "sha256": "mock-a93f124c-8bb0-4863-a4cc-233e686d43f3"
+    }
+  },
+  "revisions": [
+    {
+      "id": "e713ce88-a588-4a00-8774-b41e9bb309c1",
+      "number": 1,
+      "parentId": null,
+      "description": "导入原视频",
+      "media": {
+        "duration": 10,
+        "width": 640,
+        "height": 360,
+        "hasAudio": true,
+        "compileMs": 0,
+        "cache": {}
+      },
+      "quality": {
+        "level": "preview",
+        "status": "passed"
+      },
+      "createdAt": "2026-09-18T01:02:11.006Z",
+      "render": {
+        "status": "pending"
+      }
+    },
+    {
+      "id": "6da4f146-2d11-4f53-9088-745488a5e525",
+      "number": 2,
+      "parentId": "e713ce88-a588-4a00-8774-b41e9bb309c1",
+      "description": "已删除开头 1 秒。",
+      "media": {
+        "duration": 9,
+        "width": 640,
+        "height": 360,
+        "hasAudio": true,
+        "compileMs": 0,
+        "cache": {}
+      },
+      "quality": {
+        "level": "preview",
+        "status": "passed"
+      },
+      "createdAt": "2026-09-18T01:02:11.042Z",
+      "render": {
+        "status": "pending"
+      }
+    }
+  ],
+  "currentRevisionId": "6da4f146-2d11-4f53-9088-745488a5e525",
+  "messages": [
+    {
+      "id": "2ea014cb-8a54-463c-90a3-3f8c5c19b81e",
+      "role": "user",
+      "text": "删除开头1秒",
+      "revisionId": "e713ce88-a588-4a00-8774-b41e9bb309c1",
+      "jobId": "a51ce574-d1c2-4309-99f1-fd0eef4d8da5"
+    },
+    {
+      "id": "804ff95e-dfba-4fc7-b575-8e647c886e46",
+      "role": "assistant",
+      "text": "已删除开头 1 秒。",
+      "revisionId": "6da4f146-2d11-4f53-9088-745488a5e525",
+      "jobId": "a51ce574-d1c2-4309-99f1-fd0eef4d8da5"
+    },
+    {
+      "id": "4fc47412-796e-414c-a8d6-6e56db546ead",
+      "role": "user",
+      "text": "删除开头99秒",
+      "revisionId": "6da4f146-2d11-4f53-9088-745488a5e525",
+      "jobId": "519ea976-3f25-478f-96b2-43e644c681cd"
+    },
+    {
+      "id": "a2668cc2-42d0-46ca-88f3-69d64d715615",
+      "role": "assistant",
+      "text": "删除时长必须大于 0，并且短于整个视频",
+      "jobId": "519ea976-3f25-478f-96b2-43e644c681cd",
+      "revisionId": "6da4f146-2d11-4f53-9088-745488a5e525",
+      "error": true
+    }
+  ],
+  "jobs": [
+    {
+      "id": "c54f67b3-99ad-46bd-8d09-ae96560d146f",
+      "key": "import-54d3c8e5-049f-4072-bb7e-3f46752a7466",
+      "hash": "998fd1911621affeabc4ebca701820b31a7a69e2b62e3cc4740057fea40e4795",
+      "kind": "asset",
+      "payload": {
+        "assetId": "a93f124c-8bb0-4863-a4cc-233e686d43f3"
+      },
+      "afterJobId": null,
+      "status": "complete",
+      "stage": "已完成",
+      "progress": 100,
+      "createdAt": "2026-09-18T01:02:11.002Z",
+      "metrics": {
+        "stages": [
+          {
+            "name": "prepare_asset",
+            "startedAt": "2026-09-18T01:02:11.004Z",
+            "elapsedMs": 0,
+            "status": "complete"
+          },
+          {
+            "name": "compose",
+            "startedAt": "2026-09-18T01:02:11.005Z",
+            "elapsedMs": 1,
+            "status": "complete",
+            "cache": {}
+          },
+          {
+            "name": "preview_check",
+            "startedAt": "2026-09-18T01:02:11.006Z",
+            "elapsedMs": 0,
+            "status": "complete"
+          }
+        ],
+        "modelCalls": 0,
+        "cacheHits": 0,
+        "elapsedMs": 4
+      },
+      "startedAt": "2026-09-18T01:02:11.003Z",
+      "revisionId": "e713ce88-a588-4a00-8774-b41e9bb309c1",
+      "committedAt": "2026-09-18T01:02:11.007Z",
+      "completedAt": "2026-09-18T01:02:11.007Z"
+    },
+    {
+      "id": "a51ce574-d1c2-4309-99f1-fd0eef4d8da5",
+      "key": "1c87bc1f-a3a3-40a7-ad63-4b16adbfe99f",
+      "hash": "a3142613f1654bbbf97ef833815f1cdc0ba51f3ced422ce43aaa0e69ecd4b7dd",
+      "kind": "edit",
+      "payload": {
+        "baseRevisionId": "e713ce88-a588-4a00-8774-b41e9bb309c1",
+        "text": "删除开头1秒"
+      },
+      "afterJobId": null,
+      "status": "complete",
+      "stage": "已完成",
+      "progress": 100,
+      "createdAt": "2026-09-18T01:02:11.036Z",
+      "metrics": {
+        "stages": [
+          {
+            "name": "compose",
+            "startedAt": "2026-09-18T01:02:11.041Z",
+            "elapsedMs": 1,
+            "status": "complete",
+            "cache": {}
+          },
+          {
+            "name": "preview_check",
+            "startedAt": "2026-09-18T01:02:11.042Z",
+            "elapsedMs": 0,
+            "status": "complete"
+          }
+        ],
+        "modelCalls": 0,
+        "cacheHits": 0,
+        "elapsedMs": 7
+      },
+      "startedAt": "2026-09-18T01:02:11.037Z",
+      "routeDecision": {
+        "mode": "edit",
+        "source": "exact-edit",
+        "quote": "删除开头1秒",
+        "question": "",
+        "revisionId": null,
+        "assetIds": [],
+        "version": 1,
+        "message": "删除开头1秒",
+        "scenario": null,
+        "targets": [
+          {
+            "id": null,
+            "kind": "timeline",
+            "operation": "delete_range"
+          }
+        ],
+        "preserve": [
+          "unmentioned-objects",
+          "source-assets",
+          "revision-history"
+        ],
+        "executionStrategy": "L1",
+        "confidence": 1,
+        "reason": "exact-edit",
+        "fallback": {
+          "version": 1,
+          "categories": [
+            "missing_evidence",
+            "ambiguous_target",
+            "unsupported_capability",
+            "resource_incompatible",
+            "provider_unavailable",
+            "quality_failure",
+            "revision_conflict"
+          ],
+          "maxReplans": 2,
+          "identicalFailureLimit": 2,
+          "preserveCurrentRevision": true,
+          "allowSilentSubstitution": false,
+          "steps": [
+            "retry-same-capability",
+            "safe-equivalent-execution",
+            "retain-valid-revision",
+            "report-failed-targets",
+            "repair-only-gap"
+          ],
+          "classifiers": [
+            [
+              "revision_conflict",
+              "REVISION_CONFLICT|STALE_REVISION"
+            ],
+            [
+              "provider_unavailable",
+              "^(MINIMAX_|CODEX_|PROVIDER_)"
+            ],
+            [
+              "resource_incompatible",
+              "RESOURCE_|INCOMPATIBLE"
+            ],
+            [
+              "unsupported_capability",
+              "UNSUPPORTED|CAPABILITY|VOICE_NOT_FOUND"
+            ],
+            [
+              "ambiguous_target",
+              "AMBIGUOUS|SCOPE|TARGET|CONFLICT|CAPTION_ALIGNMENT_REQUIRED"
+            ],
+            [
+              "missing_evidence",
+              "MISSING|NEEDS_INPUT|INSUFFICIENT|SPEECH_SCRIPT_REQUIRED|NO_SPEECH|NO_CAPTION_AUDIO"
+            ]
+          ]
+        },
+        "baseRevisionId": "e713ce88-a588-4a00-8774-b41e9bb309c1",
+        "selectedSkills": [
+          "timeline-edit",
+          "conversation-edit"
+        ],
+        "skillReasons": {
+          "timeline-edit": [
+            "operation:delete_range",
+            "target:timeline",
+            "request-evidence"
+          ],
+          "conversation-edit": [
+            "existing-revision"
+          ]
+        }
+      },
+      "planningMetrics": {
+        "modelCalls": 0,
+        "planMs": 0,
+        "executionMode": "exact-local-intent"
+      },
+      "selectedSkills": [
+        {
+          "id": "timeline-edit",
+          "version": "1.0.0",
+          "source": "https://github.com/kajisho5/ffmpeg-skill",
+          "sourceCommit": "ae3627595b66497b5d247daffcae17f4a035cfbc",
+          "license": "MIT"
+        }
+      ],
+      "toolCalls": [
+        {
+          "tool": "exact_edit_intent",
+          "status": "completed",
+          "revisionId": "e713ce88-a588-4a00-8774-b41e9bb309c1"
+        }
+      ],
+      "model": null,
+      "executionMode": "exact-local-intent",
+      "revisionId": "6da4f146-2d11-4f53-9088-745488a5e525",
+      "committedAt": "2026-09-18T01:02:11.043Z",
+      "completedAt": "2026-09-18T01:02:11.044Z"
+    },
+    {
+      "id": "519ea976-3f25-478f-96b2-43e644c681cd",
+      "key": "08286e80-d5b8-4c2a-a6fd-3fd9756c358d",
+      "hash": "6a8e4d1e905528180fb64632d25aedbf23cc6e09f67671160ff0ce6b1fc5e6a1",
+      "kind": "edit",
+      "payload": {
+        "baseRevisionId": "6da4f146-2d11-4f53-9088-745488a5e525",
+        "text": "删除开头99秒"
+      },
+      "afterJobId": null,
+      "status": "failed",
+      "stage": "未完成",
+      "progress": 25,
+      "createdAt": "2026-09-18T01:02:11.071Z",
+      "metrics": {
+        "stages": [],
+        "modelCalls": 0,
+        "cacheHits": 0,
+        "elapsedMs": 2
+      },
+      "startedAt": "2026-09-18T01:02:11.072Z",
+      "routeDecision": {
+        "mode": "edit",
+        "source": "semantic",
+        "version": 1,
+        "message": "删除开头99秒",
+        "scenario": null,
+        "targets": [],
+        "preserve": [
+          "unmentioned-objects",
+          "source-assets",
+          "revision-history"
+        ],
+        "executionStrategy": "L2",
+        "confidence": 0.8,
+        "reason": "semantic",
+        "fallback": {
+          "version": 1,
+          "categories": [
+            "missing_evidence",
+            "ambiguous_target",
+            "unsupported_capability",
+            "resource_incompatible",
+            "provider_unavailable",
+            "quality_failure",
+            "revision_conflict"
+          ],
+          "maxReplans": 2,
+          "identicalFailureLimit": 2,
+          "preserveCurrentRevision": true,
+          "allowSilentSubstitution": false,
+          "steps": [
+            "retry-same-capability",
+            "safe-equivalent-execution",
+            "retain-valid-revision",
+            "report-failed-targets",
+            "repair-only-gap"
+          ],
+          "classifiers": [
+            [
+              "revision_conflict",
+              "REVISION_CONFLICT|STALE_REVISION"
+            ],
+            [
+              "provider_unavailable",
+              "^(MINIMAX_|CODEX_|PROVIDER_)"
+            ],
+            [
+              "resource_incompatible",
+              "RESOURCE_|INCOMPATIBLE"
+            ],
+            [
+              "unsupported_capability",
+              "UNSUPPORTED|CAPABILITY|VOICE_NOT_FOUND"
+            ],
+            [
+              "ambiguous_target",
+              "AMBIGUOUS|SCOPE|TARGET|CONFLICT|CAPTION_ALIGNMENT_REQUIRED"
+            ],
+            [
+              "missing_evidence",
+              "MISSING|NEEDS_INPUT|INSUFFICIENT|SPEECH_SCRIPT_REQUIRED|NO_SPEECH|NO_CAPTION_AUDIO"
+            ]
+          ]
+        },
+        "baseRevisionId": "6da4f146-2d11-4f53-9088-745488a5e525",
+        "selectedSkills": [
+          "timeline-edit",
+          "conversation-edit"
+        ],
+        "skillReasons": {
+          "timeline-edit": [
+            "request-evidence"
+          ],
+          "conversation-edit": [
+            "existing-revision"
+          ]
+        }
+      },
+      "failureReceipt": {
+        "version": 2,
+        "code": "INTERNAL_ERROR",
+        "category": "quality_failure",
+        "recovery": {
+          "domain": "runtime",
+          "retryAllowed": false,
+          "automaticRetry": false,
+          "alternativeAllowed": false,
+          "qualityAccepted": false,
+          "goalReduced": false,
+          "nextAction": "保留成果，诊断失败阶段；不重做整片"
+        },
+        "reason": "删除时长必须大于 0，并且短于整个视频",
+        "originalRequest": "删除开头99秒",
+        "requirements": [],
+        "baseRevisionId": "6da4f146-2d11-4f53-9088-745488a5e525",
+        "actualAction": "保留上一有效版本；本次未发布修改",
+        "publishedRevisionId": null,
+        "preserved": [
+          "工程",
+          "已有音轨",
+          "素材",
+          "历史"
+        ],
+        "goalReduced": false,
+        "qualityAccepted": false,
+        "failedTargets": [],
+        "policyVersion": 1,
+        "nextAction": "定位失败对象，执行最小修复后重新检查"
+      },
+      "error": "删除时长必须大于 0，并且短于整个视频",
+      "completedAt": "2026-09-18T01:02:11.074Z"
+    }
+  ],
+  "createdAt": "2026-09-18T01:02:11.000Z",
+  "updatedAt": "2026-09-18T01:02:11.074Z",
+  "eventSequence": 20,
+  "originProjectId": null,
+  "originSourceHash": null,
+  "sampleId": null,
+  "sampleContext": null,
+  "storageVersion": 2
+}

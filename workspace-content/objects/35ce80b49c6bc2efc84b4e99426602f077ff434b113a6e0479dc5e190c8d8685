@@ -1,0 +1,114 @@
+{
+  "workflow": {
+    "taskMode": "variant",
+    "objective": "派生独立A版详情片候选，以克制的标题揭示引导观众先认识显卡整体，再观察细节，保留母版。",
+    "requirements": [
+      {
+        "kind": "goal",
+        "quote": "请从当前35秒横屏显卡详情片派生一个独立的A版demo，保留母版。",
+        "targetIds": [],
+        "excludeIds": [],
+        "startSeconds": null,
+        "endSeconds": null
+      },
+      {
+        "kind": "change",
+        "quote": "仅重新设计前3秒的视觉开头",
+        "targetIds": [
+          "scene-01",
+          "node-7577747edc2ff37a",
+          "node-cba1da9d845663fa"
+        ],
+        "excludeIds": [],
+        "startSeconds": 0,
+        "endSeconds": 3
+      },
+      {
+        "kind": "resource",
+        "quote": "用现有显卡整体画面",
+        "targetIds": [
+          "node-81ffaeb692ba5fc1"
+        ],
+        "excludeIds": [],
+        "startSeconds": 0,
+        "endSeconds": 3
+      },
+      {
+        "kind": "change",
+        "quote": "配合标题“先看整体，再看细节”，做清楚克制的标题揭示",
+        "targetIds": [
+          "node-7577747edc2ff37a",
+          "node-cba1da9d845663fa"
+        ],
+        "excludeIds": [],
+        "startSeconds": 0,
+        "endSeconds": 3
+      },
+      {
+        "kind": "prohibit",
+        "quote": "不增加商品事实",
+        "targetIds": [],
+        "excludeIds": [],
+        "startSeconds": null,
+        "endSeconds": null
+      },
+      {
+        "kind": "preserve",
+        "quote": "第3秒之后所有画面、字幕、时间及全片声音完全保持不变",
+        "targetIds": [],
+        "excludeIds": [],
+        "startSeconds": 3,
+        "endSeconds": 35
+      },
+      {
+        "kind": "preserve",
+        "quote": "全片声音完全保持不变",
+        "targetIds": [
+          "audio-1",
+          "audio-2",
+          "audio-3",
+          "audio-4",
+          "audio-4124aaefa824859c",
+          "audio-bc35f0a994d81023"
+        ],
+        "excludeIds": [],
+        "startSeconds": 0,
+        "endSeconds": 35
+      },
+      {
+        "kind": "preserve",
+        "quote": "时长仍35秒、横屏1920×1080",
+        "targetIds": [],
+        "excludeIds": [],
+        "startSeconds": null,
+        "endSeconds": null
+      },
+      {
+        "kind": "goal",
+        "quote": "只需先制作可审阅候选。",
+        "targetIds": [],
+        "excludeIds": [],
+        "startSeconds": null,
+        "endSeconds": null
+      }
+    ],
+    "overrides": [
+      {
+        "requirementId": "requirement-fa26c830dff8d9d4",
+        "replacementQuote": "仅重新设计前3秒的视觉开头：用现有显卡整体画面配合标题“先看整体，再看细节”，做清楚克制的标题揭示"
+      }
+    ],
+    "assumptions": [
+      "沿用开场现有整体视频、源入点、播放率及品牌配色；标题采用短时揭示后稳定停留，不增加声音。"
+    ],
+    "gaps": [
+      "基准为rev-cd7c6ea7ebdf228e。第一幕实际覆盖0—3.2秒，色散转场覆盖2.8—3.2秒；原标题在3—3.2秒仍淡出。直接修改标题或整幕布局会改变受保护的第90—95帧，不能将第一幕整体视为前3秒。",
+      "当前操作不能为同一文字节点设置分时文案，也不能复制文字节点。需执行器先在独立分支中隔离第90帧前后的标题对象，并返回真实对象ID及保持转场的时间映射，再提交开头文字与源码补丁；不能猜测拆分后的ID。",
+      "独立分支创建不在所列对象操作中，须由服务端variant流程落实，不能将补丁直接写入母版。",
+      "隔离完成后仅重新编译开头及其转场依赖，重点逐帧比较3—3.2秒，并核验第90—1049帧、全部字幕和音轨、1050帧总长及1920×1080输出保持。新版本ID由服务端生成；本轮未制作或验证候选。"
+    ]
+  },
+  "summary": "暂不提交会越界的修改：第一幕延续至3.2秒，直接换标题会影响要求保持的画面。需先在独立A版分支隔离前90帧的标题对象，再制作候选；母版保持。",
+  "operations": [],
+  "alternatives": []
+}
