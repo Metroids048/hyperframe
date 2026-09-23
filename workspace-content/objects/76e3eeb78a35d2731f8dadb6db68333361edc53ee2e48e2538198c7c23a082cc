@@ -1,0 +1,431 @@
+{
+  "schemaVersion": 2,
+  "recordType": "runtime_quality_report",
+  "qualityPolicy": {
+    "id": "quality-acceptance-v1",
+    "policyHash": "54a9dfc4472786f37d1ae18811872a35892fc912a26b98ef13269680140f4d9f"
+  },
+  "binding": {
+    "projectId": "fedd550a-547a-4c12-8e7d-1e6b5587b92f",
+    "revisionId": "rev-1ff50663c44ab4f6",
+    "contractHash": "301e38a2c428bc8e33a3f4ac20fc1cbc8481bce4d8c88d7ae877bdbf62339e6c",
+    "assetManifestHash": "62e4ba46dca66b025e8405687729db599b3ad960a0aedd7d277806977ac85281",
+    "policyHash": "700087abcdc84c71afe3d948473a113a0dc2f14ecbe55cfa752b0a4cbba6e4de",
+    "documentHash": "6d5c1c812e6b1825b41d89b04b6542d9cfb8ba359c3d0c6a029f56258da764f3",
+    "finalVideoSha256": "aa7e1afed51f08a06cdb5cd0fd1a7b18fb936bb0300f35f6970c1e0579b83481",
+    "resourceHash": "2e77a322f849cb307074c9a6e0f5e6e05d8078681395e419bdf10b098fa8aee3",
+    "runId": null,
+    "jobId": "job-00bb7cb9-534b-4a13-b04f-45c385cfb74b"
+  },
+  "origin": "scripted_runner",
+  "dimensions": {
+    "materials": "pending",
+    "technical": "pass",
+    "content": "pending",
+    "visual": "fail",
+    "actionContinuity": "pending",
+    "audioPerception": "pending",
+    "rights": "pending",
+    "humanAcceptance": "pending"
+  },
+  "coverage": {
+    "method": "keyframes_with_scene_tail",
+    "evidenceRefs": [
+      "final-review/frame-0.jpg",
+      "final-review/frame-1.jpg",
+      "final-review/frame-2.jpg",
+      "final-review/frame-3.jpg"
+    ],
+    "videoRangesObserved": [],
+    "audioRangesObserved": [],
+    "requirements": {
+      "technical": {
+        "required": [
+          "decode",
+          "duration",
+          "dimensions",
+          "tracks",
+          "version"
+        ],
+        "observed": [],
+        "unreviewed": [
+          "decode",
+          "duration",
+          "dimensions",
+          "tracks",
+          "version"
+        ]
+      },
+      "content": {
+        "required": [
+          "contract",
+          "facts",
+          "shotPurpose",
+          "sourceEvidence"
+        ],
+        "observed": [],
+        "unreviewed": [
+          "contract",
+          "facts",
+          "shotPurpose",
+          "sourceEvidence"
+        ]
+      },
+      "visual": {
+        "required": [
+          "keyframes",
+          "sceneBoundaries",
+          "textSafety"
+        ],
+        "observed": [],
+        "unreviewed": [
+          "keyframes",
+          "sceneBoundaries",
+          "textSafety"
+        ]
+      },
+      "motion": {
+        "required": [
+          "continuousPlayback",
+          "transitions",
+          "captionLifecycle"
+        ],
+        "observed": [],
+        "unreviewed": [
+          "continuousPlayback",
+          "transitions",
+          "captionLifecycle"
+        ]
+      },
+      "audio": {
+        "required": [
+          "audioInput",
+          "speech",
+          "musicMix",
+          "sync"
+        ],
+        "observed": [],
+        "unreviewed": [
+          "audioInput",
+          "speech",
+          "musicMix",
+          "sync"
+        ]
+      }
+    }
+  },
+  "evidenceIndex": [
+    {
+      "path": "final-review/frame-0.jpg",
+      "sha256": "50271c4ababae9395c5b6accf0fcdeb27c21b75278bbe98f9fa505be2cb9d173",
+      "seconds": 0
+    },
+    {
+      "path": "final-review/frame-1.jpg",
+      "sha256": "5fdef44824f88bd879ab18cbd9ee9ea7828a7a2d31d3d7d3c1d8367992f84e9b",
+      "seconds": 4.8
+    },
+    {
+      "path": "final-review/frame-2.jpg",
+      "sha256": "13ae8708c5810927d00f69cfaa39b71e3a7d76287f00bdd3ee8251b4fa3a6242",
+      "seconds": 7.9
+    },
+    {
+      "path": "final-review/frame-3.jpg",
+      "sha256": "7cbd437324b567c7d4928610bfe96327657bca3bef56832842b18bfa4d47bf12",
+      "seconds": 7.966666666666667
+    }
+  ],
+  "issues": [
+    {
+      "id": "issue-0",
+      "requirementId": "final-output",
+      "severity": "blocker",
+      "startSeconds": 0,
+      "endSeconds": 0,
+      "problem": "首帧整体失焦且欠曝，金属上壶身与手柄高光发暗、主体被裁切，观众无法在开头尽快看清商品，直接违背合同\"开头尽快让我看清商品\"。属技术缺陷兼商品表达问题。",
+      "evidenceRefs": [
+        "final-review/frame-0.jpg"
+      ],
+      "repair": "改用对焦清晰、曝光正常的商品英雄帧开场（呈现摩卡壶完整外形），避免以运动模糊帧起画；若模糊源自运镜，改为静态或缓慢推近，并适当提亮暗部。",
+      "preserve": [
+        "未涉及的镜头、文字和音轨"
+      ]
+    },
+    {
+      "id": "issue-1",
+      "requirementId": "final-output",
+      "severity": "major",
+      "startSeconds": 4.8,
+      "endSeconds": 4.8,
+      "problem": "构图与 frame-0 高度雷同（同为金属上壶身+深色咖啡粉、机位景别相近），存在重复镜头凑时长之嫌，且画面依旧偏软。属叙事节奏兼技术缺陷。",
+      "evidenceRefs": [
+        "final-review/frame-1.jpg"
+      ],
+      "repair": "以不同工序或机位替换该帧，让研磨→填粉→组装…各段在景别、角度、动作上拉开差异；必要时缩小景别或改俯/侧视，避免近似画面连用。",
+      "preserve": [
+        "未涉及的镜头、文字和音轨"
+      ]
+    },
+    {
+      "id": "issue-2",
+      "requirementId": "final-output",
+      "severity": "major",
+      "startSeconds": 7.9,
+      "endSeconds": 7.9,
+      "problem": "画面严重失焦，木质研磨抽屉边缘占据并遮挡画面，咖啡粉与主体几乎不可辨认，构图被物体边缘切割。属技术缺陷兼排版/美术问题。",
+      "evidenceRefs": [
+        "final-review/frame-2.jpg"
+      ],
+      "repair": "重新对焦并适当拉远，使抽屉与落粉/咖啡粉完整入画且落点清晰；若原素材焦点锁死，换用同工序中对焦准确的片段的清晰帧。",
+      "preserve": [
+        "未涉及的镜头、文字和音轨"
+      ]
+    },
+    {
+      "id": "issue-3",
+      "requirementId": "final-output",
+      "severity": "minor",
+      "startSeconds": 7.966666666666667,
+      "endSeconds": 7.966666666666667,
+      "problem": "与 frame-2 仅相隔约 0.067s、构图近乎一致，近似静帧重复，信息量低，易显拖沓。属叙事节奏问题。",
+      "evidenceRefs": [
+        "final-review/frame-3.jpg"
+      ],
+      "repair": "缩短该定格时长或改用能体现动作推进（粉量增加/动作变化）的帧，避免相邻近同帧并置。",
+      "preserve": [
+        "未涉及的镜头、文字和音轨"
+      ]
+    }
+  ],
+  "unreviewed": [
+    "连续动作、节奏与完整观看",
+    "实际听感与音画同步"
+  ],
+  "creativeReview": {
+    "status": "frame_limited",
+    "basis": "independent_context_over_exported_frames",
+    "openingComparison": null,
+    "observedScore": null
+  },
+  "score": {
+    "total": 24,
+    "max": 100,
+    "components": {
+      "product_exposure": 22,
+      "first_three_seconds": 7,
+      "pacing": 68,
+      "captions": 2,
+      "motion": 0,
+      "transitions": 22,
+      "audio": 70,
+      "commercial_conversion": 2
+    },
+    "status": "needs_revision"
+  },
+  "scenarioAssessment": {
+    "status": "pending",
+    "summary": "审查范围：仅本次导出的 final-review 四张 MP4 抽帧（约 0.000s / 4.800s / 7.900s / 7.967s），实际只覆盖约 0–8s。未听取原声、未验证连续运动与听感，未覆盖后段约 22s（含片尾署名与收尾镜）。因此无法确认六段素材顺序是否成立、原声是否保留、片尾 \"Shokuiku Cuisine · CC BY 3.0\" 是否在位、以及整体节奏；这些均记作未验证，不作推断。\n\n就抽帧本身：可用证据显示开场帧失焦欠曝、看不到清晰商品；中段存在与开场高度雷同的构图，以及研磨抽屉严重失焦、遮挡主体的画面。未见任何文字板，故无法判断\"满屏大字/文字底板\"与设计感要求，也不因此判定违规。听感、连续运动、真人签名保持未验证。\n\n视角：商家（商品可辨性）、首次观看者（一眼看懂）、剪辑师（可读性与重复感）。（仅抽帧；完整业务目标待连续观片确认）"
+  },
+  "humanAcceptance": {
+    "status": "pending",
+    "eventId": null,
+    "actorContext": null,
+    "revisionId": "rev-1ff50663c44ab4f6",
+    "submittedAt": null
+  },
+  "deliveryDecision": {
+    "computedBy": "backend-commerce-focus-v1",
+    "status": "needs_revision",
+    "reasonCodes": [
+      "COMMERCIAL_QUALITY_REVISION_REQUIRED",
+      "HUMAN_CONFIRMATION_PENDING"
+    ]
+  },
+  "playbackReview": {
+    "manifest": "final-review/playback-manifest.json",
+    "watch": "final-review/watch.html",
+    "finalVideoSha256": "aa7e1afed51f08a06cdb5cd0fd1a7b18fb936bb0300f35f6970c1e0579b83481",
+    "clipCount": 2,
+    "fullVideoObserved": false,
+    "audioPerceptionVerified": false
+  },
+  "editorialReview": null,
+  "commercialQuality": {
+    "schema_version": 3,
+    "assessment_basis": "engineering_heuristics_bound_to_actual_mp4; observed_quality_requires_coverage",
+    "score": 24,
+    "engineering_score": 24,
+    "observed_score": null,
+    "observed_quality_basis": "pending_independent_media_review",
+    "score_meaning": "engineering_score measures implementation completeness; observed_score is supplied only by an independent media review and is never copied from engineering_score",
+    "threshold": 78,
+    "hard_minimum": 65,
+    "components": {
+      "product_exposure": 22,
+      "first_three_seconds": 7,
+      "pacing": 68,
+      "captions": 2,
+      "motion": 0,
+      "transitions": 22,
+      "audio": 70,
+      "commercial_conversion": 2
+    },
+    "observed_components": {
+      "product_exposure": null,
+      "first_three_seconds": null,
+      "pacing": null,
+      "captions": null,
+      "motion": null,
+      "transitions": null,
+      "audio": null,
+      "commercial_conversion": null
+    },
+    "issues": [
+      {
+        "id": "issue-0",
+        "requirementId": "final-output",
+        "severity": "blocker",
+        "startSeconds": 0,
+        "endSeconds": 0,
+        "problem": "首帧整体失焦且欠曝，金属上壶身与手柄高光发暗、主体被裁切，观众无法在开头尽快看清商品，直接违背合同\"开头尽快让我看清商品\"。属技术缺陷兼商品表达问题。",
+        "evidenceRefs": [
+          "final-review/frame-0.jpg"
+        ],
+        "repair": "改用对焦清晰、曝光正常的商品英雄帧开场（呈现摩卡壶完整外形），避免以运动模糊帧起画；若模糊源自运镜，改为静态或缓慢推近，并适当提亮暗部。",
+        "preserve": [
+          "未涉及的镜头、文字和音轨"
+        ],
+        "revisionId": "rev-1ff50663c44ab4f6",
+        "finalMp4Sha256": "aa7e1afed51f08a06cdb5cd0fd1a7b18fb936bb0300f35f6970c1e0579b83481",
+        "evidenceBound": true,
+        "coverage": "keyframes_only"
+      },
+      {
+        "id": "issue-1",
+        "requirementId": "final-output",
+        "severity": "major",
+        "startSeconds": 4.8,
+        "endSeconds": 4.8,
+        "problem": "构图与 frame-0 高度雷同（同为金属上壶身+深色咖啡粉、机位景别相近），存在重复镜头凑时长之嫌，且画面依旧偏软。属叙事节奏兼技术缺陷。",
+        "evidenceRefs": [
+          "final-review/frame-1.jpg"
+        ],
+        "repair": "以不同工序或机位替换该帧，让研磨→填粉→组装…各段在景别、角度、动作上拉开差异；必要时缩小景别或改俯/侧视，避免近似画面连用。",
+        "preserve": [
+          "未涉及的镜头、文字和音轨"
+        ],
+        "revisionId": "rev-1ff50663c44ab4f6",
+        "finalMp4Sha256": "aa7e1afed51f08a06cdb5cd0fd1a7b18fb936bb0300f35f6970c1e0579b83481",
+        "evidenceBound": true,
+        "coverage": "keyframes_only"
+      },
+      {
+        "id": "issue-2",
+        "requirementId": "final-output",
+        "severity": "major",
+        "startSeconds": 7.9,
+        "endSeconds": 7.9,
+        "problem": "画面严重失焦，木质研磨抽屉边缘占据并遮挡画面，咖啡粉与主体几乎不可辨认，构图被物体边缘切割。属技术缺陷兼排版/美术问题。",
+        "evidenceRefs": [
+          "final-review/frame-2.jpg"
+        ],
+        "repair": "重新对焦并适当拉远，使抽屉与落粉/咖啡粉完整入画且落点清晰；若原素材焦点锁死，换用同工序中对焦准确的片段的清晰帧。",
+        "preserve": [
+          "未涉及的镜头、文字和音轨"
+        ],
+        "revisionId": "rev-1ff50663c44ab4f6",
+        "finalMp4Sha256": "aa7e1afed51f08a06cdb5cd0fd1a7b18fb936bb0300f35f6970c1e0579b83481",
+        "evidenceBound": true,
+        "coverage": "keyframes_only"
+      },
+      {
+        "id": "issue-3",
+        "requirementId": "final-output",
+        "severity": "minor",
+        "startSeconds": 7.966666666666667,
+        "endSeconds": 7.966666666666667,
+        "problem": "与 frame-2 仅相隔约 0.067s、构图近乎一致，近似静帧重复，信息量低，易显拖沓。属叙事节奏问题。",
+        "evidenceRefs": [
+          "final-review/frame-3.jpg"
+        ],
+        "repair": "缩短该定格时长或改用能体现动作推进（粉量增加/动作变化）的帧，避免相邻近同帧并置。",
+        "preserve": [
+          "未涉及的镜头、文字和音轨"
+        ],
+        "revisionId": "rev-1ff50663c44ab4f6",
+        "finalMp4Sha256": "aa7e1afed51f08a06cdb5cd0fd1a7b18fb936bb0300f35f6970c1e0579b83481",
+        "evidenceBound": true,
+        "coverage": "keyframes_only"
+      }
+    ],
+    "engineering_diagnostics": [
+      {
+        "severity": "blocker",
+        "dimension": "product_exposure",
+        "score": 22,
+        "problem": "product_exposure 低于工程诊断线 65",
+        "repair": "检查 product_exposure 的实际片段；只有观察到具体问题时才修改。"
+      },
+      {
+        "severity": "blocker",
+        "dimension": "first_three_seconds",
+        "score": 7,
+        "problem": "first_three_seconds 低于工程诊断线 65",
+        "repair": "检查 first_three_seconds 的实际片段；只有观察到具体问题时才修改。"
+      },
+      {
+        "severity": "blocker",
+        "dimension": "captions",
+        "score": 2,
+        "problem": "captions 低于工程诊断线 65",
+        "repair": "检查 captions 的实际片段；只有观察到具体问题时才修改。"
+      },
+      {
+        "severity": "blocker",
+        "dimension": "motion",
+        "score": 0,
+        "problem": "motion 低于工程诊断线 65",
+        "repair": "检查 motion 的实际片段；只有观察到具体问题时才修改。"
+      },
+      {
+        "severity": "blocker",
+        "dimension": "transitions",
+        "score": 22,
+        "problem": "transitions 低于工程诊断线 65",
+        "repair": "检查 transitions 的实际片段；只有观察到具体问题时才修改。"
+      },
+      {
+        "severity": "blocker",
+        "dimension": "commercial_conversion",
+        "score": 2,
+        "problem": "commercial_conversion 低于工程诊断线 65",
+        "repair": "检查 commercial_conversion 的实际片段；只有观察到具体问题时才修改。"
+      }
+    ],
+    "suggestions": [
+      "改用对焦清晰、曝光正常的商品英雄帧开场（呈现摩卡壶完整外形），避免以运动模糊帧起画；若模糊源自运镜，改为静态或缓慢推近，并适当提亮暗部。",
+      "以不同工序或机位替换该帧，让研磨→填粉→组装…各段在景别、角度、动作上拉开差异；必要时缩小景别或改俯/侧视，避免近似画面连用。",
+      "重新对焦并适当拉远，使抽屉与落粉/咖啡粉完整入画且落点清晰；若原素材焦点锁死，换用同工序中对焦准确的片段的清晰帧。",
+      "缩短该定格时长或改用能体现动作推进（粉量增加/动作变化）的帧，避免相邻近同帧并置。",
+      "完成连续观片后再判断节奏、动作和转场；抽帧只证明抽帧时刻。",
+      "完成实际试听后再判断声音情绪、清晰度和音画同步；电平检查不代替听感。"
+    ],
+    "revision_required": true,
+    "coverage": {
+      "actual_mp4": true,
+      "revision_id": "rev-1ff50663c44ab4f6",
+      "final_mp4_sha256": "aa7e1afed51f08a06cdb5cd0fd1a7b18fb936bb0300f35f6970c1e0579b83481",
+      "full_video_observed": false,
+      "audio_required": true,
+      "audio_perception_verified": false,
+      "evidence_bound": true,
+      "unreviewed": [
+        "连续观片、节奏和动作完整性",
+        "实际听感、发音、音乐／旁白／原声关系"
+      ]
+    },
+    "status": "needs_revision",
+    "human_acceptance": "pending"
+  }
+}

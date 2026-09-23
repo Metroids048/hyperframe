@@ -1,0 +1,411 @@
+{
+  "schemaVersion": 1,
+  "recordType": "runtime_quality_report",
+  "qualityPolicy": {
+    "id": "quality-acceptance-v1",
+    "policyHash": "54a9dfc4472786f37d1ae18811872a35892fc912a26b98ef13269680140f4d9f"
+  },
+  "binding": {
+    "projectId": "90e01cc8-4fa6-41d0-a829-6cfd757e15fe",
+    "revisionId": "rev-b4bf5b896748d1c9",
+    "contractHash": "402ac9dfb9bca0d68d565dc52b3b969ee41235732d81d374c79978220a14c403",
+    "assetManifestHash": "65de7cdf448ebe7a7913f6388d55bb0202a69a066feb7b330bc26e6268981f58",
+    "policyHash": "2544cb10e0c9445610ceb2354e9deb87439d15fe99acbad74737039bf26bd262",
+    "documentHash": "986aa6d4a6158e5e6693c9776911aca24cc395992212e809b63e35607f232aaa",
+    "finalVideoSha256": "f74783100a1b029746f813865b951e41cc18671a15cb00a4e3cb263d5309f27b",
+    "resourceHash": "2e77a322f849cb307074c9a6e0f5e6e05d8078681395e419bdf10b098fa8aee3",
+    "runId": null,
+    "jobId": "job-dddb5622-4510-4c82-a3f3-aa3e6c847633"
+  },
+  "origin": "scripted_runner",
+  "dimensions": {
+    "materials": "pending",
+    "technical": "pass",
+    "content": "pending",
+    "visual": "fail",
+    "actionContinuity": "pending",
+    "audioPerception": "pending",
+    "rights": "pending",
+    "humanAcceptance": "pending"
+  },
+  "coverage": {
+    "method": "keyframes_with_scene_tail",
+    "evidenceRefs": [
+      "final-review/frame-0.jpg",
+      "final-review/frame-1.jpg",
+      "final-review/frame-2.jpg",
+      "final-review/frame-3.jpg"
+    ],
+    "videoRangesObserved": [],
+    "audioRangesObserved": [],
+    "requirements": {
+      "technical": {
+        "required": [
+          "decode",
+          "duration",
+          "dimensions",
+          "tracks",
+          "version"
+        ],
+        "observed": [],
+        "unreviewed": [
+          "decode",
+          "duration",
+          "dimensions",
+          "tracks",
+          "version"
+        ]
+      },
+      "content": {
+        "required": [
+          "contract",
+          "facts",
+          "shotPurpose",
+          "sourceEvidence"
+        ],
+        "observed": [],
+        "unreviewed": [
+          "contract",
+          "facts",
+          "shotPurpose",
+          "sourceEvidence"
+        ]
+      },
+      "visual": {
+        "required": [
+          "keyframes",
+          "sceneBoundaries",
+          "textSafety"
+        ],
+        "observed": [],
+        "unreviewed": [
+          "keyframes",
+          "sceneBoundaries",
+          "textSafety"
+        ]
+      },
+      "motion": {
+        "required": [
+          "continuousPlayback",
+          "transitions",
+          "captionLifecycle"
+        ],
+        "observed": [],
+        "unreviewed": [
+          "continuousPlayback",
+          "transitions",
+          "captionLifecycle"
+        ]
+      },
+      "audio": {
+        "required": [
+          "audioInput",
+          "speech",
+          "musicMix",
+          "sync"
+        ],
+        "observed": [],
+        "unreviewed": [
+          "audioInput",
+          "speech",
+          "musicMix",
+          "sync"
+        ]
+      }
+    }
+  },
+  "evidenceIndex": [
+    {
+      "path": "final-review/frame-0.jpg",
+      "sha256": "7db8e36a5cc854648497e7d21d232bf8ce11c4b2cb7561b340db67c387fe1697",
+      "seconds": 0
+    },
+    {
+      "path": "final-review/frame-1.jpg",
+      "sha256": "b882a909dc8bf7a0dbdcc9e93fed2d09da9fa625d98f17106ce1fd40ee6840d6",
+      "seconds": 18
+    },
+    {
+      "path": "final-review/frame-2.jpg",
+      "sha256": "495a2bfacfe31391f21c2c21ba305836372111ea735ca3893b7ff47a7f5ec313",
+      "seconds": 29.9
+    },
+    {
+      "path": "final-review/frame-3.jpg",
+      "sha256": "eed5c4653b1b7fae608ec4dd5114a6cbb022f38dcc9f5e32ba9d42dcf28ca992",
+      "seconds": 29.966666666666665
+    }
+  ],
+  "issues": [
+    {
+      "id": "issue-0",
+      "requirementId": "final-output",
+      "severity": "major",
+      "startSeconds": 0,
+      "endSeconds": 0,
+      "problem": "成片开头 0.000 秒几乎全黑，底部仅有一块深色圆角矩形，未保留可见原画面内容。用户要求“保留原画面、原时长和原声”，但该抽帧显示开头存在黑屏/空画面风险。",
+      "evidenceRefs": [
+        "final-review/frame-0.jpg"
+      ],
+      "repair": "检查工程首帧素材入点、透明/黑色遮罩、转场和媒体加载状态；移除或缩短开头黑屏，确保 0 秒即显示上传视频原画面。保持原音轨与时长不变。",
+      "preserve": [
+        "未涉及的镜头、文字和音轨"
+      ]
+    },
+    {
+      "id": "issue-1",
+      "requirementId": "final-output",
+      "severity": "blocker",
+      "startSeconds": 18,
+      "endSeconds": 18,
+      "problem": "18.000 秒画面出现明显重构/图形化商品展示与中文文字“桌面陈列展示”，不是简单保留上传视频原画面的证据。若源视频不是该图形画面，则违反“保留原画面”的核心约束。",
+      "evidenceRefs": [
+        "final-review/frame-1.jpg"
+      ],
+      "repair": "回到源视频原片段，按原时长、原画面、原声直接承载；不要添加替代图形、重排版式或额外文案。若这些元素来自原视频本身，需要用源素材同帧对照补充证据。",
+      "preserve": [
+        "未涉及的镜头、文字和音轨"
+      ]
+    },
+    {
+      "id": "issue-2",
+      "requirementId": "final-output",
+      "severity": "major",
+      "startSeconds": 29.9,
+      "endSeconds": 29.9,
+      "problem": "29.900 秒底部标题区域文字“NOVA 琥珀香氛瓶 / 望望品牌详情”非常暗，几乎不可读；同时出现产品名/品牌类信息，但合同中 product.name 为空、批准事实为空，缺少已批准商品事实支撑。",
+      "evidenceRefs": [
+        "final-review/frame-2.jpg"
+      ],
+      "repair": "若文字不是原视频自带内容，应删除新增商品名/品牌文案，或先补充用户批准事实；若保留文字，需要提高对比度并保证可读，同时不改变原画面约束。",
+      "preserve": [
+        "未涉及的镜头、文字和音轨"
+      ]
+    },
+    {
+      "id": "issue-3",
+      "requirementId": "final-output",
+      "severity": "major",
+      "startSeconds": 29.966666666666665,
+      "endSeconds": 29.966666666666665,
+      "problem": "29.967 秒与 29.900 秒几乎相同，结尾文字仍处于极暗不可读状态。作为候选交付结尾，CTA/商品信息不能有效被首次观看者识别。",
+      "evidenceRefs": [
+        "final-review/frame-3.jpg"
+      ],
+      "repair": "修复结尾文字对比度和显示位置，或在“保留原画面”约束下移除新增暗色标题层；重新导出后复查最后 1 秒关键帧。",
+      "preserve": [
+        "未涉及的镜头、文字和音轨"
+      ]
+    }
+  ],
+  "unreviewed": [
+    "连续动作、节奏与完整观看",
+    "实际听感与音画同步"
+  ],
+  "score": {
+    "total": 6,
+    "max": 100,
+    "components": {
+      "product_exposure": 14,
+      "first_three_seconds": 0,
+      "pacing": 0,
+      "captions": 0,
+      "motion": 0,
+      "transitions": 14,
+      "audio": 25,
+      "commercial_conversion": 0
+    },
+    "status": "needs_revision"
+  },
+  "scenarioAssessment": {
+    "status": "pending",
+    "summary": "自动审查范围：仅观察导出 MP4 的 4 张抽帧（0.000s、18.000s、29.900s、29.967s），未覆盖完整连续性，也未听音频。结论：当前候选不建议进入人工确认，主要风险是开头黑屏、疑似未严格保留原画面、结尾文字不可读，以及商品名/品牌文案缺少批准事实依据。推荐修复后重新导出并重新抽帧/核验音频与时长。（仅抽帧；完整业务目标待连续观片确认）"
+  },
+  "humanAcceptance": {
+    "status": "pending",
+    "eventId": null,
+    "actorContext": null,
+    "revisionId": "rev-b4bf5b896748d1c9",
+    "submittedAt": null
+  },
+  "deliveryDecision": {
+    "computedBy": "backend-commerce-focus-v1",
+    "status": "needs_revision",
+    "reasonCodes": [
+      "COMMERCIAL_QUALITY_REVISION_REQUIRED",
+      "HUMAN_CONFIRMATION_PENDING"
+    ]
+  },
+  "playbackReview": {
+    "manifest": "final-review/playback-manifest.json",
+    "watch": "final-review/watch.html",
+    "finalVideoSha256": "f74783100a1b029746f813865b951e41cc18671a15cb00a4e3cb263d5309f27b",
+    "clipCount": 2,
+    "fullVideoObserved": false,
+    "audioPerceptionVerified": false
+  },
+  "editorialReview": null,
+  "commercialQuality": {
+    "schema_version": 2,
+    "assessment_basis": "engineering_heuristics_and_observed_keyframe_issues",
+    "score": 6,
+    "threshold": 78,
+    "hard_minimum": 65,
+    "components": {
+      "product_exposure": 14,
+      "first_three_seconds": 0,
+      "pacing": 0,
+      "captions": 0,
+      "motion": 0,
+      "transitions": 14,
+      "audio": 25,
+      "commercial_conversion": 0
+    },
+    "issues": [
+      {
+        "severity": "blocker",
+        "dimension": "product_exposure",
+        "score": 14,
+        "problem": "product_exposure 低于商业最低线 65",
+        "repair": "只修改与 product_exposure 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+      },
+      {
+        "severity": "blocker",
+        "dimension": "first_three_seconds",
+        "score": 0,
+        "problem": "first_three_seconds 低于商业最低线 65",
+        "repair": "只修改与 first_three_seconds 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+      },
+      {
+        "severity": "blocker",
+        "dimension": "pacing",
+        "score": 0,
+        "problem": "pacing 低于商业最低线 65",
+        "repair": "只修改与 pacing 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+      },
+      {
+        "severity": "blocker",
+        "dimension": "captions",
+        "score": 0,
+        "problem": "captions 低于商业最低线 65",
+        "repair": "只修改与 captions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+      },
+      {
+        "severity": "blocker",
+        "dimension": "motion",
+        "score": 0,
+        "problem": "motion 低于商业最低线 65",
+        "repair": "只修改与 motion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+      },
+      {
+        "severity": "blocker",
+        "dimension": "transitions",
+        "score": 14,
+        "problem": "transitions 低于商业最低线 65",
+        "repair": "只修改与 transitions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+      },
+      {
+        "severity": "blocker",
+        "dimension": "audio",
+        "score": 25,
+        "problem": "audio 低于商业最低线 65",
+        "repair": "只修改与 audio 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+      },
+      {
+        "severity": "blocker",
+        "dimension": "commercial_conversion",
+        "score": 0,
+        "problem": "commercial_conversion 低于商业最低线 65",
+        "repair": "只修改与 commercial_conversion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+      },
+      {
+        "id": "issue-0",
+        "requirementId": "final-output",
+        "severity": "major",
+        "startSeconds": 0,
+        "endSeconds": 0,
+        "problem": "成片开头 0.000 秒几乎全黑，底部仅有一块深色圆角矩形，未保留可见原画面内容。用户要求“保留原画面、原时长和原声”，但该抽帧显示开头存在黑屏/空画面风险。",
+        "evidenceRefs": [
+          "final-review/frame-0.jpg"
+        ],
+        "repair": "检查工程首帧素材入点、透明/黑色遮罩、转场和媒体加载状态；移除或缩短开头黑屏，确保 0 秒即显示上传视频原画面。保持原音轨与时长不变。",
+        "preserve": [
+          "未涉及的镜头、文字和音轨"
+        ],
+        "dimension": "visual"
+      },
+      {
+        "id": "issue-1",
+        "requirementId": "final-output",
+        "severity": "blocker",
+        "startSeconds": 18,
+        "endSeconds": 18,
+        "problem": "18.000 秒画面出现明显重构/图形化商品展示与中文文字“桌面陈列展示”，不是简单保留上传视频原画面的证据。若源视频不是该图形画面，则违反“保留原画面”的核心约束。",
+        "evidenceRefs": [
+          "final-review/frame-1.jpg"
+        ],
+        "repair": "回到源视频原片段，按原时长、原画面、原声直接承载；不要添加替代图形、重排版式或额外文案。若这些元素来自原视频本身，需要用源素材同帧对照补充证据。",
+        "preserve": [
+          "未涉及的镜头、文字和音轨"
+        ],
+        "dimension": "visual"
+      },
+      {
+        "id": "issue-2",
+        "requirementId": "final-output",
+        "severity": "major",
+        "startSeconds": 29.9,
+        "endSeconds": 29.9,
+        "problem": "29.900 秒底部标题区域文字“NOVA 琥珀香氛瓶 / 望望品牌详情”非常暗，几乎不可读；同时出现产品名/品牌类信息，但合同中 product.name 为空、批准事实为空，缺少已批准商品事实支撑。",
+        "evidenceRefs": [
+          "final-review/frame-2.jpg"
+        ],
+        "repair": "若文字不是原视频自带内容，应删除新增商品名/品牌文案，或先补充用户批准事实；若保留文字，需要提高对比度并保证可读，同时不改变原画面约束。",
+        "preserve": [
+          "未涉及的镜头、文字和音轨"
+        ],
+        "dimension": "visual"
+      },
+      {
+        "id": "issue-3",
+        "requirementId": "final-output",
+        "severity": "major",
+        "startSeconds": 29.966666666666665,
+        "endSeconds": 29.966666666666665,
+        "problem": "29.967 秒与 29.900 秒几乎相同，结尾文字仍处于极暗不可读状态。作为候选交付结尾，CTA/商品信息不能有效被首次观看者识别。",
+        "evidenceRefs": [
+          "final-review/frame-3.jpg"
+        ],
+        "repair": "修复结尾文字对比度和显示位置，或在“保留原画面”约束下移除新增暗色标题层；重新导出后复查最后 1 秒关键帧。",
+        "preserve": [
+          "未涉及的镜头、文字和音轨"
+        ],
+        "dimension": "visual"
+      }
+    ],
+    "suggestions": [
+      "只修改与 product_exposure 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+      "只修改与 first_three_seconds 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+      "只修改与 pacing 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+      "只修改与 captions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+      "只修改与 motion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+      "只修改与 transitions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+      "只修改与 audio 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+      "只修改与 commercial_conversion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+      "检查工程首帧素材入点、透明/黑色遮罩、转场和媒体加载状态；移除或缩短开头黑屏，确保 0 秒即显示上传视频原画面。保持原音轨与时长不变。",
+      "回到源视频原片段，按原时长、原画面、原声直接承载；不要添加替代图形、重排版式或额外文案。若这些元素来自原视频本身，需要用源素材同帧对照补充证据。",
+      "若文字不是原视频自带内容，应删除新增商品名/品牌文案，或先补充用户批准事实；若保留文字，需要提高对比度并保证可读，同时不改变原画面约束。",
+      "修复结尾文字对比度和显示位置，或在“保留原画面”约束下移除新增暗色标题层；重新导出后复查最后 1 秒关键帧。",
+      "完成连续观片后校准节奏、动作和转场评分；自动分数不代签真人观看。",
+      "完成实际试听后校准声音情绪、清晰度和音画同步；电平检测不代替听感。"
+    ],
+    "revision_required": true,
+    "coverage": {
+      "actual_mp4": true,
+      "full_video_observed": false,
+      "audio_perception_verified": false
+    },
+    "status": "needs_revision",
+    "human_acceptance": "pending"
+  }
+}

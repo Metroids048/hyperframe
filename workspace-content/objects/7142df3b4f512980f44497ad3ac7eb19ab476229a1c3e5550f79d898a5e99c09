@@ -1,0 +1,83 @@
+arget machine; simplify or pre-render the stack if it
+drops frames. Do not impose or claim a universal hard cap from one machine.
+
+## Common workflow
+
+1. Confirm the target is a real `<img>` or `<video>` and inspect source color
+   metadata.
+2. For an image, read it once. For video, capture early/middle/late output as
+   one labeled sheet and read that one image:
+
+   ```bash
+   hyperframes snapshot <project> --frames 3 --no-end --describe false \
+     --output snapshots/treatment-before
+   ```
+
+   Read `snapshots/treatment-before/contact-sheet.jpg`; do not spend separate
+   model turns reading each frame unless the sheet exposes a specific problem.
+   Do not infer semantics from signal statistics alone.
+
+3. Choose one primary lane. Use one matching recipe as a tested seed, or read
+   the overview and one focused capability detail when the request is bespoke.
+   A seed may be changed or combined with compatible catalog controls when the
+   contact sheet justifies it. Do not invent keys, exceed reported ranges, or
+   stack effects without a visual reason. Do not run the generic grade/LUT
+   resolver first; it adds irrelevant candidates and may download an unused
+   LUT. Use `media-treatment --selector "#hero" --analyze --json` only when
+   correction needs measured signal evidence.
+4. Persist pixel settings with `hyperframes media-treatment`; it validates and
+   merges a patch into the existing nested `data-color-grading` contract. Use registered
+   GSAP only for supported animated values and Registry overlay blocks only
+   for authored dressing.
+   ```bash
+   hyperframes media-treatment --selector "<unique selector>" \
+     --grading '<nested JSON patch>' --apply --json
+   ```
+   For a temporal reveal, use the focused capability result's `animation`
+   contract. If it is `null`, the capability is static. Author the starting CSS
+   property inline on the real media element and return temporary treatment
+   values to neutral so the finished shot preserves its existing pixels.
+   Prefer that bounded media animation first; if an overlay is justified,
+   install the owned Registry block instead of recreating it with bespoke
+   overlay markup.
+   For correction and ordinary polish, keep those values as editable
+   preset/adjustment JSON; do not generate a LUT for controls the realtime shader
+   already owns.
+   Use the canonical `details`/`effects` fields for vignette, grain, blur,
+   pixelate, and related primitives. Do not duplicate them with CSS filters,
+   SVG turbulence, opacity, or decorative DOM overlays.
+5. When the treatment calls for an overlay, install that named block with
+   `hyperframes add <name> --dir <project> --no-clipboard --json`, inspect its
+   returned `data-composition-src` host, and place it once using the block's
+   timing contract. Check for the installed file and host element
+   ID before insertion; never duplicate an existing overlay block. This is one
+   treatment workflow: do not make the user discover Catalog or separately ask
+   for the recipe's justified overlay.
+6. For ordinary correction/polish, capture one after-sheet with the same three
+   timestamps under `snapshots/treatment-after`, compare it to the before-sheet,
+   and stop when the result is clearly better. Run the normal project check;
+   do not encode a draft solely to prove a static correction.
+7. Escalate only when evidence requires it. Read individual frames to diagnose a
+   specific visual problem. Preview and render moving evidence when judging
+   treatment keyframes, glitch/tape motion, overlays, playback smoothness, LUT
+   timing, or any other temporal behavior. HDR/LOG, privacy, and brand-sensitive
+   work also require the existing explicit caveats and stronger verification.
+   If the treatment is not clearly better, keep the source unchanged.
+8. Report the selected media, primary intent, recipe seed if used, final
+   composed controls, optional overlays, and the frames/render that were
+   actually checked. Do not report visual quality from command success alone.
+
+`media-treatment --analyze` provides deterministic clipping and signal
+evidence for local composition media, not subject recognition or automatic
+taste. It reports HDR/metadata caveats and a bounded primary-correction patch;
+it does not invent wheels, curves, or HSL selections from statistics.
+
+</guidance>
+这是实际加密观察结果。修正动作与起止，保留未确认的局限。inspectRanges现在为空；仍不足以完成必需动作则写gaps，不虚构。
+
+<editing_input>
+[{"role":"user","content":"{\"brief\":{\"request\":{\"name\":\"米家相机开箱和基础操作演示\",\"cta\":\"\",\"price\":\"\",\"facts\":[],\"output\":{\"width\":1920,\"height\":1080,\"durationSeconds\":45,\"fps\":30}},\"needsTranscription\":false,\"needsNarration\":false,\"needsCaptions\":true,\"keepOriginalAudio\":true,\"capabilities\":[\"image-observation\",\"video-source-selection\",\"native-composition\",\"native-editing\",\"local-preview-review\"],\"gaps\":[\"需要先观察全部真实视频镜头，确认可复现的必要操作、先后依赖和完成结果\",\"需要通过实际画面确认商品身份与具体可说明的操作，不能从品牌或片名推断功能\",\"需要在剪辑后核对字幕是否避开手部、接口和机身，以及动作连续性\"],\"constraints\":[\"横屏输出，目标约45至60秒，时长服从必要动作，不凑时长\",\"只使用新增的米家相机开箱实拍，不使用旧商品图片、生成动作或其他商品素材\",\"删除原片长片头、重复展示和等待，保留每个必要动作的开始、完成结果和最终机身展示\",\"只说明确实能看到的操作，不增加未经素材支持的功能或商品事实\",\"使用清晰简短、独立可编辑的步骤字幕和局部提示\",\"字幕与局部提示避开手部、接口和机身等操作及主体保护区域\",\"保留对应源声音，不添加旁白或音乐\"],\"scenarioId\":\"product_howto\"},\"prior\":{\"observations\":[{\"assetId\":\"asset-232cf89b-3f62-4037-9250-57da9070f94e\",\"visibleContent\":\"横屏开箱实拍：片头显示“MiJia Compact Camera”；随后从包装盒取出相机/配件，展示电池、机身正面镜头、侧面/底部接口或舱盖，并进行手持检查；后段出现相机屏幕显示拍摄画面，结尾再次显示标题卡。\",\"uncertainty\":\"间隔抽帧只能确认展示状态，无法确认每个操作的精确开始/完成、接口舱盖是否完全打开、是否完成开机或拍摄等连续动作；未观察到可可靠证明的基础设置步骤。\",\"role\":\"overview\",\"productGroup\":\"米家紧凑型相机（同一黑色相机外观，具体型号未核实）\",\"subjectBox\":[0,0,1920,1080],\"safeCrop\":[0,0,1920,1080],\"confidence\":0.78,\"quality\":\"画面清晰、光线稳定；抽帧证据为约6秒间隔，动作连续性不足以直接剪成完整教程。\",\"visibleText\":[\"MiJia Compact Camera\"],\"sameProductAs\":[],\"differentProductFrom\":[]},{\"assetId\":\"asset-232cf89b-3f62-4037-9250-57da9070f94e\",\"visibleContent\":\"约1.5秒：标题卡“MiJia Compact Camera”。\",\"uncertainty\":\"无法确认片头持续边界。\",\"role\":\"context\",\"productGroup\":\"米家紧凑型相机\",\"subjectBox\":[0,0,1920,1080],\"safeCrop\":[0,0,1920,1080],\"confidence\":0.99,\"quality\":\"文字清晰\",\"visibleText\":[\"MiJia Compact Camera\"],\"sameProductAs\":[],\"differentProductFrom\":[]},{\"assetId\":\"asset-232cf89b-3f62-4037-9250-57da9070f94e\",\"visibleContent\":\"约7.5–13.5秒：双手在桌面打开包装并取出/摆放相机或盒内物件；相机本体部分可见。\",\"uncertainty\":\"取出的是相机还是配件、动作起止及是否完成开箱无法由单帧确定。\",\"role\":\"usage\",\"productGroup\":\"米家紧凑型相机\",\"subjectBox\":[300,0,1920,1080],\"safeCrop\":[0,0,1920,1080],\"confidence\":0.62,\"quality\":\"手部遮挡主体部分\",\"visibleText\":[],\"sameProductAs\":[],\"differentProductFrom\":[]},{\"assetId\":\"asset-232cf89b-3f62-4037-9250-57da9070f94e\",\"visibleContent\":\"约19.5秒：手持黑色电池/电池样物件在包装盒上方展示。\",\"uncertainty\":\"未能读清标签，无法确认具体规格或是否为随附电池；未观察到装入相机的连续过程。\",\"role\":\"detail\",\"productGroup\":\"米家紧凑型相机\",\"subjectBox\":[0,150,600,1080],\"safeCrop\":[600,0,1920,1080],\"confidence\":0.68,\"quality\":\"物件较清晰但文字不可读\",\"visibleText\":[],\"sameProductAs\":[],\"differentProductFrom\":[]},{\"assetId\":\"asset-232cf89b-3f62-4037-9250-57da9070f94e\",\"visibleContent\":\"约25.5秒：正面近景展示黑色相机机身和镜头。\",\"uncertainty\":\"仅能确认外观展示，未证明镜头伸缩、开机或拍照动作。\",\"role\":\"detail\",\"productGroup\":\"米家紧凑型相机\",\"subjectBox\":[300,100,1100,1080],\"safeCrop\":[0,0,1920,1080],\"confidence\":0.9,\"quality\":\"机身与镜头清晰\",\"visibleText\":[],\"sameProductAs\":[],\"differentProductFrom\":[]},{\"assetId\":\"asset-232cf89b-3f62-4037-9250-57da9070f94e\",\"visibleContent\":\"约31.5秒：手持相机侧面/背面，展示机身轮廓。\",\"uncertainty\":\"无法确认具体按钮或接口功能。\",\"role\":\"detail\",\"productGroup\":\"米家紧凑型相机\",\"subjectBox\":[900,0,1920,1080],\"safeCrop\":[0,0,900,1080],\"confidence\":0.72,\"quality\":\"手部覆盖较多\",\"visibleText\":[],\"sameProductAs\":[],\"differentProductFrom\":[]},{\"assetId\":\"asset-232cf89b-3f62-4037-9250-57da9070f94e\",\"visibleContent\":\"约37.5秒：相机底部/侧部近景，手指靠近一个圆形螺钉或接口区域。\",\"uncertainty\":\"无法确认是在打开舱盖、操作接口还是单纯展示；关键动作需要连续观察。\",\"role\":\"usage\",\"productGroup\":\"米家紧凑型相机\",\"subjectBox\":[0,300,1000,1080],\"safeCrop\":[1000,0,1920,1080],\"confidence\":0.58,\"quality\":\"局部细节可见但动作不明\",\"visibleText\":[],\"sameProductAs\":[],\"differentProductFrom\":[]},{\"assetId\":\"asset-232cf89b-3f62-4037-9250-57da9070f94e\",\"visibleContent\":\"约43.5秒：底部舱盖/部件似乎被手指拨动，内部黑色区域可见。\",\"uncertainty\":\"疑似打开舱盖但未确认开合完成，也未确认放入/取出任何部件。\",\"role\":\"usage\",\"productGroup\":\"米家紧凑型相机\",\"subjectBox\":[0,250,1000,1080],\"safeCrop\":[1000,0,1920,1080],\"confidence\":0.55,\"quality\":\"手部遮挡关键区域\",\"visibleText\":[],\"sameProductAs\":[],\"differentProductFrom\":[]},{\"assetId\":\"asset-232cf89b-3f62-4037-9250-57da9070f94e\",\"visibleContent\":\"约49.5秒：相机底部/侧面合上后再次展示。\",\"uncertainty\":\"无法确认是否完成某项安装或接口操作。\",\"role\":\"detail\",\"productGroup\":\"米家紧凑型相机\",\"subjectBox\":[0,250,1100,1080],\"safeCrop\":[1100,0,1920,1080],\"confidence\":0.63,\"quality\":\"机身可见，动作结果不充分\",\"visibleText\":[],\"sameProductAs\":[],\"differentProductFrom\":[]},{\"assetId\":\"asset-232cf89b-3f62-4037-9250-57da9070f94e\",\"visibleContent\":\"约55.5秒：双手持相机，背面屏幕朝向镜头。\",\"uncertainty\":\"屏幕内容与是否已开机无法清晰辨认。\",\"role\":\"usage\",\"productGroup\":\"米家紧凑型相机\",\"subjectBox\":[0,100,1200,1080],\"safeCrop\":[1200,0,1920,1080],\"confidence\":0.64,\"quality\":\"屏幕偏暗且手部遮挡\",\"visibleText\":[],\"sameProductAs\":[],\"differentProductFrom\":[]},{\"assetId\":\"asset-232cf89b-3f62-4037-9250-57da9070f94e\",\"visibleContent\":\"约61.5秒：相机屏幕显示一个实际场景的取景/拍摄画面，手持相机对准物体。\",\"uncertainty\":\"无法确认是否按下快门、是否保存照片或这是预览画面；只能确认屏幕出现取景内容。\",\"role\":\"usage\",\"productGroup\":\"米家紧凑型相机\",\"subjectBox\":[300,100,1500,1080],\"safeCrop\":[0,0,1920,1080],\"confidence\":0.73,\"quality\":\"屏幕内容可见但细节有限\",\"visibleText\":[],\"sameProductAs\":[],\"differentProductFrom\":[]},{\"assetId\":\"asset-232cf89b-3f62-4037-9250-57da9070f94e\",\"visibleContent\":\"约67.5秒：结尾标题卡“MiJia Compact Camera”。\",\"uncertainty\":\"无法确认是否还有其他收尾画面。\",\"role\":\"packaging\",\"productGroup\":\"米家紧凑型相机\",\"subjectBox\":[0,0,1920,1080],\"safeCrop\":[0,0,1920,1080],\"confidence\":0.99,\"quality\":\"文字清晰\",\"visibleText\":[\"MiJia Compact Camera\"],\"sameProductAs\":[],\"differentProductFrom\":[]}],\"candidates\":[{\"assetId\":\"asset-232cf89b-3f62-4037-9250-57da9070f94e\",\"startSeconds\":6,\"endSeconds\":16,\"reason\":\"连续开箱与取出物件的候选区间，需确认相机/配件取出完成及动作边界\"},{\"assetId\":\"asset-232cf89b-3f62-4037-9250-57da9070f94e\",\"startSeconds\":17,\"endSeconds\":22,\"reason\":\"电池或配件展示候选区间，需确认物件身份及是否存在后续安装动作\"},{\"assetId\":\"asset-232cf89b-3f62-4037-9250-57da9070f94e\",\"startSeconds\":23,\"endSeconds\":34,\"reason\":\"正面、侧面机身展示候选区间，可作为身份与外观细节\"},{\"assetId\":\"asset-232cf89b-3f62-4037-9250-57da9070f94e\",\"startSeconds\":35,\"endSeconds\":52,\"reason\":\"底部/侧部舱盖或接口操作候选区间，需确认打开、操作、合上的完整步骤\"},{\"assetId\":\"asset-232cf89b-3f62-4037-9250-57da9070f94e\",\"startSeconds\":53,\"endSeconds\":65,\"reason\":\"背屏与取景画面候选区间，需确认是否包含开机、对准或拍摄完成结果\"},{\"assetId\":\"asset-232cf89b-3f62-4037-9250-57da9070f94e\",\"startSeconds\":65,\"endSeconds\":71.5,\"reason\":\"最终机身展示及结尾标题卡候选区间\"}],\"inspectRanges\":[{\"assetId\":\"asset-232cf89b-3f62-4037-9250-57da9070f94e\",\"startSeconds\":6,\"endSeconds\":16,\"reason\":\"加密确认开箱、取出相机/配件及完成状态\"},{\"assetId\":\"asset-232cf89b-3f62-4037-9250-57da9070f94e\",\"startSeconds\":17,\"endSeconds\":24,\"reason\":\"确认电池/配件身份及是否有安装前置动作\"},{\"assetId\":\"asset-232cf89b-3f62-4037-9250-57da9070f94e\",\"startSeconds\":35,\"endSeconds\":45,\"reason\":\"确认底部/侧部舱盖或接口的打开动作起止\"},{\"assetId\":\"asset-232cf89b-3f62-4037-9250-57da9070f94e\",\"startSeconds\":43,\"endSeconds\":53,\"reason\":\"确认内部部件操作、关闭舱盖及完成结果是否连续\"},{\"assetId\":\"asset-232cf89b-3f62-4037-9250-57da9070f94e\",\"startSeconds\":53,\"endSeconds\":65,\"reason\":\"确认背屏出现前的开机/操作动作、取景与可能的拍摄完成\"},{\"assetId\":\"asset-232cf89b-3f62-4037-9250-57da9070f94e\",\"startSeconds\":60,\"endSeconds\":67,\"reason\":\"确认最终机身展示是否独立于取景动作并确定收尾边界\"}],\"gaps\":[\"当前仅有约6秒间隔抽帧和一张联系表，无法确认操作连续性、步骤先后依赖及完成结果；应先对inspectRanges进行加密抽帧/实际视频观察。\",\"未核实相机具体型号、配件/电池身份、接口或舱盖功能、是否完成开机/拍摄；不能据此撰写对应功能字幕。\",\"尚未检查源声音内容与动作同步；用户要求保留对应源声音，因此需在实际剪辑后复核。\",\"业务合同中的输出分辨率/时长与用户请求存在冲突（合同记录为1080x1920、30秒，用户明确要求1920x1080、约45–60秒），需由运行时合同解析处理。\"]},\"metadata\":[{\"id\":\"asset-232cf89b-3f62-4037-9250-57da9070f94e\",\"kind\":\"video\",\"duration\":71.989,\"frames\":2159,\"width\":1920,\"height\":1080,\"rotation\":0,\"hasAudio\":true,\"videoCodec\":\"h264\",\"pixelFormat\":\"yuv420p\",\"audioCodec\":\"aac\",\"sourceFps\":\"30/1\",\"nominalFps\":\"30/1\",\"size\":27330529,\"sourceStartSeconds\":0,\"sourceDurationSeconds\":71.989}],\"businessContract\":{\"schemaVersion\":1,\"profile\":\"commerce-focus-v1\",\"scenarioId\":\"product_demo\",\"originalRequest\":\"使用新增的米家相机开箱实拍，制作一条让首次使用者看懂实际开箱和基础操作的演示视频。横屏约45至60秒，时长服从素材中必要动作。先观察所有镜头，再确定真实步骤与先后依赖；只说明确实能看到的操作，不从品牌或片名推断功能。删除原片长片头、重复展示和等待，保留每个必要动作的开始和完成结果，保留最终机身展示。用清晰简短的步骤字幕和局部提示，避开手部、接口和机身；文字独立可改。保留对应源声音，不添加旁白、音乐，不使用旧商品图片或生成动作。输出可编辑候选工程及视频，并检查字幕遮挡和动作连续性。\",\"persona\":{\"creator\":\"商家／内容运营（待用户研究验证）\",\"viewer\":\"第一次操作的新手\"},\"objective\":\"理解并复现必要操作\",\"product\":{\"id\":\"product-1\",\"name\":\"\",\"facts\":[],\"price\":null,\"cta\":\"\",\"audience\":null,\"prohibited\":[]},\"output\":{\"width\":1080,\"height\":1920,\"durationSeconds\":30,\"fps\":30},\"audio\":\"unspecified\",\"mustHave\":[],\"mustNot\":[],\"generatedFootageAllowed\":false,\"deliverables\":[\"candidate_mp4\",\"editable_project\",\"source_index\",\"quality_report\"]},\"scenarioResources\":{\"template\":{\"id\":\"commerce-howto-v1\",\"version\":1,\"structure\":[\"前置准备\",\"必要操作及依赖\",\"完成结果\"],\"components\":[\"hero_media\",\"title\",\"operation_step\",\"caption\",\"ending\"],\"rule\":\"镜头服从真实步骤及源时间，字幕避开保护区，不得跳步、逆放或用静图代替动作。\"},\"components\":{\"hero_media\":{\"nativeKinds\":[\"video\",\"image\"],\"purpose\":\"保护主体的真实媒体容器\",\"resources\":[\"video-text-pivot\",\"comparison-split\"]},\"title\":{\"nativeKinds\":[\"text\"],\"purpose\":\"独立可改的标题\",\"resources\":[\"titlecard-reveal\"]},\"operation_step\":{\"nativeKinds\":[\"text\"],\"purpose\":\"绑定源动作与保护区的步骤说明\",\"resources\":[\"lt-ma[redacted]\",\"video-text-pivot\"]},\"caption\":{\"nativeKinds\":[\"text\"],\"purpose\":\"普通字幕与声音独立\",\"resources\":[\"caption-editorial-emphasis\"]},\"ending\":{\"nativeKinds\":[\"text\",\"video\"],\"purpose\":\"完整收尾和已提供的下一步提示\",\"resources\":[\"titlecard-reveal\"]}},\"sha256\":\"4bed2bc44787095380b34b53818f7c433e5aae09a94bb27e3e70946610dd6d74\"},\"scenePackage\":{\"id\":\"product_demo\",\"version\":\"3.0.0\",\"hash\":\"b324fd368981632bb702c266d5a0ae4d6bb6b5ab076f93464752d431e39f8500\",\"rules\":{\"MATERIAL_POLICY.md\":\"# MATERIAL_POLICY\\n\\n扫描所有目录素材；读取metadata和带时间观察证据，按同款身份、hero、usage、detail、supporting分类并记录拒绝原因。不从文件名猜事实。建立initialState、actions、dependencies、finalState；必要动作不能倒放、换序、删头尾；不连续片段不得伪造连续步骤。\\n\"}},\"creativeDirection\":null}\nasset-232cf89b-3f62-4037-9250-57da9070f94e 加密画面，按从左至右逐行对应源秒数：6.167,7.278,8.389,9.500,10.611,11.722,12.833,13.944,15.056\n【附图 1】\nasset-232cf89b-3f62-4037-9250-57da9070f94e 加密画面，按从左至右逐行对应源秒数：17.117,17.894,18.672,19.450,20.228,21.006,21.783,22.561,23.339\n【附图 2】\nasset-232cf89b-3f62-4037-9250-57da9070f94e 加密画面，按从左至右逐行对应源秒数：35.167,36.278,37.389,38.500,39.611,40.722,41.833,42.944,44.056\n【附图 3】\nasset-232cf89b-3f62-4037-9250-57da9070f94e 加密画面，按从左至右逐行对应源秒数：43.167,44.278,45.389,46.500,47.611,48.722,49.833,50.944,52.056\n【附图 4】\nasset-232cf89b-3f62-4037-9250-57da9070f94e 加密画面，按从左至右逐行对应源秒数：53.200,54.533,55.867,57.200,58.533,59.867,61.200,62.533,63.867\n【附图 5】\nasset-232cf89b-3f62-4037-9250-57da9070f94e 加密画面，按从左至右逐行对应源秒数：60.117,60.894,61.672,62.450,63.228,64.006,64.783,65.561,66.339\n【附图 6】"}]
+</editing_input>
+ERROR: Selected model is at capacity. Please try a different model.
+ERROR: Selected model is at capacity. Please try a different model.
+2026-09-15T02:25:09.823726Z  WARN codex_core::shell_snapshot: Failed to delete shell snapshot at AbsolutePathBuf("/Users/a1234/.codex/shell_snapshots/01a0a2e1-ca74-77a0-b72c-fb0374f69c0f.1789439101557158000.sh"): Os { code: 2, kind: NotFound, message: "No such file or directory" }

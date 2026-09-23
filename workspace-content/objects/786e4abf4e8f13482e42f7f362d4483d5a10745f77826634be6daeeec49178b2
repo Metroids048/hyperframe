@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "taskId": "M12-F02",
+  "recordedAt": "2026-09-18T00:00:00+08:00",
+  "sourceHead": "9283f550f6e639ecf20b7ca9635f39c887219ce9",
+  "result": "passed",
+  "positive": "locked/reference works, latest rendered candidates, same-title works, source-lineage copies, edited copies, drafts, and unfinished projects remain separately reachable",
+  "negative": "missing ZIP files do not hide playable video; changed hashes, escaping paths, unavailable entries, duplicate presets, tests, and explicitly archived IDs remain isolated",
+  "commands": [
+    "node scripts/build-web.mjs",
+    "node --test scripts/test-finished-works.mjs scripts/test-unfinished-project-options.mjs scripts/test-preset-readonly.mjs",
+    "node scripts/test-finished-work-ui.mjs"
+  ],
+  "automatedTests": 7,
+  "browserCheck": "passed",
+  "humanAcceptance": "not_performed"
+}

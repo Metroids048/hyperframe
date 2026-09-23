@@ -1,0 +1,403 @@
+{
+  "schemaVersion": 1,
+  "recordType": "runtime_quality_report",
+  "qualityPolicy": {
+    "id": "quality-acceptance-v1",
+    "policyHash": "54a9dfc4472786f37d1ae18811872a35892fc912a26b98ef13269680140f4d9f"
+  },
+  "binding": {
+    "projectId": "raw-upload-smoke-20260920",
+    "revisionId": "rev-86407ec48bdc4e21",
+    "contractHash": "c35388f22ce483fc4f768c9da1ba53f688098f87e4ef3460aeb3073e3a98b826",
+    "assetManifestHash": "b52d94a7080831da499a9dcf185bd57f741defc15ad997bed783836c4abc53ef",
+    "policyHash": "2544cb10e0c9445610ceb2354e9deb87439d15fe99acbad74737039bf26bd262",
+    "documentHash": "fd16b45d98a2edf6e218eb75c9c4b0fe264eaf37a696b751ecb1fbf3642a160c",
+    "finalVideoSha256": "7b47915d27f8d86ce103a50b458759886d65b359d6eb9befa18a9e65aa518935",
+    "resourceHash": "2e77a322f849cb307074c9a6e0f5e6e05d8078681395e419bdf10b098fa8aee3",
+    "runId": null,
+    "jobId": "raw-upload-smoke-20260920-v1"
+  },
+  "origin": "scripted_runner",
+  "dimensions": {
+    "materials": "pending",
+    "technical": "pass",
+    "content": "pending",
+    "visual": "fail",
+    "actionContinuity": "pending",
+    "audioPerception": "pending",
+    "rights": "pending",
+    "humanAcceptance": "pending"
+  },
+  "coverage": {
+    "method": "keyframes_with_scene_tail",
+    "evidenceRefs": [
+      "final-review/frame-0.jpg",
+      "final-review/frame-1.jpg",
+      "final-review/frame-2.jpg",
+      "final-review/frame-3.jpg"
+    ],
+    "videoRangesObserved": [],
+    "audioRangesObserved": [],
+    "requirements": {
+      "technical": {
+        "required": [
+          "decode",
+          "duration",
+          "dimensions",
+          "tracks",
+          "version"
+        ],
+        "observed": [],
+        "unreviewed": [
+          "decode",
+          "duration",
+          "dimensions",
+          "tracks",
+          "version"
+        ]
+      },
+      "content": {
+        "required": [
+          "contract",
+          "facts",
+          "shotPurpose",
+          "sourceEvidence"
+        ],
+        "observed": [],
+        "unreviewed": [
+          "contract",
+          "facts",
+          "shotPurpose",
+          "sourceEvidence"
+        ]
+      },
+      "visual": {
+        "required": [
+          "keyframes",
+          "sceneBoundaries",
+          "textSafety"
+        ],
+        "observed": [],
+        "unreviewed": [
+          "keyframes",
+          "sceneBoundaries",
+          "textSafety"
+        ]
+      },
+      "motion": {
+        "required": [
+          "continuousPlayback",
+          "transitions",
+          "captionLifecycle"
+        ],
+        "observed": [],
+        "unreviewed": [
+          "continuousPlayback",
+          "transitions",
+          "captionLifecycle"
+        ]
+      },
+      "audio": {
+        "required": [
+          "audioInput",
+          "speech",
+          "musicMix",
+          "sync"
+        ],
+        "observed": [],
+        "unreviewed": [
+          "audioInput",
+          "speech",
+          "musicMix",
+          "sync"
+        ]
+      }
+    }
+  },
+  "evidenceIndex": [
+    {
+      "path": "final-review/frame-0.jpg",
+      "sha256": "097d676cd63342a6c0a3383502f19c2519a1ff455052e6c4299705a94d0f90f8",
+      "seconds": 0
+    },
+    {
+      "path": "final-review/frame-1.jpg",
+      "sha256": "6ccc6b77970a0bbd26ec6eecacb371653fe59296c0d187327a5d9ed65b59d4fe",
+      "seconds": 9
+    },
+    {
+      "path": "final-review/frame-2.jpg",
+      "sha256": "508406cb46de9fafeff48548f9e2f30a062308084779707e9433d0059592158e",
+      "seconds": 14.9
+    },
+    {
+      "path": "final-review/frame-3.jpg",
+      "sha256": "f3a2acfa9c9d650f3d5160e4652e202a2703ff4fcbbd8da19b3eb40d2242afd0",
+      "seconds": 14.966666666666667
+    }
+  ],
+  "issues": [
+    {
+      "id": "issue-0",
+      "requirementId": "final-output",
+      "severity": "major",
+      "startSeconds": 0,
+      "endSeconds": 0,
+      "problem": "0 秒关键帧仅显示左下黑色矩形，未见“新品体验”文字，未能证明文字已在开头两秒出现。",
+      "evidenceRefs": [
+        "final-review/frame-0.jpg"
+      ],
+      "repair": "将“新品体验”文字图层置于视频起始位置，确保 0–2 秒可见，并复核首帧及 2 秒边界。",
+      "preserve": [
+        "未涉及的镜头、文字和音轨"
+      ]
+    },
+    {
+      "id": "issue-1",
+      "requirementId": "final-output",
+      "severity": "major",
+      "startSeconds": 9,
+      "endSeconds": 9,
+      "problem": "9 秒关键帧仍显示“新品体验”，说明文字至少持续到开头两秒之后，违反“只在开头两秒添加”的范围要求。",
+      "evidenceRefs": [
+        "final-review/frame-1.jpg"
+      ],
+      "repair": "将文字图层结束时间限制在 2.000 秒，并检查淡出或裁切不会残留黑色背景块。",
+      "preserve": [
+        "未涉及的镜头、文字和音轨"
+      ]
+    },
+    {
+      "id": "issue-2",
+      "requirementId": "final-output",
+      "severity": "major",
+      "startSeconds": 14.9,
+      "endSeconds": 14.9,
+      "problem": "14.900 秒关键帧仍保留“新品体验”黑底标记，后段画面未恢复为原始内容。",
+      "evidenceRefs": [
+        "final-review/frame-2.jpg"
+      ],
+      "repair": "删除 2 秒后的文字及其黑色背景图层，保持后续商品画面不变。",
+      "preserve": [
+        "未涉及的镜头、文字和音轨"
+      ]
+    },
+    {
+      "id": "issue-3",
+      "requirementId": "final-output",
+      "severity": "minor",
+      "startSeconds": 14.966666666666667,
+      "endSeconds": 14.966666666666667,
+      "problem": "14.967 秒末帧仍可见同一标记，无法确认结尾是否保持原片状态。",
+      "evidenceRefs": [
+        "final-review/frame-3.jpg"
+      ],
+      "repair": "重新检查末段和结束帧，确认新增文字不延伸到视频结尾。",
+      "preserve": [
+        "未涉及的镜头、文字和音轨"
+      ]
+    }
+  ],
+  "unreviewed": [
+    "连续动作、节奏与完整观看",
+    "实际听感与音画同步"
+  ],
+  "score": {
+    "total": 32,
+    "max": 100,
+    "components": {
+      "product_exposure": 35,
+      "first_three_seconds": 20,
+      "pacing": 32,
+      "captions": 45,
+      "motion": 5,
+      "transitions": 35,
+      "audio": 75,
+      "commercial_conversion": 15
+    },
+    "status": "needs_revision"
+  },
+  "scenarioAssessment": {
+    "status": "pending",
+    "summary": "抽查了 4 个最终视频关键帧。可见“新品体验”未在开头 2 秒内出现，且在后续画面持续存在；声音、完整连续性及相对原片时长无法仅凭抽帧确认。（仅抽帧；完整业务目标待连续观片确认）"
+  },
+  "humanAcceptance": {
+    "status": "pending",
+    "eventId": null,
+    "actorContext": null,
+    "revisionId": "rev-86407ec48bdc4e21",
+    "submittedAt": null
+  },
+  "deliveryDecision": {
+    "computedBy": "backend-commerce-focus-v1",
+    "status": "needs_revision",
+    "reasonCodes": [
+      "COMMERCIAL_QUALITY_REVISION_REQUIRED",
+      "HUMAN_CONFIRMATION_PENDING"
+    ]
+  },
+  "playbackReview": {
+    "manifest": "final-review/playback-manifest.json",
+    "watch": "final-review/watch.html",
+    "finalVideoSha256": "7b47915d27f8d86ce103a50b458759886d65b359d6eb9befa18a9e65aa518935",
+    "clipCount": 2,
+    "fullVideoObserved": false,
+    "audioPerceptionVerified": false
+  },
+  "editorialReview": null,
+  "commercialQuality": {
+    "schema_version": 2,
+    "assessment_basis": "engineering_heuristics_and_observed_keyframe_issues",
+    "score": 32,
+    "threshold": 78,
+    "hard_minimum": 65,
+    "components": {
+      "product_exposure": 35,
+      "first_three_seconds": 20,
+      "pacing": 32,
+      "captions": 45,
+      "motion": 5,
+      "transitions": 35,
+      "audio": 75,
+      "commercial_conversion": 15
+    },
+    "issues": [
+      {
+        "severity": "blocker",
+        "dimension": "product_exposure",
+        "score": 35,
+        "problem": "product_exposure 低于商业最低线 65",
+        "repair": "只修改与 product_exposure 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+      },
+      {
+        "severity": "blocker",
+        "dimension": "first_three_seconds",
+        "score": 20,
+        "problem": "first_three_seconds 低于商业最低线 65",
+        "repair": "只修改与 first_three_seconds 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+      },
+      {
+        "severity": "blocker",
+        "dimension": "pacing",
+        "score": 32,
+        "problem": "pacing 低于商业最低线 65",
+        "repair": "只修改与 pacing 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+      },
+      {
+        "severity": "major",
+        "dimension": "captions",
+        "score": 45,
+        "problem": "captions 低于商业最低线 65",
+        "repair": "只修改与 captions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+      },
+      {
+        "severity": "blocker",
+        "dimension": "motion",
+        "score": 5,
+        "problem": "motion 低于商业最低线 65",
+        "repair": "只修改与 motion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+      },
+      {
+        "severity": "blocker",
+        "dimension": "transitions",
+        "score": 35,
+        "problem": "transitions 低于商业最低线 65",
+        "repair": "只修改与 transitions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+      },
+      {
+        "severity": "blocker",
+        "dimension": "commercial_conversion",
+        "score": 15,
+        "problem": "commercial_conversion 低于商业最低线 65",
+        "repair": "只修改与 commercial_conversion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+      },
+      {
+        "id": "issue-0",
+        "requirementId": "final-output",
+        "severity": "major",
+        "startSeconds": 0,
+        "endSeconds": 0,
+        "problem": "0 秒关键帧仅显示左下黑色矩形，未见“新品体验”文字，未能证明文字已在开头两秒出现。",
+        "evidenceRefs": [
+          "final-review/frame-0.jpg"
+        ],
+        "repair": "将“新品体验”文字图层置于视频起始位置，确保 0–2 秒可见，并复核首帧及 2 秒边界。",
+        "preserve": [
+          "未涉及的镜头、文字和音轨"
+        ],
+        "dimension": "visual"
+      },
+      {
+        "id": "issue-1",
+        "requirementId": "final-output",
+        "severity": "major",
+        "startSeconds": 9,
+        "endSeconds": 9,
+        "problem": "9 秒关键帧仍显示“新品体验”，说明文字至少持续到开头两秒之后，违反“只在开头两秒添加”的范围要求。",
+        "evidenceRefs": [
+          "final-review/frame-1.jpg"
+        ],
+        "repair": "将文字图层结束时间限制在 2.000 秒，并检查淡出或裁切不会残留黑色背景块。",
+        "preserve": [
+          "未涉及的镜头、文字和音轨"
+        ],
+        "dimension": "visual"
+      },
+      {
+        "id": "issue-2",
+        "requirementId": "final-output",
+        "severity": "major",
+        "startSeconds": 14.9,
+        "endSeconds": 14.9,
+        "problem": "14.900 秒关键帧仍保留“新品体验”黑底标记，后段画面未恢复为原始内容。",
+        "evidenceRefs": [
+          "final-review/frame-2.jpg"
+        ],
+        "repair": "删除 2 秒后的文字及其黑色背景图层，保持后续商品画面不变。",
+        "preserve": [
+          "未涉及的镜头、文字和音轨"
+        ],
+        "dimension": "visual"
+      },
+      {
+        "id": "issue-3",
+        "requirementId": "final-output",
+        "severity": "minor",
+        "startSeconds": 14.966666666666667,
+        "endSeconds": 14.966666666666667,
+        "problem": "14.967 秒末帧仍可见同一标记，无法确认结尾是否保持原片状态。",
+        "evidenceRefs": [
+          "final-review/frame-3.jpg"
+        ],
+        "repair": "重新检查末段和结束帧，确认新增文字不延伸到视频结尾。",
+        "preserve": [
+          "未涉及的镜头、文字和音轨"
+        ],
+        "dimension": "visual"
+      }
+    ],
+    "suggestions": [
+      "只修改与 product_exposure 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+      "只修改与 first_three_seconds 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+      "只修改与 pacing 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+      "只修改与 captions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+      "只修改与 motion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+      "只修改与 transitions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+      "只修改与 commercial_conversion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+      "将“新品体验”文字图层置于视频起始位置，确保 0–2 秒可见，并复核首帧及 2 秒边界。",
+      "将文字图层结束时间限制在 2.000 秒，并检查淡出或裁切不会残留黑色背景块。",
+      "删除 2 秒后的文字及其黑色背景图层，保持后续商品画面不变。",
+      "重新检查末段和结束帧，确认新增文字不延伸到视频结尾。",
+      "完成连续观片后校准节奏、动作和转场评分；自动分数不代签真人观看。",
+      "完成实际试听后校准声音情绪、清晰度和音画同步；电平检测不代替听感。"
+    ],
+    "revision_required": true,
+    "coverage": {
+      "actual_mp4": true,
+      "full_video_observed": false,
+      "audio_perception_verified": false
+    },
+    "status": "needs_revision",
+    "human_acceptance": "pending"
+  }
+}

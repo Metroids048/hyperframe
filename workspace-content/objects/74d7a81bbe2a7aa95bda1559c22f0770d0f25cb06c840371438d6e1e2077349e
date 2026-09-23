@@ -1,0 +1,251 @@
+{
+  "alternatives": [],
+  "operations": [],
+  "summary": "已识别为七幕整体重剪与重设计，旧轮次“其他不动”不阻止本轮修改。但输入只有工程、素材元数据和步骤文案，没有实际动作观察及准确源窗口证据，无法可靠选择删减点或同步动作标签。本轮不猜测剪点、不提交局部改字冒充整体完成，保留当前有效版本；尚未执行、编译或检查。",
+  "workflow": {
+    "assumptions": [
+      "沿用现有1920×1080、30fps工程及七幕顺序。",
+      "视觉默认采用奶油色#FFF4E3、深咖棕#39261D、咖喱橙#D87924，后续可逆调整。",
+      "继续使用现有独立原声音轨与sourceNodeId关联；画面剪切交由执行器同步映射声音，不另行重复移动音轨。"
+    ],
+    "gaps": [
+      "缺少s03-footage的实际连续画面观察、逐动作源时间及保护区域。现有stepPlan明确来自user-authored-display-copy，不能证明具体帧内动作完整性。",
+      "需要确认step-01举盒停顿、step-02水流起止、step-03关门及控制操作、step-04开门、step-05状态展示、step-06小袋操作、step-07翻拌的真实源窗口，才能给出基于当前版本整数帧坐标的trim_scene操作。不能为达到48—55秒任意裁去动作。",
+      "第三幕标签必须仅在动作发生时显示；当前没有关门和控制动作各自的准确时刻，不能按场景比例猜测标签时间。",
+      "缺少关键主体位置证据，无法验证新布局或紧凑取景是否保留手部、盒口、小袋及控制区；第五幕也缺少可验证的对比阅读画面依据。",
+      "audioEvidence为空，没有听音或测量证据，不能声称已完成音量平衡、切点听感或严格音画同步检查。",
+      "本轮禁止调用工具，允许的输出操作也不包含素材观察请求。需由上游补入实际观察证据后继续生成七幕完整源码、文字、动画与选段补丁，无需再次请求风格或分镜审批。",
+      "后续补丁须基于rev-f621644fe0c35684，由服务端分配新修订；七幕源码和源文档一起版本化，重新编译并执行隔离检查。检查全部六处相邻切点、转场重叠补偿、原声音画源时钟、标签窗口、文字可读性、主体遮挡和最终总帧数；成功前不得替换当前有效版本。"
+    ],
+    "objective": "让首次观看者在约48—55秒内看懂同一即食饭实拍中实际记录的操作顺序与关键动作，通过温暖、分幕有差异的编辑设计提升可读性，并明确未记录的过程和完成状态。",
+    "overrides": [
+      {
+        "replacementQuote": "第一幕用大标题“一盒即食饭的操作过程”和实拍形成强开场",
+        "requirementId": "requirement-ed5e8d2251a5a3bf"
+      },
+      {
+        "replacementQuote": "不再保持旧版布局、标题、字号、位置和63.67秒时长",
+        "requirementId": "requirement-04bcdc7000fa08e6"
+      },
+      {
+        "replacementQuote": "不再保持旧版布局、标题、字号、位置和63.67秒时长",
+        "requirementId": "requirement-a4e0fa1fcbed559e"
+      },
+      {
+        "replacementQuote": "不再保持旧版布局、标题、字号、位置和63.67秒时长",
+        "requirementId": "requirement-80205fabc03695e0"
+      },
+      {
+        "replacementQuote": "标题“先看清，再加水”搭配一句“用量参照产品包装”",
+        "requirementId": "requirement-9ef594fe90fd49b5"
+      },
+      {
+        "replacementQuote": "不再保持旧版布局、标题、字号、位置和63.67秒时长",
+        "requirementId": "requirement-1ad61e7c8612bf9a"
+      }
+    ],
+    "requirements": [
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "这次授权整体重剪和重新设计当前七步S03，不再保持旧版布局、标题、字号、位置和63.67秒时长",
+        "startSeconds": null,
+        "targetIds": ["step-01", "step-02", "step-03", "step-04", "step-05", "step-06", "step-07"]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "goal",
+        "quote": "目标是约48—55秒的即食饭操作演示精品Demo",
+        "startSeconds": null,
+        "targetIds": ["step-01", "step-02", "step-03", "step-04", "step-05", "step-06", "step-07"]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "仍是同一产品、同一实拍和真实顺序",
+        "startSeconds": null,
+        "targetIds": ["s03-footage", "step-01", "step-02", "step-03", "step-04", "step-05", "step-06", "step-07"]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "prohibit",
+        "quote": "不编水量/功率/时间/完成状态",
+        "startSeconds": null,
+        "targetIds": ["step-01", "step-02", "step-03", "step-04", "step-05", "step-06", "step-07"]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "先按实际素材挑动作信息最充分的源窗口，删除无信息的举盒停顿和过长搅动，水流、关门控制、开门、小袋、翻拌各保留有辨识度的完整动作片段。",
+        "startSeconds": null,
+        "targetIds": ["step-01-video", "step-02-video", "step-03-video", "step-04-video", "step-05-video", "step-06-video", "step-07-video"]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "保持选段原速，关联原声随视频同步剪切",
+        "startSeconds": null,
+        "targetIds": ["step-01-video", "step-02-video", "step-03-video", "step-04-video", "step-05-video", "step-06-video", "step-07-video", "step-01-original-audio", "step-02-original-audio", "step-03-original-audio", "step-04-original-audio", "step-05-original-audio", "step-06-original-audio", "step-07-original-audio"]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "允许原声短淡入淡出与适度音量平衡",
+        "startSeconds": null,
+        "targetIds": ["step-01-original-audio", "step-02-original-audio", "step-03-original-audio", "step-04-original-audio", "step-05-original-audio", "step-06-original-audio", "step-07-original-audio"]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "prohibit",
+        "quote": "不生成新实拍、不增加旁白。不要为了时长把必要动作加速或重复。",
+        "startSeconds": null,
+        "targetIds": ["step-01", "step-02", "step-03", "step-04", "step-05", "step-06", "step-07"]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "视觉方向彻底换成温暖食物编辑设计：奶油浅底、深咖棕文字、咖喱橙强调。",
+        "startSeconds": null,
+        "targetIds": ["step-01", "step-02", "step-03", "step-04", "step-05", "step-06", "step-07"]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "prohibit",
+        "quote": "不要再全片左边数字、右边视频、下面小字同模板。",
+        "startSeconds": null,
+        "targetIds": ["step-01", "step-02", "step-03", "step-04", "step-05", "step-06", "step-07"]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "第一幕用大标题“一盒即食饭的操作过程”和实拍形成强开场，主体尽早出现",
+        "startSeconds": null,
+        "targetIds": ["step-01-heading", "step-01-video", "step-01"]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "第二幕加水画面尽量大，保留手和盒口，标题“先看清，再加水”搭配一句“用量参照产品包装”",
+        "startSeconds": null,
+        "targetIds": ["step-02-video", "step-02-heading", "step-02-note", "step-02"]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "第三幕关门与控制画面用简洁动作标签“关门 / 操作控制区”，只在动作发生时出现",
+        "startSeconds": null,
+        "targetIds": ["step-03", "step-03-heading", "step-03-short", "step-03-video"]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "第四幕以“省略等待，接着看”为视觉章节，明确源片未展示取出过程",
+        "startSeconds": null,
+        "targetIds": ["step-04", "step-04-heading", "step-04-note"]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "第五幕加热后状态做对比阅读的中景，不声称最终完成",
+        "startSeconds": null,
+        "targetIds": ["step-05", "step-05-video", "step-05-heading", "step-05-note"]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "第六幕小袋操作用更紧凑画面与关键动词",
+        "startSeconds": null,
+        "targetIds": ["step-06", "step-06-video", "step-06-heading", "step-06-short"]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "第七幕翻拌画面回归主体，最后形成清楚的演示结束版式，提示“完整操作以产品说明为准；本片未记录放入、取出与最终完成”。",
+        "startSeconds": null,
+        "targetIds": ["step-07", "step-07-video", "step-07-heading", "step-07-note"]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "这些文字可自行精简为自然、好读的中文，不做满屏工程免责声明。",
+        "startSeconds": null,
+        "targetIds": ["step-01", "step-02", "step-03", "step-04", "step-05", "step-06", "step-07"]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "用既有原生对象重新编排层级，允许update_custom_source重做各幕布局和有限GSAP动画、update_text及update_text_style调整现有文字。",
+        "startSeconds": null,
+        "targetIds": ["step-01", "step-02", "step-03", "step-04", "step-05", "step-06", "step-07"]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "文字与底板同时出现；用轻揭示、划线、短促标签动效而非每幕相同淡入。",
+        "startSeconds": null,
+        "targetIds": ["step-01", "step-02", "step-03", "step-04", "step-05", "step-06", "step-07"]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "每一处媒体都仍为真实独立视频层；适度取景但不能裁掉关键动作、拉伸或做无效慢推。",
+        "startSeconds": null,
+        "targetIds": ["step-01-video", "step-02-video", "step-03-video", "step-04-video", "step-05-video", "step-06-video", "step-07-video"]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "允许相邻切点有短淡化或方向衔接，等待跳过处转场最明确，其他不堆炫技效果。",
+        "startSeconds": null,
+        "targetIds": ["step-01", "step-02", "step-03", "step-04", "step-05", "step-06", "step-07"]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "转场重叠需要正确补偿时序，最终原声与画面源时钟严格一致。",
+        "startSeconds": null,
+        "targetIds": ["step-01-video", "step-02-video", "step-03-video", "step-04-video", "step-05-video", "step-06-video", "step-07-video", "step-01-original-audio", "step-02-original-audio", "step-03-original-audio", "step-04-original-audio", "step-05-original-audio", "step-06-original-audio", "step-07-original-audio"]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "七幕都要有实际源码、文字、动画和选段变化，所有原生对象继续可编辑，不只改description。",
+        "startSeconds": null,
+        "targetIds": ["step-01", "step-02", "step-03", "step-04", "step-05", "step-06", "step-07"]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "goal",
+        "quote": "请实际执行并检查，失败不替换上一有效版本。",
+        "startSeconds": null,
+        "targetIds": ["step-01", "step-02", "step-03", "step-04", "step-05", "step-06", "step-07"]
+      }
+    ],
+    "taskMode": "recut"
+  }
+}

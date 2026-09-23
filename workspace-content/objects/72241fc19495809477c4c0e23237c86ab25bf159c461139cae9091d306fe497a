@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "level": "director",
+  "user_request": "根据实际MP4质量报告执行一次局部导演修复。只处理这些问题：[{\"severity\":\"blocker\",\"dimension\":\"product_exposure\",\"score\":38,\"problem\":\"product_exposure 低于商业最低线 65\",\"repair\":\"只修改与 product_exposure 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"first_three_seconds\",\"score\":23,\"problem\":\"first_three_seconds 低于商业最低线 65\",\"repair\":\"只修改与 first_three_seconds 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"pacing\",\"score\":0,\"problem\":\"pacing 低于商业最低线 65\",\"repair\":\"只修改与 pacing 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"major\",\"dimension\":\"captions\",\"score\":48,\"problem\":\"captions 低于商业最低线 65\",\"repair\":\"只修改与 captions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"motion\",\"score\":8,\"problem\":\"motion 低于商业最低线 65\",\"repair\":\"只修改与 motion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"transitions\",\"score\":38,\"problem\":\"transitions 低于商业最低线 65\",\"repair\":\"只修改与 transitions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"commercial_conversion\",\"score\":18,\"problem\":\"commercial_conversion 低于商业最低线 65\",\"repair\":\"只修改与 commercial_conversion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"id\":\"issue-0\",\"requirementId\":\"final-output\",\"severity\":\"blocker\",\"startSeconds\":47.18,\"endSeconds\":47.18,\"problem\":\"仅凭提供的关键帧无法验证原声轨道、音量是否与源视频完全一致，也无法验证全片连续性、画面顺序和速度未被改动。该帧位于47.180秒，画面中未见“新品体验”文字，符合文字仅在开头2秒出现，但不构成音频与全片不变的证明。\",\"evidenceRefs\":[\"final-review/frame-1.jpg\"],\"repair\":\"对导出的实际MP4执行完整技术核验：确认时长、帧率、分辨率、视频帧序列/速度与源一致，并逐项比对音频轨道存在性、编码、时长、采样参数及音量；同时检查0.0至2.0秒外标题节点不存在。\",\"preserve\":[\"未涉及的镜头、文字和音轨\"],\"dimension\":\"visual\"}]。参考建议：[\"只修改与 product_exposure 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 first_three_seconds 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 pacing 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 captions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 motion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 transitions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 commercial_conversion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"对导出的实际MP4执行完整技术核验：确认时长、帧率、分辨率、视频帧序列/速度与源一致，并逐项比对音频轨道存在性、编码、时长、采样参数及音量；同时检查0.0至2.0秒外标题节点不存在。\"]。保留未涉及镜头、素材源区间、商品事实、声音和历史；不要整片重做。",
+  "target_shots": [
+    "scene-01-uploaded-source"
+  ],
+  "target_objects": [
+    "video-asset-b3957e58-e8f6-478c-b70b-b9ec84003d46",
+    "audio-ca33f203c09b6e17",
+    "title-2859194914cface0"
+  ],
+  "operations": [
+    "replace_asset",
+    "update_media",
+    "update_audio",
+    "update_text",
+    "set_node_duration"
+  ],
+  "preserve": [
+    "未命中的镜头",
+    "未请求的商品事实",
+    "未请求的音轨",
+    "历史版本"
+  ],
+  "created_at": "2026-09-20T07:50:01.902Z"
+}

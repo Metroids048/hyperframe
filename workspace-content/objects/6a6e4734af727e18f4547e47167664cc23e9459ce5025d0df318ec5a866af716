@@ -1,0 +1,2141 @@
+{
+  "id": "fbe73e02-febc-4d72-96d0-b9fb44af6265",
+  "userRequest": "你自己基于视频内容去定",
+  "projectId": "db0a2891-d5e8-454b-97a7-31d1a1d37d36",
+  "baseRevisionId": null,
+  "inputFingerprint": "0edad85e038a87ca6941f2a3cf7803775f353d67e73a3a9c4170d12c4c752739",
+  "selectedSkills": [],
+  "constraints": {
+    "requirements": [
+      "仅使用已提供的真实视频素材，不生成新的商品图片或视频镜头。",
+      "未指定画幅时按真实素材1280×720横屏输出，并保护主体取景。",
+      "未明确要求配音、字幕或音乐，不主动添加；保留原始音频。",
+      "正式交付前需完成素材观察、场景判定和独立最终审查。"
+    ]
+  },
+  "plan": null,
+  "artifacts": {
+    "materialActionEvidenceHash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  "checkpoints": {
+    "brief": {
+      "idempotencyKey": "b320774b4837d0dd66ab01ec815e2006f660e09e243c0d6f49009e9a7f029c05",
+      "status": "completed",
+      "result": {
+        "request": {
+          "name": "",
+          "cta": "",
+          "price": "",
+          "facts": [],
+          "output": {
+            "width": 1280,
+            "height": 720,
+            "durationSeconds": 30,
+            "fps": 30
+          }
+        },
+        "needsTranscription": false,
+        "needsNarration": false,
+        "needsCaptions": false,
+        "keepOriginalAudio": true,
+        "capabilities": [
+          "image-observation",
+          "video-source-selection",
+          "native-composition",
+          "native-editing",
+          "managed-original",
+          "local-preview-review"
+        ],
+        "gaps": [
+          "尚未对视频内容进行语义观察，无法确认具体商品、叙事场景或必要信息覆盖。",
+          "商品名称、商品事实、价格和明确CTA未提供。",
+          "当前无法进行人工听感审查；原声音频应保留，语义与同步仍待后续复核。"
+        ],
+        "constraints": [
+          "仅使用已提供的真实视频素材，不生成新的商品图片或视频镜头。",
+          "未指定画幅时按真实素材1280×720横屏输出，并保护主体取景。",
+          "未明确要求配音、字幕或音乐，不主动添加；保留原始音频。",
+          "正式交付前需完成素材观察、场景判定和独立最终审查。"
+        ],
+        "workflow": {
+          "taskMode": "create",
+          "objective": "基于已提供视频内容确定合适的电商叙事目标，并制作可继续编辑的候选视频。",
+          "requirements": [
+            {
+              "kind": "goal",
+              "quote": "你自己基于视频内容去定",
+              "targetIds": [
+                "asset-3736b7fe-942f-42a4-8f65-cda348858aa4"
+              ],
+              "excludeIds": [],
+              "startSeconds": null,
+              "endSeconds": null
+            }
+          ],
+          "overrides": [],
+          "assumptions": [
+            "先观察完整视频后再确定其属于上新、详情、操作演示或其他业务场景。",
+            "默认采用约30秒的内容驱动剪辑；若真实信息密度或必要动作要求不同，则按素材调整。",
+            "默认保留原始音频，不添加旁白、字幕或背景音乐，除非后续合同明确要求。"
+          ],
+          "gaps": [
+            "需要对asset-3736b7fe-942f-42a4-8f65-cda348858aa4进行完整内容观察后才能确定镜头选择、事实证据和最终业务场景。"
+          ]
+        },
+        "scenarioId": "general",
+        "productionBinding": {
+          "message": "你自己基于视频内容去定",
+          "contract": {
+            "schemaVersion": 1,
+            "profile": "commerce-focus-v1",
+            "scenarioId": "general",
+            "originalRequest": "你自己基于视频内容去定",
+            "taskMode": "create",
+            "workflowProfile": "create",
+            "workflow": {
+              "version": 1,
+              "taskMode": "create",
+              "taskModeExplicit": true,
+              "workflowProfile": "create",
+              "businessScenario": "general",
+              "baseProjectId": "db0a2891-d5e8-454b-97a7-31d1a1d37d36",
+              "baseRevisionId": null,
+              "assetScope": [
+                "asset-3736b7fe-942f-42a4-8f65-cda348858aa4"
+              ],
+              "originalRequest": "你自己基于视频内容去定",
+              "requirements": [
+                {
+                  "kind": "goal",
+                  "quote": "你自己基于视频内容去定",
+                  "targetIds": [
+                    "asset-3736b7fe-942f-42a4-8f65-cda348858aa4"
+                  ],
+                  "excludeIds": [],
+                  "startSeconds": null,
+                  "endSeconds": null,
+                  "id": "requirement-6ee87094553d38d0",
+                  "field": "goal",
+                  "inherited": false
+                }
+              ],
+              "assumptions": [
+                "先观察完整视频后再确定其属于上新、详情、操作演示或其他业务场景。",
+                "默认采用约30秒的内容驱动剪辑；若真实信息密度或必要动作要求不同，则按素材调整。",
+                "默认保留原始音频，不添加旁白、字幕或背景音乐，除非后续合同明确要求。"
+              ],
+              "gaps": [
+                "需要对asset-3736b7fe-942f-42a4-8f65-cda348858aa4进行完整内容观察后才能确定镜头选择、事实证据和最终业务场景。"
+              ],
+              "interpretation": "validated-semantic-analysis",
+              "objective": "基于已提供视频内容确定合适的电商叙事目标，并制作可继续编辑的候选视频。",
+              "contractId": "contract-c867808ce7f63f23",
+              "parentContractId": null,
+              "sourceRequests": [
+                "你自己基于视频内容去定"
+              ],
+              "requirementChanges": [],
+              "changeTargets": [],
+              "preserveTargets": [],
+              "resourceNeeds": [],
+              "prohibitions": []
+            },
+            "persona": {
+              "creator": "商家／内容运营（待用户研究验证）",
+              "viewer": "首次了解商品的消费者"
+            },
+            "objective": "明确电商内容目标",
+            "product": {
+              "id": "product-1",
+              "name": "",
+              "facts": [],
+              "price": null,
+              "cta": "",
+              "audience": null,
+              "prohibited": []
+            },
+            "output": {
+              "width": 1280,
+              "height": 720,
+              "durationSeconds": 30,
+              "fps": 30
+            },
+            "audio": "unspecified",
+            "mustHave": [],
+            "mustNot": [],
+            "explicitConstraints": {
+              "schemaVersion": 1,
+              "originalRequest": "你自己基于视频内容去定",
+              "narration": "unspecified",
+              "music": "unspecified",
+              "original": "unspecified",
+              "price": "unspecified",
+              "silent": false
+            },
+            "generatedFootageAllowed": false,
+            "deliverables": [
+              "candidate_mp4",
+              "editable_project",
+              "source_index",
+              "quality_report"
+            ]
+          }
+        }
+      }
+    },
+    "observe": {
+      "idempotencyKey": "f4f6941fba004aab9c628fb2ba02da227ed2bd9a03a68a744ecee15d13f61a38",
+      "status": "completed",
+      "result": {
+        "candidates": [
+          {
+            "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+            "endSeconds": 12,
+            "reason": "约0至12秒反复呈现米白色品牌页、棕色咖啡袋、咖啡杯和“把早晨，慢慢唤醒。”，适合作为商品建立与主视觉；未见可确认的操作动作。页面切换边界未逐帧核验。",
+            "startSeconds": 0
+          },
+          {
+            "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+            "endSeconds": 30,
+            "reason": "约18至30秒可见同组咖啡袋静物与深棕色“坚果香气”风味页，可作为风味文字详情段；精确起止切点未逐帧确认。",
+            "startSeconds": 18
+          },
+          {
+            "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+            "endSeconds": 48,
+            "reason": "约30至48秒出现双图拼版、咖啡袋与“精品咖啡豆”等图文详情，可补充包装和视觉细节；不能证明冲煮、使用或效果。",
+            "startSeconds": 30
+          },
+          {
+            "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+            "endSeconds": 120,
+            "reason": "约96至120秒重复出现风味页、拼版和“从一杯好咖啡开始 / MORNING”收尾版式，可从中选择图文型结尾；具体收尾持续时间和音画关系未核验。",
+            "startSeconds": 96
+          }
+        ],
+        "gaps": [
+          "素材目前只支持图文型商品介绍，未观察到人手、研磨、备料、冲煮、倒水、倒咖啡或完成结果，不能制作完整操作演示或效果证明。",
+          "商品正式名称、规格、配方、价格、优惠和明确CTA未被可靠确认；“精品咖啡豆”“巧克力风味”“坚果香气”仅作为画面可见文字。",
+          "关键帧显示存在大量重复页面，精确切换边界、转场和短暂内容尚未逐帧核验，30秒内的最优不重复顺序待审核。",
+          "素材虽有音频轨道，但未完成听感或语义核验；原声音频应保留，语义与音画同步仍待复核。",
+          "同款关系仅依据重复出现的棕色咖啡袋包装和版式判断，未确认具体型号或规格。"
+        ],
+        "inspectRanges": [],
+        "observations": [
+          {
+            "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+            "confidence": 0.97,
+            "differentProductFrom": [],
+            "productGroup": "MORNING棕色咖啡袋视觉组；同款关系仅基于重复包装外观，未确认型号",
+            "quality": "1280x720，关键帧中咖啡袋、咖啡杯、桌面静物、标题和版式清晰可辨；观察覆盖为已给加密关键帧，不等于完整逐帧观看。",
+            "role": "overview",
+            "safeCrop": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "sameProductAs": [],
+            "subjectBox": [
+              0.17,
+              0.08,
+              0.68,
+              0.82
+            ],
+            "uncertainty": "商品名称、规格、精确型号、页面切换边界和音频语义未确认；未见可确认的真实操作动作。",
+            "visibleContent": "米白色品牌版式中出现棕色咖啡袋、咖啡杯、桌面生活方式静物和城市背景，配有大标题与页码。",
+            "visibleText": [
+              "MORNING / 早的",
+              "PRODUCT JOURNAL",
+              "把早晨，慢慢唤醒。",
+              "精品咖啡豆"
+            ]
+          },
+          {
+            "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+            "confidence": 0.95,
+            "differentProductFrom": [],
+            "productGroup": "MORNING棕色咖啡袋视觉组；同款关系仅基于重复包装外观，未确认型号",
+            "quality": "静态产品图、双图拼版和风味文字清晰，适合横屏图文详情；没有连续动作证据。",
+            "role": "detail",
+            "safeCrop": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "sameProductAs": [],
+            "subjectBox": [
+              0.01,
+              0.08,
+              0.98,
+              0.84
+            ],
+            "uncertainty": "“巧克力风味”“坚果香气”等文字出现时间来自关键帧，持续时长和精确切点未确认，不能扩展为其他商品事实。",
+            "visibleContent": "咖啡袋与咖啡杯静物、圆形裁切产品图、双图拼版及深棕色风味页。",
+            "visibleText": [
+              "精品咖啡豆",
+              "巧克力风味",
+              "坚果香气"
+            ]
+          },
+          {
+            "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+            "confidence": 0.93,
+            "differentProductFrom": [],
+            "productGroup": "MORNING棕色咖啡袋视觉组；同款关系仅基于重复包装外观，未确认型号",
+            "quality": "结尾品牌页和产品图清晰；结尾时长、原声内容及音画同步未完成听感核验。",
+            "role": "context",
+            "safeCrop": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "sameProductAs": [],
+            "subjectBox": [
+              0.17,
+              0.08,
+              0.68,
+              0.82
+            ],
+            "uncertainty": "不能据此确认购买行动、价格、性能或使用效果；未采样部分仍可能包含未观察内容。",
+            "visibleContent": "后段出现深棕色品牌页、咖啡袋静物、风味页及带“从一杯好咖啡开始 / MORNING”的收尾版式。",
+            "visibleText": [
+              "从一杯好咖啡开始",
+              "MORNING",
+              "精品咖啡豆",
+              "坚果香气"
+            ]
+          }
+        ]
+      }
+    },
+    "material": {
+      "idempotencyKey": "620db3e6bc9c74754d5b68574bcc78615ec6282a061fe4f518e3f5e580215221",
+      "status": "completed",
+      "result": {
+        "actions": [
+          {
+            "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+            "audioDependency": true,
+            "canReorder": false,
+            "canTrimEnd": true,
+            "canTrimStart": true,
+            "dependsOn": [],
+            "description": "商品建立：米白色品牌页、棕色咖啡袋、咖啡杯与桌面静物，使用原始片段作为开场主视觉。",
+            "endSeconds": 7,
+            "evidence": [
+              {
+                "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+                "endSeconds": 12,
+                "observation": "约0至12秒反复出现MORNING品牌版式、棕色咖啡袋、咖啡杯和“把早晨，慢慢唤醒。”；未见确认的操作动作。",
+                "startSeconds": 0
+              }
+            ],
+            "id": "launch-hero",
+            "importance": "necessary",
+            "startSeconds": 0,
+            "visualRegion": [
+              0,
+              0,
+              1,
+              1
+            ]
+          },
+          {
+            "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+            "audioDependency": true,
+            "canReorder": true,
+            "canTrimEnd": true,
+            "canTrimStart": true,
+            "dependsOn": [
+              "launch-hero"
+            ],
+            "description": "风味详情：深棕色“坚果香气”页面与咖啡袋静物，作为可见文字详情，不扩展为未核实的产品事实。",
+            "endSeconds": 14,
+            "evidence": [
+              {
+                "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+                "endSeconds": 30,
+                "observation": "约18至30秒可见同组咖啡袋静物与深棕色“坚果香气”风味页；精确切点未逐帧确认。",
+                "startSeconds": 18
+              }
+            ],
+            "id": "detail-flavor",
+            "importance": "necessary",
+            "startSeconds": 7,
+            "visualRegion": [
+              0,
+              0,
+              1,
+              1
+            ]
+          },
+          {
+            "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+            "audioDependency": true,
+            "canReorder": true,
+            "canTrimEnd": true,
+            "canTrimStart": true,
+            "dependsOn": [
+              "detail-flavor"
+            ],
+            "description": "包装与图文细节：双图拼版、咖啡袋和“精品咖啡豆”页面，补充视觉信息。",
+            "endSeconds": 22,
+            "evidence": [
+              {
+                "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+                "endSeconds": 48,
+                "observation": "约30至48秒出现双图拼版、咖啡袋与“精品咖啡豆”等图文详情；不能证明冲煮、使用或效果。",
+                "startSeconds": 30
+              }
+            ],
+            "id": "detail-packaging",
+            "importance": "necessary",
+            "startSeconds": 14,
+            "visualRegion": [
+              0,
+              0,
+              1,
+              1
+            ]
+          },
+          {
+            "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+            "audioDependency": true,
+            "canReorder": false,
+            "canTrimEnd": true,
+            "canTrimStart": true,
+            "dependsOn": [
+              "detail-packaging"
+            ],
+            "description": "收尾：从后段品牌页、风味页或“从一杯好咖啡开始 / MORNING”版式中选择一段，形成完整结束。",
+            "endSeconds": 30,
+            "evidence": [
+              {
+                "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+                "endSeconds": 120,
+                "observation": "约96至120秒重复出现风味页、拼版和“从一杯好咖啡开始 / MORNING”收尾版式；收尾持续时间和音画关系未核验。",
+                "startSeconds": 96
+              }
+            ],
+            "id": "launch-ending",
+            "importance": "necessary",
+            "startSeconds": 22,
+            "visualRegion": [
+              0,
+              0,
+              1,
+              1
+            ]
+          }
+        ],
+        "audioSummary": "素材存在AAC音轨，但未完成听感、语义或音画同步核验；建议保留与源片段对应的原始音频，不新增旁白或背景音乐。",
+        "detailCandidates": [
+          {
+            "action": "展示深棕色风味页与咖啡袋静物",
+            "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+            "clarity": "关键帧中文字与静物清晰可辨",
+            "composition": "品牌版式与产品静物组合，画面完整",
+            "duplicateContent": "与其他米白色咖啡袋页面存在重复",
+            "endSeconds": 30,
+            "evidence": [
+              {
+                "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+                "endSeconds": 30,
+                "observation": "可见“坚果香气”风味页和同组咖啡袋静物。",
+                "startSeconds": 18
+              }
+            ],
+            "observationLimit": "精确入出点、持续时长和未采样瞬间未确认",
+            "originalAudio": "存在源音轨，未试听",
+            "reason": "提供可观察的风味文字详情，避免添加未核实规格或性能",
+            "startSeconds": 18,
+            "subject": "MORNING棕色咖啡袋、咖啡杯、深棕色风味页面"
+          },
+          {
+            "action": "展示双图拼版与“精品咖啡豆”图文详情",
+            "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+            "clarity": "产品图、标题和版式清晰",
+            "composition": "左右/双图拼版，适合横屏图文详情",
+            "duplicateContent": "仍为同一棕色咖啡袋视觉组，与主视觉重复",
+            "endSeconds": 48,
+            "evidence": [
+              {
+                "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+                "endSeconds": 48,
+                "observation": "可见双图拼版、咖啡袋和“精品咖啡豆”等文字。",
+                "startSeconds": 30
+              }
+            ],
+            "observationLimit": "未逐帧确认转场或短暂动作",
+            "originalAudio": "存在源音轨，未试听",
+            "reason": "补充包装与页面层级信息",
+            "startSeconds": 30,
+            "subject": "咖啡袋双图拼版与精品咖啡豆页面"
+          }
+        ],
+        "evidence": [
+          {
+            "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+            "endSeconds": 12,
+            "observation": "米白色品牌版式中出现棕色咖啡袋、咖啡杯、桌面静物和城市背景，并有“把早晨，慢慢唤醒。”与“精品咖啡豆”文字。",
+            "startSeconds": 0
+          },
+          {
+            "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+            "endSeconds": 30,
+            "observation": "约18至30秒出现深棕色“坚果香气”风味页及同组咖啡袋静物。",
+            "startSeconds": 18
+          },
+          {
+            "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+            "endSeconds": 48,
+            "observation": "约30至48秒出现双图拼版、咖啡袋与“精品咖啡豆”等图文详情。",
+            "startSeconds": 30
+          },
+          {
+            "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+            "endSeconds": 120,
+            "observation": "约96至120秒出现风味页、拼版及“从一杯好咖啡开始 / MORNING”收尾版式。",
+            "startSeconds": 96
+          }
+        ],
+        "facts": [
+          {
+            "evidence": [
+              {
+                "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+                "endSeconds": 12,
+                "observation": "重复关键帧中可见MORNING品牌字样、棕色咖啡袋、咖啡杯和桌面生活方式静物。",
+                "startSeconds": 0
+              }
+            ],
+            "text": "素材可观察到一个MORNING棕色咖啡袋视觉组；具体型号和规格未确认。"
+          },
+          {
+            "evidence": [
+              {
+                "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+                "endSeconds": 30,
+                "observation": "页面上可读“坚果香气”。",
+                "startSeconds": 18
+              }
+            ],
+            "text": "“坚果香气”是画面可见文字，仅作为页面文案记录，不推断为经核实配方或性能。"
+          },
+          {
+            "evidence": [
+              {
+                "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+                "endSeconds": 48,
+                "observation": "页面上可读“精品咖啡豆”。",
+                "startSeconds": 30
+              }
+            ],
+            "text": "“精品咖啡豆”是画面可见文字，不足以确认等级、产地或规格。"
+          },
+          {
+            "evidence": [
+              {
+                "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+                "endSeconds": 120,
+                "observation": "后段页面可见“从一杯好咖啡开始 / MORNING”收尾版式。",
+                "startSeconds": 96
+              }
+            ],
+            "text": "可使用品牌收尾文字形成完整结束，但未观察到明确购买CTA。"
+          }
+        ],
+        "finalState": "可形成约30秒的图文型单品上新/种草候选，重点是品牌、包装静物和画面可见风味文字；仍属于候选，页面边界、连续播放、音频语义和权利状态待复核。不能作为完整操作演示或效果证明。",
+        "gaps": [
+          "仅观察到图文和静物页面，未观察到人手、研磨、备料、冲煮、倒水、倒咖啡或完成结果，因此product_howto被阻断。",
+          "商品正式名称、具体型号、规格、配方、价格、优惠和明确CTA未可靠确认。",
+          "采样为稀疏关键帧，页面切换边界和最优不重复顺序未逐帧核验。",
+          "虽有音频轨道，但未完成听感或语义核验；原声音画同步待复核。",
+          "同款关系仅依据重复棕色咖啡袋包装和版式判断，未确认具体型号。"
+        ],
+        "heroCandidates": [
+          {
+            "action": "以米白色品牌页建立MORNING棕色咖啡袋与咖啡杯主视觉",
+            "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+            "clarity": "棕色咖啡袋、咖啡杯、标题和页码在关键帧中清晰",
+            "composition": "大面积米白留白配右侧生活方式静物，适合开场",
+            "duplicateContent": "后续多个页面重复同一包装视觉",
+            "endSeconds": 12,
+            "evidence": [
+              {
+                "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+                "endSeconds": 12,
+                "observation": "约0至12秒反复呈现品牌页、棕色咖啡袋、咖啡杯和“把早晨，慢慢唤醒。”",
+                "startSeconds": 0
+              }
+            ],
+            "observationLimit": "页面切换边界未逐帧核验，未观察到操作动作",
+            "originalAudio": "存在源音轨，未试听",
+            "reason": "最快建立可辨认的商品包装与品牌视觉",
+            "startSeconds": 0,
+            "subject": "MORNING棕色咖啡袋、咖啡杯、桌面静物"
+          }
+        ],
+        "initialState": "输入为一条120秒、1280x720、30fps、带AAC音轨的视频；当前证据来自稀疏关键帧和加密接触表，未完成连续播放或听感审查。",
+        "productSummary": "MORNING品牌视觉组的棕色咖啡袋与咖啡杯静物，画面含“精品咖啡豆”“坚果香气”“巧克力风味”等可见文字及品牌收尾页。素材更适合图文型单品上新/种草，而非操作教程。",
+        "rejectedAssets": [
+          {
+            "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+            "reason": "不能将整条素材当作完整操作演示使用：当前观察未发现任何可复现的真实操作步骤或完成结果。"
+          }
+        ],
+        "supportingCandidates": [
+          {
+            "action": "使用后段“从一杯好咖啡开始 / MORNING”品牌页作为收尾支持",
+            "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+            "clarity": "品牌文字和页面结构在关键帧中清晰",
+            "composition": "完整品牌版式，适合结尾停留",
+            "duplicateContent": "与前段品牌页和咖啡袋静物重复",
+            "endSeconds": 120,
+            "evidence": [
+              {
+                "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+                "endSeconds": 120,
+                "observation": "约96至120秒可见风味页、拼版及“从一杯好咖啡开始 / MORNING”收尾版式。",
+                "startSeconds": 96
+              }
+            ],
+            "observationLimit": "具体收尾持续时间和音画关系未核验",
+            "originalAudio": "存在源音轨，未试听",
+            "reason": "提供明确的视觉结束点，不虚构购买行动",
+            "startSeconds": 96,
+            "subject": "MORNING品牌收尾页与咖啡袋静物"
+          }
+        ],
+        "unsupportedClaims": [
+          "商品正式名称、型号、规格和产地",
+          "“精品咖啡豆”之外的等级或品质认证",
+          "“巧克力风味”“坚果香气”之外的配方、烘焙或口感性能",
+          "价格、优惠、库存、保障和购买CTA",
+          "冲煮方式、使用效果或消费者评价",
+          "任何人手操作、研磨、备料、冲煮、倒水、倒咖啡或完成结果"
+        ],
+        "usageCandidates": [
+          {
+            "action": "将0至12秒压缩为不超过7秒开场主视觉",
+            "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+            "clarity": "关键帧清晰",
+            "composition": "米白留白与右侧静物构图稳定",
+            "duplicateContent": "同组页面重复较多，应避免长时间停留",
+            "endSeconds": 12,
+            "evidence": [
+              {
+                "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+                "endSeconds": 12,
+                "observation": "约0至12秒反复呈现品牌页和咖啡静物。",
+                "startSeconds": 0
+              }
+            ],
+            "observationLimit": "切点仍需连续播放复核",
+            "originalAudio": "保留源音轨，未试听",
+            "reason": "先建立商品身份，再进入详情",
+            "startSeconds": 0,
+            "subject": "棕色咖啡袋与咖啡杯"
+          },
+          {
+            "action": "从18至30秒选择“坚果香气”页面的短段作为详情",
+            "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+            "clarity": "文字与静物清晰",
+            "composition": "深棕色页面形成色彩变化并承载风味文案",
+            "duplicateContent": "同一包装在多处重复",
+            "endSeconds": 30,
+            "evidence": [
+              {
+                "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+                "endSeconds": 30,
+                "observation": "可见深棕色“坚果香气”页面。",
+                "startSeconds": 18
+              }
+            ],
+            "observationLimit": "不能从画面文字推断未提供的产品事实",
+            "originalAudio": "保留源音轨，未试听",
+            "reason": "增加可见的风味信息层级",
+            "startSeconds": 18,
+            "subject": "深棕风味页与咖啡袋"
+          },
+          {
+            "action": "从30至48秒选择双图拼版中的非重复片段",
+            "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+            "clarity": "产品图和标题清晰",
+            "composition": "双图拼版适合包装/视觉细节",
+            "duplicateContent": "与开场同款静物重复，需短用",
+            "endSeconds": 48,
+            "evidence": [
+              {
+                "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+                "endSeconds": 48,
+                "observation": "可见双图拼版、咖啡袋与“精品咖啡豆”图文详情。",
+                "startSeconds": 30
+              }
+            ],
+            "observationLimit": "转场和精确边界未逐帧确认",
+            "originalAudio": "保留源音轨，未试听",
+            "reason": "补充包装视觉信息而非伪造使用过程",
+            "startSeconds": 30,
+            "subject": "双图拼版与精品咖啡豆页面"
+          }
+        ]
+      }
+    },
+    "product": {
+      "idempotencyKey": "048bf78ffb69d5de9923c0715b422a08f9ee88657536c8583884aa601282b012",
+      "status": "completed",
+      "result": {
+        "schema_version": 2,
+        "product_name": "未确认商品名称",
+        "category": "咖啡豆包装与品牌图文素材",
+        "visual_features": [
+          {
+            "feature": "画面反复出现棕色咖啡袋、咖啡杯与桌面生活方式静物，形成同一视觉组。",
+            "evidence_refs": [
+              {
+                "ref": "asset:asset-3736b7fe-942f-42a4-8f65-cda348858aa4@0-12",
+                "reason": "关键帧中可见棕色咖啡袋、咖啡杯和桌面静物。"
+              }
+            ]
+          },
+          {
+            "feature": "米白色留白版式与深棕色风味页交替出现，整体为产品杂志式图文设计。",
+            "evidence_refs": [
+              {
+                "ref": "asset:asset-3736b7fe-942f-42a4-8f65-cda348858aa4@0-12",
+                "reason": "开场关键帧显示米白色品牌版式。"
+              },
+              {
+                "ref": "asset:asset-3736b7fe-942f-42a4-8f65-cda348858aa4@18-30",
+                "reason": "中段关键帧显示深棕色风味页面。"
+              }
+            ]
+          },
+          {
+            "feature": "包装上可辨认“MORNING”字样，页面多处出现品牌页眉与页码。",
+            "evidence_refs": [
+              {
+                "ref": "asset:asset-3736b7fe-942f-42a4-8f65-cda348858aa4@0-12",
+                "reason": "关键帧中可读“MORNING / 早的”等页眉文字。"
+              }
+            ]
+          },
+          {
+            "feature": "画面包含双图拼版、圆形裁切产品图及咖啡袋近景。",
+            "evidence_refs": [
+              {
+                "ref": "asset:asset-3736b7fe-942f-42a4-8f65-cda348858aa4@30-48",
+                "reason": "关键帧中可见双图拼版、产品图与包装细节。"
+              }
+            ]
+          }
+        ],
+        "selling_points": [
+          {
+            "id": "sp-1",
+            "text": "以MORNING棕色咖啡袋和咖啡杯静物建立温暖的早晨品牌视觉。",
+            "evidence_refs": [
+              {
+                "ref": "asset:asset-3736b7fe-942f-42a4-8f65-cda348858aa4@0-12",
+                "reason": "开场关键帧同时呈现MORNING字样、棕色咖啡袋、咖啡杯和生活方式静物。"
+              }
+            ],
+            "confidence": 0.96
+          },
+          {
+            "id": "sp-2",
+            "text": "画面文案标注“精品咖啡豆”，可作为页面上的品类描述呈现。",
+            "evidence_refs": [
+              {
+                "ref": "asset:asset-3736b7fe-942f-42a4-8f65-cda348858aa4@30-48",
+                "reason": "关键帧中可读“精品咖啡豆”文字。"
+              }
+            ],
+            "confidence": 0.91
+          },
+          {
+            "id": "sp-3",
+            "text": "页面展示“坚果香气”这一风味文案。",
+            "evidence_refs": [
+              {
+                "ref": "asset:asset-3736b7fe-942f-42a4-8f65-cda348858aa4@18-30",
+                "reason": "深棕色风味页关键帧中可读“坚果香气”。"
+              }
+            ],
+            "confidence": 0.9
+          },
+          {
+            "id": "sp-4",
+            "text": "页面展示“巧克力风味”这一风味文案。",
+            "evidence_refs": [
+              {
+                "ref": "asset:asset-3736b7fe-942f-42a4-8f65-cda348858aa4@12-18",
+                "reason": "关键帧中可见咖啡袋近景与“巧克力风味”文字。"
+              }
+            ],
+            "confidence": 0.88
+          },
+          {
+            "id": "sp-5",
+            "text": "结尾可使用“从一杯好咖啡开始 / MORNING”作为品牌收束语。",
+            "evidence_refs": [
+              {
+                "ref": "asset:asset-3736b7fe-942f-42a4-8f65-cda348858aa4@96-120",
+                "reason": "后段关键帧中可见该收尾版式与文字。"
+              }
+            ],
+            "confidence": 0.93
+          }
+        ],
+        "target_customer": [
+          "偏好咖啡生活方式内容、重视包装审美的消费者",
+          "寻找日常早餐或晨间仪式感咖啡产品的潜在消费者",
+          "适合先通过品牌视觉和风味文案了解产品的人群"
+        ],
+        "usage_scenarios": [
+          "电商详情页中的品牌与包装展示",
+          "小红书或社交媒体的咖啡生活方式种草短片",
+          "新品介绍中以静物和页面文案呈现风味信息",
+          "门店或线上品牌故事展示"
+        ],
+        "brand_style": {
+          "tone": [
+            "温暖",
+            "克制",
+            "生活方式感",
+            "编辑感"
+          ],
+          "visual_keywords": [
+            "米白留白",
+            "深棕色风味页",
+            "棕色咖啡袋",
+            "咖啡静物",
+            "产品杂志版式",
+            "圆形与双图拼版"
+          ],
+          "colors": [
+            "米白",
+            "棕色",
+            "深巧克力棕",
+            "暖橙棕"
+          ]
+        },
+        "recommended_platform": [
+          "ecommerce_detail",
+          "xiaohongshu",
+          "general"
+        ],
+        "forbidden_claims": [
+          "不得把“精品咖啡豆”扩展为等级、认证、产地或品质保证",
+          "不得把“坚果香气”“巧克力风味”扩展为已核实配方、烘焙参数或实测口感性能",
+          "不得编造商品正式名称、型号、规格、产地或配方",
+          "不得声称价格、优惠、库存、售后保障或购买CTA",
+          "不得声称存在冲煮方式、使用效果、完成结果或消费者评价",
+          "不得把静物页面当作真实研磨、备料、冲煮、倒水或倒咖啡操作证据",
+          "不得将未试听的原声音轨描述为特定音乐、语义或同步效果",
+          "不得在未核实权利状态前宣称可公开商用发布"
+        ],
+        "unknowns": [
+          "商品正式名称、具体型号与规格未确认",
+          "页面文字的精确持续时间和切换边界未逐帧核验",
+          "“精品咖啡豆”是否为正式品类或认证信息未知",
+          "“坚果香气”“巧克力风味”仅确认画面文字，实际配方与口感未知",
+          "未观察到可复现的冲煮或其他使用动作，因此不支持操作教程",
+          "原声音频虽存在，但听感、语义与音画同步尚未核验",
+          "素材授权及品牌使用权状态未由当前证据确认",
+          "同组页面是否为同一具体型号仅依据重复包装外观判断"
+        ],
+        "fusion_summary": "现有120秒、1280×720素材主要由MORNING棕色咖啡袋、咖啡杯静物和米白/深棕产品图文页面组成，适合制作图文型单品上新或品牌种草内容。可可靠呈现包装、可见品类文字与风味文案，但不能证明冲煮动作、使用效果、规格、价格或促销信息；素材页面边界、原声音义与权利状态仍需后续复核。"
+      }
+    },
+    "marketing": {
+      "idempotencyKey": "22e8c7cf6bf7b4734a67c7aec7eabb3aaf7169e903ab68366aa78feab7807be0",
+      "status": "completed",
+      "result": {
+        "schema_version": 2,
+        "scene_type": "product_launch",
+        "platform": "ecommerce_detail / xiaohongshu",
+        "audience": [
+          "偏好咖啡生活方式内容、重视包装审美的消费者",
+          "寻找日常早餐或晨间仪式感咖啡产品的潜在消费者",
+          "希望先通过品牌视觉与风味文字了解产品的人群"
+        ],
+        "marketing_objective": "用真实素材快速建立MORNING棕色咖啡袋的品牌与包装印象，呈现画面中可见的品类和风味文案，形成温暖、克制的图文型上新种草，并引导观众进一步了解详情。",
+        "hook": {
+          "message": "把早晨，慢慢唤醒。",
+          "visual_proof": "米白色品牌版式中同时出现MORNING字样、棕色咖啡袋、咖啡杯与桌面静物。",
+          "first_three_seconds": "从0–12秒素材中截取最清晰的品牌页与咖啡袋静物，先露出MORNING页眉和主体包装，再带出咖啡杯。",
+          "rationale": "前3秒即可识别咖啡包装与生活方式场景，符合首次了解商品的观众认知路径；不依赖未观察到的冲煮动作或性能证明。"
+        },
+        "story_structure": [
+          {
+            "id": "beat-1",
+            "beat": "品牌与晨间场景建立：米白留白页、棕色咖啡袋、咖啡杯和桌面静物。",
+            "purpose": "让观众先认出商品视觉组与温暖的晨间氛围。",
+            "selling_point_refs": [
+              "sp-1"
+            ],
+            "evidence_refs": [
+              "asset:asset-3736b7fe-942f-42a4-8f65-cda348858aa4@0-12"
+            ]
+          },
+          {
+            "id": "beat-2",
+            "beat": "风味页切入：展示深棕色页面与“坚果香气”文字，并保留咖啡袋静物。",
+            "purpose": "在不扩展为配方或口感实测的前提下，增加可见的风味信息。",
+            "selling_point_refs": [
+              "sp-3"
+            ],
+            "evidence_refs": [
+              "asset:asset-3736b7fe-942f-42a4-8f65-cda348858aa4@18-30"
+            ]
+          },
+          {
+            "id": "beat-3",
+            "beat": "包装与品类详情：双图拼版、咖啡袋近景及“精品咖啡豆”页面。",
+            "purpose": "补充包装层级和页面上的品类描述，强化商品理解。",
+            "selling_point_refs": [
+              "sp-2"
+            ],
+            "evidence_refs": [
+              "asset:asset-3736b7fe-942f-42a4-8f65-cda348858aa4@30-48"
+            ]
+          },
+          {
+            "id": "beat-4",
+            "beat": "风味补充：以咖啡袋近景和“巧克力风味”画面文字作为短暂信息点。",
+            "purpose": "增加第二个可见风味关键词，避免把文字升级为未经核实的性能或配方。",
+            "selling_point_refs": [
+              "sp-4"
+            ],
+            "evidence_refs": [
+              "asset:asset-asset-3736b7fe-942f-42a4-8f65-cda348858aa4@12-18"
+            ]
+          },
+          {
+            "id": "beat-5",
+            "beat": "品牌收束：使用“从一杯好咖啡开始 / MORNING”版式，停留后引导查看详情。",
+            "purpose": "形成完整结束并给出中性下一步，不虚构价格、优惠或购买条件。",
+            "selling_point_refs": [
+              "sp-5"
+            ],
+            "evidence_refs": [
+              "asset:asset-3736b7fe-942f-42a4-8f65-cda348858aa4@96-120"
+            ]
+          }
+        ],
+        "shot_strategy": [
+          "总时长约30秒，横屏1280×720；优先从同一素材中截取经连续播放复核后的短片段，避免重复页面长时间停留。",
+          "0–7秒：使用0–12秒开场窗口，先主体包装后咖啡杯与桌面静物，保护整幅版式文字和包装。",
+          "7–14秒：使用18–30秒窗口中的深棕风味页，重点保留“坚果香气”与咖啡袋同框。",
+          "14–20秒：使用30–48秒窗口中的双图拼版和“精品咖啡豆”页面，作为包装/品类详情。",
+          "20–23秒：可从12–18秒窗口选取清晰的“巧克力风味”页面短段；若连续播放确认与前后镜头重复，则缩短或省略。",
+          "23–30秒：使用96–120秒窗口中的品牌收尾版式，保持“从一杯好咖啡开始 / MORNING”可读并留出结束停留。",
+          "所有文字、页面、包装和原始视频保持独立可编辑；不把静物剪辑包装成冲煮或使用教程。"
+        ],
+        "caption_strategy": {
+          "tone": "温暖、克制、编辑感；只复述画面可见文字与已确认表达。",
+          "max_chars_per_card": 16,
+          "rhythm": "每个信息点短卡停留约2–4秒，随页面切换出现；开场与收尾留出更长阅读时间。",
+          "roles": [
+            "建立品牌与晨间场景",
+            "标注画面可见风味文字",
+            "呈现画面可见品类描述",
+            "收束品牌并提示进一步了解"
+          ]
+        },
+        "music_style": {
+          "mood": "未知；素材含AAC原声音轨但尚未完成听感核验。",
+          "energy_curve": "沿用原片对应源窗口的自然变化，不重新编排成特定情绪曲线。",
+          "beat_strategy": "保留与源片段绑定的原始音频；不新增背景音乐、旁白或虚构同步点，最终需复核音画连续性。"
+        },
+        "transition_style": {
+          "principle": "让版式和信息层级驱动切换，保持克制，避免动效遮挡包装或文字。",
+          "preferred": [
+            "基于真实源片段的硬切",
+            "短促溶解或自然页面衔接",
+            "收尾前适度减速并保持静止阅读"
+          ],
+          "avoid": [
+            "把静态页面伪造成镜头推拉或真实操作",
+            "连续使用抢眼转场",
+            "遮挡包装、页眉、风味文字的装饰动画"
+          ]
+        },
+        "cta": {
+          "text": "进一步了解",
+          "placement": "结尾品牌收束页下方或留白区域，停留在最后2–3秒。",
+          "reason": "当前未确认价格、优惠、库存或正式购买入口，使用中性行动提示最符合证据边界。"
+        },
+        "rationale": [
+          "素材内容是MORNING棕色咖啡袋、咖啡杯和杂志式图文页面，具备单品上新/种草所需的商品建立、可见细节和品牌收尾，但没有可复现的冲煮动作，因此不采用操作教程结构。",
+          "受众偏好咖啡生活方式与包装审美，开场先用米白留白和晨间静物建立情境，再用深棕风味页和双图拼版递进信息，符合从氛围到详情的观看路径。",
+          "“精品咖啡豆”“坚果香气”“巧克力风味”仅作为画面可见文字使用，不扩展为等级、产地、配方、口感实测或性能承诺。",
+          "原声音轨尚未试听，故只规划保留源音频并将听感与同步列为待复核项，不编造音乐情绪或旁白内容。",
+          "结尾采用“从一杯好咖啡开始 / MORNING”与中性“进一步了解”，既利用已有收尾证据，又避免虚构价格、优惠和购买条件。",
+          "素材页面边界、同款具体型号、权利状态和连续播放尚未完整核验，因此该结构应作为可编辑候选，正式发布前仍需完成连续观片、音频与权利审查。"
+        ]
+      }
+    }
+  },
+  "toolCalls": [
+    {
+      "name": "brief.parse",
+      "input": {},
+      "inputHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "idempotencyKey": "b320774b4837d0dd66ab01ec815e2006f660e09e243c0d6f49009e9a7f029c05",
+      "step": 1,
+      "startedAt": "2026-09-18T12:12:13.658Z"
+    },
+    {
+      "name": "assets.observe",
+      "input": {},
+      "inputHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "idempotencyKey": "f4f6941fba004aab9c628fb2ba02da227ed2bd9a03a68a744ecee15d13f61a38",
+      "step": 2,
+      "startedAt": "2026-09-18T12:13:50.327Z"
+    },
+    {
+      "name": "materials.analyze",
+      "input": {},
+      "inputHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "idempotencyKey": "620db3e6bc9c74754d5b68574bcc78615ec6282a061fe4f518e3f5e580215221",
+      "step": 3,
+      "startedAt": "2026-09-18T12:22:31.415Z"
+    },
+    {
+      "name": "product.understand",
+      "input": {},
+      "inputHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "idempotencyKey": "048bf78ffb69d5de9923c0715b422a08f9ee88657536c8583884aa601282b012",
+      "step": 4,
+      "startedAt": "2026-09-18T12:25:49.907Z"
+    },
+    {
+      "name": "marketing.plan",
+      "input": {},
+      "inputHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "idempotencyKey": "22e8c7cf6bf7b4734a67c7aec7eabb3aaf7169e903ab68366aa78feab7807be0",
+      "step": 5,
+      "startedAt": "2026-09-18T12:27:56.874Z"
+    },
+    {
+      "name": "creative.direct",
+      "input": {},
+      "inputHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "idempotencyKey": "d6fa2131710644ee719a3ae518342a60b8c7fe4a9143b051732f78f9872e1fe0",
+      "step": 6,
+      "startedAt": "2026-09-18T12:30:32.003Z"
+    }
+  ],
+  "toolResults": [
+    {
+      "tool": "brief.parse",
+      "status": "completed",
+      "result": {
+        "request": {
+          "name": "",
+          "cta": "",
+          "price": "",
+          "facts": [],
+          "output": {
+            "width": 1280,
+            "height": 720,
+            "durationSeconds": 30,
+            "fps": 30
+          }
+        },
+        "needsTranscription": false,
+        "needsNarration": false,
+        "needsCaptions": false,
+        "keepOriginalAudio": true,
+        "capabilities": [
+          "image-observation",
+          "video-source-selection",
+          "native-composition",
+          "native-editing",
+          "managed-original",
+          "local-preview-review"
+        ],
+        "gaps": [
+          "尚未对视频内容进行语义观察，无法确认具体商品、叙事场景或必要信息覆盖。",
+          "商品名称、商品事实、价格和明确CTA未提供。",
+          "当前无法进行人工听感审查；原声音频应保留，语义与同步仍待后续复核。"
+        ],
+        "constraints": [
+          "仅使用已提供的真实视频素材，不生成新的商品图片或视频镜头。",
+          "未指定画幅时按真实素材1280×720横屏输出，并保护主体取景。",
+          "未明确要求配音、字幕或音乐，不主动添加；保留原始音频。",
+          "正式交付前需完成素材观察、场景判定和独立最终审查。"
+        ],
+        "workflow": {
+          "taskMode": "create",
+          "objective": "基于已提供视频内容确定合适的电商叙事目标，并制作可继续编辑的候选视频。",
+          "requirements": [
+            {
+              "kind": "goal",
+              "quote": "你自己基于视频内容去定",
+              "targetIds": [
+                "asset-3736b7fe-942f-42a4-8f65-cda348858aa4"
+              ],
+              "excludeIds": [],
+              "startSeconds": null,
+              "endSeconds": null
+            }
+          ],
+          "overrides": [],
+          "assumptions": [
+            "先观察完整视频后再确定其属于上新、详情、操作演示或其他业务场景。",
+            "默认采用约30秒的内容驱动剪辑；若真实信息密度或必要动作要求不同，则按素材调整。",
+            "默认保留原始音频，不添加旁白、字幕或背景音乐，除非后续合同明确要求。"
+          ],
+          "gaps": [
+            "需要对asset-3736b7fe-942f-42a4-8f65-cda348858aa4进行完整内容观察后才能确定镜头选择、事实证据和最终业务场景。"
+          ]
+        },
+        "scenarioId": "general",
+        "productionBinding": {
+          "message": "你自己基于视频内容去定",
+          "contract": {
+            "schemaVersion": 1,
+            "profile": "commerce-focus-v1",
+            "scenarioId": "general",
+            "originalRequest": "你自己基于视频内容去定",
+            "taskMode": "create",
+            "workflowProfile": "create",
+            "workflow": {
+              "version": 1,
+              "taskMode": "create",
+              "taskModeExplicit": true,
+              "workflowProfile": "create",
+              "businessScenario": "general",
+              "baseProjectId": "db0a2891-d5e8-454b-97a7-31d1a1d37d36",
+              "baseRevisionId": null,
+              "assetScope": [
+                "asset-3736b7fe-942f-42a4-8f65-cda348858aa4"
+              ],
+              "originalRequest": "你自己基于视频内容去定",
+              "requirements": [
+                {
+                  "kind": "goal",
+                  "quote": "你自己基于视频内容去定",
+                  "targetIds": [
+                    "asset-3736b7fe-942f-42a4-8f65-cda348858aa4"
+                  ],
+                  "excludeIds": [],
+                  "startSeconds": null,
+                  "endSeconds": null,
+                  "id": "requirement-6ee87094553d38d0",
+                  "field": "goal",
+                  "inherited": false
+                }
+              ],
+              "assumptions": [
+                "先观察完整视频后再确定其属于上新、详情、操作演示或其他业务场景。",
+                "默认采用约30秒的内容驱动剪辑；若真实信息密度或必要动作要求不同，则按素材调整。",
+                "默认保留原始音频，不添加旁白、字幕或背景音乐，除非后续合同明确要求。"
+              ],
+              "gaps": [
+                "需要对asset-3736b7fe-942f-42a4-8f65-cda348858aa4进行完整内容观察后才能确定镜头选择、事实证据和最终业务场景。"
+              ],
+              "interpretation": "validated-semantic-analysis",
+              "objective": "基于已提供视频内容确定合适的电商叙事目标，并制作可继续编辑的候选视频。",
+              "contractId": "contract-c867808ce7f63f23",
+              "parentContractId": null,
+              "sourceRequests": [
+                "你自己基于视频内容去定"
+              ],
+              "requirementChanges": [],
+              "changeTargets": [],
+              "preserveTargets": [],
+              "resourceNeeds": [],
+              "prohibitions": []
+            },
+            "persona": {
+              "creator": "商家／内容运营（待用户研究验证）",
+              "viewer": "首次了解商品的消费者"
+            },
+            "objective": "明确电商内容目标",
+            "product": {
+              "id": "product-1",
+              "name": "",
+              "facts": [],
+              "price": null,
+              "cta": "",
+              "audience": null,
+              "prohibited": []
+            },
+            "output": {
+              "width": 1280,
+              "height": 720,
+              "durationSeconds": 30,
+              "fps": 30
+            },
+            "audio": "unspecified",
+            "mustHave": [],
+            "mustNot": [],
+            "explicitConstraints": {
+              "schemaVersion": 1,
+              "originalRequest": "你自己基于视频内容去定",
+              "narration": "unspecified",
+              "music": "unspecified",
+              "original": "unspecified",
+              "price": "unspecified",
+              "silent": false
+            },
+            "generatedFootageAllowed": false,
+            "deliverables": [
+              "candidate_mp4",
+              "editable_project",
+              "source_index",
+              "quality_report"
+            ]
+          }
+        }
+      },
+      "idempotencyKey": "b320774b4837d0dd66ab01ec815e2006f660e09e243c0d6f49009e9a7f029c05",
+      "step": 1,
+      "durationMs": 96666
+    },
+    {
+      "tool": "assets.observe",
+      "status": "completed",
+      "result": {
+        "candidates": [
+          {
+            "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+            "endSeconds": 12,
+            "reason": "约0至12秒反复呈现米白色品牌页、棕色咖啡袋、咖啡杯和“把早晨，慢慢唤醒。”，适合作为商品建立与主视觉；未见可确认的操作动作。页面切换边界未逐帧核验。",
+            "startSeconds": 0
+          },
+          {
+            "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+            "endSeconds": 30,
+            "reason": "约18至30秒可见同组咖啡袋静物与深棕色“坚果香气”风味页，可作为风味文字详情段；精确起止切点未逐帧确认。",
+            "startSeconds": 18
+          },
+          {
+            "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+            "endSeconds": 48,
+            "reason": "约30至48秒出现双图拼版、咖啡袋与“精品咖啡豆”等图文详情，可补充包装和视觉细节；不能证明冲煮、使用或效果。",
+            "startSeconds": 30
+          },
+          {
+            "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+            "endSeconds": 120,
+            "reason": "约96至120秒重复出现风味页、拼版和“从一杯好咖啡开始 / MORNING”收尾版式，可从中选择图文型结尾；具体收尾持续时间和音画关系未核验。",
+            "startSeconds": 96
+          }
+        ],
+        "gaps": [
+          "素材目前只支持图文型商品介绍，未观察到人手、研磨、备料、冲煮、倒水、倒咖啡或完成结果，不能制作完整操作演示或效果证明。",
+          "商品正式名称、规格、配方、价格、优惠和明确CTA未被可靠确认；“精品咖啡豆”“巧克力风味”“坚果香气”仅作为画面可见文字。",
+          "关键帧显示存在大量重复页面，精确切换边界、转场和短暂内容尚未逐帧核验，30秒内的最优不重复顺序待审核。",
+          "素材虽有音频轨道，但未完成听感或语义核验；原声音频应保留，语义与音画同步仍待复核。",
+          "同款关系仅依据重复出现的棕色咖啡袋包装和版式判断，未确认具体型号或规格。"
+        ],
+        "inspectRanges": [],
+        "observations": [
+          {
+            "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+            "confidence": 0.97,
+            "differentProductFrom": [],
+            "productGroup": "MORNING棕色咖啡袋视觉组；同款关系仅基于重复包装外观，未确认型号",
+            "quality": "1280x720，关键帧中咖啡袋、咖啡杯、桌面静物、标题和版式清晰可辨；观察覆盖为已给加密关键帧，不等于完整逐帧观看。",
+            "role": "overview",
+            "safeCrop": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "sameProductAs": [],
+            "subjectBox": [
+              0.17,
+              0.08,
+              0.68,
+              0.82
+            ],
+            "uncertainty": "商品名称、规格、精确型号、页面切换边界和音频语义未确认；未见可确认的真实操作动作。",
+            "visibleContent": "米白色品牌版式中出现棕色咖啡袋、咖啡杯、桌面生活方式静物和城市背景，配有大标题与页码。",
+            "visibleText": [
+              "MORNING / 早的",
+              "PRODUCT JOURNAL",
+              "把早晨，慢慢唤醒。",
+              "精品咖啡豆"
+            ]
+          },
+          {
+            "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+            "confidence": 0.95,
+            "differentProductFrom": [],
+            "productGroup": "MORNING棕色咖啡袋视觉组；同款关系仅基于重复包装外观，未确认型号",
+            "quality": "静态产品图、双图拼版和风味文字清晰，适合横屏图文详情；没有连续动作证据。",
+            "role": "detail",
+            "safeCrop": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "sameProductAs": [],
+            "subjectBox": [
+              0.01,
+              0.08,
+              0.98,
+              0.84
+            ],
+            "uncertainty": "“巧克力风味”“坚果香气”等文字出现时间来自关键帧，持续时长和精确切点未确认，不能扩展为其他商品事实。",
+            "visibleContent": "咖啡袋与咖啡杯静物、圆形裁切产品图、双图拼版及深棕色风味页。",
+            "visibleText": [
+              "精品咖啡豆",
+              "巧克力风味",
+              "坚果香气"
+            ]
+          },
+          {
+            "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+            "confidence": 0.93,
+            "differentProductFrom": [],
+            "productGroup": "MORNING棕色咖啡袋视觉组；同款关系仅基于重复包装外观，未确认型号",
+            "quality": "结尾品牌页和产品图清晰；结尾时长、原声内容及音画同步未完成听感核验。",
+            "role": "context",
+            "safeCrop": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "sameProductAs": [],
+            "subjectBox": [
+              0.17,
+              0.08,
+              0.68,
+              0.82
+            ],
+            "uncertainty": "不能据此确认购买行动、价格、性能或使用效果；未采样部分仍可能包含未观察内容。",
+            "visibleContent": "后段出现深棕色品牌页、咖啡袋静物、风味页及带“从一杯好咖啡开始 / MORNING”的收尾版式。",
+            "visibleText": [
+              "从一杯好咖啡开始",
+              "MORNING",
+              "精品咖啡豆",
+              "坚果香气"
+            ]
+          }
+        ]
+      },
+      "idempotencyKey": "f4f6941fba004aab9c628fb2ba02da227ed2bd9a03a68a744ecee15d13f61a38",
+      "step": 2,
+      "durationMs": 521084
+    },
+    {
+      "tool": "materials.analyze",
+      "status": "completed",
+      "result": {
+        "actions": [
+          {
+            "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+            "audioDependency": true,
+            "canReorder": false,
+            "canTrimEnd": true,
+            "canTrimStart": true,
+            "dependsOn": [],
+            "description": "商品建立：米白色品牌页、棕色咖啡袋、咖啡杯与桌面静物，使用原始片段作为开场主视觉。",
+            "endSeconds": 7,
+            "evidence": [
+              {
+                "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+                "endSeconds": 12,
+                "observation": "约0至12秒反复出现MORNING品牌版式、棕色咖啡袋、咖啡杯和“把早晨，慢慢唤醒。”；未见确认的操作动作。",
+                "startSeconds": 0
+              }
+            ],
+            "id": "launch-hero",
+            "importance": "necessary",
+            "startSeconds": 0,
+            "visualRegion": [
+              0,
+              0,
+              1,
+              1
+            ]
+          },
+          {
+            "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+            "audioDependency": true,
+            "canReorder": true,
+            "canTrimEnd": true,
+            "canTrimStart": true,
+            "dependsOn": [
+              "launch-hero"
+            ],
+            "description": "风味详情：深棕色“坚果香气”页面与咖啡袋静物，作为可见文字详情，不扩展为未核实的产品事实。",
+            "endSeconds": 14,
+            "evidence": [
+              {
+                "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+                "endSeconds": 30,
+                "observation": "约18至30秒可见同组咖啡袋静物与深棕色“坚果香气”风味页；精确切点未逐帧确认。",
+                "startSeconds": 18
+              }
+            ],
+            "id": "detail-flavor",
+            "importance": "necessary",
+            "startSeconds": 7,
+            "visualRegion": [
+              0,
+              0,
+              1,
+              1
+            ]
+          },
+          {
+            "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+            "audioDependency": true,
+            "canReorder": true,
+            "canTrimEnd": true,
+            "canTrimStart": true,
+            "dependsOn": [
+              "detail-flavor"
+            ],
+            "description": "包装与图文细节：双图拼版、咖啡袋和“精品咖啡豆”页面，补充视觉信息。",
+            "endSeconds": 22,
+            "evidence": [
+              {
+                "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+                "endSeconds": 48,
+                "observation": "约30至48秒出现双图拼版、咖啡袋与“精品咖啡豆”等图文详情；不能证明冲煮、使用或效果。",
+                "startSeconds": 30
+              }
+            ],
+            "id": "detail-packaging",
+            "importance": "necessary",
+            "startSeconds": 14,
+            "visualRegion": [
+              0,
+              0,
+              1,
+              1
+            ]
+          },
+          {
+            "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+            "audioDependency": true,
+            "canReorder": false,
+            "canTrimEnd": true,
+            "canTrimStart": true,
+            "dependsOn": [
+              "detail-packaging"
+            ],
+            "description": "收尾：从后段品牌页、风味页或“从一杯好咖啡开始 / MORNING”版式中选择一段，形成完整结束。",
+            "endSeconds": 30,
+            "evidence": [
+              {
+                "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+                "endSeconds": 120,
+                "observation": "约96至120秒重复出现风味页、拼版和“从一杯好咖啡开始 / MORNING”收尾版式；收尾持续时间和音画关系未核验。",
+                "startSeconds": 96
+              }
+            ],
+            "id": "launch-ending",
+            "importance": "necessary",
+            "startSeconds": 22,
+            "visualRegion": [
+              0,
+              0,
+              1,
+              1
+            ]
+          }
+        ],
+        "audioSummary": "素材存在AAC音轨，但未完成听感、语义或音画同步核验；建议保留与源片段对应的原始音频，不新增旁白或背景音乐。",
+        "detailCandidates": [
+          {
+            "action": "展示深棕色风味页与咖啡袋静物",
+            "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+            "clarity": "关键帧中文字与静物清晰可辨",
+            "composition": "品牌版式与产品静物组合，画面完整",
+            "duplicateContent": "与其他米白色咖啡袋页面存在重复",
+            "endSeconds": 30,
+            "evidence": [
+              {
+                "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+                "endSeconds": 30,
+                "observation": "可见“坚果香气”风味页和同组咖啡袋静物。",
+                "startSeconds": 18
+              }
+            ],
+            "observationLimit": "精确入出点、持续时长和未采样瞬间未确认",
+            "originalAudio": "存在源音轨，未试听",
+            "reason": "提供可观察的风味文字详情，避免添加未核实规格或性能",
+            "startSeconds": 18,
+            "subject": "MORNING棕色咖啡袋、咖啡杯、深棕色风味页面"
+          },
+          {
+            "action": "展示双图拼版与“精品咖啡豆”图文详情",
+            "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+            "clarity": "产品图、标题和版式清晰",
+            "composition": "左右/双图拼版，适合横屏图文详情",
+            "duplicateContent": "仍为同一棕色咖啡袋视觉组，与主视觉重复",
+            "endSeconds": 48,
+            "evidence": [
+              {
+                "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+                "endSeconds": 48,
+                "observation": "可见双图拼版、咖啡袋和“精品咖啡豆”等文字。",
+                "startSeconds": 30
+              }
+            ],
+            "observationLimit": "未逐帧确认转场或短暂动作",
+            "originalAudio": "存在源音轨，未试听",
+            "reason": "补充包装与页面层级信息",
+            "startSeconds": 30,
+            "subject": "咖啡袋双图拼版与精品咖啡豆页面"
+          }
+        ],
+        "evidence": [
+          {
+            "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+            "endSeconds": 12,
+            "observation": "米白色品牌版式中出现棕色咖啡袋、咖啡杯、桌面静物和城市背景，并有“把早晨，慢慢唤醒。”与“精品咖啡豆”文字。",
+            "startSeconds": 0
+          },
+          {
+            "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+            "endSeconds": 30,
+            "observation": "约18至30秒出现深棕色“坚果香气”风味页及同组咖啡袋静物。",
+            "startSeconds": 18
+          },
+          {
+            "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+            "endSeconds": 48,
+            "observation": "约30至48秒出现双图拼版、咖啡袋与“精品咖啡豆”等图文详情。",
+            "startSeconds": 30
+          },
+          {
+            "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+            "endSeconds": 120,
+            "observation": "约96至120秒出现风味页、拼版及“从一杯好咖啡开始 / MORNING”收尾版式。",
+            "startSeconds": 96
+          }
+        ],
+        "facts": [
+          {
+            "evidence": [
+              {
+                "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+                "endSeconds": 12,
+                "observation": "重复关键帧中可见MORNING品牌字样、棕色咖啡袋、咖啡杯和桌面生活方式静物。",
+                "startSeconds": 0
+              }
+            ],
+            "text": "素材可观察到一个MORNING棕色咖啡袋视觉组；具体型号和规格未确认。"
+          },
+          {
+            "evidence": [
+              {
+                "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+                "endSeconds": 30,
+                "observation": "页面上可读“坚果香气”。",
+                "startSeconds": 18
+              }
+            ],
+            "text": "“坚果香气”是画面可见文字，仅作为页面文案记录，不推断为经核实配方或性能。"
+          },
+          {
+            "evidence": [
+              {
+                "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+                "endSeconds": 48,
+                "observation": "页面上可读“精品咖啡豆”。",
+                "startSeconds": 30
+              }
+            ],
+            "text": "“精品咖啡豆”是画面可见文字，不足以确认等级、产地或规格。"
+          },
+          {
+            "evidence": [
+              {
+                "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+                "endSeconds": 120,
+                "observation": "后段页面可见“从一杯好咖啡开始 / MORNING”收尾版式。",
+                "startSeconds": 96
+              }
+            ],
+            "text": "可使用品牌收尾文字形成完整结束，但未观察到明确购买CTA。"
+          }
+        ],
+        "finalState": "可形成约30秒的图文型单品上新/种草候选，重点是品牌、包装静物和画面可见风味文字；仍属于候选，页面边界、连续播放、音频语义和权利状态待复核。不能作为完整操作演示或效果证明。",
+        "gaps": [
+          "仅观察到图文和静物页面，未观察到人手、研磨、备料、冲煮、倒水、倒咖啡或完成结果，因此product_howto被阻断。",
+          "商品正式名称、具体型号、规格、配方、价格、优惠和明确CTA未可靠确认。",
+          "采样为稀疏关键帧，页面切换边界和最优不重复顺序未逐帧核验。",
+          "虽有音频轨道，但未完成听感或语义核验；原声音画同步待复核。",
+          "同款关系仅依据重复棕色咖啡袋包装和版式判断，未确认具体型号。"
+        ],
+        "heroCandidates": [
+          {
+            "action": "以米白色品牌页建立MORNING棕色咖啡袋与咖啡杯主视觉",
+            "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+            "clarity": "棕色咖啡袋、咖啡杯、标题和页码在关键帧中清晰",
+            "composition": "大面积米白留白配右侧生活方式静物，适合开场",
+            "duplicateContent": "后续多个页面重复同一包装视觉",
+            "endSeconds": 12,
+            "evidence": [
+              {
+                "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+                "endSeconds": 12,
+                "observation": "约0至12秒反复呈现品牌页、棕色咖啡袋、咖啡杯和“把早晨，慢慢唤醒。”",
+                "startSeconds": 0
+              }
+            ],
+            "observationLimit": "页面切换边界未逐帧核验，未观察到操作动作",
+            "originalAudio": "存在源音轨，未试听",
+            "reason": "最快建立可辨认的商品包装与品牌视觉",
+            "startSeconds": 0,
+            "subject": "MORNING棕色咖啡袋、咖啡杯、桌面静物"
+          }
+        ],
+        "initialState": "输入为一条120秒、1280x720、30fps、带AAC音轨的视频；当前证据来自稀疏关键帧和加密接触表，未完成连续播放或听感审查。",
+        "productSummary": "MORNING品牌视觉组的棕色咖啡袋与咖啡杯静物，画面含“精品咖啡豆”“坚果香气”“巧克力风味”等可见文字及品牌收尾页。素材更适合图文型单品上新/种草，而非操作教程。",
+        "rejectedAssets": [
+          {
+            "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+            "reason": "不能将整条素材当作完整操作演示使用：当前观察未发现任何可复现的真实操作步骤或完成结果。"
+          }
+        ],
+        "supportingCandidates": [
+          {
+            "action": "使用后段“从一杯好咖啡开始 / MORNING”品牌页作为收尾支持",
+            "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+            "clarity": "品牌文字和页面结构在关键帧中清晰",
+            "composition": "完整品牌版式，适合结尾停留",
+            "duplicateContent": "与前段品牌页和咖啡袋静物重复",
+            "endSeconds": 120,
+            "evidence": [
+              {
+                "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+                "endSeconds": 120,
+                "observation": "约96至120秒可见风味页、拼版及“从一杯好咖啡开始 / MORNING”收尾版式。",
+                "startSeconds": 96
+              }
+            ],
+            "observationLimit": "具体收尾持续时间和音画关系未核验",
+            "originalAudio": "存在源音轨，未试听",
+            "reason": "提供明确的视觉结束点，不虚构购买行动",
+            "startSeconds": 96,
+            "subject": "MORNING品牌收尾页与咖啡袋静物"
+          }
+        ],
+        "unsupportedClaims": [
+          "商品正式名称、型号、规格和产地",
+          "“精品咖啡豆”之外的等级或品质认证",
+          "“巧克力风味”“坚果香气”之外的配方、烘焙或口感性能",
+          "价格、优惠、库存、保障和购买CTA",
+          "冲煮方式、使用效果或消费者评价",
+          "任何人手操作、研磨、备料、冲煮、倒水、倒咖啡或完成结果"
+        ],
+        "usageCandidates": [
+          {
+            "action": "将0至12秒压缩为不超过7秒开场主视觉",
+            "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+            "clarity": "关键帧清晰",
+            "composition": "米白留白与右侧静物构图稳定",
+            "duplicateContent": "同组页面重复较多，应避免长时间停留",
+            "endSeconds": 12,
+            "evidence": [
+              {
+                "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+                "endSeconds": 12,
+                "observation": "约0至12秒反复呈现品牌页和咖啡静物。",
+                "startSeconds": 0
+              }
+            ],
+            "observationLimit": "切点仍需连续播放复核",
+            "originalAudio": "保留源音轨，未试听",
+            "reason": "先建立商品身份，再进入详情",
+            "startSeconds": 0,
+            "subject": "棕色咖啡袋与咖啡杯"
+          },
+          {
+            "action": "从18至30秒选择“坚果香气”页面的短段作为详情",
+            "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+            "clarity": "文字与静物清晰",
+            "composition": "深棕色页面形成色彩变化并承载风味文案",
+            "duplicateContent": "同一包装在多处重复",
+            "endSeconds": 30,
+            "evidence": [
+              {
+                "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+                "endSeconds": 30,
+                "observation": "可见深棕色“坚果香气”页面。",
+                "startSeconds": 18
+              }
+            ],
+            "observationLimit": "不能从画面文字推断未提供的产品事实",
+            "originalAudio": "保留源音轨，未试听",
+            "reason": "增加可见的风味信息层级",
+            "startSeconds": 18,
+            "subject": "深棕风味页与咖啡袋"
+          },
+          {
+            "action": "从30至48秒选择双图拼版中的非重复片段",
+            "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+            "clarity": "产品图和标题清晰",
+            "composition": "双图拼版适合包装/视觉细节",
+            "duplicateContent": "与开场同款静物重复，需短用",
+            "endSeconds": 48,
+            "evidence": [
+              {
+                "assetId": "asset-3736b7fe-942f-42a4-8f65-cda348858aa4",
+                "endSeconds": 48,
+                "observation": "可见双图拼版、咖啡袋与“精品咖啡豆”图文详情。",
+                "startSeconds": 30
+              }
+            ],
+            "observationLimit": "转场和精确边界未逐帧确认",
+            "originalAudio": "保留源音轨，未试听",
+            "reason": "补充包装视觉信息而非伪造使用过程",
+            "startSeconds": 30,
+            "subject": "双图拼版与精品咖啡豆页面"
+          }
+        ]
+      },
+      "idempotencyKey": "620db3e6bc9c74754d5b68574bcc78615ec6282a061fe4f518e3f5e580215221",
+      "step": 3,
+      "durationMs": 198487
+    },
+    {
+      "tool": "product.understand",
+      "status": "completed",
+      "result": {
+        "schema_version": 2,
+        "product_name": "未确认商品名称",
+        "category": "咖啡豆包装与品牌图文素材",
+        "visual_features": [
+          {
+            "feature": "画面反复出现棕色咖啡袋、咖啡杯与桌面生活方式静物，形成同一视觉组。",
+            "evidence_refs": [
+              {
+                "ref": "asset:asset-3736b7fe-942f-42a4-8f65-cda348858aa4@0-12",
+                "reason": "关键帧中可见棕色咖啡袋、咖啡杯和桌面静物。"
+              }
+            ]
+          },
+          {
+            "feature": "米白色留白版式与深棕色风味页交替出现，整体为产品杂志式图文设计。",
+            "evidence_refs": [
+              {
+                "ref": "asset:asset-3736b7fe-942f-42a4-8f65-cda348858aa4@0-12",
+                "reason": "开场关键帧显示米白色品牌版式。"
+              },
+              {
+                "ref": "asset:asset-3736b7fe-942f-42a4-8f65-cda348858aa4@18-30",
+                "reason": "中段关键帧显示深棕色风味页面。"
+              }
+            ]
+          },
+          {
+            "feature": "包装上可辨认“MORNING”字样，页面多处出现品牌页眉与页码。",
+            "evidence_refs": [
+              {
+                "ref": "asset:asset-3736b7fe-942f-42a4-8f65-cda348858aa4@0-12",
+                "reason": "关键帧中可读“MORNING / 早的”等页眉文字。"
+              }
+            ]
+          },
+          {
+            "feature": "画面包含双图拼版、圆形裁切产品图及咖啡袋近景。",
+            "evidence_refs": [
+              {
+                "ref": "asset:asset-3736b7fe-942f-42a4-8f65-cda348858aa4@30-48",
+                "reason": "关键帧中可见双图拼版、产品图与包装细节。"
+              }
+            ]
+          }
+        ],
+        "selling_points": [
+          {
+            "id": "sp-1",
+            "text": "以MORNING棕色咖啡袋和咖啡杯静物建立温暖的早晨品牌视觉。",
+            "evidence_refs": [
+              {
+                "ref": "asset:asset-3736b7fe-942f-42a4-8f65-cda348858aa4@0-12",
+                "reason": "开场关键帧同时呈现MORNING字样、棕色咖啡袋、咖啡杯和生活方式静物。"
+              }
+            ],
+            "confidence": 0.96
+          },
+          {
+            "id": "sp-2",
+            "text": "画面文案标注“精品咖啡豆”，可作为页面上的品类描述呈现。",
+            "evidence_refs": [
+              {
+                "ref": "asset:asset-3736b7fe-942f-42a4-8f65-cda348858aa4@30-48",
+                "reason": "关键帧中可读“精品咖啡豆”文字。"
+              }
+            ],
+            "confidence": 0.91
+          },
+          {
+            "id": "sp-3",
+            "text": "页面展示“坚果香气”这一风味文案。",
+            "evidence_refs": [
+              {
+                "ref": "asset:asset-3736b7fe-942f-42a4-8f65-cda348858aa4@18-30",
+                "reason": "深棕色风味页关键帧中可读“坚果香气”。"
+              }
+            ],
+            "confidence": 0.9
+          },
+          {
+            "id": "sp-4",
+            "text": "页面展示“巧克力风味”这一风味文案。",
+            "evidence_refs": [
+              {
+                "ref": "asset:asset-3736b7fe-942f-42a4-8f65-cda348858aa4@12-18",
+                "reason": "关键帧中可见咖啡袋近景与“巧克力风味”文字。"
+              }
+            ],
+            "confidence": 0.88
+          },
+          {
+            "id": "sp-5",
+            "text": "结尾可使用“从一杯好咖啡开始 / MORNING”作为品牌收束语。",
+            "evidence_refs": [
+              {
+                "ref": "asset:asset-3736b7fe-942f-42a4-8f65-cda348858aa4@96-120",
+                "reason": "后段关键帧中可见该收尾版式与文字。"
+              }
+            ],
+            "confidence": 0.93
+          }
+        ],
+        "target_customer": [
+          "偏好咖啡生活方式内容、重视包装审美的消费者",
+          "寻找日常早餐或晨间仪式感咖啡产品的潜在消费者",
+          "适合先通过品牌视觉和风味文案了解产品的人群"
+        ],
+        "usage_scenarios": [
+          "电商详情页中的品牌与包装展示",
+          "小红书或社交媒体的咖啡生活方式种草短片",
+          "新品介绍中以静物和页面文案呈现风味信息",
+          "门店或线上品牌故事展示"
+        ],
+        "brand_style": {
+          "tone": [
+            "温暖",
+            "克制",
+            "生活方式感",
+            "编辑感"
+          ],
+          "visual_keywords": [
+            "米白留白",
+            "深棕色风味页",
+            "棕色咖啡袋",
+            "咖啡静物",
+            "产品杂志版式",
+            "圆形与双图拼版"
+          ],
+          "colors": [
+            "米白",
+            "棕色",
+            "深巧克力棕",
+            "暖橙棕"
+          ]
+        },
+        "recommended_platform": [
+          "ecommerce_detail",
+          "xiaohongshu",
+          "general"
+        ],
+        "forbidden_claims": [
+          "不得把“精品咖啡豆”扩展为等级、认证、产地或品质保证",
+          "不得把“坚果香气”“巧克力风味”扩展为已核实配方、烘焙参数或实测口感性能",
+          "不得编造商品正式名称、型号、规格、产地或配方",
+          "不得声称价格、优惠、库存、售后保障或购买CTA",
+          "不得声称存在冲煮方式、使用效果、完成结果或消费者评价",
+          "不得把静物页面当作真实研磨、备料、冲煮、倒水或倒咖啡操作证据",
+          "不得将未试听的原声音轨描述为特定音乐、语义或同步效果",
+          "不得在未核实权利状态前宣称可公开商用发布"
+        ],
+        "unknowns": [
+          "商品正式名称、具体型号与规格未确认",
+          "页面文字的精确持续时间和切换边界未逐帧核验",
+          "“精品咖啡豆”是否为正式品类或认证信息未知",
+          "“坚果香气”“巧克力风味”仅确认画面文字，实际配方与口感未知",
+          "未观察到可复现的冲煮或其他使用动作，因此不支持操作教程",
+          "原声音频虽存在，但听感、语义与音画同步尚未核验",
+          "素材授权及品牌使用权状态未由当前证据确认",
+          "同组页面是否为同一具体型号仅依据重复包装外观判断"
+        ],
+        "fusion_summary": "现有120秒、1280×720素材主要由MORNING棕色咖啡袋、咖啡杯静物和米白/深棕产品图文页面组成，适合制作图文型单品上新或品牌种草内容。可可靠呈现包装、可见品类文字与风味文案，但不能证明冲煮动作、使用效果、规格、价格或促销信息；素材页面边界、原声音义与权利状态仍需后续复核。"
+      },
+      "idempotencyKey": "048bf78ffb69d5de9923c0715b422a08f9ee88657536c8583884aa601282b012",
+      "step": 4,
+      "durationMs": 126963
+    },
+    {
+      "tool": "marketing.plan",
+      "status": "completed",
+      "result": {
+        "schema_version": 2,
+        "scene_type": "product_launch",
+        "platform": "ecommerce_detail / xiaohongshu",
+        "audience": [
+          "偏好咖啡生活方式内容、重视包装审美的消费者",
+          "寻找日常早餐或晨间仪式感咖啡产品的潜在消费者",
+          "希望先通过品牌视觉与风味文字了解产品的人群"
+        ],
+        "marketing_objective": "用真实素材快速建立MORNING棕色咖啡袋的品牌与包装印象，呈现画面中可见的品类和风味文案，形成温暖、克制的图文型上新种草，并引导观众进一步了解详情。",
+        "hook": {
+          "message": "把早晨，慢慢唤醒。",
+          "visual_proof": "米白色品牌版式中同时出现MORNING字样、棕色咖啡袋、咖啡杯与桌面静物。",
+          "first_three_seconds": "从0–12秒素材中截取最清晰的品牌页与咖啡袋静物，先露出MORNING页眉和主体包装，再带出咖啡杯。",
+          "rationale": "前3秒即可识别咖啡包装与生活方式场景，符合首次了解商品的观众认知路径；不依赖未观察到的冲煮动作或性能证明。"
+        },
+        "story_structure": [
+          {
+            "id": "beat-1",
+            "beat": "品牌与晨间场景建立：米白留白页、棕色咖啡袋、咖啡杯和桌面静物。",
+            "purpose": "让观众先认出商品视觉组与温暖的晨间氛围。",
+            "selling_point_refs": [
+              "sp-1"
+            ],
+            "evidence_refs": [
+              "asset:asset-3736b7fe-942f-42a4-8f65-cda348858aa4@0-12"
+            ]
+          },
+          {
+            "id": "beat-2",
+            "beat": "风味页切入：展示深棕色页面与“坚果香气”文字，并保留咖啡袋静物。",
+            "purpose": "在不扩展为配方或口感实测的前提下，增加可见的风味信息。",
+            "selling_point_refs": [
+              "sp-3"
+            ],
+            "evidence_refs": [
+              "asset:asset-3736b7fe-942f-42a4-8f65-cda348858aa4@18-30"
+            ]
+          },
+          {
+            "id": "beat-3",
+            "beat": "包装与品类详情：双图拼版、咖啡袋近景及“精品咖啡豆”页面。",
+            "purpose": "补充包装层级和页面上的品类描述，强化商品理解。",
+            "selling_point_refs": [
+              "sp-2"
+            ],
+            "evidence_refs": [
+              "asset:asset-3736b7fe-942f-42a4-8f65-cda348858aa4@30-48"
+            ]
+          },
+          {
+            "id": "beat-4",
+            "beat": "风味补充：以咖啡袋近景和“巧克力风味”画面文字作为短暂信息点。",
+            "purpose": "增加第二个可见风味关键词，避免把文字升级为未经核实的性能或配方。",
+            "selling_point_refs": [
+              "sp-4"
+            ],
+            "evidence_refs": [
+              "asset:asset-asset-3736b7fe-942f-42a4-8f65-cda348858aa4@12-18"
+            ]
+          },
+          {
+            "id": "beat-5",
+            "beat": "品牌收束：使用“从一杯好咖啡开始 / MORNING”版式，停留后引导查看详情。",
+            "purpose": "形成完整结束并给出中性下一步，不虚构价格、优惠或购买条件。",
+            "selling_point_refs": [
+              "sp-5"
+            ],
+            "evidence_refs": [
+              "asset:asset-3736b7fe-942f-42a4-8f65-cda348858aa4@96-120"
+            ]
+          }
+        ],
+        "shot_strategy": [
+          "总时长约30秒，横屏1280×720；优先从同一素材中截取经连续播放复核后的短片段，避免重复页面长时间停留。",
+          "0–7秒：使用0–12秒开场窗口，先主体包装后咖啡杯与桌面静物，保护整幅版式文字和包装。",
+          "7–14秒：使用18–30秒窗口中的深棕风味页，重点保留“坚果香气”与咖啡袋同框。",
+          "14–20秒：使用30–48秒窗口中的双图拼版和“精品咖啡豆”页面，作为包装/品类详情。",
+          "20–23秒：可从12–18秒窗口选取清晰的“巧克力风味”页面短段；若连续播放确认与前后镜头重复，则缩短或省略。",
+          "23–30秒：使用96–120秒窗口中的品牌收尾版式，保持“从一杯好咖啡开始 / MORNING”可读并留出结束停留。",
+          "所有文字、页面、包装和原始视频保持独立可编辑；不把静物剪辑包装成冲煮或使用教程。"
+        ],
+        "caption_strategy": {
+          "tone": "温暖、克制、编辑感；只复述画面可见文字与已确认表达。",
+          "max_chars_per_card": 16,
+          "rhythm": "每个信息点短卡停留约2–4秒，随页面切换出现；开场与收尾留出更长阅读时间。",
+          "roles": [
+            "建立品牌与晨间场景",
+            "标注画面可见风味文字",
+            "呈现画面可见品类描述",
+            "收束品牌并提示进一步了解"
+          ]
+        },
+        "music_style": {
+          "mood": "未知；素材含AAC原声音轨但尚未完成听感核验。",
+          "energy_curve": "沿用原片对应源窗口的自然变化，不重新编排成特定情绪曲线。",
+          "beat_strategy": "保留与源片段绑定的原始音频；不新增背景音乐、旁白或虚构同步点，最终需复核音画连续性。"
+        },
+        "transition_style": {
+          "principle": "让版式和信息层级驱动切换，保持克制，避免动效遮挡包装或文字。",
+          "preferred": [
+            "基于真实源片段的硬切",
+            "短促溶解或自然页面衔接",
+            "收尾前适度减速并保持静止阅读"
+          ],
+          "avoid": [
+            "把静态页面伪造成镜头推拉或真实操作",
+            "连续使用抢眼转场",
+            "遮挡包装、页眉、风味文字的装饰动画"
+          ]
+        },
+        "cta": {
+          "text": "进一步了解",
+          "placement": "结尾品牌收束页下方或留白区域，停留在最后2–3秒。",
+          "reason": "当前未确认价格、优惠、库存或正式购买入口，使用中性行动提示最符合证据边界。"
+        },
+        "rationale": [
+          "素材内容是MORNING棕色咖啡袋、咖啡杯和杂志式图文页面，具备单品上新/种草所需的商品建立、可见细节和品牌收尾，但没有可复现的冲煮动作，因此不采用操作教程结构。",
+          "受众偏好咖啡生活方式与包装审美，开场先用米白留白和晨间静物建立情境，再用深棕风味页和双图拼版递进信息，符合从氛围到详情的观看路径。",
+          "“精品咖啡豆”“坚果香气”“巧克力风味”仅作为画面可见文字使用，不扩展为等级、产地、配方、口感实测或性能承诺。",
+          "原声音轨尚未试听，故只规划保留源音频并将听感与同步列为待复核项，不编造音乐情绪或旁白内容。",
+          "结尾采用“从一杯好咖啡开始 / MORNING”与中性“进一步了解”，既利用已有收尾证据，又避免虚构价格、优惠和购买条件。",
+          "素材页面边界、同款具体型号、权利状态和连续播放尚未完整核验，因此该结构应作为可编辑候选，正式发布前仍需完成连续观片、音频与权利审查。"
+        ]
+      },
+      "idempotencyKey": "22e8c7cf6bf7b4734a67c7aec7eabb3aaf7169e903ab68366aa78feab7807be0",
+      "step": 5,
+      "durationMs": 155126
+    }
+  ],
+  "verification": null,
+  "repairCount": 0,
+  "resultRevisionId": null,
+  "status": "running",
+  "steps": 6,
+  "modelCalls": 8,
+  "maxModelCalls": 128,
+  "budgetSource": "application-default",
+  "completionReserve": 0,
+  "createdAt": "2026-09-18T12:12:13.657Z",
+  "updatedAt": "2026-09-18T12:30:32.947Z",
+  "stage": "creative",
+  "modelInvocations": [
+    {
+      "number": 1,
+      "model": "gpt-5.6-sol",
+      "transport": "configured",
+      "timeoutMs": 600000,
+      "reasoningEffort": "high",
+      "attempt": 0,
+      "imageCount": 0,
+      "promptSha256": "39a4344e25a3581fef384fce7e22bb28d14abd4b27931c60da99c99dfc981870",
+      "schemaSha256": "d3c349982f84235804e83b32f682d7db4590dc62373064927c3acaa9ac975144",
+      "directory": "/Users/a1234/Desktop/hyperframe-main/video-agent/data/result-completion-projects/db0a2891-d5e8-454b-97a7-31d1a1d37d36/versions/job-a386542a-3e1e-438e-8531-c166fe94f178/model-calls/edit-engine/92f16265-5855-4622-946d-7901938e8535",
+      "stage": "R1",
+      "startedAt": "2026-09-18T12:12:13.664Z"
+    },
+    {
+      "number": 2,
+      "model": "gpt-5.6-sol",
+      "transport": "configured",
+      "timeoutMs": 600000,
+      "reasoningEffort": "high",
+      "attempt": 0,
+      "imageCount": 2,
+      "promptSha256": "96a23bcf18f0bfd8c01e99d8787f03bcc80a8b1c30531e514e9520c9b565f4ac",
+      "schemaSha256": "9525e3f542b7ec8df6b581b8932b92c0184a246ad9fd5a9ef5b0cb3a44a3dc32",
+      "directory": "/Users/a1234/Desktop/hyperframe-main/video-agent/data/result-completion-projects/db0a2891-d5e8-454b-97a7-31d1a1d37d36/versions/job-a386542a-3e1e-438e-8531-c166fe94f178/model-calls/edit-engine/f3e3eda5-e44c-4f72-a1d3-01dff1dbae0a",
+      "stage": "R2",
+      "startedAt": "2026-09-18T12:13:52.606Z"
+    },
+    {
+      "number": 3,
+      "model": "gpt-5.6-sol",
+      "transport": "configured",
+      "timeoutMs": 600000,
+      "reasoningEffort": "high",
+      "attempt": 0,
+      "imageCount": 6,
+      "promptSha256": "46f99d8f57bbfda3e0c092d49fa08e2cda3e528168d3e01e4be2344608bb6cbe",
+      "schemaSha256": "9525e3f542b7ec8df6b581b8932b92c0184a246ad9fd5a9ef5b0cb3a44a3dc32",
+      "directory": "/Users/a1234/Desktop/hyperframe-main/video-agent/data/result-completion-projects/db0a2891-d5e8-454b-97a7-31d1a1d37d36/versions/job-a386542a-3e1e-438e-8531-c166fe94f178/model-calls/edit-engine/d8725d8f-1b4b-486a-8741-f6fa4fb2c8fb",
+      "stage": "R2",
+      "startedAt": "2026-09-18T12:17:07.656Z"
+    },
+    {
+      "number": 4,
+      "model": "gpt-5.6-sol",
+      "transport": "configured",
+      "timeoutMs": 600000,
+      "reasoningEffort": "high",
+      "attempt": 0,
+      "imageCount": 8,
+      "promptSha256": "874329d84998ea96850bb55e7104b79d15ca46cd3a50cfe30cbe1fe2f75bd94c",
+      "schemaSha256": "9525e3f542b7ec8df6b581b8932b92c0184a246ad9fd5a9ef5b0cb3a44a3dc32",
+      "directory": "/Users/a1234/Desktop/hyperframe-main/video-agent/data/result-completion-projects/db0a2891-d5e8-454b-97a7-31d1a1d37d36/versions/job-a386542a-3e1e-438e-8531-c166fe94f178/model-calls/edit-engine/c7ff35b5-b7ad-48b0-83e9-a4a335a7a4df",
+      "stage": "R2",
+      "startedAt": "2026-09-18T12:20:11.448Z"
+    },
+    {
+      "number": 5,
+      "model": "gpt-5.6-sol",
+      "transport": "configured",
+      "timeoutMs": 600000,
+      "reasoningEffort": "high",
+      "attempt": 0,
+      "imageCount": 6,
+      "promptSha256": "754c2c3fdb4e7c8ff700840a13cfc96f55a49cbb34f96562c7a30e36bf452419",
+      "schemaSha256": "9871bce3e76e5f31786da640c2fcab5d0133ae7e547b64818a8f5d93e0161508",
+      "directory": "/Users/a1234/Desktop/hyperframe-main/video-agent/data/result-completion-projects/db0a2891-d5e8-454b-97a7-31d1a1d37d36/versions/job-a386542a-3e1e-438e-8531-c166fe94f178/model-calls/edit-engine/4ac6c492-effb-44e6-85a6-8e1ad58cc86b",
+      "stage": "MA",
+      "startedAt": "2026-09-18T12:22:31.437Z"
+    },
+    {
+      "number": 6,
+      "model": "gpt-5.6-sol",
+      "transport": "configured",
+      "timeoutMs": 600000,
+      "reasoningEffort": "high",
+      "attempt": 0,
+      "imageCount": 8,
+      "promptSha256": "12d566b2e946332f4d8cf90602ab4a450a4f7cd45021a8deac4512d4bd8ff9d8",
+      "schemaSha256": "4f6ab80f1d59fbc0fa88a8f59c641b7751be4f77c1cc34b83f7ff9157c2cdd11",
+      "directory": "/Users/a1234/Desktop/hyperframe-main/video-agent/data/result-completion-projects/db0a2891-d5e8-454b-97a7-31d1a1d37d36/versions/job-a386542a-3e1e-438e-8531-c166fe94f178/model-calls/edit-engine/19376abb-c9d2-4b27-a590-230a6baea267",
+      "stage": "PU",
+      "startedAt": "2026-09-18T12:25:49.937Z"
+    },
+    {
+      "number": 7,
+      "model": "gpt-5.6-sol",
+      "transport": "configured",
+      "timeoutMs": 600000,
+      "reasoningEffort": "high",
+      "attempt": 0,
+      "imageCount": 0,
+      "promptSha256": "fd462863ddb4f7428e0e95a6231ef28a0bf7ddc1236e4f3211729a0f4dc66998",
+      "schemaSha256": "1734abd0934b1d8c9a6e3e3603a9b185bfcbe85f3fc6fa304dcda04b66e7436c",
+      "directory": "/Users/a1234/Desktop/hyperframe-main/video-agent/data/result-completion-projects/db0a2891-d5e8-454b-97a7-31d1a1d37d36/versions/job-a386542a-3e1e-438e-8531-c166fe94f178/model-calls/edit-engine/103745b0-06c6-4fa3-b70f-62a67c35bc84",
+      "stage": "MP",
+      "startedAt": "2026-09-18T12:27:56.884Z"
+    },
+    {
+      "number": 8,
+      "model": "gpt-5.6-sol",
+      "transport": "configured",
+      "timeoutMs": 600000,
+      "reasoningEffort": "high",
+      "attempt": 0,
+      "imageCount": 11,
+      "promptSha256": "e48b93671251105818367d6d159cc3048d7e334fbf4ee5b0625aaba37b32fc0f",
+      "schemaSha256": "abf712bf76c072ba8ecd075c76a24ed37781a5cc85c4c65982d056e5f5b87100",
+      "directory": "/Users/a1234/Desktop/hyperframe-main/video-agent/data/result-completion-projects/db0a2891-d5e8-454b-97a7-31d1a1d37d36/versions/job-a386542a-3e1e-438e-8531-c166fe94f178/model-calls/edit-engine/cd7783a4-6a04-4d72-bd84-0cb17cabdd10",
+      "stage": "CD",
+      "startedAt": "2026-09-18T12:30:32.947Z"
+    }
+  ]
+}

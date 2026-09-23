@@ -1,0 +1,32 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {unpackCreativeHistory,restoreCreativeHistory} from '../../lib/creative/portable.mjs';
+import {readNativeProject} from '../../lib/creative/runner.mjs';
+
+const evidence=path.dirname(fileURLToPath(import.meta.url));
+const root=path.resolve(evidence,'../..');
+const projectId='0f1a3c3b-f074-4fc1-be65-838d01d2d628';
+const {project}=await (await fetch('http://127.0.0.1:3024/api/commerce/'+projectId)).json();
+const revision=project.revisions.find(item=>item.id===project.currentRevisionId);
+assert.notEqual(revision.id,'rev-9a01aff661cef84d');
+assert.equal(revision.historyPackaged,true);
+const archive=path.join(root,'data/result-completion-projects',projectId,revision.directory,'history.zip');
+const temporary=await fs.mkdtemp(path.join(evidence,'.tmp-reopen-'));
+try{
+  const unpacked=await unpackCreativeHistory(archive,path.join(temporary,'unpacked'));
+  const restored=await restoreCreativeHistory(root,path.join(temporary,'restored'),'delivery-reopen-check',unpacked,{onStage:stage=>console.log(stage)});
+  assert.equal(restored.currentRevisionId,revision.id);
+  assert.equal(restored.revisions.length,project.revisions.length);
+  const {document}=await readNativeProject(path.join(temporary,'restored/versions',revision.id));
+  assert.equal(document.nodes.length,1);
+  assert.equal(document.nodes[0].kind,'video');
+  assert.equal(document.durationFrames,900);
+  assert.equal(document.audioGraph.length,0);
+  const report={checkedAt:new Date().toISOString(),sourceProjectId:projectId,selectedRevisionId:revision.id,restoredRevisionCount:restored.revisions.length,historyPreserved:true,blobHashVerification:'passed',nativeRecompileAndHyperFramesCheck:'passed',temporaryRestoreRemoved:true};
+  await fs.writeFile(path.join(evidence,'history-reopen-verification.json'),JSON.stringify(report,null,2)+'\n');
+  console.log(JSON.stringify(report));
+}finally{
+  await fs.rm(temporary,{recursive:true,force:true});
+}
