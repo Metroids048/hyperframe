@@ -187,7 +187,13 @@ function buildTool(name, description) {
             messageId: toolContext.messageId || toolContext.inboundMessageId || `tool:${toolCallId}` };
           let input = { ...params };
           const writes = ["video_task","video_cancel"];
-          if (writes.includes(name)) {
+          // Attachment import is a side effect even during preparation. Keep
+          // text-only preparation read-only, but obtain the same server-issued
+          // write authorization before the bridge touches inbound media.
+          const attachmentAuthorization = name === "video_prepare" &&
+            ((Array.isArray(input.attachmentPaths) && input.attachmentPaths.length) ||
+             (Array.isArray(input.attachmentIds) && input.attachmentIds.length));
+          if (writes.includes(name) || attachmentAuthorization) {
             // Tool arguments are model output. Never trust model-supplied
             // authorization or idempotency identifiers for a write.
             const authorizationInput = { ...input };

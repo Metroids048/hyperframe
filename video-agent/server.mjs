@@ -208,7 +208,7 @@ async function openclawAuthorizationRoute(req,res){
  const explicitNewTask=/(?:新建|创建|制作|生成|做一条|做个|宣传片|营销片|新品|商品视频|产品视频)/u.test(messageText)
    && !/(?:把|将|修改|编辑|调整|替换|换成|改成|改为|第[一二三四五六七八九十0-9]+个镜头|这条视频|本视频|原片|原视频)/u.test(messageText);
  let projectId;
- if(body.tool==='video_task'){
+ if(body.tool==='video_task'||body.tool==='video_prepare'){
   // Project binding is a convenience for continuing a conversation, not a
   // prerequisite.  A new upload starts a new editable project; a text-only
   // follow-up reuses the current project when one exists; an invalid/stale

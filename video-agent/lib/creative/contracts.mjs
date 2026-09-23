@@ -121,6 +121,12 @@ export function normalizeCommerceRequest(input = {}) {
       id: asset.id || `asset-${index + 1}`,
       path: asset.path,
       kind,
+      // OpenClaw uploads are persisted under the project state root while
+      // the compiler itself is rooted at the Video Agent checkout. Preserve
+      // the server-created canonical reference so later normalization does
+      // not reinterpret `uploads/...` relative to the wrong root. The
+      // execution layer still applies safeRelativePath before touching it.
+      ...(typeof asset.originalRef === 'string' ? {originalRef: asset.originalRef} : {}),
       ...(kind==='font'?{name:path.basename(asset.name||asset.path)}:{}),
       role: asset.role || (index === 0 ? 'hero' : 'detail'),
       productId: asset.productId || 'product-1',

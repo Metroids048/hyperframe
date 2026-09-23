@@ -10,6 +10,7 @@ const KNOWN_COMMONS={
   'protein powder container':{title:'File:Container of Protein Powder.jpg',url:'https://upload.wikimedia.org/wikipedia/commons/4/42/Container_of_Protein_Powder.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original',sourceUrl:'https://commons.wikimedia.org/wiki/File:Container_of_Protein_Powder.jpg',mime:'image/jpeg',bytes:71967,license:'CC BY-SA 4.0',artist:'ShriniwasGajare',description:'Container of protein powder'},
 };
 const apiUrl=query=>`${SEARCH_ORIGIN}/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(query)}&gsrnamespace=6&gsrlimit=8&prop=imageinfo&iiprop=url|mime|size|extmetadata&iiurlwidth=1600&format=json&origin=*`;
+const videoApiUrl=query=>`${SEARCH_ORIGIN}/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(query)}&gsrnamespace=6&gsrlimit=12&prop=imageinfo&iiprop=url|mime|size|extmetadata&format=json&origin=*`;
 const headerValue=(metadata,key)=>metadata?.[key]?.value||metadata?.[key]?.text||'';
 
 function cleanQuery(value){
@@ -43,6 +44,21 @@ function imageDownloadUrls(candidate){
     }catch{}
   }
   return [...new Set(urls)];
+}
+
+function assertCommonsDownloadUrl(raw){
+  const url=new URL(raw);
+  if(url.protocol!=='https:'||url.username||url.password||url.port||!['commons.wikimedia.org','upload.wikimedia.org','thumb.wikimedia.org'].includes(url.hostname))throw Object.assign(new Error('公共素材地址不在允许列表'),{code:'EXTERNAL_ASSET_URL_REJECTED'});
+  return url.toString();
+}
+
+async function boundedResponseBytes(response,maxBytes){
+  const declared=Number(response.headers?.get?.('content-length')||0);
+  if(declared>maxBytes)throw Object.assign(new Error('公共视频超过下载上限'),{code:'EXTERNAL_ASSET_TOO_LARGE'});
+  if(!response.body){const bytes=Buffer.from(await response.arrayBuffer());if(bytes.length>maxBytes)throw Object.assign(new Error('公共视频超过下载上限'),{code:'EXTERNAL_ASSET_TOO_LARGE'});return bytes;}
+  const chunks=[];let size=0;
+  for await(const chunk of response.body){const bytes=Buffer.from(chunk);size+=bytes.length;if(size>maxBytes)throw Object.assign(new Error('公共视频超过下载上限'),{code:'EXTERNAL_ASSET_TOO_LARGE'});chunks.push(bytes);}
+  return Buffer.concat(chunks,size);
 }
 
 const intentSchema={type:'object',additionalProperties:false,properties:{needed:{type:'boolean'},query:{type:'string'},reason:{type:'string'}},required:['needed','query','reason']};
@@ -102,5 +118,35 @@ export async function downloadCommonsImage(candidate,{root,projectDirectory,sign
     id,kind:'image',name:`网络素材 · ${candidate.title.replace(/^File:/i,'').slice(0,100)}`,path:path.relative(root,target).replaceAll('\\','/'),bytes:bytes.length,
     sha256:createHash('sha256').update(bytes).digest('hex'),rights:{status:'source-review',sourceUrl:candidate.sourceUrl,license:candidate.license,artist:candidate.artist},externalSource:{provider:'wikimedia-commons',query:candidate.query||null,title:candidate.title,sourceUrl:candidate.sourceUrl,license:candidate.license,artist:candidate.artist,downloadUrl:candidate.url,description:candidate.description},
   };
+}
+
+export async function searchCommonsVideo(query,{signal,fetchImpl=fetch}={}){
+  const text=cleanQuery(query);let data;
+  if(fetchImpl!==fetch){const response=await fetchImpl(videoApiUrl(text),{headers:{Accept:'application/json'},redirect:'error',signal});if(!response.ok)throw Object.assign(new Error('Wikimedia Commons 视频搜索失败：HTTP '+response.status),{code:'EXTERNAL_ASSET_SEARCH_FAILED'});data=await response.json();}
+  else data=JSON.parse((await publicBytes(videoApiUrl(text),{signal,maxBytes:4*1024*1024})).toString('utf8'));
+  const pages=Object.values(data.query?.pages||{});
+  const candidate=pages.map(page=>{
+    const info=page.imageinfo?.[0],mime=String(info?.mime||'').toLowerCase();
+    if(!info||!['video/webm','video/mp4'].includes(mime)||!info.url)return null;
+    return {title:page.title,url:info.url,downloadUrl:info.url,sourceUrl:info.descriptionurl||`https://commons.wikimedia.org/wiki/${encodeURIComponent(page.title.replaceAll(' ','_'))}`,mime,bytes:info.size||null,license:headerValue(info.extmetadata,'LicenseShortName')||'未提供许可标记',licenseUrl:headerValue(info.extmetadata,'LicenseUrl')||null,artist:headerValue(info.extmetadata,'Artist')||'未提供作者',description:headerValue(info.extmetadata,'ImageDescription')||page.title,query:text};
+  }).filter(Boolean)[0];
+  if(!candidate)throw Object.assign(new Error('没有找到可下载的 WebM 或 MP4 公共视频候选'),{code:'EXTERNAL_ASSET_NOT_FOUND'});
+  assertCommonsDownloadUrl(candidate.downloadUrl);return candidate;
+}
+
+export async function downloadCommonsVideo(candidate,{root,projectDirectory,signal,fetchImpl=fetch,maxBytes=100*1024*1024}={}){
+  insistVideoCandidate(candidate);
+  const url=assertCommonsDownloadUrl(candidate.downloadUrl||candidate.url);let bytes;
+  if(fetchImpl!==fetch){const response=await fetchImpl(url,{headers:{Accept:'video/webm, video/mp4'},redirect:'error',signal});if(!response.ok)throw Object.assign(new Error('公共视频下载失败：HTTP '+response.status),{code:'EXTERNAL_ASSET_DOWNLOAD_FAILED'});bytes=await boundedResponseBytes(response,maxBytes);}
+  else bytes=await publicBytes(url,{signal,maxBytes});
+  if(!bytes.length||bytes.length>maxBytes)throw Object.assign(new Error('公共视频内容为空或超过下载上限'),{code:bytes.length?'EXTERNAL_ASSET_TOO_LARGE':'EXTERNAL_ASSET_DOWNLOAD_FAILED'});
+  const ext=candidate.mime==='video/webm'?'.webm':'.mp4',id='web-'+randomUUID(),relative=`uploads/${id}${ext}`,target=path.join(projectDirectory,relative);
+  await fs.mkdir(path.dirname(target),{recursive:true});await fs.writeFile(target,bytes,{flag:'wx'});
+  const sha256=createHash('sha256').update(bytes).digest('hex');
+  return {id,kind:'video',name:`网络视频 · ${String(candidate.title||'Commons video').replace(/^File:/i,'').slice(0,100)}`,path:path.relative(root,target).replaceAll('\\','/'),bytes:bytes.length,sha256,rights:{status:'source-review',sourceUrl:candidate.sourceUrl,license:candidate.license,licenseUrl:candidate.licenseUrl||null,artist:candidate.artist},externalSource:{provider:'wikimedia-commons',query:candidate.query||null,title:candidate.title,sourceUrl:candidate.sourceUrl,license:candidate.license,licenseUrl:candidate.licenseUrl||null,artist:candidate.artist,downloadUrl:url,description:candidate.description,downloadedAt:new Date().toISOString()},deliveryStatus:'candidate-only'};
+}
+
+function insistVideoCandidate(candidate){
+  if(!candidate||!['video/webm','video/mp4'].includes(String(candidate.mime||'').toLowerCase()))throw Object.assign(new Error('只允许下载 Commons WebM 或 MP4 视频'),{code:'EXTERNAL_ASSET_TYPE_REJECTED'});
 }
 import {createStructuredProvider} from '../openclaw/provider-selection.mjs';

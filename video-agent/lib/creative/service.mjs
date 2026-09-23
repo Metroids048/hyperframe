@@ -50,7 +50,7 @@ import {ensureGenerationPlan,fillGenerationGaps} from './generation-plan.mjs';
 import {executionStatus} from './execution-status.mjs';
 import {loadCloseoutQueue} from './full-closeout-state.mjs';
 import {exportCreativeHistory,unpackCreativeHistory,restoreCreativeHistory,MAX_PACKAGE_BYTES} from './portable.mjs';
-import {externalReplacementIntent,searchCommonsImage,downloadCommonsImage} from './external-assets.mjs';
+import {externalReplacementIntent,searchCommonsImage,downloadCommonsImage,searchCommonsVideo,downloadCommonsVideo} from './external-assets.mjs';
 import {analyzeCommerceRouting} from '../orchestration/commerce-router-v2.mjs';
 import {buildCommercePreparation} from './commerce-preparation.mjs';
 import {searchCommerceWeb} from './commerce-web-research.mjs';
@@ -197,6 +197,16 @@ function externalSearchQuery(message){
   if(/护肤|面霜|cream|skincare/i.test(text))return 'skincare product package';
   if(/耳机|headphone/i.test(text))return 'headphones product';
   return 'product package product photo';
+}
+function explicitlyRequestsExternalSceneVideo(message){
+  return /(?:外部场景|补充外部视频|网络视频)/u.test(String(message||''));
+}
+function externalSceneVideoQuery(message){
+  const text=String(message||'');
+  if(/Steam|掌机|游戏机|handheld/i.test(text))return 'handheld game console gaming video';
+  if(/咖啡|coffee/i.test(text))return 'coffee brewing scene video';
+  if(/相机|camera/i.test(text))return 'camera usage scene video';
+  return 'product lifestyle usage video';
 }
 export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO_AGENT_CREATIVE_DATA_DIR||path.join(root,'data/commerce-runs'),planner='model',audioTransport,audioEnv,routingProvider,planningProvider}={}){
   try{process.loadEnvFile(path.join(root,'.env'));}catch(error){if(error.code!=='ENOENT')throw error;}
@@ -791,6 +801,28 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
         const sourceRebuildWorkflow=job.input.routeDecision?.reason==='explicit-upload-source-rebuild';
         const sourceWorkflowRequested=!sourceRebuildWorkflow&&isUploadedSourceWorkflow(job.input.message,uploadedSource);
         if(sourceWorkflowRequested||sourceRebuildWorkflow){
+          const acquisitionPolicy=(await productionPolicy(root)).mediaAcquisitionPolicy;
+          const externalVideoRequested=explicitlyRequestsExternalSceneVideo(job.input.message||'');
+          let uploadedExternalVideo=null;
+          if(externalVideoRequested){
+            const query=externalSceneVideoQuery(job.input.message);
+            if(acquisitionPolicy.external_media_download==='blocked'){
+              job.externalAsset={status:'blocked-by-policy',query};job.status='needs_user';job.code='EXTERNAL_MEDIA_BLOCKED';job.stage='等待获准的外部素材来源';job.error='服务端策略禁止下载外部视频，请上传已授权的场景视频。';job.question=job.error;job.requiredInputs=['authorized-external-video'];job.gaps=['external-video'];job.completedAt=now();await save(p);return;
+            }
+            if(!['allowed','rights-gated'].includes(acquisitionPolicy.external_media_download)){
+              job.externalAsset={status:'unsupported-policy',query};job.status='needs_user';job.code='EXTERNAL_MEDIA_POLICY_UNSUPPORTED';job.stage='等待外部素材策略';job.error='当前外部视频素材策略不允许自动检索，请上传已授权的场景视频。';job.question=job.error;job.requiredInputs=['authorized-external-video'];job.gaps=['external-video'];job.completedAt=now();await save(p);return;
+            }
+            job.stage='搜索外部场景视频';await save(p);
+            try{
+              const candidate=await searchCommonsVideo(query,{signal});
+              uploadedExternalVideo=await downloadCommonsVideo(candidate,{root,projectDirectory:directory(p),signal});
+              if(!p.assets.some(item=>item.id===uploadedExternalVideo.id))p.assets.push(uploadedExternalVideo);
+              job.externalAsset={status:'downloaded-candidate',assetId:uploadedExternalVideo.id,query:candidate.query,sourceUrl:candidate.sourceUrl,downloadUrl:candidate.downloadUrl,license:candidate.license,artist:candidate.artist,sha256:uploadedExternalVideo.sha256,rightsStatus:uploadedExternalVideo.rights.status,deliveryStatus:'candidate-only'};
+              p.messages.push({role:'assistant',text:`已检索并登记 Wikimedia Commons 外部场景视频候选（${candidate.title}，${candidate.license}）。其权利状态为待审核，当前仅作候选素材。`,attachmentIds:[uploadedExternalVideo.id],time:now()});await save(p);
+            }catch(error){
+              job.externalAsset={status:'search_failed',query,code:error.code||'EXTERNAL_ASSET_FAILED',error:error.message};job.status='needs_user';job.code='EXTERNAL_VIDEO_UNAVAILABLE';job.stage='等待可用外部视频';job.error=`外部场景视频检索或下载失败：${error.message}`;job.question=job.error;job.requiredInputs=['authorized-external-video'];job.gaps=['external-video'];job.completedAt=now();p.messages.push({role:'assistant',text:job.error,time:now()});await save(p);return;
+            }
+          }
           const objectReplacementRequested=/(?:替换|换成|改成|改为)/u.test(job.input.message||'')
             && /(?:袋|蛋白粉|商品|产品|主体|物体|对象)/u.test(job.input.message||'')
             && !/(?:标题|文字|字幕|颜色|字号|音量)/u.test(job.input.message||'');
@@ -829,7 +861,7 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
           job.skipAutoQualityRevision=true;
           job.stage='建立上传原片初始工程';await save(p);
           const dir=path.join(directory(p),'versions',job.id);
-          await buildUploadedVideoProject({...p.request,projectId:p.id,assets:p.assets,outputDir:path.relative(root,dir).replaceAll('\\','/'),message:job.input.message,rebuildAllUploadedVideoSources:sourceRebuildWorkflow,signal,onStage:async stage=>{job.stage=stage;await save(p);}},{root});
+          await buildUploadedVideoProject({...p.request,projectId:p.id,assets:p.assets,outputDir:path.relative(root,dir).replaceAll('\\','/'),message:job.input.message,rebuildAllUploadedVideoSources:sourceRebuildWorkflow||Boolean(uploadedExternalVideo),signal,onStage:async stage=>{job.stage=stage;await save(p);}},{root});
           const {document}=await readNativeProject(dir);p.title=document.brief.name;const created=await publish(p,job,dir,document,'上传原片初始版本');await candidateExport(p,job,created,signal);job.summary=isUploadedSourceShortcut(job.input.message,uploadedSource)?'已按上传原片的真实时长建立独立可编辑工程，并应用本轮局部修改，导出候选视频。':'已按上传原片的真实时长建立独立可编辑工程并导出候选视频，后续编辑将基于该工程继续执行。';job.status='complete';job.completedAt=now();p.messages.push({role:'assistant',text:job.summary,time:now()});return;
         }
         if(job.revisionId&&p.revisions.some(r=>r.id===job.revisionId)){
@@ -844,7 +876,25 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
           const a=await generateCommerceAsset({root,project:p,job,kind:target,role:target==='image'?'商品整体':'原始展示',sourceAsset:source,prompt:job.input.message||p.request.message,duration:p.request.output.durationSeconds,save:()=>save(p),signal});
           if(!p.assets.some(x=>x.id===a.id))p.assets.push(a);job.resultAssetId=a.id;job.status='complete';job.completedAt=now();job.summary='生成素材已下载，可选择用于视频或营销成片；质量待审。';p.messages.push({role:'assistant',text:job.summary,time:now()});return;
         }
-        if((await productionPolicy(root)).mediaAcquisitionPolicy.runninghub_generation==='allowed'){
+        const acquisitionPolicy=(await productionPolicy(root)).mediaAcquisitionPolicy;
+        const externalVideoRequested=explicitlyRequestsExternalSceneVideo(job.input.message||'');
+        if(externalVideoRequested&&['allowed','rights-gated'].includes(acquisitionPolicy.external_media_download)){
+          const query=externalSceneVideoQuery(job.input.message);job.stage='搜索外部场景视频';await save(p);
+          try{
+            const candidate=await searchCommonsVideo(query,{signal});
+            const asset=await downloadCommonsVideo(candidate,{root,projectDirectory:directory(p),signal});
+            if(!p.assets.some(item=>item.id===asset.id))p.assets.push(asset);
+            job.externalAsset={status:'downloaded-candidate',assetId:asset.id,query:candidate.query,sourceUrl:candidate.sourceUrl,downloadUrl:candidate.downloadUrl,license:candidate.license,artist:candidate.artist,sha256:asset.sha256,rightsStatus:asset.rights.status,deliveryStatus:'candidate-only'};
+            p.messages.push({role:'assistant',text:`已检索并登记 Wikimedia Commons 外部场景视频候选（${candidate.title}，${candidate.license}）。其权利状态为待审核，当前仅作候选素材。`,attachmentIds:[asset.id],time:now()});await save(p);
+          }catch(error){
+            job.externalAsset={status:'search_failed',query,code:error.code||'EXTERNAL_ASSET_FAILED',error:error.message};
+            job.status='needs_user';job.code='EXTERNAL_VIDEO_UNAVAILABLE';job.stage='等待可用外部视频';job.error=`外部场景视频检索或下载失败：${error.message}`;job.question=job.error;job.requiredInputs=['authorized-external-video'];job.gaps=['external-video'];job.completedAt=now();p.messages.push({role:'assistant',text:job.error,time:now()});await save(p);return;
+          }
+        }else if(externalVideoRequested&&acquisitionPolicy.external_media_download==='blocked'){
+          job.externalAsset={status:'blocked-by-policy',query:externalSearchQuery(job.input.message)+' video'};job.status='needs_user';job.code='EXTERNAL_MEDIA_BLOCKED';job.stage='等待获准的外部素材来源';job.error='服务端策略禁止下载外部视频，请上传已授权的场景视频。';job.question=job.error;job.requiredInputs=['authorized-external-video'];job.gaps=['external-video'];job.completedAt=now();await save(p);return;
+        }
+        const hasUploadedVideo=p.assets.some(asset=>asset.kind==='video'&&asset.mediaMetadata?.duration);
+        if(acquisitionPolicy.runninghub_generation==='allowed'&&!hasUploadedVideo){
         if(!p.assets.some(a=>['image','video'].includes(a.kind))){
           job.stage='搜索可用商品与场景素材';await save(p);
           const query=externalSearchQuery(job.input.message);
