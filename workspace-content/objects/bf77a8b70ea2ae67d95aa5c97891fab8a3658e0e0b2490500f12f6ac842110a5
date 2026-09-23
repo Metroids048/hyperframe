@@ -1,0 +1,121 @@
+{
+  "summary": "已逐图检查本批scene-04至scene-06的12张关键帧。可见闭包、开盖露出主机、取机、正背面展示及正面倾斜；“正面按键布局”与其出现时的画面相符，21.6秒已退场。发现末帧源内截断及烧录图形干扰、跨幕布局位置不一致，需局部修复。仅为关键帧审查，不代表全片或声音通过。",
+  "issues": [
+    {
+      "severity": "major",
+      "repairKind": "source-selection",
+      "sceneId": "scene-06",
+      "startSeconds": 22.167,
+      "endSeconds": 22.2,
+      "nodeIds": [
+        "node-463454b7137a4ae0"
+      ],
+      "evidence": [
+        "review-attempt-h8s5Rc/round-0/batch-1/frame-11-at-22.167s.png"
+      ],
+      "problem": "对应requirement-d5cb94f4b38dc23d及requirement-971bd5b7a7f20eed：末帧主机被源画面上边界截断，手臂上出现红色烧录图形及残缺白字，干扰商品观察。实际证据不支持本镜已在烧录文字出现前结束。",
+      "repair": "由导演重选本镜原生视频源区间：逐帧定位烧录图形首次出现及主机出画时刻，将出点置于两者之前；向前寻找可维持本镜2秒的连续清晰正面窗口，并同步调整对应原声源区间。保留署名、原速及全片24秒，不以裁切、遮盖或冻结隐藏问题。重新渲染并检查整段及最后数帧；无足够窗口则记录素材缺口。"
+    },
+    {
+      "severity": "minor",
+      "repairKind": "layout",
+      "sceneId": "scene-05",
+      "startSeconds": 17.1,
+      "endSeconds": 20.2,
+      "nodeIds": [
+        "node-8c3f42e2206303cd"
+      ],
+      "evidence": [
+        "review-attempt-h8s5Rc/round-0/batch-1/frame-04-at-17.4s.png",
+        "review-attempt-h8s5Rc/round-0/batch-1/frame-07-at-20.167s.png"
+      ],
+      "problem": "本镜媒体窗口在540×960预览中位于约y=328—632，相比上一镜约y=300—604下移28像素，不符合design规定的全片固定媒体窗口，切点产生无叙事作用的位置跳动。",
+      "repair": "仅统一本镜媒体容器的纵向位置至全片共享窗口坐标；保留完整16:9比例、contain、源区间和原声。重新渲染17.1秒切点两侧，确认窗口边界对齐且未新增裁切。"
+    },
+    {
+      "severity": "minor",
+      "repairKind": "layout",
+      "sceneId": "scene-06",
+      "startSeconds": 20.2,
+      "endSeconds": 22.2,
+      "nodeIds": [
+        "node-6e44eccf95573156"
+      ],
+      "evidence": [
+        "review-attempt-h8s5Rc/round-0/batch-1/frame-08-at-20.5s.png",
+        "review-attempt-h8s5Rc/round-0/batch-1/frame-10-at-21.6s.png"
+      ],
+      "problem": "对应requirement-76983e27c330441d及design.labelStyle：署名仍清晰可见，但在本镜移至预览约y=671，前镜约y=751，切点上跳约80像素，违反署名各切点位置不变的设计约束。",
+      "repair": "将本镜署名位置绑定到前镜使用的共享署名坐标，保留原文、字号和独立可编辑对象。检查20.2秒切点两侧及本镜全段，确认署名静止、持续可读且位于媒体外。"
+    }
+  ],
+  "unreviewed": [
+    "未连续播放；13.1秒仅见纸箱和手、包体尚未进入有效展示，无法据单帧确定空等持续时间。开盖、取机和翻转的完整性及切点流畅度仍待连续核验。",
+    "未试听，原声保留情况、音画同步、讲话完整性及切点听感未评。",
+    "本批不含scene-01至scene-03及scene-07的实际画面；前2秒主体建立、全片节奏和最终收束未评。sourceTimeline未显示源区间重叠，不能据此判定完整叙事已通过。",
+    "关键帧与animationEvidence支持标签使用遮罩揭示并及时退场，但实际运动流畅度及完整阅读时间未连续验证。",
+    "最终MP4技术检查、原生工程可编辑性、版本绑定及素材许可链未验证。"
+  ],
+  "frameTimes": [
+    {
+      "file": "review-attempt-h8s5Rc/round-0/batch-1/frame-00-at-13.1s.png",
+      "seconds": 13.1,
+      "sceneId": "scene-04"
+    },
+    {
+      "file": "review-attempt-h8s5Rc/round-0/batch-1/frame-01-at-14.52s.png",
+      "seconds": 14.52,
+      "sceneId": "scene-04"
+    },
+    {
+      "file": "review-attempt-h8s5Rc/round-0/batch-1/frame-02-at-15.81s.png",
+      "seconds": 15.81,
+      "sceneId": "scene-04"
+    },
+    {
+      "file": "review-attempt-h8s5Rc/round-0/batch-1/frame-03-at-17.067s.png",
+      "seconds": 17.067,
+      "sceneId": "scene-04"
+    },
+    {
+      "file": "review-attempt-h8s5Rc/round-0/batch-1/frame-04-at-17.4s.png",
+      "seconds": 17.4,
+      "sceneId": "scene-05"
+    },
+    {
+      "file": "review-attempt-h8s5Rc/round-0/batch-1/frame-05-at-18.34s.png",
+      "seconds": 18.34,
+      "sceneId": "scene-05"
+    },
+    {
+      "file": "review-attempt-h8s5Rc/round-0/batch-1/frame-06-at-19.27s.png",
+      "seconds": 19.27,
+      "sceneId": "scene-05"
+    },
+    {
+      "file": "review-attempt-h8s5Rc/round-0/batch-1/frame-07-at-20.167s.png",
+      "seconds": 20.167,
+      "sceneId": "scene-05"
+    },
+    {
+      "file": "review-attempt-h8s5Rc/round-0/batch-1/frame-08-at-20.5s.png",
+      "seconds": 20.5,
+      "sceneId": "scene-06"
+    },
+    {
+      "file": "review-attempt-h8s5Rc/round-0/batch-1/frame-09-at-21s.png",
+      "seconds": 21,
+      "sceneId": "scene-06"
+    },
+    {
+      "file": "review-attempt-h8s5Rc/round-0/batch-1/frame-10-at-21.6s.png",
+      "seconds": 21.6,
+      "sceneId": "scene-06"
+    },
+    {
+      "file": "review-attempt-h8s5Rc/round-0/batch-1/frame-11-at-22.167s.png",
+      "seconds": 22.167,
+      "sceneId": "scene-06"
+    }
+  ]
+}

@@ -1,0 +1,243 @@
+{
+  "blockingGaps": [],
+  "gaps": [
+    "已有抽帧观察支持掌机整体、左右双摇杆及左右方形面板；连续镜头切点、稳定长度与约24秒有效内容仍需应用复核，不能重复或慢放凑时长。",
+    "横向主体尚无经验证的竖屏安全裁切范围；优先完整适配并留边，后续预览检查屏幕、控制区及手部保护。",
+    "后段LIKED、SUBSCRIBE等烧录贴片不可独立编辑，出现边界待核；不得为避开贴片裁掉必要外观。",
+    "原声音轨尚未听取，需核对语音、音乐与源时间同步；保留音轨及关联，不默认静音或直接混入成片。未有明确授权音乐，不安排新增音乐、旁白或音效。",
+    "具体版本、容量和功能参数未知，不影响使用“掌机”等中性标题；不添加价格、性能、续航或新型号信息。",
+    "素材使用权记录尚未核验，内部候选不代表正式商用或发布批准。",
+    "资源仅完成规划选择；具体蓝图哈希、中文字体、依赖、许可与原生适配渲染仍由应用核验，不代表已安装或执行。"
+  ],
+  "originalNeeds": [
+    "用受管原生媒体容器制作1080×1920、30fps构图：完整保留横向掌机，主体外留白承载中文短标题，文字面积不超过画面25%，安全边距至少6%。",
+    "按正面认物、必要的包装身份辅助、两个外观重点、整体收尾组织真实片段；优先47.279—49.286秒正面候选开场，连续复核后确定剪辑点与约24秒时长，不强行套固定幕数。",
+    "为双摇杆及左右方形面板分别设计独立可编辑的细线标记，位置依据实际帧核定，每次只强调一个重点，不遮挡控制区、不推断触控功能。",
+    "保留视频、短标题、标记和原声音轨为独立原生对象，记录源时间映射；标题组件只控制自身文字与强调线，不修改媒体变换或声音。",
+    "结尾使用经核验的完整掌机画面自然停留，不增加购买催促；资源适配交由应用按合同v2完成原生转换、编译、隔离和检查，不执行上游脚本、不升级0.8.33。"
+  ],
+  "selected": [
+    {
+      "id": "lt-mask-reveal",
+      "reason": "透明轻标题适合持续实拍上的“掌机亮相”“左右双摇杆”“左右方形面板”。按HyperFrames 0.8.33、来源提交6e3308be4f2ab886597fcee7c5896a5f842ec4b6的候选结构适配：缩短强调线扫入、保持短标题静读，依次绑定相应外观镜头，放在主体外留白。每次仅一个标题实例入场，与原生细线标记错开动效，避免共享属性冲突；不采用全屏文字接管、双栏比较或参数网格。"
+    }
+  ],
+  "candidates": [
+    {
+      "id": "lt-mask-reveal",
+      "tags": [
+        "video",
+        "action",
+        "text",
+        "操作",
+        "实拍",
+        "口播",
+        "标签",
+        "文字"
+      ],
+      "inputs": [
+        "video"
+      ],
+      "description": "Transparent editable lower-third over continuing footage; no stat, price, or full-screen text takeover is required. Adapt the wipe and accent sweep to approved native text, local fonts and the managed timeline.",
+      "files": [
+        "registry/blocks/lt-mask-reveal/registry-item.json",
+        "registry/blocks/lt-mask-reveal/lt-mask-reveal.html"
+      ],
+      "requirements": {
+        "minMedia": 1,
+        "mediaKinds": [
+          "video"
+        ],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 1,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "titlecard-reveal",
+      "tags": [
+        "title",
+        "brand",
+        "text",
+        "收尾",
+        "标题"
+      ],
+      "inputs": [],
+      "files": [
+        "skills/hyperframes-animation/blueprints/titlecard-reveal.md",
+        "skills/hyperframes-animation/rules/discrete-text-sequence.md"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 1,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "comparison-split",
+      "tags": [
+        "compare",
+        "detail",
+        "image",
+        "比较",
+        "细节",
+        "双栏"
+      ],
+      "inputs": [
+        "visual-pair"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/comparison-split.md",
+        "skills/hyperframes-animation/rules/split-tilt-cards.md",
+        "registry/components/comparison-split/registry-item.json",
+        "registry/components/comparison-split/comparison-split.html"
+      ],
+      "requirements": {
+        "minMedia": 2,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 1,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "video-text-pivot",
+      "tags": [
+        "video",
+        "action",
+        "操作",
+        "实拍",
+        "讲解"
+      ],
+      "inputs": [
+        "video"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/video-text-pivot.md",
+        "skills/hyperframes-animation/rules/gsap-effects.md"
+      ],
+      "requirements": {
+        "minMedia": 1,
+        "mediaKinds": [
+          "video"
+        ],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "occluding",
+      "compatible": true,
+      "eligible": true,
+      "score": 1,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "grid-card-assemble",
+      "tags": [
+        "image",
+        "details",
+        "steps",
+        "参数",
+        "配件",
+        "步骤"
+      ],
+      "inputs": [],
+      "files": [
+        "skills/hyperframes-animation/blueprints/grid-card-assemble.md",
+        "skills/hyperframes-animation/rules/gsap-effects.md"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 1,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "caption-editorial-emphasis",
+      "tags": [
+        "caption",
+        "speech",
+        "字幕",
+        "口播",
+        "强调"
+      ],
+      "inputs": [
+        "text"
+      ],
+      "description": "Editable editorial text emphasis; align spoken captions to measured transcript timestamps, never invented timing.",
+      "files": [
+        "registry/components/caption-editorial-emphasis/registry-item.json",
+        "registry/components/caption-editorial-emphasis/caption-editorial-emphasis.html"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 0,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "kinetic-type-beats",
+      "tags": [
+        "text",
+        "caption",
+        "文字",
+        "字幕",
+        "强调"
+      ],
+      "inputs": [
+        "text"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/kinetic-type-beats.md",
+        "skills/hyperframes-animation/rules/discrete-text-sequence.md"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "occluding",
+      "compatible": true,
+      "eligible": true,
+      "score": 0,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    }
+  ],
+  "originalRequest": "用这些掌机素材做一条约24秒竖屏商品亮相演示，让人先认出是什么，再记住两个看得见的外观重点。画面为主，中文短标题，可加已有授权音乐，不加旁白、不报价格，不编游戏性能、续航和新型号信息。",
+  "assetKinds": {
+    "asset-9b1846f1-5566-4fc7-b97a-e10fcd7e9a3f": "video"
+  }
+}

@@ -1,0 +1,146 @@
+d home video   | compare 8mm and VHS language against the source                                                 | finite weave/flicker or justified HUD                           | that every old-video request means VHS          |
+| hide this face                        | explain that realtime effects are whole-media; isolate the region first or use an external tool | whole-media Blur/Pixelate only when the user accepts that scope | face tracking or masking that was not performed |
+| keep the brand colors exact           | leave UI/logo pixels unchanged; use framing and motion                                          | demonstrated exposure-only correction                           | stylized preset, palette, or LUT                |
+
+When more than one lane could fit, generate at most two candidates and choose
+from inspected before/after evidence. Ordinary correction or polish starts with
+one candidate; a second candidate is an escalation, not the default. Do not
+stack effects merely to make the answer look more sophisticated.
+
+## Seed or assemble
+
+Use the table when a tested recipe directly fits. Read only that recipe
+section. Recipes are optional macros, not a closed list of allowed results.
+
+| Intent or source                                         | Recipe heading to read                            |
+| -------------------------------------------------------- | ------------------------------------------------- |
+| Talking head, interview, presenter, people-focused photo | `Natural Portrait`                                |
+| Product footage, lifestyle footage, clean social polish  | `Product Polish`                                  |
+| Screen capture, dashboard, website, app UI               | `UI Fidelity`                                     |
+| Warm memory, restrained nostalgia                        | `Film Memory`                                     |
+| Creator/UGC handheld camera character                    | `Creator Camcorder`                               |
+| Analog tape playback                                     | `VHS Playback`                                    |
+| Small-gauge home-movie character                         | `8mm Home Movie`                                  |
+| Editorial dots or ink print                              | `Editorial Halftone` or `Two-Ink Editorial Print` |
+| Monochrome dot/line screen print                         | `Monochrome Screen Print`                         |
+| Engraved or hand-hatched illustration                    | `Engraved Illustration` or `Crosshatched Sketch`  |
+| Curved scanlined display                                 | `CRT Display`                                     |
+| Glyph-based art                                          | `Procedural ASCII`                                |
+| Realtime palette quantization                            | `Ordered Palette Dither`                          |
+| Exact historical error diffusion                         | `Cached Error Diffusion`                          |
+| Finite warm flare layer                                  | `Organic Light Leak`                              |
+| Held-frame graphic interruption                          | `Freeze-Frame Cutout`                             |
+| Short exposure-flash transition                          | `Social Flash / Editorial Reveal`                 |
+
+Use `rg -n '^## <heading>$' <SKILL_DIR>/references/media-treatment-recipes.md`,
+then read only from that heading to the next `##`. Do not load the entire
+cookbook for one request.
+
+When source intent is unclear, inspect the concise capability overview:
+
+```bash
+hyperframes media-treatment --capabilities --json
+```
+
+It lists the complete surface by family with one-line descriptions. Then load
+only the family, effect, preset, or palette relevant to the inspected source:
+
+```bash
+hyperframes media-treatment --capability <id> --json
+```
+
+The focused result provides legal controls, recommended apply values, render
+cost, palette support, and the exact animation contract when supported. Use
+`--all` only for tooling/tests or a genuinely exhaustive audit. Compose one
+nested payload from these existing parts. Recipes and catalog-built payloads
+use the same renderer and persistence contract.
+
+Treat `renderLane: "multipass"` as a cost signal. Blur, Bloom, and Kuwahara are
+bounded but more expensive than single-pass effects; avoid stacking several of
+them across many simultaneous media elements unless the composition needs it,
+then verify playback and a draft render.
+Cost follows treated pixel area as well as element count. More than two
+simultaneously visible full-frame multipass media layers requires a continuous
+playback check on the target machine; simplify or pre-render the stack if it
+drops frames. Do not impose or claim a universal hard cap from one machine.
+
+## Common workflow
+
+1. Confirm the target is a real `<img>` or `<video>` and inspect source color
+   metadata.
+2. For an image, read it once. For video, capture early/middle/late output as
+   one labeled sheet and read that one image:
+
+   ```bash
+   hyperframes snapshot <project> --frames 3 --no-end --describe false \
+     --output snapshots/treatment-before
+   ```
+
+   Read `snapshots/treatment-before/contact-sheet.jpg`; do not spend separate
+   model turns reading each frame unless the sheet exposes a specific problem.
+   Do not infer semantics from signal statistics alone.
+
+3. Choose one primary lane. Use one matching recipe as a tested seed, or read
+   the overview and one focused capability detail when the request is bespoke.
+   A seed may be changed or combined with compatible catalog controls when the
+   contact sheet justifies it. Do not invent keys, exceed reported ranges, or
+   stack effects without a visual reason. Do not run the generic grade/LUT
+   resolver first; it adds irrelevant candidates and may download an unused
+   LUT. Use `media-treatment --selector "#hero" --analyze --json` only when
+   correction needs measured signal evidence.
+4. Persist pixel settings with `hyperframes media-treatment`; it validates and
+   merges a patch into the existing nested `data-color-grading` contract. Use registered
+   GSAP only for supported animated values and Registry overlay blocks only
+   for authored dressing.
+   ```bash
+   hyperframes media-treatment --selector "<unique selector>" \
+     --grading '<nested JSON patch>' --apply --json
+   ```
+   For a temporal reveal, use the focused capability result's `animation`
+   contract. If it is `null`, the capability is static. Author the starting CSS
+   property inline on the real media element and return temporary treatment
+   values to neutral so the finished shot preserves its existing pixels.
+   Prefer that bounded media animation first; if an overlay is justified,
+   install the owned Registry block instead of recreating it with bespoke
+   overlay markup.
+   For correction and ordinary polish, keep those values as editable
+   preset/adjustment JSON; do not generate a LUT for controls the realtime shader
+   already owns.
+   Use the canonical `details`/`effects` fields for vignette, grain, blur,
+   pixelate, and related primitives. Do not duplicate them with CSS filters,
+   SVG turbulence, opacity, or decorative DOM overlays.
+5. When the treatment calls for an overlay, install that named block with
+   `hyperframes add <name> --dir <project> --no-clipboard --json`, inspect its
+   returned `data-composition-src` host, and place it once using the block's
+   timing contract. Check for the installed file and host element
+   ID before insertion; never duplicate an existing overlay block. This is one
+   treatment workflow: do not make the user discover Catalog or separately ask
+   for the recipe's justified overlay.
+6. For ordinary correction/polish, capture one after-sheet with the same three
+   timestamps under `snapshots/treatment-after`, compare it to the before-sheet,
+   and stop when the result is clearly better. Run the normal project check;
+   do not encode a draft solely to prove a static correction.
+7. Escalate only when evidence requires it. Read individual frames to diagnose a
+   specific visual problem. Preview and render moving evidence when judging
+   treatment keyframes, glitch/tape motion, overlays, playback smoothness, LUT
+   timing, or any other temporal behavior. HDR/LOG, privacy, and brand-sensitive
+   work also require the existing explicit caveats and stronger verification.
+   If the treatment is not clearly better, keep the source unchanged.
+8. Report the selected media, primary intent, recipe seed if used, final
+   composed controls, optional overlays, and the frames/render that were
+   actually checked. Do not report visual quality from command success alone.
+
+`media-treatment --analyze` provides deterministic clipping and signal
+evidence for local composition media, not subject recognition or automatic
+taste. It reports HDR/metadata caveats and a bounded primary-correction patch;
+it does not invent wheels, curves, or HSL selections from statistics.
+
+</guidance>
+修正观察合同。框是归一化[x,y,width,height]，不是右下坐标；无法确认可留空。只需观察获准使用的素材，其余不能借相似外观建立同型号关系。inspectRanges为空，不重复已执行的抽帧。
+
+<editing_input>
+[{"role":"user","content":"{\"message\":\"使用新提供的4K耳机实拍，制作面向首次认识商品的单品上新短片。横屏约20至25秒，以真实耳机取下、佩戴和最终使用状态建立认知；按素材自然节奏挑选，保留完整收尾。主体全片可见，文字少而精，采用克制的编辑式排版和细节强调。不要使用历史商品图片，不要编造品牌、价格、音质、降噪或性能。原素材无声，本片静音，不加旁白或音乐。输出可编辑候选工程和视频，审查实际效果后修复。\",\"brief\":{\"request\":{\"name\":\"4K耳机\",\"cta\":\"\",\"price\":\"\",\"facts\":[],\"output\":{\"width\":1920,\"height\":1080,\"durationSeconds\":25,\"fps\":30}},\"needsTranscription\":false,\"needsNarration\":false,\"needsCaptions\":true,\"keepOriginalAudio\":false,\"capabilities\":[\"video-source-selection\",\"native-composition\",\"local-preview-review\",\"native-editing\"],\"gaps\":[\"尚未实际观察视频内容，暂不能确认耳机取下、佩戴和最终使用状态均存在\"],\"constraints\":[\"面向首次认识商品的消费者\",\"使用新提供的耳机实拍素材，不使用历史商品图片\",\"横屏约20至25秒\",\"主体全片可见\",\"文字少而精，采用克制的编辑式排版和细节强调\",\"保留完整收尾\",\"不编造品牌、价格、音质、降噪或性能\",\"原素材无声，本片静音，不加旁白或音乐\",\"输出可编辑候选工程和视频，并在审查实际效果后修复\"],\"scenarioId\":\"product_launch\"},\"prior\":{\"observations\":[{\"assetId\":\"asset-2614766c-99c7-4bfd-910b-b1ef26fe04ec\",\"visibleContent\":\"横屏4K实拍：白胡子男性在桌前从手持耳机、胸前调整，到将耳机举至头部并佩戴，随后正面保持佩戴状态。加密关键帧覆盖0.100–25.094秒，主体和耳机持续可见。\",\"uncertainty\":\"关键帧显示了拿起/调整、举至头部、佩戴和佩戴后状态，但未能仅凭抽帧确认“取下”动作，也未确认中间连续动作的精确边界。胸前操作细节仍不完全可辨。未观察音频内容；元数据标记无音频。\",\"role\":\"overview\",\"productGroup\":\"4K耳机\",\"subjectBox\":[0.05,0.1,0.96,0.98],\"safeCrop\":[0,0,1,1],\"confidence\":0.8,\"quality\":\"画面清晰、横屏稳定构图，主体全程基本完整；手部与耳机区域可见。\",\"visibleText\":[],\"sameProductAs\":[],\"differentProductFrom\":[]},{\"assetId\":\"asset-2614766c-99c7-4bfd-910b-b1ef26fe04ec\",\"visibleContent\":\"可观察到耳机由手持/胸前调整状态转为举到头部，再完成双手放置到耳侧，18秒后维持正面佩戴状态至片尾。\",\"uncertainty\":\"无法证明存在明确取下动作；无法从关键帧确认按钮、接口或其他功能细节。\",\"role\":\"usage\",\"productGroup\":\"4K耳机\",\"subjectBox\":[0.05,0.1,0.96,0.98],\"safeCrop\":[0,0,1,1],\"confidence\":0.68,\"quality\":\"动作阶段可区分，但需连续视频核验剪辑边界和动作完整性。\",\"visibleText\":[],\"sameProductAs\":[],\"differentProductFrom\":[]}],\"candidates\":[{\"assetId\":\"asset-2614766c-99c7-4bfd-910b-b1ef26fe04ec\",\"startSeconds\":0.5,\"endSeconds\":4.2,\"reason\":\"拿起并靠近耳机的早段候选；可能是准备动作，不能确认取下。\"},{\"assetId\":\"asset-2614766c-99c7-4bfd-910b-b1ef26fe04ec\",\"startSeconds\":4.2,\"endSeconds\":8.2,\"reason\":\"胸前双手处理/调整耳机候选，具体操作需连续观察。\"},{\"assetId\":\"asset-2614766c-99c7-4bfd-910b-b1ef26fe04ec\",\"startSeconds\":8.2,\"endSeconds\":12.5,\"reason\":\"将耳机举至头部的准备阶段。\"},{\"assetId\":\"asset-2614766c-99c7-4bfd-910b-b1ef26fe04ec\",\"startSeconds\":12.5,\"endSeconds\":16.8,\"reason\":\"双手将耳机放到耳侧，最可能包含完整佩戴动作。\"},{\"assetId\":\"asset-2614766c-99c7-4bfd-910b-b1ef26fe04ec\",\"startSeconds\":16.8,\"endSeconds\":21.2,\"reason\":\"佩戴完成后的正面展示，可支撑最终状态。\"},{\"assetId\":\"asset-2614766c-99c7-4bfd-910b-b1ef26fe04ec\",\"startSeconds\":21.2,\"endSeconds\":25.834,\"reason\":\"持续佩戴状态，可作为完整收尾。\"}],\"inspectRanges\":[],\"gaps\":[\"仅有加密关键帧，未取得连续视频证据，无法确认取下、调整、佩戴动作的精确起止及连续性。\",\"不能证明明确“取下”动作存在；若该动作是必需叙事，当前素材证据不足。\",\"未核实品牌、价格、音质、降噪或其他性能，文案只能使用中性可观察描述。\",\"素材元数据无音频；本片应保持静音。\"]},\"validationError\":\"观察 asset-2614766c-99c7-4bfd-910b-b1ef26fe04ec.subjectBox=[0.05,0.1,0.96,0.98] 必须为归一化[x,y,width,height]：width>0、height>0、x+width<=1、y+height<=1。当前右边界=1.01，下边界=1.08。例如左上(0.4,0.25)、右下(0.63,0.73)应输出[0.4,0.25,0.23,0.48]；无法确认可输出[]，不得猜测。\",\"attempt\":0,\"metadata\":[{\"id\":\"asset-2614766c-99c7-4bfd-910b-b1ef26fe04ec\",\"kind\":\"video\",\"duration\":25.834,\"frames\":775,\"width\":1920,\"height\":1080,\"rotation\":0,\"hasAudio\":false,\"videoCodec\":\"h264\",\"pixelFormat\":\"yuv420p\",\"audioCodec\":null,\"sourceFps\":\"30/1\",\"nominalFps\":\"30/1\",\"size\":21086135,\"sourceStartSeconds\":0,\"sourceDurationSeconds\":25.84}],\"businessContract\":{\"schemaVersion\":1,\"profile\":\"commerce-focus-v1\",\"scenarioId\":\"product_launch\",\"originalRequest\":\"使用新提供的4K耳机实拍，制作面向首次认识商品的单品上新短片。横屏约20至25秒，以真实耳机取下、佩戴和最终使用状态建立认知；按素材自然节奏挑选，保留完整收尾。主体全片可见，文字少而精，采用克制的编辑式排版和细节强调。不要使用历史商品图片，不要编造品牌、价格、音质、降噪或性能。原素材无声，本片静音，不加旁白或音乐。输出可编辑候选工程和视频，审查实际效果后修复。\",\"persona\":{\"creator\":\"商家／内容运营（待用户研究验证）\",\"viewer\":\"首次了解商品的消费者\"},\"objective\":\"吸引首次观看者继续了解商品\",\"product\":{\"id\":\"product-1\",\"name\":\"\",\"facts\":[],\"price\":null,\"cta\":\"\",\"audience\":null,\"prohibited\":[]},\"output\":{\"width\":1080,\"height\":1920,\"durationSeconds\":30,\"fps\":30},\"audio\":\"silent\",\"mustHave\":[],\"mustNot\":[],\"generatedFootageAllowed\":false,\"deliverables\":[\"candidate_mp4\",\"editable_project\",\"source_index\",\"quality_report\"]},\"scenarioResources\":{\"template\":{\"id\":\"commerce-launch-v1\",\"version\":1,\"structure\":[\"建立商品\",\"真实使用\",\"可信细节\",\"整体回归与收尾\"],\"components\":[\"hero_media\",\"title\",\"detail_callout\",\"caption\",\"ending\"],\"rule\":\"按有效内容调整镜头，不按槽位补造内容；先主体、后说明；价格与Logo可缺省。\"},\"components\":{\"hero_media\":{\"nativeKinds\":[\"video\",\"image\"],\"purpose\":\"保护主体的真实媒体容器\",\"resources\":[\"video-text-pivot\",\"comparison-split\"]},\"title\":{\"nativeKinds\":[\"text\"],\"purpose\":\"独立可改的标题\",\"resources\":[\"titlecard-reveal\"]},\"detail_callout\":{\"nativeKinds\":[\"text\",\"shape\"],\"purpose\":\"与可信细节对应的标注\",\"resources\":[\"comparison-split\",\"lt-ma[redacted]\"]},\"caption\":{\"nativeKinds\":[\"text\"],\"purpose\":\"普通字幕与声音独立\",\"resources\":[\"caption-editorial-emphasis\"]},\"ending\":{\"nativeKinds\":[\"text\",\"video\"],\"purpose\":\"完整收尾和已提供的下一步提示\",\"resources\":[\"titlecard-reveal\"]}},\"sha256\":\"7e684f50dd4ef5484357229720064e13b4605f932282470b27cd3df262b78c32\"},\"scenePackage\":{\"id\":\"product_launch\",\"version\":\"3.0.0\",\"hash\":\"dd6f72e387f8eb58ad3880d62431446c062709c5739e984072588f3fd94a7f18\",\"rules\":{\"MATERIAL_POLICY.md\":\"# MATERIAL_POLICY\\n\\n扫描所有目录素材；读取metadata和带时间观察证据，按同款身份、hero、usage、detail、supporting分类并记录拒绝原因。不从文件名猜事实。依据源证据重排镜头；不把多张相似图当内容，不通过长静帧凑时长。\\n\"}},\"creativeDirection\":null}\n视频 asset-2614766c-99c7-4bfd-910b-b1ef26fe04ec，实际时长 25.834s；本页源时间 1.076, 5.382, 9.688, 13.993, 18.299, 22.605 秒。只按这些真实画面判断动作，不能把备料/倒粉误称研磨，不能把倒水当成倒咖啡。未观察到的动作应继续查素材或说明，禁止从文件名和用户预期补写画面。\n【附图 1】\nasset-2614766c-99c7-4bfd-910b-b1ef26fe04ec 加密画面，按从左至右逐行对应源秒数：0.100,0.767,1.433,2.100,2.767,3.433,4.100,4.767,5.433\n【附图 2】\nasset-2614766c-99c7-4bfd-910b-b1ef26fe04ec 加密画面，按从左至右逐行对应源秒数：6.117,6.894,7.672,8.450,9.228,10.006,10.783,11.561,12.339\n【附图 3】\nasset-2614766c-99c7-4bfd-910b-b1ef26fe04ec 加密画面，按从左至右逐行对应源秒数：12.100,12.767,13.433,14.100,14.767,15.433,16.100,16.767,17.433\n【附图 4】\nasset-2614766c-99c7-4bfd-910b-b1ef26fe04ec 加密画面，按从左至右逐行对应源秒数：18.131,19.001,19.871,20.742,21.612,22.483,23.353,24.224,25.094\n【附图 5】"}]
+</editing_input>
+ERROR: Selected model is at capacity. Please try a different model.
+ERROR: Selected model is at capacity. Please try a different model.
+2026-09-15T02:25:30.501062Z  WARN codex_core::shell_snapshot: Failed to delete shell snapshot at AbsolutePathBuf("/Users/a1234/.codex/shell_snapshots/01a0a2e1-e88e-7652-ab51-1366ad10c711.1789439109263353000.sh"): Os { code: 2, kind: NotFound, message: "No such file or directory" }

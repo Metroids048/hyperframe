@@ -1,0 +1,36 @@
+{
+  "answer": {
+    "source": {
+      "html": "<div id=\"root\"><div id=\"media-1\"></div><div id=\"text-1\">Mijia Compact Camera</div></div>",
+      "css": "#root{position:relative;width:1920px;height:1080px;overflow:hidden;background-color:transparent;font-family:Arial,sans-serif;color:#171717}#media-1{position:absolute;inset:0;width:1920px;height:1080px;overflow:hidden;z-index:1}#text-1{position:absolute;left:0;right:0;top:50%;margin-top:-28px;width:100%;z-index:2;text-align:center;font-size:46px;font-weight:400;line-height:1.2;color:#171717;white-space:nowrap}",
+      "timeline": "",
+      "parameters": [],
+      "objects": [
+        {
+          "elementId": "media-1",
+          "ref": "media-1"
+        },
+        {
+          "elementId": "text-1",
+          "ref": "text-1"
+        }
+      ],
+      "motionTargets": [],
+      "textStyles": [
+        {
+          "elementId": "text-1",
+          "match": "Mijia Compact Camera",
+          "fontSize": 46,
+          "fontWeight": 400,
+          "color": "#171717"
+        }
+      ]
+    },
+    "notes": "选用1.1333333333333333秒作为本镜头静态关键帧，对应素材源66.600秒之后的标题卡中段。保持横屏留白、实拍底层与独立标题文字，不添加CTA、价格、性能或声音。",
+    "keyframeAtSeconds": 1.1333333333333333
+  },
+  "error": {
+    "code": "KEYFRAME_SOURCE",
+    "message": "[{\"severity\":\"major\",\"repairKind\":\"text-contract\",\"problem\":\"静态关键帧 1.133 秒（源 67.233 秒）中，源片已有的“Mijia Compact Camera”标题与新增文字对象 node-ac51ff9f0b6463a0 的同名文字重复叠加，形成两组不同字号、位置和基线的重叠标题。画面中心可见明显文字冲突，破坏收尾卡的留白与可读性。证据：合成关键帧 keyframes/scene-06-e3c7703d773bcf93/frames/frame-00-at-1.133s.png；同刻未包装源画面已包含该标题，addedTextObjects明确包含新增叠层。影响：观众会感到标题重复或排版错误，且不符合“不叠加额外说明、保留原有标题卡留白与字样”的镜头说明。最小修复：由故事导演修订文字对象合同，移除本镜头新增文字对象 node-ac51ff9f0b6463a0，仅保留源片标题；保持 asset-20c27ed0-26a8-428f-a232-2042a6e946a1、源区间 66.100–68.567 秒、2.5 秒时长和静音合同不变。验证：重新生成该关键帧并确认画面只出现一组源片标题，随后检查入点与末帧仍为连续标题卡。\",\"repair\":\"删除新增文本对象 node-ac51ff9f0b6463a0；不得通过色块遮盖或裁切源片已有标题来修复。\"}]"
+  }
+}

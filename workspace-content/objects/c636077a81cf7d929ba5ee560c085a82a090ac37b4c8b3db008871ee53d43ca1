@@ -1,0 +1,21 @@
+file:///Users/a1234/Desktop/hyperframe-main/video-agent/lib/openclaw/directory-lease.mjs:6
+function locked(message, details){const error=new Error(message);error.code='DATA_DIR_LOCKED';error.status=503;error.details=details;return error;}
+                                              ^
+
+Error: 业务数据目录已由另一个服务实例写入
+    at locked (file:///Users/a1234/Desktop/hyperframe-main/video-agent/lib/openclaw/directory-lease.mjs:6:47)
+    at acquireDirectoryLease (file:///Users/a1234/Desktop/hyperframe-main/video-agent/lib/openclaw/directory-lease.mjs:27:69)
+    at async acquireDirectoryLeases (file:///Users/a1234/Desktop/hyperframe-main/video-agent/lib/openclaw/directory-lease.mjs:36:97)
+    at async file:///Users/a1234/Desktop/hyperframe-main/video-agent/server.mjs:28:20 {
+  code: 'DATA_DIR_LOCKED',
+  status: 503,
+  details: {
+    directory: '/Users/a1234/Desktop/hyperframe-main/video-agent/data/openclaw-bridge',
+    lockFile: '/Users/a1234/Desktop/hyperframe-main/video-agent/data/openclaw-bridge/.video-agent-writer.lock',
+    pid: 28187,
+    host: '1234deMacBook-Pro-2.local',
+    startedAt: '2026-09-19T12:02:35.109Z'
+  }
+}
+
+Node.js v24.19.0

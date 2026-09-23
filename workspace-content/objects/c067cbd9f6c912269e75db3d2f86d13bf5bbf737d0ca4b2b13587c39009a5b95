@@ -1,0 +1,245 @@
+{
+  "blockingGaps": [],
+  "gaps": [
+    "素材已完成接触表观察；连续清晰度、各单品有效曝光和30秒内容组合仍需实际剪辑预览验证，采样包络不等于批准剪点。",
+    "横屏素材尚无已验证的9:16安全裁切；优先完整容纳，局部放大须验证商品可辨识度及遮挡。",
+    "静物与佩戴商品的严格同款关系未确认；保留各自源素材身份，不添加同系列、成套销售或材质参数等断言。保持输入色彩，不声称实物色彩校准。",
+    "配乐已有峰值与RMS测量，但无听音能力；最终音量、截取衔接与淡出仍待人工试听，低置信度121 BPM不用于强制卡点。",
+    "音乐依据用户声明仅用于内部演示；公开发布所需的商品影像、人物及音乐权利尚未核验。",
+    "资源选择仅依据提供的索引与引用；后续由应用读取完整蓝图并校验哈希、字体、依赖、许可及实际编译渲染结果，本轮未执行适配或制作。"
+  ],
+  "originalNeeds": [
+    "使用受管原生视频对象组织30秒、1080×1920、30fps工程，复用三条指定视频，保持“先组合，再各单品，最后回到佩戴关系”的顺序；不固定模板幕数，不重复或无意义慢放凑时长。",
+    "原创适配横屏完整容纳与竖屏近景的留白布局，保持源画面比例和商品保护区域；耳饰以真实佩戴近景承担单品展示，不生成新商品镜头。",
+    "以真实源运动和简洁切换推进，结尾保留佩戴画面；不采用前后对比、商品变形、装饰性3D、全屏标题卡或密集网格。",
+    "仅绑定asset-1555e45e-ae5c-4342-a82e-731766200c7d为独立可编辑配乐，安排可调整低增益、短淡入与结尾淡出；不加旁白、音效或其他音乐，不执行来源脚本。",
+    "在本项目create合同内建立可追溯源时间映射和独立视频、文字、音轨对象；后续由应用通过resources.adapt_native_bundle、native.compile、native.isolate与hyperframes.check验证实际适配结果，保留HyperFrames 0.8.33。"
+  ],
+  "selected": [
+    {
+      "id": "lt-mask-reveal",
+      "reason": "适合在持续实拍上提供少量可编辑类别标签，仅在辨识需要时显示“戒指”“项链”“耳饰”。采用HyperFrames 0.8.33、来源提交6e3308be4f2ab886597fcee7c5896a5f842ec4b6的受管适配，弱化强调扫光，仅让文字遮罩短暂揭示后静置；标签在对应商品可见时出现，位于保护区域外，文字面积不超过25%。资源只控制文字及其独立装饰层，不控制视频裁切、颜色、变换或音轨，避免共享属性冲突；具体字体、哈希与运行结果由后续应用校验。"
+    }
+  ],
+  "candidates": [
+    {
+      "id": "lt-mask-reveal",
+      "tags": [
+        "video",
+        "action",
+        "text",
+        "操作",
+        "实拍",
+        "口播",
+        "标签",
+        "文字"
+      ],
+      "inputs": [
+        "video"
+      ],
+      "description": "Transparent editable lower-third over continuing footage; no stat, price, or full-screen text takeover is required. Adapt the wipe and accent sweep to approved native text, local fonts and the managed timeline.",
+      "files": [
+        "registry/blocks/lt-mask-reveal/registry-item.json",
+        "registry/blocks/lt-mask-reveal/lt-mask-reveal.html"
+      ],
+      "requirements": {
+        "minMedia": 1,
+        "mediaKinds": [
+          "video"
+        ],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 2,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "comparison-split",
+      "tags": [
+        "compare",
+        "detail",
+        "image",
+        "比较",
+        "细节",
+        "双栏"
+      ],
+      "inputs": [
+        "visual-pair"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/comparison-split.md",
+        "skills/hyperframes-animation/rules/split-tilt-cards.md",
+        "registry/components/comparison-split/registry-item.json",
+        "registry/components/comparison-split/comparison-split.html"
+      ],
+      "requirements": {
+        "minMedia": 2,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 1,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "video-text-pivot",
+      "tags": [
+        "video",
+        "action",
+        "操作",
+        "实拍",
+        "讲解"
+      ],
+      "inputs": [
+        "video"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/video-text-pivot.md",
+        "skills/hyperframes-animation/rules/gsap-effects.md"
+      ],
+      "requirements": {
+        "minMedia": 1,
+        "mediaKinds": [
+          "video"
+        ],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "occluding",
+      "compatible": true,
+      "eligible": false,
+      "score": 1,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "kinetic-type-beats",
+      "tags": [
+        "text",
+        "caption",
+        "文字",
+        "字幕",
+        "强调"
+      ],
+      "inputs": [
+        "text"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/kinetic-type-beats.md",
+        "skills/hyperframes-animation/rules/discrete-text-sequence.md"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "occluding",
+      "compatible": true,
+      "eligible": false,
+      "score": 1,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "grid-card-assemble",
+      "tags": [
+        "image",
+        "details",
+        "steps",
+        "参数",
+        "配件",
+        "步骤"
+      ],
+      "inputs": [],
+      "files": [
+        "skills/hyperframes-animation/blueprints/grid-card-assemble.md",
+        "skills/hyperframes-animation/rules/gsap-effects.md"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 1,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "caption-editorial-emphasis",
+      "tags": [
+        "caption",
+        "speech",
+        "字幕",
+        "口播",
+        "强调"
+      ],
+      "inputs": [
+        "text"
+      ],
+      "description": "Editable editorial text emphasis; align spoken captions to measured transcript timestamps, never invented timing.",
+      "files": [
+        "registry/components/caption-editorial-emphasis/registry-item.json",
+        "registry/components/caption-editorial-emphasis/caption-editorial-emphasis.html"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 0,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "titlecard-reveal",
+      "tags": [
+        "title",
+        "brand",
+        "text",
+        "收尾",
+        "标题"
+      ],
+      "inputs": [],
+      "files": [
+        "skills/hyperframes-animation/blueprints/titlecard-reveal.md",
+        "skills/hyperframes-animation/rules/discrete-text-sequence.md"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 0,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    }
+  ],
+  "originalRequest": "补充这条本项目已有的原创轻节拍配乐，来源是仓库 scripts/rebuild-original-music.py，不含外部采样，沿用作内部演示配乐。继续完成原来的30秒竖屏首饰搭配片：先组合，再各单品，最后回到佩戴关系；保持真实颜色和商品身份，少文字、不加旁白。配乐轻一点，不盖过商品表达。请使用原来三条首饰素材与本次补充音轨，在本工程继续制作。",
+  "assetKinds": {
+    "asset-5bed5fa6-aff4-4432-9819-bbd9e45610de": "video",
+    "asset-c3b7ccd1-e51b-4aa4-a755-1905322101e3": "video",
+    "asset-d15b0f6b-da27-45c0-b2c3-404512dee173": "video",
+    "asset-1555e45e-ae5c-4342-a82e-731766200c7d": "audio"
+  }
+}

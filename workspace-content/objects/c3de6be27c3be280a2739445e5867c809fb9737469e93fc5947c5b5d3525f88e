@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "taskId": "P00-03",
+  "recordedAt": "2026-09-16T14:25:42Z",
+  "repository": "Metroids048/hyperframe",
+  "workspace": "/Users/a1234/Desktop/hyperframe-main/video-agent",
+  "sourceHead": "1bd0710314ba70e3e647477928b08d5fd0afa765",
+  "result": "verified",
+  "isolation": {
+    "videoAgentTtsEngine": "kokoro",
+    "minimaxCredentialVariables": "unset",
+    "providerCallsMade": false,
+    "newProductMediaGenerated": false
+  },
+  "before": {
+    "targeted": "0 passed, 2 failed",
+    "suite": "41 passed, 2 failed",
+    "failures": [
+      {
+        "test": "self-authored narration revision remeasures before story and resumes without resynthesizing",
+        "actual": "STEP_BUDGET at 1200 steps"
+      },
+      {
+        "test": "measured narration survives a later-stage interruption without another synthesis",
+        "actual": "VOICE_NOT_FOUND before synthesis"
+      }
+    ]
+  },
+  "fix": {
+    "narrationStateFingerprint": true,
+    "localVoiceCatalogCount": 12,
+    "stepBudgetRaised": false,
+    "voiceCatalogValidationDisabled": false
+  },
+  "after": {
+    "targeted": "3 passed, 0 failed",
+    "commerceNextAndQuality": "44 passed, 0 failed",
+    "commerceNative": "13 passed, 0 failed",
+    "upgradePlanner": "17 passed, 0 failed",
+    "auditionProvenance": "2 passed, 0 failed",
+    "narrationTiming": "3 passed, 0 failed",
+    "narrationRevision": "3 passed, 0 failed",
+    "staleStageRecovery": "passed",
+    "agentKernelBudget": "passed including real STEP_BUDGET pause and no repeated work"
+  },
+  "runtime": {
+    "url": "http://127.0.0.1:3024/",
+    "pid": 42796,
+    "activeJobsBeforeRestart": 0,
+    "health": "passed",
+    "workspaceId": "d0fb89afb7b883c48c5e2ae75aefb24f6987c3b487135e6d1b4a7cd4a0d085cf",
+    "browser": "S02 entry, eight workflow choices, video and native project links visible after reload"
+  },
+  "sourceHashes": {
+    "lib/creative/production.mjs": "8931a9b42431b40303b6141f0c3d5ff3423057c31f4474dbb9368c9bd91f3f09",
+    "lib/edit/codex-provider.mjs": "ea4ffed958cbf7bd5a7ca566be6beb978985a96159854dd5a061ed674172b87a",
+    "scripts/test-commerce-next.mjs": "e130186b05dd7c9e3d32b5f83cdcf2a0ae10961e360bcfbfbf94c0d73aad7e34",
+    "scripts/test-agent-kernel.mjs": "8a7cce145debfd01d49c3f25a0bf9d2f240d316b69d1739bb0ded467e8eaea39"
+  },
+  "evidenceHashes": {
+    "failure-before.log": "9fb15cced23f610ce4a7a669001b268b6302db1cfed4719fa8af367e934325f0",
+    "failure-suite-before.log": "eab25542beb75fbf04fb036027a0d975083d01b6dea47fc1e455e9f7f170534b",
+    "targeted-after.log": "3af5e6161b3759401e62b379c144b94a4c15b75d1763d5cb26195155979505f7",
+    "budget-negative.log": "172f7d497722d3566662b8c1718ca97c1f316f85b9eb77d02ed2a3f721bed8da",
+    "after-suite.log": "ad03c475b155f64e1e16e5979383bc107d5a4005816ef434ac96d8c9a0451336",
+    "root-cause.md": "56158ef4abeb4cf2afbcd3e6b473c2232ed65ab6ed2bb56cc7854a62c0494310"
+  },
+  "legacyIds": [
+    "F3-08"
+  ],
+  "humanAcceptance": "not_performed",
+  "nextTask": "P00-04"
+}

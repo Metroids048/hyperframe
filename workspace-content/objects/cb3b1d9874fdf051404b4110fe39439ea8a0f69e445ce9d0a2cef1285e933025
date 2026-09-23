@@ -1,0 +1,403 @@
+{
+  "schemaVersion": 1,
+  "recordType": "runtime_quality_report",
+  "qualityPolicy": {
+    "id": "quality-acceptance-v1",
+    "policyHash": "54a9dfc4472786f37d1ae18811872a35892fc912a26b98ef13269680140f4d9f"
+  },
+  "binding": {
+    "projectId": "c19c5ce9-a8f9-45b8-bd9b-7ecf078642bc",
+    "revisionId": "rev-e6be1bffef2688c7",
+    "contractHash": "7bd7b9aabe26e173c8b212fa8b98748b71ec6ed9d20b08290fc64dfabdee3477",
+    "assetManifestHash": "96922148df15675549e6325d5d6e8c31a4a0819e650c6adfc4c7605763c64ffe",
+    "policyHash": "baaa03b38f59762a5eca9e70f4594687c8e9db08e2f1e3ff3d9b78a2a068682b",
+    "documentHash": "5fa7b18b5511285d7d32f68282f4cfa8cdcee89832281f287fe93ad084832b1e",
+    "finalVideoSha256": "13d8ccac52f5188369699b75b0d56f5c9d968afc33b2fc61bad5c38bb7c24705",
+    "resourceHash": "2e77a322f849cb307074c9a6e0f5e6e05d8078681395e419bdf10b098fa8aee3",
+    "runId": null,
+    "jobId": "job-c92304e0-1f80-450c-b1ee-865a92079bca"
+  },
+  "origin": "scripted_runner",
+  "dimensions": {
+    "materials": "pending",
+    "technical": "pass",
+    "content": "pending",
+    "visual": "fail",
+    "actionContinuity": "pending",
+    "audioPerception": "pending",
+    "rights": "pending",
+    "humanAcceptance": "pending"
+  },
+  "coverage": {
+    "method": "keyframes_with_scene_tail",
+    "evidenceRefs": [
+      "final-review/frame-0.jpg",
+      "final-review/frame-1.jpg",
+      "final-review/frame-2.jpg",
+      "final-review/frame-3.jpg"
+    ],
+    "videoRangesObserved": [],
+    "audioRangesObserved": [],
+    "requirements": {
+      "technical": {
+        "required": [
+          "decode",
+          "duration",
+          "dimensions",
+          "tracks",
+          "version"
+        ],
+        "observed": [],
+        "unreviewed": [
+          "decode",
+          "duration",
+          "dimensions",
+          "tracks",
+          "version"
+        ]
+      },
+      "content": {
+        "required": [
+          "contract",
+          "facts",
+          "shotPurpose",
+          "sourceEvidence"
+        ],
+        "observed": [],
+        "unreviewed": [
+          "contract",
+          "facts",
+          "shotPurpose",
+          "sourceEvidence"
+        ]
+      },
+      "visual": {
+        "required": [
+          "keyframes",
+          "sceneBoundaries",
+          "textSafety"
+        ],
+        "observed": [],
+        "unreviewed": [
+          "keyframes",
+          "sceneBoundaries",
+          "textSafety"
+        ]
+      },
+      "motion": {
+        "required": [
+          "continuousPlayback",
+          "transitions",
+          "captionLifecycle"
+        ],
+        "observed": [],
+        "unreviewed": [
+          "continuousPlayback",
+          "transitions",
+          "captionLifecycle"
+        ]
+      },
+      "audio": {
+        "required": [
+          "audioInput",
+          "speech",
+          "musicMix",
+          "sync"
+        ],
+        "observed": [],
+        "unreviewed": [
+          "audioInput",
+          "speech",
+          "musicMix",
+          "sync"
+        ]
+      }
+    }
+  },
+  "evidenceIndex": [
+    {
+      "path": "final-review/frame-0.jpg",
+      "sha256": "709ceb3e590b54e419ce0613db4fc90cae3741cf7bb158a223bffeb3d16c35a4",
+      "seconds": 0
+    },
+    {
+      "path": "final-review/frame-1.jpg",
+      "sha256": "4b56e8f817af90b5ab522297eeef67968657fb0a2785aa905d1268f09a18c64a",
+      "seconds": 72
+    },
+    {
+      "path": "final-review/frame-2.jpg",
+      "sha256": "3616afdf498c260a380072f823fff509a16407f35f78a3a709cb2d3ddb8e22aa",
+      "seconds": 119.9
+    },
+    {
+      "path": "final-review/frame-3.jpg",
+      "sha256": "ebe6fc754be0a686ccdb8c452e37c50d448a3340bb1bc5a960a27895292df81e",
+      "seconds": 119.96666666666667
+    }
+  ],
+  "issues": [
+    {
+      "id": "issue-0",
+      "requirementId": "final-output",
+      "severity": "blocker",
+      "startSeconds": 0,
+      "endSeconds": 0,
+      "problem": "Opening scene (0.000s, 01/20) still displays the white 'PURE PROTEIN / VANILLA' powder jar as the hero product. The requested object-level replacement (protein powder container → coffee bag) was not applied here, and the on-screen copy '精品咖啡豆' contradicts the visible protein product.",
+      "evidenceRefs": [
+        "final-review/frame-0.jpg"
+      ],
+      "repair": "Replace the protein powder container in scene 01 with the approved MORNING coffee bag asset, keeping the framing, lighting, camera, audio, subtitles and duration unchanged per the contract.",
+      "preserve": [
+        "未涉及的镜头、文字和音轨"
+      ]
+    },
+    {
+      "id": "issue-1",
+      "requirementId": "final-output",
+      "severity": "blocker",
+      "startSeconds": 119.9,
+      "endSeconds": 119.9,
+      "problem": "Closing end card (119.900s, 20/20, '从一杯好咖啡开始') still shows the PURE PROTEIN / VANILLA jar as the hero image. The swap failed in the final scene, leaving a coffee message presented over a protein product.",
+      "evidenceRefs": [
+        "final-review/frame-2.jpg"
+      ],
+      "repair": "Swap the closing hero image to the coffee bag and preserve the existing MORNING end-card layout, typography and copy.",
+      "preserve": [
+        "未涉及的镜头、文字和音轨"
+      ]
+    },
+    {
+      "id": "issue-2",
+      "requirementId": "final-output",
+      "severity": "major",
+      "startSeconds": 72,
+      "endSeconds": 72,
+      "problem": "Scene 13/20 (72.000s) shows the MORNING COFFEE bag on the right, but two residual 'PURE PROTEIN' bottles remain on the left. The object replacement is partial/inconsistent and mixes protein and coffee packaging in a single shot.",
+      "evidenceRefs": [
+        "final-review/frame-1.jpg"
+      ],
+      "repair": "Remove the residual protein bottles so only the coffee packaging remains, or complete the object-level replacement consistently across the whole video.",
+      "preserve": [
+        "未涉及的镜头、文字和音轨"
+      ]
+    },
+    {
+      "id": "issue-3",
+      "requirementId": "final-output",
+      "severity": "minor",
+      "startSeconds": 119.96666666666667,
+      "endSeconds": 119.96666666666667,
+      "problem": "Final frame (119.967s, 20/20) is the same unresolved end card as frame-2, still showing the PURE PROTEIN jar. Additionally, the sampled timeline reaches ~119.97s while the contract declares output.durationSeconds=40, an unresolved duration discrepancy that may be intentional ('keep original duration') but needs confirmation.",
+      "evidenceRefs": [
+        "final-review/frame-3.jpg"
+      ],
+      "repair": "Fix the end-card product image along with frame-2; then confirm the intended target duration — if only the product swap should change, keep the original ~120s, otherwise re-export to the declared duration.",
+      "preserve": [
+        "未涉及的镜头、文字和音轨"
+      ]
+    }
+  ],
+  "unreviewed": [
+    "连续动作、节奏与完整观看",
+    "实际听感与音画同步"
+  ],
+  "score": {
+    "total": 11,
+    "max": 100,
+    "components": {
+      "product_exposure": 9,
+      "first_three_seconds": 0,
+      "pacing": 0,
+      "captions": 0,
+      "motion": 0,
+      "transitions": 9,
+      "audio": 75,
+      "commercial_conversion": 0
+    },
+    "status": "needs_revision"
+  },
+  "scenarioAssessment": {
+    "status": "pending",
+    "summary": "Scope: independent review of only the 4 sampled frames supplied from the exported MP4 (0.000s, 72.000s, 119.900s, 119.967s). No audio was perceived and no full frame-by-frame continuity was observed, so audio sync, transitions, and unsampled scenes are unreviewed. Against the contract request (object-level swap of the protein powder container for a coffee bag, all else unchanged), the core replacement is largely NOT executed: the white \"PURE PROTEIN / VANILLA\" powder jar is still the hero product in the opening scene (frame-0, 0.000s, 01/20) and the closing end card (frame-2/frame-3, 119.900s/119.967s, 20/20 \"从一杯好咖啡开始\"), while on-screen copy (\"精品咖啡豆\") already says coffee. Only scene 13/20 (frame-1, 72.000s) shows a MORNING COFFEE bag, and even there two residual \"PURE PROTEIN\" bottles remain on the left, so the replacement is partial and mixes protein and coffee products in one shot. Recommendation: needs_fix — at least two blocker-level failures on the swap; the sampled result does not satisfy the stated object-replacement objective.（仅抽帧；完整业务目标待连续观片确认）"
+  },
+  "humanAcceptance": {
+    "status": "pending",
+    "eventId": null,
+    "actorContext": null,
+    "revisionId": "rev-e6be1bffef2688c7",
+    "submittedAt": null
+  },
+  "deliveryDecision": {
+    "computedBy": "backend-commerce-focus-v1",
+    "status": "needs_revision",
+    "reasonCodes": [
+      "COMMERCIAL_QUALITY_REVISION_REQUIRED",
+      "HUMAN_CONFIRMATION_PENDING"
+    ]
+  },
+  "playbackReview": {
+    "manifest": "final-review/playback-manifest.json",
+    "watch": "final-review/watch.html",
+    "finalVideoSha256": "13d8ccac52f5188369699b75b0d56f5c9d968afc33b2fc61bad5c38bb7c24705",
+    "clipCount": 2,
+    "fullVideoObserved": false,
+    "audioPerceptionVerified": false
+  },
+  "editorialReview": null,
+  "commercialQuality": {
+    "schema_version": 2,
+    "assessment_basis": "engineering_heuristics_and_observed_keyframe_issues",
+    "score": 11,
+    "threshold": 78,
+    "hard_minimum": 65,
+    "components": {
+      "product_exposure": 9,
+      "first_three_seconds": 0,
+      "pacing": 0,
+      "captions": 0,
+      "motion": 0,
+      "transitions": 9,
+      "audio": 75,
+      "commercial_conversion": 0
+    },
+    "issues": [
+      {
+        "severity": "blocker",
+        "dimension": "product_exposure",
+        "score": 9,
+        "problem": "product_exposure 低于商业最低线 65",
+        "repair": "只修改与 product_exposure 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+      },
+      {
+        "severity": "blocker",
+        "dimension": "first_three_seconds",
+        "score": 0,
+        "problem": "first_three_seconds 低于商业最低线 65",
+        "repair": "只修改与 first_three_seconds 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+      },
+      {
+        "severity": "blocker",
+        "dimension": "pacing",
+        "score": 0,
+        "problem": "pacing 低于商业最低线 65",
+        "repair": "只修改与 pacing 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+      },
+      {
+        "severity": "blocker",
+        "dimension": "captions",
+        "score": 0,
+        "problem": "captions 低于商业最低线 65",
+        "repair": "只修改与 captions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+      },
+      {
+        "severity": "blocker",
+        "dimension": "motion",
+        "score": 0,
+        "problem": "motion 低于商业最低线 65",
+        "repair": "只修改与 motion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+      },
+      {
+        "severity": "blocker",
+        "dimension": "transitions",
+        "score": 9,
+        "problem": "transitions 低于商业最低线 65",
+        "repair": "只修改与 transitions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+      },
+      {
+        "severity": "blocker",
+        "dimension": "commercial_conversion",
+        "score": 0,
+        "problem": "commercial_conversion 低于商业最低线 65",
+        "repair": "只修改与 commercial_conversion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+      },
+      {
+        "id": "issue-0",
+        "requirementId": "final-output",
+        "severity": "blocker",
+        "startSeconds": 0,
+        "endSeconds": 0,
+        "problem": "Opening scene (0.000s, 01/20) still displays the white 'PURE PROTEIN / VANILLA' powder jar as the hero product. The requested object-level replacement (protein powder container → coffee bag) was not applied here, and the on-screen copy '精品咖啡豆' contradicts the visible protein product.",
+        "evidenceRefs": [
+          "final-review/frame-0.jpg"
+        ],
+        "repair": "Replace the protein powder container in scene 01 with the approved MORNING coffee bag asset, keeping the framing, lighting, camera, audio, subtitles and duration unchanged per the contract.",
+        "preserve": [
+          "未涉及的镜头、文字和音轨"
+        ],
+        "dimension": "visual"
+      },
+      {
+        "id": "issue-1",
+        "requirementId": "final-output",
+        "severity": "blocker",
+        "startSeconds": 119.9,
+        "endSeconds": 119.9,
+        "problem": "Closing end card (119.900s, 20/20, '从一杯好咖啡开始') still shows the PURE PROTEIN / VANILLA jar as the hero image. The swap failed in the final scene, leaving a coffee message presented over a protein product.",
+        "evidenceRefs": [
+          "final-review/frame-2.jpg"
+        ],
+        "repair": "Swap the closing hero image to the coffee bag and preserve the existing MORNING end-card layout, typography and copy.",
+        "preserve": [
+          "未涉及的镜头、文字和音轨"
+        ],
+        "dimension": "visual"
+      },
+      {
+        "id": "issue-2",
+        "requirementId": "final-output",
+        "severity": "major",
+        "startSeconds": 72,
+        "endSeconds": 72,
+        "problem": "Scene 13/20 (72.000s) shows the MORNING COFFEE bag on the right, but two residual 'PURE PROTEIN' bottles remain on the left. The object replacement is partial/inconsistent and mixes protein and coffee packaging in a single shot.",
+        "evidenceRefs": [
+          "final-review/frame-1.jpg"
+        ],
+        "repair": "Remove the residual protein bottles so only the coffee packaging remains, or complete the object-level replacement consistently across the whole video.",
+        "preserve": [
+          "未涉及的镜头、文字和音轨"
+        ],
+        "dimension": "visual"
+      },
+      {
+        "id": "issue-3",
+        "requirementId": "final-output",
+        "severity": "minor",
+        "startSeconds": 119.96666666666667,
+        "endSeconds": 119.96666666666667,
+        "problem": "Final frame (119.967s, 20/20) is the same unresolved end card as frame-2, still showing the PURE PROTEIN jar. Additionally, the sampled timeline reaches ~119.97s while the contract declares output.durationSeconds=40, an unresolved duration discrepancy that may be intentional ('keep original duration') but needs confirmation.",
+        "evidenceRefs": [
+          "final-review/frame-3.jpg"
+        ],
+        "repair": "Fix the end-card product image along with frame-2; then confirm the intended target duration — if only the product swap should change, keep the original ~120s, otherwise re-export to the declared duration.",
+        "preserve": [
+          "未涉及的镜头、文字和音轨"
+        ],
+        "dimension": "visual"
+      }
+    ],
+    "suggestions": [
+      "只修改与 product_exposure 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+      "只修改与 first_three_seconds 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+      "只修改与 pacing 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+      "只修改与 captions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+      "只修改与 motion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+      "只修改与 transitions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+      "只修改与 commercial_conversion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+      "Replace the protein powder container in scene 01 with the approved MORNING coffee bag asset, keeping the framing, lighting, camera, audio, subtitles and duration unchanged per the contract.",
+      "Swap the closing hero image to the coffee bag and preserve the existing MORNING end-card layout, typography and copy.",
+      "Remove the residual protein bottles so only the coffee packaging remains, or complete the object-level replacement consistently across the whole video.",
+      "Fix the end-card product image along with frame-2; then confirm the intended target duration — if only the product swap should change, keep the original ~120s, otherwise re-export to the declared duration.",
+      "完成连续观片后校准节奏、动作和转场评分；自动分数不代签真人观看。",
+      "完成实际试听后校准声音情绪、清晰度和音画同步；电平检测不代替听感。"
+    ],
+    "revision_required": true,
+    "coverage": {
+      "actual_mp4": true,
+      "full_video_observed": false,
+      "audio_perception_verified": false
+    },
+    "status": "needs_revision",
+    "human_acceptance": "pending"
+  }
+}

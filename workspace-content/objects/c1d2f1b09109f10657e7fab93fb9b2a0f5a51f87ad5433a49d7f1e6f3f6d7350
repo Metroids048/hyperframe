@@ -1,0 +1,60 @@
+{
+  "inspectionVersion": 3,
+  "validationFiles": [
+    [
+      "lib/creative/custom-source.mjs",
+      "c1b2a00a6a6dd27dbc6ee2fcef5e226d972375ae0056808f40f630982c816894"
+    ],
+    [
+      "lib/creative/isolation.mjs",
+      "6d232d5019810af7d1ba75aca99e074b76841da20fb3fc7b55dfe1d7b43aaf0a"
+    ],
+    [
+      "lib/creative/isolation-protocol.mjs",
+      "b5344dfc6663b9a5a41461475ab08ecf141d7230d0e3b5bb1debf1c310e4ca7d"
+    ],
+    [
+      "scripts/native-scene-worker.mjs",
+      "c9fdeb53f010be5b70a29371a7305be0039e30a8a0660e9f36d237a006905d7c"
+    ]
+  ],
+  "inputHash": "a9abecfa1de07bae8519859c57487dc613d644908fdce8cccca92bd7c68580a6",
+  "sceneId": "scene-01",
+  "sourceRevisionId": "rev-62a8de84ad9ccc71",
+  "globalSeconds": 1.9,
+  "image": "frames/frame-00-at-1.9s.png",
+  "imageHash": "0c9f3b6e7f0724077555cb061fa70bb927fac28e5fe1333bba360fb97eccad9b",
+  "engineering": "static-frame-checked",
+  "checkScope": {
+    "kind": "static-keyframe",
+    "atSeconds": 1.9,
+    "fullTimeline": "pending-assembly",
+    "mediaExtraction": "checked"
+  },
+  "animation": "not-yet-authored",
+  "folder": "keyframes/scene-01-a9abecfa1de07bae",
+  "review": {
+    "issues": [
+      {
+        "severity": "major",
+        "repairKind": "fact-binding",
+        "problem": "标题“黑色紧凑型相机”包含“紧凑型”分类，但 businessContract.product.facts 为空，当前证据只支持画面中可见的黑色相机外观，不能确认该分类事实。关键帧 1.9s（源 6.017s）显示相机仍在包装中，无法补足该事实依据。",
+        "repair": "将标题改为仅描述可观察内容的“黑色相机”，或补充经批准的“紧凑型”事实引用；保持标题对象 node-867f8489a104a461 可编辑，并重新核对文字可读性。"
+      },
+      {
+        "severity": "minor",
+        "repairKind": "text-timing",
+        "problem": "镜头声明时长 4.2s、源入点 4.116667s，对应理论末点约 8.316667s；提供的源末帧为本镜头 4.167s、源 8.283s，边界相差约 0.034s，末帧动作连续性未完全对齐。",
+        "repair": "将镜头末点与实际源末帧统一（例如裁到 4.167s，或核对并延长至源 8.317s），再检查入点和末帧的取出动作是否完整。"
+      },
+      {
+        "severity": "minor",
+        "repairKind": "layout",
+        "problem": "关键帧整体曝光偏暗，黑色相机与深色手部/阴影对比不足；标题位于安全留白且未遮挡主体，但商品外观细节辨识度受影响。",
+        "repair": "仅调整该镜头的亮度、阴影和局部对比度，保持原片标识、手部动作和标题对象位置不变；用同一时刻关键帧复核相机轮廓与包装关系。"
+      }
+    ],
+    "summary": "已检查源边界、同刻未包装画面与合成关键帧。主要阻断是标题中的“紧凑型”缺少批准事实；另有约0.034秒源边界偏差和偏暗导致的细节可读性问题。音频、动画与连续完整动作未在本次静态证据中验证。"
+  },
+  "sourceHash": "15570fa97bd4436a5a8cc0005fd491ba3c46c673adb4e1091d1a0ef4247332a1"
+}

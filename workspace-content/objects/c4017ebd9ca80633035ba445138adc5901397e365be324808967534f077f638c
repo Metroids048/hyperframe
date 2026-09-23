@@ -1,0 +1,129 @@
+{
+  "brief": {
+    "capabilities": [
+      "single-source video selection",
+      "continuous ~30-second source-range selection",
+      "native editable video trimming",
+      "preserve original source audio",
+      "9:16 reframing/crop to 1080x1920",
+      "30fps MP4 output",
+      "source-only quality verification"
+    ],
+    "constraints": [
+      "仅使用并绑定用户入站附件 media://inbound/d533b902-c51e-4e64-9c3b-3a7b40c473cf-_________.mp4",
+      "新建全新工程，不接续、覆盖或引用旧工程或旧 assetId",
+      "attachmentIds 必须保持为空",
+      "源媒体按用户已核实信息处理：120秒、1280x720、30fps、H.264/AAC",
+      "在源视频内选择最完整、连续、自然的约30秒内容，保持原始时间连续性",
+      "保持对应原始音轨，音频仅使用源音轨",
+      "仅进行必要的节奏整理、主体构图适配到9:16及必要画质处理",
+      "输出1080x1920、30fps、高质量MP4",
+      "严格禁止外部素材、生成画面、模板动画、字幕、标题、卖点、音乐、旁白、配音、本地素材库其他视频",
+      "保留可编辑工程结构，并验证实际源附件、时长、画幅、帧率、音频、无文字/图形/额外媒体及可预览可下载状态"
+    ],
+    "gaps": [
+      "约30秒候选源区间及其完整、连续、自然性需要后续真实媒体检查确定",
+      "当前阶段未执行最终音画质量检查；原始音轨连续性及成片可预览可下载状态需后续验证",
+      "未提供商品名称或商品事实，本阶段不添加或推断商品信息"
+    ],
+    "keepOriginalAudio": true,
+    "needsCaptions": false,
+    "needsNarration": false,
+    "needsTranscription": false,
+    "request": {
+      "cta": "",
+      "facts": [],
+      "name": "",
+      "output": {
+        "durationSeconds": 30,
+        "height": 1920,
+        "width": 1080
+      },
+      "price": ""
+    },
+    "scenarioId": "general",
+    "workflow": {
+      "assumptions": [
+        "“约30秒”按目标约30秒处理，具体源区间由真实源内容检查决定",
+        "9:16适配仅通过原生裁切、缩放或重构完成，不添加图形包装",
+        "当前用户明确禁止旁白、配音和音乐，优先于嵌套合同中的冲突音频标记"
+      ],
+      "gaps": [
+        "需由后续真实媒体检查确定最佳连续源区间",
+        "需由后续质量检查确认音画连续性、无额外媒体及交付可用性"
+      ],
+      "objective": "从指定的单一用户入站源视频中选择约30秒最完整、连续、自然的商品内容，保持源画面与原始音轨，完成必要的9:16构图适配，并交付可编辑工程及1080x1920、30fps高质量MP4",
+      "overrides": [
+        {
+          "replacementQuote": "严格禁止外部素材、生成画面、模板动画、字幕、标题、卖点、音乐、旁白、配音；不得使用本地素材库中的其他视频。",
+          "requirementId": "nested-audio-and-media-constraints"
+        },
+        {
+          "replacementQuote": "新建一个全新可编辑工程，仅绑定并使用这一个用户入站附件：media://inbound/d533b902-c51e-4e64-9c3b-3a7b40c473cf-_________.mp4。不要接续、覆盖或引用任何旧工程或旧 assetId；attachmentIds 必须保持为空。",
+          "requirementId": "nested-project-and-asset-scope"
+        }
+      ],
+      "requirements": [
+        {
+          "endSeconds": null,
+          "excludeIds": [],
+          "kind": "goal",
+          "quote": "请在该源视频内自动检查并选择最完整、连续、自然的约30秒商品内容",
+          "startSeconds": null,
+          "targetIds": [
+            "media://inbound/d533b902-c51e-4e64-9c3b-3a7b40c473cf-_________.mp4"
+          ]
+        },
+        {
+          "endSeconds": null,
+          "excludeIds": [],
+          "kind": "preserve",
+          "quote": "保持原始时间连续性和对应原始音轨",
+          "startSeconds": null,
+          "targetIds": [
+            "media://inbound/d533b902-c51e-4e64-9c3b-3a7b40c473cf-_________.mp4"
+          ]
+        },
+        {
+          "endSeconds": null,
+          "excludeIds": [],
+          "kind": "change",
+          "quote": "主体构图适配到9:16",
+          "startSeconds": null,
+          "targetIds": [
+            "media://inbound/d533b902-c51e-4e64-9c3b-3a7b40c473cf-_________.mp4"
+          ]
+        },
+        {
+          "endSeconds": null,
+          "excludeIds": [],
+          "kind": "resource",
+          "quote": "输出1080x1920、30fps、高质量MP4",
+          "startSeconds": null,
+          "targetIds": []
+        },
+        {
+          "endSeconds": null,
+          "excludeIds": [],
+          "kind": "prohibit",
+          "quote": "严格禁止外部素材、生成画面、模板动画、字幕、标题、卖点、音乐、旁白、配音；不得使用本地素材库中的其他视频。",
+          "startSeconds": null,
+          "targetIds": []
+        },
+        {
+          "endSeconds": null,
+          "excludeIds": [],
+          "kind": "preserve",
+          "quote": "请保留工程的可编辑结构",
+          "startSeconds": null,
+          "targetIds": []
+        }
+      ],
+      "taskMode": "create"
+    }
+  },
+  "error": {
+    "code": "WORKFLOW_TARGET_INVALID",
+    "message": "修改目标不属于当前版本"
+  }
+}

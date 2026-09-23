@@ -1,0 +1,45 @@
+{
+  "summary": "已检查修改后关键帧的画幅适配与可读性。输出目标已改为1920×1080，但scene-03仍显示竖幅构图，存在横屏适配问题；声音与连续运动未评审。",
+  "issues": [
+    {
+      "sceneId": "scene-03",
+      "nodeId": "node-ac7647b9f77407e5",
+      "severity": "major",
+      "seconds": 16.5,
+      "evidence": "edit-review-0/batch-0/frame-04-at-16.5s.png",
+      "problem": "关键帧仍呈1080×1920竖幅内容，主体集中在左侧，右侧大面积空白；与1920×1080横屏输出及设计中“横屏中将竖幅素材置于留白区域并保持完整主体”的要求不一致，画面利用率低。",
+      "repair": "将scene-03视频容器按1920×1080横屏重新布局，保持竖幅素材完整并居中或置于明确留白区域；重新检查瓶身和双手不被裁切。"
+    },
+    {
+      "sceneId": "scene-03",
+      "nodeId": "node-6545b8e8af0ba34b",
+      "severity": "minor",
+      "seconds": 16.5,
+      "evidence": "edit-review-0/batch-0/frame-04-at-16.5s.png",
+      "problem": "“实拍：双手托举瓶身”标签位于左上角且相对画面偏小，横屏重排后可读性和视觉层级需复核。",
+      "repair": "在横屏安全区内重新定位并按横屏字号比例调整标签，确保与视频主体保持足够间距且不遮挡手部。"
+    }
+  ],
+  "unreviewed": [
+    "声音未提供实际音频或测量证据，未评审音量、干扰和同步。",
+    "缺少连续运动证据，未评审转场、动画节奏及文字与画面同步。"
+  ],
+  "revisionId": "rev-5fc362d0784c46f2",
+  "promptContext": [
+    {
+      "file": "prompts/commerce/R0.md",
+      "sha256": "b253f55c56fe3b45ef85dd40958034c3ee7cbfefd01572fc835f776d480aa306"
+    },
+    {
+      "file": "prompts/commerce/R6.md",
+      "sha256": "bc2daf9c7fdb6947acb652f3ea931715af1cfd5bb9bdcd3a64f6d91539114108"
+    },
+    {
+      "file": "skills/hyperframes-core/references/review-loop.md",
+      "sha256": "0c7297d26ba2eab7cf0d73c71db1162aae7a907b029f6f214eaa81091f5afdbf"
+    }
+  ],
+  "inputHash": "5ec351812a5cce6d04ffe6a7f2710e3bed9fa96cf3f1c92464c950f84cadc31e",
+  "model": "Codex 默认模型",
+  "reasoningEffort": "low"
+}

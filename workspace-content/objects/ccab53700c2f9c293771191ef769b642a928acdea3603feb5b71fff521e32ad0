@@ -1,0 +1,126 @@
+{
+  "issues": [
+    {
+      "sceneId": "scene-01",
+      "endSeconds": 6,
+      "evidence": [
+        "review-attempt-GJ3c2t/round-1/batch-0/frame-00-at-0.3s.png",
+        "review-attempt-GJ3c2t/round-1/batch-0/frame-01-at-2s.png",
+        "review-attempt-GJ3c2t/round-1/batch-0/frame-02-at-4.2s.png",
+        "review-attempt-GJ3c2t/round-1/batch-0/frame-03-at-5.967s.png"
+      ],
+      "nodeIds": [
+        "node-9316fcb36048aa7a"
+      ],
+      "problem": "场景大部分时间只显示米白空白区域，左侧源文字被截断，商品主体仅在最右侧露出窄条，无法形成可辨识的商品展示。实际画面与scene-01所述“商品主体与咖啡场景建立”不符。",
+      "repair": "将scene-01的原生竖裁焦点重新定位到白色罐装商品与咖啡场景的可见区域，确保商品主体在整个6秒源区间内持续可见；只调整该视频对象的cover裁切与object-position，不新增叠层或文字。",
+      "repairKind": "layout",
+      "severity": "major",
+      "startSeconds": 0
+    },
+    {
+      "sceneId": "scene-02",
+      "endSeconds": 18,
+      "evidence": [
+        "review-attempt-GJ3c2t/round-1/batch-0/frame-04-at-6.3s.png",
+        "review-attempt-GJ3c2t/round-1/batch-0/frame-05-at-8s.png",
+        "review-attempt-GJ3c2t/round-1/batch-0/frame-06-at-14.4s.png",
+        "review-attempt-GJ3c2t/round-1/batch-0/frame-07-at-17.967s.png"
+      ],
+      "nodeIds": [
+        "node-c575e90a0bb39064"
+      ],
+      "problem": "竖屏适配未保持有效构图：前段只露出圆形画面和部分罐体，右侧既有源文字被截断；后段又出现大面积空白，商品与页面信息不能稳定同屏。画面无法充分支撑“风味页连续展示”的描述。",
+      "repair": "重新设置scene-02的原生裁切窗口，优先保证圆形商品窗和罐体完整可见，并在页面变化时使用与源画面对应的局部object-position；检查6.3、8、14.4、17.967秒四个状态，避免主体被推到画外或只剩空白。",
+      "repairKind": "layout",
+      "severity": "major",
+      "startSeconds": 6
+    },
+    {
+      "sceneId": "scene-03",
+      "endSeconds": 30,
+      "evidence": [
+        "review-attempt-GJ3c2t/round-1/batch-0/frame-08-at-18.3s.png",
+        "review-attempt-GJ3c2t/round-1/batch-0/frame-09-at-20s.png",
+        "review-attempt-GJ3c2t/round-1/batch-0/frame-10-at-26.4s.png",
+        "review-attempt-GJ3c2t/round-1/batch-0/frame-11-at-29.967s.png"
+      ],
+      "nodeIds": [
+        "node-1c8065761929e081"
+      ],
+      "problem": "scene-03的横向位移使主体在关键时刻明显偏离竖屏可视区：18.3秒主要是空白与右侧残片，26.4秒又只剩右侧局部卡片；直到29.967秒才恢复为较完整的商品卡片。该场景虽然末帧可见商品，但中段展示不稳定，且源码记录的x位移动效与“仅必要竖裁、无放大动画”的方向不一致。",
+      "repair": "移除或缩短scene-03中将原生媒体推向画外的x位移动效，改为按108-120秒源画面的主体位置设置稳定的竖裁；至少保证18.3、20、26.4和29.967秒均能看到完整或可辨识的商品主体，并保留源片自身页面变化。",
+      "repairKind": "motion-design",
+      "severity": "major",
+      "startSeconds": 18
+    }
+  ],
+  "summary": "三段镜头均存在可见的竖屏构图失效：scene-01和scene-02长期以空白、截断文字或主体残片为主，scene-03的横向位移动效进一步把商品推离画面。没有新增应用文字节点；源片内置文字不作为新增文字问题。源时间线90-120秒连续且三段边界无重叠，从抽帧可确认素材均来自同一源附件；但画面主体保护未达标。",
+  "unreviewed": [
+    "未进行试听或音频波形检查，无法验证原始AAC音轨的响度、噪声、连续性或片尾听感。",
+    "仅依据本批离散抽帧检查，未进行全片逐帧主体跟踪；无法确认抽帧之间是否还存在额外的短暂遮挡或失焦。",
+    "无法仅凭抽帧确认最终MP4是否已实际输出1080x1920、30fps、可预览可下载，也未验证容器内是否只有源音轨。"
+  ],
+  "frameTimes": [
+    {
+      "file": "review-attempt-GJ3c2t/round-1/batch-0/frame-00-at-0.3s.png",
+      "seconds": 0.3,
+      "sceneId": "scene-01"
+    },
+    {
+      "file": "review-attempt-GJ3c2t/round-1/batch-0/frame-01-at-2s.png",
+      "seconds": 2,
+      "sceneId": "scene-01"
+    },
+    {
+      "file": "review-attempt-GJ3c2t/round-1/batch-0/frame-02-at-4.2s.png",
+      "seconds": 4.2,
+      "sceneId": "scene-01"
+    },
+    {
+      "file": "review-attempt-GJ3c2t/round-1/batch-0/frame-03-at-5.967s.png",
+      "seconds": 5.967,
+      "sceneId": "scene-01"
+    },
+    {
+      "file": "review-attempt-GJ3c2t/round-1/batch-0/frame-04-at-6.3s.png",
+      "seconds": 6.3,
+      "sceneId": "scene-02"
+    },
+    {
+      "file": "review-attempt-GJ3c2t/round-1/batch-0/frame-05-at-8s.png",
+      "seconds": 8,
+      "sceneId": "scene-02"
+    },
+    {
+      "file": "review-attempt-GJ3c2t/round-1/batch-0/frame-06-at-14.4s.png",
+      "seconds": 14.4,
+      "sceneId": "scene-02"
+    },
+    {
+      "file": "review-attempt-GJ3c2t/round-1/batch-0/frame-07-at-17.967s.png",
+      "seconds": 17.967,
+      "sceneId": "scene-02"
+    },
+    {
+      "file": "review-attempt-GJ3c2t/round-1/batch-0/frame-08-at-18.3s.png",
+      "seconds": 18.3,
+      "sceneId": "scene-03"
+    },
+    {
+      "file": "review-attempt-GJ3c2t/round-1/batch-0/frame-09-at-20s.png",
+      "seconds": 20,
+      "sceneId": "scene-03"
+    },
+    {
+      "file": "review-attempt-GJ3c2t/round-1/batch-0/frame-10-at-26.4s.png",
+      "seconds": 26.4,
+      "sceneId": "scene-03"
+    },
+    {
+      "file": "review-attempt-GJ3c2t/round-1/batch-0/frame-11-at-29.967s.png",
+      "seconds": 29.967,
+      "sceneId": "scene-03"
+    }
+  ]
+}
