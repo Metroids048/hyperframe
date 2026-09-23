@@ -1,0 +1,37 @@
+{
+  "answer": {
+    "source": {
+      "html": "<div id=\"scene-01-root\"><div id=\"scene-01-bg\"></div><div id=\"scene-01-media-wrap\"><img id=\"scene-01-media-1\" /></div><div id=\"scene-01-divider\"></div><h1 id=\"scene-01-title\">咖啡樹 COFFEE TREE</h1></div>",
+      "css": "#scene-01-root {\n  position: relative;\n  width: 1080px;\n  height: 1920px;\n  overflow: hidden;\n  background-color: transparent;\n  font-family: \"Microsoft YaHei\", Arial, sans-serif;\n}\n\n#scene-01-bg {\n  position: absolute;\n  inset: 0;\n  background: radial-gradient(120% 70% at 50% 28%, #2C1D16 0%, #1B120E 62%);\n}\n\n#scene-01-media-wrap {\n  position: absolute;\n  top: 230px;\n  left: 120px;\n  width: 840px;\n  height: 880px;\n  overflow: hidden;\n  border-radius: 18px;\n  box-shadow: 0 28px 72px rgba(0, 0, 0, 0.45);\n}\n\n#scene-01-media-1 {\n  display: block;\n  width: 100%;\n  height: auto;\n}\n\n#scene-01-divider {\n  position: absolute;\n  top: 1150px;\n  left: 460px;\n  width: 160px;\n  height: 3px;\n  border-radius: 2px;\n  background-color: #C8964F;\n}\n\n#scene-01-title {\n  position: absolute;\n  top: 1190px;\n  left: 72px;\n  width: 936px;\n  margin: 0;\n  text-align: center;\n  color: #F3E9DA;\n  font-size: 120px;\n  font-weight: 700;\n  line-height: 1.1;\n  letter-spacing: 2px;\n  white-space: normal;\n}",
+      "timeline": "",
+      "parameters": [],
+      "objects": [
+        {
+          "elementId": "scene-01-media-1",
+          "ref": "media-1"
+        },
+        {
+          "elementId": "scene-01-title",
+          "ref": "text-1"
+        }
+      ],
+      "motionTargets": [],
+      "textStyles": [
+        {
+          "elementId": "scene-01-title",
+          "match": "咖啡樹 COFFEE TREE",
+          "fontSize": 120,
+          "fontWeight": 700,
+          "color": "#F3E9DA"
+        }
+      ]
+    },
+    "notes": "静态关键帧（phase=static-keyframe），仅 scene-01 单镜静帧，未制作动画。\n\n构图（1080×1920）：深咖啡底 #1B120E，径向渐变由面板色 #2C1D16 过渡到 #1B120E；真实包装素材（assetId web-65c21c2d-a1c2-48e4-b961-b14d464ab520）以 media-1 映射为 <img>（无 src，由原生对象注入），置于中轴偏上 840×880 裁切窗（left 120, top 230），窗口 overflow 裁切使底部水印「REDMI NOTE 13 PRO / 2026.03.22 14:26」与 Best Before 喷码区被裁除，保留包装正面的品牌 Logo、配料表、营养成份与冲调法信息；下方焦糖金 #C8964F 分割线，再下为原生标题 text-1「咖啡樹 COFFEE TREE」，中轴居中，字号 120、字重 700、米色 #F3E9DA，按空格自然折为两行。\n\n时序：timeline 为空字符串、motionTargets 为空数组（静态阶段，静态图无可见时序差异，全部获准文字在 CSS 静态状态清晰可见，未使用 opacity:0 隐藏，也未为动效预置不可见状态）。objects 仅映射 nativeObjectRefs 声明的 media-1 与 text-1，未新增 text-N、未复制视频/媒体窗口、无未声明装饰对象。\n\n字体：沿用设计 fontFamily「Microsoft YaHei」（合同 fontContract.systemFamilies 已声明）。tokens 未使用，故不涉及。\n\nkeyframeAtSeconds=1.8：标题揭示约 1.6s 内落定，1.8s 呈现包装主体完全可见、品牌标题可读且尚未进入静止保持的稳定构图（非中点 2.0）。\n\n事实边界：未虚构冲泡实拍，未新增原文/事实，未改写真实现有文字与品牌标识；沿用设计提供的色彩与字号（title 120）。mediaBindingGap 为空 —— 本镜仅需一个同源图片窗口，nativeObjectRefs 已足额声明，无需回退分镜。",
+    "keyframeAtSeconds": 1.8,
+    "mediaBindingGap": ""
+  },
+  "error": {
+    "code": "KEYFRAME_LAYOUT",
+    "message": "[{\"severity\":\"minor\",\"repairKind\":\"layout\",\"problem\":\"1.8s 关键帧标题卡 '咖啡樹 COFFEE TREE' 换行落定为 '咖啡樹 COFFEE' / 'TREE' 两行：第二行仅剩 'TREE'，把英文品牌名 COFFEE TREE 从中间断开，两行长短悬殊，片头品牌揭示的名称整体性被打断（标题本身完整、可读，故非事实或文字合同问题）。\",\"repair\":\"在布局层修正断行/字号：把标题断为 '咖啡樹' / 'COFFEE TREE' 两行（或压缩字号与字间距使其单行排下），保证英文品牌名 COFFEE TREE 不被拆开，落定后完整呈现。\"}]"
+  }
+}

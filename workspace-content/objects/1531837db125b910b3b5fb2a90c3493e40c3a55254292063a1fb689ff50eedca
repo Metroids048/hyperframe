@@ -1,0 +1,17 @@
+PASS caption_transcript exposes an optional target language in strict schema
+PASS null and source targets retain source text without model calls
+PASS translation maps shuffled index/id output and preserves every non-text field
+PASS missing, duplicate, unknown index and mismatched ID are rejected atomically
+PASS empty or oversized translations do not change captions
+PASS translation requires configured model but original-language captions do not
+PASS bad language codes and duplicate source IDs fail before model use
+PASS long videos translate in bounded batches with complete global indexes
+PASS cancellation between batches returns no partial result
+PASS planner requests first-round translated transcript and correct fractional-source mapping
+PASS service turns English ASR into Chinese in one request without extra sound
+PASS service default and explicit source preserve original language and skip translation
+PASS same-round translated captions retain remapped times after structural editing
+PASS known generated narration translates subtitles while preserving the audio link
+PASS Chinese narration captions preserve the exact script without ASR or same-language translation
+PASS translation failure leaves current version and existing media untouched
+16 caption translation tests passed; /Users/a1234/Desktop/hyperframe-main/video-agent/outputs/upgrade/caption-translation/4f025125-46ef-4ad8-b556-62c6202eb764

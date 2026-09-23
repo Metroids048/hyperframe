@@ -1,0 +1,54 @@
+{
+  "inspectionVersion": 3,
+  "validationFiles": [
+    [
+      "lib/creative/custom-source.mjs",
+      "5c32ef774810cfe20c732220a4618256cc6103c8e975ec2572ffbc8b43635dff"
+    ],
+    [
+      "lib/creative/isolation.mjs",
+      "c82ae5528eb7822d2d50ae9b53f833a40a1bf241446e3e1c54e67d8af9bbd646"
+    ],
+    [
+      "lib/creative/isolation-protocol.mjs",
+      "6c6cb71db7ef6d7d392692e24acf022383cbbd424a41a6f908ff78f9a2c50d9b"
+    ],
+    [
+      "scripts/native-scene-worker.mjs",
+      "20ccc68a604212399d3427527de33917347182644557c73e6efbc2c78dcd351c"
+    ]
+  ],
+  "inputHash": "465e048ff51f8e9c1c89a7b8aa469250fc70f53c3078941e7c81483182e9c34f",
+  "sceneId": "scene-03",
+  "sourceRevisionId": "rev-e10870a16ea56b01",
+  "globalSeconds": 18.6,
+  "image": "frames/frame-00-at-3.6s.png",
+  "imageHash": "3375f0ab120d9e7d23c9bf1e8f6c421dcb0739831bc7e301373966a3f532bd5e",
+  "engineering": "static-frame-checked",
+  "checkScope": {
+    "kind": "static-keyframe",
+    "atSeconds": 3.6,
+    "fullTimeline": "pending-assembly",
+    "mediaExtraction": "checked"
+  },
+  "animation": "not-yet-authored",
+  "folder": "keyframes/scene-03-465e048ff51f8e9c",
+  "review": {
+    "issues": [
+      {
+        "severity": "major",
+        "repairKind": "layout",
+        "problem": "静态关键帧中，竖幅实拍被缩放到画布中央约720px宽，左右出现大面积纯粉色留白，商品和双手占画面比例明显低于源画面，削弱了“展示取用前实拍状态”的主体信息。证据：frame-00-at-3.6s.png 对比同刻未包装源画面。",
+        "repair": "将源画面按输出竖幅比例放大至接近满高/满宽并保持完整主体；若必须保留边界，仅保留最小安全边距，确保瓶身和双手成为画面主视觉。验证3.6秒关键帧中商品尺寸、手部关系与源画面一致且无裁切。"
+      },
+      {
+        "severity": "minor",
+        "repairKind": "layout",
+        "problem": "新增叠层“实拍：双手托举瓶身”位于左下浅色外框区域，虽可读但与实拍画面分离，视觉重心偏向边框；瓶身源自带的“OIL”标签属于源片文字，不是应用新增文案。",
+        "repair": "在放大后的实拍画面安全留白内重新定位标签，避免与手部或瓶身竞争；保留源片“OIL”标识，不遮盖、不改写。验证标签在3.6秒清晰可读且不遮挡商品动作。"
+      }
+    ],
+    "summary": "已完成静态关键帧与同刻未包装源画面对照。商品、双手及源片“OIL”标识事实对应，新增文字仅为“实拍：双手托举瓶身”。主要缺陷是合成画面缩放过小、留白过大；未发现可由静态证据确认的事实冲突或源动作错误。"
+  },
+  "sourceHash": "ef81a75f96a23e83829bada8607339dcbf284a8fef969995bce8c97f5d82328b"
+}

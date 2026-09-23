@@ -1,0 +1,353 @@
+{
+  "capabilities": [
+    "image-observation",
+    "video-source-selection",
+    "native-composition",
+    "native-editing",
+    "local-preview-review",
+    "narration.prepare",
+    "provider.transcribe"
+  ],
+  "constraints": [
+    "仅根据真实开箱画面确认本次展示的盒内物件，不将其表述为所有购买版本的标准配置。",
+    "先给简短答案，再逐个对应真实画面；按购买前问答目的重新取舍素材。",
+    "片尾说明配置需以具体购买版本确认，不据此判断游戏性能、续航或兼容性。",
+    "使用中文旁白及对应字幕；旁白供应商执行成功并测量后才能确认音频就绪。",
+    "不生成新商品图片或视频镜头，不添加未经提供的音乐。",
+    "保留原生可编辑素材、文字、字幕和音轨；本步骤仅理解需求。",
+    "自动审查不替代真人听音或认可。"
+  ],
+  "gaps": [
+    "尚未观察源视频，具体展示物件及其可用源时间区间待核实，当前不能填写物件答案。",
+    "当前无听音能力，最终旁白听感及声画同步仍需人工审阅。"
+  ],
+  "keepOriginalAudio": false,
+  "needsCaptions": true,
+  "needsNarration": true,
+  "needsTranscription": false,
+  "request": {
+    "cta": "",
+    "facts": [],
+    "name": "掌机",
+    "output": {
+      "width": 1920,
+      "height": 1080,
+      "durationSeconds": 30,
+      "fps": 30
+    },
+    "price": ""
+  },
+  "scenarioId": "product_faq",
+  "workflow": {
+    "assumptions": [
+      "沿用源素材及现有输出的1920×1080横屏，保护盒内物件的可见范围。",
+      "约30秒为目标时长，根据真实物件覆盖与旁白阅读时间微调，不无意义拉长。",
+      "原声未指定，默认成片不混入原声，保留源音轨以便恢复；不添加背景音乐。",
+      "needsTranscription=false指当前无需转写源片；中文旁白合成后可转写取得字幕时间戳。"
+    ],
+    "gaps": [
+      "源视频仅有技术元数据，需观察后确认盒内物件、展示完整性和源区间。",
+      "未提供S01成片或修订信息；本轮按独立问答目的选择已提供素材，不继承未知的S01结构。"
+    ],
+    "objective": "让购买前的消费者明确这次开箱实际展示了哪些盒内物件，并理解展示范围不等于具体购买版本的配置或性能承诺。",
+    "overrides": [],
+    "requirements": [
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "goal",
+        "quote": "用这份掌机开箱素材做约30秒购买前问答，回答“这次开箱实际展示了哪些盒内物件？”",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "先给简短答案，再逐个用真实画面对应。",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "prohibit",
+        "quote": "只说看得见的东西",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "片尾说明配置需以具体购买版本确认",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "prohibit",
+        "quote": "不据此判断游戏性能、续航或兼容性。",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "中文旁白配字幕",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "resource",
+        "quote": "原素材与S01相同也要重新按问答目的取舍。",
+        "startSeconds": null,
+        "targetIds": [
+          "asset-fd6a0327-2d1d-4fc8-b2d9-5e78d84d6f97"
+        ]
+      }
+    ],
+    "taskMode": "create"
+  },
+  "productionBinding": {
+    "message": "用这份掌机开箱素材做约30秒购买前问答，回答“这次开箱实际展示了哪些盒内物件？”先给简短答案，再逐个用真实画面对应。只说看得见的东西；片尾说明配置需以具体购买版本确认，不据此判断游戏性能、续航或兼容性。中文旁白配字幕，原素材与S01相同也要重新按问答目的取舍。",
+    "contract": {
+      "schemaVersion": 1,
+      "profile": "commerce-focus-v1",
+      "scenarioId": "product_faq",
+      "originalRequest": "用这份掌机开箱素材做约30秒购买前问答，回答“这次开箱实际展示了哪些盒内物件？”先给简短答案，再逐个用真实画面对应。只说看得见的东西；片尾说明配置需以具体购买版本确认，不据此判断游戏性能、续航或兼容性。中文旁白配字幕，原素材与S01相同也要重新按问答目的取舍。",
+      "taskMode": "create",
+      "workflowProfile": "create",
+      "workflow": {
+        "version": 1,
+        "taskMode": "create",
+        "taskModeExplicit": false,
+        "workflowProfile": "create",
+        "businessScenario": "product_faq",
+        "baseProjectId": "9b806a81-441e-4a44-9f00-5b5f7731b1f1",
+        "baseRevisionId": null,
+        "assetScope": [
+          "asset-fd6a0327-2d1d-4fc8-b2d9-5e78d84d6f97"
+        ],
+        "originalRequest": "用这份掌机开箱素材做约30秒购买前问答，回答“这次开箱实际展示了哪些盒内物件？”先给简短答案，再逐个用真实画面对应。只说看得见的东西；片尾说明配置需以具体购买版本确认，不据此判断游戏性能、续航或兼容性。中文旁白配字幕，原素材与S01相同也要重新按问答目的取舍。",
+        "requirements": [
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "goal",
+            "quote": "用这份掌机开箱素材做约30秒购买前问答，回答“这次开箱实际展示了哪些盒内物件？”",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-94e79a76a1993991",
+            "field": "goal",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "change",
+            "quote": "先给简短答案，再逐个用真实画面对应。",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-9b5c4bd2e1f445c2",
+            "field": "change",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "prohibit",
+            "quote": "只说看得见的东西",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-ee62f6f56e9633ed",
+            "field": "prohibit",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "change",
+            "quote": "片尾说明配置需以具体购买版本确认",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-0cee565d50a336b3",
+            "field": "change",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "prohibit",
+            "quote": "不据此判断游戏性能、续航或兼容性。",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-3098733e029eab31",
+            "field": "prohibit",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "change",
+            "quote": "中文旁白配字幕",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-cabe3f79bf961ee4",
+            "field": "sound.narration",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "resource",
+            "quote": "原素材与S01相同也要重新按问答目的取舍。",
+            "startSeconds": null,
+            "targetIds": [
+              "asset-fd6a0327-2d1d-4fc8-b2d9-5e78d84d6f97"
+            ],
+            "id": "requirement-16c30aca846df735",
+            "field": "resource",
+            "inherited": false
+          }
+        ],
+        "assumptions": [
+          "沿用源素材及现有输出的1920×1080横屏，保护盒内物件的可见范围。",
+          "约30秒为目标时长，根据真实物件覆盖与旁白阅读时间微调，不无意义拉长。",
+          "原声未指定，默认成片不混入原声，保留源音轨以便恢复；不添加背景音乐。",
+          "needsTranscription=false指当前无需转写源片；中文旁白合成后可转写取得字幕时间戳。"
+        ],
+        "gaps": [
+          "源视频仅有技术元数据，需观察后确认盒内物件、展示完整性和源区间。",
+          "未提供S01成片或修订信息；本轮按独立问答目的选择已提供素材，不继承未知的S01结构。"
+        ],
+        "interpretation": "validated-semantic-analysis",
+        "objective": "让购买前的消费者明确这次开箱实际展示了哪些盒内物件，并理解展示范围不等于具体购买版本的配置或性能承诺。",
+        "contractId": "contract-e5371164135685ae",
+        "parentContractId": null,
+        "sourceRequests": [
+          "用这份掌机开箱素材做约30秒购买前问答，回答“这次开箱实际展示了哪些盒内物件？”先给简短答案，再逐个用真实画面对应。只说看得见的东西；片尾说明配置需以具体购买版本确认，不据此判断游戏性能、续航或兼容性。中文旁白配字幕，原素材与S01相同也要重新按问答目的取舍。"
+        ],
+        "requirementChanges": [],
+        "changeTargets": [
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "change",
+            "quote": "先给简短答案，再逐个用真实画面对应。",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-9b5c4bd2e1f445c2",
+            "field": "change",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "change",
+            "quote": "片尾说明配置需以具体购买版本确认",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-0cee565d50a336b3",
+            "field": "change",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "change",
+            "quote": "中文旁白配字幕",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-cabe3f79bf961ee4",
+            "field": "sound.narration",
+            "inherited": false
+          }
+        ],
+        "preserveTargets": [],
+        "resourceNeeds": [
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "resource",
+            "quote": "原素材与S01相同也要重新按问答目的取舍。",
+            "startSeconds": null,
+            "targetIds": [
+              "asset-fd6a0327-2d1d-4fc8-b2d9-5e78d84d6f97"
+            ],
+            "id": "requirement-16c30aca846df735",
+            "field": "resource",
+            "inherited": false
+          }
+        ],
+        "prohibitions": [
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "prohibit",
+            "quote": "只说看得见的东西",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-ee62f6f56e9633ed",
+            "field": "prohibit",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "prohibit",
+            "quote": "不据此判断游戏性能、续航或兼容性。",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-3098733e029eab31",
+            "field": "prohibit",
+            "inherited": false
+          }
+        ]
+      },
+      "persona": {
+        "creator": "商家／内容运营（待用户研究验证）",
+        "viewer": "首次了解商品的消费者"
+      },
+      "objective": "用证据回答具体选购疑问",
+      "product": {
+        "id": "product-1",
+        "name": "掌机",
+        "facts": [],
+        "price": null,
+        "cta": "",
+        "audience": null,
+        "prohibited": []
+      },
+      "output": {
+        "width": 1920,
+        "height": 1080,
+        "durationSeconds": 30,
+        "fps": 30
+      },
+      "audio": "unspecified",
+      "mustHave": [],
+      "mustNot": [],
+      "explicitConstraints": {
+        "schemaVersion": 1,
+        "originalRequest": "用这份掌机开箱素材做约30秒购买前问答，回答“这次开箱实际展示了哪些盒内物件？”先给简短答案，再逐个用真实画面对应。只说看得见的东西；片尾说明配置需以具体购买版本确认，不据此判断游戏性能、续航或兼容性。中文旁白配字幕，原素材与S01相同也要重新按问答目的取舍。",
+        "narration": "unspecified",
+        "music": "unspecified",
+        "original": "unspecified",
+        "price": "unspecified",
+        "silent": false
+      },
+      "generatedFootageAllowed": false,
+      "deliverables": [
+        "candidate_mp4",
+        "editable_project",
+        "source_index",
+        "quality_report"
+      ]
+    }
+  }
+}

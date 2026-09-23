@@ -1,0 +1,307 @@
+{
+  "schemaVersion": 1,
+  "recordType": "runtime_quality_report",
+  "qualityPolicy": {
+    "id": "quality-acceptance-v1",
+    "policyHash": "54a9dfc4472786f37d1ae18811872a35892fc912a26b98ef13269680140f4d9f"
+  },
+  "binding": {
+    "projectId": "8e608f0a-7a74-445f-85db-52aaf72fa38b",
+    "revisionId": "rev-b0729b3c8d3f0ccf",
+    "contractHash": "8243e3cf89b9556b74b26369be9fb4894159ab1c3c967716bc847cce4821af7d",
+    "assetManifestHash": "e616348c6db3aeca72e00b8627c2894b0fd1a0d5b5bdd3610b19a33252d5168b",
+    "policyHash": "2544cb10e0c9445610ceb2354e9deb87439d15fe99acbad74737039bf26bd262",
+    "documentHash": "a4ff5aa16db23f1b58a178df4b8c4e935170062d56680688653729004cdcc712",
+    "finalVideoSha256": "b8add9e0b6b24919eadac9ffb2a0a8b9ddee90d1bdde013111fe34ce441c7fb2",
+    "resourceHash": "2e77a322f849cb307074c9a6e0f5e6e05d8078681395e419bdf10b098fa8aee3",
+    "runId": null,
+    "jobId": "job-78d3ed1c-93dd-4282-86ea-2eb34fce7da6"
+  },
+  "origin": "scripted_runner",
+  "dimensions": {
+    "materials": "pending",
+    "technical": "pass",
+    "content": "pending",
+    "visual": "fail",
+    "actionContinuity": "pending",
+    "audioPerception": "pending",
+    "rights": "pending",
+    "humanAcceptance": "pending"
+  },
+  "coverage": {
+    "method": "keyframes_with_scene_tail",
+    "evidenceRefs": [
+      "final-review/frame-0.jpg",
+      "final-review/frame-1.jpg",
+      "final-review/frame-2.jpg",
+      "final-review/frame-3.jpg"
+    ],
+    "videoRangesObserved": [],
+    "audioRangesObserved": [],
+    "requirements": {
+      "technical": {
+        "required": [
+          "decode",
+          "duration",
+          "dimensions",
+          "tracks",
+          "version"
+        ],
+        "observed": [],
+        "unreviewed": [
+          "decode",
+          "duration",
+          "dimensions",
+          "tracks",
+          "version"
+        ]
+      },
+      "content": {
+        "required": [
+          "contract",
+          "facts",
+          "shotPurpose",
+          "sourceEvidence"
+        ],
+        "observed": [],
+        "unreviewed": [
+          "contract",
+          "facts",
+          "shotPurpose",
+          "sourceEvidence"
+        ]
+      },
+      "visual": {
+        "required": [
+          "keyframes",
+          "sceneBoundaries",
+          "textSafety"
+        ],
+        "observed": [],
+        "unreviewed": [
+          "keyframes",
+          "sceneBoundaries",
+          "textSafety"
+        ]
+      },
+      "motion": {
+        "required": [
+          "continuousPlayback",
+          "transitions",
+          "captionLifecycle"
+        ],
+        "observed": [],
+        "unreviewed": [
+          "continuousPlayback",
+          "transitions",
+          "captionLifecycle"
+        ]
+      },
+      "audio": {
+        "required": [
+          "audioInput",
+          "speech",
+          "musicMix",
+          "sync"
+        ],
+        "observed": [],
+        "unreviewed": [
+          "audioInput",
+          "speech",
+          "musicMix",
+          "sync"
+        ]
+      }
+    }
+  },
+  "evidenceIndex": [
+    {
+      "path": "final-review/frame-0.jpg",
+      "sha256": "3f77219404b00d740a617b3853c30f20a4fb75dafb7ebd00402fc1f35a322ed3",
+      "seconds": 0
+    },
+    {
+      "path": "final-review/frame-1.jpg",
+      "sha256": "c8f62a04d7045872b79f1cefec02165c680cceb5a14848a3bddf168e0c11f50c",
+      "seconds": 47.18
+    },
+    {
+      "path": "final-review/frame-2.jpg",
+      "sha256": "7bcffff3945224569b6f5e983e957ced567896c3f2f3a1d7dbbf765b0719447c",
+      "seconds": 78.53333333333335
+    },
+    {
+      "path": "final-review/frame-3.jpg",
+      "sha256": "746a99d0c4c08dd9811e584813d0e32e5a4bccdbc1ecc7fec37bdfadb2b67a45",
+      "seconds": 78.60000000000001
+    }
+  ],
+  "issues": [
+    {
+      "id": "issue-0",
+      "requirementId": "final-output",
+      "severity": "blocker",
+      "startSeconds": 0,
+      "endSeconds": 0,
+      "problem": "开头叠加文字为“周末新品”，与原始请求要求的“新品体验”不一致；当前工程文档也显示 title-2859194914cface0 的文本为“周末新品”。",
+      "evidenceRefs": [
+        "final-review/frame-0.jpg"
+      ],
+      "repair": "仅更新文本对象 title-2859194914cface0 的 text 为“新品体验”，保持其出现时段0.0-2.0秒、样式、位置及其他对象不变，并重新导出和复核。",
+      "preserve": [
+        "未涉及的镜头、文字和音轨"
+      ]
+    }
+  ],
+  "unreviewed": [
+    "连续动作、节奏与完整观看",
+    "实际听感与音画同步"
+  ],
+  "score": {
+    "total": 39,
+    "max": 100,
+    "components": {
+      "product_exposure": 50,
+      "first_three_seconds": 35,
+      "pacing": 0,
+      "captions": 60,
+      "motion": 20,
+      "transitions": 50,
+      "audio": 75,
+      "commercial_conversion": 30
+    },
+    "status": "needs_revision"
+  },
+  "scenarioAssessment": {
+    "status": "pending",
+    "summary": "已依据提供的四张最终成片关键帧完成有限范围审查。可见原视频主体与后续画面保持为原始服装展示内容，未观察到新增配音、音乐或其他画面编辑；但开头文字实际为“周末新品”而非用户要求的“新品体验”，因此当前候选不可交付。仅凭关键帧未覆盖完整连续播放、音频听感/音量、精确字幕持续时间及导出文件完整性。（仅抽帧；完整业务目标待连续观片确认）"
+  },
+  "humanAcceptance": {
+    "status": "pending",
+    "eventId": null,
+    "actorContext": null,
+    "revisionId": "rev-b0729b3c8d3f0ccf",
+    "submittedAt": null
+  },
+  "deliveryDecision": {
+    "computedBy": "backend-commerce-focus-v1",
+    "status": "needs_revision",
+    "reasonCodes": [
+      "COMMERCIAL_QUALITY_REVISION_REQUIRED",
+      "HUMAN_CONFIRMATION_PENDING"
+    ]
+  },
+  "playbackReview": {
+    "manifest": "final-review/playback-manifest.json",
+    "watch": "final-review/watch.html",
+    "finalVideoSha256": "b8add9e0b6b24919eadac9ffb2a0a8b9ddee90d1bdde013111fe34ce441c7fb2",
+    "clipCount": 2,
+    "fullVideoObserved": false,
+    "audioPerceptionVerified": false
+  },
+  "editorialReview": null,
+  "commercialQuality": {
+    "schema_version": 2,
+    "assessment_basis": "engineering_heuristics_and_observed_keyframe_issues",
+    "score": 39,
+    "threshold": 78,
+    "hard_minimum": 65,
+    "components": {
+      "product_exposure": 50,
+      "first_three_seconds": 35,
+      "pacing": 0,
+      "captions": 60,
+      "motion": 20,
+      "transitions": 50,
+      "audio": 75,
+      "commercial_conversion": 30
+    },
+    "issues": [
+      {
+        "severity": "major",
+        "dimension": "product_exposure",
+        "score": 50,
+        "problem": "product_exposure 低于商业最低线 65",
+        "repair": "只修改与 product_exposure 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+      },
+      {
+        "severity": "blocker",
+        "dimension": "first_three_seconds",
+        "score": 35,
+        "problem": "first_three_seconds 低于商业最低线 65",
+        "repair": "只修改与 first_three_seconds 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+      },
+      {
+        "severity": "blocker",
+        "dimension": "pacing",
+        "score": 0,
+        "problem": "pacing 低于商业最低线 65",
+        "repair": "只修改与 pacing 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+      },
+      {
+        "severity": "major",
+        "dimension": "captions",
+        "score": 60,
+        "problem": "captions 低于商业最低线 65",
+        "repair": "只修改与 captions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+      },
+      {
+        "severity": "blocker",
+        "dimension": "motion",
+        "score": 20,
+        "problem": "motion 低于商业最低线 65",
+        "repair": "只修改与 motion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+      },
+      {
+        "severity": "major",
+        "dimension": "transitions",
+        "score": 50,
+        "problem": "transitions 低于商业最低线 65",
+        "repair": "只修改与 transitions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+      },
+      {
+        "severity": "blocker",
+        "dimension": "commercial_conversion",
+        "score": 30,
+        "problem": "commercial_conversion 低于商业最低线 65",
+        "repair": "只修改与 commercial_conversion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+      },
+      {
+        "id": "issue-0",
+        "requirementId": "final-output",
+        "severity": "blocker",
+        "startSeconds": 0,
+        "endSeconds": 0,
+        "problem": "开头叠加文字为“周末新品”，与原始请求要求的“新品体验”不一致；当前工程文档也显示 title-2859194914cface0 的文本为“周末新品”。",
+        "evidenceRefs": [
+          "final-review/frame-0.jpg"
+        ],
+        "repair": "仅更新文本对象 title-2859194914cface0 的 text 为“新品体验”，保持其出现时段0.0-2.0秒、样式、位置及其他对象不变，并重新导出和复核。",
+        "preserve": [
+          "未涉及的镜头、文字和音轨"
+        ],
+        "dimension": "visual"
+      }
+    ],
+    "suggestions": [
+      "只修改与 product_exposure 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+      "只修改与 first_three_seconds 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+      "只修改与 pacing 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+      "只修改与 captions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+      "只修改与 motion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+      "只修改与 transitions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+      "只修改与 commercial_conversion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+      "仅更新文本对象 title-2859194914cface0 的 text 为“新品体验”，保持其出现时段0.0-2.0秒、样式、位置及其他对象不变，并重新导出和复核。",
+      "完成连续观片后校准节奏、动作和转场评分；自动分数不代签真人观看。",
+      "完成实际试听后校准声音情绪、清晰度和音画同步；电平检测不代替听感。"
+    ],
+    "revision_required": true,
+    "coverage": {
+      "actual_mp4": true,
+      "full_video_observed": false,
+      "audio_perception_verified": false
+    },
+    "status": "needs_revision",
+    "human_acceptance": "pending"
+  }
+}

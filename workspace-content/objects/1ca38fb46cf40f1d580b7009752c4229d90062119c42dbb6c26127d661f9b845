@@ -1,0 +1,25 @@
+◆  Checking job-0a553b91-dd11-425c-b75b-0d9bcc48277c
+[hyperframes] browserGpuMode probe → hardware (WebGL renderer vendor="Google Inc. (Apple)" renderer="ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Pro, Unspecified Version)")
+
+Lint
+  ⚠ gsap_repeated_fromto_without_baseline: 2 tl.fromTo() calls target "#media-wrap-node-1c8065761929e081" with no stable baseline. The last-authored fromTo "from" values become the element's resting state for any seek before the first tween actually runs, because GSAP applies fromTo from-values at authoring time (immediateRender), not at tween position.
+    /Users/a1234/Desktop/hyperframe-main/video-agent/data/result-completion-projects/f9679232-85a8-468b-bdff-6749edfd0340/versions/job-0a553b91-dd11-425c-b75b-0d9bcc48277c/index.html #media-wrap-node-1c8065761929e081 t=0s
+    Fix: Add `immediateRender: false` to the destination vars of each future fromTo, or set a safe resting state with an earlier `tl.set("#media-wrap-node-1c8065761929e081", { ... }, 0)`. Pre-first-tween seeks must not inherit whichever fromTo call happened to author last.
+  0 error(s), 1 warning(s), 0 info(s)
+
+Runtime
+  ◇ 0 errors, 0 warnings
+
+Layout
+  ◇ 0 issues across 9 sample(s)
+
+Motion
+  ◇ 0 errors, 0 warnings
+
+Contrast
+  ◇ 0/0 text checks pass WCAG AA
+
+Snapshots
+  ◇ disabled
+
+◇  Check passed

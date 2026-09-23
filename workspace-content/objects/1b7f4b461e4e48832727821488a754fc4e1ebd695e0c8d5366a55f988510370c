@@ -1,0 +1,27 @@
+◆  Checking s05-campaign-demo-20260917
+
+Lint
+  ⚠ timeline_track_too_dense: Track 2 has 7 timed elements in this HTML file. Smaller sub-compositions keep timelines easier to read, iterate on, and diff.
+    /Users/a1234/Desktop/hyperframe-main/video-agent/deliverables/s05-campaign-demo-20260917/index.html [data-composition-id] t=0s
+    Fix: Move coherent scene groups into separate .html files under compositions/ and mount them from the parent with data-composition-src so the timeline stays easier to inspect, revise, and validate.
+  ✗ font_family_without_font_face: Font families used without @font-face declaration: pingfang sc, songti sc. These are not in the auto-resolved font list, so the renderer cannot supply them automatically. Text will fall back to a generic font, producing incorrect typography in the video.
+    /Users/a1234/Desktop/hyperframe-main/video-agent/deliverables/s05-campaign-demo-20260917/index.html [data-composition-id] t=0s
+    Fix: Add @font-face { font-family: '...'; src: url('capture/assets/fonts/...woff2'); } for each font family, pointing to the captured .woff2 files. For an OS-bundled system font (e.g. Hiragino Sans, Microsoft YaHei) that has no downloadable file, use src: local('Exact Font Name') instead — the declaration alone satisfies this check without needing a font file.
+  1 error(s), 1 warning(s), 0 info(s)
+
+Runtime
+  ◇ 0 errors, 0 warnings
+
+Layout
+  ◇ 0 issues across 0 sample(s)
+
+Motion
+  ◇ 0 errors, 0 warnings
+
+Contrast
+  ◇ 0/0 text checks pass WCAG AA
+
+Snapshots
+  ◇ disabled
+
+◇  Check failed
