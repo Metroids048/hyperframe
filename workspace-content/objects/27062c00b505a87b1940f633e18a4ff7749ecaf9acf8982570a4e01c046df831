@@ -1,0 +1,479 @@
+Local frontend built: web-dist
+PASS v1 stays readable, migration is non-mutating
+PASS multiple moves use base destinations even when earlier moved clips have later source times
+PASS insert/delete and two moves share immutable coordinates
+PASS speed remaps original speech, captions and end title
+PASS one-frame cuts remain exact at 0.1x, including speech and overlays
+PASS new tail can hold a result-anchored caption in the insertion transaction
+PASS transition explicitly overlaps frames and keeps later captions aligned
+PASS splitting before an existing transition preserves overlap and content duration
+PASS deleting an entire transition removes its overlap once and rejects ambiguous interior cuts
+PASS spoken captions keep their source-clip link across split and later edits
+PASS overlay rate/crop/rect and validation survive a structural cut
+PASS loudness-only output edits preserve dimensions and can be disabled
+PASS plain captions, source transcript corrections and styling never synthesize speech
+PASS explicit generated narration link updates text once and preserves voice choice
+PASS linked narration rejects overflow instead of truncating
+PASS linked narration text updates preserve the current timeline speed
+PASS preview can acquire during export; queued cancellation does not block later work
+17 upgrade timeline tests passed
+PASS strict schema supports v2 operations and export/tool requests
+PASS subtitle-only loads relevant skill and does not require narration
+PASS compound edits preserve base coordinates and repair context
+PASS loudness off remains explicit while untouched output fields are omitted
+PASS export response cannot combine an uncommitted edit
+PASS tools can only target registered ready assets
+PASS empty transcription explicitly returns no_speech
+PASS review rejects cutting inside a spoken word even if model approves
+PASS installed skill provenance is pinned and each adapter is readable
+PASS local voice respects explicit voice and rejects unknown names
+PASS cloud speech passes the requested speed to the API
+PASS speech cache keys include rate and voice; transcription uses content hash
+PASS speech worker reuses process and cancel/timeout preserves following tasks
+PASS real FFmpeg silence detection caches and invalidates parameters
+PASS generation adapter reports unavailable before any request
+PASS real FFmpeg scene detection finds the color cut and rejects traversal
+PASS semantic review records actual retained source frames, not claimed full viewing
+17 upgrade planner tests passed; report: /Users/a1234/Desktop/hyperframe-main/video-agent/outputs/upgrade/planner-85456bf7-2553-492b-9a72-520748d218c8
+PASS import and ordinary captions create previews without speech or automatic export
+PASS inserted tail can receive new narration and linked captions in one transaction
+PASS source transcript is mapped once after a same-round rearrangement and keeps future anchors
+PASS new inserted-source transcript uses deterministic clip IDs across preparation and commit
+PASS a failed staged check never moves the current revision or loses the prior preview
+PASS named effect retries the same capability after a preview failure and never publishes a substituted effect
+PASS cancellation interrupts work before commit and preserves the base version
+PASS editing remains available while an old revision is rendering
+PASS restore reuses immutable artifacts and does not compile or render again
+PASS ten conversational revisions retain history and refresh provider login each turn
+PASS event sequences persist and reconnect resumes after the last event
+PASS precise chat edits and invalid exact instructions never need a configured model
+PASS second source preparation does not block chat edits to the current revision
+PASS restart recovers revisions, analyses, event cursor and interrupts an uncommitted job
+PASS continuous undo, redo and Chinese revision restore follow content history
+Service acceptance: /Users/a1234/Desktop/hyperframe-main/video-agent/outputs/upgrade/service/2026-09-18T00-29-00.628Z
+PASS caption_transcript exposes an optional target language in strict schema
+PASS null and source targets retain source text without model calls
+PASS translation maps shuffled index/id output and preserves every non-text field
+PASS missing, duplicate, unknown index and mismatched ID are rejected atomically
+PASS empty or oversized translations do not change captions
+PASS translation requires configured model but original-language captions do not
+PASS bad language codes and duplicate source IDs fail before model use
+PASS long videos translate in bounded batches with complete global indexes
+PASS cancellation between batches returns no partial result
+PASS planner requests first-round translated transcript and correct fractional-source mapping
+PASS service turns English ASR into Chinese in one request without extra sound
+PASS service default and explicit source preserve original language and skip translation
+PASS same-round translated captions retain remapped times after structural editing
+PASS known generated narration translates subtitles while preserving the audio link
+PASS Chinese narration captions preserve the exact script without ASR or same-language translation
+PASS translation failure leaves current version and existing media untouched
+16 caption translation tests passed; /Users/a1234/Desktop/hyperframe-main/video-agent/outputs/upgrade/caption-translation/3b248138-b579-4937-8875-63921a2e19c9
+✔ Chinese tail characters stay together without extending measured speech (10.480084ms)
+✔ long utterance is balanced at Chinese word boundaries instead of leaving a short tail (0.941125ms)
+✔ pauses and actual short utterances are not stretched or merged into another sentence (0.183792ms)
+✔ approved Chinese sentence endings survive orthographic correction and grouping (1.64625ms)
+✔ English grouping keeps the original tokens and meaningful sentence stops (0.12025ms)
+✔ new grouping cannot overwrite previously corrected caption text (0.415916ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 16.994541
+PASS 24 tasks have balanced calibration and holdout groups
+PASS missing evidence can never yield a score or an 85 claim
+PASS valid complete mathematical fixture passes exact gates
+PASS changed or duplicated weights are rejected
+PASS single task below 70 defeats a high overall mean without rounding up
+PASS task group below 80 cannot be hidden by other groups
+PASS holdout must independently reach 85
+PASS hard failure cannot be averaged away
+PASS zero-score or broken expert reference stays pending
+PASS two reviewer identities and full viewing are mandatory
+PASS holdout reuse or manual timeline edits invalidates automatic-quality claim
+PASS randomization is reproducible privately and hides roles in review packets
+PASS scores outside bounds or duplicate reviewer files are rejected
+13 scoring unit tests passed; no real quality score was produced.
+PASS long Windows request directories preserve files after alias cleanup
+PASS portable media paths retain explicit overrides
+PASS HyperFrames receives absolute PATH-resolved media executables
+PASS Codex uses stdin for complete instructions and no forced private model
+PASS configured provider reports its own connection without requiring subscription login
+PASS configured transport reuses credentials while keeping bounded planning
+PASS HTTPS transport keeps subscription auth without overriding built-in provider
+PASS Codex errors distinguish unavailable model, old CLI, login, quota and timeout
+PASS Python falls back by platform and respects override
+PASS chat export works without model in Chinese and English
+PASS exact cuts retain frame precision and source mapping
+PASS prefix/suffix removal, keep and split are deterministic
+PASS speed, original volume and mute map only to explicit targets
+PASS unknown clauses, negations, selections and semantic intent never silently drop
+PASS invalid exact commands fail clearly without a model repair
+PASS whole-film speed with separate audio requires synchronization planning
+PASS bundle cache is reusable and repairs deleted artifacts
+PASS bundle cache repairs nonempty same-size corruption
+PASS cache rebuild never overwrites media linked by an existing revision
+PASS bundle cache refuses corrupt/traversing or empty artifacts
+PASS concurrent cache builders coalesce and failed build can retry
+PASS project.zip is a real UTF-8 ZIP verified independently by Python
+PASS cancelled/oversize/traversing packages never replace a good download
+23 continuation tests passed
+PASS exact explicit times create silent caption with frame precision
+PASS unique named and contextual caption corrections retain other properties
+PASS unrecognized compound requirements never disappear
+PASS ambiguous multiple captions require the model
+PASS linked narration and selections always use the model
+5 fast intent safety tests passed
+PASS fractional source start detects a word cut hidden by rounded clip.in
+PASS fractional exclusive end avoids a false word cut at rounded clip.out
+PASS fractional exclusive end detects a word cut that clip.out misses
+PASS retained transcript and scene evidence use precise source bounds with speed
+PASS review frame positions stay inside the exact range and retain fractional offset
+PASS review uses precise cached frame positions without invoking media or model
+PASS legacy integer source ranges preserve their prior review bounds
+PASS invalid timelines fail locally before requesting a review
+{"status":"passed","tests":8,"report":"/Users/a1234/Desktop/hyperframe-main/video-agent/outputs/upgrade/review-precision/fe531c92-1663-4a36-add2-437c5551cd83/report.json"}
+3 atomic metadata replacement regressions passed
+2 bounded analysis evidence regressions passed; /Users/a1234/Desktop/hyperframe-main/video-agent/outputs/upgrade/analysis-evidence/200efacc-9025-410c-8fbc-a5d3b21bc7ad
+PASS Chinese and Arabic revision numbers share one bounded parser
+PASS undo walks content history and redo replays the same branch
+PASS workspace context preserves local work and exposes the complete skill/runtime contract
+✔ initial queue preserves all 116 tasks and 80 legacy obligations (2.640834ms)
+✔ pass label and hashed pass file cannot substitute for executed acceptance (1.783708ms)
+✔ complete receipt advances only its task; tampered hash and failed command invalidate it (2.777375ms)
+✔ missing task, stale source, missing evidence and skipped review are rejected (2.482083ms)
+✔ cyclic dependencies and removed legacy obligations fail closed (2.301625ms)
+✔ global validation failure cannot offer a ready task (0.521042ms)
+✔ task-card status vocabulary remains queryable without marking completion (0.612541ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 15.820791
+✔ preset browsing is read-only; explicit copy is version-bound and idempotent across concurrent requests and restart (24.032167ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 26.380208
+✔ review: rebuilt story resets only its local repairs and archives failures without extending model budget (1.212416ms)
+✔ review: correcting unsupported wording does not force replacing correct footage (0.355291ms)
+✔ review: requested effect cannot override protected tutorial actions (1.59325ms)
+✔ review: no narration/music does not silently preserve an unrequested mixed source track (0.998416ms)
+✔ review: collection admits distinct verified identities, while a single-product scene refuses mixing (5.370041ms)
+✔ M10: visual review failure remains recoverable with the same persisted run (0.110917ms)
+✔ M03: all six business scenes load distinct packages and preserve style separation (19.500458ms)
+✔ M08-local: MiniMax speech, voice catalog and music remain independently unconfigured (0.20675ms)
+✔ M05 real animation failure names the unmapped wrapper before compilation (0.485167ms)
+✔ M04-4/6: real filesystem discovery detects additions, same-size changes and broken/missing roots (6.93125ms)
+✔ M01/M02 real failure: repeated burned-in title goes to story owner, not illegal layout deletion (2.204833ms)
+✔ M01: server policy blocks new image/video before credentials and preserves local workflows (3.632583ms)
+✔ M01: policy is server-owned, malformed config fails closed and no config preserves other workspaces (0.845125ms)
+✔ M01: real runtime context loads hashed scope and paused-generation policy (1056.410958ms)
+✔ M01-3/4: explicit exclusions survive a template trying to add music, narration or price (1.070709ms)
+✔ M02-5: action dependencies use output time; necessary steps stay at original speed (0.5135ms)
+✔ M02: source selections bind actual observed frames and refuse stale or absent source evidence (0.3145ms)
+✔ M04-5: enough project assets does not permit a shot with one input to use a two-input adapter (1.136167ms)
+✔ M01-5/M10-4: planning rule changes invalidate decisions; renderer changes retain them (41.477458ms)
+✔ packaging-only catalog changes preserve checked shots; planning changes and missing scope proof do not (7.8805ms)
+✔ M04-1/2/5: synonymous Chinese requests recall real references and hard constraints win (1074.153875ms)
+✔ M04-3/M05-transition: second boundary remains second through repeated assembly (1.370167ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 22
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2232.247875
+✔ editing an existing transition retains its identity rather than replacing it with a derived ID (2.061417ms)
+✔ 最后一处用色散 (1.411791ms)
+✔ 倒数第二处用色散 (0.339417ms)
+✔ 第二、第三处用色散 (0.209792ms)
+✔ 第二、三处用色散 (0.14825ms)
+✔ 第二，第三处用色散 (0.124125ms)
+✔ 第2至第4处用色散 (0.149875ms)
+✔ 第一处和倒数第二处用色散 (0.102709ms)
+✔ unresolved local scope and out-of-range relative positions never widen (1.115583ms)
+✔ scope bindings use timeline order and stable IDs, including per-resource exclusions (1.588041ms)
+✔ cross-turn exclusions change only previously enabled targets and preserve duration (0.200875ms)
+✔ ordinary media words do not invent exact resource requests; explicit identity stays binding (1.328042ms)
+✔ compatible executor below reference shortlist is considered before truncation (1.597458ms)
+✔ S02 real request: generic HyperFrames use does not require a skill or frames executor (0.302959ms)
+✔ 只在第二处用色散，其余不用 (0.086958ms)
+✔ 只在第二处用色散，其余不要色散 (0.060958ms)
+✔ 第一处和第三处用色散 (0.060958ms)
+✔ 色散用在第三处和第一处 (0.062709ms)
+✔ 第一处用色散，第三处也用色散 (0.064583ms)
+✔ scoped cancellation preserves another use of the same resource (0.077625ms)
+✔ duplicate clauses are idempotent (0.069125ms)
+✔ global withdrawal overrides earlier global request (0.063125ms)
+✔ missing cut fails without mutating any transition (0.154459ms)
+✔ actual binding uses current scene boundaries and keeps unrelated transitions (0.183834ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 24
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 16.22825
+PASS creation, commerce and editing intents load the registered HyperFrames skill adapters
+✔ global controls resolve actual history; quoted/negative/compound instructions never execute controls (0.975166ms)
+✔ every mode receives common policy, trace and stable skills (1.099167ms)
+✔ scoped history cannot navigate the entire revision even when a model labels it restore (0.853833ms)
+✔ structured object operations select skills without lexical keywords (0.385416ms)
+✔ global failures distinguish stale revisions, resources, providers and missing evidence (0.335709ms)
+✔ an actual unavailable local speech executable produces provider fallback rather than a quality success (4.220916ms)
+✔ relative reference uses the last accepted change and refuses an unrelated object (0.431167ms)
+✔ reopened history retains conversational references and excludes other branches (0.132291ms)
+✔ scope check blocks a pacing plan that changes explicitly protected sound (0.329ms)
+✔ selective transition restore preserves current captions and uses stable scene IDs (0.222292ms)
+✔ rich transitions are shared with timeline; failed named effect leaves native input intact (3.700875ms)
+✔ voice changes retain approved copy and reject guessing a trimmed script (0.260625ms)
+✔ known narration script corrects substitutions without inventing timing or forcing length mismatches (1.580458ms)
+✔ selective audio recovery uses measured historical caption bindings, keeps current typography, fails ambiguous alignment (0.267833ms)
+✔ transition-only revisions reject subtitle or sound drift even when scene duration is compensated (0.307959ms)
+✔ audio restore can reuse the measured union of adjacent historical cues without guessing inner times (0.187208ms)
+✔ review samples the actual late subtitle interval and includes its real caption ID (0.539459ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 23.064042
+✔ dense finite animation checks have enough CPU while memory and worst-case budgets remain bounded (2.533584ms)
+✔ receipt binds version, run, input, scenes and actual runtime bytes (0.639084ms)
+✔ Windows supervisor uses one explicit record, independent from nested worker stdout (0.225333ms)
+✔ malformed runtime and supervisor JSON route to environment without creative repair (0.681209ms)
+✔ trusted static requirements reject blank evidence and cannot downgrade declared motion (0.231208ms)
+✔ model evidence budget counts images and retains their provenance pairs (13.076458ms)
+✔ malformed nested runtime evidence remains a protocol failure (0.208125ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 20.970958
+✔ delivery routes fail closed and derive current job and files (15.445875ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 17.846625
+✔ R1 recovery cannot attach an older titlecard to a newly planned original scene (0.504083ms)
+✔ R1 animation-only context preserves policy and motion guidance without renderer authoring instructions (989.445541ms)
+✔ R1 exact catalog names, aliases, URLs, negative clauses and empty matches (3.729125ms)
+✔ R1 unused shader imports and compiles without resource reads (0.118916ms)
+✔ R1 exact displayed copy keeps spaces and punctuation (0.892708ms)
+✔ R1 advancing detail does not falsely succeed when the matched scene would stay put (0.638542ms)
+✔ R1 static text timing is deferred, but animated review and static layout still block (0.204667ms)
+✔ R1 provider concurrent callers submit once, square is preserved, aspect invalidates cache and unknown submission reconciles (115.461459ms)
+✔ R1 partial shot failure resumes remaining shots and retains completed asset IDs (2.141166ms)
+✔ R1 progress is read-only and a project is not a completed film (0.345ms)
+✔ R1 silent display copy does not trigger speech recognition on resume (0.111083ms)
+✔ R1 packaging preserves hash-verified historical guidance without executing stale adapters (2.298625ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1119.44475
+✔ failed import retry remains in the same project and job, preserving earlier failure evidence (31.69725ms)
+✔ ZIP64 hashes and non-ASCII native data survive extraction without trusting paths (4.159375ms)
+✔ corrupt blobs and undeclared archive paths fail before project publication (3.227417ms)
+✔ duplicate archive records and compressed data are rejected (2.549875ms)
+✔ external owned project assets package without allowing sibling files (0.233625ms)
+✔ candidate can append verified local audio without upgrading visual approval (164.86275ms)
+✔ candidate history carries exact admission and contract instead of recreating approval (21.960083ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 231.762375
+✔ local download wording survives global routing integration and honors explicit mode (2.880417ms)
+✔ production approval receives saved plan and selected mode without weakening explicit conflicts (0.662083ms)
+✔ draft controls and explicit planning never become production; quoted and negated commands are not controls (1.50225ms)
+✔ draft status and idle cancel have no production job or model call (5.035709ms)
+✔ routing provider failure persists the original request and global receipt, and controls remain available (3.23775ms)
+✔ explicit planning through message dispatch creates only a plan and preserves source assets (909.418875ms)
+✔ whole-message controls and direct position edits bypass the model (1.030666ms)
+✔ semantic routing preserves compound original message and validates references (0.570792ms)
+✔ new creation from open project is separate and double-submit reuses the same new draft (10.675833ms)
+✔ caption history undo preserves prior edits and redo survives service reopening (52.4325ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 990.555459
+✔ explicit duration override repairs malformed model references once and retains unrelated prohibitions (948.467625ms)
+✔ repeated planning keeps one stable requirement per obligation without permitting ID substitution (0.596708ms)
+✔ M01-F03 normalized production request retains the supplied versioned workflow (0.996166ms)
+✔ M01-F03 compound sound exclusions stay independent when only music is explicitly changed (0.784959ms)
+✔ M01-F03 plan consumption retains requirements but never promotes observations or resource execution (0.959833ms)
+✔ six business contracts plus general stay distinct and planning never accepts quality (1167.649ms)
+✔ scope, quoted evidence, cyclic steps and missing bases fail closed (0.299ms)
+✔ explicit recut intake survives planning and provided source is not an effect-adapter search (2.113167ms)
+✔ invalid model structure gets at most one correction; provider failures never blind retry (0.756667ms)
+✔ model receives existing scene order, native text and sound timing without asking the user (0.6ms)
+✔ recut and variant preserve tutorial rules and compound operations (0.235417ms)
+✔ M01-F02 same-draft follow-up preserves sound and fact constraints instead of resetting create-mode history (0.321041ms)
+✔ exact prior requirement echoes retain their original provenance; altered or new-project echoes fail (0.288791ms)
+✔ draft-plan edits repair a mistaken native-edit mode once without inventing a base revision (877.590042ms)
+✔ stage evidence cannot skip dependency, missing input or quality acceptance (0.243709ms)
+✔ fallback protects explicit effects, fee ambiguity and retry budget (0.060333ms)
+✔ plan jobs persist and deduplicate without publishing a video revision (887.657709ms)
+✔ cancelled plan cannot publish a late model result or change the project (34.223625ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 18
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3928.517
+✔ product_launch dropdown and shortcut preserve the same business/mode (1.149125ms)
+✔ product_detail dropdown and shortcut preserve the same business/mode (0.124042ms)
+✔ product_demo dropdown and shortcut preserve the same business/mode (0.11625ms)
+✔ product_collection dropdown and shortcut preserve the same business/mode (0.104791ms)
+✔ product_promotion dropdown and shortcut preserve the same business/mode (0.117458ms)
+✔ product_faq dropdown and shortcut preserve the same business/mode (0.104542ms)
+✔ recut dropdown and shortcut preserve the same business/mode (0.084375ms)
+✔ variant dropdown and shortcut preserve the same business/mode (0.176917ms)
+✔ S01 real regression: preserving transitions and source assets refers to existing objects (1.258292ms)
+✔ compound variant preserves business, revision, separate targets and sound (0.193625ms)
+✔ invented requirements and stale objects rejected (0.104959ms)
+✔ explicit operation cannot become a new product creation (0.071709ms)
+✔ ordinary continuation can infer a variant without requiring the user to select a component or mode (0.1715ms)
+✔ explicit create and implicit edit both retain their required base constraints (0.091208ms)
+✔ variant without native base fails before generation (0.0595ms)
+✔ normalization retains operation and base version (0.239ms)
+✔ each model requirement retains exact quotation and scope across repeated resources (0.312167ms)
+✔ revision contract preserves sound, explicit override changes only music, and old snapshots remain intact (1.937042ms)
+✔ ambiguous ordinal, out-of-duration scope and include/exclude conflict fail before patch (0.168875ms)
+ℹ tests 19
+ℹ suites 0
+ℹ pass 19
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 10.712625
+✔ authorized material index preserves originals, distinguishes names and errors, and does not follow escaping or derived links (283.213458ms)
+✔ service imports only selected index entries, deduplicates concurrent/restarted selections and rejects stale IDs before copying (115.508ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 401.622708
+✔ one cover frame cannot validate a whole selection; dense sampling remains distinct from playback (1.686125ms)
+✔ inspection reuse requires source identity and actual sample coverage, not declared window alone (0.164292ms)
+✔ speed-adjusted source end never exceeds real media duration (0.087667ms)
+✔ action claims require dense action evidence; overview samples cannot certify necessary motion (0.256041ms)
+✔ real inspection preserves old evidence when the same asset ID receives different bytes (1343.739583ms)
+✔ assembly binds selection to current executable nodes and rejects stale or mismatched receipts (0.366417ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1348.64
+Action material refresh: new evidence invalidates all dependent variants once; audio, inspections, obligations and budgets retained.
+Required action sequence reaches image selection intact; old overview uses remaining slots; budget overflow fails explicitly.
+✔ cutting the wait keeps both actual steps in order at original speed (0.977625ms)
+✔ a caption cannot replace insertion; reversing steps and accelerating cannot pass (0.311042ms)
+✔ export admission independently rejects accelerated essential steps and permits omitted optional waiting (0.791083ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5.171417
+✔ late source defect retains independent remaining source budget and refuses other repair owners (0.580041ms)
+✔ source repair changes only the selected in-point and its explanation (0.652041ms)
+✔ quality-only source changes invalidate review, while any planning or helper dependency change remains conservative (3.917834ms)
+✔ historical stage proof must match the exact retained runtime source bytes (16.009458ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 23.765792
+✔ general reaches a versioned controlled runtime package with resolvable policy receipts (959.2675ms)
+✔ compound order preserves all auxiliary goals and necessary action locks into production (1.7265ms)
+✔ unknown scenario cannot gain permissions through general fallback (0.400625ms)
+✔ ordinary follow-up retains auxiliary tutorial actions and skills over consecutive native revisions (1.274916ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 965.301416
+✔ repeated caption moves accumulate without changing words, timings, media or sound (6.629542ms)
+✔ portable native manifest preserves synthesis request for voice-only edits (0.710334ms)
+✔ turning off narration retains caption bindings and measured display intervals (0.496917ms)
+✔ last caption means the latest displayed cue even if storage order differs (0.252583ms)
+✔ targeted captions invalidate only overlapping scenes, including text changes (0.726166ms)
+✔ layout lock, excessive offsets and unknown targets reject atomically (1.767916ms)
+✔ missing captions cannot silently target product descriptions (0.748042ms)
+✔ music reduction and fade preserve narration, captions and visual content (0.547625ms)
+✔ end fade does not rewrite an earlier music section fade (0.336708ms)
+✔ relative move after a single caption edit cannot widen to all captions (1.081958ms)
+✔ real message routing retains the prior single caption ID before execution (1.666875ms)
+✔ semantic caption target is frozen before planning, so extra model targets fail (0.245667ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 19.6315
+✔ M12-F02 groups by source identity while keeping same-title works and edited copy history reachable (0.708208ms)
+✔ exported work remains selectable after an unrendered edit; test projects and duplicate presets stay out (0.570084ms)
+✔ local finished catalog rejects changed bytes and escaping paths; missing artifacts are not advertised (8.798417ms)
+✔ F1-05 missing ZIP retains playable video and a damaged work cannot hide another work (2.439958ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 14.87575
+PASS shipped Mijia MP4 hash, native ZIP, retained project snapshot and every payload object exist
+Verification report: /Users/a1234/Desktop/hyperframe-main/video-agent/outputs/upgrade/verification/core-2026-09-18T00-28-59.658Z

@@ -1,0 +1,287 @@
+{
+  "schemaVersion": 1,
+  "id": "1fcf77bb-f412-4bb0-bae0-ae49dd7db9dc",
+  "title": "新创作",
+  "createdAt": "2026-09-22T09:37:00.436Z",
+  "updatedAt": "2026-09-23T13:05:43.944Z",
+  "request": {
+    "message": "创建一个新的可编辑视频工程。",
+    "inferRequest": true,
+    "taskMode": "create",
+    "taskModeExplicit": true,
+    "commerceProfile": "commerce-focus-v1",
+    "source": "openclaw-request",
+    "output": {
+      "width": 1280,
+      "height": 720,
+      "durationSeconds": 40
+    }
+  },
+  "assets": [],
+  "revisions": [],
+  "currentRevisionId": null,
+  "jobs": [
+    {
+      "id": "job-62da2074-a047-440f-bfb3-1120b650d91d",
+      "kind": "route",
+      "status": "complete",
+      "stage": "已保存需求",
+      "progress": 0,
+      "createdAt": "2026-09-22T09:37:00.474Z",
+      "input": {
+        "message": "创建一个新的可编辑视频工程。",
+        "baseRevisionId": null,
+        "attachmentIds": [],
+        "idempotencyKey": "op-36f521c77abb0f426c280af245b91cc5040e67d1f2412373"
+      },
+      "routeJob": true,
+      "retryCount": 0,
+      "startedAt": "2026-09-22T09:37:00.474Z",
+      "childProjectId": "1fcf77bb-f412-4bb0-bae0-ae49dd7db9dc",
+      "childJobId": null,
+      "completedAt": "2026-09-22T09:37:05.608Z",
+      "businessProgress": {
+        "current": "complete",
+        "label": "完成",
+        "events": [
+          {
+            "phase": "complete",
+            "label": "完成",
+            "stage": "已保存需求",
+            "status": "complete",
+            "at": "2026-09-22T11:18:28.974Z"
+          }
+        ]
+      }
+    }
+  ],
+  "messages": [
+    {
+      "role": "user",
+      "text": "创建一个新的可编辑视频工程。",
+      "attachmentIds": [],
+      "time": "2026-09-22T09:37:05.608Z"
+    },
+    {
+      "role": "assistant",
+      "text": "这条新视频围绕什么商品/主题，用在哪个平台或投放场景？",
+      "time": "2026-09-22T09:37:05.608Z"
+    }
+  ],
+  "redo": [],
+  "progressSignature": "[[\"job-62da2074-a047-440f-bfb3-1120b650d91d\",\"complete\",\"已保存需求\",null,null,null,null,null,null,null]]",
+  "recentProgressAt": "2026-09-22T09:37:05.608Z",
+  "routingReceipts": [
+    {
+      "time": "2026-09-22T09:37:05.608Z",
+      "message": "创建一个新的可编辑视频工程。",
+      "baseRevisionId": null,
+      "mode": "clarify",
+      "quote": "创建一个新的可编辑视频工程",
+      "revisionId": null,
+      "assetIds": [],
+      "question": "这条新视频围绕什么商品/主题，用在哪个平台或投放场景？",
+      "scenarioId": null,
+      "targets": [],
+      "preserve": [
+        "unmentioned-objects",
+        "source-assets",
+        "revision-history"
+      ],
+      "reason": "原话只表达了新建一个可编辑视频工程的意图（videoType=create），businessIntent 中 product、platform、audience、marketingGoal 均为空，scenario 状态 unresolved 且无候选，也无 recentConversation/savedPlan 可补全。缺少会实质改变成片的商品与用途信息，且现有工程/素材不能推定新视频内容，故不默认 create 直接上新，仅提一个最小问题澄清商品与使用场景；scenarioId 无明确证据返回 null。",
+      "source": "semantic",
+      "model": "openclaw/commerce-stage",
+      "businessIntent": {
+        "version": 2,
+        "product": null,
+        "platform": null,
+        "audience": [],
+        "marketingGoal": null,
+        "outputConstraints": null,
+        "videoType": "create",
+        "creationRequested": false,
+        "scenario": {
+          "id": null,
+          "status": "unresolved",
+          "source": null,
+          "selectedId": null,
+          "candidates": []
+        },
+        "ruleIds": [],
+        "llmRequired": true,
+        "confidence": 0.5
+      },
+      "version": 1,
+      "scenario": null,
+      "executionStrategy": "L3",
+      "confidence": 0.8,
+      "fallback": {
+        "version": 1,
+        "categories": [
+          "missing_evidence",
+          "ambiguous_target",
+          "unsupported_capability",
+          "resource_incompatible",
+          "provider_unavailable",
+          "quality_failure",
+          "revision_conflict"
+        ],
+        "maxReplans": 2,
+        "identicalFailureLimit": 2,
+        "preserveCurrentRevision": true,
+        "allowSilentSubstitution": false,
+        "steps": [
+          "retry-same-capability",
+          "safe-equivalent-execution",
+          "retain-valid-revision",
+          "report-failed-targets",
+          "repair-only-gap"
+        ],
+        "classifiers": [
+          [
+            "revision_conflict",
+            "REVISION_CONFLICT|STALE_REVISION"
+          ],
+          [
+            "provider_unavailable",
+            "^(MINIMAX_|CODEX_|PROVIDER_)"
+          ],
+          [
+            "resource_incompatible",
+            "RESOURCE_|INCOMPATIBLE"
+          ],
+          [
+            "unsupported_capability",
+            "UNSUPPORTED|CAPABILITY|VOICE_NOT_FOUND"
+          ],
+          [
+            "ambiguous_target",
+            "AMBIGUOUS|SCOPE|TARGET|CONFLICT|CAPTION_ALIGNMENT_REQUIRED"
+          ],
+          [
+            "missing_evidence",
+            "MISSING|NEEDS_INPUT|INSUFFICIENT|SPEECH_SCRIPT_REQUIRED|NO_SPEECH|NO_CAPTION_AUDIO"
+          ]
+        ]
+      },
+      "selectedSkills": [],
+      "skillReasons": {}
+    }
+  ],
+  "pendingClarification": {
+    "rootMessage": "创建一个新的可编辑视频工程。",
+    "turns": [
+      {
+        "role": "user",
+        "text": "创建一个新的可编辑视频工程。"
+      },
+      {
+        "role": "assistant",
+        "text": "这条新视频围绕什么商品/主题，用在哪个平台或投放场景？"
+      }
+    ],
+    "updatedAt": "2026-09-22T09:37:05.608Z"
+  },
+  "messageDispatches": [
+    {
+      "key": "op-36f521c77abb0f426c280af245b91cc5040e67d1f2412373",
+      "projectId": "1fcf77bb-f412-4bb0-bae0-ae49dd7db9dc",
+      "route": {
+        "mode": "clarify",
+        "quote": "创建一个新的可编辑视频工程",
+        "revisionId": null,
+        "assetIds": [],
+        "question": "这条新视频围绕什么商品/主题，用在哪个平台或投放场景？",
+        "scenarioId": null,
+        "targets": [],
+        "preserve": [
+          "unmentioned-objects",
+          "source-assets",
+          "revision-history"
+        ],
+        "reason": "原话只表达了新建一个可编辑视频工程的意图（videoType=create），businessIntent 中 product、platform、audience、marketingGoal 均为空，scenario 状态 unresolved 且无候选，也无 recentConversation/savedPlan 可补全。缺少会实质改变成片的商品与用途信息，且现有工程/素材不能推定新视频内容，故不默认 create 直接上新，仅提一个最小问题澄清商品与使用场景；scenarioId 无明确证据返回 null。",
+        "source": "semantic",
+        "model": "openclaw/commerce-stage",
+        "baseRevisionId": null,
+        "businessIntent": {
+          "version": 2,
+          "product": null,
+          "platform": null,
+          "audience": [],
+          "marketingGoal": null,
+          "outputConstraints": null,
+          "videoType": "create",
+          "creationRequested": false,
+          "scenario": {
+            "id": null,
+            "status": "unresolved",
+            "source": null,
+            "selectedId": null,
+            "candidates": []
+          },
+          "ruleIds": [],
+          "llmRequired": true,
+          "confidence": 0.5
+        },
+        "version": 1,
+        "message": "创建一个新的可编辑视频工程。",
+        "scenario": null,
+        "executionStrategy": "L3",
+        "confidence": 0.8,
+        "fallback": {
+          "version": 1,
+          "categories": [
+            "missing_evidence",
+            "ambiguous_target",
+            "unsupported_capability",
+            "resource_incompatible",
+            "provider_unavailable",
+            "quality_failure",
+            "revision_conflict"
+          ],
+          "maxReplans": 2,
+          "identicalFailureLimit": 2,
+          "preserveCurrentRevision": true,
+          "allowSilentSubstitution": false,
+          "steps": [
+            "retry-same-capability",
+            "safe-equivalent-execution",
+            "retain-valid-revision",
+            "report-failed-targets",
+            "repair-only-gap"
+          ],
+          "classifiers": [
+            [
+              "revision_conflict",
+              "REVISION_CONFLICT|STALE_REVISION"
+            ],
+            [
+              "provider_unavailable",
+              "^(MINIMAX_|CODEX_|PROVIDER_)"
+            ],
+            [
+              "resource_incompatible",
+              "RESOURCE_|INCOMPATIBLE"
+            ],
+            [
+              "unsupported_capability",
+              "UNSUPPORTED|CAPABILITY|VOICE_NOT_FOUND"
+            ],
+            [
+              "ambiguous_target",
+              "AMBIGUOUS|SCOPE|TARGET|CONFLICT|CAPTION_ALIGNMENT_REQUIRED"
+            ],
+            [
+              "missing_evidence",
+              "MISSING|NEEDS_INPUT|INSUFFICIENT|SPEECH_SCRIPT_REQUIRED|NO_SPEECH|NO_CAPTION_AUDIO"
+            ]
+          ]
+        },
+        "selectedSkills": [],
+        "skillReasons": {}
+      },
+      "jobId": "job-62da2074-a047-440f-bfb3-1120b650d91d",
+      "childJobId": null
+    }
+  ]
+}

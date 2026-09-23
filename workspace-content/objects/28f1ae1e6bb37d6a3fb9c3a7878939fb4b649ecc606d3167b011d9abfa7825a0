@@ -1,0 +1,129 @@
+{
+  "summary": "已检查本批 scene-04 至 scene-06 的关键帧。scene-04 与 scene-05 的实拍画面均只占输出左侧约 61%，右侧出现大面积空白，削弱横屏商品展示；scene-06 的标题卡在片尾被过早截断，最后画面进入近乎空白的 Logo 淡出状态，收尾不够完整。未试听音频，静音合同与音画同步未验证；未检查本批之外的镜头。",
+  "issues": [
+    {
+      "severity": "major",
+      "repairKind": "layout",
+      "sceneId": "scene-04",
+      "startSeconds": 14,
+      "endSeconds": 18,
+      "nodeIds": [
+        "node-1578fce7b913decb",
+        "node-c9dc4373041a4793"
+      ],
+      "evidence": [
+        "review-attempt-HoLb1C/round-0/batch-1/frame-00-at-14.3s.png",
+        "review-attempt-HoLb1C/round-0/batch-1/frame-01-at-15.6s.png",
+        "review-attempt-HoLb1C/round-0/batch-1/frame-02-at-16.8s.png",
+        "review-attempt-HoLb1C/round-0/batch-1/frame-03-at-17.967s.png"
+      ],
+      "problem": "背面屏幕实拍画面只呈现在输出左侧约 61% 宽度，右侧持续保留大面积浅色空白；关键主体没有形成稳定的横屏主视觉。字幕位于左下角且未明显遮挡主体，但整体布局与横屏输出不匹配。",
+      "repair": "仅调整 scene-04 的原生媒体布局与适配方式，使该源片段在 1920x1080 画布中占据主要可视区域，并保持屏幕与机身完整可见；保留 node-1578fce7b913decb 的独立字幕和现有揭示动效。复核 14.0、15.6、16.8、17.967 秒，确认主体不被裁切且右侧不再出现异常空白。"
+    },
+    {
+      "severity": "major",
+      "repairKind": "layout",
+      "sceneId": "scene-05",
+      "startSeconds": 18,
+      "endSeconds": 21.5,
+      "nodeIds": [
+        "node-6987f7b5ff7d73cd",
+        "node-0a19970d1a4506d7"
+      ],
+      "evidence": [
+        "review-attempt-HoLb1C/round-0/batch-1/frame-04-at-18.3s.png",
+        "review-attempt-HoLb1C/round-0/batch-1/frame-05-at-19.4s.png",
+        "review-attempt-HoLb1C/round-0/batch-1/frame-06-at-20.45s.png",
+        "review-attempt-HoLb1C/round-0/batch-1/frame-07-at-21.467s.png"
+      ],
+      "problem": "相机与手柄状态画面同样只占输出左侧约 61% 宽度，右侧是连续的大面积浅色空白；相机和手柄虽可辨认，但商品状态展示被明显缩小，横屏空间利用异常。",
+      "repair": "仅修正 scene-05 的原生媒体容器尺寸或适配参数，使实拍画面填充横屏主区域并保持相机、手柄和手部动作完整可见；保留 node-6987f7b5ff7d73cd 的字幕位置与现有淡入淡出。复核 18.0、19.4、20.45、21.467 秒，确认主体未被裁切、字幕不遮挡操作区域。"
+    },
+    {
+      "severity": "major",
+      "repairKind": "source-selection",
+      "sceneId": "scene-06",
+      "startSeconds": 21.5,
+      "endSeconds": 24,
+      "nodeIds": [
+        "node-4d83008d13814e3f"
+      ],
+      "evidence": [
+        "review-attempt-HoLb1C/round-0/batch-1/frame-08-at-21.8s.png",
+        "review-attempt-HoLb1C/round-0/batch-1/frame-09-at-22.5s.png",
+        "review-attempt-HoLb1C/round-0/batch-1/frame-10-at-23.25s.png",
+        "review-attempt-HoLb1C/round-0/batch-1/frame-11-at-23.967s.png"
+      ],
+      "problem": "片尾使用 66.1–68.6 秒源区间，短于观察到的完整标题卡区间 66.1–71.423 秒。关键帧显示标题卡先长时间停留，随后在 23.967 秒进入近乎空白的 Logo 淡出，成片在源卡片自然结束前截断，收尾信息变弱。",
+      "repair": "重新选择或延长 scene-06 的原生媒体区间，覆盖“Mijia Compact Camera”标题卡的完整可读停留与自然淡出；在 24 秒约束内优先保留清晰标题和完整结束状态，必要时从 scene-05 缩短非必要停留，但不要新增 CTA 或文字。复核 21.5 秒切入、22.5 秒标题可读性及 24.0 秒是否自然结束。"
+    }
+  ],
+  "unreviewed": [
+    "未试听最终音频，无法验证全片是否确实静音，也无法验证音频同步。",
+    "未检查 scene-01 至 scene-03 的画面、字幕、布局和源区间。",
+    "仅依据本批关键帧，未验证全片连续播放中的转场、运动连续性和真实导出文件完整性。",
+    "未验证工程中的静音轨道状态、MP4 编码完整性及可编辑工程入口。"
+  ],
+  "frameTimes": [
+    {
+      "file": "review-attempt-HoLb1C/round-0/batch-1/frame-00-at-14.3s.png",
+      "seconds": 14.3,
+      "sceneId": "scene-04"
+    },
+    {
+      "file": "review-attempt-HoLb1C/round-0/batch-1/frame-01-at-15.6s.png",
+      "seconds": 15.6,
+      "sceneId": "scene-04"
+    },
+    {
+      "file": "review-attempt-HoLb1C/round-0/batch-1/frame-02-at-16.8s.png",
+      "seconds": 16.8,
+      "sceneId": "scene-04"
+    },
+    {
+      "file": "review-attempt-HoLb1C/round-0/batch-1/frame-03-at-17.967s.png",
+      "seconds": 17.967,
+      "sceneId": "scene-04"
+    },
+    {
+      "file": "review-attempt-HoLb1C/round-0/batch-1/frame-04-at-18.3s.png",
+      "seconds": 18.3,
+      "sceneId": "scene-05"
+    },
+    {
+      "file": "review-attempt-HoLb1C/round-0/batch-1/frame-05-at-19.4s.png",
+      "seconds": 19.4,
+      "sceneId": "scene-05"
+    },
+    {
+      "file": "review-attempt-HoLb1C/round-0/batch-1/frame-06-at-20.45s.png",
+      "seconds": 20.45,
+      "sceneId": "scene-05"
+    },
+    {
+      "file": "review-attempt-HoLb1C/round-0/batch-1/frame-07-at-21.467s.png",
+      "seconds": 21.467,
+      "sceneId": "scene-05"
+    },
+    {
+      "file": "review-attempt-HoLb1C/round-0/batch-1/frame-08-at-21.8s.png",
+      "seconds": 21.8,
+      "sceneId": "scene-06"
+    },
+    {
+      "file": "review-attempt-HoLb1C/round-0/batch-1/frame-09-at-22.5s.png",
+      "seconds": 22.5,
+      "sceneId": "scene-06"
+    },
+    {
+      "file": "review-attempt-HoLb1C/round-0/batch-1/frame-10-at-23.25s.png",
+      "seconds": 23.25,
+      "sceneId": "scene-06"
+    },
+    {
+      "file": "review-attempt-HoLb1C/round-0/batch-1/frame-11-at-23.967s.png",
+      "seconds": 23.967,
+      "sceneId": "scene-06"
+    }
+  ]
+}

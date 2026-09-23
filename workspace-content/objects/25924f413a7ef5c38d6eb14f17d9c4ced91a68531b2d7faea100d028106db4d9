@@ -1,0 +1,250 @@
+{
+  "blockingGaps": [],
+  "gaps": [
+    "素材已完成离散抽帧观察，但观察记录存在36帧与49帧两种覆盖口径；未连续观看，候选源区间不是最终切点，需复核物件可见性、清晰度和源叠字边界。",
+    "透明包装中的深色扁平物身份及用途未确认，小袋用途未知；不得宣称清单完整、所有版本标配，或将适配器连带线缆另计为独立配件。",
+    "中文旁白能力可用，但尚未合成、测量或生成字幕时间戳；后续供应商执行可能失败，约30秒需按真实音频时长调整。",
+    "当前无听音能力，最终旁白听感及声画同步仍需人工审阅；不混入原声，不添加音乐。",
+    "资源尚未完成本次原生适配和渲染验证，中文字体、依赖及具体资源许可需由应用核验；素材权利记录不足以支持正式商用交付声明。"
+  ],
+  "originalNeeds": [
+    "按product_faq独立组织约30秒、1920×1080、30fps原生工程：先显示问题并简答，再逐件对应真实画面，最后保留版本配置与性能判断限制，不继承未知S01结构。",
+    "原创证据编排使用唯一源素材asset-fd6a0327-2d1d-4fc8-b2d9-5e78d84d6f97：掌机44.250—49.250秒、收纳包28.017—32.683秒、带线适配器18.983—23.206秒、小袋56.385—60.532秒、提示卡8.428—10.539秒、透明包装23.350—28.017秒、纸套30.350秒附近、未知扁平物50.917—54.311秒；均作为待细化的定位窗口。",
+    "采用完整源画面等比置入媒体区的原创布局，文字放在媒体区外，文字总面积不超过25%，安全边距约6%；问题、物件标签、字幕、限制说明及音轨保持独立可编辑。",
+    "资源规划后、分镜定时前由narration.prepare执行中文旁白合成并测量，再用provider.transcribe取得语音时间戳；据此安排逐件画面和字幕，不编造字幕时码，不删减未知物件说明或片尾限制来卡时长。",
+    "片尾完整表达“配置需以具体购买版本确认，不据此判断游戏性能、续航或兼容性。”保留真实商品画面，不添加促销、参数或性能结论。",
+    "后续由应用读取选中资源完整合同并校验哈希，使用resources.adapt_native_bundle、native.compile、native.isolate及hyperframes.check完成受管适配与验证；本计划不代表已执行。"
+  ],
+  "selected": [
+    {
+      "id": "lt-mask-reveal",
+      "reason": "用于逐件证据段的简短物件标签，以一次克制揭示后静止保持，适合真实开箱画面。适配到媒体区外，不遮挡商品和手部；只控制自身标签，不改变视频变换或字幕属性。来源为候选运行时0.8.33、提交6e3308be4f2ab886597fcee7c5896a5f842ec4b6，待实际适配验证。"
+    },
+    {
+      "id": "caption-editorial-emphasis",
+      "reason": "负责全片中文旁白对应字幕，按合成后实测语音时间戳显示，仅对当前物件名和必要限定轻度强调。与物件标签使用独立区域和对象，避免重复动效与属性冲突；每条文字遵守80字上限。来源为候选运行时0.8.33、提交6e3308be4f2ab886597fcee7c5896a5f842ec4b6，尚未生成字幕或验证渲染。"
+    },
+    {
+      "id": "titlecard-reveal",
+      "reason": "借用已提供蓝图的一次克制揭示加静止保持，用于开场问题和片尾限制说明；适配成局部文字面板，持续保留真实商品画面，不使用全屏卡片。开场问题在逐件段退出，片尾限制替换物件标签，与字幕分区；不加入Logo链或社会证明。来源为候选运行时0.8.33、提交6e3308be4f2ab886597fcee7c5896a5f842ec4b6，执行与依赖仍待应用验证。"
+    }
+  ],
+  "candidates": [
+    {
+      "id": "lt-mask-reveal",
+      "tags": [
+        "video",
+        "action",
+        "text",
+        "操作",
+        "实拍",
+        "口播",
+        "标签",
+        "文字"
+      ],
+      "inputs": [
+        "video"
+      ],
+      "description": "Transparent editable lower-third over continuing footage; no stat, price, or full-screen text takeover is required. Adapt the wipe and accent sweep to approved native text, local fonts and the managed timeline.",
+      "files": [
+        "registry/blocks/lt-mask-reveal/registry-item.json",
+        "registry/blocks/lt-mask-reveal/lt-mask-reveal.html"
+      ],
+      "requirements": {
+        "minMedia": 1,
+        "mediaKinds": [
+          "video"
+        ],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 1,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "caption-editorial-emphasis",
+      "tags": [
+        "caption",
+        "speech",
+        "字幕",
+        "口播",
+        "强调"
+      ],
+      "inputs": [
+        "text"
+      ],
+      "description": "Editable editorial text emphasis; align spoken captions to measured transcript timestamps, never invented timing.",
+      "files": [
+        "registry/components/caption-editorial-emphasis/registry-item.json",
+        "registry/components/caption-editorial-emphasis/caption-editorial-emphasis.html"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 1,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "comparison-split",
+      "tags": [
+        "compare",
+        "detail",
+        "image",
+        "比较",
+        "细节",
+        "双栏"
+      ],
+      "inputs": [
+        "visual-pair"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/comparison-split.md",
+        "skills/hyperframes-animation/rules/split-tilt-cards.md",
+        "registry/components/comparison-split/registry-item.json",
+        "registry/components/comparison-split/comparison-split.html"
+      ],
+      "requirements": {
+        "minMedia": 2,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 1,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "video-text-pivot",
+      "tags": [
+        "video",
+        "action",
+        "操作",
+        "实拍",
+        "讲解"
+      ],
+      "inputs": [
+        "video"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/video-text-pivot.md",
+        "skills/hyperframes-animation/rules/gsap-effects.md"
+      ],
+      "requirements": {
+        "minMedia": 1,
+        "mediaKinds": [
+          "video"
+        ],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "occluding",
+      "compatible": true,
+      "eligible": true,
+      "score": 1,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "kinetic-type-beats",
+      "tags": [
+        "text",
+        "caption",
+        "文字",
+        "字幕",
+        "强调"
+      ],
+      "inputs": [
+        "text"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/kinetic-type-beats.md",
+        "skills/hyperframes-animation/rules/discrete-text-sequence.md"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "occluding",
+      "compatible": true,
+      "eligible": true,
+      "score": 1,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "grid-card-assemble",
+      "tags": [
+        "image",
+        "details",
+        "steps",
+        "参数",
+        "配件",
+        "步骤"
+      ],
+      "inputs": [],
+      "files": [
+        "skills/hyperframes-animation/blueprints/grid-card-assemble.md",
+        "skills/hyperframes-animation/rules/gsap-effects.md"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 1,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "titlecard-reveal",
+      "tags": [
+        "title",
+        "brand",
+        "text",
+        "收尾",
+        "标题"
+      ],
+      "inputs": [],
+      "files": [
+        "skills/hyperframes-animation/blueprints/titlecard-reveal.md",
+        "skills/hyperframes-animation/rules/discrete-text-sequence.md"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 0,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    }
+  ],
+  "originalRequest": "用这份掌机开箱素材做约30秒购买前问答，回答“这次开箱实际展示了哪些盒内物件？”先给简短答案，再逐个用真实画面对应。只说看得见的东西；片尾说明配置需以具体购买版本确认，不据此判断游戏性能、续航或兼容性。中文旁白配字幕，原素材与S01相同也要重新按问答目的取舍。",
+  "assetKinds": {
+    "asset-fd6a0327-2d1d-4fc8-b2d9-5e78d84d6f97": "video"
+  }
+}

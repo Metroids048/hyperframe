@@ -1,0 +1,325 @@
+{
+  "capabilities": [
+    "video-source-selection",
+    "native-composition",
+    "managed-original",
+    "local-preview-review",
+    "native-editing"
+  ],
+  "constraints": [
+    "只使用当前会话刚上传的单个源视频 asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9；排除 asset-1dfd42f4-ad14-4686-be73-528d8fe1ca11 和 asset-f19a9d72-efce-4f09-b52b-13324ea7e2cc。",
+    "用户确认这是用户自有素材，仅授权本次本地时间线编辑。",
+    "禁止生成新素材。",
+    "商品身份以源视频可见内容为准，不虚构商品 claims。",
+    "在开头 0.0-2.0 秒叠加标题“新品体验”。",
+    "导出完整 MP4。",
+    "保留原始 1280x720 画幅、完整 120.022 秒时长和原始 AAC 声音。",
+    "不要裁剪、截短、重构或替换声音。"
+  ],
+  "gaps": [],
+  "keepOriginalAudio": true,
+  "needsCaptions": false,
+  "needsNarration": false,
+  "needsTranscription": false,
+  "request": {
+    "cta": "",
+    "facts": [],
+    "name": "商品展示",
+    "output": {
+      "width": 1280,
+      "height": 720,
+      "durationSeconds": 120.022,
+      "fps": 30
+    },
+    "price": ""
+  },
+  "scenarioId": "general",
+  "workflow": {
+    "assumptions": [],
+    "gaps": [],
+    "objective": "在指定单个源视频开头添加标题叠加，并导出完整 MP4，同时保持原画幅、完整时长和原始声音不变。",
+    "overrides": [],
+    "requirements": [],
+    "taskMode": "create"
+  },
+  "productionBinding": {
+    "message": "请只使用当前会话刚上传的单个源视频 asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9。资源审核依据：用户确认这是用户自有素材，仅授权本次本地时间线编辑；禁止生成新素材。商品身份以源视频可见内容为准，不虚构商品 claims。任务：在开头 0.0-2.0 秒叠加标题“新品体验”，导出完整 MP4。保留原始 1280x720 画幅、完整 120.022 秒时长和原始 AAC 声音；不要裁剪、截短、重构或替换声音。",
+    "contract": {
+      "schemaVersion": 1,
+      "profile": "commerce-focus-v1",
+      "scenarioId": "general",
+      "originalRequest": "请只使用当前会话刚上传的单个源视频 asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9。资源审核依据：用户确认这是用户自有素材，仅授权本次本地时间线编辑；禁止生成新素材。商品身份以源视频可见内容为准，不虚构商品 claims。任务：在开头 0.0-2.0 秒叠加标题“新品体验”，导出完整 MP4。保留原始 1280x720 画幅、完整 120.022 秒时长和原始 AAC 声音；不要裁剪、截短、重构或替换声音。",
+      "taskMode": "create",
+      "workflowProfile": "create",
+      "workflow": {
+        "version": 2,
+        "taskMode": "create",
+        "taskModeExplicit": true,
+        "workflowProfile": "create",
+        "businessScenario": "general",
+        "baseProjectId": "513b9ab3-c0df-423b-b870-6ad683bdb147",
+        "baseRevisionId": null,
+        "assetScope": [
+          "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9",
+          "asset-1dfd42f4-ad14-4686-be73-528d8fe1ca11",
+          "asset-f19a9d72-efce-4f09-b52b-13324ea7e2cc"
+        ],
+        "originalRequest": "请只使用当前会话刚上传的单个源视频 asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9。资源审核依据：用户确认这是用户自有素材，仅授权本次本地时间线编辑；禁止生成新素材。商品身份以源视频可见内容为准，不虚构商品 claims。任务：在开头 0.0-2.0 秒叠加标题“新品体验”，导出完整 MP4。保留原始 1280x720 画幅、完整 120.022 秒时长和原始 AAC 声音；不要裁剪、截短、重构或替换声音。",
+        "requirements": [
+          {
+            "endSeconds": null,
+            "excludeIds": [
+              "asset-1dfd42f4-ad14-4686-be73-528d8fe1ca11",
+              "asset-f19a9d72-efce-4f09-b52b-13324ea7e2cc"
+            ],
+            "kind": "resource",
+            "quote": "请只使用当前会话刚上传的单个源视频 asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9",
+            "startSeconds": null,
+            "targetIds": [
+              "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9"
+            ],
+            "id": "requirement-ee5ab3476ecda695",
+            "field": "resource",
+            "inherited": true
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "preserve",
+            "quote": "用户确认这是用户自有素材，仅授权本次本地时间线编辑",
+            "startSeconds": null,
+            "targetIds": [
+              "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9"
+            ],
+            "id": "requirement-4935f1e91fb004ad",
+            "field": "preserve",
+            "inherited": true
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "prohibit",
+            "quote": "禁止生成新素材",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-dc5a98deac476797",
+            "field": "prohibit",
+            "inherited": true
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "prohibit",
+            "quote": "商品身份以源视频可见内容为准，不虚构商品 claims",
+            "startSeconds": null,
+            "targetIds": [
+              "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9"
+            ],
+            "id": "requirement-0d248f9c2ffb1934",
+            "field": "prohibit",
+            "inherited": true
+          },
+          {
+            "endSeconds": 2,
+            "excludeIds": [],
+            "kind": "change",
+            "quote": "在开头 0.0-2.0 秒叠加标题“新品体验”",
+            "startSeconds": 0,
+            "targetIds": [
+              "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9"
+            ],
+            "id": "requirement-cc4ce6cf1e78801f",
+            "field": "change",
+            "inherited": true
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "goal",
+            "quote": "导出完整 MP4",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-78a7ddbfea8e4e8c",
+            "field": "goal",
+            "inherited": true
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "preserve",
+            "quote": "保留原始 1280x720 画幅、完整 120.022 秒时长和原始 AAC 声音",
+            "startSeconds": null,
+            "targetIds": [
+              "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9"
+            ],
+            "id": "requirement-49e9409ce2d22af3",
+            "field": "preserve",
+            "inherited": true
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "prohibit",
+            "quote": "不要裁剪、截短、重构或替换声音",
+            "startSeconds": null,
+            "targetIds": [
+              "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9"
+            ],
+            "id": "requirement-9cb57da3efac1cf2",
+            "field": "prohibit",
+            "inherited": true
+          }
+        ],
+        "assumptions": [],
+        "gaps": [],
+        "interpretation": "validated-semantic-analysis",
+        "objective": "在指定单个源视频开头添加标题叠加，并导出完整 MP4，同时保持原画幅、完整时长和原始声音不变。",
+        "contractId": "contract-791a320aeba5a356",
+        "parentContractId": "contract-a570c3868e1ad973",
+        "sourceRequests": [
+          "请只使用当前会话刚上传的单个源视频 asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9。资源审核依据：用户确认这是用户自有素材，仅授权本次本地时间线编辑；禁止生成新素材。商品身份以源视频可见内容为准，不虚构商品 claims。任务：在开头 0.0-2.0 秒叠加标题“新品体验”，导出完整 MP4。保留原始 1280x720 画幅、完整 120.022 秒时长和原始 AAC 声音；不要裁剪、截短、重构或替换声音。"
+        ],
+        "requirementChanges": [],
+        "changeTargets": [
+          {
+            "endSeconds": 2,
+            "excludeIds": [],
+            "kind": "change",
+            "quote": "在开头 0.0-2.0 秒叠加标题“新品体验”",
+            "startSeconds": 0,
+            "targetIds": [
+              "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9"
+            ],
+            "id": "requirement-cc4ce6cf1e78801f",
+            "field": "change",
+            "inherited": true
+          }
+        ],
+        "preserveTargets": [
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "preserve",
+            "quote": "用户确认这是用户自有素材，仅授权本次本地时间线编辑",
+            "startSeconds": null,
+            "targetIds": [
+              "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9"
+            ],
+            "id": "requirement-4935f1e91fb004ad",
+            "field": "preserve",
+            "inherited": true
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "preserve",
+            "quote": "保留原始 1280x720 画幅、完整 120.022 秒时长和原始 AAC 声音",
+            "startSeconds": null,
+            "targetIds": [
+              "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9"
+            ],
+            "id": "requirement-49e9409ce2d22af3",
+            "field": "preserve",
+            "inherited": true
+          }
+        ],
+        "resourceNeeds": [
+          {
+            "endSeconds": null,
+            "excludeIds": [
+              "asset-1dfd42f4-ad14-4686-be73-528d8fe1ca11",
+              "asset-f19a9d72-efce-4f09-b52b-13324ea7e2cc"
+            ],
+            "kind": "resource",
+            "quote": "请只使用当前会话刚上传的单个源视频 asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9",
+            "startSeconds": null,
+            "targetIds": [
+              "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9"
+            ],
+            "id": "requirement-ee5ab3476ecda695",
+            "field": "resource",
+            "inherited": true
+          }
+        ],
+        "prohibitions": [
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "prohibit",
+            "quote": "禁止生成新素材",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-dc5a98deac476797",
+            "field": "prohibit",
+            "inherited": true
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "prohibit",
+            "quote": "商品身份以源视频可见内容为准，不虚构商品 claims",
+            "startSeconds": null,
+            "targetIds": [
+              "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9"
+            ],
+            "id": "requirement-0d248f9c2ffb1934",
+            "field": "prohibit",
+            "inherited": true
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "prohibit",
+            "quote": "不要裁剪、截短、重构或替换声音",
+            "startSeconds": null,
+            "targetIds": [
+              "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9"
+            ],
+            "id": "requirement-9cb57da3efac1cf2",
+            "field": "prohibit",
+            "inherited": true
+          }
+        ]
+      },
+      "persona": {
+        "creator": "商家／内容运营（待用户研究验证）",
+        "viewer": "首次了解商品的消费者"
+      },
+      "objective": "明确电商内容目标",
+      "product": {
+        "id": "product-1",
+        "name": "商品展示",
+        "facts": [],
+        "price": null,
+        "cta": "",
+        "audience": null,
+        "prohibited": []
+      },
+      "output": {
+        "width": 1280,
+        "height": 720,
+        "durationSeconds": 120.022,
+        "fps": 30
+      },
+      "audio": "unspecified",
+      "mustHave": [],
+      "mustNot": [],
+      "explicitConstraints": {
+        "schemaVersion": 1,
+        "originalRequest": "请只使用当前会话刚上传的单个源视频 asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9。资源审核依据：用户确认这是用户自有素材，仅授权本次本地时间线编辑；禁止生成新素材。商品身份以源视频可见内容为准，不虚构商品 claims。任务：在开头 0.0-2.0 秒叠加标题“新品体验”，导出完整 MP4。保留原始 1280x720 画幅、完整 120.022 秒时长和原始 AAC 声音；不要裁剪、截短、重构或替换声音。",
+        "narration": "unspecified",
+        "music": "unspecified",
+        "original": "unspecified",
+        "price": "unspecified",
+        "silent": false
+      },
+      "generatedFootageAllowed": false,
+      "deliverables": [
+        "candidate_mp4",
+        "editable_project",
+        "source_index",
+        "quality_report"
+      ]
+    }
+  }
+}

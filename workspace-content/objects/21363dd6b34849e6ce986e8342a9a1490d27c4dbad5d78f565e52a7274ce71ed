@@ -1,0 +1,157 @@
+{
+  "testType": "isolated frontend contract; mock API and mock player",
+  "checks": [
+    "桌面左聊天右预览，唯一输入框，无手动时间轴",
+    "建议仅填入要求，刷新保留新项目草稿",
+    "动态真实样例目录，导入原片不自动剪辑",
+    "当前帧引用精确到30fps；字幕请求autoExport=false，预览不冒充已导出",
+    "范围引用和草稿刷新恢复，文字稿句子映射至成片",
+    "导出不阻塞聊天，固定旧版本导出完成不覆盖最新预览",
+    "原片对比、播放修改处、撤销和历史恢复可用",
+    "编辑期间排队、刷新恢复任务，SSE使用已保存游标",
+    "同一项目一次选择两个素材均被上传，不创建新项目",
+    "手机预览在上聊天在下，无横向溢出",
+    "重新打开连接设置会刷新真实登录状态",
+    "事件流不可用时轮询仍能恢复修改结果",
+    "停止当前修改只取消编辑任务，已完成版本保留",
+    "导入与分析失败即使没有聊天消息也有重试入口",
+    "失败消息提供可执行重试，并在成功后更新"
+  ],
+  "errors": [],
+  "requests": [
+    {
+      "route": "/api/edit-samples/tears-of-steel/start",
+      "body": {}
+    },
+    {
+      "route": "/api/edit-projects/00000000-0000-4000-8000-000000000001/events",
+      "after": "0"
+    },
+    {
+      "route": "/api/edit-projects/00000000-0000-4000-8000-000000000001/messages",
+      "body": {
+        "text": "给这帧加说明字幕，不要配音",
+        "baseRevisionId": "r1",
+        "selection": {
+          "kind": "frame",
+          "startFrame": 75,
+          "endFrame": 76,
+          "revisionId": "r1"
+        },
+        "afterCurrent": false,
+        "autoExport": false
+      }
+    },
+    {
+      "route": "/api/edit-projects/00000000-0000-4000-8000-000000000001/events",
+      "after": "2"
+    },
+    {
+      "route": "/api/edit-projects/00000000-0000-4000-8000-000000000001/render",
+      "body": {
+        "revisionId": "r2"
+      }
+    },
+    {
+      "route": "/api/edit-projects/00000000-0000-4000-8000-000000000001/messages",
+      "body": {
+        "text": "导出时继续添加一行字幕",
+        "baseRevisionId": "r2",
+        "selection": null,
+        "afterCurrent": false,
+        "autoExport": false
+      }
+    },
+    {
+      "route": "/api/edit-projects/00000000-0000-4000-8000-000000000001/messages",
+      "body": {
+        "text": "撤销",
+        "baseRevisionId": "r3",
+        "selection": null,
+        "afterCurrent": false,
+        "autoExport": false
+      }
+    },
+    {
+      "route": "/api/edit-projects/00000000-0000-4000-8000-000000000001/restore",
+      "body": {
+        "baseRevisionId": "r4",
+        "revisionId": "r2"
+      }
+    },
+    {
+      "route": "/api/edit-projects/00000000-0000-4000-8000-000000000001/messages",
+      "body": {
+        "text": "慢速修改以验证排队",
+        "baseRevisionId": "r5",
+        "selection": null,
+        "afterCurrent": false,
+        "autoExport": false
+      }
+    },
+    {
+      "route": "/api/edit-projects/00000000-0000-4000-8000-000000000001/messages",
+      "body": {
+        "text": "排队的第二条要求",
+        "baseRevisionId": "r5",
+        "selection": null,
+        "afterCurrent": true,
+        "autoExport": false
+      }
+    },
+    {
+      "route": "/api/edit-projects/00000000-0000-4000-8000-000000000001/events",
+      "after": "12"
+    },
+    {
+      "route": "/api/edit-projects/00000000-0000-4000-8000-000000000001/assets",
+      "name": "fixture-a.mp4"
+    },
+    {
+      "route": "/api/edit-projects/00000000-0000-4000-8000-000000000001/assets",
+      "name": "fixture-b.mp4"
+    },
+    {
+      "route": "/api/edit-projects/00000000-0000-4000-8000-000000000001/events",
+      "after": "18"
+    },
+    {
+      "route": "/api/edit-projects/00000000-0000-4000-8000-000000000001/messages",
+      "body": {
+        "text": "没有事件流时也能修改",
+        "baseRevisionId": "r7",
+        "selection": null,
+        "afterCurrent": false,
+        "autoExport": false
+      }
+    },
+    {
+      "route": "/api/edit-projects/00000000-0000-4000-8000-000000000001/messages",
+      "body": {
+        "text": "慢速修改以验证取消",
+        "baseRevisionId": "r8",
+        "selection": null,
+        "afterCurrent": false,
+        "autoExport": false
+      }
+    },
+    {
+      "route": "/api/edit-projects/00000000-0000-4000-8000-000000000001/jobs/j11/cancel"
+    },
+    {
+      "route": "/api/edit-projects/00000000-0000-4000-8000-000000000001/events",
+      "after": "18"
+    },
+    {
+      "route": "/api/edit-projects/00000000-0000-4000-8000-000000000001/jobs/j12/retry"
+    },
+    {
+      "route": "/api/edit-projects/00000000-0000-4000-8000-000000000001/events",
+      "after": "18"
+    },
+    {
+      "route": "/api/edit-projects/00000000-0000-4000-8000-000000000001/jobs/j13/retry"
+    }
+  ],
+  "finishedAt": "2026-09-17T04:54:44.987Z"
+}

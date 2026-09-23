@@ -1,0 +1,149 @@
+{
+  "alternatives": [],
+  "operations": [
+    {
+      "assetId": null,
+      "durationFrames": null,
+      "effect": null,
+      "fromSceneId": null,
+      "height": null,
+      "nodeId": null,
+      "paramsJson": null,
+      "sceneId": "scene-06",
+      "sceneIds": null,
+      "source": {
+        "css": "#scene06-overlay{position:absolute;inset:0;width:1920px;height:1080px;background:transparent;font-family:Microsoft YaHei,Arial;}#scene06-media{position:absolute;left:72px;top:190px;width:1152px;height:648px;object-fit:contain;background:transparent;opacity:1;z-index:1;}#scene06-detail{position:absolute;left:1228px;top:90px;width:680px;height:382.5px;object-fit:contain;clip-path:inset(0% 0% 15% 0%);background:transparent;opacity:1;z-index:1;}#scene06-part{position:absolute;left:1290px;top:510px;width:560px;margin:0;padding:16px 20px;box-sizing:border-box;background:var(--brand-panel);border-left:2px solid var(--brand-accent);font-size:48px;font-weight:700;line-height:1.3;color:var(--brand-accent);white-space:nowrap;z-index:2;}#scene06-connector{position:absolute;left:1290px;top:610px;width:560px;margin:0;padding:16px 20px;box-sizing:border-box;background:var(--brand-panel);border-left:2px solid var(--brand-accent);font-size:36px;font-weight:400;line-height:1.5;color:var(--brand-foreground);white-space:nowrap;z-index:2;}",
+        "html": "<div id=\"scene06-overlay\"><div id=\"scene06-media\"></div><div id=\"scene06-detail\"></div><h2 id=\"scene06-part\"></h2><p id=\"scene06-connector\"></p></div>",
+        "motionTargets": [
+          "scene06-part",
+          "scene06-connector"
+        ],
+        "objects": [
+          {
+            "elementId": "scene06-media",
+            "nodeId": "node-6f1976475f26930e"
+          },
+          {
+            "elementId": "scene06-detail",
+            "nodeId": "scene06-detail-video"
+          },
+          {
+            "elementId": "scene06-part",
+            "nodeId": "node-273cc21cd4ec3159"
+          },
+          {
+            "elementId": "scene06-connector",
+            "nodeId": "node-4a2ff51527d8e3b4"
+          }
+        ],
+        "parameters": [],
+        "textStyles": [],
+        "timeline": "tl.fromTo(\"#scene06-part\",{opacity:0,y:6},{opacity:1,y:0,duration:params.sceneSeconds*0.033333,ease:\"power1.out\"},0);tl.fromTo(\"#scene06-connector\",{opacity:0,y:6},{opacity:1,y:0,duration:params.sceneSeconds*0.033333,ease:\"power1.out\"},params.sceneSeconds*0.1);",
+        "values": []
+      },
+      "text": null,
+      "toSceneId": null,
+      "type": "update_custom_source",
+      "width": null
+    }
+  ],
+  "summary": "仅提出scene-06局部窗裁切修复：恢复被裁掉的左侧20%源画面，保留完整上缘，略缩小并调整窗口位置以避开主窗。其余对象保持；尚未渲染验证。",
+  "workflow": {
+    "assumptions": [
+      "采用可逆的宽松裁切候选：左侧裁切由20%降为0%，顶部维持0%，底部裁切维持15%。窗口由700×393.75调整为680×382.5，保持比例且不增加倍率；位置改为1228、90，避免新增可见区域覆盖主窗。"
+    ],
+    "gaps": [
+      "仅收到问题描述与截图路径，未读取真实截图或连续视频，不能确认连接座在源60—66秒持续完整可见。",
+      "基于rev-02121029ef2e9bdb，仅重新编译scene-06源码及其媒体布局，执行隔离检查并重新渲染；连续检查成片15.6—21.6秒，重点19.767—21.6秒，同时核对scene-05、scene-07交界及全片保持项。",
+      "本轮未提交或验证。新修订ID由执行器生成；检查失败保留基准版本。必须核对全文字、字幕及时间样式、全部音轨、媒体源区间、播放率、1050帧总时长和1920×1080画幅未变。"
+    ],
+    "objective": "让观众在长侧边局部窗内看清矩形连接座，并与既有说明准确对应。",
+    "overrides": [],
+    "requirements": [
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "仅调整局部窗的裁切边界与素材位置，向左上方保留更多源画面，使连接座在源60—66秒内持续完整可见",
+        "startSeconds": null,
+        "targetIds": [
+          "scene06-detail-video"
+        ]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "prohibit",
+        "quote": "不增加放大倍率或跟踪箭头。",
+        "startSeconds": null,
+        "targetIds": [
+          "scene06-detail-video",
+          "scene-06"
+        ]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "保持主窗、说明、字幕和声音不变",
+        "startSeconds": null,
+        "targetIds": [
+          "node-6f1976475f26930e",
+          "node-273cc21cd4ec3159",
+          "node-4a2ff51527d8e3b4",
+          "s02-caption-1",
+          "s02-caption-2",
+          "s02-caption-3",
+          "s02-caption-4",
+          "s02-caption-5",
+          "cue-d18b235a237e72cf"
+        ]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "声音不变",
+        "startSeconds": null,
+        "targetIds": [
+          "audio-1",
+          "audio-2",
+          "audio-3",
+          "audio-4",
+          "audio-4124aaefa824859c",
+          "audio-bc35f0a994d81023"
+        ]
+      },
+      {
+        "endSeconds": 21.6,
+        "excludeIds": [],
+        "kind": "goal",
+        "quote": "重新渲染并检查整段裁切，重点复核19.767秒至21.6秒。",
+        "startSeconds": 19.767,
+        "targetIds": [
+          "scene-06",
+          "scene06-detail-video"
+        ]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "保持字幕时间、全文字、媒体区间、声音、时长和其他镜头。",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [
+          "scene-06"
+        ],
+        "kind": "preserve",
+        "quote": "其他镜头",
+        "startSeconds": null,
+        "targetIds": []
+      }
+    ],
+    "taskMode": "edit"
+  }
+}

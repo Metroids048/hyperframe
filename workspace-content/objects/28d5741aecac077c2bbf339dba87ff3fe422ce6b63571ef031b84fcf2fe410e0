@@ -1,0 +1,42 @@
+{
+  "notes": "仅延后观察说明：本镜头2.0秒（成片25.5秒）开始揭示，默认2.3秒完全显示并保持至结束。保留原有遮罩机制、布局、对象映射、媒体及持续身份说明。采用反馈中已有接触证据的保守起点；未连续复核或执行编译，需重新检查成片23.5—25.8秒。",
+  "source": {
+    "css": "#scene-06-layout{position:absolute;inset:0;width:1080px;height:1920px;background:transparent;overflow:hidden;}#scene-06-upper-ground{position:absolute;left:0;top:0;width:1080px;height:610px;background:var(--brand-background);}#scene-06-lower-ground{position:absolute;left:0;top:1179.25px;width:1080px;height:740.75px;background:var(--brand-background);}#scene-06-media{position:absolute;left:0;top:610px;width:1080px;height:569.25px;overflow:hidden;object-fit:contain;object-position:center;}#scene-06-copy{position:absolute;inset:0;width:1080px;height:1920px;background:transparent;}#scene-06-observation{position:absolute;left:72px;top:1240px;width:936px;height:54px;margin:0;padding:0;font-family:Microsoft YaHei;font-size:36px;font-weight:500;line-height:1.5;letter-spacing:0;color:var(--brand-foreground);text-align:left;white-space:pre-wrap;}#scene-06-reference{position:absolute;left:72px;top:1310px;width:936px;height:96px;margin:0;padding:0;font-family:Microsoft YaHei;font-size:32px;font-weight:400;line-height:1.5;letter-spacing:0;color:var(--brand-foreground);text-align:left;white-space:pre-wrap;}\n#scene-06-media{background:transparent;opacity:1;z-index:1}",
+    "html": "<div id=\"scene-06-layout\"><div id=\"scene-06-upper-ground\"></div><div id=\"scene-06-lower-ground\"></div><div id=\"scene-06-media\"></div><div id=\"scene-06-copy\"><p id=\"scene-06-observation\"></p><p id=\"scene-06-reference\"></p></div></div>",
+    "motionTargets": [
+      "scene-06-observation"
+    ],
+    "objects": [
+      {
+        "elementId": "scene-06-media",
+        "ref": "media-1"
+      },
+      {
+        "elementId": "scene-06-observation",
+        "ref": "text-1"
+      },
+      {
+        "elementId": "scene-06-reference",
+        "ref": "text-2"
+      },
+      {
+        "elementId": "scene-06-upper-ground",
+        "ref": "decoration-1"
+      },
+      {
+        "elementId": "scene-06-lower-ground",
+        "ref": "decoration-2"
+      }
+    ],
+    "parameters": [
+      {
+        "max": 0.4,
+        "min": 0.25,
+        "name": "revealDuration",
+        "value": 0.3
+      }
+    ],
+    "textStyles": [],
+    "timeline": "tl.set(\"#scene-06-observation\", {opacity:0, clipPath:\"inset(0% 100% 0% 0%)\"}, 0);\ntl.fromTo(\"#scene-06-observation\", {opacity:0, clipPath:\"inset(0% 100% 0% 0%)\"}, {opacity:1, clipPath:\"inset(0% 0% 0% 0%)\", duration:params.revealDuration, ease:\"power1.out\"}, params.sceneSeconds - 5.5);"
+  }
+}
