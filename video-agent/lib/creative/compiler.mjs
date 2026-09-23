@@ -18,6 +18,7 @@ const js = value => JSON.stringify(String(value ?? '')).replaceAll('<','\\u003c'
 // the next scene's media from seeking during deterministic checks/renders.
 const sec = frames => String(frames / FPS);
 const pct = n => `${Math.round(Number(n) * 10000) / 100}%`;
+const mediaPosition = node => node.params?.focusX!==undefined||node.params?.focusY!==undefined?`;object-position:${pct(node.params?.focusX??.5)} ${pct(node.params?.focusY??.5)}`:'';
 
 function publicAsset(asset) {
   const ref = asset.compiledRef || asset.normalizedRef;
@@ -26,7 +27,7 @@ function publicAsset(asset) {
 }
 
 function imageMarkup(asset, node, className = '') {
-  return `<img id="obj-${esc(node.id)}" class="${esc(className)}" data-start="${sec(node.startFrame)}" data-duration="${sec(node.durationFrames)}" style="object-fit:${node.params?.fit === 'contain' ? 'contain' : 'cover'}" src="${esc(publicAsset(asset))}" alt="" draggable="false">`;
+  return `<img id="obj-${esc(node.id)}" class="${esc(className)}" data-start="${sec(node.startFrame)}" data-duration="${sec(node.durationFrames)}" style="object-fit:${node.params?.fit === 'contain' ? 'contain' : 'cover'}${mediaPosition(node)}" src="${esc(publicAsset(asset))}" alt="" draggable="false">`;
 }
 
 function sceneNodes(document, scene) {
@@ -73,9 +74,10 @@ function externalVideoLayers(document, assets, custom=new Map()) {
       const asset = assets[node.assetId];
       const mediaStart = Number(node.params?.sourceStartSeconds ?? asset.sourceStartSeconds ?? 0);
       const managed=custom.get(scene.id)?.managedVideoNodeIds?.includes(node.id);
+      const objectPosition=custom.get(scene.id)?.videoObjectPositions?.[node.id];
       // Gate every source layer. A plain cut must disappear at its end frame
       // before an inset/native layout reveals the next source at the same cut.
-      layers.push(`<div id="media-gate-${esc(node.id)}" style="position:absolute;inset:0;z-index:${40+document.scenes.indexOf(scene)*2};visibility:${node.startFrame===0?'visible':'hidden'}" data-layout-allow-overflow><div id="media-wrap-${esc(node.id)}" data-object-id="${esc(node.id)}" data-scene-media="${esc(scene.id)}" class="video-layer media-entrance${managed?' managed-video':''}" data-layout-allow-overflow style="${managed?'':videoLayout(scene, order)}z-index:${40 + document.scenes.indexOf(scene) * 2}"><div class="media-motion motion"><video id="obj-${esc(node.id)}" src="${esc(publicAsset(asset))}" muted playsinline preload="auto" style="object-fit:${node.params?.fit === 'contain' ? 'contain' : 'cover'}" data-start="${sec(node.startFrame)}" data-duration="${sec(node.durationFrames)}" data-media-start="${mediaStart}" data-playback-rate="${Number(node.params?.playbackRate??1)}" data-track-index="${track++}"></video></div></div></div>`);
+      layers.push(`<div id="media-gate-${esc(node.id)}" style="position:absolute;inset:0;z-index:${40+document.scenes.indexOf(scene)*2};visibility:${node.startFrame===0?'visible':'hidden'}" data-layout-allow-overflow><div id="media-wrap-${esc(node.id)}" data-object-id="${esc(node.id)}" data-scene-media="${esc(scene.id)}" class="video-layer media-entrance${managed?' managed-video':''}" data-layout-allow-overflow style="${managed?'':videoLayout(scene, order)}z-index:${40 + document.scenes.indexOf(scene) * 2}"><div class="media-motion motion"><video id="obj-${esc(node.id)}" src="${esc(publicAsset(asset))}" muted playsinline preload="auto" style="object-fit:${node.params?.fit === 'contain' ? 'contain' : 'cover'}${objectPosition?';object-position:'+objectPosition:mediaPosition(node)}" data-start="${sec(node.startFrame)}" data-duration="${sec(node.durationFrames)}" data-media-start="${mediaStart}" data-playback-rate="${Number(node.params?.playbackRate??1)}" data-track-index="${track++}"></video></div></div></div>`);
     });
   }
   return layers.join('\n');
@@ -260,8 +262,8 @@ export function compileDocument(document, preparedAssets, {audioRefs={}}={}) {
     .scene.scene-has-video{background:transparent}
     .video-layer{position:absolute;overflow:hidden;pointer-events:none}
     .video-layer.managed-video{inset:0}
-    .video-layer .media-motion{position:absolute;inset:0;will-change:transform}
-    .video-layer video{width:100%;height:100%;object-fit:cover;display:block}
+    .video-layer .media-motion{position:absolute;inset:0;will-change:transform;object-position:inherit}
+    .video-layer video{width:100%;height:100%;object-fit:cover;object-position:inherit;display:block}
     .caption{position:absolute;left:8%;width:84%;bottom:7%;z-index:400;opacity:0;text-align:center;pointer-events:auto}
     .caption-content{display:inline-block;max-width:100%;box-sizing:border-box;color:#ffffff;background:rgba(0,0,0,.88);font-size:46px;line-height:1.4;padding:12px 22px;border-radius:8px;overflow-wrap:anywhere}
     ${effectCss()}

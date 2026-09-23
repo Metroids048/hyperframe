@@ -21,7 +21,7 @@ try{
  assert.ok(rawSession.startsWith('agent:commerce-control:'),'Gateway canonical session prefix must be included before authorization hashing');
  const attachmentAuthorization=await authorizations.issue({projectId:project.id,baseRevisionId:'rev-1',messageId:'message-attachment-0001',message:'prepare attached video',sessionKey,allowedTools:['video_prepare']});
  await authorizations.validateAndBind({tool:'video_prepare',input:{projectId:project.id,baseRevisionId:'rev-1',operationId:'op-attachment-0001',authorizationId:attachmentAuthorization.authorizationId},context:{sessionKey}});
- const operationId=stableControlOperationId(project.id,messageId,{message,baseRevisionId:'rev-1',attachmentIds:[],attachmentPaths:[],taskMode:'edit',scenarioId:null,workflowProfile:null,selectedNodeId:null,platform:null,output:null,audio:null});
+ const operationId=stableControlOperationId(project.id,messageId,{message,baseRevisionId:'rev-1',attachmentIds:[],attachmentPaths:[],taskMode:'edit',scenarioId:null,workflowProfile:null,selectedNodeId:null,platform:null,output:null,audio:null,resumeJobId:null});
  const fetchImpl=async(_url,options)=>{
   request={headers:options.headers,body:JSON.parse(options.body)};
   const payload=JSON.parse(request.body.input[0].content[0].text);

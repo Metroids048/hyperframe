@@ -1,0 +1,25 @@
+flowchart LR
+  U([用户需求<br/>文字 / 图片 / 视频])
+  UI[Web 工作台]
+  OC[OpenClaw<br/>对话入口]
+  S[video-agent<br/>项目、任务、路由与版本]
+  PLAN[理解与策划<br/>素材证据、商品事实、场景、分镜]
+  ADAPT[HyperFrames 适配层<br/>资源选择、原生工程、编译]
+  HF[HyperFrames 0.8.33<br/>检查、预览、渲染]
+  OUT([候选视频 + 可编辑工程])
+  REVIEW{质量检查与交付门禁}
+
+  U --> UI --> S
+  U --> OC --> S
+  S --> PLAN --> ADAPT --> HF --> OUT --> REVIEW
+  REVIEW -->|需要修改| PLAN
+  REVIEW -->|满足交付条件| DONE([正式交付])
+
+  classDef entry fill:#E7F3F1,stroke:#477D73,color:#173B36
+  classDef agent fill:#EEF0FA,stroke:#6875A5,color:#252D55
+  classDef hf fill:#FFF2D9,stroke:#B18338,color:#4A3516
+  classDef result fill:#EAF2E6,stroke:#62824D,color:#263A1D
+  class U,UI,OC entry
+  class S,PLAN,REVIEW agent
+  class ADAPT,HF hf
+  class OUT,DONE result

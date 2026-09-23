@@ -49,6 +49,7 @@ export function historyAssetFile(root,assetRoot,name){
   return file;
 }
 export async function exportCreativeHistory(root,projectDir,snapshot,selectedRevisionId,output,{signal,assetRoot=root}={}){
+  assetRoot=await fs.realpath(assetRoot);
   insist(new Set(snapshot.revisions.map(r=>r.id)).size===snapshot.revisions.length,'工程历史含重复版本ID，不能交付歧义工程包','PACKAGE_INVALID');
   const blobs=new Map();let logicalBytes=0;
   async function add(file){check(signal);const st=await regular(file),hash=await fileHash(file,signal);logicalBytes+=st.size;if(!blobs.has(hash))blobs.set(hash,{file,size:st.size});return hash;}

@@ -31,6 +31,7 @@ import {createOpenClawSessionBindings} from './lib/openclaw/session-bindings.mjs
 import {createOpenClawExecutionAuthorizations} from './lib/openclaw/execution-authorizations.mjs';
 import {createCommerceAgentBridge,stableControlOperationId} from './lib/openclaw/commerce-agent-bridge.mjs';
 import {bindOpenClawJobProgress,createOpenClawProgressNotifier} from './lib/openclaw/progress-notifier.mjs';
+import {resolveCreativeDataDirectory} from './lib/runtime-project-directory.mjs';
 
 // The native OpenClaw gateway and the workbench are launched by separate
 // processes.  The gateway's launch agent persists their shared, non-source
@@ -46,7 +47,7 @@ try {
 const PORT=Number(process.env.VIDEO_AGENT_PORT||3020),DATA=path.resolve(process.env.VIDEO_AGENT_DATA_DIR||path.join(ROOT,'data/projects')),EDIT_DATA=path.resolve(process.env.VIDEO_AGENT_EDIT_DATA_DIR||path.join(ROOT,'data/edit-projects'));
 // OpenClaw 模式下,统一使用 STATE_ROOT 下的 projects 目录,避免相对路径问题
 const OPENCLAW_STATE_ROOT=path.resolve(process.env.OPENCLAW_STATE_DIR||path.join(process.env.HOME||'', '.openclaw','hyperframe','state'));
-const CREATIVE_DATA=path.resolve(process.env.VIDEO_AGENT_CREATIVE_DATA_DIR||path.join(OPENCLAW_STATE_ROOT,'projects'));
+const CREATIVE_DATA=await resolveCreativeDataDirectory({root:ROOT,stateRoot:OPENCLAW_STATE_ROOT});
 const OPENCLAW_INBOUND_ROOT=path.resolve(process.env.OPENCLAW_INBOUND_MEDIA_DIR||path.join(OPENCLAW_STATE_ROOT,'media','inbound'));
 const DEFAULT_OPENCLAW_VIDEO_UPLOAD_BYTES=64*1024*1024;
 const OPENCLAW_MAX_VIDEO_BYTES=Number.isFinite(Number(process.env.OPENCLAW_VIDEO_UPLOAD_MAX_BYTES))&&Number(process.env.OPENCLAW_VIDEO_UPLOAD_MAX_BYTES)>0?Math.floor(Number(process.env.OPENCLAW_VIDEO_UPLOAD_MAX_BYTES)):DEFAULT_OPENCLAW_VIDEO_UPLOAD_BYTES;
@@ -169,6 +170,15 @@ async function openclawToolRoute(req,res){
   if(!project)throw new InputError('视频附件导入需要有效工程',400);
   const importedAttachmentIds=[...(normalizedInput.attachmentIds||[])];
   for(const raw of attachmentPaths){
+   // Some OpenClaw turns repeat a project-local asset reference after the
+   // upload has already been materialized. It is safe to reuse it only when
+   // the resolved project owns that exact normalized asset path; never treat a
+   // free-form local path as an inbound upload.
+   const projectAsset=project?.assets?.find(asset=>{
+    const refs=[asset.path,asset.normalizedRef].filter(Boolean).map(String);
+    return refs.includes(String(raw))&&/^uploads\//.test(String(raw));
+   });
+   if(projectAsset?.id){importedAttachmentIds.push(projectAsset.id);continue;}
    // Native Control UI video uploads return a server-issued media:// receipt.
    // Resolve only the opaque receipt issued by the upload endpoint. Never
    // accept model-supplied local paths, even when they happen to be inbound.
@@ -246,7 +256,7 @@ async function openclawAuthorizationRoute(req,res){
  // still fails closed with REVISION_CONFLICT.
  const suppliedBase=input.baseRevisionId;
  const baseRevisionId=typeof suppliedBase==='string'&&suppliedBase.trim()&&suppliedBase!=='null'?suppliedBase:currentRevisionId;
- const operationId=stableControlOperationId(projectId,messageId,{message:String(input.message||body.tool),baseRevisionId,attachmentIds:input.attachmentIds||[],attachmentPaths:input.attachmentPaths||[],taskMode:input.taskMode||null,scenarioId:input.scenarioId||null,workflowProfile:input.workflowProfile||null,selectedNodeId:input.selectedNodeId||null,platform:input.platform||null,output:input.output||null,audio:input.audio||null});
+ const operationId=stableControlOperationId(projectId,messageId,{message:String(input.message||body.tool),baseRevisionId,attachmentIds:input.attachmentIds||[],attachmentPaths:input.attachmentPaths||[],taskMode:input.taskMode||null,scenarioId:input.scenarioId||null,workflowProfile:input.workflowProfile||null,selectedNodeId:input.selectedNodeId||null,platform:input.platform||null,output:input.output||null,audio:input.audio||null,resumeJobId:input.resumeJobId||null});
  const authorization=await openclawAuthorizations.issue({projectId,baseRevisionId,messageId,message:String(input.message||body.tool),sessionKey:context.sessionKey,allowedTools:[body.tool]});
  return json(res,{ok:true,authorizationId:authorization.authorizationId,operationId,projectId,baseRevisionId,expiresAt:authorization.expiresAt});
 }

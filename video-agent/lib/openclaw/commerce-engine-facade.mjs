@@ -224,6 +224,20 @@ export function createCommerceEngineFacade(service, { journalPath, mode = runtim
       if (typeof authorizeWrite !== 'function') fail('写操作缺少服务端授权校验器', 'OPENCLAW_AUTHORIZATION_VALIDATOR_REQUIRED', 500);
       await authorizeWrite({ tool, input, context, project: value });
       return recordOperation(input.operationId, { tool, input, workspaceId: context.workspaceId, sessionKey: context.sessionKey }, async () => {
+        // Older running OpenClaw plugin instances do not know the optional
+        // resumeJobId field yet. If the model explicitly names a recoverable
+        // child job in its message, resolve that exact ID as a compatibility
+        // path; never infer a job from a generic retry or create a new one.
+        const namedResumeJobId = input.resumeJobId || input.message.match(/(?:recoverable\s+child\s+job|child\s+job)\s+(job-[A-Za-z0-9-]+)/i)?.[1] || null;
+        if (namedResumeJobId) {
+          if (/(?:不要|不得|禁止|无需|不用|不再|不)\s*(?:重新)?(?:恢复|续跑)|(?:do not|don't|never)\s+resume/iu.test(input.message)) fail('本轮要求不恢复旧任务，请省略 resumeJobId 并提交当前需求的新版本', 'RESUME_INTENT_CONFLICT');
+          required(namedResumeJobId, 'resumeJobId');
+          const target = value.jobs.find(item => item.id === namedResumeJobId);
+          if (!target || !canResumeJob(target)) fail('指定的 recoverable child job 不存在或不可恢复', 'INVALID_RESUME');
+          await service.resume(value, namedResumeJobId);
+          const job = value.jobs.find(item => item.id === namedResumeJobId) || {};
+          return baseResult({ tool, projectId, operationId: input.operationId, status: 'queued', jobId: namedResumeJobId, stage: job.stage || '等待恢复', businessProgress: job.businessProgress || null, project: service.view(service.get(projectId)), resumed: true });
+        }
         // Routing can involve a configured model and must never hold the
         // OpenClaw tool request open. The existing service persists the
         // message, job and any failure receipt; status is read separately.

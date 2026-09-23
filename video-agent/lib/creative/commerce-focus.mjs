@@ -37,7 +37,7 @@ export function businessContract(input={}){
 
   const audio=negated('静音')||negated('声音')? 'original'
     :(/静音|无声|不要声音/.test(message)?'silent'
-    :/保留.*原声/.test(message)?'original'
+    :/(?:保留[^。！？\n]{0,12}(?:原声|原始动作声|原始音轨|源音轨))/.test(message)?'original'
     :requestsAudio?'with_narration_or_music'
     :'unspecified');
   return {schemaVersion:1,profile:FOCUS_PROFILE,scenarioId,originalRequest:message,taskMode:workflow.taskMode,workflowProfile:workflow.workflowProfile,workflow:{...workflow,businessScenario:scenarioId},

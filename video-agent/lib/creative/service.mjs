@@ -145,6 +145,23 @@ export function initialVideoMode(message){
 export function isUploadedSourceShortcut(message,hasUploadedSource){
   return Boolean(hasUploadedSource&&initialVideoMode(message)==='source-edit');
 }
+
+export function isUploadedSourceExport(input,source){
+  if(!source?.mediaMetadata||!/(?:原样导出|原样输出|原片直接导出|原片完整导出)/u.test(String(input.message||'')))return false;
+  const output=input.output||{},metadata=source.mediaMetadata;
+  if(output.width&&Number(output.width)!==metadata.width)return false;
+  if(output.height&&Number(output.height)!==metadata.height)return false;
+  if(output.durationSeconds&&Math.abs(Number(output.durationSeconds)-metadata.duration)>1/30)return false;
+  if(output.fps&&Number(output.fps)!==30)return false;
+  if(input.audio?.mode==='silent'&&metadata.hasAudio)return false;
+  const affirmative=String(input.message).replace(/(?:不添加|不增加|不新增|不引入|不要|禁止|不得)[^。；;\n]*/gu,'');
+  return !/(?:剪掉|删除|截取|重排|变速|慢放|新增|添加|配音|旁白|配乐|字幕|转场|种草)/u.test(affirmative);
+}
+export function selectUploadedWorkflowSource(project,input){
+  const candidate=(input.attachmentIds||[]).map(id=>project.assets.find(asset=>asset.id===id)).find(asset=>asset?.kind==='video'&&asset.mediaMetadata?.duration)
+    ||project.assets.find(asset=>asset.kind==='video'&&asset.mediaMetadata?.duration&&(isUploadedSourceWorkflow(input.message,asset)||isUploadedSourceExport(input,asset)));
+  return candidate&&(!project.currentRevisionId||isUploadedSourceExport(input,candidate))?candidate:null;
+}
 // A fresh upload is itself a valid source for a new native project.  Treat
 // edit/replace language as an instruction for the backend orchestration, even
 // when no revision has been published yet.  The router must not turn this into
@@ -171,10 +188,20 @@ function requiresDirectedProduction(message){
   return /(?:小红书|种草|商品视频|营销片|旁白|配音|音乐|配乐|BGM|字幕|HyperFrames|卖点|重点|操作|使用细节|真实画面|自行(?:联网|检索|找|获取)|素材缺口|约\s*\d+\s*秒|可继续编辑)/iu.test(text);
 }
 
-function requestsAutonomousExternalMedia(message){
+export function requestsAutonomousExternalMedia(message){
   const text=String(message||'');
+  if(/(?:仅|只)[^。；;\n]{0,8}(?:使用|从)[^。；;\n]{0,12}(?:上传|附件|原片|原视频)|(?:不引入|禁止|不得|不要|不允许|不使用|不调用)[^。；;\n]{0,16}(?:外部|网络|下载)/u.test(text))return false;
   return explicitlyRequestsExternalSceneVideo(text)
     || /(?:素材缺口|缺素材|补素材|自行(?:联网|检索|找|获取)|外部(?:素材|媒体)|使用环境|场景补镜|网络(?:素材|视频))/iu.test(text);
+}
+
+export function selectProductionAssets(assets,input={}){
+  const fingerprint=asset=>asset.sha256||[asset.kind,asset.name,asset.bytes,asset.mediaMetadata?.duration,asset.mediaMetadata?.width,asset.mediaMetadata?.height,asset.mediaMetadata?.size].join('|');
+  const sourceOnly=/(?:仅|只|唯一)[^。；;\n]{0,32}(?:上传|附件|本会话)|只从该素材/u.test(String(input.message||''));
+  const selected=assets.filter(asset=>input.attachmentIds?.includes(asset.id));
+  const selectedHashes=new Set(selected.map(fingerprint));
+  const scoped=sourceOnly&&selected.length?assets.filter(asset=>selectedHashes.has(fingerprint(asset))):assets;
+  return scoped.filter((asset,index,list)=>index===list.findIndex(candidate=>fingerprint(candidate)===fingerprint(asset)));
 }
 // A prior candidate may contain only the first uploaded clip even though the
 // project still owns the complete upload set.  When the user explicitly asks
@@ -400,14 +427,8 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
       let route;
       const pending=p.pendingClarification;
       const conversation=pending?.turns||p.messages.slice(-8).map(({role,text})=>({role,text}));
-      const uploadedSource=p.currentRevisionId==null && (
-        (input.attachmentIds||[]).map(id=>p.assets.find(a=>a.id===id))
-          .find(a=>a?.kind==='video'&&a.mediaMetadata?.duration)
-        || (isUploadedSourceWorkflow(input.message,p.assets.find(a=>a?.kind==='video'&&a.mediaMetadata?.duration))
-          ? p.assets.find(a=>a?.kind==='video'&&a.mediaMetadata?.duration)
-          : null)
-      );
-      const sourceEditIntent=isUploadedSourceWorkflow(input.message,uploadedSource);
+      const uploadedSource=selectUploadedWorkflowSource(p,input);
+      const sourceEditIntent=isUploadedSourceWorkflow(input.message,uploadedSource)||isUploadedSourceExport(input,uploadedSource);
       const sourceRebuildIntent=isUploadedSourceRebuildWorkflow(input.message,p,document);
       try{
         // Routing a fresh uploaded source through the ordinary "edit existing
@@ -459,6 +480,7 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
       else if(route.mode==='status')p.messages.push({role:'assistant',text:p.jobs.at(-1)?.error||p.jobs.at(-1)?.stage||'当前版本已保存。',time:now()});
       else if(['undo','redo','restore'].includes(route.mode))await navigate(p,{action:route.mode,revisionId:route.revisionId});
       else if(route.mode==='cancel'){const running=p.jobs.filter(active);if(!running.length)p.messages.push({role:'assistant',text:'当前没有正在运行的任务，工程和素材已保留。',time:now()});else {insist(running.length===1,'请在任务记录中选择要取消的任务','CANCEL_TARGET_AMBIGUOUS');await cancel(p,running[0].id);}}
+      else if(route.mode==='create'&&sourceEditIntent)await enqueue(p,{...executionInput,action:'generate',routeDecision:route,taskMode:route.taskMode,taskModeExplicit:true,scenarioId:route.scenarioId});
       else if(route.mode==='create'&&base){
         const request={message:input.message,inferRequest:true,target:'marketing',taskMode:'create',taskModeExplicit:true,pipelineVersion:3,commerceProfile:FOCUS_PROFILE};
         request.businessContract=businessContract(request);resultProject=await create(request);
@@ -838,14 +860,9 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
         // complete source-first workflow. Build the native source project in
         // one transaction so the request does not get misrouted to a
         // clarification asking the user to open/bind an existing project.
-        const uploadedSource=p.currentRevisionId==null && (
-          (job.input.attachmentIds||[]).map(id=>p.assets.find(a=>a.id===id)).find(a=>a?.kind==='video'&&a.mediaMetadata?.duration)
-          || (isUploadedSourceWorkflow(job.input.message,p.assets.find(a=>a?.kind==='video'&&a.mediaMetadata?.duration))
-            ? p.assets.find(a=>a?.kind==='video'&&a.mediaMetadata?.duration)
-            : null)
-        );
+        const uploadedSource=selectUploadedWorkflowSource(p,job.input);
         const sourceRebuildWorkflow=job.input.routeDecision?.reason==='explicit-upload-source-rebuild';
-        const sourceWorkflowRequested=!sourceRebuildWorkflow&&isUploadedSourceWorkflow(job.input.message,uploadedSource)&&!requiresDirectedProduction(job.input.message);
+        const sourceWorkflowRequested=!sourceRebuildWorkflow&&(isUploadedSourceExport(job.input,uploadedSource)||(isUploadedSourceWorkflow(job.input.message,uploadedSource)&&!requiresDirectedProduction(job.input.message)));
         if(sourceWorkflowRequested||sourceRebuildWorkflow){
           const acquisitionPolicy=(await productionPolicy(root)).mediaAcquisitionPolicy;
           const externalVideoRequested=requestsAutonomousExternalMedia(job.input.message||'');
@@ -921,7 +938,7 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
           job.skipAutoQualityRevision=true;
           job.stage='建立上传原片初始工程';await save(p);
           const dir=path.join(directory(p),'versions',job.id);
-          await buildUploadedVideoProject({...p.request,projectId:p.id,assets:p.assets,outputDir:path.relative(root,dir).replaceAll('\\','/'),message:job.input.message,rebuildAllUploadedVideoSources:sourceRebuildWorkflow||Boolean(uploadedExternalVideo),signal,onStage:async stage=>{job.stage=stage;await save(p);}},{root});
+          await buildUploadedVideoProject({...p.request,projectId:p.id,assets:selectProductionAssets(p.assets,job.input),outputDir:path.relative(root,dir).replaceAll('\\','/'),message:job.input.message,rebuildAllUploadedVideoSources:sourceRebuildWorkflow||Boolean(uploadedExternalVideo),signal,onStage:async stage=>{job.stage=stage;await save(p);}},{root});
           const {document}=await readNativeProject(dir);p.title=document.brief.name;const created=await publish(p,job,dir,document,'上传原片初始版本');await candidateExport(p,job,created,signal);job.summary=isUploadedSourceShortcut(job.input.message,uploadedSource)?'已按上传原片的真实时长建立独立可编辑工程，并应用本轮局部修改，导出候选视频。':'已按上传原片的真实时长建立独立可编辑工程并导出候选视频，后续编辑将基于该工程继续执行。';job.status='complete';job.completedAt=now();p.messages.push({role:'assistant',text:job.summary,time:now()});return;
         }
         if(job.revisionId&&p.revisions.some(r=>r.id===job.revisionId)){
@@ -1015,20 +1032,27 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
           p.request={...p.request,message:job.input.message+'\n用户已确认的配音稿：'+selected.text+'\n使用已确认的音频素材 '+selected.id+'，不要重新配音。',inferRequest:true};
         }
         else if(job.input.message){p.request={...p.request,message:job.input.message};}
+        // Rebuild the persisted contract on a resumed run so parser fixes are
+        // applied to the original request (for example “原始动作声”).
+        if(job.resumeRunId&&p.request.commerceProfile==='commerce-focus-v1')
+          p.request={...p.request,businessContract:businessContract({...p.request,message:job.input.message||p.request.message})};
         // The draft is created before uploads finish. Persist the complete
         // asset manifest before handing the request to the production runner
         // so observation, planning and recovery all see the same inputs that
-        // are currently attached to the project.
-        p.request={...p.request,assets:structuredClone(p.assets)};
+        // are currently attached to the project. Retries can receive the same
+        // file under a fresh inbound ID; collapse byte-identical media so a
+        // recoverable run keeps the original input fingerprint.
+        const productionAssets=selectProductionAssets(p.assets,job.input);
+        p.request={...p.request,assets:structuredClone(productionAssets)};
         if(p.workflowPlan){
-          const workflow=productionWorkflowFromPlan(p.workflowPlan,{message:p.request.message,assets:p.assets,baseRevisionId:job.baseRevisionId});
+          const workflow=productionWorkflowFromPlan(p.workflowPlan,{message:p.request.message,assets:productionAssets,baseRevisionId:job.baseRevisionId});
           p.request={...p.request,workflow,taskMode:workflow.taskMode,scenarioId:workflow.businessScenario};
           job.planningConsumption=structuredClone(workflow.planningConsumption);
         }
         job.stage='观察素材与设计分镜';await save(p);
         const dir=path.join(directory(p),'versions',job.id);
         const planningMode=process.env.VIDEO_AGENT_FAST_FALLBACK==='1'?'rules':'model';
-        await buildCommerceProject({...p.request,projectId:p.id,assets:p.assets,outputDir:path.relative(root,dir).replaceAll('\\','/'),render:false,planning:planningMode,signal,resumeRunId:job.resumeRunId,onRun:async run=>{syncRun(job,run);await save(p);},onStage:async stage=>{job.stage=stage;await save(p);}},{root});
+        await buildCommerceProject({...p.request,projectId:p.id,assets:productionAssets,outputDir:path.relative(root,dir).replaceAll('\\','/'),render:false,planning:planningMode,signal,resumeRunId:job.resumeRunId,onRun:async run=>{syncRun(job,run);await save(p);},onStage:async stage=>{job.stage=stage;await save(p);}},{root});
         const {document}=await readNativeProject(dir);p.title=document.brief.name;job.stage='检查原生预览';await save(p);const created=await publish(p,job,dir,document,'初始创作');await candidateExport(p,job,created,signal);job.summary='候选 MP4 与原生工程已导出，等待画面与人工审查。';
       }else if(job.kind==='edit'){
         const base=revision(p,job.baseRevisionId),from=versionDirectory(p,base),{document,assets}=await readNativeProject(from);
@@ -1292,7 +1316,7 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
     if(input.baseRevisionId)insist(input.baseRevisionId===p.currentRevisionId,'页面版本已过期，请刷新后再修改','REVISION_CONFLICT');
     if(kind==='plan')input={...input,taskMode:input.taskMode||(!p.currentRevisionId?p.request.taskMode:undefined),taskModeExplicit:input.taskModeExplicit??Boolean(!p.currentRevisionId&&p.request.taskModeExplicit),output:structuredClone(input.output||p.request.output)};
     if(!['export','plan'].includes(kind)){const current=p.revisions.find(r=>r.id===p.currentRevisionId),message=input.message||input.request?.message||p.request.message;const planned=input.planId&&p.workflowPlan?.id===input.planId?productionWorkflowFromPlan(p.workflowPlan,{message,assets:p.assets,baseRevisionId:current?.id||null}):null;input={...input,workflow:planned||workflowContract({...p.request,...input.request,...input,message,taskMode:input.taskMode||input.request?.taskMode||(kind==='edit'?'edit':p.request.taskMode),taskModeExplicit:input.taskModeExplicit??input.request?.taskModeExplicit??Boolean(input.taskMode||input.request?.taskMode),assets:p.assets},{scenarioId:p.request.businessContract?.scenarioId||p.request.scenarioId,baseProjectId:p.id,baseRevisionId:current?.id})};if(input.workflow.taskMode==='variant')insist(current,'变体需要先打开已有原生工程','VARIANT_BASE_REQUIRED');}
-    if(kind==='create')insist(!p.currentRevisionId,'项目已有版本，请继续编辑或新建项目','PROJECT_EXISTS');else if(!['audio','plan','asset'].includes(kind))revision(p,input.revisionId||p.currentRevisionId);
+    if(kind==='create')insist(!p.currentRevisionId||isUploadedSourceExport(input,selectUploadedWorkflowSource(p,input)),'项目已有版本，请继续编辑或新建项目','PROJECT_EXISTS');else if(!['audio','plan','asset'].includes(kind))revision(p,input.revisionId||p.currentRevisionId);
     if(kind==='audio'){insist(['speech','music'].includes(input.audio?.kind),'请选择旁白或纯音乐','AUDIO_KIND');insist(p.assets.length<MAX_ASSETS,'最多30个素材','ASSET_LIMIT');}
     if(kind==='export')insist(!p.jobs.some(j=>active(j)&&j.kind==='export'&&j.baseRevisionId===(input.revisionId||p.currentRevisionId)),'这个版本正在导出','EXPORT_BUSY');
     const job={id:'job-'+randomUUID(),kind,input:structuredClone(input),routeDecision:input.routeDecision,baseRevisionId:input.revisionId||p.currentRevisionId,status:'queued',createdAt:now(),idempotencyKey:input.idempotencyKey};if(kind==='export')job.snapshot={...structuredClone(p),jobs:p.jobs.map(({snapshot,...prior})=>structuredClone(prior))};p.jobs.push(job);
@@ -1452,7 +1476,7 @@ export async function creativeRoutes(service,req,res,url,{json,jsonBody,file,dis
     const audition=/^auditions\/(voice-[a-z0-9]+)\.wav$/.exec(action);
     if(audition){const a=p.auditions?.find(a=>a.id===audition[1]);insist(a,'试听版本不存在','VOICE_NOT_FOUND');await file(req,res,path.join(service.versionDirectory(p,{directory:'.'}),a.path),'audio/wav');return true;}
     const inputAsset=/^input-assets\/([a-zA-Z0-9_-]+)$/.exec(action);
-    if(inputAsset){const asset=p.assets.find(a=>a.id===inputAsset[1]);insist(asset,'素材不存在','ASSET_NOT_FOUND');await file(req,res,path.join(ROOT,asset.path),mime[path.extname(asset.path)]||'application/octet-stream',url.searchParams.has('download')?asset.name:undefined);return true;}
+    if(inputAsset){const asset=p.assets.find(a=>a.id===inputAsset[1]);insist(asset,'素材不存在','ASSET_NOT_FOUND');const source=asset.originalRef?safeRelativePath(ROOT,asset.originalRef):/^uploads\//.test(asset.path)?safeRelativePath(service.versionDirectory(p,{directory:'.'}),asset.path):safeRelativePath(ROOT,asset.path);await file(req,res,source,mime[path.extname(asset.path)]||'application/octet-stream',url.searchParams.has('download')?asset.name:undefined);return true;}
     const direction=/^jobs\/([a-zA-Z0-9_-]+)\/direction\/(watch.html|preview.html|document.json|assets\/[a-zA-Z0-9_.-]+)$/.exec(action);
     if(direction){
       const job=p.jobs.find(j=>j.id===direction[1]),record=job?.directionPreview;

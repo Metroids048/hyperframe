@@ -29,6 +29,14 @@ test('product detail magnifies relative to the main photo and centres the source
  assert.equal(edge.x,0);assert.equal(edge.y,edge.size-edge.renderedHeight);
 });
 
+test('video focal point survives native edits and is emitted as object-position',()=>{
+ const {doc,assets}=fixture();
+ const focused=applyDocumentPatch(doc,[{type:'update_media',nodeId:'media-0',params:{focusX:.8,focusY:.5}}],assets);
+ const {html}=compileDocument(focused,Object.values(assets));
+ assert.match(html,/style="object-fit:cover;object-position:80% 50%"/);
+ assert.throws(()=>applyDocumentPatch(doc,[{type:'update_media',nodeId:'media-0',params:{focusX:1.1}}],assets),/焦点/);
+});
+
 function fixture(){
  const asset={id:'source',kind:'video',compiledRef:'assets/source.mp4',mediaMetadata:{duration:12,hasAudio:true,width:640,height:360}},assets={source:asset};
  const doc=createNativeDocument({projectId:'native-cut',output:{width:1080,height:1080},brief:{facts:[]},design:{},assets:[asset],scenes:[0,1].map(i=>({id:'scene-'+i,purpose:'detail',effect:'product-reveal',durationFrames:120})),nodes:[0,1].map(i=>({id:'media-'+i,sceneId:'scene-'+i,kind:'video',assetId:'source',semanticRole:'hero',anchor:'scene-local',localStartFrame:0,localDurationFrames:120,params:{sourceStartSeconds:i*4,playbackRate:1}}))});

@@ -126,11 +126,16 @@ test('user-authorized opening price is not forced into the final three seconds',
 test('managed video wrappers accept layout and seek-safe animation without moving media under timed scenes',()=>{
  const asset={id:'v',kind:'video',compiledRef:'assets/video.mp4',mediaMetadata:{duration:90,hasAudio:true,width:1920,height:1080}};
  const observed={assetId:'v',confidence:1,subjectBox:[],safeCrop:[],sameProductAs:[],differentProductFrom:[]};
- const source={contractVersion:2,html:'<div id="video"></div><h1 id="title"></h1>',css:'#video{left:6%;top:12%;width:55%;height:76%;border-radius:24px}#title{position:absolute;left:65%;top:30%;width:30%;font-size:70px;color:var(--brand-accent)}',timeline:'tl.from("#video",{x:-20,duration:1},0);tl.from("#title",{opacity:0,y:20,duration:1},0.2);',parameters:[],objects:[{elementId:'video',ref:'media-1'},{elementId:'title',ref:'title'}],motionTargets:['video','title'],tokens:design};
+ const source={contractVersion:2,html:'<div id="video"></div><h1 id="title"></h1>',css:'#video{left:6%;top:12%;width:55%;height:76%;border-radius:24px;object-position:72% 50%}#title{position:absolute;left:65%;top:30%;width:30%;font-size:70px;color:var(--brand-accent)}',timeline:'tl.from("#video",{x:-20,duration:1},0);tl.from("#title",{opacity:0,y:20,duration:1},0.2);',parameters:[],objects:[{elementId:'video',ref:'media-1'},{elementId:'title',ref:'title'}],motionTargets:['video','title'],tokens:design};
  const p={...plan,observations:[observed],scenes:[{...scene(60),effect:'custom-native',media:[{assetId:'v',sourceStartSeconds:0,playbackRate:1,fit:'contain'}],customSourceJson:JSON.stringify(source)}]};
  const d=documentFromModelPlan(request,[asset],p),html=compileDocument(d,[asset]).html;
  assert.equal(documentFromModelPlan(request,[asset],{...p,observations:[observed,{...observed,visibleContent:'另一个有证据的时间区间'}]}).observations.length,2);
- assert(html.includes('managed-video'));assert.match(html,/#media-wrap-node-[a-z0-9]+\{left:6%/);assert(!/<section[^>]*>[\s\S]*?<video[\s\S]*?<\/section>/.test(html));
+ assert(html.includes('managed-video'));assert.match(html,/#media-wrap-node-[a-z0-9]+\{left:6%/);assert.match(html,/<video[^>]+object-position:72% 50%/);assert(!/<section[^>]*>[\s\S]*?<video[\s\S]*?<\/section>/.test(html));
+ const focusedPlan=structuredClone(p);focusedPlan.scenes[0].media[0].focusX=.8;focusedPlan.scenes[0].media[0].focusY=.5;
+ const focused=documentFromModelPlan(request,[asset],focusedPlan);
+ assert.equal(focused.nodes.find(node=>node.kind==='video').params.focusX,.8);
+ assert.match(compileDocument(focused,[asset]).html,/<video[^>]+object-position:80% 50%/);
+ assert.deepEqual(focused.audioGraph,d.audioGraph);
  const b=d.sourceBundles[0],bundle=compileCustomSource(b,{scene:d.scenes[0],nodes:d.nodes,assets:{v:asset}});assert(bundle.motionTargets.some(id=>id.startsWith('media-wrap-')));
  const params=Object.fromEntries(['html','css','timeline','parameters','objects','motionTargets'].map(k=>[k,b[k]]));const edited=applyDocumentPatch(d,[{type:'update_custom_source',sceneId:d.scenes[0].id,params}],{v:asset});assert.equal(edited.sourceBundles[0].contractVersion,2);assert.deepEqual(edited.sourceBundles[0].tokens,design);
  const changed=applyDocumentPatch(d,[{type:'update_custom_source',sceneId:d.scenes[0].id,params:{...params,css:params.css.replace('70px','72px')}}],{v:asset});

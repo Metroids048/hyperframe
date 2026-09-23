@@ -95,6 +95,7 @@ export function validateDocument(document, assets = {}) {
     insist(Number.isInteger(node.startFrame) && Number.isInteger(node.durationFrames) && node.durationFrames > 0, `节点 ${node.id} 时间无效`, 'INVALID_NODE_TIME');
     if (node.assetId) insist(assets[node.assetId], `节点 ${node.id} 引用了不存在的素材`, 'MISSING_ASSET');
     if(['image','video','audio'].includes(node.kind))insist(assets[node.assetId]?.kind===node.kind,`媒体节点 ${node.id} 缺少匹配的源素材`,'INVALID_MEDIA_ASSET');
+    if(['image','video'].includes(node.kind))for(const key of ['focusX','focusY'])if(node.params?.[key]!==undefined)insist(Number.isFinite(node.params[key])&&node.params[key]>=0&&node.params[key]<=1,`媒体焦点 ${key} 必须为0—1之间的比例`,'INVALID_MEDIA_FOCUS');
     if (node.kind === 'video' && assets[node.assetId]?.mediaMetadata?.duration) {
       const asset=assets[node.assetId], start=Number(node.params?.sourceStartSeconds??asset.sourceStartSeconds??0),rate=node.params?.playbackRate??1;
       insist(Number.isFinite(rate)&&rate>=.1&&rate<=5,'视频播放速度必须为0.1—5倍','INVALID_PLAYBACK_RATE');

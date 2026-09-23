@@ -58,11 +58,19 @@ function inspectImages(input,maxImageBytes){
 }
 // OpenClaw 2026.6.11 uses typed message items and image.source, not image_url.
 function gatewayInput(input){
- return input.map(message=>({type:'message',role:message.role,content:typeof message.content==='string'?message.content:message.content.map(item=>{
-  if(item.type!=='input_image')return {...item};
-  const [,mime,data]=/^data:(image\/(?:jpeg|png));base64,(.+)$/.exec(item.image_url);
-  return {type:'input_image',source:{type:'base64',media_type:mime,data}};
- })}));
+ return input.map(message=>({
+  type:'message',
+  role:message.role,
+  content:typeof message.content==='string'
+   ? message.content
+   : (Array.isArray(message.content)
+      ? message.content.filter(item=>item&&typeof item==='object').map(item=>{
+          if(item.type!=='input_image')return {...item};
+          const [,mime,data]=/^data:(image\/(?:jpeg|png));base64,(.+)$/.exec(item.image_url);
+          return {type:'input_image',source:{type:'base64',media_type:mime,data}};
+        })
+      : [])
+ }));
 }
 function stageResult(body){
  const calls=(body?.output||[]).filter(item=>item?.type==='function_call');
@@ -100,11 +108,15 @@ export class OpenClawStageProvider {
     try{body=await response.json();}catch{throw fail('stage returned invalid JSON','OPENCLAW_STAGE_RESPONSE_INVALID',502);}
     if(response.ok)break;
     const upstream=body?.error?.message||body?.error||body?.message||'';
-    const retryable=attempt===1&&(
+    // The gateway occasionally drops the forced function call while the
+    // isolated stage agent is cold-starting. Give that deterministic contract
+    // failure a couple of bounded retries before surfacing a recoverable job;
+    // other HTTP failures keep the existing one-retry policy.
+    const retryable=(attempt<3&&(
       /tool_choice|required|return_stage_result|did not produce/i.test(String(upstream))
       || /service is busy|temporarily unavailable|try again|upstream provider/i.test(String(upstream))
-      || response.status>=500
-    );
+      || (response.status>=500&&attempt===1)
+    ));
     if(retryable)continue;
     const code=response.status===401||response.status===403?'OPENCLAW_STAGE_AUTH':response.status===429?'OPENCLAW_STAGE_RATE_LIMIT':'OPENCLAW_STAGE_HTTP_ERROR';const requestId=response.headers.get('x-request-id')||response.headers.get('request-id')||null;const retryAfter=response.headers.get('retry-after')||null;throw fail(upstream||'stage HTTP '+response.status,code,response.status,{httpStatus:response.status,requestId:requestId?safeUpstream(requestId):null,retryAfter:retryAfter?safeUpstream(retryAfter):null,provider:this.model});
    }

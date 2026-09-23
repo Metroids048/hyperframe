@@ -134,7 +134,7 @@ export async function buildCommerceProject(input, {root = VIDEO_AGENT_ROOT} = {}
  * copy or the common "加上...几个字" form; it must never invent product text.
  */
 export function uploadedVideoTitle(message) {
-  const text = String(message || '');
+  const text = String(message || '').replace(/(?:不|不要|禁止|不得|无需|不用)(?:再)?(?:加上|加一个|添加|改成|改为)[^，。！？,!?]*/gu,'');
   const quoted = text.match(/[“「『"]([^”」』"]{1,80})[”」』"]/u)?.[1]?.trim();
   const natural = text.match(/(?:加上|加一个|添加|改成|改为)\s*(?:一个)?\s*([^，。！？,!?]{1,40}?)(?:几个字|标题|文字|，|。|！|！|$)/u)?.[1]?.trim();
   const title = quoted || natural;

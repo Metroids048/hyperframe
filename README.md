@@ -20,6 +20,12 @@ python start.py push
 
 若默认端口已被另一个目录的工作台占用，启动器使用新端口并打印、打开正确地址，不复用其他仓库的页面。`/edit` 是保留的旧剪辑入口，`/create` 是早期生成入口；它们不是当前首页。
 
+## 项目架构与代码地图
+
+- [整体架构与视频任务链路](PROJECT_ARCHITECTURE_GUIDE.zh-CN.md)：按当前工作树说明目录职责、输入到成品的主链、HyperFrames 资源调度，以及 OpenClaw / HyperFrames 的改造边界。
+- [架构图 PNG](PROJECT_ARCHITECTURE.png)：可直接查看和分享；[Mermaid 源文件](PROJECT_ARCHITECTURE.mmd)可继续编辑。
+- [video-agent 代码与配置清单](PROJECT_CODE_INVENTORY.md)：当前工作树中 1740 个源码、配置和文档路径的分区清单。
+
 ## 随仓库交付的内容
 
 - [米家 V2 MP4](video-agent/deliverables/mijia-v2/mijia-product-ad-v2.mp4)

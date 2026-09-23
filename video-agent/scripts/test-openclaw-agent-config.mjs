@@ -4,6 +4,7 @@ import path from 'node:path';
 
 const root=path.resolve(new URL('..',import.meta.url).pathname);
 const config=JSON.parse(await fs.readFile(path.join(root,'runtime/openclaw/openclaw.example.json'),'utf8'));
+assert.equal(config.agents.defaults.compaction.memoryFlush.enabled,false,'the tool-only runtime cannot run filesystem memory flushes');
 const control=config.agents.list.find(agent=>agent.id==='commerce-control');
 const stage=config.agents.list.find(agent=>agent.id==='commerce-stage');
 const writes=['video_task','video_cancel'];

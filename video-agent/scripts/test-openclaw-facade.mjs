@@ -11,6 +11,15 @@ const dataDir = path.join(root, 'projects');
 const context = {trusted: true, workspaceId: 'workspace-test', sessionKey: 'session-test'};
 const authorizeWrite=async()=>true;
 
+test('explicit refusal to resume rejects a stale resume parameter before any mutation',async()=>{
+ const project={id:'project-resume-conflict',currentRevisionId:'rev-current',jobs:[{id:'job-old',kind:'create',status:'recoverable'}],assets:[]};
+ let resumed=false;
+ const service={get:()=>project,view:value=>value,enqueue:async()=>{},resume:async()=>{resumed=true;}};
+ const facade=createCommerceEngineFacade(service,{journalPath:path.join(root,'ops-resume-conflict.json'),authorizeWrite});
+ await assert.rejects(()=>facade.invoke('video_task',{projectId:project.id,baseRevisionId:project.currentRevisionId,operationId:'op-resume-conflict-0001',authorizationId:'auth-local-test',resumeJobId:'job-old',message:'生成一个新版本，不要恢复含误加标题的旧任务。'},context),{code:'RESUME_INTENT_CONFLICT'});
+ assert.equal(resumed,false);
+});
+
 test('facade reads the existing service without creating a second authority', async () => {
   const service = await createCreativeService({root, dataDir});
   const p = await service.create({message: 'facade test', inferRequest: true});

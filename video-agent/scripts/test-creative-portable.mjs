@@ -35,6 +35,18 @@ test('external owned project assets package without allowing sibling files',()=>
 });
 
 import {exportCreativeHistory} from '../lib/creative/portable.mjs';
+test('history export resolves migrated project roots without allowing sibling assets',async()=>{
+ const owned=path.join(dir,'migrated-owned'),linked=path.join(dir,'migrated-link');
+ await fs.mkdir(path.join(owned,'uploads'),{recursive:true});await fs.symlink(owned,linked,'dir');
+ const source=path.join(owned,'uploads/source.png');await fs.writeFile(source,'archive path fixture');
+ const assetPath='../'+path.basename(ROOT)+'/'+path.relative(ROOT,source);
+ const snapshot={id:'migrated',assets:[{id:'source',kind:'image',path:assetPath}],revisions:[],jobs:[],messages:[]};
+ const output=path.join(linked,'history.zip');
+ await exportCreativeHistory(ROOT,linked,snapshot,null,output,{assetRoot:linked});
+ const extracted=await unpackCreativeHistory(output,path.join(dir,'migrated-unpacked'));
+ assert.equal(await fs.readFile(extracted.blob(extracted.metadata.assets[0].blob),'utf8'),'archive path fixture');
+ await assert.rejects(()=>exportCreativeHistory(ROOT,linked,{...snapshot,assets:[{...snapshot.assets[0],path:'../'+path.basename(ROOT)+'/'+path.relative(ROOT,path.join(dir,'sibling.png'))}]},null,output,{assetRoot:linked}),{code:'PACKAGE_PATH'});
+});
 import {createNativeDocument} from '../lib/creative/document.mjs';
 import {compileDocument} from '../lib/creative/compiler.mjs';
 import {candidateAdmission} from '../lib/creative/commerce-focus.mjs';

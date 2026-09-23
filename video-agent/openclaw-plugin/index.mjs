@@ -50,7 +50,7 @@ const operationFields = {
   effect: { type: "string", minLength: 1, maxLength: 100 }, width: { type: "integer", minimum: 1 }, height: { type: "integer", minimum: 1 },
   params: { type: "object", additionalProperties: false, properties: {
     language: { type: "string", enum: ["zh", "en", "source"] }, voice: { type: "string", minLength: 1, maxLength: 100 }, rate: { type: "number", minimum: 0.5, maximum: 2 },
-    fit: { type: "string", maxLength: 30 }, sourceStartSeconds: { type: "number", minimum: 0 }, playbackRate: { type: "number", minimum: 0.1, maximum: 5 },
+    fit: { type: "string", maxLength: 30 }, sourceStartSeconds: { type: "number", minimum: 0 }, playbackRate: { type: "number", minimum: 0.1, maximum: 5 }, focusX: { type: "number", minimum: 0, maximum: 1 }, focusY: { type: "number", minimum: 0, maximum: 1 },
     offsetY: { type: "number" }, offsetYDelta: { type: "number" }, color: { type: "string", pattern: "^#[0-9A-Fa-f]{6}$" }, fontSize: { type: "number", minimum: 12, maximum: 240 }, fontWeight: { type: "integer", minimum: 100, maximum: 900 },
     atFrame: { type: "integer", minimum: 1 }, startFrame: { type: "integer", minimum: 0 }, endFrame: { type: "integer", minimum: 1 }, volume: { type: "number", minimum: 0, maximum: 2 }, role: { type: "string", maxLength: 40 }, newId: { type: "string", minLength: 1, maxLength: 200 },
     html: { type: "string", maxLength: 20000 }, css: { type: "string", maxLength: 30000 }, timeline: { type: "string", maxLength: 30000 },
@@ -97,6 +97,8 @@ const orchestrationFields = {
   scenarioId: Type.Optional({ type: "string", enum: ["product_launch", "product_detail", "product_demo", "product_collection", "product_promotion", "product_faq", "general"] }),
   workflowProfile: Type.Optional(idSchema), selectedNodeId: optionalId,
   platform: Type.Optional({type:"string",maxLength:80}), output: outputSchema, audio: audioSchema,
+  // Explicitly identify a recoverable child job so retry cannot create a new job.
+  resumeJobId: Type.Optional({ anyOf: [idSchema, { type: "null" }], description: "Use null for a new task or new revision. Set an existing job ID only when the user explicitly asks to resume that same job without changing its request." }),
 };
 const nativeWriteFields = { operationId: Type.Optional(idSchema), authorizationId: Type.Optional(idSchema) };
 const schemas = {
@@ -128,6 +130,90 @@ function resolveBridgeUrl(config) {
 }
 function resolveWorkspaceId(config) {
   return resolveConfigValue(config?.workspaceId, 'VIDEO_AGENT_WORKSPACE_ID');
+}
+const RESPONSE_PRIORITY = new Set([
+  "schemaVersion", "tool", "status", "stage", "id", "projectId", "jobId", "operationId",
+  "revisionId", "currentRevisionId", "baseRevisionId", "resultRevisionId", "childProjectId", "childJobId",
+  "name", "title", "code", "error", "message", "question", "retryable", "resumeAllowed", "actionRequired",
+  "deliveryValid", "deliveryStatus", "rights", "usageType", "blockingGaps", "requiredInputs",
+  "previewUrl", "videoUrl", "downloadUrl", "nativeProjectUrl", "url", "optimizedBrief",
+  "files", "artifacts", "artifact"
+]);
+const RESPONSE_BULK_FIELDS = new Set(["document", "input", "history", "messages", "logs"]);
+const RESPONSE_LINK_FIELDS = new Set(["url", "previewUrl", "videoUrl", "downloadUrl", "nativeProjectUrl", "packageUrl"]);
+function toolResponseText(payload) {
+  const original = JSON.stringify(payload);
+  const sourceBytes = Buffer.byteLength(original);
+  if (sourceBytes <= 6000) return original;
+  let omittedCount = 0;
+  const omittedPaths = [];
+  const omit = location => {
+    omittedCount++;
+    if (omittedPaths.length < 6) omittedPaths.push(location.slice(0, 100));
+  };
+  const size = value => Buffer.byteLength(JSON.stringify(value));
+  function summarize(value, budget, location, depth = 0, field = "") {
+    if (value === undefined) return undefined;
+    if (budget < 16) { omit(location); return undefined; }
+    if (typeof value === "string") {
+      if (RESPONSE_LINK_FIELDS.has(field)) {
+        if (size(value) <= budget) return value;
+        omit(location);
+        return undefined;
+      }
+      const limit = Math.min(budget, 1200);
+      if (size(value) <= limit) return value;
+      let lower = 0;
+      let upper = Math.min(value.length, limit);
+      while (lower < upper) {
+        const middle = Math.ceil((lower + upper) / 2);
+        if (size(value.slice(0, middle) + "…[truncated]") <= limit) lower = middle;
+        else upper = middle - 1;
+      }
+      omit(location);
+      return value.slice(0, lower).replace(/[\uD800-\uDBFF]$/, "") + "…[truncated]";
+    }
+    if (value === null || typeof value !== "object") return size(value) <= budget ? value : undefined;
+    if (depth >= 7) { omit(location); return undefined; }
+    const array = Array.isArray(value);
+    const result = array ? [] : {};
+    const keys = Object.keys(value).filter(key => {
+      if (!array && RESPONSE_BULK_FIELDS.has(key)) { omit(`${location}/${key}`); return false; }
+      return true;
+    }).sort((left, right) => array ? 0 : Number(RESPONSE_PRIORITY.has(right)) - Number(RESPONSE_PRIORITY.has(left)));
+    const selected = keys.slice(0, array ? 12 : 48);
+    if (selected.length < keys.length) omit(location);
+    let remaining = budget - 2;
+    for (const [index, key] of selected.entries()) {
+      const overhead = array ? 1 : size(key) + 2;
+      const available = remaining - overhead;
+      const allowance = RESPONSE_LINK_FIELDS.has(key) ? available
+        : ["files", "artifacts", "artifact"].includes(key) ? Math.min(available, 3500)
+        : Math.min(available, Math.max(64, Math.floor(available / (selected.length - index))));
+      const child = summarize(value[key], allowance, `${location}/${key}`, depth + 1, key);
+      if (child === undefined) { if (array) break; continue; }
+      if (array) result.push(child);
+      else Object.defineProperty(result, key, { value: child, enumerable: true });
+      remaining -= overhead + size(child);
+    }
+    return result;
+  }
+  const summary = summarize(payload, 6000, "");
+  const responseSummary = {
+    truncated: omittedCount > 0, sourceBytes, omittedCount, omittedPaths,
+    notice: "Partial response; omitted data is not evidence of absence or approval. Use a specific project/job/revision or a narrower search; full records remain in the video workspace."
+  };
+  const result = summary && !Array.isArray(summary) && typeof summary === "object"
+    ? { ...summary, responseSummary } : { result: summary, responseSummary };
+  if (size(result) > 7500) responseSummary.omittedPaths = [];
+  return JSON.stringify(result);
+}
+function bridgeError(payload, fallback) {
+  const details = payload && typeof payload === "object" && !Array.isArray(payload) ? payload : {};
+  const error = new Error(toolResponseText({ ...details, error: details.error || fallback }));
+  if (typeof payload?.code === "string") error.code = payload.code.slice(0, 200);
+  if (typeof payload?.retryable === "boolean") error.retryable = payload.retryable;
+  return error;
 }
 function registerUploadRoute(api) {
   if (uploadRouteRegistered || !api?.registerHttpRoute) return;
@@ -204,7 +290,7 @@ function buildTool(name, description) {
               body: JSON.stringify({ tool: name, input: authorizationInput, trustedContext }), signal
             });
             const authorizationPayload = await authorizationResponse.json().catch(() => ({ error: "authorization endpoint returned invalid JSON" }));
-            if (!authorizationResponse.ok) { const error = new Error(authorizationPayload.error || ("commerce authorization " + authorizationResponse.status)); Object.assign(error, authorizationPayload); throw error; }
+            if (!authorizationResponse.ok) throw bridgeError(authorizationPayload, "commerce authorization " + authorizationResponse.status);
             input = { ...authorizationInput,
               projectId: authorizationPayload.projectId || authorizationInput.projectId,
               // `null` is the authoritative base for a draft/new project. Do
@@ -221,8 +307,8 @@ function buildTool(name, description) {
             method: "POST", headers: { authorization: "Bearer " + token, "content-type": "application/json" }, body: JSON.stringify(body), signal
           });
           const payload = await response.json().catch(() => ({ error: "bridge returned invalid JSON" }));
-          if (!response.ok) { const error = new Error(payload.error || ("commerce bridge " + response.status)); Object.assign(error, payload); throw error; }
-          return { content: [{ type: "text", text: JSON.stringify(payload) }] };
+          if (!response.ok) throw bridgeError(payload, "commerce bridge " + response.status);
+          return { content: [{ type: "text", text: toolResponseText(payload) }] };
         }
       };
     }

@@ -58,9 +58,10 @@ export function applyDocumentPatch(input, operations, assets) {
     }
     if(op.type==='update_media'){
       const node=document.nodes.find(n=>n.id===op.nodeId);insist(node&&['image','video'].includes(node.kind),'目标素材节点不存在','PATCH_TARGET_MISSING');
-      const p=op.params||{};insist(Object.keys(p).every(k=>['fit','sourceStartSeconds','playbackRate'].includes(k)),'不支持的媒体参数','INVALID_PATCH');
+      const p=op.params||{};insist(Object.keys(p).every(k=>['fit','sourceStartSeconds','playbackRate','focusX','focusY'].includes(k)),'不支持的媒体参数','INVALID_PATCH');
       if(p.fit!==undefined)insist(['contain','cover'].includes(p.fit),'取景方式无效','INVALID_PATCH');
       if(p.sourceStartSeconds!==undefined)insist(Number.isFinite(p.sourceStartSeconds)&&p.sourceStartSeconds>=0,'源入点无效','INVALID_SOURCE_RANGE');
+      for(const key of ['focusX','focusY'])if(p[key]!==undefined)insist(Number.isFinite(p[key])&&p[key]>=0&&p[key]<=1,'媒体焦点必须为0—1之间的比例','INVALID_MEDIA_FOCUS');
       node.params={...node.params,...p};
     }
     if(op.type==='set_node_duration'){

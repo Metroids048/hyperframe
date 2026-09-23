@@ -193,6 +193,12 @@ test('production audio honors source-backed compound original-sound preservation
  for(const invalid of [{...workflow,sourceRequests:[]},{...workflow,requirements:requirements.map(r=>({...r,field:'sound.original',quote:'模型猜测的原声要求'}))}])assert.throws(()=>validateBriefAudio(message,{keepOriginalAudio:true},invalid),{code:'AUDIO_CONSTRAINT'});
  assert.throws(()=>validateBriefAudio(message+'，不要原声',{keepOriginalAudio:true},workflow),{code:'AUDIO_CONSTRAINT'});
 });
+test('original action-sound wording counts as an explicit source-audio request',()=>{
+ const message='保留有意义的原始动作声，不加旁白与音乐';
+ const workflow=validateWorkOrder({...order(),requirements:[]},{message});
+ assert.equal(explicitBusinessConstraints(message,workflow).original,'required');
+ assert.doesNotThrow(()=>validateBriefAudio(message,{needsNarration:false,keepOriginalAudio:true},workflow));
+});
 test('stage evidence cannot skip dependency, missing input or quality acceptance',()=>{
  const plan={workOrder:{baseRevisionId:null},stages:workflowStages(),blockers:[]};
  assert.throws(()=>advanceWorkflow(plan,'review',[]),{code:'WORKFLOW_DEPENDENCY'});

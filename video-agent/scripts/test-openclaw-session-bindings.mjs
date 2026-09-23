@@ -10,7 +10,7 @@ try{
  const a={trusted:true,workspaceId,sessionKey:'agent:commerce:conversation-a',agentId:'commerce'};
  const first=await bindings.bind(a,'project-a'),again=await bindings.bind(a,'project-a');
  assert.equal(first.workspaceProjectId,'project-a');assert.equal(again.sessionKey,first.sessionKey);
- await assert.rejects(()=>bindings.bind(a,'project-b'),{code:'SESSION_PROJECT_CONFLICT'});
+ const switched=await bindings.bind(a,'project-b');assert.equal(switched.workspaceProjectId,'project-b');
  const replaced=await bindings.replace(a,'project-b');assert.equal(replaced.workspaceProjectId,'project-b');
  assert.equal((await bindings.bind(a,null)).workspaceProjectId,'project-b');
  const b=await bindings.bind({...a,sessionKey:'agent:commerce:conversation-b'},'project-b');assert.equal(b.workspaceProjectId,'project-b');

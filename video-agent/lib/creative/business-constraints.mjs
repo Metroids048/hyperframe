@@ -16,7 +16,11 @@ export function explicitBusinessConstraints(message='',workflow=null) {
  const policy={schemaVersion:1,originalRequest:String(message),
   narration:silent||denied('旁白|配音|口播')?'forbidden':(needsNarration||needsCaptions)?'required':'unspecified',
   music:silent||denied('音乐|配乐|BGM')?'forbidden':needsMusic?'required':'unspecified',
-  original:silent||denied('原声')?'forbidden':/保留[^。！？\n]{0,8}原声/.test(message)?'required':'unspecified',
+  // Users often describe production audio as “原始动作声” or “源音轨”
+  // instead of the shorter “原声”. Treat those phrases as the same explicit
+  // preservation request so the brief validator does not reject a valid
+  // source-backed audio plan when narration/music are disabled.
+  original:silent||denied('原声|原始动作声|原始音轨|源音轨')?'forbidden':/保留[^。！？\n]{0,12}(?:原声|原始动作声|原始音轨|源音轨)/.test(message)?'required':'unspecified',
   price:denied('价格|价钱|报价|售价')?'forbidden':'unspecified',silent};
  // Validated workflow requirements carry semantic scope across compound clauses.
  // Keep explicit prohibitions authoritative and require original source evidence.
