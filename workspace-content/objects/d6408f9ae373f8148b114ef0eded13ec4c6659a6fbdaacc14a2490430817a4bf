@@ -1,0 +1,251 @@
+{
+  "selected": [
+    {
+      "id": "kinetic-type-beats",
+      "reason": "文字驱动的钩子/重点节拍，可在不依赖商品媒体的情况下承载『让观众记住一个可信重点』的表达。本片在补钙证据与真实商品素材到位前，主要只能靠原生文字帧成立，故选它作主干。"
+    },
+    {
+      "id": "titlecard-reveal",
+      "reason": "克制的一次性标题/落点卡，匹配模板 title 与 ending 功能；低动效恰是休息节拍。在缺价格与 CTA 时按缺省处理，用于完整收尾。"
+    },
+    {
+      "id": "comparison-split",
+      "reason": "候选中唯一贴近 hero_media / detail_callout 功能的成对视觉容器，可用于主体与细节对照。但它要求真实成对视觉输入，当前只有同一张重复图，须在取得真实钙片成对素材与对应证据后才可实例化。"
+    }
+  ],
+  "originalNeeds": [
+    "原生构建 16:9（1920×1080）hero 媒体容器：现有源图为 4:3（1920×1440），需原生实现安全裁切/加边与主体框定；真实钙片素材补入后需重做。",
+    "原生『可信重点/证据』标注：在取得可核验的钙成分、钙含量或资质/检测信息后，再以原生 text + shape 构建与证据一一对应的标注，不预填、不编造任何数值或功效。",
+    "原生结尾落点：用户未提供价格与 CTA，结尾按缺省处理，不自行添加 CTA 文案或价格。"
+  ],
+  "gaps": [
+    "未配置 mediaAcquisitionPolicy，无法获准补拍或生成商品图。",
+    "hero 图片权利状态为 source-review（Wikimedia Commons，File:Product_Placement_Cafe-Tasse，CC BY 2.0，作者 Ricardo Martins），并非已核验的钙片商品素材；demo 素材为 web 的重复副本（sha256 一致），不提供新增可观察信息。",
+    "素材为 1920×1440（4:3）静态图，改 16:9 需裁切或加边，且无时间维度、无可剪辑的动作源区间。",
+    "现有工程中若干『完成』镜头实际绑定到 demo-web 咖啡糖图并标注 missing=true，须在补入真实素材后重做。",
+    "本任务 needsNarration/needsCaptions 均为 false 且未指定音乐；不合成旁白，也不把尚未合成写成已合成。"
+  ],
+  "blockingGaps": [
+    "缺少可核验的钙片功效证据（成分表、钙含量数值、第三方检测或批准/资质信息），在不得编造的前提下无法支撑用户核心诉求『突出补钙效果』。",
+    "缺少真实的钙片商品素材：现有素材实为 Café-Tasse 咖啡味脆糖（Croquant de café Noir）包装，与所需商品身份不符，且无 mediaAcquisitionPolicy 授权补拍或生成，无法建立钙片商品主体展示。"
+  ],
+  "candidates": [
+    {
+      "id": "comparison-split",
+      "tags": [
+        "compare",
+        "detail",
+        "image",
+        "比较",
+        "细节",
+        "双栏"
+      ],
+      "inputs": [
+        "visual-pair"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/comparison-split.md",
+        "skills/hyperframes-animation/rules/split-tilt-cards.md",
+        "registry/components/comparison-split/registry-item.json",
+        "registry/components/comparison-split/comparison-split.html"
+      ],
+      "requirements": {
+        "minMedia": 2,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 1,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "grid-card-assemble",
+      "tags": [
+        "image",
+        "details",
+        "steps",
+        "参数",
+        "配件",
+        "步骤"
+      ],
+      "inputs": [],
+      "files": [
+        "skills/hyperframes-animation/blueprints/grid-card-assemble.md",
+        "skills/hyperframes-animation/rules/gsap-effects.md"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 1,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "lt-mask-reveal",
+      "tags": [
+        "video",
+        "action",
+        "text",
+        "操作",
+        "实拍",
+        "口播",
+        "标签",
+        "文字"
+      ],
+      "inputs": [
+        "video"
+      ],
+      "description": "Transparent editable lower-third over continuing footage; no stat, price, or full-screen text takeover is required. Adapt the wipe and accent sweep to approved native text, local fonts and the managed timeline.",
+      "files": [
+        "registry/blocks/lt-mask-reveal/registry-item.json",
+        "registry/blocks/lt-mask-reveal/lt-mask-reveal.html"
+      ],
+      "requirements": {
+        "minMedia": 1,
+        "mediaKinds": [
+          "video"
+        ],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": false,
+      "score": 0,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "caption-editorial-emphasis",
+      "tags": [
+        "caption",
+        "speech",
+        "字幕",
+        "口播",
+        "强调"
+      ],
+      "inputs": [
+        "text"
+      ],
+      "description": "Editable editorial text emphasis; align spoken captions to measured transcript timestamps, never invented timing.",
+      "files": [
+        "registry/components/caption-editorial-emphasis/registry-item.json",
+        "registry/components/caption-editorial-emphasis/caption-editorial-emphasis.html"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 0,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "titlecard-reveal",
+      "tags": [
+        "title",
+        "brand",
+        "text",
+        "收尾",
+        "标题"
+      ],
+      "inputs": [],
+      "files": [
+        "skills/hyperframes-animation/blueprints/titlecard-reveal.md",
+        "skills/hyperframes-animation/rules/discrete-text-sequence.md"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 0,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "video-text-pivot",
+      "tags": [
+        "video",
+        "action",
+        "操作",
+        "实拍",
+        "讲解"
+      ],
+      "inputs": [
+        "video"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/video-text-pivot.md",
+        "skills/hyperframes-animation/rules/gsap-effects.md"
+      ],
+      "requirements": {
+        "minMedia": 1,
+        "mediaKinds": [
+          "video"
+        ],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "occluding",
+      "compatible": true,
+      "eligible": false,
+      "score": 0,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "kinetic-type-beats",
+      "tags": [
+        "text",
+        "caption",
+        "文字",
+        "字幕",
+        "强调"
+      ],
+      "inputs": [
+        "text"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/kinetic-type-beats.md",
+        "skills/hyperframes-animation/rules/discrete-text-sequence.md"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "occluding",
+      "compatible": true,
+      "eligible": true,
+      "score": 0,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    }
+  ],
+  "originalRequest": "给我做一个钙片的宣传视频，突出补钙效果，30秒横屏1080p，适合小红书投放",
+  "assetKinds": {
+    "web-50f0bd5c-3789-451d-afb9-14ba1de0beea": "image",
+    "demo-web-50f0bd5c-3789-451d-afb9-14ba1de0beea": "image"
+  }
+}

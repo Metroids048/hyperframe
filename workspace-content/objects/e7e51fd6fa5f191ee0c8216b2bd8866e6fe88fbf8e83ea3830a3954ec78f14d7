@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "taskId": "P00-05",
+  "recordedAt": "2026-09-18T00:00:00+08:00",
+  "sourceHead": "9283f550f6e639ecf20b7ca9635f39c887219ce9",
+  "result": "passed",
+  "positive": "complete manifests restore missing content atomically, preserve existing projects, tolerate concurrent publication, and start in a delivered workspace",
+  "negative": "missing chunks, corrupt chunks, parent traversal, absolute paths, and conflicting local files do not overwrite user data or escape containment",
+  "commands": [
+    "python3 scripts/test-workspace-content.py",
+    "python3 scripts/workspace-content.py --all",
+    "DELIVERY_TEST_URL=http://127.0.0.1:3024 node scripts/test-shipped-workspace.mjs"
+  ],
+  "results": {
+    "isolatedRestoreCases": 9,
+    "missingFilesRestoredInCurrentWorkspace": 0,
+    "freshWorkspaceHomepage": "passed",
+    "realVideoDecodePlaybackPauseSeek": "passed",
+    "exactMp4Download": "passed",
+    "nativeZip": "passed",
+    "hyperframesVersion": "0.8.33"
+  },
+  "humanAcceptance": "not_performed"
+}

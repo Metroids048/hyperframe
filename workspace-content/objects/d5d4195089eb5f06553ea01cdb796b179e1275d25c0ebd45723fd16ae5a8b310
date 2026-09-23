@@ -1,0 +1,362 @@
+{
+  "request": {
+    "cta": "",
+    "facts": [],
+    "name": "掌机",
+    "output": {
+      "width": 1080,
+      "height": 1920,
+      "durationSeconds": 45,
+      "fps": 30
+    },
+    "price": ""
+  },
+  "needsTranscription": false,
+  "needsNarration": true,
+  "needsCaptions": true,
+  "keepOriginalAudio": true,
+  "capabilities": [
+    "video-source-selection",
+    "native-composition",
+    "native-editing",
+    "local-preview-review",
+    "managed-original",
+    "image-observation"
+  ],
+  "gaps": [
+    "缺少可用音源：需求要求「科技感 BGM」与避让混音（ducking），但 suppliedAudio 为空，音乐只能排布已提供的音频、不生成也不检索音乐库；需提供已授权的 BGM 素材后才能实现 BGM 与 ducking。"
+  ],
+  "constraints": [
+    "只呈现素材中真实可见内容，不编造任何参数、功能或卖点。",
+    "输出竖屏 1080×1920，时长 45 秒。",
+    "切成 6–9 个镜头，至少 5 段互不重复的源区间（source ranges）。",
+    "结构：Hook；3 个可见特点（每个配局部放大）；真实操作；局部放大特写；步骤引导（第 1 步、第 2 步……）。",
+    "中文旁白＋同步中文字幕＋科技感 BGM＋避让混音（ducking，人声时压低 BGM）。",
+    "标题：掌机开箱：便携游戏体验。",
+    "素材使用 video-agent 工作目录内相对路径，不使用 media:// 引用。",
+    "保留可编辑工程（项目与修订），交付新的 MP4 成品。",
+    "沿用现有工程 c6cd5bb8-f3b8-4a49-a03e-6b45e16726b5，不新建工程。",
+    "字幕与步骤提示设保护区，避开主体与底部字幕带；源素材为横屏需裁切适配竖屏并保护主体。"
+  ],
+  "scenarioId": "product_demo",
+  "workflow": {
+    "assumptions": [
+      "商品名称为「掌机」，取自用户需求标题。",
+      "时长以用户明确要求的 45 秒为准；业务合同旧默认值 30 秒不再适用。",
+      "源素材为 1920×1080 横屏 webm（AV1 视频／Opus 音频，60fps，含音轨，时长约 72.663 秒），输出按主体保护裁切适配为 1080×1920 竖屏。",
+      "沿用既有工程的 9 个镜头分镜（9 段互不重复源区间，合计约 45 秒）继续完成，不新建工程。",
+      "旁白由本地 TTS 合成后再生成同步中文字幕，字幕无需转写源素材语音。",
+      "商品事实为空：用户未提供参数、价格与功能，画面中真实可见信息以 R2 观片核实为准。",
+      "原始音轨保留为底层环境声并与 BGM、旁白共同混音。"
+    ],
+    "gaps": [
+      "缺少可用音源：需求要求「科技感 BGM」与避让混音（ducking），但 suppliedAudio 为空，音乐只能排布已提供的音频、不生成也不检索音乐库；需提供已授权的 BGM 素材后才能实现 BGM 与 ducking。"
+    ],
+    "objective": "沿用现有工程与掌机开箱素材，重排为 6–9 个镜头（≥5 段互不重复源区间）的竖屏 1080×1920、45 秒小红书种草视频：Hook＋3 个可见特点（各配局部放大）＋真实操作＋局部放大特写＋步骤引导；中文旁白＋同步中文字幕＋科技感 BGM＋ducking；保留可编辑工程并交付新 MP4。",
+    "overrides": [],
+    "requirements": [
+      {
+        "excludeIds": [],
+        "endSeconds": null,
+        "kind": "goal",
+        "quote": "输出竖屏 1080×1920 小红书种草视频，时长 45 秒。",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "excludeIds": [],
+        "endSeconds": null,
+        "kind": "goal",
+        "quote": "重排掌机开箱素材，切成 6–9 个镜头、至少 5 段互不重复的源区间（source ranges）。",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "excludeIds": [],
+        "endSeconds": null,
+        "kind": "goal",
+        "quote": "结构：Hook；3 个可见特点（每个配局部放大）；真实操作；局部放大特写；步骤引导（第 1 步、第 2 步……）。",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "excludeIds": [],
+        "endSeconds": null,
+        "kind": "goal",
+        "quote": "中文旁白 + 同步中文字幕 + 科技感 BGM + 避让混音（ducking，人声时压低 BGM）。",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "excludeIds": [],
+        "endSeconds": null,
+        "kind": "goal",
+        "quote": "标题：掌机开箱：便携游戏体验。",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "excludeIds": [],
+        "endSeconds": null,
+        "kind": "prohibit",
+        "quote": "不编造任何参数、功能或卖点，只呈现素材中真实可见内容。",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "excludeIds": [],
+        "endSeconds": null,
+        "kind": "goal",
+        "quote": "保留可编辑工程（项目与修订），交付新的 MP4 成品。",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "excludeIds": [],
+        "endSeconds": null,
+        "kind": "prohibit",
+        "quote": "继续并完成此前中断的任务，不要新建工程。",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "excludeIds": [],
+        "endSeconds": null,
+        "kind": "resource",
+        "quote": "素材路径请使用 video-agent 工作目录内的相对路径（对应已登记素材 asset-e8779cc0-0dba-4f37-a3a3-218c25440e01，data/result-completion-projects/c6cd5bb8-f3b8-4a49-a03e-6b45e16726b5/uploads/），不要使用 media:// 引用。",
+        "startSeconds": null,
+        "targetIds": [
+          "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01"
+        ]
+      }
+    ],
+    "taskMode": "create"
+  },
+  "productionBinding": {
+    "message": "沿用本项目（c6cd5bb8-f3b8-4a49-a03e-6b45e16726b5）与已上传的掌机开箱素材（asset-e8779cc0-0dba-4f37-a3a3-218c25440e01），继续并完成此前中断的任务，不要新建工程。\n\n需求不变：\n- 输出竖屏 1080×1920 小红书种草视频，时长 45 秒。\n- 重排掌机开箱素材，切成 6–9 个镜头、至少 5 段互不重复的源区间（source ranges）。\n- 结构：Hook；3 个可见特点（每个配局部放大）；真实操作；局部放大特写；步骤引导（第 1 步、第 2 步……）。\n- 中文旁白 + 同步中文字幕 + 科技感 BGM + 避让混音（ducking，人声时压低 BGM）。\n- 标题：掌机开箱：便携游戏体验。\n- 不编造任何参数、功能或卖点，只呈现素材中真实可见内容。\n- 保留可编辑工程（项目与修订），交付新的 MP4 成品。\n\n注意：素材路径请使用 video-agent 工作目录内的相对路径（对应已登记素材 asset-e8779cc0-0dba-4f37-a3a3-218c25440e01，data/result-completion-projects/c6cd5bb8-f3b8-4a49-a03e-6b45e16726b5/uploads/），不要使用 media:// 引用。",
+    "contract": {
+      "schemaVersion": 1,
+      "profile": "commerce-focus-v1",
+      "scenarioId": "product_demo",
+      "originalRequest": "沿用本项目（c6cd5bb8-f3b8-4a49-a03e-6b45e16726b5）与已上传的掌机开箱素材（asset-e8779cc0-0dba-4f37-a3a3-218c25440e01），继续并完成此前中断的任务，不要新建工程。\n\n需求不变：\n- 输出竖屏 1080×1920 小红书种草视频，时长 45 秒。\n- 重排掌机开箱素材，切成 6–9 个镜头、至少 5 段互不重复的源区间（source ranges）。\n- 结构：Hook；3 个可见特点（每个配局部放大）；真实操作；局部放大特写；步骤引导（第 1 步、第 2 步……）。\n- 中文旁白 + 同步中文字幕 + 科技感 BGM + 避让混音（ducking，人声时压低 BGM）。\n- 标题：掌机开箱：便携游戏体验。\n- 不编造任何参数、功能或卖点，只呈现素材中真实可见内容。\n- 保留可编辑工程（项目与修订），交付新的 MP4 成品。\n\n注意：素材路径请使用 video-agent 工作目录内的相对路径（对应已登记素材 asset-e8779cc0-0dba-4f37-a3a3-218c25440e01，data/result-completion-projects/c6cd5bb8-f3b8-4a49-a03e-6b45e16726b5/uploads/），不要使用 media:// 引用。",
+      "taskMode": "create",
+      "workflowProfile": "create",
+      "workflow": {
+        "version": 1,
+        "taskMode": "create",
+        "taskModeExplicit": true,
+        "workflowProfile": "create",
+        "businessScenario": "product_demo",
+        "baseProjectId": "c6cd5bb8-f3b8-4a49-a03e-6b45e16726b5",
+        "baseRevisionId": null,
+        "assetScope": [
+          "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01"
+        ],
+        "originalRequest": "沿用本项目（c6cd5bb8-f3b8-4a49-a03e-6b45e16726b5）与已上传的掌机开箱素材（asset-e8779cc0-0dba-4f37-a3a3-218c25440e01），继续并完成此前中断的任务，不要新建工程。\n\n需求不变：\n- 输出竖屏 1080×1920 小红书种草视频，时长 45 秒。\n- 重排掌机开箱素材，切成 6–9 个镜头、至少 5 段互不重复的源区间（source ranges）。\n- 结构：Hook；3 个可见特点（每个配局部放大）；真实操作；局部放大特写；步骤引导（第 1 步、第 2 步……）。\n- 中文旁白 + 同步中文字幕 + 科技感 BGM + 避让混音（ducking，人声时压低 BGM）。\n- 标题：掌机开箱：便携游戏体验。\n- 不编造任何参数、功能或卖点，只呈现素材中真实可见内容。\n- 保留可编辑工程（项目与修订），交付新的 MP4 成品。\n\n注意：素材路径请使用 video-agent 工作目录内的相对路径（对应已登记素材 asset-e8779cc0-0dba-4f37-a3a3-218c25440e01，data/result-completion-projects/c6cd5bb8-f3b8-4a49-a03e-6b45e16726b5/uploads/），不要使用 media:// 引用。",
+        "requirements": [
+          {
+            "excludeIds": [],
+            "endSeconds": null,
+            "kind": "goal",
+            "quote": "输出竖屏 1080×1920 小红书种草视频，时长 45 秒。",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-bcb1bae63b886c1e",
+            "field": "goal",
+            "inherited": false
+          },
+          {
+            "excludeIds": [],
+            "endSeconds": null,
+            "kind": "goal",
+            "quote": "重排掌机开箱素材，切成 6–9 个镜头、至少 5 段互不重复的源区间（source ranges）。",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-ae2c85cb78d3f7cc",
+            "field": "goal",
+            "inherited": false
+          },
+          {
+            "excludeIds": [],
+            "endSeconds": null,
+            "kind": "goal",
+            "quote": "结构：Hook；3 个可见特点（每个配局部放大）；真实操作；局部放大特写；步骤引导（第 1 步、第 2 步……）。",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-993670876695417e",
+            "field": "goal",
+            "inherited": false
+          },
+          {
+            "excludeIds": [],
+            "endSeconds": null,
+            "kind": "goal",
+            "quote": "中文旁白 + 同步中文字幕 + 科技感 BGM + 避让混音（ducking，人声时压低 BGM）。",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-a2b851758accb667",
+            "field": "sound.music",
+            "inherited": false
+          },
+          {
+            "excludeIds": [],
+            "endSeconds": null,
+            "kind": "goal",
+            "quote": "标题：掌机开箱：便携游戏体验。",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-6e4e3417ce5bb1bb",
+            "field": "goal",
+            "inherited": false
+          },
+          {
+            "excludeIds": [],
+            "endSeconds": null,
+            "kind": "prohibit",
+            "quote": "不编造任何参数、功能或卖点，只呈现素材中真实可见内容。",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-98a775ef501af30e",
+            "field": "prohibit",
+            "inherited": false
+          },
+          {
+            "excludeIds": [],
+            "endSeconds": null,
+            "kind": "goal",
+            "quote": "保留可编辑工程（项目与修订），交付新的 MP4 成品。",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-d1e21f9f7c28470e",
+            "field": "goal",
+            "inherited": false
+          },
+          {
+            "excludeIds": [],
+            "endSeconds": null,
+            "kind": "prohibit",
+            "quote": "继续并完成此前中断的任务，不要新建工程。",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-f31bf0f0a3c53dda",
+            "field": "prohibit",
+            "inherited": false
+          },
+          {
+            "excludeIds": [],
+            "endSeconds": null,
+            "kind": "resource",
+            "quote": "素材路径请使用 video-agent 工作目录内的相对路径（对应已登记素材 asset-e8779cc0-0dba-4f37-a3a3-218c25440e01，data/result-completion-projects/c6cd5bb8-f3b8-4a49-a03e-6b45e16726b5/uploads/），不要使用 media:// 引用。",
+            "startSeconds": null,
+            "targetIds": [
+              "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01"
+            ],
+            "id": "requirement-7236101bd2a0edb8",
+            "field": "resource",
+            "inherited": false
+          }
+        ],
+        "assumptions": [
+          "商品名称为「掌机」，取自用户需求标题。",
+          "时长以用户明确要求的 45 秒为准；业务合同旧默认值 30 秒不再适用。",
+          "源素材为 1920×1080 横屏 webm（AV1 视频／Opus 音频，60fps，含音轨，时长约 72.663 秒），输出按主体保护裁切适配为 1080×1920 竖屏。",
+          "沿用既有工程的 9 个镜头分镜（9 段互不重复源区间，合计约 45 秒）继续完成，不新建工程。",
+          "旁白由本地 TTS 合成后再生成同步中文字幕，字幕无需转写源素材语音。",
+          "商品事实为空：用户未提供参数、价格与功能，画面中真实可见信息以 R2 观片核实为准。",
+          "原始音轨保留为底层环境声并与 BGM、旁白共同混音。"
+        ],
+        "gaps": [
+          "缺少可用音源：需求要求「科技感 BGM」与避让混音（ducking），但 suppliedAudio 为空，音乐只能排布已提供的音频、不生成也不检索音乐库；需提供已授权的 BGM 素材后才能实现 BGM 与 ducking。"
+        ],
+        "interpretation": "validated-semantic-analysis",
+        "objective": "沿用现有工程与掌机开箱素材，重排为 6–9 个镜头（≥5 段互不重复源区间）的竖屏 1080×1920、45 秒小红书种草视频：Hook＋3 个可见特点（各配局部放大）＋真实操作＋局部放大特写＋步骤引导；中文旁白＋同步中文字幕＋科技感 BGM＋ducking；保留可编辑工程并交付新 MP4。",
+        "contractId": "contract-a428091676dc4a2f",
+        "parentContractId": null,
+        "sourceRequests": [
+          "沿用本项目（c6cd5bb8-f3b8-4a49-a03e-6b45e16726b5）与已上传的掌机开箱素材（asset-e8779cc0-0dba-4f37-a3a3-218c25440e01），继续并完成此前中断的任务，不要新建工程。\n\n需求不变：\n- 输出竖屏 1080×1920 小红书种草视频，时长 45 秒。\n- 重排掌机开箱素材，切成 6–9 个镜头、至少 5 段互不重复的源区间（source ranges）。\n- 结构：Hook；3 个可见特点（每个配局部放大）；真实操作；局部放大特写；步骤引导（第 1 步、第 2 步……）。\n- 中文旁白 + 同步中文字幕 + 科技感 BGM + 避让混音（ducking，人声时压低 BGM）。\n- 标题：掌机开箱：便携游戏体验。\n- 不编造任何参数、功能或卖点，只呈现素材中真实可见内容。\n- 保留可编辑工程（项目与修订），交付新的 MP4 成品。\n\n注意：素材路径请使用 video-agent 工作目录内的相对路径（对应已登记素材 asset-e8779cc0-0dba-4f37-a3a3-218c25440e01，data/result-completion-projects/c6cd5bb8-f3b8-4a49-a03e-6b45e16726b5/uploads/），不要使用 media:// 引用。"
+        ],
+        "requirementChanges": [],
+        "changeTargets": [],
+        "preserveTargets": [],
+        "resourceNeeds": [
+          {
+            "excludeIds": [],
+            "endSeconds": null,
+            "kind": "resource",
+            "quote": "素材路径请使用 video-agent 工作目录内的相对路径（对应已登记素材 asset-e8779cc0-0dba-4f37-a3a3-218c25440e01，data/result-completion-projects/c6cd5bb8-f3b8-4a49-a03e-6b45e16726b5/uploads/），不要使用 media:// 引用。",
+            "startSeconds": null,
+            "targetIds": [
+              "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01"
+            ],
+            "id": "requirement-7236101bd2a0edb8",
+            "field": "resource",
+            "inherited": false
+          }
+        ],
+        "prohibitions": [
+          {
+            "excludeIds": [],
+            "endSeconds": null,
+            "kind": "prohibit",
+            "quote": "不编造任何参数、功能或卖点，只呈现素材中真实可见内容。",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-98a775ef501af30e",
+            "field": "prohibit",
+            "inherited": false
+          },
+          {
+            "excludeIds": [],
+            "endSeconds": null,
+            "kind": "prohibit",
+            "quote": "继续并完成此前中断的任务，不要新建工程。",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-f31bf0f0a3c53dda",
+            "field": "prohibit",
+            "inherited": false
+          }
+        ]
+      },
+      "persona": {
+        "creator": "商家／内容运营（待用户研究验证）",
+        "viewer": "第一次操作的新手"
+      },
+      "objective": "理解并复现必要操作",
+      "product": {
+        "id": "product-1",
+        "name": "掌机",
+        "facts": [],
+        "price": null,
+        "cta": "",
+        "audience": null,
+        "prohibited": []
+      },
+      "output": {
+        "width": 1080,
+        "height": 1920,
+        "durationSeconds": 45,
+        "fps": 30
+      },
+      "audio": "unspecified",
+      "mustHave": [],
+      "mustNot": [],
+      "explicitConstraints": {
+        "schemaVersion": 1,
+        "originalRequest": "沿用本项目（c6cd5bb8-f3b8-4a49-a03e-6b45e16726b5）与已上传的掌机开箱素材（asset-e8779cc0-0dba-4f37-a3a3-218c25440e01），继续并完成此前中断的任务，不要新建工程。\n\n需求不变：\n- 输出竖屏 1080×1920 小红书种草视频，时长 45 秒。\n- 重排掌机开箱素材，切成 6–9 个镜头、至少 5 段互不重复的源区间（source ranges）。\n- 结构：Hook；3 个可见特点（每个配局部放大）；真实操作；局部放大特写；步骤引导（第 1 步、第 2 步……）。\n- 中文旁白 + 同步中文字幕 + 科技感 BGM + 避让混音（ducking，人声时压低 BGM）。\n- 标题：掌机开箱：便携游戏体验。\n- 不编造任何参数、功能或卖点，只呈现素材中真实可见内容。\n- 保留可编辑工程（项目与修订），交付新的 MP4 成品。\n\n注意：素材路径请使用 video-agent 工作目录内的相对路径（对应已登记素材 asset-e8779cc0-0dba-4f37-a3a3-218c25440e01，data/result-completion-projects/c6cd5bb8-f3b8-4a49-a03e-6b45e16726b5/uploads/），不要使用 media:// 引用。",
+        "narration": "unspecified",
+        "music": "unspecified",
+        "original": "unspecified",
+        "price": "unspecified",
+        "silent": false
+      },
+      "generatedFootageAllowed": false,
+      "deliverables": [
+        "candidate_mp4",
+        "editable_project",
+        "source_index",
+        "quality_report"
+      ]
+    }
+  }
+}

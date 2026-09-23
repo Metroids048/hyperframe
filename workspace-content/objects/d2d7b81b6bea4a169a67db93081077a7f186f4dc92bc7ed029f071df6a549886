@@ -1,0 +1,188 @@
+{
+  "id": "73fef3c7-1445-4148-a4b4-59994f36d3a4",
+  "type": "video-edit",
+  "schemaVersion": 2,
+  "name": "fixture",
+  "initialText": "",
+  "assets": {
+    "88cbb95f-da83-4125-970e-b120356dbf2b": {
+      "id": "88cbb95f-da83-4125-970e-b120356dbf2b",
+      "name": "fixture.mp4",
+      "original": "original.mp4",
+      "status": "ready",
+      "size": 11,
+      "createdAt": "2026-09-17T11:00:49.888Z",
+      "kind": "video",
+      "frames": 300,
+      "duration": 10,
+      "width": 640,
+      "height": 360,
+      "hasAudio": true,
+      "work": "work.mp4",
+      "sha256": "mock-88cbb95f-da83-4125-970e-b120356dbf2b",
+      "thumbnails": [],
+      "speech": "speech.mp3",
+      "analysisFile": "analysis/88cbb95f-da83-4125-970e-b120356dbf2b-034c4440f8f3a40ab6ce.json"
+    }
+  },
+  "revisions": [
+    {
+      "id": "ffcaf674-465c-4463-b323-37f8d09740ab",
+      "number": 1,
+      "parentId": null,
+      "description": "导入原视频",
+      "media": {
+        "duration": 10,
+        "width": 640,
+        "height": 360,
+        "hasAudio": true,
+        "cache": {}
+      },
+      "quality": {
+        "level": "preview",
+        "status": "passed"
+      },
+      "createdAt": "2026-09-17T11:00:49.898Z",
+      "render": {
+        "status": "pending"
+      }
+    }
+  ],
+  "currentRevisionId": "ffcaf674-465c-4463-b323-37f8d09740ab",
+  "messages": [],
+  "jobs": [
+    {
+      "id": "b65de9b5-6901-4ec5-a463-0683adfe48b4",
+      "key": "import-73fef3c7-1445-4148-a4b4-59994f36d3a4",
+      "hash": "bf2089e0636b1597c47dd2cf080904a7e3d01de7ba29008cc10259cc666466ea",
+      "kind": "asset",
+      "payload": {
+        "assetId": "88cbb95f-da83-4125-970e-b120356dbf2b"
+      },
+      "afterJobId": null,
+      "status": "complete",
+      "stage": "已完成",
+      "progress": 100,
+      "createdAt": "2026-09-17T11:00:49.889Z",
+      "metrics": {
+        "stages": [
+          {
+            "name": "prepare_asset",
+            "startedAt": "2026-09-17T11:00:49.893Z",
+            "elapsedMs": 0,
+            "status": "complete"
+          },
+          {
+            "name": "compose",
+            "startedAt": "2026-09-17T11:00:49.896Z",
+            "elapsedMs": 2,
+            "status": "complete",
+            "cache": {}
+          },
+          {
+            "name": "preview_check",
+            "startedAt": "2026-09-17T11:00:49.898Z",
+            "elapsedMs": 0,
+            "status": "complete"
+          }
+        ],
+        "modelCalls": 0,
+        "cacheHits": 0,
+        "elapsedMs": 9
+      },
+      "startedAt": "2026-09-17T11:00:49.892Z",
+      "revisionId": "ffcaf674-465c-4463-b323-37f8d09740ab",
+      "committedAt": "2026-09-17T11:00:49.899Z",
+      "completedAt": "2026-09-17T11:00:49.901Z"
+    },
+    {
+      "id": "5c8bf31b-c870-4a67-9d7d-5a7f1e7961e8",
+      "key": "cd03117f-1972-439e-987c-8f476dad79a4",
+      "hash": "c3eacde923cea56b03f068027a7efba116280d07ef14bbfcd069274959fb326e",
+      "kind": "operations",
+      "payload": {
+        "baseRevisionId": "ffcaf674-465c-4463-b323-37f8d09740ab",
+        "operations": [
+          {
+            "type": "caption_transcript",
+            "language": "zh"
+          }
+        ]
+      },
+      "afterJobId": null,
+      "status": "failed",
+      "stage": "未完成",
+      "progress": 50,
+      "createdAt": "2026-09-17T11:00:49.907Z",
+      "metrics": {
+        "stages": [
+          {
+            "name": "prepare_speech",
+            "startedAt": "2026-09-17T11:00:49.910Z",
+            "elapsedMs": 0,
+            "status": "complete"
+          },
+          {
+            "name": "transcribe",
+            "startedAt": "2026-09-17T11:00:49.910Z",
+            "elapsedMs": 0,
+            "status": "complete"
+          },
+          {
+            "name": "translate_captions",
+            "startedAt": "2026-09-17T11:00:49.911Z",
+            "elapsedMs": 0,
+            "status": "failed",
+            "error": "字幕翻译条数不完整，当前视频未修改"
+          }
+        ],
+        "modelCalls": 0,
+        "cacheHits": 0,
+        "elapsedMs": 4
+      },
+      "startedAt": "2026-09-17T11:00:49.908Z",
+      "cloudVerifiedAt": "2026-09-17T11:00:49.910Z",
+      "failureReceipt": {
+        "version": 2,
+        "code": "INTERNAL_ERROR",
+        "category": "quality_failure",
+        "recovery": {
+          "domain": "runtime",
+          "retryAllowed": false,
+          "automaticRetry": false,
+          "alternativeAllowed": false,
+          "qualityAccepted": false,
+          "goalReduced": false,
+          "nextAction": "保留成果，诊断失败阶段；不重做整片"
+        },
+        "reason": "字幕翻译条数不完整，当前视频未修改",
+        "originalRequest": "",
+        "requirements": [],
+        "baseRevisionId": "ffcaf674-465c-4463-b323-37f8d09740ab",
+        "actualAction": "保留上一有效版本；本次未发布修改",
+        "publishedRevisionId": null,
+        "preserved": [
+          "工程",
+          "已有音轨",
+          "素材",
+          "历史"
+        ],
+        "goalReduced": false,
+        "qualityAccepted": false,
+        "failedTargets": [],
+        "policyVersion": 1,
+        "nextAction": "定位失败对象，执行最小修复后重新检查"
+      },
+      "error": "字幕翻译条数不完整，当前视频未修改",
+      "completedAt": "2026-09-17T11:00:49.912Z"
+    }
+  ],
+  "createdAt": "2026-09-17T11:00:49.878Z",
+  "updatedAt": "2026-09-17T11:00:49.912Z",
+  "eventSequence": 13,
+  "originProjectId": null,
+  "originSourceHash": null,
+  "sampleId": null,
+  "sampleContext": null,
+  "storageVersion": 2
+}

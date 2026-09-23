@@ -1,0 +1,95 @@
+{
+  "alternatives": [],
+  "operations": [
+    {
+      "assetId": null,
+      "durationFrames": null,
+      "effect": null,
+      "fromSceneId": null,
+      "height": null,
+      "nodeId": "cue-d18b235a237e72cf",
+      "paramsJson": "{\"fontSize\":32,\"color\":\"#DDE2E6\"}",
+      "sceneId": null,
+      "sceneIds": null,
+      "source": null,
+      "text": null,
+      "toSceneId": null,
+      "type": "update_caption_style",
+      "width": null
+    }
+  ],
+  "summary": "计划仅调整最后一句字幕的字号和颜色，保留上移后的位置、原文和时间。执行后需复验片尾字幕的可读性；本轮未执行修改或预览。",
+  "workflow": {
+    "assumptions": [
+      "将32px与柔和浅灰色#DDE2E6作为可逆样式默认值；不修改字重及offsetY=-80。"
+    ],
+    "gaps": [
+      "输入未提供字幕继承后的实际字号和颜色，执行器需核对32px确实比当前字号稍小，并检查31—34.313秒字幕的对比度、换行和遮挡。新修订ID由执行器生成，验证成功后发布。"
+    ],
+    "objective": "让观众更舒适地读完最后一句字幕，同时保留现有内容、位置、时序和音画。",
+    "overrides": [
+      {
+        "replacementQuote": "现在让它稍小一些、颜色更柔和，便于读完；只调整这句字幕的字号和颜色，位置、文字、时间、其他字幕以及声音画面全部保留。",
+        "requirementId": "requirement-c80900c5e28c18f0"
+      }
+    ],
+    "requirements": [
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "现在让它稍小一些、颜色更柔和，便于读完；只调整这句字幕的字号和颜色，位置、文字、时间、其他字幕以及声音画面全部保留。",
+        "startSeconds": null,
+        "targetIds": [
+          "cue-d18b235a237e72cf"
+        ]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "只调整这句字幕的字号和颜色",
+        "startSeconds": null,
+        "targetIds": [
+          "cue-d18b235a237e72cf"
+        ]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [
+          "cue-d18b235a237e72cf"
+        ],
+        "kind": "preserve",
+        "quote": "其他字幕",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "声音画面全部保留",
+        "startSeconds": null,
+        "targetIds": [
+          "audio-1",
+          "audio-2",
+          "audio-3",
+          "audio-4",
+          "audio-4124aaefa824859c",
+          "audio-bc35f0a994d81023",
+          "scene-01",
+          "scene-02",
+          "scene-03",
+          "scene-04",
+          "scene-05",
+          "scene-06",
+          "scene-07",
+          "scene-08",
+          "scene-09",
+          "scene-10"
+        ]
+      }
+    ],
+    "taskMode": "edit"
+  }
+}

@@ -1,0 +1,139 @@
+n, not the default. Do not
+stack effects merely to make the answer look more sophisticated.
+
+## Seed or assemble
+
+Use the table when a tested recipe directly fits. Read only that recipe
+section. Recipes are optional macros, not a closed list of allowed results.
+
+| Intent or source                                         | Recipe heading to read                            |
+| -------------------------------------------------------- | ------------------------------------------------- |
+| Talking head, interview, presenter, people-focused photo | `Natural Portrait`                                |
+| Product footage, lifestyle footage, clean social polish  | `Product Polish`                                  |
+| Screen capture, dashboard, website, app UI               | `UI Fidelity`                                     |
+| Warm memory, restrained nostalgia                        | `Film Memory`                                     |
+| Creator/UGC handheld camera character                    | `Creator Camcorder`                               |
+| Analog tape playback                                     | `VHS Playback`                                    |
+| Small-gauge home-movie character                         | `8mm Home Movie`                                  |
+| Editorial dots or ink print                              | `Editorial Halftone` or `Two-Ink Editorial Print` |
+| Monochrome dot/line screen print                         | `Monochrome Screen Print`                         |
+| Engraved or hand-hatched illustration                    | `Engraved Illustration` or `Crosshatched Sketch`  |
+| Curved scanlined display                                 | `CRT Display`                                     |
+| Glyph-based art                                          | `Procedural ASCII`                                |
+| Realtime palette quantization                            | `Ordered Palette Dither`                          |
+| Exact historical error diffusion                         | `Cached Error Diffusion`                          |
+| Finite warm flare layer                                  | `Organic Light Leak`                              |
+| Held-frame graphic interruption                          | `Freeze-Frame Cutout`                             |
+| Short exposure-flash transition                          | `Social Flash / Editorial Reveal`                 |
+
+Use `rg -n '^## <heading>$' <SKILL_DIR>/references/media-treatment-recipes.md`,
+then read only from that heading to the next `##`. Do not load the entire
+cookbook for one request.
+
+When source intent is unclear, inspect the concise capability overview:
+
+```bash
+hyperframes media-treatment --capabilities --json
+```
+
+It lists the complete surface by family with one-line descriptions. Then load
+only the family, effect, preset, or palette relevant to the inspected source:
+
+```bash
+hyperframes media-treatment --capability <id> --json
+```
+
+The focused result provides legal controls, recommended apply values, render
+cost, palette support, and the exact animation contract when supported. Use
+`--all` only for tooling/tests or a genuinely exhaustive audit. Compose one
+nested payload from these existing parts. Recipes and catalog-built payloads
+use the same renderer and persistence contract.
+
+Treat `renderLane: "multipass"` as a cost signal. Blur, Bloom, and Kuwahara are
+bounded but more expensive than single-pass effects; avoid stacking several of
+them across many simultaneous media elements unless the composition needs it,
+then verify playback and a draft render.
+Cost follows treated pixel area as well as element count. More than two
+simultaneously visible full-frame multipass media layers requires a continuous
+playback check on the target machine; simplify or pre-render the stack if it
+drops frames. Do not impose or claim a universal hard cap from one machine.
+
+## Common workflow
+
+1. Confirm the target is a real `<img>` or `<video>` and inspect source color
+   metadata.
+2. For an image, read it once. For video, capture early/middle/late output as
+   one labeled sheet and read that one image:
+
+   ```bash
+   hyperframes snapshot <project> --frames 3 --no-end --describe false \
+     --output snapshots/treatment-before
+   ```
+
+   Read `snapshots/treatment-before/contact-sheet.jpg`; do not spend separate
+   model turns reading each frame unless the sheet exposes a specific problem.
+   Do not infer semantics from signal statistics alone.
+
+3. Choose one primary lane. Use one matching recipe as a tested seed, or read
+   the overview and one focused capability detail when the request is bespoke.
+   A seed may be changed or combined with compatible catalog controls when the
+   contact sheet justifies it. Do not invent keys, exceed reported ranges, or
+   stack effects without a visual reason. Do not run the generic grade/LUT
+   resolver first; it adds irrelevant candidates and may download an unused
+   LUT. Use `media-treatment --selector "#hero" --analyze --json` only when
+   correction needs measured signal evidence.
+4. Persist pixel settings with `hyperframes media-treatment`; it validates and
+   merges a patch into the existing nested `data-color-grading` contract. Use registered
+   GSAP only for supported animated values and Registry overlay blocks only
+   for authored dressing.
+   ```bash
+   hyperframes media-treatment --selector "<unique selector>" \
+     --grading '<nested JSON patch>' --apply --json
+   ```
+   For a temporal reveal, use the focused capability result's `animation`
+   contract. If it is `null`, the capability is static. Author the starting CSS
+   property inline on the real media element and return temporary treatment
+   values to neutral so the finished shot preserves its existing pixels.
+   Prefer that bounded media animation first; if an overlay is justified,
+   install the owned Registry block instead of recreating it with bespoke
+   overlay markup.
+   For correction and ordinary polish, keep those values as editable
+   preset/adjustment JSON; do not generate a LUT for controls the realtime shader
+   already owns.
+   Use the canonical `details`/`effects` fields for vignette, grain, blur,
+   pixelate, and related primitives. Do not duplicate them with CSS filters,
+   SVG turbulence, opacity, or decorative DOM overlays.
+5. When the treatment calls for an overlay, install that named block with
+   `hyperframes add <name> --dir <project> --no-clipboard --json`, inspect its
+   returned `data-composition-src` host, and place it once using the block's
+   timing contract. Check for the installed file and host element
+   ID before insertion; never duplicate an existing overlay block. This is one
+   treatment workflow: do not make the user discover Catalog or separately ask
+   for the recipe's justified overlay.
+6. For ordinary correction/polish, capture one after-sheet with the same three
+   timestamps under `snapshots/treatment-after`, compare it to the before-sheet,
+   and stop when the result is clearly better. Run the normal project check;
+   do not encode a draft solely to prove a static correction.
+7. Escalate only when evidence requires it. Read individual frames to diagnose a
+   specific visual problem. Preview and render moving evidence when judging
+   treatment keyframes, glitch/tape motion, overlays, playback smoothness, LUT
+   timing, or any other temporal behavior. HDR/LOG, privacy, and brand-sensitive
+   work also require the existing explicit caveats and stronger verification.
+   If the treatment is not clearly better, keep the source unchanged.
+8. Report the selected media, primary intent, recipe seed if used, final
+   composed controls, optional overlays, and the frames/render that were
+   actually checked. Do not report visual quality from command success alone.
+
+`media-treatment --analyze` provides deterministic clipping and signal
+evidence for local composition media, not subject recognition or automatic
+taste. It reports HDR/metadata caveats and a bounded primary-correction patch;
+it does not invent wheels, curves, or HSL selections from statistics.
+
+</guidance>
+修正观察合同。框是归一化[x,y,width,height]，不是右下坐标；无法确认可留空。只需观察获准使用的素材，其余不能借相似外观建立同型号关系。inspectRanges为空，不重复已执行的抽帧。
+
+<editing_input>
+[{"role":"user","content":"{\"message\":\"使用新提供的4K耳机实拍制作一条约20秒的横屏单品上新短片。面向第一次看到商品、喜欢桌面搭配和数码配件的人。只使用当前素材：开头立即看清白色头戴式耳机和使用语境，中段保留从支架取下、抬起佩戴、双手调整这些真实动作，后段回到佩戴完成的整体画面并以“查看详情”收尾。文字少而清楚，采用克制的编辑式排版，不能遮挡人物头部、双手和耳机。不要使用历史图片，不要编造品牌、型号、价格、音质、降噪、续航或其他性能。素材无声，保持静音，不加旁白或音乐。时长服从有效镜头，允许在18至22秒内完成，不重复、冻结或慢放凑时长。输出候选MP4、可编辑原生工程、来源选段和质量报告。\",\"brief\":{\"request\":{\"name\":\"白色头戴式耳机单品上新短片\",\"cta\":\"查看详情\",\"price\":\"\",\"facts\":[],\"output\":{\"width\":1920,\"height\":1080,\"durationSeconds\":20,\"fps\":30}},\"needsTranscription\":false,\"needsNarration\":false,\"needsCaptions\":false,\"keepOriginalAudio\":false,\"capabilities\":[\"image-observation\",\"video-source-selection\",\"native-composition\",\"managed-original\",\"local-preview-review\",\"native-editing\"],\"gaps\":[],\"constraints\":[\"仅使用当前提供的4K耳机实拍素材，不使用历史图片或生成新镜头\",\"横屏输出，时长服从有效镜头，控制在18至22秒，默认约20秒\",\"开头立即展示白色头戴式耳机及使用语境\",\"中段保留从支架取下、抬起佩戴、双手调整的真实动作\",\"后段回到佩戴完成的整体画面并以“查看详情”收尾\",\"文字少而清楚，采用克制的编辑式排版\",\"文字不得遮挡人物头部、双手和耳机\",\"不得编造品牌、型号、价格、音质、降噪、续航或其他性能\",\"素材无声，保持静音，不加旁白或音乐\",\"不重复、冻结或慢放凑时长\",\"交付候选MP4、可编辑原生工程、来源选段和质量报告\"],\"scenarioId\":\"product_launch\"},\"prior\":{\"observations\":[{\"assetId\":\"asset-bb872102-c238-43af-90af-459681d1115e\",\"visibleContent\":\"横屏1920×1080、25.834秒、无音频。灰色桌面场景中，白色头戴式耳机置于支架上，白胡子男性从桌前取下耳机并逐步抬向头部，随后双手在头部两侧调整，最终完成佩戴并面向镜头。加密观察覆盖源3.583至16.981秒。\",\"uncertainty\":\"加密抽帧仍不是连续视频检查，精确动作边界、是否存在细小跳步及最终佩戴稳定时刻未完全验证。\",\"role\":\"overview\",\"productGroup\":\"白色头戴式耳机\",\"subjectBox\":[0,0,1920,1080],\"safeCrop\":[0,0,1920,1080],\"confidence\":0.9,\"quality\":\"画面清晰、横屏构图稳定，商品和人物动作可辨；无音频。\",\"visibleText\":[],\"sameProductAs\":[],\"differentProductFrom\":[]},{\"assetId\":\"asset-bb872102-c238-43af-90af-459681d1115e\",\"visibleContent\":\"源3.583至8.028秒：耳机位于桌面支架，人物双手靠近并接触耳机；随后将耳机从支架上取下，双手持耳机离开支架。可作为开头建立商品与从支架取下的候选区间。\",\"uncertainty\":\"起始接触与完全脱离支架的精确帧边界需连续播放复核。\",\"role\":\"usage\",\"productGroup\":\"白色头戴式耳机\",\"subjectBox\":[0,0,1920,1080],\"safeCrop\":[0,0,1920,1080],\"confidence\":0.86,\"quality\":\"动作主体无遮挡严重问题，耳机在桌面语境中清晰可见。\",\"visibleText\":[],\"sameProductAs\":[],\"differentProductFrom\":[]},{\"assetId\":\"asset-bb872102-c238-43af-90af-459681d1115e\",\"visibleContent\":\"源8.092至12.981秒：人物双手持白色耳机，将耳机从胸前逐步抬向头部，耳罩接近头部两侧，进入佩戴动作。\",\"uncertainty\":\"无法仅凭抽帧确认耳机是否在该区间内完整越过头部并准确落位；佩戴动作的连续性仍需视频复核。\",\"role\":\"usage\",\"productGroup\":\"白色头戴式耳机\",\"subjectBox\":[0,0,1920,1080],\"safeCrop\":[0,0,1920,1080],\"confidence\":0.84,\"quality\":\"抬起动作方向和商品位置清楚，人物头部、双手和耳机均需保护。\",\"visibleText\":[],\"sameProductAs\":[],\"differentProductFrom\":[]},{\"assetId\":\"asset-bb872102-c238-43af-90af-459681d1115e\",\"visibleContent\":\"源12.092至16.981秒：耳机已位于头部两侧，人物双手持续调整耳机位置；后段呈现佩戴完成并面向镜头的状态，可作为结尾整体画面候选。\",\"uncertainty\":\"调整动作的结束边界及佩戴完成后应保留的稳定时长未通过连续播放确认。\",\"role\":\"usage\",\"productGroup\":\"白色头戴式耳机\",\"subjectBox\":[0,0,1920,1080],\"safeCrop\":[0,0,1920,1080],\"confidence\":0.87,\"quality\":\"佩戴状态和人物整体关系清晰；文字可放置在不遮挡头部、双手和耳机的边缘留白区域。\",\"visibleText\":[],\"sameProductAs\":[],\"differentProductFrom\":[]},{\"assetId\":\"asset-bb872102-c238-43af-90af-459681d1115e\",\"visibleContent\":\"源15.758至16.981秒附近可见佩戴完成后的整体画面，人物面向镜头，白色耳机清晰可辨，适合承载“查看详情”收尾文字。\",\"uncertainty\":\"未观察完整源片尾段，无法确认16.981秒之后是否有更稳定或更长的佩戴完成画面。\",\"role\":\"packaging\",\"productGroup\":\"白色头戴式耳机\",\"subjectBox\":[0,0,1920,1080],\"safeCrop\":[0,0,1920,1080],\"confidence\":0.82,\"quality\":\"适合作为收尾候选，但稳定展示时长需连续源片复核。\",\"visibleText\":[],\"sameProductAs\":[],\"differentProductFrom\":[]}],\"candidates\":[{\"assetId\":\"asset-bb872102-c238-43af-90af-459681d1115e\",\"startSeconds\":3.583,\"endSeconds\":8.028,\"reason\":\"建立桌面使用语境，并展示从支架接触、取下耳机的真实动作。\"},{\"assetId\":\"asset-bb872102-c238-43af-90af-459681d1115e\",\"startSeconds\":8.092,\"endSeconds\":12.981,\"reason\":\"展示双手持耳机并抬向头部，承接佩戴动作。\"},{\"assetId\":\"asset-bb872102-c238-43af-90af-459681d1115e\",\"startSeconds\":12.092,\"endSeconds\":16.981,\"reason\":\"展示耳机位于头部两侧后的双手调整及佩戴完成状态，适合作为后段和收尾候选。\"}],\"inspectRanges\":[],\"gaps\":[\"当前证据为加密关键帧而非连续视频，仍不能完全确认取下、抬起佩戴、双手调整的精确起止和无跳步连续性。\",\"尚未观察源16.981秒至25.834秒的连续尾段，无法确认是否存在更完整、更稳定的佩戴完成收尾镜头及18至22秒成片时长可行性。\",\"未观察到品牌、型号、价格、音质、降噪、续航或其他性能事实，不得添加相关文案。\",\"素材无音频，必须保持静音，不添加旁白或音乐。\"]},\"validationError\":\"观察 asset-bb872102-c238-43af-90af-459681d1115e.subjectBox=[0,0,1920,1080] 必须为归一化[x,y,width,height]：width>0、height>0、x+width<=1、y+height<=1。当前右边界=1920，下边界=1080。例如左上(0.4,0.25)、右下(0.63,0.73)应输出[0.4,0.25,0.23,0.48]；无法确认可输出[]，不得猜测。\",\"attempt\":0,\"metadata\":[{\"id\":\"asset-bb872102-c238-43af-90af-459681d1115e\",\"kind\":\"video\",\"duration\":25.834,\"frames\":775,\"width\":1920,\"height\":1080,\"rotation\":0,\"hasAudio\":false,\"videoCodec\":\"h264\",\"pixelFormat\":\"yuv420p\",\"audioCodec\":null,\"sourceFps\":\"30/1\",\"nominalFps\":\"30/1\",\"size\":21086135,\"sourceStartSeconds\":0,\"sourceDurationSeconds\":25.84}],\"businessContract\":{\"schemaVersion\":1,\"profile\":\"commerce-focus-v1\",\"scenarioId\":\"product_launch\",\"originalRequest\":\"使用新提供的4K耳机实拍制作一条约20秒的横屏单品上新短片。面向第一次看到商品、喜欢桌面搭配和数码配件的人。只使用当前素材：开头立即看清白色头戴式耳机和使用语境，中段保留从支架取下、抬起佩戴、双手调整这些真实动作，后段回到佩戴完成的整体画面并以“查看详情”收尾。文字少而清楚，采用克制的编辑式排版，不能遮挡人物头部、双手和耳机。不要使用历史图片，不要编造品牌、型号、价格、音质、降噪、续航或其他性能。素材无声，保持静音，不加旁白或音乐。时长服从有效镜头，允许在18至22秒内完成，不重复、冻结或慢放凑时长。输出候选MP4、可编辑原生工程、来源选段和质量报告。\",\"persona\":{\"creator\":\"商家／内容运营（待用户研究验证）\",\"viewer\":\"首次了解商品的消费者\"},\"objective\":\"吸引首次观看者继续了解商品\",\"product\":{\"id\":\"product-1\",\"name\":\"白色头戴式耳机单品上新短片\",\"facts\":[],\"price\":null,\"cta\":\"查看详情\",\"audience\":null,\"prohibited\":[]},\"output\":{\"width\":1920,\"height\":1080,\"durationSeconds\":20,\"fps\":30},\"audio\":\"silent\",\"mustHave\":[],\"mustNot\":[],\"generatedFootageAllowed\":false,\"deliverables\":[\"candidate_mp4\",\"editable_project\",\"source_index\",\"quality_report\"]},\"scenarioResources\":{\"template\":{\"id\":\"commerce-launch-v1\",\"version\":1,\"structure\":[\"建立商品\",\"真实使用\",\"可信细节\",\"整体回归与收尾\"],\"components\":[\"hero_media\",\"title\",\"detail_callout\",\"caption\",\"ending\"],\"rule\":\"按有效内容调整镜头，不按槽位补造内容；先主体、后说明；价格与Logo可缺省。\"},\"components\":{\"hero_media\":{\"nativeKinds\":[\"video\",\"image\"],\"purpose\":\"保护主体的真实媒体容器\",\"resources\":[\"video-text-pivot\",\"comparison-split\"]},\"title\":{\"nativeKinds\":[\"text\"],\"purpose\":\"独立可改的标题\",\"resources\":[\"titlecard-reveal\"]},\"detail_callout\":{\"nativeKinds\":[\"text\",\"shape\"],\"purpose\":\"与可信细节对应的标注\",\"resources\":[\"comparison-split\",\"lt-ma[redacted]\"]},\"caption\":{\"nativeKinds\":[\"text\"],\"purpose\":\"普通字幕与声音独立\",\"resources\":[\"caption-editorial-emphasis\"]},\"ending\":{\"nativeKinds\":[\"text\",\"video\"],\"purpose\":\"完整收尾和已提供的下一步提示\",\"resources\":[\"titlecard-reveal\"]}},\"sha256\":\"7e684f50dd4ef5484357229720064e13b4605f932282470b27cd3df262b78c32\"},\"scenePackage\":{\"id\":\"product_launch\",\"version\":\"3.0.0\",\"hash\":\"dd6f72e387f8eb58ad3880d62431446c062709c5739e984072588f3fd94a7f18\",\"rules\":{\"MATERIAL_POLICY.md\":\"# MATERIAL_POLICY\\n\\n扫描所有目录素材；读取metadata和带时间观察证据，按同款身份、hero、usage、detail、supporting分类并记录拒绝原因。不从文件名猜事实。依据源证据重排镜头；不把多张相似图当内容，不通过长静帧凑时长。\\n\"}},\"creativeDirection\":null}\n视频 asset-bb872102-c238-43af-90af-459681d1115e，实际时长 25.834s；本页源时间 1.076, 5.382, 9.688, 13.993, 18.299, 22.605 秒。只按这些真实画面判断动作，不能把备料/倒粉误称研磨，不能把倒水当成倒咖啡。未观察到的动作应继续查素材或说明，禁止从文件名和用户预期补写画面。\n【附图 1】\nasset-bb872102-c238-43af-90af-459681d1115e 加密画面，按从左至右逐行对应源秒数：3.583,4.139,4.694,5.250,5.806,6.361,6.917,7.472,8.028\n【附图 2】\nasset-bb872102-c238-43af-90af-459681d1115e 加密画面，按从左至右逐行对应源秒数：8.092,8.703,9.314,9.925,10.536,11.147,11.758,12.369,12.981\n【附图 3】\nasset-bb872102-c238-43af-90af-459681d1115e 加密画面，按从左至右逐行对应源秒数：12.092,12.703,13.314,13.925,14.536,15.147,15.758,16.369,16.981\n【附图 4】"}]
+</editing_input>
+ERROR: Selected model is at capacity. Please try a different model.
+ERROR: Selected model is at capacity. Please try a different model.

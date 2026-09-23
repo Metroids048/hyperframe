@@ -1,0 +1,160 @@
+{
+  "workflow": {
+    "taskMode": "variant",
+    "objective": "用独立A版开头引导观众感受咖啡日常仪式，保留母片及其余内容。",
+    "requirements": [
+      {
+        "kind": "goal",
+        "quote": "从当前咖啡母片制作独立A版开头变体，母版保留。",
+        "targetIds": [],
+        "excludeIds": [],
+        "startSeconds": null,
+        "endSeconds": null
+      },
+      {
+        "kind": "change",
+        "quote": "仅将第一幕主标题由“一杯咖啡的时间”改为“把时间，留给一杯咖啡”",
+        "targetIds": ["node-1a919ca6e9106e26"],
+        "excludeIds": [],
+        "startSeconds": null,
+        "endSeconds": null
+      },
+      {
+        "kind": "change",
+        "quote": "同时把这个标题的入场改为短促淡入、轻微上移",
+        "targetIds": ["node-1a919ca6e9106e26"],
+        "excludeIds": [],
+        "startSeconds": null,
+        "endSeconds": null
+      },
+      {
+        "kind": "preserve",
+        "quote": "保持暖白和咖啡棕风格",
+        "targetIds": ["scene-01"],
+        "excludeIds": [],
+        "startSeconds": null,
+        "endSeconds": null
+      },
+      {
+        "kind": "change",
+        "quote": "标题文字需要自然换行时可调整第一幕文字栏布局，不能压住真实画面。",
+        "targetIds": ["node-1a919ca6e9106e26"],
+        "excludeIds": ["node-564ef5c6d300ae25"],
+        "startSeconds": null,
+        "endSeconds": null
+      },
+      {
+        "kind": "preserve",
+        "quote": "后五幕和全片原声、画面源区间、镜头顺序、35秒总时长保持不变",
+        "targetIds": ["scene-02", "scene-03", "scene-04", "scene-05", "scene-06"],
+        "excludeIds": ["scene-01"],
+        "startSeconds": null,
+        "endSeconds": null
+      },
+      {
+        "kind": "preserve",
+        "quote": "全片原声",
+        "targetIds": ["audio-1-1", "audio-2-1", "audio-3-1", "audio-4-1", "audio-5-1", "audio-6-1"],
+        "excludeIds": [],
+        "startSeconds": null,
+        "endSeconds": null
+      },
+      {
+        "kind": "preserve",
+        "quote": "画面源区间、镜头顺序、35秒总时长保持不变",
+        "targetIds": ["scene-01", "scene-02", "scene-03", "scene-04", "scene-05", "scene-06"],
+        "excludeIds": [],
+        "startSeconds": null,
+        "endSeconds": null
+      },
+      {
+        "kind": "prohibit",
+        "quote": "不新增配音或音乐。",
+        "targetIds": [],
+        "excludeIds": [],
+        "startSeconds": null,
+        "endSeconds": null
+      },
+      {
+        "kind": "goal",
+        "quote": "保存为独立分支候选。",
+        "targetIds": [],
+        "excludeIds": [],
+        "startSeconds": null,
+        "endSeconds": null
+      }
+    ],
+    "overrides": [
+      {
+        "requirementId": "requirement-2b3f8b7a50e7324e",
+        "replacementQuote": "仅将第一幕主标题由“一杯咖啡的时间”改为“把时间，留给一杯咖啡”"
+      }
+    ],
+    "assumptions": [
+      "标题沿用64px字号与现有1100px文字栏；新文案可单行容纳，默认不调整布局。",
+      "短促淡入、轻微上移采用原入场起点0.2秒、持续0.3秒、从下方10px回到原位置；装饰短线保持原动画。"
+    ],
+    "gaps": [
+      "独立分支创建由版本服务承接：以rev-6cb1827d9c4e5021为基准，先建立A版分支再应用操作，不覆盖母版；当前操作枚举没有分支保存操作，新版本ID由服务端生成。",
+      "本轮仅提供计划，尚未编译、预览或保存。需重新编译第一幕源码及标题依赖，检查0—5.5秒标题入场与遮挡、5.5秒邻接切点，并核对后五幕、全部音轨、源区间、镜头顺序及1050帧总时长保持一致。"
+    ]
+  },
+  "summary": "拟在独立A版分支中仅替换第一幕主标题，并改为0.3秒淡入、上移10px。保留现有配色、布局、短线、实拍及全部声音；母版与后五幕不变。编译和预览检查成功后保存为待审候选。",
+  "operations": [
+    {
+      "type": "update_text",
+      "sceneId": "scene-01",
+      "nodeId": "node-1a919ca6e9106e26",
+      "assetId": null,
+      "text": "把时间，留给一杯咖啡",
+      "effect": null,
+      "durationFrames": null,
+      "sceneIds": null,
+      "fromSceneId": null,
+      "toSceneId": null,
+      "width": null,
+      "height": null,
+      "paramsJson": null,
+      "source": null
+    },
+    {
+      "type": "update_custom_source",
+      "sceneId": "scene-01",
+      "nodeId": null,
+      "assetId": null,
+      "text": null,
+      "effect": null,
+      "durationFrames": null,
+      "sceneIds": null,
+      "fromSceneId": null,
+      "toSceneId": null,
+      "width": null,
+      "height": null,
+      "paramsJson": null,
+      "source": {
+        "html": "<div id=\"scene01-layout\"><div id=\"scene01-footage\"></div><div id=\"scene01-title-panel\"><div id=\"scene01-rule\"></div><h1 id=\"scene01-title\"></h1></div></div>",
+        "css": "#scene01-layout{position:absolute;inset:0;width:1920px;height:1080px;background:transparent;}#scene01-footage{position:absolute;left:192px;top:40px;width:1536px;height:864px;object-fit:contain;overflow:hidden;}#scene01-title-panel{position:absolute;left:192px;top:904px;width:1536px;height:112px;background:#F5F0E8;box-sizing:border-box;}#scene01-rule{position:absolute;left:24px;top:12px;width:72px;height:1px;background:#805A40;}#scene01-title{position:absolute;left:24px;top:24px;width:1100px;height:80px;margin:0;font-family:Microsoft YaHei;font-size:64px;font-weight:400;line-height:80px;letter-spacing:0;color:#493126;text-align:left;white-space:nowrap;}\n#scene01-footage{background:transparent;opacity:1;z-index:1}",
+        "timeline": "tl.set(\"#scene01-title\",{opacity:0,y:10},0);\ntl.set(\"#scene01-rule\",{opacity:0,clipPath:\"inset(0% 100% 0% 0%)\"},0);\ntl.to(\"#scene01-title\",{opacity:1,y:0,duration:params.sceneSeconds*3/55,ease:\"power2.out\"},params.sceneSeconds*2/55);\ntl.set(\"#scene01-rule\",{opacity:1},0.2);\ntl.to(\"#scene01-rule\",{clipPath:\"inset(0% 0% 0% 0%)\",duration:0.4,ease:\"power1.out\"},0.2);",
+        "parameters": [],
+        "objects": [
+          {
+            "elementId": "scene01-footage",
+            "nodeId": "node-564ef5c6d300ae25"
+          },
+          {
+            "elementId": "scene01-title",
+            "nodeId": "node-1a919ca6e9106e26"
+          },
+          {
+            "elementId": "scene01-rule",
+            "nodeId": "node-6e0d0a610e21df5d"
+          }
+        ],
+        "motionTargets": ["scene01-title", "scene01-rule"],
+        "textStyles": [],
+        "values": []
+      }
+    }
+  ],
+  "alternatives": []
+}

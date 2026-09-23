@@ -1,0 +1,47 @@
+
+> test:commerce:fixtures
+> npm run commerce:fixtures && node scripts/test-commerce-fixtures.mjs
+
+
+> commerce:fixtures
+> node scripts/prepare-commerce-fixtures.mjs
+
+Prepared 3 synthetic commerce fixtures in /Users/a1234/Desktop/hyperframe-main/video-agent/data/commerce-samples
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: 01-premium-image.json: effect sequence
++ actual - expected
+
+  [
+    'product-reveal',
++   'split-detail',
+-   'image-pan-zoom',
+    'detail-inset',
+    'feature-callout',
+    'end-card'
+  ]
+
+    at file:///Users/a1234/Desktop/hyperframe-main/video-agent/scripts/test-commerce-fixtures.mjs:47:10 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: [
+    'product-reveal',
+    'split-detail',
+    'detail-inset',
+    'feature-callout',
+    'end-card'
+  ],
+  expected: [
+    'product-reveal',
+    'image-pan-zoom',
+    'detail-inset',
+    'feature-callout',
+    'end-card'
+  ],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.19.0

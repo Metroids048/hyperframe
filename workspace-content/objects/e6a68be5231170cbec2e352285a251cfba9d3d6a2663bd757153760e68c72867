@@ -1,0 +1,123 @@
+{
+  "brief": {
+    "capabilities": [
+      "video-source-selection",
+      "native-composition",
+      "managed-original",
+      "native-editing",
+      "local-preview-review"
+    ],
+    "constraints": [
+      "Use only existing uploaded material; do not create or generate new product footage.",
+      "Keep original video dimensions and aspect ratio; no crop or reframe.",
+      "Keep full original duration; no trim or extension.",
+      "Keep original audio unchanged.",
+      "Title overlay must appear only from 0.0s through 2.0s."
+    ],
+    "gaps": [],
+    "keepOriginalAudio": true,
+    "needsCaptions": false,
+    "needsNarration": false,
+    "needsTranscription": false,
+    "request": {
+      "cta": "了解更多",
+      "facts": [],
+      "name": "商品展示",
+      "output": {
+        "durationSeconds": 120.022,
+        "height": 720,
+        "width": 1280
+      },
+      "price": ""
+    },
+    "scenarioId": "general",
+    "workflow": {
+      "assumptions": [
+        "Use the uploaded source video at its native 1280x720 dimensions and approximately 120.022s duration based on provided metadata.",
+        "Because the request says an existing uploaded video file and no specific asset was named, treat the uploaded video material in the current asset scope as the source set and preserve native picture/audio timing."
+      ],
+      "gaps": [],
+      "objective": "Create a complete local timeline edit from the existing uploaded video material with a short editable title overlay, while preserving the source duration, framing, dimensions, and audio.",
+      "overrides": [],
+      "requirements": [
+        {
+          "endSeconds": null,
+          "excludeIds": [],
+          "kind": "goal",
+          "quote": "Create the first complete edited version from the uploaded existing video file",
+          "startSeconds": null,
+          "targetIds": []
+        },
+        {
+          "endSeconds": null,
+          "excludeIds": [],
+          "kind": "prohibit",
+          "quote": "This is not a new product video generation task",
+          "startSeconds": null,
+          "targetIds": []
+        },
+        {
+          "endSeconds": null,
+          "excludeIds": [],
+          "kind": "resource",
+          "quote": "using the existing uploaded material",
+          "startSeconds": null,
+          "targetIds": [
+            "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9",
+            "asset-1dfd42f4-ad14-4686-be73-528d8fe1ca11",
+            "asset-f19a9d72-efce-4f09-b52b-13324ea7e2cc"
+          ]
+        },
+        {
+          "endSeconds": 2,
+          "excludeIds": [],
+          "kind": "change",
+          "quote": "Add text title “新品体验” as an overlay for seconds 0.0 through 2.0 only.",
+          "startSeconds": 0,
+          "targetIds": []
+        },
+        {
+          "endSeconds": null,
+          "excludeIds": [],
+          "kind": "preserve",
+          "quote": "Keep original video dimensions/aspect ratio without crop or reframe",
+          "startSeconds": null,
+          "targetIds": [
+            "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9",
+            "asset-1dfd42f4-ad14-4686-be73-528d8fe1ca11",
+            "asset-f19a9d72-efce-4f09-b52b-13324ea7e2cc"
+          ]
+        },
+        {
+          "endSeconds": null,
+          "excludeIds": [],
+          "kind": "preserve",
+          "quote": "keep full original duration without trimming or extending",
+          "startSeconds": null,
+          "targetIds": [
+            "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9",
+            "asset-1dfd42f4-ad14-4686-be73-528d8fe1ca11",
+            "asset-f19a9d72-efce-4f09-b52b-13324ea7e2cc"
+          ]
+        },
+        {
+          "endSeconds": null,
+          "excludeIds": [],
+          "kind": "preserve",
+          "quote": "keep original audio unchanged",
+          "startSeconds": null,
+          "targetIds": [
+            "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9",
+            "asset-1dfd42f4-ad14-4686-be73-528d8fe1ca11",
+            "asset-f19a9d72-efce-4f09-b52b-13324ea7e2cc"
+          ]
+        }
+      ],
+      "taskMode": "create"
+    }
+  },
+  "error": {
+    "code": "UNKNOWN_FACT",
+    "message": "结尾文案没有用户输入依据"
+  }
+}

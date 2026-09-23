@@ -1,0 +1,198 @@
+{
+  "selected": [
+    {
+      "id": "video-text-pivot",
+      "reason": "适合将实拍操作持续呈现，并在同一镜头中切换到瓶身整体或可见细节说明；可适配为无声横屏原生时间线。"
+    },
+    {
+      "id": "comparison-split",
+      "reason": "适合并置同款图片的整体瓶身与标签/瓶盖细节，保持商品主体完整可见。"
+    },
+    {
+      "id": "lt-mask-reveal",
+      "reason": "可在持续实拍上叠加可编辑的中性操作说明文字，不添加品牌、价格、成分或功效事实。"
+    },
+    {
+      "id": "titlecard-reveal",
+      "reason": "可用于简短开场或收尾信息卡，仅呈现经观察确认的“OIL”及中性使用提示。"
+    }
+  ],
+  "originalNeeds": [
+    "将竖幅商品图片适配到横屏画布，并通过安全裁切、留白或并置布局保持双手与瓶身完整可见。",
+    "以原生编辑对象组织图片、实拍、无声片段和中性说明文字，按约60秒节奏交替展示整体、细节、滴管取用与面颊涂抹。"
+  ],
+  "gaps": [
+    "请求文字要求横屏，但输出元数据标注为1080x1920竖屏，统一画布方向存在冲突；本规划按用户明确的横屏要求组织。",
+    "无法核实品牌、价格、成分、容量或功效，文案只能使用可见“OIL”与中性动作描述。",
+    "所有视频无音轨，成片需保持静音；滴管取液、滴落及涂抹的精确起止边界仍不完全确定，只能采用保守素材区间。"
+  ],
+  "blockingGaps": [],
+  "candidates": [
+    {
+      "id": "video-text-pivot",
+      "tags": [
+        "video",
+        "action",
+        "操作",
+        "实拍",
+        "讲解"
+      ],
+      "inputs": [
+        "video"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/video-text-pivot.md",
+        "skills/hyperframes-animation/rules/gsap-effects.md"
+      ],
+      "compatible": true,
+      "eligible": true,
+      "score": 4,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "ea7e1dbd0bd2afb77370b946461c4ea16afdb387"
+    },
+    {
+      "id": "lt-mask-reveal",
+      "tags": [
+        "video",
+        "action",
+        "text",
+        "操作",
+        "实拍",
+        "口播",
+        "标签",
+        "文字"
+      ],
+      "inputs": [
+        "video"
+      ],
+      "description": "Transparent editable lower-third over continuing footage; no stat, price, or full-screen text takeover is required. Adapt the wipe and accent sweep to approved native text, local fonts and the managed timeline.",
+      "files": [
+        "registry/blocks/lt-mask-reveal/registry-item.json",
+        "registry/blocks/lt-mask-reveal/lt-mask-reveal.html"
+      ],
+      "compatible": true,
+      "eligible": true,
+      "score": 3,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "ea7e1dbd0bd2afb77370b946461c4ea16afdb387"
+    },
+    {
+      "id": "comparison-split",
+      "tags": [
+        "compare",
+        "detail",
+        "image",
+        "比较",
+        "细节",
+        "双栏"
+      ],
+      "inputs": [
+        "visual-pair"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/comparison-split.md",
+        "skills/hyperframes-animation/rules/split-tilt-cards.md",
+        "registry/components/comparison-split/registry-item.json",
+        "registry/components/comparison-split/comparison-split.html"
+      ],
+      "compatible": true,
+      "eligible": true,
+      "score": 2,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "ea7e1dbd0bd2afb77370b946461c4ea16afdb387"
+    },
+    {
+      "id": "grid-card-assemble",
+      "tags": [
+        "image",
+        "details",
+        "steps",
+        "参数",
+        "配件",
+        "步骤"
+      ],
+      "inputs": [],
+      "files": [
+        "skills/hyperframes-animation/blueprints/grid-card-assemble.md",
+        "skills/hyperframes-animation/rules/gsap-effects.md"
+      ],
+      "compatible": true,
+      "eligible": true,
+      "score": 1,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "ea7e1dbd0bd2afb77370b946461c4ea16afdb387"
+    },
+    {
+      "id": "caption-editorial-emphasis",
+      "tags": [
+        "caption",
+        "speech",
+        "字幕",
+        "口播",
+        "强调"
+      ],
+      "inputs": [
+        "text"
+      ],
+      "description": "Editable editorial text emphasis; align spoken captions to measured transcript timestamps, never invented timing.",
+      "files": [
+        "registry/components/caption-editorial-emphasis/registry-item.json",
+        "registry/components/caption-editorial-emphasis/caption-editorial-emphasis.html"
+      ],
+      "compatible": true,
+      "eligible": true,
+      "score": 0,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "ea7e1dbd0bd2afb77370b946461c4ea16afdb387"
+    },
+    {
+      "id": "titlecard-reveal",
+      "tags": [
+        "title",
+        "brand",
+        "text",
+        "收尾",
+        "标题"
+      ],
+      "inputs": [],
+      "files": [
+        "skills/hyperframes-animation/blueprints/titlecard-reveal.md",
+        "skills/hyperframes-animation/rules/discrete-text-sequence.md"
+      ],
+      "compatible": true,
+      "eligible": true,
+      "score": 0,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "ea7e1dbd0bd2afb77370b946461c4ea16afdb387"
+    },
+    {
+      "id": "kinetic-type-beats",
+      "tags": [
+        "text",
+        "caption",
+        "文字",
+        "字幕",
+        "强调"
+      ],
+      "inputs": [
+        "text"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/kinetic-type-beats.md",
+        "skills/hyperframes-animation/rules/discrete-text-sequence.md"
+      ],
+      "compatible": true,
+      "eligible": true,
+      "score": 0,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "ea7e1dbd0bd2afb77370b946461c4ea16afdb387"
+    }
+  ]
+}

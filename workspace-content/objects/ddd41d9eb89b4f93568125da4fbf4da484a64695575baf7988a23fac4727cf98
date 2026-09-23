@@ -1,0 +1,2935 @@
+{
+  "schema_version": 1,
+  "package_id": "hyperframe_full_closeout_20260916",
+  "package_sha256": "17be1a9f5164e7d867cc27074f2f2682e4ac96fcfa2446dd7c6e269e47bbbb1f",
+  "source_revision": "9283f550f6e639ecf20b7ca9635f39c887219ce9",
+  "active_task": "M02-F02",
+  "updated_at": "2026-09-18T01:36:44.232707+00:00",
+  "tasks": {
+    "P00-01": {
+      "development_status": "verified",
+      "integration_status": "verified",
+      "attempts": 1,
+      "validated_source": {
+        "revision": "9283f550f6e639ecf20b7ca9635f39c887219ce9",
+        "files": [
+          {
+            "path": "scripts/workspace-context.mjs",
+            "sha256": "d2cc1db395640830686b6d69fffa47cb8f2137ac70015e4256662ecb97a21355"
+          }
+        ]
+      },
+      "validated_runtime": {
+        "status": "passed",
+        "command": "node scripts/test-workspace-context.mjs; curl -sS http://127.0.0.1:3024/api/health",
+        "result": "current workspace, origin/main, Node/HyperFrames pins, and the configured commerce service health endpoint verified; no active job restart performed",
+        "workspace_id": "d0fb89afb7b883c48c5e2ae75aefb24f6987c3b487135e6d1b4a7cd4a0d085cf"
+      },
+      "base_revision": "5876d1982e70e7bd386a9ae5cd047deb892a282f",
+      "candidate_revision": "rev-e663828de3de26c6",
+      "evidence_refs": [
+        {
+          "path": "outputs/full-closeout/P00-01/baseline-current.json",
+          "sha256": "e57b6f1c1ad4b562dcd89638b4ba618e5b4c093c852a12d53da9714ea7a010cb"
+        },
+        {
+          "path": "outputs/full-closeout/P00-01/workspace-context-test.log",
+          "sha256": "68408ebfd0d6496ed7a827a3fbb84cba339cfb2b18d200cfa5c06fd4f58a2902"
+        },
+        {
+          "path": "outputs/full-closeout/P00-01/revalidation-20260918.json",
+          "sha256": "0f218ba1e836304deb2d593747a349f60a490c951edfcdd282b7dbe6f4a671dc"
+        }
+      ],
+      "commands": [
+        {
+          "command": "node scripts/test-workspace-context.mjs",
+          "cwd": "/Users/a1234/Desktop/hyperframe-main/video-agent",
+          "exit_code": 0,
+          "report_path": "outputs/full-closeout/P00-01/revalidation-20260918.json"
+        }
+      ],
+      "acceptance": {
+        "positive": [
+          {
+            "expected": "preserve and report the current local execution source",
+            "actual": "workspace context test passed on current HEAD",
+            "status": "passed",
+            "evidence_path": "outputs/full-closeout/P00-01/revalidation-20260918.json"
+          }
+        ],
+        "negative": [
+          {
+            "expected": "reject incomplete or misleading repository state",
+            "actual": "negative workspace-context fixtures passed",
+            "status": "passed",
+            "evidence_path": "outputs/full-closeout/P00-01/revalidation-20260918.json"
+          }
+        ]
+      },
+      "known_issues": [
+        "S02 quality remains human-pending and is not counted as formal acceptance"
+      ],
+      "blocker": null,
+      "next_action": "Proceed to the earliest dependency-ready task after reconciling stale P00 evidence",
+      "human_acceptance": "not_performed",
+      "updated_at": "2026-09-18T00:00:00+08:00"
+    },
+    "P00-02": {
+      "development_status": "verified",
+      "integration_status": "verified",
+      "attempts": 1,
+      "validated_source": {
+        "revision": "9283f550f6e639ecf20b7ca9635f39c887219ce9",
+        "files": [
+          {
+            "path": "scripts/workspace-security.mjs",
+            "sha256": "649949dc1aaf4e74da8b4895ccd9e80bc3b4689f6f372c0120a549bf1013c699"
+          },
+          {
+            "path": "scripts/push-workspace.mjs",
+            "sha256": "d1011d472b95c383bb6d741d410e96abb77a38428f8ac0f4975db7b59999ec20"
+          },
+          {
+            "path": "scripts/bundle-workspace.mjs",
+            "sha256": "96b7505eaebbdf52a224a511feead829584c7443c30bcf0562c40e2438ccc534"
+          },
+          {
+            "path": "start.py",
+            "sha256": "76b83df8ee5e17df33bd3c325e35898fbc2bf10571eca552ee7ffadbfe3610d2"
+          }
+        ]
+      },
+      "validated_runtime": {
+        "status": "passed",
+        "command": "node scripts/test-workspace-security.mjs && python3 scripts/test-launch-runtime.py && DELIVERY_TEST_URL=http://127.0.0.1:3024 node scripts/test-shipped-workspace.mjs",
+        "result": "private paths rejected, standard local start stayed local, fresh delivered workspace passed",
+        "workspace_id": "d0fb89afb7b883c48c5e2ae75aefb24f6987c3b487135e6d1b4a7cd4a0d085cf"
+      },
+      "base_revision": "1bd0710314ba70e3e647477928b08d5fd0afa765",
+      "candidate_revision": null,
+      "evidence_refs": [
+        {
+          "path": "outputs/full-closeout/P00-02/receipt.json",
+          "sha256": "62604ac8b388ec247a76d4cae300d772d98a8e885fc66fef159d5b326ed49c10"
+        },
+        {
+          "path": "outputs/full-closeout/P00-02/revalidation-20260918.json",
+          "sha256": "5e16ecc51299c02a86faf64b712fe0092d7bc15b02fe3b05260f6bcc34468788"
+        }
+      ],
+      "commands": [
+        {
+          "command": "node scripts/test-workspace-security.mjs && python3 scripts/test-launch-runtime.py",
+          "cwd": "/Users/a1234/Desktop/hyperframe-main/video-agent",
+          "exit_code": 0,
+          "report_path": "outputs/full-closeout/P00-02/revalidation-20260918.json"
+        }
+      ],
+      "acceptance": {
+        "positive": [
+          {
+            "expected": "safe local launch and private configuration isolation",
+            "actual": "six canaries and four fresh-process launch cases passed",
+            "status": "passed",
+            "evidence_path": "outputs/full-closeout/P00-02/revalidation-20260918.json"
+          }
+        ],
+        "negative": [
+          {
+            "expected": "reject private paths, secrets, and overwrite attempts",
+            "actual": "security negative canaries passed without exposing values",
+            "status": "passed",
+            "evidence_path": "outputs/full-closeout/P00-02/revalidation-20260918.json"
+          }
+        ]
+      },
+      "known_issues": [
+        "Historically exposed MiniMax credential still requires provider-side rotation; history was not rewritten"
+      ],
+      "blocker": null,
+      "next_action": "Rotate the historically exposed provider credential without blocking independent cards",
+      "human_acceptance": "not_performed",
+      "updated_at": "2026-09-18T00:00:00+08:00"
+    },
+    "P00-03": {
+      "development_status": "verified",
+      "integration_status": "verified",
+      "attempts": 1,
+      "validated_source": {
+        "revision": "9283f550f6e639ecf20b7ca9635f39c887219ce9",
+        "files": [
+          {
+            "path": "lib/creative/production.mjs",
+            "sha256": "8c7025f724f4ea3be84c6a83444bf0b1486885beaf13adf930c9574f27e59836"
+          },
+          {
+            "path": "lib/edit/codex-provider.mjs",
+            "sha256": "faeb4263d2dde4385da220f8dcbdf9c6649bbb89491cd2636122e061a77f93c7"
+          },
+          {
+            "path": "scripts/test-commerce-next.mjs",
+            "sha256": "e130186b05dd7c9e3d32b5f83cdcf2a0ae10961e360bcfbfbf94c0d73aad7e34"
+          },
+          {
+            "path": "scripts/test-agent-kernel.mjs",
+            "sha256": "8a7cce145debfd01d49c3f25a0bf9d2f240d316b69d1739bb0ded467e8eaea39"
+          }
+        ]
+      },
+      "validated_runtime": {
+        "status": "passed",
+        "command": "isolated node --test scripts/test-commerce-next.mjs scripts/test-commerce-quality-next.mjs plus affected regressions and live service reload",
+        "result": "44/44 suite; voice and budget negatives passed; service PID 42796 and browser entry verified",
+        "workspace_id": "d0fb89afb7b883c48c5e2ae75aefb24f6987c3b487135e6d1b4a7cd4a0d085cf",
+        "revalidation": "2026-09-18: corrected video/audio tail coverage and legacy per-call observation validation classification. 41 targeted checks, 9 tail/recovery checks and 36 core suites passed. Main PID23760 has coverage repair; final recovery compatibility is pending coordinated reload. Prior routing/production evidence retained; no candidate completion claim."
+      },
+      "base_revision": "1bd0710314ba70e3e647477928b08d5fd0afa765",
+      "candidate_revision": null,
+      "evidence_refs": [
+        {
+          "path": "outputs/full-closeout/P00-03/receipt.json",
+          "sha256": "c3de6be27c3be280a2739445e5867c809fb9737469e93fc5947c5b5d3525f88e"
+        },
+        {
+          "path": "outputs/full-closeout/P00-03/revalidation-20260918.json",
+          "sha256": "f4f741dd00a2fe558a6cf084f00134417a8ac6bc8c525a293f1aaec57d41f978"
+        },
+        {
+          "path": "outputs/full-closeout/M01-F03/audio-preserve-tests.log",
+          "sha256": "bed47046d3a8a6568688e444b10f70ae9b7de3d420709dce3b0c36a4b7101be5"
+        },
+        {
+          "path": "outputs/upgrade/verification/core-2026-09-18T00-41-12.226Z/report.json",
+          "sha256": "29c6cbec4181fa388869d57456eb6fd277a0d6620414a1a2efc922c8e8d24175"
+        },
+        {
+          "path": "outputs/full-closeout/M01-F03/duration-tests-r2.log",
+          "sha256": "1e680693aea79d863b50bcf8c10f8c5f682adde38e89297316f22e02bf258534"
+        },
+        {
+          "path": "outputs/full-closeout/M01-F03/duration-boundary-tests.log",
+          "sha256": "7020b87b37f5b33ae9f40152e6d37d1e7a0c6e9949c76df6052cfc1fe8f2d080"
+        },
+        {
+          "path": "outputs/upgrade/verification/core-2026-09-18T01-03-40.037Z/report.json",
+          "sha256": "f21c6b5ca26798c1158c20adcfbe6260877f72c568171836eb7520e5715ab70d"
+        },
+        {
+          "path": "outputs/full-closeout/M01-F03/source-coverage-tail-tests.log",
+          "sha256": "d571bf84cc0cd854cdf090ac014a2e51d28ccda10c0a998ca4f4a74c930ca386"
+        },
+        {
+          "path": "outputs/full-closeout/M01-F03/source-tail-recovery-tests.log",
+          "sha256": "80feb516e76e8a596e91ecbb0ab9e04f476acae52342ac4097e61175c30a0e2d"
+        },
+        {
+          "path": "outputs/upgrade/verification/core-2026-09-18T01-27-23.110Z/report.json",
+          "sha256": "15e71fd879713bb048ec1ec5af691396f002683f6ac41b84bd52813773ea09b7"
+        }
+      ],
+      "commands": [
+        {
+          "command": "node --test scripts/test-commerce-next.mjs scripts/test-commerce-quality-next.mjs scripts/test-agent-kernel.mjs",
+          "cwd": "/Users/a1234/Desktop/hyperframe-main/video-agent",
+          "exit_code": 0,
+          "report_path": "outputs/full-closeout/P00-03/revalidation-20260918.json"
+        },
+        {
+          "command": "node --test scripts/test-workflow-design.mjs scripts/test-execution-v2.mjs scripts/test-commerce-focus.mjs",
+          "cwd": "/Users/a1234/Desktop/hyperframe-main/video-agent",
+          "exit_code": 0,
+          "report_path": "outputs/full-closeout/M01-F03/audio-preserve-tests.log"
+        }
+      ],
+      "acceptance": {
+        "positive": [
+          {
+            "expected": "narration revision and recovery preserve measured audio without repeated work",
+            "actual": "production and agent-kernel recovery tests passed",
+            "status": "passed",
+            "evidence_path": "outputs/full-closeout/P00-03/revalidation-20260918.json"
+          }
+        ],
+        "negative": [
+          {
+            "expected": "reject unknown voices, exhausted budgets, and invalid media safely",
+            "actual": "negative recovery and budget cases passed",
+            "status": "passed",
+            "evidence_path": "outputs/full-closeout/P00-03/revalidation-20260918.json"
+          }
+        ]
+      },
+      "known_issues": [],
+      "blocker": null,
+      "next_action": "Bind the 116-card queue to the existing status endpoint",
+      "human_acceptance": "not_performed",
+      "updated_at": "2026-09-18T01:28:59.081445+00:00",
+      "revalidation": {
+        "time": "2026-09-18T00:47:05.080408+00:00",
+        "reason": "Production brief now uses validated workflow sound preservation; compound-source audio positive/negative checks pass (64 tests), full core passes, same real production run passed brief after the fix"
+      }
+    },
+    "P00-04": {
+      "development_status": "verified",
+      "integration_status": "verified",
+      "attempts": 1,
+      "validated_source": {
+        "revision": "9283f550f6e639ecf20b7ca9635f39c887219ce9",
+        "files": [
+          {
+            "path": "lib/creative/full-closeout-state.mjs",
+            "sha256": "bb66079a2c1021e2127476c489e8a5c4c1c2a54e1097492d399f7ec9e8d7c0b7"
+          },
+          {
+            "path": "lib/creative/service.mjs",
+            "sha256": "e3530d7f9e991b8a657d86c1a5ef0bcb469ad522890c08d0740c3dc75c301d8e"
+          },
+          {
+            "path": "lib/creative/execution-status.mjs",
+            "sha256": "8f001f5f73203fea9e67a92f9375ce79b2453e63ca8ecbebe3341cacd3ad0001"
+          },
+          {
+            "path": "scripts/test-full-closeout-state.mjs",
+            "sha256": "5251c62009452018836c62f2456d658879cad5c40a1d247c87fa7687914cc142"
+          }
+        ]
+      },
+      "validated_runtime": {
+        "status": "passed",
+        "command": "node --test scripts/test-full-closeout-state.mjs; GET /api/commerce-execution-status",
+        "result": "7 tests passed; endpoint projected 116 cards and did not change the 71-project count"
+      },
+      "base_revision": "1bd0710314ba70e3e647477928b08d5fd0afa765",
+      "candidate_revision": null,
+      "evidence_refs": [
+        {
+          "path": "outputs/full-closeout/P00-04/revalidation-20260918.json",
+          "sha256": "e674858d9c3bf16619aa376f9bc00ffdda341b1fc43762a9067154d0dccdff6f"
+        }
+      ],
+      "commands": [
+        {
+          "command": "node --test scripts/test-full-closeout-state.mjs and GET /api/commerce-execution-status",
+          "cwd": "/Users/a1234/Desktop/hyperframe-main/video-agent",
+          "exit_code": 0,
+          "report_path": "outputs/full-closeout/P00-04/revalidation-20260918.json"
+        }
+      ],
+      "acceptance": {
+        "positive": [
+          {
+            "expected": "project the complete 116-card queue through the existing status endpoint",
+            "actual": "endpoint returned all cards and legacy mappings",
+            "status": "passed",
+            "evidence_path": "outputs/full-closeout/P00-04/revalidation-20260918.json"
+          }
+        ],
+        "negative": [
+          {
+            "expected": "reject status-only passes, stale evidence, missing tasks, cycles, and skipped review",
+            "actual": "all negative state tests failed closed",
+            "status": "passed",
+            "evidence_path": "outputs/full-closeout/P00-04/revalidation-20260918.json"
+          }
+        ]
+      },
+      "known_issues": [],
+      "blocker": null,
+      "next_action": "Proceed to P00-05 restore and clean-directory dependency verification",
+      "human_acceptance": "not_performed",
+      "updated_at": "2026-09-18T00:00:00+08:00"
+    },
+    "P00-05": {
+      "development_status": "verified",
+      "integration_status": "verified",
+      "attempts": 1,
+      "validated_source": {
+        "revision": "9283f550f6e639ecf20b7ca9635f39c887219ce9",
+        "files": [
+          {
+            "path": "scripts/workspace-content.py",
+            "sha256": "606fc01ebf8c1c1082e74215beadd1e902426f5d0ad6ad163d6e5558a98b9917"
+          },
+          {
+            "path": "scripts/test-workspace-content.py",
+            "sha256": "d8857b083e3c19f5ecdc63f0f32aba228fd5162994292a3aeb6848b1130cf267"
+          },
+          {
+            "path": "scripts/test-shipped-workspace.mjs",
+            "sha256": "2726cf489e32e90188f97f4064ca53571631030f711c0ff56d633c4e7a64a820"
+          }
+        ]
+      },
+      "validated_runtime": {
+        "status": "passed",
+        "command": "python3 scripts/test-workspace-content.py; python3 scripts/workspace-content.py --all; DELIVERY_TEST_URL=http://127.0.0.1:3024 node scripts/test-shipped-workspace.mjs",
+        "result": "nine isolated restore cases, zero missing current files, and fresh delivered workspace media/package checks passed"
+      },
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [
+        {
+          "path": "outputs/full-closeout/P00-05/restore-after.json",
+          "sha256": "ca7baee63417d373943503bfabcc9e09912e644a75071316f0bb2fac57170466"
+        },
+        {
+          "path": "outputs/full-closeout/P00-05/revalidation-20260918.json",
+          "sha256": "e7e51fd6fa5f191ee0c8216b2bd8866e6fe88fbf8e83ea3830a3954ec78f14d7"
+        }
+      ],
+      "commands": [
+        {
+          "command": "python3 scripts/test-workspace-content.py; python3 scripts/workspace-content.py --all; DELIVERY_TEST_URL=http://127.0.0.1:3024 node scripts/test-shipped-workspace.mjs",
+          "cwd": "/Users/a1234/Desktop/hyperframe-main/video-agent",
+          "exit_code": 0,
+          "report_path": "outputs/full-closeout/P00-05/revalidation-20260918.json"
+        }
+      ],
+      "acceptance": {
+        "positive": [
+          {
+            "expected": "restore complete content atomically and run from a delivered workspace",
+            "actual": "restore and delivered workspace checks passed",
+            "status": "passed",
+            "evidence_path": "outputs/full-closeout/P00-05/revalidation-20260918.json"
+          }
+        ],
+        "negative": [
+          {
+            "expected": "reject missing/corrupt chunks and containment escapes without overwriting user files",
+            "actual": "all negative isolated restore cases passed",
+            "status": "passed",
+            "evidence_path": "outputs/full-closeout/P00-05/revalidation-20260918.json"
+          }
+        ]
+      },
+      "known_issues": [],
+      "blocker": null,
+      "next_action": "Proceed to the next dependency-ready task",
+      "human_acceptance": "not_performed",
+      "updated_at": "2026-09-18T00:00:00+08:00"
+    },
+    "M01-F01": {
+      "development_status": "verified",
+      "integration_status": "verified",
+      "attempts": 1,
+      "validated_source": {
+        "revision": "9283f550f6e639ecf20b7ca9635f39c887219ce9",
+        "files": [
+          {
+            "path": "lib/creative/message-routing.mjs",
+            "sha256": "6adf8078cffa887ff8e935174ce2e4ff496e7776bfe54787704cfb52cbf4e40e"
+          },
+          {
+            "path": "lib/creative/workflow-intent.mjs",
+            "sha256": "a1239e6f92cef0bc193575a7a5f35f4fa5080e4f10a6f7b22f1037a850b08d89"
+          },
+          {
+            "path": "lib/creative/workflow-design.mjs",
+            "sha256": "8e3be4e5910c5e9f89f8cdfc02a535539fab3c9945eb50e01ba5f30c532d3e52"
+          },
+          {
+            "path": "lib/creative/service.mjs",
+            "sha256": "e3530d7f9e991b8a657d86c1a5ef0bcb469ad522890c08d0740c3dc75c301d8e"
+          },
+          {
+            "path": "lib/orchestration/global-router.mjs",
+            "sha256": "06ec7a84d198caeb815180ead393855e3059ae9a9126b57535a0b1108bdd5302"
+          },
+          {
+            "path": "web/commerce.js",
+            "sha256": "ddc01d729c16f942603cb97f81add16229ae10ebbfcb27cb7e78a07e9301beb9"
+          },
+          {
+            "path": "web/workflow-selection.mjs",
+            "sha256": "68370a80624b600b28708a23472ae854d50fc0bf1bd6f2a2a79a9b5031cfd8f8"
+          },
+          {
+            "path": "config/routing/route-policy.v1.json",
+            "sha256": "6ad1e472cca56d44ea470d7af848ee8d203b375ea4b98ae11be9009383ecd885"
+          },
+          {
+            "path": "config/routing/fallback-policy.v1.json",
+            "sha256": "16369cdc0b9713817bb1258d8b687d71c9d7ccf27d6e009e43af297a2feee5fa"
+          },
+          {
+            "path": "scripts/verify-routing-webui-live.mjs",
+            "sha256": "8ea05dfbd4d75b2622dbd633b90c8539a6ee21a97f036e4ff0ef771ee39c9fb8"
+          },
+          {
+            "path": "scripts/verify-message-routing-live.mjs",
+            "sha256": "f30a65778559f60ec79f5c827e65df591892ae618a95d3f0ff400c89046232b9"
+          },
+          {
+            "path": "scripts/test-message-routing.mjs",
+            "sha256": "05575c0e6f2d600e8801a2ce1ffdeb6bee1924425d45f19b623a8b7ce952aa79"
+          },
+          {
+            "path": "scripts/test-global-orchestration.mjs",
+            "sha256": "c769b0f4acc741f96c2e0bfc66e2bf8b0d3e34f5c3e2850606c24f6a1a12ca9c"
+          },
+          {
+            "path": "scripts/test-workflow-selection.mjs",
+            "sha256": "f6e62473f09205670e2ee016e4f0d5936853942fe90fb9f08141867f1534778a"
+          },
+          {
+            "path": "scripts/test-workflow-intent.mjs",
+            "sha256": "c2434ec5e9ea8f0fd7898fec4ed9ad1e380e2322a949939d4274a4e2269e80aa"
+          },
+          {
+            "path": "scripts/test-workflow-ui.mjs",
+            "sha256": "d4e66012fe81c99506bbffac2c2a0c313e17f83bf7031d662f5f6ae0ab3c08b2"
+          },
+          {
+            "path": "web-dist/commerce.js",
+            "sha256": "b22e1eef61a24c2d62ac95ca4a2e992d05528372ac0c247f4baf2584c1f6ef21"
+          }
+        ]
+      },
+      "validated_runtime": {
+        "status": "passed",
+        "command": "node scripts/verify-routing-webui-live.mjs",
+        "result": "Four real WebUI/HTTP persisted routing cases passed, no production jobs or revisions"
+      },
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [
+        {
+          "path": "outputs/full-closeout/M01-F01/semantic-live.json",
+          "sha256": "2fa0a3582a929d2d11e8779a7a0750d1876393da21ecf6b8be6c7fa7c92f8b47"
+        },
+        {
+          "path": "outputs/full-closeout/M01-F01/webui-live.log",
+          "sha256": "1709e70b668425f12345d8e02421817d3be7aef7868e3dc91af9cc95c4d399f6"
+        },
+        {
+          "path": "outputs/full-closeout/M01-F01/semantic-live.log",
+          "sha256": "14e06d0064332424cc01fc69bcfb04d825af7f6dc9674057d42fcc997821ef54"
+        },
+        {
+          "path": "outputs/full-closeout/M01-F01/routing-tests.log",
+          "sha256": "16a7c513c7e7e664f23b036685aa469f3d52e6731742a16c9a2b127b59252965"
+        },
+        {
+          "path": "outputs/full-closeout/M01-F01/webui-live.png",
+          "sha256": "9f7e6395bc5a51c1c263425444cb8565f623ac16cdaafbd57f228d1d1244de3f"
+        },
+        {
+          "path": "outputs/full-closeout/M01-F01/webui-live.json",
+          "sha256": "3179ab30a584adf2e0dc1a14fb1ff0ec7e463c17e68f0725327e110ebac1ba26"
+        },
+        {
+          "path": "outputs/full-closeout/M01-F01/browser-tests.log",
+          "sha256": "5cee309d0c9a2a7dc1ff46853c9d8f1b5f8d6a6e0949216d0c78aa668d0619f5"
+        },
+        {
+          "path": "outputs/full-closeout/M01-F01/receipt.json",
+          "sha256": "d45eec19b7217ee28a11039073eec98ce737e5c898249711d79baa2e5d050a50"
+        },
+        {
+          "path": "outputs/full-closeout/M01-F01/build.log",
+          "sha256": "0df86b68829b30c27a0d800608d03d62b807e2f35d3889d2a6d0c11743fb0266"
+        },
+        {
+          "path": "outputs/full-closeout/M12-F03/receipt.json",
+          "sha256": "2e83c0f7cef3fb27ce9f4d173e90c86bab4702b6769ef59ff9fa2f49f0cdc42f"
+        },
+        {
+          "path": "outputs/upgrade/verification/core-2026-09-18T00-23-25.201Z/report.json",
+          "sha256": "40818f6dec62704f419aa6811bea39169721be19869337e867f2888b0947cf2a"
+        },
+        {
+          "path": "outputs/upgrade/verification/browser-2026-09-18T00-17-29.867Z/report.json",
+          "sha256": "275f7f67f24eca7fcbf9cf5e2d83088db39d9369b5cf574302cfa090f5f4b316"
+        },
+        {
+          "path": "outputs/full-closeout/M01-F02/contract-tests.log",
+          "sha256": "9ec06ab17b5ee228b0653b3e7312a633191ab7de3a924f4ae868c8e52f0b3266"
+        },
+        {
+          "path": "outputs/full-closeout/M01-F03/recut-contract-tests.log",
+          "sha256": "90c29115d18c863e36e0911c0d500a64e19790779d1b3e6b4ebaa24129f73d53"
+        },
+        {
+          "path": "outputs/full-closeout/M01-F03/saved-plan-final.json",
+          "sha256": "211554caa04b5c791e712fdfc9dedc5f9546577abc401d39aa8694c4d30625d4"
+        }
+      ],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": "Continue M12-F03 exact artifact paths and eight entry consistency",
+      "human_acceptance": "not_performed",
+      "updated_at": "2026-09-18T00:27:51.161386+00:00",
+      "commands": [
+        {
+          "command": "node --test scripts/test-message-routing.mjs scripts/test-global-orchestration.mjs scripts/test-workflow-selection.mjs scripts/test-workflow-intent.mjs",
+          "cwd": "/Users/a1234/Desktop/hyperframe-main/video-agent",
+          "exit_code": 0,
+          "report_path": "outputs/full-closeout/M01-F01/routing-tests.log"
+        },
+        {
+          "command": "node scripts/build-web.mjs",
+          "cwd": "/Users/a1234/Desktop/hyperframe-main/video-agent",
+          "exit_code": 0,
+          "report_path": "outputs/full-closeout/M01-F01/build.log"
+        },
+        {
+          "command": "node scripts/test-workflow-ui.mjs",
+          "cwd": "/Users/a1234/Desktop/hyperframe-main/video-agent",
+          "exit_code": 0,
+          "report_path": "outputs/full-closeout/M01-F01/browser-tests.log"
+        },
+        {
+          "command": "node scripts/verify-message-routing-live.mjs",
+          "cwd": "/Users/a1234/Desktop/hyperframe-main/video-agent",
+          "exit_code": 0,
+          "report_path": "outputs/full-closeout/M01-F01/semantic-live.json"
+        },
+        {
+          "command": "node scripts/verify-routing-webui-live.mjs",
+          "cwd": "/Users/a1234/Desktop/hyperframe-main/video-agent",
+          "exit_code": 0,
+          "report_path": "outputs/full-closeout/M01-F01/webui-live.json"
+        },
+        {
+          "command": "node scripts/verify-editor.mjs browser",
+          "cwd": "/Users/a1234/Desktop/hyperframe-main/video-agent",
+          "exit_code": 0,
+          "report_path": "outputs/upgrade/verification/browser-2026-09-18T00-17-29.867Z/report.json"
+        },
+        {
+          "command": "node --test scripts/test-workflow-design.mjs scripts/test-workflow-intent.mjs",
+          "cwd": "/Users/a1234/Desktop/hyperframe-main/video-agent",
+          "exit_code": 0,
+          "report_path": "outputs/full-closeout/M01-F03/recut-contract-tests.log"
+        }
+      ],
+      "acceptance": {
+        "positive": [
+          {
+            "expected": "Create, edit, recut, variant and controls select the correct route",
+            "actual": "48 regression cases, four configured-model routing cases, browser entry parity and real backend controls passed",
+            "status": "passed",
+            "evidence_path": "outputs/full-closeout/M01-F01/receipt.json"
+          }
+        ],
+        "negative": [
+          {
+            "expected": "Quoted/negated controls and plan-only must not trigger unintended production",
+            "actual": "Quoted undo and negated cancel clarify; zero production jobs and zero revisions; isolated plan tests pass",
+            "status": "passed",
+            "evidence_path": "outputs/full-closeout/M01-F01/webui-live.json"
+          }
+        ]
+      },
+      "revalidation": {
+        "time": "2026-09-18T00:37:09.490269+00:00",
+        "reason": "Planning prompt clarifies raw-video recut does not require a native base; 37 contract tests passed and same real raw-video draft plan is now planned_pending_observation with no blockers"
+      }
+    },
+    "M01-F02": {
+      "development_status": "verified",
+      "integration_status": "verified",
+      "attempts": 3,
+      "validated_source": {
+        "revision": "9283f550f6e639ecf20b7ca9635f39c887219ce9",
+        "files": [
+          {
+            "path": "lib/creative/workflow-design.mjs",
+            "sha256": "8e3be4e5910c5e9f89f8cdfc02a535539fab3c9945eb50e01ba5f30c532d3e52"
+          },
+          {
+            "path": "lib/creative/workflow-intent.mjs",
+            "sha256": "a1239e6f92cef0bc193575a7a5f35f4fa5080e4f10a6f7b22f1037a850b08d89"
+          },
+          {
+            "path": "lib/creative/service.mjs",
+            "sha256": "e3530d7f9e991b8a657d86c1a5ef0bcb469ad522890c08d0740c3dc75c301d8e"
+          },
+          {
+            "path": "scripts/test-workflow-design.mjs",
+            "sha256": "2ea237d06f6b24a62436749c6473897082fc706f01dcefe80e926d9b70ad9d53"
+          },
+          {
+            "path": "scripts/test-workflow-intent.mjs",
+            "sha256": "c2434ec5e9ea8f0fd7898fec4ed9ad1e380e2322a949939d4274a4e2269e80aa"
+          },
+          {
+            "path": "scripts/verify-workflow-inheritance-webui-live.mjs",
+            "sha256": "684c17cf9a935a42b75b31cafeb3f9f2d806e061f99c636034bda53d119ff1df"
+          },
+          {
+            "path": "scripts/verify-global-media-ui.mjs",
+            "sha256": "da23213cd930d92f91cedcc54b749cb89448f6a8e97d778c0e1a9456c2e4dbda"
+          }
+        ]
+      },
+      "validated_runtime": {
+        "status": "passed",
+        "command": "node scripts/verify-workflow-inheritance-webui-live.mjs; node scripts/verify-global-media-ui.mjs <each recorded edit/control>",
+        "result": "Three real model planning turns; two title revisions preserving five original tracks and sound bans; real undo, reload and redo"
+      },
+      "base_revision": "rev-b9c6286f38a90532",
+      "candidate_revision": "rev-b610725a5d6b9dbb",
+      "evidence_refs": [
+        {
+          "path": "outputs/full-closeout/M01-F02/contract-tests.log",
+          "sha256": "9ec06ab17b5ee228b0653b3e7312a633191ab7de3a924f4ae868c8e52f0b3266"
+        },
+        {
+          "path": "outputs/full-closeout/M01-F02/core.log",
+          "sha256": "ac45a16596dcb22ecd73946d84e51f4a7e4d725df673372e5bc042f359635fc6"
+        },
+        {
+          "path": "outputs/full-closeout/M01-F02/inheritance-webui-resume.log",
+          "sha256": "907ea97976ae91120003c9d5c1b5af7bb865eb4054da4c5be45ef9d24f7555f9"
+        },
+        {
+          "path": "outputs/full-closeout/M01-F02/inheritance-webui-live.log",
+          "sha256": "5a4ae57bea237fbcb2819e3829126090af6749e3a527809d6b9037481498edb6"
+        },
+        {
+          "path": "outputs/full-closeout/M01-F02/echo-before.log",
+          "sha256": "2b691fb79305433c183e3d6e4131c999543089bee1413bcb72a716d650c3e819"
+        },
+        {
+          "path": "outputs/full-closeout/M01-F02/core-final.log",
+          "sha256": "27062c00b505a87b1940f633e18a4ff7749ecaf9acf8982570a4e01c046df831"
+        },
+        {
+          "path": "outputs/full-closeout/M01-F02/inheritance-webui-live.png",
+          "sha256": "9472d8ad1bd3880249805883858f8941e2c5416961f9dd98727d4472de2439df"
+        },
+        {
+          "path": "outputs/full-closeout/M01-F02/native-redo.log",
+          "sha256": "f55f6d0df7bf1f6b5d3dac0774ed185759bdc25173be139887099fc91fb63d5e"
+        },
+        {
+          "path": "outputs/full-closeout/M01-F02/native-edit-copy.json",
+          "sha256": "639331978b9361abc9a10b806bd52d26d0306c373d43ef1bcdf42cd73295454a"
+        },
+        {
+          "path": "outputs/full-closeout/M01-F02/native-edit-first.log",
+          "sha256": "1008e005451e1fdf22ed197464206fbeefe8e0ca3d9c8cd1cfb80ca145f1d12b"
+        },
+        {
+          "path": "outputs/full-closeout/M01-F02/inheritance-webui-live.json",
+          "sha256": "80c4da360abee339979efed5fdd3756e6161d5ce61bc735b538a97d290e1a6be"
+        },
+        {
+          "path": "outputs/full-closeout/M01-F02/native-undo.log",
+          "sha256": "fac84306920366614f6569b53af4bfde127453a5ec53bdd1be2088879d97fd20"
+        },
+        {
+          "path": "outputs/full-closeout/M01-F02/native-edit-second.log",
+          "sha256": "9236143693aa3ced88ecf987918cdb9c2483b7413152bce180231c3fb2a0f260"
+        },
+        {
+          "path": "outputs/full-closeout/M01-F02/inheritance-webui-resume-final.log",
+          "sha256": "859918f7106494917c84cf29c67968f07febfb457c829df70eb743c1d6d129bd"
+        },
+        {
+          "path": "outputs/full-closeout/M01-F02/receipt.json",
+          "sha256": "3f31e4b7c160cb3fb88759f23283296e1b7d24c9f23df56457d11d4b40b3dae1"
+        },
+        {
+          "path": "outputs/full-closeout/M01-F02/native-edit/1789691153953.png",
+          "sha256": "149797623d450ee0b60f7844451c7a833d9507a6dcb323767079804e5c84ec8e"
+        },
+        {
+          "path": "outputs/full-closeout/M01-F02/native-edit/1789691344528.png",
+          "sha256": "f7f60e73e0724069b2e71b9afae7b1d9aa56af266dd870d9e8e9706eff5ad28d"
+        },
+        {
+          "path": "outputs/full-closeout/M01-F02/native-edit/1789691341378.png",
+          "sha256": "aa89f8a0b9c642cbd79e6f8f53e42a64f90ca83c10980a5d375931a220c56560"
+        },
+        {
+          "path": "outputs/full-closeout/M01-F02/native-edit/ui-results.jsonl",
+          "sha256": "ffedef84525af08362154662c49809977fb3cae778bd1a17f301b3823a8f5b01"
+        },
+        {
+          "path": "outputs/full-closeout/M01-F02/native-edit/1789691208896.png",
+          "sha256": "9d50e5fd9209ee8a55abc7a3d3850e0db70d7bd3851afa2a3f5f8c1f57a19cce"
+        },
+        {
+          "path": "outputs/upgrade/verification/core-2026-09-18T00-28-59.658Z/report.json",
+          "sha256": "85af5cc7d9e010e76f6c9931642a9662036428aa18313fb92a8030583c41f5e8"
+        },
+        {
+          "path": "data/result-completion-projects/9b7f27ea-fe98-4891-bccf-4e675e157280/versions/preset/document.json",
+          "sha256": "810a55067439556bbc034eff73c6281ff4ee16aca2d6f72fc3a51de3df941abb"
+        },
+        {
+          "path": "data/result-completion-projects/9b7f27ea-fe98-4891-bccf-4e675e157280/versions/job-e6bd17d1-a82f-42c8-9d13-11367b59724e/document.json",
+          "sha256": "f7841c1e56da3a085db12ceb14dfb4ee50e348d846efac140b9d8289a33ba307"
+        },
+        {
+          "path": "data/result-completion-projects/9b7f27ea-fe98-4891-bccf-4e675e157280/versions/job-811cd26b-71e1-49a9-bc95-a11c0a658ede/document.json",
+          "sha256": "b302b9b6bd59cde96ae98117291be0a6392fc5499ae9597c00b5876b068bf025"
+        },
+        {
+          "path": "outputs/full-closeout/M01-F03/recut-contract-tests.log",
+          "sha256": "90c29115d18c863e36e0911c0d500a64e19790779d1b3e6b4ebaa24129f73d53"
+        },
+        {
+          "path": "outputs/full-closeout/M01-F03/saved-plan-final.json",
+          "sha256": "211554caa04b5c791e712fdfc9dedc5f9546577abc401d39aa8694c4d30625d4"
+        },
+        {
+          "path": "outputs/full-closeout/M01-F03/audio-preserve-tests.log",
+          "sha256": "bed47046d3a8a6568688e444b10f70ae9b7de3d420709dce3b0c36a4b7101be5"
+        },
+        {
+          "path": "outputs/upgrade/verification/core-2026-09-18T00-41-12.226Z/report.json",
+          "sha256": "29c6cbec4181fa388869d57456eb6fd277a0d6620414a1a2efc922c8e8d24175"
+        }
+      ],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": "M01-F03 real plan-to-production candidate and stage provenance",
+      "human_acceptance": "not_performed",
+      "updated_at": "2026-09-18T00:30:57.763901+00:00",
+      "commands": [
+        {
+          "command": "node --test scripts/test-workflow-design.mjs scripts/test-workflow-intent.mjs",
+          "cwd": "/Users/a1234/Desktop/hyperframe-main/video-agent",
+          "exit_code": 0,
+          "report_path": "outputs/full-closeout/M01-F02/contract-tests.log"
+        },
+        {
+          "command": "WORKFLOW_TEST_RESUME=1 node scripts/verify-workflow-inheritance-webui-live.mjs",
+          "cwd": "/Users/a1234/Desktop/hyperframe-main/video-agent",
+          "exit_code": 0,
+          "report_path": "outputs/full-closeout/M01-F02/inheritance-webui-live.json"
+        },
+        {
+          "command": "node scripts/verify-global-media-ui.mjs <two title edits, undo, redo; exact requests in report>",
+          "cwd": "/Users/a1234/Desktop/hyperframe-main/video-agent",
+          "exit_code": 0,
+          "report_path": "outputs/full-closeout/M01-F02/native-edit/ui-results.jsonl"
+        },
+        {
+          "command": "node scripts/verify-editor.mjs core",
+          "cwd": "/Users/a1234/Desktop/hyperframe-main/video-agent",
+          "exit_code": 0,
+          "report_path": "outputs/upgrade/verification/core-2026-09-18T00-28-59.658Z/report.json"
+        },
+        {
+          "command": "node --test scripts/test-workflow-design.mjs scripts/test-workflow-intent.mjs",
+          "cwd": "/Users/a1234/Desktop/hyperframe-main/video-agent",
+          "exit_code": 0,
+          "report_path": "outputs/full-closeout/M01-F03/recut-contract-tests.log"
+        },
+        {
+          "command": "node --test scripts/test-workflow-design.mjs scripts/test-execution-v2.mjs scripts/test-commerce-focus.mjs",
+          "cwd": "/Users/a1234/Desktop/hyperframe-main/video-agent",
+          "exit_code": 0,
+          "report_path": "outputs/full-closeout/M01-F03/audio-preserve-tests.log"
+        }
+      ],
+      "acceptance": {
+        "positive": [
+          {
+            "expected": "Retain no-music across title edit; explicit music permission changes only that sound field",
+            "actual": "Three real plans and two actual native revisions verified with original audio unchanged",
+            "status": "passed",
+            "evidence_path": "outputs/full-closeout/M01-F02/receipt.json"
+          }
+        ],
+        "negative": [
+          {
+            "expected": "Do not invent facts, targets or stale bases; do not rewrite history or reinterpret missing base as valid native edit",
+            "actual": "37 focused cases and 36 core suites pass; original failed attempts and immutable earlier plans/revisions retained",
+            "status": "passed",
+            "evidence_path": "outputs/full-closeout/M01-F02/receipt.json"
+          }
+        ]
+      },
+      "revalidation": {
+        "time": "2026-09-18T00:47:05.080408+00:00",
+        "reason": "Production brief now uses validated workflow sound preservation; compound-source audio positive/negative checks pass (64 tests), full core passes, same real production run passed brief after the fix"
+      }
+    },
+    "M01-F03": {
+      "development_status": "in_progress",
+      "integration_status": "pending",
+      "attempts": 1,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [
+        "Planning raw recut base requirement and compound original-audio policy repaired; preserved prior failures",
+        "Approximate duration was incorrectly forced exact; repaired with explicit approximate policy and native actual-frame receipt; exact and source-boundary negatives pass",
+        "Same production job resumed at cumulative model call 14; candidate not yet available"
+      ],
+      "blocker": "Shared backend busy with S07/S08 user demo tasks; latest legacy observation recovery fix is on disk but not loaded.",
+      "next_action": "Do not message or coordinate other tasks (user instruction). Do not restart shared service or affect other work. Continue independent read-only/offline verification; M01-F03 remains original paused run at 24/128, recovery compatibility awaits a safe authorized service reload.",
+      "human_acceptance": "not_performed",
+      "updated_at": "2026-09-18T00:37:09.490269+00:00"
+    },
+    "M01-F04": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M01-F05": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M01-F06": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M02-F01": {
+      "development_status": "verified",
+      "integration_status": "verified",
+      "attempts": 1,
+      "validated_source": {
+        "revision": "9283f550f6e639ecf20b7ca9635f39c887219ce9",
+        "files": [
+          {
+            "path": "config/commerce.json",
+            "sha256": "373a3c5d8d48a8fe32db00d1f24057663d7b87f3714346cc4a147f0c35f04027"
+          },
+          {
+            "path": "lib/creative/material-roots.mjs",
+            "sha256": "84cf21fdd0db423fb9d3cf126e8d69dc89b63124239948b3b5a1628c914b5ada"
+          },
+          {
+            "path": "lib/creative/service.mjs",
+            "sha256": "e3530d7f9e991b8a657d86c1a5ef0bcb469ad522890c08d0740c3dc75c301d8e"
+          },
+          {
+            "path": "web/commerce.js",
+            "sha256": "ddc01d729c16f942603cb97f81add16229ae10ebbfcb27cb7e78a07e9301beb9"
+          },
+          {
+            "path": "web/commerce.html",
+            "sha256": "401cc959087d84d0073ecc8c437c520068cb9d830018f68079c692b69e885ded"
+          },
+          {
+            "path": "scripts/test-material-roots.mjs",
+            "sha256": "b525aa2b99c3554785c79fc4c27698f78c84b14026fe5ca055ab0828e0a7c2e6"
+          },
+          {
+            "path": "scripts/verify-material-index-webui-live.mjs",
+            "sha256": "646b0c375f02cdf32ca9c1e2b1e1a82b0a37d74b106d08d49d5523fd3ffb59c1"
+          }
+        ]
+      },
+      "validated_runtime": {
+        "status": "passed",
+        "command": "node scripts/verify-material-index-webui-live.mjs; node --test scripts/test-material-roots.mjs",
+        "result": "Actual main WebUI indexed 10 configured source videos; all 80 authorized originals unchanged, zero mutations; 2 path and service test cases passed"
+      },
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [
+        {
+          "path": "outputs/full-closeout/M02-F01/receipt.json",
+          "sha256": "fd4ca8f503ffe87f0bf03975a257eb84b51aba59f822bf06077e1749ac8742a2"
+        },
+        {
+          "path": "outputs/full-closeout/M02-F01/material-index-webui.json",
+          "sha256": "76d70081a3ce63cc5bf772fe7d8f79e88b21ab62319f6fc02a1cad3ed1bab891"
+        },
+        {
+          "path": "outputs/full-closeout/M02-F01/material-index-webui.png",
+          "sha256": "291ef166c351c0c5557fa5485b67cfbe8f37885d55432c1f7ab0bffaa065275b"
+        },
+        {
+          "path": "outputs/full-closeout/M02-F01/path-and-selection-tests.log",
+          "sha256": "df527650af9d8cacaba54ae70f1eb86ea3e581763711691221bb4f438035184b"
+        }
+      ],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": "Continue M02-F02 technical observation and source-selection verification",
+      "human_acceptance": "not_performed",
+      "updated_at": "2026-09-18T01:33:18.011227+00:00",
+      "commands": [
+        {
+          "command": "node scripts/verify-material-index-webui-live.mjs",
+          "cwd": "/Users/a1234/Desktop/hyperframe-main/video-agent",
+          "exit_code": 0,
+          "report_path": "outputs/full-closeout/M02-F01/material-index-webui.json"
+        },
+        {
+          "command": "node --test scripts/test-material-roots.mjs",
+          "cwd": "/Users/a1234/Desktop/hyperframe-main/video-agent",
+          "exit_code": 0,
+          "report_path": "outputs/full-closeout/M02-F01/path-and-selection-tests.log"
+        }
+      ],
+      "acceptance": {
+        "positive": [
+          {
+            "expected": "Actual authorized source videos discoverable through main UI; identities distinct and originals unchanged",
+            "actual": "10 configured source videos displayed; 80 authorized original hashes unchanged; two same-name fixture files have distinct IDs and hashes",
+            "status": "passed",
+            "evidence_path": "outputs/full-closeout/M02-F01/receipt.json"
+          }
+        ],
+        "negative": [
+          {
+            "expected": "Reject unauthorized paths, escaping symlinks, generated output loops and unsafe all-file import; distinguish scan errors",
+            "actual": "Owned path/service tests reject escapes, stale IDs and >30 selection; generated outputs excluded; malformed media and injected EACCES remain explicit; UI sends zero mutations",
+            "status": "passed",
+            "evidence_path": "outputs/full-closeout/M02-F01/path-and-selection-tests.log"
+          }
+        ]
+      }
+    },
+    "M02-F02": {
+      "development_status": "in_progress",
+      "integration_status": "pending",
+      "attempts": 1,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [
+        {
+          "path": "outputs/full-closeout/M02-F02/existing-run-source-revalidation.json",
+          "sha256": "c478aa5764c3297c92f4c6b3a92572a55ff17c49c75a8cf4744b29b58e52e7d9"
+        }
+      ],
+      "known_issues": [
+        "Offline exact-stage revalidation passes four real source ranges and 28 observation file hashes. Original production has not resumed with final recovery compatibility.",
+        "Sampling coverage is verified separately; continuous video/audio perception and candidate output remain unverified."
+      ],
+      "blocker": null,
+      "next_action": "Reuse actual M01-F03 source/probe/observation evidence; verify fixed video/audio-tail selection end-to-end after shared service window; keep sampled vs continuous coverage explicit",
+      "human_acceptance": "not_performed",
+      "updated_at": "2026-09-18T01:36:44.232707+00:00"
+    },
+    "M02-F03": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M02-F04": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M02-F05": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M04-F01": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M04-F02": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M04-F03": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M04-F04": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M04-F05": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M04-F06": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M05-F01": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M05-F02": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M05-F03": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M05-F04": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M05-F05": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M05-F06": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M05-F07": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M05-F08": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M05-F09": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M05-F10": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M05-F11": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M05-F12": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M08-F01": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M08-F02": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M08-F03": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M08-F04": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M08-F05": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M06-F01": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M06-F02": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M06-F03": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M06-F04": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M06-F05": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M07-F01": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M07-F02": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M07-F03": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M07-F04": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M09-F01": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M09-F02": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M09-F03": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M09-F04": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M09-F05": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M09-F06": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M09-F07": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M10-F01": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M10-F02": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M10-F03": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M10-F04": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M11-F01": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M11-F02": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M11-F03": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M12-F01": {
+      "development_status": "verified",
+      "integration_status": "verified",
+      "attempts": 1,
+      "validated_source": {
+        "revision": "9283f550f6e639ecf20b7ca9635f39c887219ce9",
+        "files": [
+          {
+            "path": "web/commerce.js",
+            "sha256": "ddc01d729c16f942603cb97f81add16229ae10ebbfcb27cb7e78a07e9301beb9"
+          },
+          {
+            "path": "web/finished-work-options.mjs",
+            "sha256": "79a697ce72775b656742b9588d44826c5b7bccef69f08cee5e1bd0d8b327a712"
+          },
+          {
+            "path": "web/workspace-library.json",
+            "sha256": "9093e250f6e3abd29919125df03716f86bc2c34edf0bed56f6ca029437794191"
+          },
+          {
+            "path": "lib/creative/service.mjs",
+            "sha256": "e3530d7f9e991b8a657d86c1a5ef0bcb469ad522890c08d0740c3dc75c301d8e"
+          },
+          {
+            "path": "scripts/test-preset-readonly.mjs",
+            "sha256": "d0891ab12c8e6f094025ebffb6fef9c6bf8cf94a802c0776547f6e55ac4dbc89"
+          },
+          {
+            "path": "scripts/test-finished-work-ui.mjs",
+            "sha256": "6890475a08d7e6e6c9a6de60aab4480d9d67d0637d4eb4fa0ec12b07ed7ac697"
+          }
+        ]
+      },
+      "validated_runtime": {
+        "status": "passed",
+        "command": "node scripts/build-web.mjs; node --test scripts/test-preset-readonly.mjs; node scripts/test-finished-work-ui.mjs",
+        "result": "read-only browser navigation, draft preservation, double-click idempotency, version binding, concurrent copy deduplication, and restart checks passed"
+      },
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [
+        {
+          "path": "outputs/full-closeout/M12-F01/revalidation-20260918.json",
+          "sha256": "3dbf583b3bfb13c1974c30f273a6d92bfecddb5258149bd3f24c97dc279789fc"
+        },
+        {
+          "path": "outputs/full-closeout/M12-F03/receipt.json",
+          "sha256": "2e83c0f7cef3fb27ce9f4d173e90c86bab4702b6769ef59ff9fa2f49f0cdc42f"
+        },
+        {
+          "path": "outputs/upgrade/verification/core-2026-09-18T00-23-25.201Z/report.json",
+          "sha256": "40818f6dec62704f419aa6811bea39169721be19869337e867f2888b0947cf2a"
+        },
+        {
+          "path": "outputs/upgrade/verification/browser-2026-09-18T00-17-29.867Z/report.json",
+          "sha256": "275f7f67f24eca7fcbf9cf5e2d83088db39d9369b5cf574302cfa090f5f4b316"
+        },
+        {
+          "path": "outputs/full-closeout/M01-F02/contract-tests.log",
+          "sha256": "9ec06ab17b5ee228b0653b3e7312a633191ab7de3a924f4ae868c8e52f0b3266"
+        }
+      ],
+      "commands": [
+        {
+          "command": "node scripts/build-web.mjs; node --test scripts/test-preset-readonly.mjs; node scripts/test-finished-work-ui.mjs",
+          "cwd": "/Users/a1234/Desktop/hyperframe-main/video-agent",
+          "exit_code": 0,
+          "report_path": "outputs/full-closeout/M12-F01/revalidation-20260918.json"
+        },
+        {
+          "command": "node scripts/verify-editor.mjs browser",
+          "cwd": "/Users/a1234/Desktop/hyperframe-main/video-agent",
+          "exit_code": 0,
+          "report_path": "outputs/upgrade/verification/browser-2026-09-18T00-17-29.867Z/report.json"
+        }
+      ],
+      "acceptance": {
+        "positive": [
+          {
+            "expected": "browse a preset twenty times without mutation and explicitly create one editable copy",
+            "actual": "browser and service checks passed",
+            "status": "passed",
+            "evidence_path": "outputs/full-closeout/M12-F01/revalidation-20260918.json"
+          }
+        ],
+        "negative": [
+          {
+            "expected": "reject stale versions and prevent duplicate copies on double click or concurrent retry",
+            "actual": "all version and idempotency negatives passed",
+            "status": "passed",
+            "evidence_path": "outputs/full-closeout/M12-F01/revalidation-20260918.json"
+          }
+        ]
+      },
+      "known_issues": [],
+      "blocker": null,
+      "next_action": "Proceed to M12-F02 work grouping and artifact fault isolation",
+      "human_acceptance": "not_performed",
+      "updated_at": "2026-09-18T00:27:51.161386+00:00",
+      "revalidation": {
+        "time": "2026-09-18T00:27:51.161386+00:00",
+        "reason": "Affected entry/UI behavior retested in full browser suite; preset and grouping behavior covered by full core; current planning helper has 37 focused contract checks"
+      }
+    },
+    "M12-F02": {
+      "development_status": "verified",
+      "integration_status": "verified",
+      "attempts": 1,
+      "validated_source": {
+        "revision": "9283f550f6e639ecf20b7ca9635f39c887219ce9",
+        "files": [
+          {
+            "path": "web/finished-work-options.mjs",
+            "sha256": "79a697ce72775b656742b9588d44826c5b7bccef69f08cee5e1bd0d8b327a712"
+          },
+          {
+            "path": "web/workspace-library.json",
+            "sha256": "9093e250f6e3abd29919125df03716f86bc2c34edf0bed56f6ca029437794191"
+          },
+          {
+            "path": "lib/creative/finished-works.mjs",
+            "sha256": "e795c9ae98850f6962019525710e9f53b6a0c863d9a2b049ce0201e6189f3e76"
+          },
+          {
+            "path": "scripts/test-finished-works.mjs",
+            "sha256": "e55b6098ed9f41fb8e4c710a42269b24bcde68c5038445e4e89a05cbae106e7d"
+          },
+          {
+            "path": "scripts/test-unfinished-project-options.mjs",
+            "sha256": "cc3a9e95cd2cf8b67765d0700f8a3268f39e84c51cb29b92e333f2d7a11cce41"
+          },
+          {
+            "path": "scripts/test-finished-work-ui.mjs",
+            "sha256": "6890475a08d7e6e6c9a6de60aab4480d9d67d0637d4eb4fa0ec12b07ed7ac697"
+          }
+        ]
+      },
+      "validated_runtime": {
+        "status": "passed",
+        "command": "node scripts/build-web.mjs; node --test scripts/test-finished-works.mjs scripts/test-unfinished-project-options.mjs scripts/test-preset-readonly.mjs; node scripts/test-finished-work-ui.mjs",
+        "result": "seven grouping and artifact-isolation tests plus browser verification passed"
+      },
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [
+        {
+          "path": "outputs/full-closeout/M12-F02/revalidation-20260918.json",
+          "sha256": "786e4abf4e8f13482e42f7f362d4483d5a10745f77826634be6daeeec49178b2"
+        },
+        {
+          "path": "outputs/full-closeout/M12-F03/receipt.json",
+          "sha256": "2e83c0f7cef3fb27ce9f4d173e90c86bab4702b6769ef59ff9fa2f49f0cdc42f"
+        },
+        {
+          "path": "outputs/upgrade/verification/core-2026-09-18T00-23-25.201Z/report.json",
+          "sha256": "40818f6dec62704f419aa6811bea39169721be19869337e867f2888b0947cf2a"
+        },
+        {
+          "path": "outputs/upgrade/verification/browser-2026-09-18T00-17-29.867Z/report.json",
+          "sha256": "275f7f67f24eca7fcbf9cf5e2d83088db39d9369b5cf574302cfa090f5f4b316"
+        },
+        {
+          "path": "outputs/full-closeout/M01-F02/contract-tests.log",
+          "sha256": "9ec06ab17b5ee228b0653b3e7312a633191ab7de3a924f4ae868c8e52f0b3266"
+        }
+      ],
+      "commands": [
+        {
+          "command": "node scripts/build-web.mjs; node --test scripts/test-finished-works.mjs scripts/test-unfinished-project-options.mjs scripts/test-preset-readonly.mjs; node scripts/test-finished-work-ui.mjs",
+          "cwd": "/Users/a1234/Desktop/hyperframe-main/video-agent",
+          "exit_code": 0,
+          "report_path": "outputs/full-closeout/M12-F02/revalidation-20260918.json"
+        },
+        {
+          "command": "node scripts/verify-editor.mjs browser",
+          "cwd": "/Users/a1234/Desktop/hyperframe-main/video-agent",
+          "exit_code": 0,
+          "report_path": "outputs/upgrade/verification/browser-2026-09-18T00-17-29.867Z/report.json"
+        }
+      ],
+      "acceptance": {
+        "positive": [
+          {
+            "expected": "keep curated, candidate, reference, history, and same-title works reachable with accurate provenance grouping",
+            "actual": "grouping and browser checks passed",
+            "status": "passed",
+            "evidence_path": "outputs/full-closeout/M12-F02/revalidation-20260918.json"
+          }
+        ],
+        "negative": [
+          {
+            "expected": "isolate missing ZIP, bad hash, escaping path, duplicate preset, and archived entry without hiding valid works",
+            "actual": "all fault-isolation cases passed",
+            "status": "passed",
+            "evidence_path": "outputs/full-closeout/M12-F02/revalidation-20260918.json"
+          }
+        ]
+      },
+      "known_issues": [],
+      "blocker": null,
+      "next_action": "Proceed to M01-F01 unified message routing",
+      "human_acceptance": "not_performed",
+      "updated_at": "2026-09-18T00:27:51.161386+00:00",
+      "revalidation": {
+        "time": "2026-09-18T00:27:51.161386+00:00",
+        "reason": "Affected entry/UI behavior retested in full browser suite; preset and grouping behavior covered by full core; current planning helper has 37 focused contract checks"
+      }
+    },
+    "M12-F03": {
+      "development_status": "verified",
+      "integration_status": "verified",
+      "attempts": 1,
+      "validated_source": {
+        "revision": "9283f550f6e639ecf20b7ca9635f39c887219ce9",
+        "files": [
+          {
+            "path": "web/commerce.js",
+            "sha256": "ddc01d729c16f942603cb97f81add16229ae10ebbfcb27cb7e78a07e9301beb9"
+          },
+          {
+            "path": "lib/creative/service.mjs",
+            "sha256": "e3530d7f9e991b8a657d86c1a5ef0bcb469ad522890c08d0740c3dc75c301d8e"
+          },
+          {
+            "path": "lib/creative/finished-works.mjs",
+            "sha256": "e795c9ae98850f6962019525710e9f53b6a0c863d9a2b049ce0201e6189f3e76"
+          },
+          {
+            "path": "web/workflow-selection.mjs",
+            "sha256": "68370a80624b600b28708a23472ae854d50fc0bf1bd6f2a2a79a9b5031cfd8f8"
+          },
+          {
+            "path": "lib/creative/workflow-intent.mjs",
+            "sha256": "a1239e6f92cef0bc193575a7a5f35f4fa5080e4f10a6f7b22f1037a850b08d89"
+          },
+          {
+            "path": "scripts/test-finished-work-ui.mjs",
+            "sha256": "6890475a08d7e6e6c9a6de60aab4480d9d67d0637d4eb4fa0ec12b07ed7ac697"
+          },
+          {
+            "path": "scripts/test-workflow-ui.mjs",
+            "sha256": "d4e66012fe81c99506bbffac2c2a0c313e17f83bf7031d662f5f6ae0ab3c08b2"
+          },
+          {
+            "path": "scripts/verify-artifact-webui-live.mjs",
+            "sha256": "1fdfc724df49ed5c0b8de45d1f9a1fec12fefaccdff350d7afac9208f736e71f"
+          },
+          {
+            "path": "web-dist/commerce.js",
+            "sha256": "b22e1eef61a24c2d62ac95ca4a2e992d05528372ac0c247f4baf2584c1f6ef21"
+          }
+        ]
+      },
+      "validated_runtime": {
+        "status": "passed",
+        "command": "node scripts/verify-artifact-webui-live.mjs",
+        "result": "Actual original WebUI/backend, eight entries, two revisions and four files verified; clipboard/path/hash/reload agree"
+      },
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [
+        {
+          "path": "outputs/full-closeout/M12-F03/browser.log",
+          "sha256": "1888fef7b06276be82b0408b50295769f43e64991397bbc2432a7aa3a790073f"
+        },
+        {
+          "path": "outputs/full-closeout/M12-F03/webui-artifacts.log",
+          "sha256": "90846a62beb2c0da7dd3695dd4c70260131d9a4d034a996c56f4480e335731ee"
+        },
+        {
+          "path": "outputs/full-closeout/M12-F03/webui-artifacts-permission-attempt.json",
+          "sha256": "fb7d2379bae0cb768d92c540bfe690ebf8eb2ea9ed52299657ba1c9e910c7e3b"
+        },
+        {
+          "path": "outputs/full-closeout/M12-F03/core.log",
+          "sha256": "e17e0a503afd724d69e4d9b8dba4731a5fb894b81f88e3d868760daab09a16e6"
+        },
+        {
+          "path": "outputs/full-closeout/M12-F03/quality-contract-tests.log",
+          "sha256": "0ce96027795d96f8474aa4835702f873ca3aeb8ef76041fec1db5e2594e2b5ba"
+        },
+        {
+          "path": "outputs/full-closeout/M12-F03/acceptance.log",
+          "sha256": "f65c077efc574e34ddb2caa6965dc06e488fb62d0f4a3792cb6ea7ee0d32b429"
+        },
+        {
+          "path": "outputs/full-closeout/M12-F03/webui-artifacts.json",
+          "sha256": "034048372cb391cae6f846d6b139b182feada1aa679b02197d696f423eb1a6c5"
+        },
+        {
+          "path": "outputs/full-closeout/M12-F03/historical-status-before.log",
+          "sha256": "1c7c1ccd16309cff5362f8a11589dd04a343c1940466eb620839bd7441a57ae6"
+        },
+        {
+          "path": "outputs/full-closeout/M12-F03/webui-artifacts-clipboard-attempt.json",
+          "sha256": "ba8c0538a680f2289db4fd18741766cf370f46ca99b9325f515b30ee32dd84b7"
+        },
+        {
+          "path": "outputs/full-closeout/M12-F03/webui-artifacts-before.json",
+          "sha256": "28beab527d1e159c7336597e38a9e97892d15050de06776bc018aaceedcca091"
+        },
+        {
+          "path": "outputs/full-closeout/M12-F03/historical-status-after.log",
+          "sha256": "4c050f1c41b51ce0885c8152f8477b2dae5b9eaf39f5b0d7bfc78698f970818c"
+        },
+        {
+          "path": "outputs/full-closeout/M12-F03/webui-artifacts.png",
+          "sha256": "34a5b6be91688338836d88d237cc839838a3604f10ad86e892f9bdce80235fe3"
+        },
+        {
+          "path": "outputs/full-closeout/M12-F03/receipt.json",
+          "sha256": "2e83c0f7cef3fb27ce9f4d173e90c86bab4702b6769ef59ff9fa2f49f0cdc42f"
+        },
+        {
+          "path": "outputs/full-closeout/M12-F03/build.log",
+          "sha256": "0df86b68829b30c27a0d800608d03d62b807e2f35d3889d2a6d0c11743fb0266"
+        },
+        {
+          "path": "outputs/upgrade/verification/core-2026-09-18T00-23-25.201Z/report.json",
+          "sha256": "40818f6dec62704f419aa6811bea39169721be19869337e867f2888b0947cf2a"
+        },
+        {
+          "path": "outputs/upgrade/verification/browser-2026-09-18T00-17-29.867Z/report.json",
+          "sha256": "275f7f67f24eca7fcbf9cf5e2d83088db39d9369b5cf574302cfa090f5f4b316"
+        },
+        {
+          "path": "outputs/acceptance/2026-09-18T00-15-27-122Z/report.json",
+          "sha256": "f645aa7df33b2e04e9b6caf70ee72951bf686faf7b34ef5c6065dcb9b292a31f"
+        }
+      ],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": "Continue M01-F02 contract inheritance",
+      "human_acceptance": "not_performed",
+      "updated_at": "2026-09-18T00:27:51.161386+00:00",
+      "commands": [
+        {
+          "command": "node scripts/verify-artifact-webui-live.mjs",
+          "cwd": "/Users/a1234/Desktop/hyperframe-main/video-agent",
+          "exit_code": 0,
+          "report_path": "outputs/full-closeout/M12-F03/webui-artifacts.json"
+        },
+        {
+          "command": "node scripts/verify-editor.mjs core",
+          "cwd": "/Users/a1234/Desktop/hyperframe-main/video-agent",
+          "exit_code": 0,
+          "report_path": "outputs/upgrade/verification/core-2026-09-18T00-23-25.201Z/report.json"
+        },
+        {
+          "command": "node scripts/verify-editor.mjs browser",
+          "cwd": "/Users/a1234/Desktop/hyperframe-main/video-agent",
+          "exit_code": 0,
+          "report_path": "outputs/upgrade/verification/browser-2026-09-18T00-17-29.867Z/report.json"
+        },
+        {
+          "command": "node scripts/build-web.mjs && node scripts/acceptance.mjs",
+          "cwd": "/Users/a1234/Desktop/hyperframe-main/video-agent",
+          "exit_code": 0,
+          "report_path": "outputs/acceptance/2026-09-18T00-15-27-122Z/report.json"
+        }
+      ],
+      "acceptance": {
+        "positive": [
+          {
+            "expected": "Eight entries and exact current/historical download/file paths agree",
+            "actual": "Eight entries and four real files passed",
+            "status": "passed",
+            "evidence_path": "outputs/full-closeout/M12-F03/receipt.json"
+          }
+        ],
+        "negative": [
+          {
+            "expected": "Do not serve current bytes or current acceptance for historical selection; no production without variant base",
+            "actual": "Historical hashes/version statuses verified and missing-base real UI returns clarification with zero production",
+            "status": "passed",
+            "evidence_path": "outputs/full-closeout/M12-F03/receipt.json"
+          }
+        ]
+      }
+    },
+    "M03-S02-01": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M03-S02-02": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M03-S02-03": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M03-S02-04": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M03-S02-05": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M03-S02-06": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M03-S01-01": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M03-S01-02": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M03-S01-03": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M03-S01-04": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M03-S01-05": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M03-S01-06": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M03-S03-01": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M03-S03-02": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M03-S03-03": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M03-S03-04": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M03-S03-05": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M03-S03-06": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M03-S04-01": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M03-S04-02": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M03-S04-03": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M03-S04-04": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M03-S04-05": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M03-S04-06": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M03-S05-01": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M03-S05-02": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M03-S05-03": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M03-S05-04": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M03-S05-05": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M03-S05-06": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M03-S06-01": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M03-S06-02": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M03-S06-03": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M03-S06-04": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M03-S06-05": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M03-S06-06": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M03-S07-01": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M03-S07-02": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M03-S07-03": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M03-S07-04": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M03-S07-05": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M03-S07-06": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M03-S08-01": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M03-S08-02": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M03-S08-03": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M03-S08-04": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M03-S08-05": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M03-S08-06": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M12-F04": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M12-F05": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    },
+    "M12-F06": {
+      "development_status": "unverified",
+      "integration_status": "not_started",
+      "attempts": 0,
+      "validated_source": null,
+      "validated_runtime": null,
+      "base_revision": null,
+      "candidate_revision": null,
+      "evidence_refs": [],
+      "known_issues": [],
+      "blocker": null,
+      "next_action": null,
+      "human_acceptance": "not_performed",
+      "updated_at": null
+    }
+  },
+  "resume": {
+    "projectId": "a10b1703-e9d9-43eb-b6ca-551cb0ea5555",
+    "jobId": "job-8e5fa77d-0542-4a15-9a99-f70a49eac8ab",
+    "runId": "a5a877ae-71fa-49f6-8065-054681dac6a1",
+    "serviceUrl": "http://127.0.0.1:3024",
+    "pid": 23760,
+    "lastProgressAt": "2026-09-18T01:19:51.670Z",
+    "nextAction": "Do not message or coordinate other tasks (user instruction). Do not restart shared service or affect other work. Continue independent read-only/offline verification; M01-F03 remains original paused run at 24/128, recovery compatibility awaits a safe authorized service reload.",
+    "lastCheckedAt": "2026-09-18T01:27:50.981251+00:00",
+    "stage": "密集检查实际动作与源切点",
+    "modelCalls": 24
+  }
+}

@@ -1,0 +1,21 @@
+import json
+from datetime import datetime, timezone
+from pathlib import Path
+
+from audit import COMMANDS, FFMPEG, OUT, SOURCES, run, sheets
+
+TIMES = {'source-1': [1, 8, 15, 21, 28], 'source-2': [7.5, 8.5, 10, 11.5, 23.5, 31, 32, 34.5, 36, 45.5, 53.5, 54.8]}
+
+for label, project, filename in SOURCES:
+    source = Path('/Users/a1234/.openclaw/hyperframe/state/projects') / project / 'uploads' / filename
+    folder = OUT / label
+    records = []
+    for seconds in TIMES[label]:
+        frame = round(seconds * 30)
+        name = f'detail-{seconds:06.2f}s.jpg'
+        run([FFMPEG, '-hide_banner', '-nostdin', '-y', '-ss', str(seconds), '-i', source, '-map', '0:v:0', '-frames:v', '1', '-q:v', '2', folder / name], folder / f'detail-{seconds:06.2f}s.stdout.log')
+        records.append({'file': name, 'frame': frame, 'seconds': seconds})
+    (folder / 'detail-index.json').write_text(json.dumps(records, indent=2) + '\n')
+    sheets(folder, records, 'details', 'Selected native-resolution frames; not continuous viewing')
+
+(OUT / 'detail-manifest.json').write_text(json.dumps({'generated_at': datetime.now(timezone.utc).isoformat(), 'commands': COMMANDS}, indent=2) + '\n')

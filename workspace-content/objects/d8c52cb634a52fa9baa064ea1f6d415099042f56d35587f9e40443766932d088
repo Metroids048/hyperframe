@@ -1,0 +1,36 @@
+✔ local download wording survives global routing integration and honors explicit mode (6.055916ms)
+✔ production approval receives saved plan and selected mode without weakening explicit conflicts (0.9545ms)
+✔ clarification replies keep the original request for the next planning or production turn (20.829125ms)
+✔ draft controls and explicit planning never become production; quoted and negated commands are not controls (3.136416ms)
+✔ draft status and idle cancel have no production job or model call (3.952291ms)
+✔ routing provider failure persists the original request and global receipt, and controls remain available (4.123167ms)
+✔ explicit planning through message dispatch creates only a plan and preserves source assets (1092.3925ms)
+✔ whole-message controls and direct position edits bypass the model (2.231292ms)
+✔ plan then execute is a fast explicit route and its saved edit contract can drive execution (0.47025ms)
+✖ semantic routing preserves compound original message and validates references (1.345375ms)
+✔ new creation from open project is separate and double-submit reuses the same new draft (12.108791ms)
+✔ caption history undo preserves prior edits and redo survives service reopening (15.75275ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 11
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1167.772625
+
+✖ failing tests:
+
+test at scripts/test-message-routing.mjs:115:1
+✖ semantic routing preserves compound original message and validates references (1.345375ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/a1234/Desktop/hyperframe-main/video-agent/scripts/test-message-routing.mjs:120:2)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: [Object],
+    operator: 'rejects',
+    diff: 'simple'
+  }

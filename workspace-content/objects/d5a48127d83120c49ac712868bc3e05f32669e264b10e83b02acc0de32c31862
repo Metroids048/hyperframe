@@ -1,0 +1,89 @@
+{
+  "alternatives": [],
+  "operations": [
+    {
+      "assetId": null,
+      "durationFrames": null,
+      "effect": null,
+      "fromSceneId": null,
+      "height": null,
+      "nodeId": "cue-d18b235a237e72cf",
+      "paramsJson": "{\"fontSize\":32,\"color\":\"#D6DCE2\"}",
+      "sceneId": null,
+      "sceneIds": null,
+      "source": null,
+      "text": null,
+      "toSceneId": null,
+      "type": "update_caption_style",
+      "width": null
+    }
+  ],
+  "summary": "拟仅将最后一句字幕设为32px、柔和浅灰色#D6DCE2，保留上移后的位置、文字、时间及其他全部内容。执行后需复验片尾字幕的字号变化、对比度与可读性；本轮未执行或验证。",
+  "workflow": {
+    "assumptions": [
+      "将32px与#D6DCE2作为“稍小一些、颜色更柔和”的可逆样式默认值；保持现有offsetY=-80及字重。"
+    ],
+    "gaps": [
+      "输入未提供字幕继承后的实际字号和颜色，无法确认32px相对现状的缩小幅度；执行器需核对实际样式。",
+      "需重新编译目标字幕样式并预览scene-10，检查字幕显示首尾、换行、对比度与遮挡；无需重新生成声音或识别字幕。新版本ID由服务端生成，验证失败保留rev-1b007f24fd33e5d3。"
+    ],
+    "objective": "让观众更舒适地读完片尾字幕，保持原有商品详情内容与视听节奏。",
+    "overrides": [
+      {
+        "replacementQuote": "只调整这句字幕的字号和颜色，位置、文字、时间、其他字幕以及声音画面全部保留。",
+        "requirementId": "requirement-c80900c5e28c18f0"
+      }
+    ],
+    "requirements": [
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "现在让它稍小一些、颜色更柔和",
+        "startSeconds": null,
+        "targetIds": ["cue-d18b235a237e72cf"]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "goal",
+        "quote": "便于读完",
+        "startSeconds": null,
+        "targetIds": ["cue-d18b235a237e72cf"]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "位置、文字、时间",
+        "startSeconds": null,
+        "targetIds": ["cue-d18b235a237e72cf"]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": ["cue-d18b235a237e72cf"],
+        "kind": "preserve",
+        "quote": "其他字幕",
+        "startSeconds": null,
+        "targetIds": ["s02-caption-1", "s02-caption-2", "s02-caption-3", "s02-caption-4", "s02-caption-5"]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "声音画面全部保留",
+        "startSeconds": null,
+        "targetIds": ["audio-1", "audio-2", "audio-3", "audio-4", "audio-4124aaefa824859c", "audio-bc35f0a994d81023"]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "画面全部保留",
+        "startSeconds": null,
+        "targetIds": ["scene-01", "scene-02", "scene-03", "scene-04", "scene-05", "scene-06", "scene-07", "scene-08", "scene-09", "scene-10"]
+      }
+    ],
+    "taskMode": "edit"
+  }
+}

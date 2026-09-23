@@ -1,0 +1,60 @@
+{
+  "inspectionVersion": 3,
+  "validationFiles": [
+    [
+      "lib/creative/custom-source.mjs",
+      "c1b2a00a6a6dd27dbc6ee2fcef5e226d972375ae0056808f40f630982c816894"
+    ],
+    [
+      "lib/creative/isolation.mjs",
+      "6d232d5019810af7d1ba75aca99e074b76841da20fb3fc7b55dfe1d7b43aaf0a"
+    ],
+    [
+      "lib/creative/isolation-protocol.mjs",
+      "b5344dfc6663b9a5a41461475ab08ecf141d7230d0e3b5bb1debf1c310e4ca7d"
+    ],
+    [
+      "scripts/native-scene-worker.mjs",
+      "c9fdeb53f010be5b70a29371a7305be0039e30a8a0660e9f36d237a006905d7c"
+    ]
+  ],
+  "inputHash": "6291047b879df23d1ad295f0273fa9ab09821aefe53c212de58609a466b7df0a",
+  "sceneId": "scene-01",
+  "sourceRevisionId": "rev-b44493edd705d413",
+  "globalSeconds": 1.3666666666666667,
+  "image": "frames/frame-00-at-1.367s.png",
+  "imageHash": "b4639daf9d5aee5dddb3a74440ff684c451419623ed566c28ce7c8203d7be109",
+  "engineering": "static-frame-checked",
+  "checkScope": {
+    "kind": "static-keyframe",
+    "atSeconds": 1.3666666666666667,
+    "fullTimeline": "pending-assembly",
+    "mediaExtraction": "checked"
+  },
+  "animation": "not-yet-authored",
+  "folder": "keyframes/scene-01-6291047b879df23d",
+  "review": {
+    "issues": [
+      {
+        "severity": "major",
+        "repairKind": "layout",
+        "problem": "在 scene-01 的合成关键帧（1.367秒）中，源片已有的居中标题“MiJia Compact Camera”与新增文字对象 node-867f8489a104a461 同时显示，形成重叠、错位的双重标题；新增文字遮挡并破坏源标题的清晰层级。",
+        "repair": "删除或隐藏新增文字对象 node-867f8489a104a461，保留源标题卡中的原生文字；若必须使用可编辑标题，则改用无标题的真实源区间并仅保留一个独立文字层。复核 1.367 秒关键帧及整段 0.000–2.967 秒，确认无重复文字且标题可读。"
+      },
+      {
+        "severity": "minor",
+        "repairKind": "text-evidence",
+        "problem": "当前静态关键帧无法证明标题源片中的品牌字样与新增文字层需要同时存在；新增层虽与源片文字内容一致，但造成视觉重复。",
+        "repair": "将源片自带文字明确标记为源烧录内容，不再重复叠加同文案；在源索引中保留 0.500–3.467 秒边界和对应关键帧证据。"
+      },
+      {
+        "severity": "minor",
+        "repairKind": "layout",
+        "problem": "合成画面中的标题字级和位置明显大于源片标题，导致画面主次失衡并削弱极简标题卡的可读性。",
+        "repair": "采用单一标题层并恢复居中安全布局；验证 1920×1080 画幅下文字不越界、不遮挡主体。"
+      }
+    ],
+    "summary": "已检查 scene-01 的源入点、末帧及 1.367 秒未包装源画面与合成关键帧。主要问题是源标题与新增同文案文字重复叠加，需移除重复层并复核整段标题卡。未提供音频证据，因此声音与同步未评。"
+  },
+  "sourceHash": "e2dfc8ba8647be7d796f176230c7a7efc7aeef40a4bc3a38bb031d7d32d10a7d"
+}

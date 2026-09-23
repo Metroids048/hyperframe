@@ -1,0 +1,540 @@
+{
+  "capabilities": [
+    "image-observation",
+    "video-source-selection",
+    "native-composition",
+    "managed-original",
+    "local-preview-review",
+    "native-editing"
+  ],
+  "constraints": [
+    "仅使用现有三条首饰视频，不生成新商品图片或镜头。",
+    "先核对项链与戒指的外形和身份；输入中的统一productId不能作为同款证据。",
+    "不同款不得混为同一件，同件商品跨镜头保持一致。",
+    "保持真实颜色，不推测贵金属成分、价格或品牌。",
+    "约30秒，1080×1920竖屏；横屏素材适配须保护首饰主体与佩戴关系。",
+    "使用已有授权的轻音乐，少量文字，不加旁白。",
+    "仅用于内部能力演示，不暗示人物为用户或任何品牌代言。",
+    "本轮仅理解需求，不生成分镜、源码或声称完成制作。"
+  ],
+  "gaps": [
+    "尚无实际画面观察证据，项链与戒指的身份、同款一致性及组合—单品—佩戴关系的内容覆盖待核对。",
+    "两条横屏素材的竖屏适配余量与主体保护范围待观察。",
+    "输入未列出轻音乐资源及对应授权记录，需从已有授权资源中定位可用音轨。",
+    "视频权利字段仅为user-provided，尚无完整权利证据；内部演示不等于获得公开发布或人物代言授权。"
+  ],
+  "keepOriginalAudio": false,
+  "needsCaptions": false,
+  "needsNarration": false,
+  "needsTranscription": false,
+  "request": {
+    "cta": "",
+    "facts": [],
+    "name": "首饰组合搭配展示",
+    "output": {
+      "width": 1080,
+      "height": 1920,
+      "durationSeconds": 30,
+      "fps": 30
+    },
+    "price": ""
+  },
+  "scenarioId": "product_collection",
+  "workflow": {
+    "assumptions": [
+      "按新建组合展示处理；已有项目标识用于承载工程，不代表存在可复用母版。",
+      "少量文字默认采用独立可编辑说明文字，不添加逐字字幕。",
+      "三条源视频均无音轨，无需保留原声或转写；按明确要求配置已有授权轻音乐。",
+      "横屏素材优先采用保护主体的适配方式，具体裁切或留边待素材观察决定。"
+    ],
+    "gaps": [
+      "尚不能将项链、戒指及其不同出现位置绑定至具体源区间；素材观察后建立身份与源时间映射。",
+      "轻音乐目标ID未知，相关要求的targetIds留空，待定位已有授权音轨。",
+      "尚未验证真实素材足以完成约30秒的指定展示顺序，不以重复或无意义慢放凑时长。"
+    ],
+    "objective": "让内部演示观看者看清首饰组合、各单品及佩戴关系，同时保持商品身份与真实颜色可信。",
+    "overrides": [],
+    "requirements": [
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "resource",
+        "quote": "用这三条首饰视频",
+        "startSeconds": null,
+        "targetIds": [
+          "asset-5bed5fa6-aff4-4432-9819-bbd9e45610de",
+          "asset-c3b7ccd1-e51b-4aa4-a755-1905322101e3",
+          "asset-d15b0f6b-da27-45c0-b2c3-404512dee173"
+        ]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "goal",
+        "quote": "约30秒",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "goal",
+        "quote": "竖屏搭配展示",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "goal",
+        "quote": "先看组合，再看各单品，最后回到佩戴关系",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "goal",
+        "quote": "先核对视频中项链与戒指的外形和身份",
+        "startSeconds": null,
+        "targetIds": [
+          "asset-5bed5fa6-aff4-4432-9819-bbd9e45610de",
+          "asset-c3b7ccd1-e51b-4aa4-a755-1905322101e3",
+          "asset-d15b0f6b-da27-45c0-b2c3-404512dee173"
+        ]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "prohibit",
+        "quote": "不同款不要混成同一件",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "画面保持真实颜色",
+        "startSeconds": null,
+        "targetIds": [
+          "asset-5bed5fa6-aff4-4432-9819-bbd9e45610de",
+          "asset-c3b7ccd1-e51b-4aa4-a755-1905322101e3",
+          "asset-d15b0f6b-da27-45c0-b2c3-404512dee173"
+        ]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "prohibit",
+        "quote": "不推测贵金属成分、价格或品牌",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "同件商品的画面要一致",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "resource",
+        "quote": "使用已有授权的轻音乐",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "goal",
+        "quote": "文字少",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "prohibit",
+        "quote": "不加旁白",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "goal",
+        "quote": "这是内部能力演示",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "prohibit",
+        "quote": "人物不代表为我们或某品牌代言",
+        "startSeconds": null,
+        "targetIds": []
+      }
+    ],
+    "taskMode": "create"
+  },
+  "productionBinding": {
+    "message": "用这三条首饰视频做约30秒竖屏搭配展示：先看组合，再看各单品，最后回到佩戴关系。先核对视频中项链与戒指的外形和身份，不同款不要混成同一件。画面保持真实颜色，不推测贵金属成分、价格或品牌；同件商品的画面要一致，使用已有授权的轻音乐，文字少，不加旁白。这是内部能力演示，人物不代表为我们或某品牌代言。",
+    "contract": {
+      "schemaVersion": 1,
+      "profile": "commerce-focus-v1",
+      "scenarioId": "product_collection",
+      "originalRequest": "用这三条首饰视频做约30秒竖屏搭配展示：先看组合，再看各单品，最后回到佩戴关系。先核对视频中项链与戒指的外形和身份，不同款不要混成同一件。画面保持真实颜色，不推测贵金属成分、价格或品牌；同件商品的画面要一致，使用已有授权的轻音乐，文字少，不加旁白。这是内部能力演示，人物不代表为我们或某品牌代言。",
+      "taskMode": "create",
+      "workflowProfile": "create",
+      "workflow": {
+        "version": 1,
+        "taskMode": "create",
+        "taskModeExplicit": false,
+        "workflowProfile": "create",
+        "businessScenario": "product_collection",
+        "baseProjectId": "504ff9a1-f8f1-466a-99a0-3bdd82862262",
+        "baseRevisionId": null,
+        "assetScope": [
+          "asset-5bed5fa6-aff4-4432-9819-bbd9e45610de",
+          "asset-c3b7ccd1-e51b-4aa4-a755-1905322101e3",
+          "asset-d15b0f6b-da27-45c0-b2c3-404512dee173"
+        ],
+        "originalRequest": "用这三条首饰视频做约30秒竖屏搭配展示：先看组合，再看各单品，最后回到佩戴关系。先核对视频中项链与戒指的外形和身份，不同款不要混成同一件。画面保持真实颜色，不推测贵金属成分、价格或品牌；同件商品的画面要一致，使用已有授权的轻音乐，文字少，不加旁白。这是内部能力演示，人物不代表为我们或某品牌代言。",
+        "requirements": [
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "resource",
+            "quote": "用这三条首饰视频",
+            "startSeconds": null,
+            "targetIds": [
+              "asset-5bed5fa6-aff4-4432-9819-bbd9e45610de",
+              "asset-c3b7ccd1-e51b-4aa4-a755-1905322101e3",
+              "asset-d15b0f6b-da27-45c0-b2c3-404512dee173"
+            ],
+            "id": "requirement-16e0824471cc8d5b",
+            "field": "resource",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "goal",
+            "quote": "约30秒",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-4e654f6f8610fc1b",
+            "field": "goal",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "goal",
+            "quote": "竖屏搭配展示",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-663e79ee2cffd7f1",
+            "field": "goal",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "goal",
+            "quote": "先看组合，再看各单品，最后回到佩戴关系",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-ed6ae023139fe0a1",
+            "field": "goal",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "goal",
+            "quote": "先核对视频中项链与戒指的外形和身份",
+            "startSeconds": null,
+            "targetIds": [
+              "asset-5bed5fa6-aff4-4432-9819-bbd9e45610de",
+              "asset-c3b7ccd1-e51b-4aa4-a755-1905322101e3",
+              "asset-d15b0f6b-da27-45c0-b2c3-404512dee173"
+            ],
+            "id": "requirement-1e67ed967eee00a2",
+            "field": "goal",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "prohibit",
+            "quote": "不同款不要混成同一件",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-822cd7b939a9e8c3",
+            "field": "prohibit",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "preserve",
+            "quote": "画面保持真实颜色",
+            "startSeconds": null,
+            "targetIds": [
+              "asset-5bed5fa6-aff4-4432-9819-bbd9e45610de",
+              "asset-c3b7ccd1-e51b-4aa4-a755-1905322101e3",
+              "asset-d15b0f6b-da27-45c0-b2c3-404512dee173"
+            ],
+            "id": "requirement-56185f6f26d7b9de",
+            "field": "preserve",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "prohibit",
+            "quote": "不推测贵金属成分、价格或品牌",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-1990c66e2b006295",
+            "field": "prohibit",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "preserve",
+            "quote": "同件商品的画面要一致",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-e00312913cad7146",
+            "field": "preserve",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "resource",
+            "quote": "使用已有授权的轻音乐",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-9e8a21b68b6e0583",
+            "field": "sound.music",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "goal",
+            "quote": "文字少",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-b7851f247f4d4324",
+            "field": "goal",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "prohibit",
+            "quote": "不加旁白",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-20ec9ec4a42fab2e",
+            "field": "sound.narration",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "goal",
+            "quote": "这是内部能力演示",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-61f9495b14bb85fe",
+            "field": "goal",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "prohibit",
+            "quote": "人物不代表为我们或某品牌代言",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-bec7861500f29846",
+            "field": "prohibit",
+            "inherited": false
+          }
+        ],
+        "assumptions": [
+          "按新建组合展示处理；已有项目标识用于承载工程，不代表存在可复用母版。",
+          "少量文字默认采用独立可编辑说明文字，不添加逐字字幕。",
+          "三条源视频均无音轨，无需保留原声或转写；按明确要求配置已有授权轻音乐。",
+          "横屏素材优先采用保护主体的适配方式，具体裁切或留边待素材观察决定。"
+        ],
+        "gaps": [
+          "尚不能将项链、戒指及其不同出现位置绑定至具体源区间；素材观察后建立身份与源时间映射。",
+          "轻音乐目标ID未知，相关要求的targetIds留空，待定位已有授权音轨。",
+          "尚未验证真实素材足以完成约30秒的指定展示顺序，不以重复或无意义慢放凑时长。"
+        ],
+        "interpretation": "validated-semantic-analysis",
+        "objective": "让内部演示观看者看清首饰组合、各单品及佩戴关系，同时保持商品身份与真实颜色可信。",
+        "contractId": "contract-885ec65b677cb18f",
+        "parentContractId": null,
+        "sourceRequests": [
+          "用这三条首饰视频做约30秒竖屏搭配展示：先看组合，再看各单品，最后回到佩戴关系。先核对视频中项链与戒指的外形和身份，不同款不要混成同一件。画面保持真实颜色，不推测贵金属成分、价格或品牌；同件商品的画面要一致，使用已有授权的轻音乐，文字少，不加旁白。这是内部能力演示，人物不代表为我们或某品牌代言。"
+        ],
+        "requirementChanges": [],
+        "changeTargets": [],
+        "preserveTargets": [
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "preserve",
+            "quote": "画面保持真实颜色",
+            "startSeconds": null,
+            "targetIds": [
+              "asset-5bed5fa6-aff4-4432-9819-bbd9e45610de",
+              "asset-c3b7ccd1-e51b-4aa4-a755-1905322101e3",
+              "asset-d15b0f6b-da27-45c0-b2c3-404512dee173"
+            ],
+            "id": "requirement-56185f6f26d7b9de",
+            "field": "preserve",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "preserve",
+            "quote": "同件商品的画面要一致",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-e00312913cad7146",
+            "field": "preserve",
+            "inherited": false
+          }
+        ],
+        "resourceNeeds": [
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "resource",
+            "quote": "用这三条首饰视频",
+            "startSeconds": null,
+            "targetIds": [
+              "asset-5bed5fa6-aff4-4432-9819-bbd9e45610de",
+              "asset-c3b7ccd1-e51b-4aa4-a755-1905322101e3",
+              "asset-d15b0f6b-da27-45c0-b2c3-404512dee173"
+            ],
+            "id": "requirement-16e0824471cc8d5b",
+            "field": "resource",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "resource",
+            "quote": "使用已有授权的轻音乐",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-9e8a21b68b6e0583",
+            "field": "sound.music",
+            "inherited": false
+          }
+        ],
+        "prohibitions": [
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "prohibit",
+            "quote": "不同款不要混成同一件",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-822cd7b939a9e8c3",
+            "field": "prohibit",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "prohibit",
+            "quote": "不推测贵金属成分、价格或品牌",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-1990c66e2b006295",
+            "field": "prohibit",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "prohibit",
+            "quote": "不加旁白",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-20ec9ec4a42fab2e",
+            "field": "sound.narration",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "prohibit",
+            "quote": "人物不代表为我们或某品牌代言",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-bec7861500f29846",
+            "field": "prohibit",
+            "inherited": false
+          }
+        ]
+      },
+      "persona": {
+        "creator": "商家／内容运营（待用户研究验证）",
+        "viewer": "首次了解商品的消费者"
+      },
+      "objective": "理解多款商品的搭配与系列关系",
+      "product": {
+        "id": "product-1",
+        "name": "首饰组合搭配展示",
+        "facts": [],
+        "price": null,
+        "cta": "",
+        "audience": null,
+        "prohibited": []
+      },
+      "output": {
+        "width": 1080,
+        "height": 1920,
+        "durationSeconds": 30,
+        "fps": 30
+      },
+      "audio": "unspecified",
+      "mustHave": [],
+      "mustNot": [],
+      "explicitConstraints": {
+        "schemaVersion": 1,
+        "originalRequest": "用这三条首饰视频做约30秒竖屏搭配展示：先看组合，再看各单品，最后回到佩戴关系。先核对视频中项链与戒指的外形和身份，不同款不要混成同一件。画面保持真实颜色，不推测贵金属成分、价格或品牌；同件商品的画面要一致，使用已有授权的轻音乐，文字少，不加旁白。这是内部能力演示，人物不代表为我们或某品牌代言。",
+        "narration": "forbidden",
+        "music": "unspecified",
+        "original": "unspecified",
+        "price": "unspecified",
+        "silent": false
+      },
+      "generatedFootageAllowed": false,
+      "deliverables": [
+        "candidate_mp4",
+        "editable_project",
+        "source_index",
+        "quality_report"
+      ]
+    }
+  }
+}
