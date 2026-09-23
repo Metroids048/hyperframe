@@ -1,0 +1,256 @@
+{
+  "selected": [
+    {
+      "id": "lt-mask-reveal",
+      "reason": "步骤引导（第一步/第二步/第三步）与操作说明以可编辑下三分之一标签叠加在持续实拍之上，不遮挡关键动作、可避开源浮层，直接匹配 operation_step/step-guide 功能；无需文字全屏接管。"
+    },
+    {
+      "id": "video-text-pivot",
+      "reason": "真实操作与可见特点镜头需要实拍视频保持主体、文字/说明在让位处进入（hero_media 与 operation_step），适合开箱过程与机身/屏幕特写的画-文节奏。"
+    },
+    {
+      "id": "caption-editorial-emphasis",
+      "reason": "中文同步字幕，严格对齐旁白测量时间轴、置于底部字幕安全区，匹配 caption 功能且不覆盖源动作。"
+    },
+    {
+      "id": "titlecard-reveal",
+      "reason": "承载标题「掌机开箱：便携游戏体验」与收尾锁定的独立可改文字卡，低动效、可编辑，匹配 title/ending 组件。"
+    }
+  ],
+  "originalNeeds": [
+    "竖屏 1080×1920 原生裁切与源平台浮层（Like what you see? / Enjoy my content? / Stay notified! / LIKED）逐帧避让构图：safeCrop 合同留空，需以原生裁切/重构处理，字幕与主体避开浮层。",
+    "局部放大（局部裁切/缩放并稳定）用于包装盒、黑色收纳包、掌机机身与屏幕等可见特点与特写镜头。",
+    "音频原生编辑：源声轨在旁白段执行 ducking（压低）、旁白间隙恢复，以解决源 opus 声轨与新增中文旁白的时间重叠掩蔽。",
+    "中文旁白合成（narration.prepare，真实供应商调用并测量）与字幕时间轴严格对齐；能力可用不等于已成功合成。",
+    "9 段互不重复源区间的原生剪接与 45s 时间线编排（Hook＋3 可见特点各配局部放大＋真实操作＋局部放大特写＋3 步步骤引导）。"
+  ],
+  "gaps": [
+    "无授权 BGM 音源：需求要求科技感 BGM 未满足；按用户明确授权以「源素材原声轨＋中文旁白 ducking」做可审计降级交付，不得生成/检索/合成音乐，须在 quality_report 记为未满足项（非阻塞）。",
+    "关键动作精确起止帧未逐帧确认（加密抽帧约 0.8s 间隔），掀盖/取内盒/剪封/取物首末帧仍为插值估计。",
+    "17.62–23.84s 真实动作为「剪刀剪开白色盒封口→取出黑色电源适配器与线缆」，与原分镜「取说明卡」及旁白「说明书和内衬」不一致，该物件身份未逐帧确认；字幕/旁白不得据为事实。",
+    "帧率记录存在不一致：观察/manifest 记 60fps，而 asset metadata.sourceFps 为 30/1；需以实际媒体为准，避免按记录误设时间轴。",
+    "平台浮层位置随时间变化，竖屏裁切避让框无法按帧锁定，safeCrop 依合同留空。",
+    "23.84–28.13s 与 46.29–60.15s 两段未加密抽样，存在未观察到的动作与切点盲区，相关镜头不得据文件名或预期补写。",
+    "盒盖内侧多语言印刷、盒面/卡面小字内容未能辨读，「掌机线稿/标语」仅为宏观可辨识描述，不作文本事实写入。",
+    "listening 能力不可用：缺人工听审，候选与音频评审为待人工确认状态（保留源声、不臆造语音字幕），属评审限制而非素材缺失。"
+  ],
+  "blockingGaps": [],
+  "candidates": [
+    {
+      "id": "lt-mask-reveal",
+      "tags": [
+        "video",
+        "action",
+        "text",
+        "操作",
+        "实拍",
+        "口播",
+        "标签",
+        "文字"
+      ],
+      "inputs": [
+        "video"
+      ],
+      "description": "Transparent editable lower-third over continuing footage; no stat, price, or full-screen text takeover is required. Adapt the wipe and accent sweep to approved native text, local fonts and the managed timeline.",
+      "files": [
+        "registry/blocks/lt-mask-reveal/registry-item.json",
+        "registry/blocks/lt-mask-reveal/lt-mask-reveal.html"
+      ],
+      "requirements": {
+        "minMedia": 1,
+        "mediaKinds": [
+          "video"
+        ],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 3,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "grid-card-assemble",
+      "tags": [
+        "image",
+        "details",
+        "steps",
+        "参数",
+        "配件",
+        "步骤"
+      ],
+      "inputs": [],
+      "files": [
+        "skills/hyperframes-animation/blueprints/grid-card-assemble.md",
+        "skills/hyperframes-animation/rules/gsap-effects.md"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 3,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "comparison-split",
+      "tags": [
+        "compare",
+        "detail",
+        "image",
+        "比较",
+        "细节",
+        "双栏"
+      ],
+      "inputs": [
+        "visual-pair"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/comparison-split.md",
+        "skills/hyperframes-animation/rules/split-tilt-cards.md",
+        "registry/components/comparison-split/registry-item.json",
+        "registry/components/comparison-split/comparison-split.html"
+      ],
+      "requirements": {
+        "minMedia": 2,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": false,
+      "score": 2,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "video-text-pivot",
+      "tags": [
+        "video",
+        "action",
+        "操作",
+        "实拍",
+        "讲解"
+      ],
+      "inputs": [
+        "video"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/video-text-pivot.md",
+        "skills/hyperframes-animation/rules/gsap-effects.md"
+      ],
+      "requirements": {
+        "minMedia": 1,
+        "mediaKinds": [
+          "video"
+        ],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "occluding",
+      "compatible": true,
+      "eligible": true,
+      "score": 2,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "kinetic-type-beats",
+      "tags": [
+        "text",
+        "caption",
+        "文字",
+        "字幕",
+        "强调"
+      ],
+      "inputs": [
+        "text"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/kinetic-type-beats.md",
+        "skills/hyperframes-animation/rules/discrete-text-sequence.md"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "occluding",
+      "compatible": true,
+      "eligible": true,
+      "score": 2,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "caption-editorial-emphasis",
+      "tags": [
+        "caption",
+        "speech",
+        "字幕",
+        "口播",
+        "强调"
+      ],
+      "inputs": [
+        "text"
+      ],
+      "description": "Editable editorial text emphasis; align spoken captions to measured transcript timestamps, never invented timing.",
+      "files": [
+        "registry/components/caption-editorial-emphasis/registry-item.json",
+        "registry/components/caption-editorial-emphasis/caption-editorial-emphasis.html"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 1,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "titlecard-reveal",
+      "tags": [
+        "title",
+        "brand",
+        "text",
+        "收尾",
+        "标题"
+      ],
+      "inputs": [],
+      "files": [
+        "skills/hyperframes-animation/blueprints/titlecard-reveal.md",
+        "skills/hyperframes-animation/rules/discrete-text-sequence.md"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 1,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    }
+  ],
+  "originalRequest": "原始需求：继续同一项目 c6cd5bb8-f3b8-4a49-a03e-6b45e16726b5，不新建工程、不重新上传素材。请通过 observe 阶段（观察记录按每个被使用素材一条，OBS-1 已提供：asset-e8779cc0-0dba-4f37-a3a3-218c25440e01，工作目录相对路径 data/result-completion-projects/c6cd5bb8-f3b8-4a49-a03e-6b45e16726b5/uploads/asset-e8779cc0-0dba-4f37-a3a3-218c25440e01.webm，72.663s/1920×1080/60fps/含 opus 音轨，sha256 4d7ad9fa…），并继续 timing → 字幕 → 渲染，输出真实 revision 与 MP4。\n\n【BGM 降级授权（审计要求）】本工程没有已授权的 BGM/音乐资产。按既定可审计降级执行：\n- 不生成、不检索、不引入任何未授权音乐；不得凭空合成 BGM。\n- 音频轨 = 源素材原声轨 + 中文旁白。\n- 在旁白段对源声轨执行 ducking（压低），旁白间隙恢复。\n- 在 quality_report 中明确记录「BGM 缺口」：需求要求科技感 BGM，但无授权资产，故以可审计降级交付（原声 + 旁白 ducking），BGM 为未满足项。\n\n【沿用分镜 9 镜头（源区间互不重复）】1 Hook 纸盒开箱 1.4–6.4s；2 可见特点1 外包装盒 29.3–34.3s（局部放大）；3 可见特点2 黑色拉链收纳包 34.9–39.9s（局部放大）；4 可见特点3 掌机机身与屏幕 46.1–51.1s（局部放大）；5 真实操作 取物 40.5–45.5s；6 局部放大特写 机身 62.9–67.9s；7 步骤引导第1步 掀盒盖 7.0–12.0s；8 第2步 取内盒 12.6–17.6s；9 第3步 取说明卡 18.2–23.2s。\n\n【中文旁白台词（逐镜对齐，总 45s，仅描述真实可见内容）】1)\"掌机开箱，便携游戏体验，一起来看。\" 2)\"首先是白色包装盒，盒面印有掌机线稿和标语。\" 3)\"随附一个黑色拉链收纳包，包面上有圆形标志。\" 4)\"这是黑色掌机本体，正面屏幕和两侧按键清晰可见。\" 5)\"打开盒子，从里面取出物件。\" 6)\"把机身和屏幕的细节放大给你看。\" 7)\"第一步，掀开盒盖。\" 8)\"第二步，取出里面的白色内盒。\" 9)\"第三步，取出说明书和内衬。\"\n\n【同步中文字幕】严格对齐上述旁白时间轴。\n\n【画声冲突依据（ducking 决策）】源素材自带 opus 音轨与新增中文旁白时间重叠、互相掩蔽，构成真实画声冲突；旁白段压低源声轨，间隙恢复。\n\n【其余不变】竖屏 1080×1920、总时长 45 秒、6–9 镜头（≥5 段互不重复源区间）、Hook＋3 个可见特点（各配局部放大）＋真实操作＋局部放大特写＋步骤引导、标题「掌机开箱：便携游戏体验」；不编造任何参数/功能/卖点；保留可编辑工程（项目与修订）并输出新的 MP4 成品。\n澄清问题：请先打开要修改或派生的原生工程。\n用户补充：继续同一项目 c6cd5bb8-f3b8-4a49-a03e-6b45e16726b5，不新建工程、不重传素材。用户已就「无授权 BGM」给出明确授权：不要再等待新的音乐素材，直接继续既定可审计降级。\n\n【本次明确授权（请勿再因 BGM 停在 NEEDS_INPUT）】本工程无已授权音乐资产。按可审计降级执行且不隐式生成/检索乐库：音频轨 = 源素材原声轨 + 中文旁白；旁白段对源声轨执行 ducking（压低），旁白间隙恢复。在 quality_report 中明确记录「BGM 缺口（科技感 BGM 未满足，缺授权音源）」。\n\n【请完成】observe（OBS-1 已提供）→ 分镜 → timing 节奏编排 → 同步中文字幕 → 渲染，输出真实的 revision 与 MP4 成品。\n\n【观察记录 OBS-1】asset-e8779cc0-0dba-4f37-a3a3-218c25440e01，工作目录相对路径 data/result-completion-projects/c6cd5bb8-f3b8-4a49-a03e-6b45e16726b5/uploads/asset-e8779cc0-0dba-4f37-a3a3-218c25440e01.webm，72.663s/1920×1080/60fps/含 opus 音轨，sha256 4d7ad9fac8526c38b4b029585817d52e4504707406f3f6632ab4e99be55427ef。逐段真实可见：1.4–6.4s 蓝色垫面平放未开封纸盒、手指自左入画（源浮层 “Like what you see?” 避让）；7.0–12.0s 掀开盒盖露出浅色内衬；12.6–17.6s 取出白色内盒/内衬；18.2–23.2s 取出纸质说明卡/内衬；29.3–34.3s 手托白色包装盒（盒面文字与掌机线稿，旁置黑色收纳包）；34.9–39.9s 双手托起带拉链黑色收纳包（包面圆形标志）；40.5–45.5s 盒内一只手取放物件；46.1–51.1s 手持黑色掌机（正面屏幕与两侧按键可见）；62.9–67.9s 手持掌机举向镜头（源浮层 “Enjoy my content?” 避让）。唯一被使用素材。\n\n【分镜 9 镜头（源区间互不重复）】1 Hook 纸盒开箱 1.4–6.4s；2 可见特点1 外包装盒 29.3–34.3s（局部放大）；3 可见特点2 黑色拉链收纳包 34.9–39.9s（局部放大）；4 可见特点3 掌机机身与屏幕 46.1–51.1s（局部放大）；5 真实操作 取物 40.5–45.5s；6 局部放大特写 机身 62.9–67.9s；7 步骤引导第1步 掀盒盖 7.0–12.0s；8 第2步 取内盒 12.6–17.6s；9 第3步 取说明卡 18.2–23.2s。\n\n【中文旁白台词（逐镜对齐，总 45s）】1)\"掌机开箱，便携游戏体验，一起来看。\" 2)\"首先是白色包装盒，盒面印有掌机线稿和标语。\" 3)\"随附一个黑色拉链收纳包，包面上有圆形标志。\" 4)\"这是黑色掌机本体，正面屏幕和两侧按键清晰可见。\" 5)\"打开盒子，从里面取出物件。\" 6)\"把机身和屏幕的细节放大给你看。\" 7)\"第一步，掀开盒盖。\" 8)\"第二步，取出里面的白色内盒。\" 9)\"第三步，取出说明书和内衬。\"\n\n【同步中文字幕】严格对齐上述旁白时间轴。【ducking 依据】源声轨与新增中文旁白时间重叠、互相掩蔽，构成真实画声冲突，故旁白段压低源声轨、间隙恢复。\n\n【其余不变】竖屏 1080×1920、总时长 45 秒、6–9 镜头（≥5 段互不重复源区间）、Hook＋3 个可见特点（各配局部放大）＋真实操作＋局部放大特写＋步骤引导，标题「掌机开箱：便携游戏体验」；不编造任何参数/功能/卖点；保留可编辑工程并输出新的 MP4 成品。",
+  "assetKinds": {
+    "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01": "video"
+  }
+}

@@ -1,0 +1,1076 @@
+{
+  "projectId": "1ae65883-a821-437b-be46-1ea4e7e0eebe",
+  "job": {
+    "id": "job-90de01fb-0bf9-4784-b9f9-9e79c4a55b70",
+    "kind": "edit",
+    "input": {
+      "action": "patch",
+      "message": "只把最后一句字幕的字号设为32，位置、文字、时间、其他字幕和全部声音画面保持不变。",
+      "taskMode": "edit",
+      "taskModeExplicit": true,
+      "workflowProfile": "detail",
+      "selectedNodeId": null,
+      "projectId": "1ae65883-a821-437b-be46-1ea4e7e0eebe",
+      "baseRevisionId": "rev-7f45dfedfa9e78b8",
+      "idempotencyKey": "6411603b-e823-4c75-b0d0-b9741b97f57c",
+      "routeDecision": {
+        "assetIds": [],
+        "mode": "edit",
+        "preserve": [
+          "unmentioned-objects",
+          "source-assets",
+          "revision-history",
+          "最后一句字幕的位置、文字、时间及字号以外的样式",
+          "其他字幕",
+          "全部声音和画面"
+        ],
+        "question": "",
+        "quote": "只把最后一句字幕的字号设为32，位置、文字、时间、其他字幕和全部声音画面保持不变。",
+        "reason": "本轮仅要求设置最后一句字幕字号，属于局部编辑。目标字幕当前fontSize已为32，要求已满足，无需实际修改；本轮未明确业务目的，不沿用界面场景选择。",
+        "revisionId": null,
+        "scenarioId": null,
+        "targets": [
+          {
+            "id": "cue-d18b235a237e72cf",
+            "kind": "caption",
+            "requirement": "只把最后一句字幕的字号设为32"
+          }
+        ],
+        "source": "semantic",
+        "model": "gpt-6-astra",
+        "baseRevisionId": "rev-7f45dfedfa9e78b8",
+        "version": 1,
+        "message": "只把最后一句字幕的字号设为32，位置、文字、时间、其他字幕和全部声音画面保持不变。",
+        "scenario": "product_detail",
+        "executionStrategy": "L2",
+        "confidence": 0.8,
+        "fallback": {
+          "version": 1,
+          "categories": [
+            "missing_evidence",
+            "ambiguous_target",
+            "unsupported_capability",
+            "resource_incompatible",
+            "provider_unavailable",
+            "quality_failure",
+            "revision_conflict"
+          ],
+          "maxReplans": 2,
+          "identicalFailureLimit": 2,
+          "preserveCurrentRevision": true,
+          "allowSilentSubstitution": false,
+          "steps": [
+            "retry-same-capability",
+            "safe-equivalent-execution",
+            "retain-valid-revision",
+            "report-failed-targets",
+            "repair-only-gap"
+          ],
+          "classifiers": [
+            [
+              "revision_conflict",
+              "REVISION_CONFLICT|STALE_REVISION"
+            ],
+            [
+              "provider_unavailable",
+              "^(MINIMAX_|CODEX_|PROVIDER_)"
+            ],
+            [
+              "resource_incompatible",
+              "RESOURCE_|INCOMPATIBLE"
+            ],
+            [
+              "unsupported_capability",
+              "UNSUPPORTED|CAPABILITY|VOICE_NOT_FOUND"
+            ],
+            [
+              "ambiguous_target",
+              "AMBIGUOUS|SCOPE|TARGET|CONFLICT|CAPTION_ALIGNMENT_REQUIRED"
+            ],
+            [
+              "missing_evidence",
+              "MISSING|NEEDS_INPUT|INSUFFICIENT|SPEECH_SCRIPT_REQUIRED|NO_SPEECH|NO_CAPTION_AUDIO"
+            ]
+          ]
+        },
+        "selectedSkills": [
+          "speech-captions",
+          "visual-composition",
+          "audio-mix",
+          "hyperframes",
+          "commerce-promo",
+          "conversation-edit"
+        ],
+        "skillReasons": {
+          "speech-captions": [
+            "target:caption",
+            "request-evidence"
+          ],
+          "visual-composition": [
+            "request-evidence"
+          ],
+          "audio-mix": [
+            "request-evidence"
+          ],
+          "conversation-edit": [
+            "existing-revision"
+          ],
+          "hyperframes": [
+            "native-document"
+          ],
+          "commerce-promo": [
+            "native-business-contract"
+          ]
+        }
+      },
+      "workflow": {
+        "version": 1,
+        "taskMode": "edit",
+        "taskModeExplicit": true,
+        "workflowProfile": "edit",
+        "businessScenario": "product_detail",
+        "baseProjectId": "1ae65883-a821-437b-be46-1ea4e7e0eebe",
+        "baseRevisionId": "rev-7f45dfedfa9e78b8",
+        "assetScope": [
+          "asset-391904f8-3296-4c11-ba15-00b521adea04",
+          "s02-still-side",
+          "s02-still-ports",
+          "voice-7a6509e33c8e1395",
+          "audio-67f3a4d4-329c-4356-a5b9-1a1510bfbe43",
+          "audio-3f21a8ec-64ad-4018-a118-4028416b3106",
+          "asset-1dfa607d-1fbd-456e-8e59-5b6911beff5e"
+        ],
+        "originalRequest": "只把最后一句字幕的字号设为32，位置、文字、时间、其他字幕和全部声音画面保持不变。",
+        "requirements": [
+          {
+            "kind": "goal",
+            "quote": "用这段显卡实拍做一条35秒横屏商品详情片，给关注外观和接口布局的装机用户看。",
+            "targetIds": [],
+            "excludeIds": [],
+            "startSeconds": null,
+            "endSeconds": null,
+            "id": "requirement-68da955722034efd",
+            "field": "goal",
+            "inherited": true
+          },
+          {
+            "kind": "goal",
+            "quote": "先让人认清完整商品，再讲清画面里真实可见的正面风扇、侧面外壳和接口布局，最后把局部与整体的关系收回来。",
+            "targetIds": [],
+            "excludeIds": [],
+            "startSeconds": null,
+            "endSeconds": null,
+            "id": "requirement-8680bd135b82675b",
+            "field": "goal",
+            "inherited": true
+          },
+          {
+            "kind": "prohibit",
+            "quote": "不要剪成开箱教程，也不要只贴三个卖点标题",
+            "targetIds": [],
+            "excludeIds": [],
+            "startSeconds": null,
+            "endSeconds": null,
+            "id": "requirement-457a53232877a2de",
+            "field": "prohibit",
+            "inherited": true
+          },
+          {
+            "kind": "goal",
+            "quote": "需要清楚的整体与局部联动、部位说明和有阅读停留的画面。",
+            "targetIds": [],
+            "excludeIds": [],
+            "startSeconds": null,
+            "endSeconds": null,
+            "id": "requirement-351ea3f8d0f78244",
+            "field": "goal",
+            "inherited": true
+          },
+          {
+            "kind": "goal",
+            "quote": "按内容选择不同的版式和适量动效，商品始终是主体",
+            "targetIds": [],
+            "excludeIds": [],
+            "startSeconds": null,
+            "endSeconds": null,
+            "id": "requirement-7a76a8513b181522",
+            "field": "goal",
+            "inherited": true
+          },
+          {
+            "kind": "prohibit",
+            "quote": "文字与指示不能挡细节；移动画面不能用固定线条假装追踪。",
+            "targetIds": [],
+            "excludeIds": [],
+            "startSeconds": null,
+            "endSeconds": null,
+            "id": "requirement-3b5f778c1120e50a",
+            "field": "prohibit",
+            "inherited": true
+          },
+          {
+            "kind": "goal",
+            "quote": "整体采用清晰克制的科技设计，让不同信息层次、衔接和收尾达到精修成片水平。",
+            "targetIds": [],
+            "excludeIds": [],
+            "startSeconds": null,
+            "endSeconds": null,
+            "id": "requirement-d9442cf9e2c41787",
+            "field": "goal",
+            "inherited": true
+          },
+          {
+            "kind": "change",
+            "quote": "删除过暗等待、纯品牌片尾和无新增信息的重复",
+            "targetIds": [
+              "asset-391904f8-3296-4c11-ba15-00b521adea04"
+            ],
+            "excludeIds": [],
+            "startSeconds": null,
+            "endSeconds": null,
+            "id": "requirement-8194879ceab8ce5e",
+            "field": "change",
+            "inherited": true
+          },
+          {
+            "kind": "prohibit",
+            "quote": "不拉伸画面、不循环凑时长",
+            "targetIds": [],
+            "excludeIds": [],
+            "startSeconds": null,
+            "endSeconds": null,
+            "id": "requirement-3e2578a336f4e148",
+            "field": "prohibit",
+            "inherited": true
+          },
+          {
+            "kind": "preserve",
+            "quote": "保留有意义的转动动作完整。",
+            "targetIds": [
+              "asset-391904f8-3296-4c11-ba15-00b521adea04"
+            ],
+            "excludeIds": [],
+            "startSeconds": null,
+            "endSeconds": null,
+            "id": "requirement-1bf6280f447f35ce",
+            "field": "preserve",
+            "inherited": true
+          },
+          {
+            "kind": "resource",
+            "quote": "只使用这段现有视频",
+            "targetIds": [
+              "asset-391904f8-3296-4c11-ba15-00b521adea04"
+            ],
+            "excludeIds": [],
+            "startSeconds": null,
+            "endSeconds": null,
+            "id": "requirement-eea5cf20243fdf14",
+            "field": "resource",
+            "inherited": true
+          },
+          {
+            "kind": "prohibit",
+            "quote": "不生成新商品图片或镜头，不混入耳机或其他商品，不编性能、散热、噪声、尺寸、价格及未确认型号。",
+            "targetIds": [],
+            "excludeIds": [],
+            "startSeconds": null,
+            "endSeconds": null,
+            "id": "requirement-75edc5dd56825a9a",
+            "field": "prohibit",
+            "inherited": true
+          },
+          {
+            "kind": "change",
+            "quote": "加简短自然的中文说明旁白，台词只解释可见结构",
+            "targetIds": [],
+            "excludeIds": [],
+            "startSeconds": null,
+            "endSeconds": null,
+            "id": "requirement-5146c8e9fd9d763f",
+            "field": "sound.narration",
+            "inherited": true
+          },
+          {
+            "kind": "goal",
+            "quote": "字幕与真实声音同步",
+            "targetIds": [],
+            "excludeIds": [],
+            "startSeconds": null,
+            "endSeconds": null,
+            "id": "requirement-2acd6424d38daef9",
+            "field": "goal",
+            "inherited": true
+          },
+          {
+            "kind": "prohibit",
+            "quote": "不加背景音乐。",
+            "targetIds": [],
+            "excludeIds": [],
+            "startSeconds": null,
+            "endSeconds": null,
+            "id": "requirement-0ddf4c59670bb0d3",
+            "field": "sound.music",
+            "inherited": true
+          },
+          {
+            "kind": "resource",
+            "quote": "请自主观察选材、编排分镜、应用合适的本地HyperFrames资源",
+            "targetIds": [],
+            "excludeIds": [],
+            "startSeconds": null,
+            "endSeconds": null,
+            "id": "requirement-15895a5767cc96a7",
+            "field": "resource",
+            "inherited": true
+          },
+          {
+            "kind": "preserve",
+            "quote": "保留可编辑文字、部位说明、声音和原生工程。",
+            "targetIds": [],
+            "excludeIds": [],
+            "startSeconds": null,
+            "endSeconds": null,
+            "id": "requirement-8a05dc3ba97e85b2",
+            "field": "preserve",
+            "inherited": true
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "change",
+            "quote": "只把最后一句字幕的“回到整体”改为“回看整体”",
+            "startSeconds": null,
+            "targetIds": [
+              "cue-d18b235a237e72cf"
+            ],
+            "id": "requirement-c610f6bc52e17879",
+            "field": "change",
+            "inherited": true
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "preserve",
+            "quote": "所有旁白、配乐和画面不动",
+            "startSeconds": null,
+            "targetIds": [
+              "audio-1",
+              "audio-2",
+              "audio-3",
+              "audio-4",
+              "audio-4124aaefa824859c",
+              "audio-bc35f0a994d81023",
+              "scene-01",
+              "scene-02",
+              "scene-03",
+              "scene-04",
+              "scene-05",
+              "scene-06",
+              "scene-07",
+              "scene-08",
+              "scene-09",
+              "scene-10"
+            ],
+            "id": "requirement-60cd6fafb35790cb",
+            "field": "sound.music",
+            "inherited": true
+          },
+          {
+            "kind": "change",
+            "field": "edit.objects",
+            "quote": "再往上一点。",
+            "targetIds": [
+              "cue-d18b235a237e72cf"
+            ],
+            "excludeIds": [],
+            "id": "requirement-4ca442b3820ca9c7",
+            "inherited": true
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "preserve",
+            "quote": "现在让它稍小一些、颜色更柔和，便于读完；只调整这句字幕的字号和颜色，位置、文字、时间、其他字幕以及声音画面全部保留。",
+            "startSeconds": null,
+            "targetIds": [
+              "cue-d18b235a237e72cf"
+            ],
+            "id": "requirement-ee67fbb00d9e508a",
+            "field": "preserve",
+            "inherited": true
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "change",
+            "quote": "只调整这句字幕的字号和颜色",
+            "startSeconds": null,
+            "targetIds": [
+              "cue-d18b235a237e72cf"
+            ],
+            "id": "requirement-56f0b5e677c23e31",
+            "field": "change",
+            "inherited": true
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [
+              "cue-d18b235a237e72cf"
+            ],
+            "kind": "preserve",
+            "quote": "其他字幕",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-219434648e941de3",
+            "field": "preserve",
+            "inherited": true
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "preserve",
+            "quote": "声音画面全部保留",
+            "startSeconds": null,
+            "targetIds": [
+              "audio-1",
+              "audio-2",
+              "audio-3",
+              "audio-4",
+              "audio-4124aaefa824859c",
+              "audio-bc35f0a994d81023",
+              "scene-01",
+              "scene-02",
+              "scene-03",
+              "scene-04",
+              "scene-05",
+              "scene-06",
+              "scene-07",
+              "scene-08",
+              "scene-09",
+              "scene-10"
+            ],
+            "id": "requirement-764ab62ebd9a9bc1",
+            "field": "preserve",
+            "inherited": true
+          },
+          {
+            "endSeconds": 21.6,
+            "excludeIds": [],
+            "kind": "change",
+            "quote": "15.6至21.6秒长侧边这一幕",
+            "startSeconds": 15.6,
+            "targetIds": [
+              "scene-06"
+            ],
+            "id": "requirement-78e13611ff5cb0f4",
+            "field": "change",
+            "inherited": true
+          },
+          {
+            "endSeconds": 35,
+            "excludeIds": [],
+            "kind": "change",
+            "quote": "31至35秒片尾的视觉布局",
+            "startSeconds": 31,
+            "targetIds": [
+              "scene-10"
+            ],
+            "id": "requirement-72d4b1fc1389bddc",
+            "field": "change",
+            "inherited": true
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "preserve",
+            "quote": "35秒横屏",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-8e82d07082e07069",
+            "field": "preserve",
+            "inherited": true
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "preserve",
+            "quote": "所有声音",
+            "startSeconds": null,
+            "targetIds": [
+              "audio-1",
+              "audio-2",
+              "audio-3",
+              "audio-4",
+              "audio-4124aaefa824859c",
+              "audio-bc35f0a994d81023"
+            ],
+            "id": "requirement-d05b54673556054b",
+            "field": "preserve",
+            "inherited": true
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "preserve",
+            "quote": "字幕",
+            "startSeconds": null,
+            "targetIds": [
+              "s02-caption-1",
+              "s02-caption-2",
+              "s02-caption-3",
+              "s02-caption-4",
+              "s02-caption-5",
+              "cue-d18b235a237e72cf"
+            ],
+            "id": "requirement-d3545f914d3433cc",
+            "field": "preserve",
+            "inherited": true
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [
+              "scene-06",
+              "scene-10"
+            ],
+            "kind": "preserve",
+            "quote": "其余八幕保持",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-27b5ceb0d3b6484c",
+            "field": "preserve",
+            "inherited": true
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "change",
+            "quote": "整体窗完整适配，小局部窗只适度裁看矩形连接座，不能放大到比源片更糊",
+            "startSeconds": null,
+            "targetIds": [
+              "node-6f1976475f26930e"
+            ],
+            "id": "requirement-61f3c0ed7cfebce4",
+            "field": "change",
+            "inherited": true
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "goal",
+            "quote": "原片中连接座位于中上部偏右，以真实源帧核对",
+            "startSeconds": null,
+            "targetIds": [
+              "scene-06",
+              "asset-391904f8-3296-4c11-ba15-00b521adea04"
+            ],
+            "id": "requirement-01a9d693eae8b950",
+            "field": "goal",
+            "inherited": true
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "prohibit",
+            "quote": "不添加没有依据的精准跟踪箭头",
+            "startSeconds": null,
+            "targetIds": [
+              "scene-06"
+            ],
+            "id": "requirement-a1a46f6d0805a048",
+            "field": "prohibit",
+            "inherited": true
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "change",
+            "quote": "现有说明紧邻局部窗，底板随对应文字同时出现。",
+            "startSeconds": null,
+            "targetIds": [
+              "node-273cc21cd4ec3159",
+              "node-4a2ff51527d8e3b4"
+            ],
+            "id": "requirement-6ce963b58683f968",
+            "field": "change",
+            "inherited": true
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "preserve",
+            "quote": "片尾保持整体正面为主、两张既有细节图为辅",
+            "startSeconds": null,
+            "targetIds": [
+              "node-836609ad08c71a49",
+              "s02-end-side",
+              "s02-end-ports"
+            ],
+            "id": "requirement-90642bcb23777082",
+            "field": "preserve",
+            "inherited": true
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "change",
+            "quote": "三个标签分别增加01、02、03形成阅读顺序，统一排版，依次轻强调后稳定显示，底部留给原字幕。",
+            "startSeconds": null,
+            "targetIds": [
+              "node-bed21125458ac347",
+              "s02-end-side-label",
+              "s02-end-ports-label",
+              "scene-10"
+            ],
+            "id": "requirement-d6354d8119145b29",
+            "field": "change",
+            "inherited": true
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "change",
+            "quote": "请用原生可编辑对象完成这两幕",
+            "startSeconds": null,
+            "targetIds": [
+              "scene-06",
+              "scene-10"
+            ],
+            "id": "requirement-7ddcd8f1e709abe2",
+            "field": "change",
+            "inherited": true
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "change",
+            "quote": "现在将这个局部窗换成工程里已有、片尾也使用的同款长侧边源片静帧，左侧原视频继续保持不变。",
+            "startSeconds": null,
+            "targetIds": [
+              "scene-06",
+              "node-6f1976475f26930e"
+            ],
+            "id": "requirement-570ef683054fbc75",
+            "field": "change",
+            "inherited": true
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "change",
+            "quote": "只修长侧边说明这一幕的右侧局部窗",
+            "startSeconds": null,
+            "targetIds": [
+              "scene06-detail-video"
+            ],
+            "id": "requirement-baa258e50bda56a1",
+            "field": "change",
+            "inherited": true
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "resource",
+            "quote": "工程里已有、片尾也使用的同款长侧边源片静帧",
+            "startSeconds": null,
+            "targetIds": [
+              "s02-still-side"
+            ],
+            "id": "requirement-12cf306d9cdc1338",
+            "field": "resource",
+            "inherited": true
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "preserve",
+            "quote": "左侧原视频继续保持不变",
+            "startSeconds": null,
+            "targetIds": [
+              "node-6f1976475f26930e"
+            ],
+            "id": "requirement-6185b1ddad6f168f",
+            "field": "preserve",
+            "inherited": true
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "change",
+            "quote": "右侧用静帧里真实的矩形连接座做稳定细节展示，窗口以连接座为中心，保持完整外框和周边参照，显示尺寸不要超过截取的原始像素",
+            "startSeconds": null,
+            "targetIds": [
+              "scene06-detail-video"
+            ],
+            "id": "requirement-91813a1eb3730806",
+            "field": "change",
+            "inherited": true
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "prohibit",
+            "quote": "不锐化不造细节",
+            "startSeconds": null,
+            "targetIds": [
+              "scene06-detail-video"
+            ],
+            "id": "requirement-d2ed44ee6edbad23",
+            "field": "prohibit",
+            "inherited": true
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "change",
+            "quote": "将这一幕第二行说明改为“矩形连接座｜源片静帧”，与背景板同时出现。",
+            "startSeconds": null,
+            "targetIds": [
+              "node-4a2ff51527d8e3b4"
+            ],
+            "id": "requirement-21cad511764a3aca",
+            "field": "change",
+            "inherited": true
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "preserve",
+            "quote": "保持35秒",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-6fdd9c0560baf10e",
+            "field": "preserve",
+            "inherited": true
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "preserve",
+            "quote": "全部旁白音乐和字幕",
+            "startSeconds": null,
+            "targetIds": [
+              "audio-1",
+              "audio-2",
+              "audio-3",
+              "audio-4",
+              "audio-4124aaefa824859c",
+              "audio-bc35f0a994d81023",
+              "s02-caption-1",
+              "s02-caption-2",
+              "s02-caption-3",
+              "s02-caption-4",
+              "s02-caption-5",
+              "cue-d18b235a237e72cf"
+            ],
+            "id": "requirement-c69cec4167f9582e",
+            "field": "sound.music",
+            "inherited": true
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [
+              "scene-06"
+            ],
+            "kind": "preserve",
+            "quote": "片尾编号排版及其他镜头完全不变",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-ef22d78d0d47a6a0",
+            "field": "preserve",
+            "inherited": true
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "prohibit",
+            "quote": "这个静帧仅辅助定位，不暗示是新拍摄或运动跟踪。",
+            "startSeconds": null,
+            "targetIds": [
+              "scene06-detail-video",
+              "node-4a2ff51527d8e3b4"
+            ],
+            "id": "requirement-f85a613d6b5176d0",
+            "field": "prohibit",
+            "inherited": true
+          }
+        ],
+        "assumptions": [],
+        "gaps": [],
+        "interpretation": "pending-semantic-analysis",
+        "auxiliaryModes": [],
+        "auxiliaryScenarios": [],
+        "procedureSubtype": "not_applicable",
+        "steps": [],
+        "parentContractId": "contract-d980100e3816ef18",
+        "sourceRequests": [
+          "用这段显卡实拍做一条35秒横屏商品详情片，给关注外观和接口布局的装机用户看。先让人认清完整商品，再讲清画面里真实可见的正面风扇、侧面外壳和接口布局，最后把局部与整体的关系收回来。不要剪成开箱教程，也不要只贴三个卖点标题：需要清楚的整体与局部联动、部位说明和有阅读停留的画面。按内容选择不同的版式和适量动效，商品始终是主体，文字与指示不能挡细节；移动画面不能用固定线条假装追踪。整体采用清晰克制的科技设计，让不同信息层次、衔接和收尾达到精修成片水平。删除过暗等待、纯品牌片尾和无新增信息的重复，不拉伸画面、不循环凑时长；保留有意义的转动动作完整。只使用这段现有视频，不生成新商品图片或镜头，不混入耳机或其他商品，不编性能、散热、噪声、尺寸、价格及未确认型号。加简短自然的中文说明旁白，台词只解释可见结构，字幕与真实声音同步；不加背景音乐。请自主观察选材、编排分镜、应用合适的本地HyperFrames资源，保留可编辑文字、部位说明、声音和原生工程。",
+          "只把最后一句字幕的“回到整体”改为“回看整体”，保留这句的时间与样式，所有旁白、配乐和画面不动。",
+          "再往上一点。",
+          "最后这句刚才抬高了，现在让它稍小一些、颜色更柔和，便于读完；只调整这句字幕的字号和颜色，位置、文字、时间、其他字幕以及声音画面全部保留。",
+          "现在仅授权修改15.6至21.6秒长侧边这一幕和31至35秒片尾的视觉布局；上轮不改画面是上轮字幕修改的保持范围，不是禁止本轮视觉修复。35秒横屏、所有声音、字幕和其余八幕保持。长侧边改成整体与局部同屏，可以增加同一素材同一时间的原生视频窗口，保持视频同步且不重复声音。整体窗完整适配，小局部窗只适度裁看矩形连接座，不能放大到比源片更糊；原片中连接座位于中上部偏右，以真实源帧核对，不添加没有依据的精准跟踪箭头。现有说明紧邻局部窗，底板随对应文字同时出现。片尾保持整体正面为主、两张既有细节图为辅，三个标签分别增加01、02、03形成阅读顺序，统一排版，依次轻强调后稳定显示，底部留给原字幕。请用原生可编辑对象完成这两幕，其余内容不变。",
+          "只修长侧边说明这一幕的右侧局部窗：目前动态裁切到19.767秒时连接座仍然模糊。现在将这个局部窗换成工程里已有、片尾也使用的同款长侧边源片静帧，左侧原视频继续保持不变。右侧用静帧里真实的矩形连接座做稳定细节展示，窗口以连接座为中心，保持完整外框和周边参照，显示尺寸不要超过截取的原始像素，不锐化不造细节。将这一幕第二行说明改为“矩形连接座｜源片静帧”，与背景板同时出现。保持35秒、全部旁白音乐和字幕、片尾编号排版及其他镜头完全不变。这个静帧仅辅助定位，不暗示是新拍摄或运动跟踪。"
+        ],
+        "facts": []
+      }
+    },
+    "routeDecision": {
+      "assetIds": [],
+      "mode": "edit",
+      "preserve": [
+        "unmentioned-objects",
+        "source-assets",
+        "revision-history",
+        "最后一句字幕的位置、文字、时间及字号以外的样式",
+        "其他字幕",
+        "全部声音和画面"
+      ],
+      "question": "",
+      "quote": "只把最后一句字幕的字号设为32，位置、文字、时间、其他字幕和全部声音画面保持不变。",
+      "reason": "最后一句字幕当前字号已为32；仅提交同值设置，位置、颜色、文字、时间及其他字幕、声音和画面均保持。",
+      "revisionId": null,
+      "scenarioId": null,
+      "targets": [
+        {
+          "id": "cue-d18b235a237e72cf",
+          "kind": "caption",
+          "operation": "update_caption_style"
+        }
+      ],
+      "source": "model",
+      "model": "gpt-6-astra",
+      "baseRevisionId": "rev-7f45dfedfa9e78b8",
+      "version": 1,
+      "message": "只把最后一句字幕的字号设为32，位置、文字、时间、其他字幕和全部声音画面保持不变。",
+      "scenario": "product_detail",
+      "executionStrategy": "L2",
+      "confidence": 0.8,
+      "fallback": {
+        "version": 1,
+        "categories": [
+          "missing_evidence",
+          "ambiguous_target",
+          "unsupported_capability",
+          "resource_incompatible",
+          "provider_unavailable",
+          "quality_failure",
+          "revision_conflict"
+        ],
+        "maxReplans": 2,
+        "identicalFailureLimit": 2,
+        "preserveCurrentRevision": true,
+        "allowSilentSubstitution": false,
+        "steps": [
+          "retry-same-capability",
+          "safe-equivalent-execution",
+          "retain-valid-revision",
+          "report-failed-targets",
+          "repair-only-gap"
+        ],
+        "classifiers": [
+          [
+            "revision_conflict",
+            "REVISION_CONFLICT|STALE_REVISION"
+          ],
+          [
+            "provider_unavailable",
+            "^(MINIMAX_|CODEX_|PROVIDER_)"
+          ],
+          [
+            "resource_incompatible",
+            "RESOURCE_|INCOMPATIBLE"
+          ],
+          [
+            "unsupported_capability",
+            "UNSUPPORTED|CAPABILITY|VOICE_NOT_FOUND"
+          ],
+          [
+            "ambiguous_target",
+            "AMBIGUOUS|SCOPE|TARGET|CONFLICT|CAPTION_ALIGNMENT_REQUIRED"
+          ],
+          [
+            "missing_evidence",
+            "MISSING|NEEDS_INPUT|INSUFFICIENT|SPEECH_SCRIPT_REQUIRED|NO_SPEECH|NO_CAPTION_AUDIO"
+          ]
+        ]
+      },
+      "selectedSkills": [
+        "speech-captions",
+        "visual-composition",
+        "audio-mix",
+        "hyperframes",
+        "commerce-promo",
+        "conversation-edit"
+      ],
+      "skillReasons": {
+        "speech-captions": [
+          "operation:update_caption_style",
+          "target:caption",
+          "request-evidence"
+        ],
+        "visual-composition": [
+          "request-evidence"
+        ],
+        "audio-mix": [
+          "request-evidence"
+        ],
+        "conversation-edit": [
+          "existing-revision"
+        ],
+        "hyperframes": [
+          "native-document"
+        ],
+        "commerce-promo": [
+          "native-business-contract"
+        ]
+      },
+      "requestedTargets": [
+        {
+          "id": "cue-d18b235a237e72cf",
+          "kind": "caption",
+          "requirement": "只把最后一句字幕的字号设为32"
+        }
+      ]
+    },
+    "baseRevisionId": "rev-7f45dfedfa9e78b8",
+    "status": "complete",
+    "createdAt": "2026-09-17T09:20:32.346Z",
+    "idempotencyKey": "6411603b-e823-4c75-b0d0-b9741b97f57c",
+    "startedAt": "2026-09-17T09:20:32.351Z",
+    "stage": "复核修改范围的实际画面",
+    "modelCalls": 1,
+    "modelInvocations": [
+      {
+        "model": "gpt-6-astra",
+        "transport": "configured",
+        "timeoutMs": 600000,
+        "reasoningEffort": "low",
+        "attempt": 0,
+        "imageCount": 0,
+        "promptSha256": "856475e5cdf9d19e1a78278ae027b90bd8ffddeccd068d1284379698b455efed",
+        "schemaSha256": "d21eedf94d812c3e93ff1498cac2d2654ae296083edbb0160bbd6c4c21eb6966",
+        "directory": "/Users/a1234/Desktop/hyperframe-main/video-agent/data/result-completion-projects/1ae65883-a821-437b-be46-1ea4e7e0eebe/versions/job-90de01fb-0bf9-4784-b9f9-9e79c4a55b70/model-calls/edit-engine/c8bd8311-2454-46f7-bf72-681be16b9501",
+        "stage": "R7-edit"
+      }
+    ],
+    "summary": "修改已应用并保存新版本；检查结果见预览区，候选 MP4 待导出。",
+    "requestedScope": {
+      "baseRevision": "rev-7f45dfedfa9e78b8",
+      "userRequest": "只把最后一句字幕的字号设为32，位置、文字、时间、其他字幕和全部声音画面保持不变。",
+      "kind": "caption",
+      "targetIds": [
+        "cue-d18b235a237e72cf"
+      ],
+      "allowedTypes": [
+        "update_caption",
+        "update_caption_style",
+        "remove_caption"
+      ],
+      "basis": "message-route"
+    },
+    "changeReceipt": {
+      "baseRevision": "rev-7f45dfedfa9e78b8",
+      "userRequest": "只把最后一句字幕的字号设为32，位置、文字、时间、其他字幕和全部声音画面保持不变。",
+      "requestedScope": {
+        "baseRevision": "rev-7f45dfedfa9e78b8",
+        "userRequest": "只把最后一句字幕的字号设为32，位置、文字、时间、其他字幕和全部声音画面保持不变。",
+        "kind": "caption",
+        "targetIds": [
+          "cue-d18b235a237e72cf"
+        ],
+        "allowedTypes": [
+          "update_caption",
+          "update_caption_style",
+          "remove_caption"
+        ],
+        "basis": "message-route"
+      },
+      "targetSet": [
+        {
+          "type": "update_caption_style",
+          "id": "cue-d18b235a237e72cf"
+        }
+      ],
+      "preserveSet": [
+        "audioGraph",
+        "transitions",
+        "untargeted-content",
+        "output"
+      ],
+      "changeSet": [
+        {
+          "nodeId": "cue-d18b235a237e72cf",
+          "type": "update_caption_style",
+          "params": {
+            "fontSize": 32
+          }
+        }
+      ],
+      "validation": {
+        "passed": true,
+        "checks": [
+          {
+            "field": "audioGraph",
+            "passed": true
+          },
+          {
+            "field": "transitions",
+            "passed": true
+          },
+          {
+            "field": "untargeted-content",
+            "passed": true
+          },
+          {
+            "field": "output",
+            "passed": true
+          }
+        ]
+      },
+      "newRevision": "rev-40c33cda4c040488"
+    },
+    "qualitySummary": {
+      "status": "unchanged-visual-content",
+      "engineering": "checked",
+      "revisionId": "rev-40c33cda4c040488",
+      "issues": [],
+      "fullPlayback": "pending",
+      "humanReview": "pending",
+      "rights": "requires-publisher-review"
+    },
+    "revisionId": "rev-40c33cda4c040488",
+    "planSummary": "最后一句字幕当前字号已为32；仅提交同值设置，位置、颜色、文字、时间及其他字幕、声音和画面均保持。",
+    "completedAt": "2026-09-17T09:21:44.591Z",
+    "durationMs": 72240,
+    "resumeAllowed": false,
+    "budgetExhausted": false
+  },
+  "changedDocumentFields": [
+    "revisionId",
+    "resourceReceipts",
+    "quality",
+    "workflowContract"
+  ],
+  "files": {
+    "edit.json": "2026-09-17T09:21:35.895399+00:00",
+    "document.json": "2026-09-17T09:21:44.587903+00:00",
+    "index.html": "2026-09-17T09:21:11.062321+00:00",
+    "custom-isolation.json": "2026-09-17T09:21:35.891083+00:00",
+    "check.log": "2026-09-17T09:21:44.581915+00:00",
+    "quality-report.json": "2026-09-17T09:21:44.588149+00:00"
+  },
+  "modelRequests": [
+    {
+      "model": "gpt-6-astra",
+      "transport": "configured",
+      "timeoutMs": 600000,
+      "reasoningEffort": "low",
+      "attempt": 0,
+      "imageCount": 0,
+      "promptSha256": "856475e5cdf9d19e1a78278ae027b90bd8ffddeccd068d1284379698b455efed",
+      "schemaSha256": "d21eedf94d812c3e93ff1498cac2d2654ae296083edbb0160bbd6c4c21eb6966",
+      "directory": "/Users/a1234/Desktop/hyperframe-main/video-agent/data/result-completion-projects/1ae65883-a821-437b-be46-1ea4e7e0eebe/versions/job-90de01fb-0bf9-4784-b9f9-9e79c4a55b70/model-calls/edit-engine/c8bd8311-2454-46f7-bf72-681be16b9501",
+      "completedAt": "2026-09-17T09:21:11.008Z"
+    }
+  ]
+}

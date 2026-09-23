@@ -1,0 +1,245 @@
+{
+  "blockingGaps": [
+    "必要放入、取出及相关盖状物处理缺少真实过程素材：现有证据显示19.800—20.067秒由桌面切至炉内，50.867—51.133秒由炉内切至桌面。当前唯一资产未提供这些过程，剪辑或原生组件无法补回；在不跳过必要动作的要求下，无法据此制作完整可复现教程。"
+  ],
+  "gaps": [
+    "采用最新188个抽样画面的观察结果；已完成素材观察，但未连续播放。动作切点和26.200—45.000秒等待段的可删范围仍需核验，不要求用户重新确认已观察内容。",
+    "完整拆封起点未覆盖；小袋撕开、物料落入与添加完成尚未证实，应继续检查现有源段，不将观察不足直接认定为素材不存在。",
+    "82.200秒仍在翻拌，至82.485秒的尾段未观察，完成状态尚未证实。不能用加热后展示、定格或结束卡替代真实完成状态。",
+    "七个保守动作窗口合计约56.7秒，尚未包含补足过程及额外衔接；约55秒能否实现待核验，必要动作完整性优先。",
+    "原声未试听，讲话、背景音乐、噪声及可用性未知；需检查后保留可用的对应源声并核验同步，不默认静音，不新增音乐或配音。",
+    "当前全幅为保守保护区，无已确认的固定字幕留白；独立步骤栏布局仍需验证缩放后动作和中文文字的可读性。",
+    "资源选择仅依据提供的索引；具体蓝图及哈希、中文字体、依赖、许可和原生适配渲染由应用后续核验。本轮未执行加载、安装、编译或渲染。素材权利记录亦未核验，不能承诺正式交付。",
+    "加水量、加热功率和时间均不推断；商品具体型号、价格及参数不是本任务阻塞项。"
+  ],
+  "originalNeeds": [
+    "使用受管原生布局将源视频等比完整置入1920×1080画布，在视频外设置中文步骤栏，文字区域不超过画布25%；媒体、步骤编号、说明和装饰线分别可编辑。",
+    "按源动作依赖建立30fps时间线及源时间映射，顺序保留准备、操作和等待前后衔接。仅删除经核验无信息的等待，必要时使用独立文字“等待片段已省略”，不暗示实际加热时长。",
+    "为每个动作编写有观察依据的中性短说明；标题随准备画面出现，步骤随动作切换，不添加未经证实的完成判断、参数或购买引导。",
+    "原声作为独立音轨绑定对应源区间同步裁切；真实完成素材就绪后再安排收尾。原生创作仅补布局、文字及轻动效，不能补造缺失动作。"
+  ],
+  "selected": [
+    {
+      "id": "lt-mask-reveal",
+      "reason": "适合持续实拍上的简短可编辑步骤提示。选用索引中适配HyperFrames 0.8.33、来源提交6e3308be4f2ab886597fcee7c5896a5f842ec4b6的参考结构，由当前受管原生合同改为视频外步骤栏；仅在步骤切换时轻量擦入，随后静止，不套用固定4.8秒时长。动画仅作用于文字及强调线，不修改媒体位置、裁切或源声，避免遮挡操作和共享属性冲突。其余候选的网格、对比、强调字幕及全屏标题对本次连续操作说明无必要，不选。"
+    }
+  ],
+  "candidates": [
+    {
+      "id": "lt-mask-reveal",
+      "tags": [
+        "video",
+        "action",
+        "text",
+        "操作",
+        "实拍",
+        "口播",
+        "标签",
+        "文字"
+      ],
+      "inputs": [
+        "video"
+      ],
+      "description": "Transparent editable lower-third over continuing footage; no stat, price, or full-screen text takeover is required. Adapt the wipe and accent sweep to approved native text, local fonts and the managed timeline.",
+      "files": [
+        "registry/blocks/lt-mask-reveal/registry-item.json",
+        "registry/blocks/lt-mask-reveal/lt-mask-reveal.html"
+      ],
+      "requirements": {
+        "minMedia": 1,
+        "mediaKinds": [
+          "video"
+        ],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 2,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "video-text-pivot",
+      "tags": [
+        "video",
+        "action",
+        "操作",
+        "实拍",
+        "讲解"
+      ],
+      "inputs": [
+        "video"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/video-text-pivot.md",
+        "skills/hyperframes-animation/rules/gsap-effects.md"
+      ],
+      "requirements": {
+        "minMedia": 1,
+        "mediaKinds": [
+          "video"
+        ],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "occluding",
+      "compatible": true,
+      "eligible": false,
+      "score": 2,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "grid-card-assemble",
+      "tags": [
+        "image",
+        "details",
+        "steps",
+        "参数",
+        "配件",
+        "步骤"
+      ],
+      "inputs": [],
+      "files": [
+        "skills/hyperframes-animation/blueprints/grid-card-assemble.md",
+        "skills/hyperframes-animation/rules/gsap-effects.md"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 2,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "comparison-split",
+      "tags": [
+        "compare",
+        "detail",
+        "image",
+        "比较",
+        "细节",
+        "双栏"
+      ],
+      "inputs": [
+        "visual-pair"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/comparison-split.md",
+        "skills/hyperframes-animation/rules/split-tilt-cards.md",
+        "registry/components/comparison-split/registry-item.json",
+        "registry/components/comparison-split/comparison-split.html"
+      ],
+      "requirements": {
+        "minMedia": 2,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 1,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "caption-editorial-emphasis",
+      "tags": [
+        "caption",
+        "speech",
+        "字幕",
+        "口播",
+        "强调"
+      ],
+      "inputs": [
+        "text"
+      ],
+      "description": "Editable editorial text emphasis; align spoken captions to measured transcript timestamps, never invented timing.",
+      "files": [
+        "registry/components/caption-editorial-emphasis/registry-item.json",
+        "registry/components/caption-editorial-emphasis/caption-editorial-emphasis.html"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 0,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "titlecard-reveal",
+      "tags": [
+        "title",
+        "brand",
+        "text",
+        "收尾",
+        "标题"
+      ],
+      "inputs": [],
+      "files": [
+        "skills/hyperframes-animation/blueprints/titlecard-reveal.md",
+        "skills/hyperframes-animation/rules/discrete-text-sequence.md"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 0,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "kinetic-type-beats",
+      "tags": [
+        "text",
+        "caption",
+        "文字",
+        "字幕",
+        "强调"
+      ],
+      "inputs": [
+        "text"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/kinetic-type-beats.md",
+        "skills/hyperframes-animation/rules/discrete-text-sequence.md"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "occluding",
+      "compatible": true,
+      "eligible": false,
+      "score": 0,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    }
+  ],
+  "originalRequest": "把这份即食饭制作素材整理成约55秒横屏使用流程片。保留真实准备、操作、等待前后衔接和完成状态，删掉无信息的等待；中文步骤条不要遮住手部。原声能用就保留，不加音乐，不猜加水量、加热功率或时间。",
+  "assetKinds": {
+    "asset-b1b2921a-312d-4e48-9008-4b93cf2c715f": "video"
+  }
+}

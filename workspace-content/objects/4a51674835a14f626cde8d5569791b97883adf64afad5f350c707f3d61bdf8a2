@@ -1,0 +1,66 @@
+{
+  "alternatives": [],
+  "operations": [
+    {"assetId":null,"durationFrames":310,"effect":null,"fromSceneId":null,"height":null,"nodeId":null,"paramsJson":null,"sceneId":"scene-01-hero","sceneIds":null,"source":null,"text":null,"toSceneId":null,"type":"set_scene_duration","width":null},
+    {"assetId":null,"durationFrames":430,"effect":null,"fromSceneId":null,"height":null,"nodeId":null,"paramsJson":null,"sceneId":"scene-02-context","sceneIds":null,"source":null,"text":null,"toSceneId":null,"type":"set_scene_duration","width":null},
+    {"assetId":null,"durationFrames":460,"effect":null,"fromSceneId":null,"height":null,"nodeId":null,"paramsJson":null,"sceneId":"scene-03-detail","sceneIds":null,"source":null,"text":null,"toSceneId":null,"type":"set_scene_duration","width":null},
+    {"assetId":null,"durationFrames":370,"effect":null,"fromSceneId":null,"height":null,"nodeId":null,"paramsJson":null,"sceneId":"scene-04-feature","sceneIds":null,"source":null,"text":null,"toSceneId":null,"type":"set_scene_duration","width":null},
+    {"assetId":null,"durationFrames":270,"effect":null,"fromSceneId":null,"height":null,"nodeId":null,"paramsJson":null,"sceneId":"scene-05-end","sceneIds":null,"source":null,"text":null,"toSceneId":null,"type":"set_scene_duration","width":null},
+    {"assetId":null,"durationFrames":null,"effect":"product-reveal","fromSceneId":null,"height":null,"nodeId":null,"paramsJson":null,"sceneId":"scene-01-hero","sceneIds":null,"source":null,"text":null,"toSceneId":null,"type":"set_scene_effect","width":null},
+    {"assetId":null,"durationFrames":null,"effect":null,"fromSceneId":null,"height":null,"nodeId":null,"paramsJson":"{\"scale\":0.9,\"offsetY\":0,\"radius\":0}","sceneId":"scene-01-hero","sceneIds":null,"source":null,"text":null,"toSceneId":null,"type":"update_effect_params","width":null},
+    {"assetId":null,"durationFrames":null,"effect":null,"fromSceneId":null,"height":null,"nodeId":"node-e6c418f99503eebe","paramsJson":"{\"fit\":\"contain\"}","sceneId":"scene-01-hero","sceneIds":null,"source":null,"text":null,"toSceneId":null,"type":"update_media","width":null},
+    {"assetId":null,"durationFrames":null,"effect":null,"fromSceneId":null,"height":null,"nodeId":null,"paramsJson":"{\"mediaWidth\":0.64,\"gap\":56}","sceneId":"scene-02-context","sceneIds":null,"source":null,"text":null,"toSceneId":null,"type":"update_effect_params","width":null},
+    {"assetId":null,"durationFrames":null,"effect":null,"fromSceneId":null,"height":null,"nodeId":"node-d5559c2705c64904","paramsJson":"{\"fit\":\"contain\"}","sceneId":"scene-02-context","sceneIds":null,"source":null,"text":null,"toSceneId":null,"type":"update_media","width":null},
+    {"assetId":null,"durationFrames":null,"effect":null,"fromSceneId":null,"height":null,"nodeId":"node-bbc3dd2c7399216b","paramsJson":null,"sceneId":"scene-02-context","sceneIds":null,"source":null,"text":"弧形头梁，连接两侧","toSceneId":null,"type":"update_text","width":null},
+    {"assetId":null,"durationFrames":null,"effect":null,"fromSceneId":null,"height":null,"nodeId":null,"paramsJson":"{\"insetX\":0.64,\"insetY\":0.54,\"insetSize\":0.3,\"focusX\":0.3,\"focusY\":0.6}","sceneId":"scene-03-detail","sceneIds":null,"source":null,"text":null,"toSceneId":null,"type":"update_effect_params","width":null},
+    {"assetId":null,"durationFrames":null,"effect":"split-detail","fromSceneId":null,"height":null,"nodeId":null,"paramsJson":null,"sceneId":"scene-04-feature","sceneIds":null,"source":null,"text":null,"toSceneId":null,"type":"set_scene_effect","width":null},
+    {"assetId":null,"durationFrames":null,"effect":null,"fromSceneId":null,"height":null,"nodeId":null,"paramsJson":"{\"mediaWidth\":0.62,\"gap\":56}","sceneId":"scene-04-feature","sceneIds":null,"source":null,"text":null,"toSceneId":null,"type":"update_effect_params","width":null},
+    {"assetId":null,"durationFrames":null,"effect":null,"fromSceneId":null,"height":null,"nodeId":"node-4df1044b662db227","paramsJson":"{\"fit\":\"contain\"}","sceneId":"scene-04-feature","sceneIds":null,"source":null,"text":null,"toSceneId":null,"type":"update_media","width":null},
+    {"assetId":null,"durationFrames":null,"effect":null,"fromSceneId":null,"height":null,"nodeId":"node-f54301215f0ff786","paramsJson":null,"sceneId":"scene-04-feature","sceneIds":null,"source":null,"text":"黑色外观\n弧形头梁\n耳垫轮廓","toSceneId":null,"type":"update_text","width":null},
+    {"assetId":null,"durationFrames":null,"effect":null,"fromSceneId":null,"height":null,"nodeId":null,"paramsJson":"{\"productScale\":0.85,\"ctaPulse\":false}","sceneId":"scene-05-end","sceneIds":null,"source":null,"text":null,"toSceneId":null,"type":"update_effect_params","width":null}
+  ],
+  "summary": "依据现有工程与耳机原图，将120秒重排为60秒：缩短原先每幕22—26秒的停留，按整体、头梁、耳垫、外观回顾、详情入口推进。开场突出完整商品，头梁与回顾采用图文分区，细节窗移向耳垫，长文案分行，结尾取消持续脉冲。香水视频与耳机主体不符，不纳入。保留横屏、商品事实、原音轨和转场；音乐仍止于35秒，后25秒无音乐。",
+  "workflow": {
+    "assumptions": [
+      "以rev-7515de9c406ebef1为基线，复用现有五幕及全部原生节点；只调整列出的场景时长、视觉效果、媒体适配和两处文字。",
+      "五幕时长分别为310、430、460、370、270帧；保留四处各10帧重叠转场，总长1840−40=1800帧，即30fps下60秒。预期起始帧分别为0、300、720、1170、1530。",
+      "保留1920×1080画幅、场景顺序、素材绑定、开场主标题、第三幕标题和片尾文字；不增加价格、性能或使用效果。",
+      "声音未被明确要求修改，保留audio-0b9ce0f7be3d5586的源区间、35秒窗口、音量、播放率与淡化，不循环、不拉慢、不新增旁白。",
+      "第二幕完整呈现正面头梁；第三幕依据所附正面图片将局部窗口焦点设在左侧耳垫附近。焦点与版式属于可撤销设计默认。",
+      "重新编译五幕时间及受影响布局，检查所有节点时长、文字换行、头梁完整性、第三幕局部裁切与四处邻接转场，同时校验音轨属性保持和成片1800帧。",
+      "预期形成当前基线的独立子修订，具体revisionId由版本服务分配；源文档与编译源码一并版本化。"
+    ],
+    "gaps": [
+      "可观察证据仅为三张耳机原图及香水视频六个采样帧，没有当前成片或quality报告；不能确认现有布局已发生遮挡，也不能声称完成全片视听审查。",
+      "耳机素材仅支持外观展示，未提供真实佩戴、操作或性能证据；60秒内容仍受有限外观信息约束，不以无关商品视频或生成镜头补齐。",
+      "音轨在35秒结束，60秒版本的35—60秒无音乐；保留既有声音窗口意味着该覆盖缺口仍存在。",
+      "波形分析不等于听音，音乐衔接、听感及语义乐句未经验证；素材同款身份与使用权也没有额外确认记录。"
+    ],
+    "objective": "在60秒内让观众看清耳机整体外观、弧形头梁与耳垫轮廓，并引导查看商品详情。",
+    "overrides": [
+      {
+        "replacementQuote": "改成60s",
+        "requirementId": "requirement-ef265c494e3365cd"
+      }
+    ],
+    "requirements": [
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "改成60s",
+        "startSeconds": null,
+        "targetIds": ["scene-01-hero","scene-02-context","scene-03-detail","scene-04-feature","scene-05-end"]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "其他设计你就基于视频内容去做就可以了",
+        "startSeconds": null,
+        "targetIds": ["scene-01-hero","scene-02-context","scene-03-detail","scene-04-feature","scene-05-end","node-e6c418f99503eebe","node-d5559c2705c64904","node-bbc3dd2c7399216b","node-4df1044b662db227","node-f54301215f0ff786"]
+      }
+    ],
+    "taskMode": "edit"
+  }
+}

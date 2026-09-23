@@ -1,0 +1,254 @@
+{
+  "selected": [
+    {
+      "id": "titlecard-reveal",
+      "reason": "片尾必需保留 'Shokuiku Cuisine · CC BY 3.0' 署名，本蓝图正是单一克制揭示+静止停留的收尾/署名卡（low motion、无动效花活、不引入任何商品事实），可作为真实画面之后的中性署名卡或署名预置，与'不编造商品事实、不加旁白/音乐、极简收束'的约束完全吻合。"
+    },
+    {
+      "id": "lt-mask-reveal",
+      "reason": "署名与流程分段提示可作透明可编辑角标叠在持续播放的真实画面上（minMedia=1/video、maxText=80、low motion），不必切断实拍即可显示 'Shokuiku Cuisine · CC BY 3.0'；适配到受管时间线与原生文字层，不加价格/卖点/商品定性文字。"
+    }
+  ],
+  "originalNeeds": [
+    "六段真实素材按原始顺序（研磨→填粉→组装→萃取→倾倒→收尾）的原生可编辑时间线重建（native-editing / native-composition）：每段以真实源窗口入轨，不替换、不新增素材、不变速凑时长。",
+    "六段各自 aac 原声随其真实源窗口同步保留；不新增旁白、不新增或替换音乐、不加音效（audioCapabilities.listening.available=false，原声语义未审，不得据此生成字幕或声明事实）。",
+    "重做前3秒开场：以第1段 asset-c0d812d6 约 0.13s 起的手部反复操作动作为'有动作、无声明'的真实动作钩子，裁去未观测的 0–0.133s 边界帧，不叠加旁白/音乐/标题/商品文字。",
+    "近似重复片段裁切：段内先锚定动作有效区间再剪，去掉高度相似或近乎静止窗口（如 asset-c0d812d6 约 0.13–4.58s 多帧相近、asset-05d089b3 与 asset-333a2052 整段高度相似），按动作完成与原声节点硬切，使总时长贴近约 40s。",
+    "片尾在真实画面上保留 'Shokuiku Cuisine · CC BY 3.0' 署名（署名卡或角标），不附加价格、优惠或卖点文字；无可信 CTA 原文与商品事实时 CTA 仅作中性处理。",
+    "输出规格：16:9 横屏、1280×720、约40s、30fps；源 1920×1080 与输出同比，无需裁切。"
+  ],
+  "gaps": [
+    "近似重复去重窗口未定量：9点抽帧（samplingSufficient=false、帧距约0.889–1.05s）不足以界定 asset-05d089b3（萃取）与 asset-333a2052（倾倒）两段高度相似素材的真实起止；需更密帧或连续预览确认后再定剪点，不把推测窗口当已确认结论。",
+    "六段首尾边界（0–0.133s、7.244–8.0s）未观测，动作起止均为区间近似；不把未观测内容当作已确认动作呈现。",
+    "listening.available=false，六段 aac 原声的语音与非语音语义均未审，不得据此生成字幕或声明事实；候选音频部分标记为待人工复核。",
+    "asset-c0d812d6 的器具类型与'研磨'动作性质未排他确认，仅属推断；画面无可读商品名称/品牌/价格/卖点文字，产物不声明任何商品事实。",
+    "asset-05d089b3 第0.133s 上壶已有咖啡液，萃取真实起点在片头之前或未入镜，无法给出萃取起止精确秒点。",
+    "六段是否同一实拍会话或同一商品实例未确认，同物判断仅凭外观一致。",
+    "未提供任何商品名称/CTA/价格事实，故片尾 CTA 只能作中性处理，不编造价格、优惠或行动承诺。",
+    "电子秤读数（约0/283/333）单位未知、读数受画面模糊影响，不得作为重量或时间事实引用；细木签用途、白色液体性质、法压壶是否属同一冲煮体系均未确认。"
+  ],
+  "blockingGaps": [],
+  "candidates": [
+    {
+      "id": "lt-mask-reveal",
+      "tags": [
+        "video",
+        "action",
+        "text",
+        "操作",
+        "实拍",
+        "口播",
+        "标签",
+        "文字"
+      ],
+      "inputs": [
+        "video"
+      ],
+      "description": "Transparent editable lower-third over continuing footage; no stat, price, or full-screen text takeover is required. Adapt the wipe and accent sweep to approved native text, local fonts and the managed timeline.",
+      "files": [
+        "registry/blocks/lt-mask-reveal/registry-item.json",
+        "registry/blocks/lt-mask-reveal/lt-mask-reveal.html"
+      ],
+      "requirements": {
+        "minMedia": 1,
+        "mediaKinds": [
+          "video"
+        ],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 1,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "titlecard-reveal",
+      "tags": [
+        "title",
+        "brand",
+        "text",
+        "收尾",
+        "标题"
+      ],
+      "inputs": [],
+      "files": [
+        "skills/hyperframes-animation/blueprints/titlecard-reveal.md",
+        "skills/hyperframes-animation/rules/discrete-text-sequence.md"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 1,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "video-text-pivot",
+      "tags": [
+        "video",
+        "action",
+        "操作",
+        "实拍",
+        "讲解"
+      ],
+      "inputs": [
+        "video"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/video-text-pivot.md",
+        "skills/hyperframes-animation/rules/gsap-effects.md"
+      ],
+      "requirements": {
+        "minMedia": 1,
+        "mediaKinds": [
+          "video"
+        ],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "occluding",
+      "compatible": true,
+      "eligible": true,
+      "score": 1,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "caption-editorial-emphasis",
+      "tags": [
+        "caption",
+        "speech",
+        "字幕",
+        "口播",
+        "强调"
+      ],
+      "inputs": [
+        "text"
+      ],
+      "description": "Editable editorial text emphasis; align spoken captions to measured transcript timestamps, never invented timing.",
+      "files": [
+        "registry/components/caption-editorial-emphasis/registry-item.json",
+        "registry/components/caption-editorial-emphasis/caption-editorial-emphasis.html"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 0,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "comparison-split",
+      "tags": [
+        "compare",
+        "detail",
+        "image",
+        "比较",
+        "细节",
+        "双栏"
+      ],
+      "inputs": [
+        "visual-pair"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/comparison-split.md",
+        "skills/hyperframes-animation/rules/split-tilt-cards.md",
+        "registry/components/comparison-split/registry-item.json",
+        "registry/components/comparison-split/comparison-split.html"
+      ],
+      "requirements": {
+        "minMedia": 2,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 0,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "kinetic-type-beats",
+      "tags": [
+        "text",
+        "caption",
+        "文字",
+        "字幕",
+        "强调"
+      ],
+      "inputs": [
+        "text"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/kinetic-type-beats.md",
+        "skills/hyperframes-animation/rules/discrete-text-sequence.md"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "occluding",
+      "compatible": true,
+      "eligible": true,
+      "score": 0,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "grid-card-assemble",
+      "tags": [
+        "image",
+        "details",
+        "steps",
+        "参数",
+        "配件",
+        "步骤"
+      ],
+      "inputs": [],
+      "files": [
+        "skills/hyperframes-animation/blueprints/grid-card-assemble.md",
+        "skills/hyperframes-animation/rules/gsap-effects.md"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 0,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    }
+  ],
+  "originalRequest": "确认按原始顺序（研磨→填粉→组装→萃取→倾倒→收尾）把六段上传素材重建为同一可编辑时间线，并在此基础上重做前3秒开头、删除近似重复片段后产出新候选。保持六段真实素材、各自原声和片尾 Shokuiku Cuisine · CC BY 3.0 署名；不加旁白或音乐，不编造商品事实。",
+  "assetKinds": {
+    "asset-c0d812d6-4074-4849-ad23-52c68a14aaef": "video",
+    "asset-49dd5d68-e148-4aee-b4ea-e16ad5d228f2": "video",
+    "asset-5dfce463-4ef7-4fcc-aaf6-ce3499c42543": "video",
+    "asset-05d089b3-b3ae-4601-a1e7-391332d89c6a": "video",
+    "asset-333a2052-a154-4079-b433-67e055631e4b": "video",
+    "asset-96e12ec3-701e-41ad-b2b9-0c35c81b73d6": "video"
+  }
+}

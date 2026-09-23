@@ -1,0 +1,435 @@
+{
+  "schemaVersion": 1,
+  "recordType": "runtime_quality_report",
+  "qualityPolicy": {
+    "id": "quality-acceptance-v1",
+    "policyHash": "54a9dfc4472786f37d1ae18811872a35892fc912a26b98ef13269680140f4d9f"
+  },
+  "binding": {
+    "projectId": "14f1e670-3177-4cd9-9d0f-a942fc387a88",
+    "revisionId": "rev-9cc1f1376640c541",
+    "contractHash": "4686d883b76e3bc615dd4e1a3fcf5ef943cd8310957bd8d625af607526965b1a",
+    "assetManifestHash": "2ea6a6d62d07e62d81d3c926fd1614ce002a9ef9363a5736d30b5fbb143bb4bb",
+    "policyHash": "baaa03b38f59762a5eca9e70f4594687c8e9db08e2f1e3ff3d9b78a2a068682b",
+    "documentHash": "adcdbed352224e6f2652ff73473361ac6d81375ce813a1db3dc4b7f91e17c9a2",
+    "finalVideoSha256": "1c73cbd211bb88a655c879e85530e169eec1d8b47b374f01a221952e2bf2a979",
+    "resourceHash": "2e77a322f849cb307074c9a6e0f5e6e05d8078681395e419bdf10b098fa8aee3",
+    "runId": null,
+    "jobId": "job-6327aaa7-8e4d-45e3-b894-1c90131bafcc"
+  },
+  "origin": "scripted_runner",
+  "dimensions": {
+    "materials": "pending",
+    "technical": "pass",
+    "content": "pending",
+    "visual": "fail",
+    "actionContinuity": "pending",
+    "audioPerception": "pending",
+    "rights": "pending",
+    "humanAcceptance": "pending"
+  },
+  "coverage": {
+    "method": "keyframes_with_scene_tail",
+    "evidenceRefs": [
+      "final-review/frame-0.jpg",
+      "final-review/frame-1.jpg",
+      "final-review/frame-2.jpg",
+      "final-review/frame-3.jpg"
+    ],
+    "videoRangesObserved": [],
+    "audioRangesObserved": [],
+    "requirements": {
+      "technical": {
+        "required": [
+          "decode",
+          "duration",
+          "dimensions",
+          "tracks",
+          "version"
+        ],
+        "observed": [],
+        "unreviewed": [
+          "decode",
+          "duration",
+          "dimensions",
+          "tracks",
+          "version"
+        ]
+      },
+      "content": {
+        "required": [
+          "contract",
+          "facts",
+          "shotPurpose",
+          "sourceEvidence"
+        ],
+        "observed": [],
+        "unreviewed": [
+          "contract",
+          "facts",
+          "shotPurpose",
+          "sourceEvidence"
+        ]
+      },
+      "visual": {
+        "required": [
+          "keyframes",
+          "sceneBoundaries",
+          "textSafety"
+        ],
+        "observed": [],
+        "unreviewed": [
+          "keyframes",
+          "sceneBoundaries",
+          "textSafety"
+        ]
+      },
+      "motion": {
+        "required": [
+          "continuousPlayback",
+          "transitions",
+          "captionLifecycle"
+        ],
+        "observed": [],
+        "unreviewed": [
+          "continuousPlayback",
+          "transitions",
+          "captionLifecycle"
+        ]
+      },
+      "audio": {
+        "required": [
+          "audioInput",
+          "speech",
+          "musicMix",
+          "sync"
+        ],
+        "observed": [],
+        "unreviewed": [
+          "audioInput",
+          "speech",
+          "musicMix",
+          "sync"
+        ]
+      }
+    }
+  },
+  "evidenceIndex": [
+    {
+      "path": "final-review/frame-0.jpg",
+      "sha256": "ba9e443499f176ae348240ede1983d478dfaa4a4849c1afc1549b84afc1684ce",
+      "seconds": 0
+    },
+    {
+      "path": "final-review/frame-1.jpg",
+      "sha256": "006321774cbec9b21dd1cc750d858107152126c24ee72a2af65f328543cd7e1b",
+      "seconds": 43.6
+    },
+    {
+      "path": "final-review/frame-2.jpg",
+      "sha256": "02fc025d065039a136100894e4983d71ec8f90591517d7505dd8ae187642cba8",
+      "seconds": 72.56666666666668
+    },
+    {
+      "path": "final-review/frame-3.jpg",
+      "sha256": "718ee4211565bbf77f5aa4363edfb30e1cb223e7c9c37beffa5a621cf71f7ddd",
+      "seconds": 72.63333333333334
+    }
+  ],
+  "issues": [
+    {
+      "id": "issue-0",
+      "requirementId": "final-output",
+      "severity": "blocker",
+      "startSeconds": 72.63333333333334,
+      "endSeconds": 72.63333333333334,
+      "problem": "成片时长远超需求：抽帧显示 43.600s（frame-1）仍在开箱、72.567s（frame-2）与 72.633s（frame-3）仍有画面，说明导出 MP4 至少约 72.6s，而需求要求约 45s、合同 output 仅 40s，超限约 27–32s。",
+      "evidenceRefs": [
+        "final-review/frame-3.jpg"
+      ],
+      "repair": "按约 45s 重新剪辑：删除冗余/重复区间，保留 6–9 个有效镜头与 ≥5 段不同源区间后重新导出。",
+      "preserve": [
+        "未涉及的镜头、文字和音轨"
+      ]
+    },
+    {
+      "id": "issue-1",
+      "requirementId": "final-output",
+      "severity": "blocker",
+      "startSeconds": 72.56666666666668,
+      "endSeconds": 72.56666666666668,
+      "problem": "画幅方向不符：frame-2/frame-3 为 16:9 横版并带左右黑边（pillarbox），合同 output 亦为 1280×720，未满足需求 #8 的 1080×1920 竖屏 9:16，小红书竖屏交付未达成。",
+      "evidenceRefs": [
+        "final-review/frame-2.jpg"
+      ],
+      "repair": "按 1080×1920、30fps 竖屏 9:16 重新构图并导出，消除横版画布与左右黑边，确保商品主体不被裁切。",
+      "preserve": [
+        "未涉及的镜头、文字和音轨"
+      ]
+    },
+    {
+      "id": "issue-2",
+      "requirementId": "final-output",
+      "severity": "major",
+      "startSeconds": 72.63333333333334,
+      "endSeconds": 72.63333333333334,
+      "problem": "结尾疑似静止/重复：72.567s 与 72.633s 两帧几乎一致，末段未见可见的收尾画面或购买/关注引导，且该段已处于超限时长内。",
+      "evidenceRefs": [
+        "final-review/frame-3.jpg"
+      ],
+      "repair": "重做结尾：缩短末段、补入简洁结尾文案（如来源/引导），确保尾帧非冻结式重复。",
+      "preserve": [
+        "未涉及的镜头、文字和音轨"
+      ]
+    },
+    {
+      "id": "issue-3",
+      "requirementId": "final-output",
+      "severity": "major",
+      "startSeconds": 43.6,
+      "endSeconds": 43.6,
+      "problem": "结构顺序存疑：开箱动作出现在 43.600s（成片中段偏后），与需求 #2 的「开头钩子→特点展示→真实开箱/操作→简洁结尾」组织方式难以核对；单帧亦无法确认是否呈现 ≥3 个可见特点。",
+      "evidenceRefs": [
+        "final-review/frame-1.jpg"
+      ],
+      "repair": "按需求顺序重排时间线：开头（含标题文案）→≥3 个可见特点展示→真实开箱/操作→简洁结尾，并避免按原素材顺序搬运。",
+      "preserve": [
+        "未涉及的镜头、文字和音轨"
+      ]
+    },
+    {
+      "id": "issue-4",
+      "requirementId": "final-output",
+      "severity": "minor",
+      "startSeconds": 72.56666666666668,
+      "endSeconds": 72.56666666666668,
+      "problem": "界面文字偏小：frame-2 中 Steam 库界面文字相对画面较小，与商品同屏时移动端可读性存疑（无法逐帧确认字幕字号与停留时长）。",
+      "evidenceRefs": [
+        "final-review/frame-2.jpg"
+      ],
+      "repair": "如需展示界面，加入局部细节放大/标注揭示等动态处理或延长停留，保证移动端文字可读。",
+      "preserve": [
+        "未涉及的镜头、文字和音轨"
+      ]
+    }
+  ],
+  "unreviewed": [
+    "连续动作、节奏与完整观看",
+    "实际听感与音画同步"
+  ],
+  "score": {
+    "total": 10,
+    "max": 100,
+    "components": {
+      "product_exposure": 0,
+      "first_three_seconds": 0,
+      "pacing": 0,
+      "captions": 7,
+      "motion": 0,
+      "transitions": 0,
+      "audio": 75,
+      "commercial_conversion": 0
+    },
+    "status": "needs_revision"
+  },
+  "scenarioAssessment": {
+    "status": "pending",
+    "summary": "审查范围：仅依据本次交付 MP4 的 4 张抽帧——final-review/frame-0.jpg（0.000s）、final-review/frame-1.jpg（43.600s）、final-review/frame-2.jpg（72.567s）、final-review/frame-3.jpg（72.633s）。无音频感知、无完整连续性覆盖、非逐帧检查，故旁白、同步字幕、音乐避让混音、两处「精致动态设计」、6–9 镜与 ≥5 段不同源区间、以及标题是否仅作开头文案（未成为全片角标）均无法核实；approvedSourceIndex 仅 1 个素材且 fullObservation=false、evidence/coverage 为空，缺少完整观测证据。\n\n可观察到的事实与阻断问题：\n1）时长严重超限——frame-1 在 43.600s 仍在开箱，frame-2/frame-3 在 72.567s / 72.633s 仍有画面，说明成片至少约 72.6s，远超需求的约 45s（合同 output 更仅 40s）；且合同 output（1280×720、40s）与 originalRequest 的硬性要求（1080×1920、30fps、约 45s）本身互相冲突，属交付规格错位。\n2）画幅方向不符——frame-2/frame-3 呈 16:9 横版构图并带左右黑边（pillarbox），合同 output 亦为 1280×720，未达成需求 #8 的 1080×1920 竖屏 9:16。\n3）结构/顺序存疑——开箱动作出现在 43.600s（成片中段偏后），难以核对需求 #2 的「开头＋≥3 个可见特点＋真实开箱/操作＋简洁结尾」组织方式。\n4）结尾疑似静止——72.567s 与 72.633s 两帧几乎一致，末段未见可见的收尾/引导信息。\n\n正面项：frame-0 底部叠加文案「掌机开箱：便携游戏体验」清晰可读，符合需求 #3 的文案；frame-0/1/2/3 中商品主体（包装箱、收纳包内掌机、Steam 库界面主机）均完整可见，未见明显裁切或遮挡（需求 #7 未见违规）。\n\n总体评估：blocker 2、major 2、minor 1，建议 needs_fix（必须重剪时长/重排结构并重导出竖屏方可交付）。（仅抽帧；完整业务目标待连续观片确认）"
+  },
+  "humanAcceptance": {
+    "status": "pending",
+    "eventId": null,
+    "actorContext": null,
+    "revisionId": "rev-9cc1f1376640c541",
+    "submittedAt": null
+  },
+  "deliveryDecision": {
+    "computedBy": "backend-commerce-focus-v1",
+    "status": "needs_revision",
+    "reasonCodes": [
+      "COMMERCIAL_QUALITY_REVISION_REQUIRED",
+      "HUMAN_CONFIRMATION_PENDING"
+    ]
+  },
+  "playbackReview": {
+    "manifest": "final-review/playback-manifest.json",
+    "watch": "final-review/watch.html",
+    "finalVideoSha256": "1c73cbd211bb88a655c879e85530e169eec1d8b47b374f01a221952e2bf2a979",
+    "clipCount": 2,
+    "fullVideoObserved": false,
+    "audioPerceptionVerified": false
+  },
+  "editorialReview": null,
+  "commercialQuality": {
+    "schema_version": 2,
+    "assessment_basis": "engineering_heuristics_and_observed_keyframe_issues",
+    "score": 10,
+    "threshold": 78,
+    "hard_minimum": 65,
+    "components": {
+      "product_exposure": 0,
+      "first_three_seconds": 0,
+      "pacing": 0,
+      "captions": 7,
+      "motion": 0,
+      "transitions": 0,
+      "audio": 75,
+      "commercial_conversion": 0
+    },
+    "issues": [
+      {
+        "severity": "blocker",
+        "dimension": "product_exposure",
+        "score": 0,
+        "problem": "product_exposure 低于商业最低线 65",
+        "repair": "只修改与 product_exposure 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+      },
+      {
+        "severity": "blocker",
+        "dimension": "first_three_seconds",
+        "score": 0,
+        "problem": "first_three_seconds 低于商业最低线 65",
+        "repair": "只修改与 first_three_seconds 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+      },
+      {
+        "severity": "blocker",
+        "dimension": "pacing",
+        "score": 0,
+        "problem": "pacing 低于商业最低线 65",
+        "repair": "只修改与 pacing 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+      },
+      {
+        "severity": "blocker",
+        "dimension": "captions",
+        "score": 7,
+        "problem": "captions 低于商业最低线 65",
+        "repair": "只修改与 captions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+      },
+      {
+        "severity": "blocker",
+        "dimension": "motion",
+        "score": 0,
+        "problem": "motion 低于商业最低线 65",
+        "repair": "只修改与 motion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+      },
+      {
+        "severity": "blocker",
+        "dimension": "transitions",
+        "score": 0,
+        "problem": "transitions 低于商业最低线 65",
+        "repair": "只修改与 transitions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+      },
+      {
+        "severity": "blocker",
+        "dimension": "commercial_conversion",
+        "score": 0,
+        "problem": "commercial_conversion 低于商业最低线 65",
+        "repair": "只修改与 commercial_conversion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+      },
+      {
+        "id": "issue-0",
+        "requirementId": "final-output",
+        "severity": "blocker",
+        "startSeconds": 72.63333333333334,
+        "endSeconds": 72.63333333333334,
+        "problem": "成片时长远超需求：抽帧显示 43.600s（frame-1）仍在开箱、72.567s（frame-2）与 72.633s（frame-3）仍有画面，说明导出 MP4 至少约 72.6s，而需求要求约 45s、合同 output 仅 40s，超限约 27–32s。",
+        "evidenceRefs": [
+          "final-review/frame-3.jpg"
+        ],
+        "repair": "按约 45s 重新剪辑：删除冗余/重复区间，保留 6–9 个有效镜头与 ≥5 段不同源区间后重新导出。",
+        "preserve": [
+          "未涉及的镜头、文字和音轨"
+        ],
+        "dimension": "visual"
+      },
+      {
+        "id": "issue-1",
+        "requirementId": "final-output",
+        "severity": "blocker",
+        "startSeconds": 72.56666666666668,
+        "endSeconds": 72.56666666666668,
+        "problem": "画幅方向不符：frame-2/frame-3 为 16:9 横版并带左右黑边（pillarbox），合同 output 亦为 1280×720，未满足需求 #8 的 1080×1920 竖屏 9:16，小红书竖屏交付未达成。",
+        "evidenceRefs": [
+          "final-review/frame-2.jpg"
+        ],
+        "repair": "按 1080×1920、30fps 竖屏 9:16 重新构图并导出，消除横版画布与左右黑边，确保商品主体不被裁切。",
+        "preserve": [
+          "未涉及的镜头、文字和音轨"
+        ],
+        "dimension": "visual"
+      },
+      {
+        "id": "issue-2",
+        "requirementId": "final-output",
+        "severity": "major",
+        "startSeconds": 72.63333333333334,
+        "endSeconds": 72.63333333333334,
+        "problem": "结尾疑似静止/重复：72.567s 与 72.633s 两帧几乎一致，末段未见可见的收尾画面或购买/关注引导，且该段已处于超限时长内。",
+        "evidenceRefs": [
+          "final-review/frame-3.jpg"
+        ],
+        "repair": "重做结尾：缩短末段、补入简洁结尾文案（如来源/引导），确保尾帧非冻结式重复。",
+        "preserve": [
+          "未涉及的镜头、文字和音轨"
+        ],
+        "dimension": "visual"
+      },
+      {
+        "id": "issue-3",
+        "requirementId": "final-output",
+        "severity": "major",
+        "startSeconds": 43.6,
+        "endSeconds": 43.6,
+        "problem": "结构顺序存疑：开箱动作出现在 43.600s（成片中段偏后），与需求 #2 的「开头钩子→特点展示→真实开箱/操作→简洁结尾」组织方式难以核对；单帧亦无法确认是否呈现 ≥3 个可见特点。",
+        "evidenceRefs": [
+          "final-review/frame-1.jpg"
+        ],
+        "repair": "按需求顺序重排时间线：开头（含标题文案）→≥3 个可见特点展示→真实开箱/操作→简洁结尾，并避免按原素材顺序搬运。",
+        "preserve": [
+          "未涉及的镜头、文字和音轨"
+        ],
+        "dimension": "visual"
+      },
+      {
+        "id": "issue-4",
+        "requirementId": "final-output",
+        "severity": "minor",
+        "startSeconds": 72.56666666666668,
+        "endSeconds": 72.56666666666668,
+        "problem": "界面文字偏小：frame-2 中 Steam 库界面文字相对画面较小，与商品同屏时移动端可读性存疑（无法逐帧确认字幕字号与停留时长）。",
+        "evidenceRefs": [
+          "final-review/frame-2.jpg"
+        ],
+        "repair": "如需展示界面，加入局部细节放大/标注揭示等动态处理或延长停留，保证移动端文字可读。",
+        "preserve": [
+          "未涉及的镜头、文字和音轨"
+        ],
+        "dimension": "visual"
+      }
+    ],
+    "suggestions": [
+      "只修改与 product_exposure 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+      "只修改与 first_three_seconds 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+      "只修改与 pacing 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+      "只修改与 captions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+      "只修改与 motion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+      "只修改与 transitions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+      "只修改与 commercial_conversion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+      "按约 45s 重新剪辑：删除冗余/重复区间，保留 6–9 个有效镜头与 ≥5 段不同源区间后重新导出。",
+      "按 1080×1920、30fps 竖屏 9:16 重新构图并导出，消除横版画布与左右黑边，确保商品主体不被裁切。",
+      "重做结尾：缩短末段、补入简洁结尾文案（如来源/引导），确保尾帧非冻结式重复。",
+      "按需求顺序重排时间线：开头（含标题文案）→≥3 个可见特点展示→真实开箱/操作→简洁结尾，并避免按原素材顺序搬运。",
+      "如需展示界面，加入局部细节放大/标注揭示等动态处理或延长停留，保证移动端文字可读。",
+      "完成连续观片后校准节奏、动作和转场评分；自动分数不代签真人观看。",
+      "完成实际试听后校准声音情绪、清晰度和音画同步；电平检测不代替听感。"
+    ],
+    "revision_required": true,
+    "coverage": {
+      "actual_mp4": true,
+      "full_video_observed": false,
+      "audio_perception_verified": false
+    },
+    "status": "needs_revision",
+    "human_acceptance": "pending"
+  }
+}

@@ -1,0 +1,244 @@
+{
+  "selected": [
+    {
+      "id": "lt-mask-reveal",
+      "reason": "适合持续实拍旁的克制标题与细节标注。采用0.8.33、提交6e3308be4f2ab886597fcee7c5896a5f842ec4b6对应参考，通过受管原生合同适配；仅在媒体外留白做一次短揭示，随后静止，不改变视频容器或遮挡双手。商品名与正面布局标注分时使用，署名保持独立；不选双栏比较、卡片网格或口播强调，避免缩小商品、增加无依据比较和多余文字。此为资源选择，尚未执行适配或验证。"
+    }
+  ],
+  "originalNeeds": [
+    "原生创建1080×1920、30fps、24秒时间线，以横屏全幅等比适配竖屏，采用中性背景及媒体外留白；实拍承担视觉主体，不做中心硬裁。",
+    "按“亮相—识别—记忆点—回归整体”编排真实片段。优先核验44.150—46.583秒的连续2秒开场、23.755秒附近的取包装动作、39.917—44.917秒的开包动作，以及47.150—50.150秒附近的布局展示和收尾；核验后确定切点与配时，不将候选窗口当作批准区间。",
+    "为视频、标题、细节文字、背景、持续署名“Vic · CC BY 3.0”及源音轨建立独立可编辑对象。正面标注仅在对应控件可见时出现，不跨入背面镜头；不新增性能、续航、价格、配置或购买承诺。",
+    "原声与画面使用相同源区间和时间映射，以原速剪接为主；不新增配乐、旁白、音效或逐字字幕，不调用声音生成。",
+    "后续由应用执行resources.adapt_native_bundle、native.compile、native.isolate和hyperframes.check，校验所选资源合同、哈希、本地字体、依赖及实际渲染；落实候选MP4导出、原生工程、源索引和检查报告，不用烧录成片替代编辑源。"
+  ],
+  "gaps": [
+    "已完成素材抽帧观察；观察覆盖包装、开包状态、主机整体和控件外观，但不是连续观片。取出包装、开盖动作及前2秒连续清晰性仍需局部核验，当前不能断言缺失，也不能宣称全部满足。",
+    "24秒有效内容与自然收尾尚未落实；49.150—50.150秒窗口较短且与细节候选重叠，须寻找并验证不重复的切点，不能靠慢放、定格或重复补时长。",
+    "保护区域为保守全幅，并非逐帧跟踪框；源画面已有出框、反光及手部遮挡无法通过布局恢复。目录中的protectedRegions=false和actionProtected=false不能覆盖用户的主体与动作保护要求。",
+    "66.753—68.827秒备选收尾含不可直接编辑的源内互动贴片，出现与消失边界未知，优先使用经核验的干净整体片段。",
+    "源AAC音轨存在，但模型听音不可用；原声内容、剪接听感及感知音画同步保留为候选人工审阅项，不构成缺失音源。",
+    "Vic · CC BY 3.0来源及许可依据未核验；保留署名并记录权利待核，不宣称商用权利审核通过。",
+    "资源兼容与准入标记来自目录，实际字体、依赖、许可适用范围、原生适配及渲染仍待应用验证；保持0.8.33，不升级或执行上游脚本。",
+    "已有render=false与明确导出要求冲突，后续执行须落实候选导出。本轮未制作工程、未导出MP4，也未形成最终质量或人类认可证据。"
+  ],
+  "blockingGaps": [],
+  "candidates": [
+    {
+      "id": "lt-mask-reveal",
+      "tags": [
+        "video",
+        "action",
+        "text",
+        "操作",
+        "实拍",
+        "口播",
+        "标签",
+        "文字"
+      ],
+      "inputs": [
+        "video"
+      ],
+      "description": "Transparent editable lower-third over continuing footage; no stat, price, or full-screen text takeover is required. Adapt the wipe and accent sweep to approved native text, local fonts and the managed timeline.",
+      "files": [
+        "registry/blocks/lt-mask-reveal/registry-item.json",
+        "registry/blocks/lt-mask-reveal/lt-mask-reveal.html"
+      ],
+      "requirements": {
+        "minMedia": 1,
+        "mediaKinds": [
+          "video"
+        ],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 2,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "comparison-split",
+      "tags": [
+        "compare",
+        "detail",
+        "image",
+        "比较",
+        "细节",
+        "双栏"
+      ],
+      "inputs": [
+        "visual-pair"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/comparison-split.md",
+        "skills/hyperframes-animation/rules/split-tilt-cards.md",
+        "registry/components/comparison-split/registry-item.json",
+        "registry/components/comparison-split/comparison-split.html"
+      ],
+      "requirements": {
+        "minMedia": 2,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 2,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "video-text-pivot",
+      "tags": [
+        "video",
+        "action",
+        "操作",
+        "实拍",
+        "讲解"
+      ],
+      "inputs": [
+        "video"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/video-text-pivot.md",
+        "skills/hyperframes-animation/rules/gsap-effects.md"
+      ],
+      "requirements": {
+        "minMedia": 1,
+        "mediaKinds": [
+          "video"
+        ],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "occluding",
+      "compatible": true,
+      "eligible": false,
+      "score": 2,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "titlecard-reveal",
+      "tags": [
+        "title",
+        "brand",
+        "text",
+        "收尾",
+        "标题"
+      ],
+      "inputs": [],
+      "files": [
+        "skills/hyperframes-animation/blueprints/titlecard-reveal.md",
+        "skills/hyperframes-animation/rules/discrete-text-sequence.md"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 1,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "grid-card-assemble",
+      "tags": [
+        "image",
+        "details",
+        "steps",
+        "参数",
+        "配件",
+        "步骤"
+      ],
+      "inputs": [],
+      "files": [
+        "skills/hyperframes-animation/blueprints/grid-card-assemble.md",
+        "skills/hyperframes-animation/rules/gsap-effects.md"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 1,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "caption-editorial-emphasis",
+      "tags": [
+        "caption",
+        "speech",
+        "字幕",
+        "口播",
+        "强调"
+      ],
+      "inputs": [
+        "text"
+      ],
+      "description": "Editable editorial text emphasis; align spoken captions to measured transcript timestamps, never invented timing.",
+      "files": [
+        "registry/components/caption-editorial-emphasis/registry-item.json",
+        "registry/components/caption-editorial-emphasis/caption-editorial-emphasis.html"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 0,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "kinetic-type-beats",
+      "tags": [
+        "text",
+        "caption",
+        "文字",
+        "字幕",
+        "强调"
+      ],
+      "inputs": [
+        "text"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/kinetic-type-beats.md",
+        "skills/hyperframes-animation/rules/discrete-text-sequence.md"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "occluding",
+      "compatible": true,
+      "eligible": false,
+      "score": 0,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    }
+  ],
+  "originalRequest": "做一条上新介绍，让观众先看清商品，再认识有素材依据的特点。用上传的 Steam Deck 开箱实拍制作24秒竖屏单品亮相片。前2秒必须看清主体，然后用取出包装、打开收纳包、主机整体与按键布局组成“亮相—识别—记忆点—回归整体”。真实画面占主体，标题与细节标注少而克制，竖屏重构要保护手部和主机，不做中心硬裁。不写性能、续航、价格或当前配置承诺；保留真实原声，不加配乐旁白。保留 Vic · CC BY 3.0 来源署名。直接制作并导出候选，保留原生可编辑工程。",
+  "assetKinds": {
+    "asset-2a9beb38-ca74-430d-a161-55ae1be4d7e2": "video"
+  }
+}

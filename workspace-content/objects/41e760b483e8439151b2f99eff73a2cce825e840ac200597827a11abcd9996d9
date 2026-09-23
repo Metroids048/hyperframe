@@ -1,0 +1,26 @@
+项目内容恢复完成：0 个文件；已有本地文件和工程保留。
+跳过前端构建（已有 web-dist）。需要重建时用：python start.py frontend
+后端已启动，PID 23307，等待 http://127.0.0.1:3024 ...
+后端进程已退出。日志：/Users/a1234/Desktop/hyperframe-main/video-agent/outputs/server-error.log
+file:///Users/a1234/Desktop/hyperframe-main/video-agent/lib/openclaw/directory-lease.mjs:6
+function locked(message, details){const error=new Error(message);error.code='DATA_DIR_LOCKED';error.status=503;error.details=details;return error;}
+                                              ^
+
+Error: 业务数据目录已由另一个服务实例写入
+    at locked (file:///Users/a1234/Desktop/hyperframe-main/video-agent/lib/openclaw/directory-lease.mjs:6:47)
+    at acquireDirectoryLease (file:///Users/a1234/Desktop/hyperframe-main/video-agent/lib/openclaw/directory-lease.mjs:27:69)
+    at async acquireDirectoryLeases (file:///Users/a1234/Desktop/hyperframe-main/video-agent/lib/openclaw/directory-lease.mjs:36:97)
+    at async file:///Users/a1234/Desktop/hyperframe-main/video-agent/server.mjs:53:20 {
+  code: 'DATA_DIR_LOCKED',
+  status: 503,
+  details: {
+    directory: '/Users/a1234/Desktop/hyperframe-main/video-agent/data/projects',
+    lockFile: '/Users/a1234/Desktop/hyperframe-main/video-agent/data/projects/.video-agent-writer.lock',
+    pid: 19458,
+    host: '1234deMacBook-Pro-2.local',
+    startedAt: '2026-09-21T07:40:24.522Z'
+  }
+}
+
+Node.js v24.19.0
+
