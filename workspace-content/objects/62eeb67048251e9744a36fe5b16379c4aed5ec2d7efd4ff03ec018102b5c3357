@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>即食饭使用流程 Demo · 商品宣传片</title>
+  <style>
+    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#F4F6F5}
+    @font-face{font-family:"PingFang SC";src:local("PingFang SC")}
+    @font-face{font-family:"Microsoft YaHei";src:local("Microsoft YaHei")}
+    
+    body{font-family:PingFang SC;text-rendering:geometricPrecision}
+    [data-composition-id="commerce-root"]{position:relative;width:100%;height:100%;overflow:hidden;--bg:#F4F6F5;--fg:#182526;--panel:#FFFFFF;--accent:#168A89;--accentContrast:#FFFFFF}
+    .flash-overlay{position:absolute;inset:0;opacity:0;pointer-events:none;z-index:200}
+    .scene.scene-has-video{background:transparent}
+    .video-layer{position:absolute;overflow:hidden;pointer-events:none}
+    .video-layer.managed-video{inset:0}
+    .video-layer .media-motion{position:absolute;inset:0;will-change:transform}
+    .video-layer video{width:100%;height:100%;object-fit:cover;display:block}
+    .caption{position:absolute;left:8%;width:84%;bottom:7%;z-index:400;opacity:0;text-align:center;pointer-events:auto}
+    .caption-content{display:inline-block;max-width:100%;box-sizing:border-box;color:#ffffff;background:rgba(0,0,0,.88);font-size:46px;line-height:1.4;padding:12px 22px;border-radius:8px;overflow-wrap:anywhere}
+    
+.scene{position:absolute;inset:0;overflow:hidden;background:var(--bg);color:var(--fg)}
+.scene-content{position:absolute;inset:0;box-sizing:border-box;padding:7.5%;display:flex;flex-direction:column;gap:28px;justify-content:center}
+.media-frame{position:absolute;inset:0;overflow:hidden;background:var(--bg)}
+.media-frame img,.media-frame video{width:100%;height:100%;object-fit:cover;display:block}
+.media-motion{position:absolute;inset:0;will-change:transform}
+.scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.08),rgba(0,0,0,.16) 45%,rgba(0,0,0,.62))}
+.product-title{max-width:86%;font-size:clamp(56px,6.4vw,118px);line-height:.96;letter-spacing:-.04em;font-weight:760;margin:0;text-wrap:balance}
+.product-subtitle{max-width:78%;font-size:clamp(26px,2.8vw,48px);line-height:1.22;font-weight:560;margin:0;opacity:.88}
+.copy-panel{position:relative;z-index:4;display:flex;flex-direction:column;gap:24px;max-width:84%}
+.callout{position:absolute;z-index:5;max-width:48%;padding:18px 22px;border-radius:22px;background:color-mix(in srgb,var(--panel) 88%,transparent);backdrop-filter:blur(14px);font-size:clamp(24px,2.5vw,42px);line-height:1.18;font-weight:650}
+.callout-dot{position:absolute;width:24px;height:24px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 12px color-mix(in srgb,var(--accent) 24%,transparent)}
+.callout-line{position:absolute;height:4px;background:var(--accent);transform-origin:left center;border-radius:999px}
+.inset-card{position:absolute;z-index:4;border-radius:34px;overflow:hidden;border:2px solid color-mix(in srgb,var(--fg) 42%,transparent);box-shadow:0 28px 80px rgba(0,0,0,.28);background:var(--panel)}
+.inset-card img{width:100%;height:100%;object-fit:cover;transform:scale(1.65)}
+.split{position:absolute;inset:0;display:grid;align-items:stretch}
+.split-media{position:relative;overflow:hidden}.split-media img,.split-media video{width:100%;height:100%;object-fit:cover}
+.split-copy{display:flex;align-items:center;padding:10%;background:var(--bg)}
+.price{font-size:clamp(82px,10vw,174px);font-weight:850;letter-spacing:-.06em;line-height:.9;color:var(--accent)}
+.price-badge{display:inline-flex;align-items:center;width:max-content;padding:12px 20px;border-radius:999px;background:var(--accent);color:var(--accentContrast);font-size:24px;font-weight:760}
+.cta{display:inline-flex;width:max-content;padding:18px 28px;border-radius:999px;background:var(--accent);color:var(--accentContrast);font-size:30px;font-weight:760}
+.end-product{position:absolute;inset:10% 8% 26%;display:flex;align-items:center;justify-content:center}.end-product img{width:100%;height:100%;object-fit:contain}
+.end-copy{position:absolute;left:8%;right:8%;bottom:8%;display:flex;flex-direction:column;gap:18px;align-items:flex-start}
+.keyword{display:inline-block;color:var(--accent)}
+
+    
+.editorial{position:absolute;inset:0;background:#f1f0eb;color:#172421;overflow:hidden}
+.ed-index{position:absolute;left:6%;top:5%;font-size:25px;font-weight:650;letter-spacing:.12em;color:var(--ed-accent)}
+.ed-rule{position:absolute;left:6%;right:6%;top:11%;height:3px;background:var(--ed-accent);transform-origin:left}
+.ed-copy{position:absolute;left:6%;top:20%;width:31%;display:flex;flex-direction:column;gap:34px}
+.ed-heading{font-size:104px;font-weight:750;line-height:1.12;letter-spacing:-.04em;overflow-wrap:anywhere}
+.ed-detail{font-size:36px;font-weight:550;line-height:1.5;overflow-wrap:anywhere}
+.ed-price{font-size:110px;font-weight:800;line-height:1.1;color:var(--ed-accent)}
+.ed-gallery{position:absolute;left:43%;right:5%;top:16%;bottom:8%;display:flex;gap:24px}
+.ed-photo{position:relative;flex:1;min-width:0;overflow:hidden;background:#e4e5df}
+.ed-photo img{width:100%;height:100%;display:block;object-fit:contain}
+.ed-v1 .ed-copy{top:15%;width:85%;flex-direction:row;align-items:center;gap:50px}
+.ed-v1 .ed-heading{font-size:76px}.ed-v1 .ed-detail{font-size:32px;max-width:45%}
+.ed-v1 .ed-gallery{left:6%;right:6%;top:34%;bottom:7%}
+.ed-v2 .ed-copy{top:17%;width:86%}.ed-v2 .ed-heading{font-size:78px}
+.ed-v2 .ed-gallery{left:6%;right:6%;top:36%;bottom:7%}
+.ed-v3 .ed-copy{top:22%;width:37%}.ed-v3 .ed-gallery{left:49%;right:6%;top:16%;bottom:8%}
+.ed-portrait .ed-index{top:4%;font-size:30px}.ed-portrait .ed-rule{top:8%}
+.ed-portrait .ed-copy{top:11%;left:7%;width:86%;gap:24px;flex-direction:column;align-items:flex-start}
+.ed-portrait .ed-heading{font-size:98px;line-height:1.16}.ed-portrait .ed-detail{font-size:46px;line-height:1.35;max-width:100%}
+.ed-portrait .ed-gallery{left:7%;right:7%;top:36%;bottom:6%;gap:20px}
+.ed-portrait.ed-v1 .ed-gallery{top:31%;bottom:7%}
+.ed-portrait.ed-v2 .ed-gallery{top:31%;flex-direction:column}
+.ed-portrait.ed-v2 .ed-photo{min-height:0}
+.ed-portrait.ed-v3 .ed-copy{top:12%}.ed-portrait.ed-v3 .ed-gallery{top:44%}
+
+    #media-wrap-step-01-video{position:absolute;left:280px;top:28px;width:1600px;height:900px;border-radius:14px;overflow:hidden}#step-01 #custom-step-01-brand{position:absolute;left:42px;top:52px;width:210px;line-height:1.4;font-weight:600}#step-01 #custom-step-01-kicker{position:absolute;left:42px;top:106px;width:210px;line-height:1.4}#step-01 #custom-step-01-number{position:absolute;left:42px;top:232px;width:210px;line-height:1.2;font-weight:300}#step-01 #custom-step-01-short{position:absolute;left:42px;top:402px;width:210px;line-height:1.3;font-weight:700}#step-01 #custom-step-01-heading{position:absolute;left:280px;top:952px;width:1570px;line-height:1.3;font-weight:600}#step-01 #custom-step-01-note{position:absolute;left:280px;top:1010px;width:1570px;line-height:1.3}#step-01 #custom-step-01-meta{position:absolute;left:42px;top:817px;width:210px;line-height:1.7}#step-01 #custom-step-01-progress{position:absolute;left:280px;top:938px;width:1600px;height:4px;background:#168A89;transform-origin:left}
+#media-wrap-step-02-video{position:absolute;left:280px;top:28px;width:1600px;height:900px;border-radius:14px;overflow:hidden}#step-02 #custom-step-02-brand{position:absolute;left:42px;top:52px;width:210px;line-height:1.4;font-weight:600}#step-02 #custom-step-02-kicker{position:absolute;left:42px;top:106px;width:210px;line-height:1.4}#step-02 #custom-step-02-number{position:absolute;left:42px;top:232px;width:210px;line-height:1.2;font-weight:300}#step-02 #custom-step-02-short{position:absolute;left:42px;top:402px;width:210px;line-height:1.3;font-weight:700}#step-02 #custom-step-02-heading{position:absolute;left:280px;top:952px;width:1570px;line-height:1.3;font-weight:600}#step-02 #custom-step-02-note{position:absolute;left:280px;top:1010px;width:1570px;line-height:1.3}#step-02 #custom-step-02-meta{position:absolute;left:42px;top:817px;width:210px;line-height:1.7}#step-02 #custom-step-02-progress{position:absolute;left:280px;top:938px;width:1600px;height:4px;background:#168A89;transform-origin:left}
+#media-wrap-step-03-video{position:absolute;left:280px;top:28px;width:1600px;height:900px;border-radius:14px;overflow:hidden}#step-03 #custom-step-03-brand{position:absolute;left:42px;top:52px;width:210px;line-height:1.4;font-weight:600}#step-03 #custom-step-03-kicker{position:absolute;left:42px;top:106px;width:210px;line-height:1.4}#step-03 #custom-step-03-number{position:absolute;left:42px;top:232px;width:210px;line-height:1.2;font-weight:300}#step-03 #custom-step-03-short{position:absolute;left:42px;top:402px;width:210px;line-height:1.3;font-weight:700}#step-03 #custom-step-03-heading{position:absolute;left:280px;top:952px;width:1570px;line-height:1.3;font-weight:600}#step-03 #custom-step-03-note{position:absolute;left:280px;top:1010px;width:1570px;line-height:1.3}#step-03 #custom-step-03-meta{position:absolute;left:42px;top:817px;width:210px;line-height:1.7}#step-03 #custom-step-03-progress{position:absolute;left:280px;top:938px;width:1600px;height:4px;background:#168A89;transform-origin:left}
+#media-wrap-step-04-video{position:absolute;left:280px;top:28px;width:1600px;height:900px;border-radius:14px;overflow:hidden}#step-04 #custom-step-04-brand{position:absolute;left:42px;top:52px;width:210px;line-height:1.4;font-weight:600}#step-04 #custom-step-04-kicker{position:absolute;left:42px;top:106px;width:210px;line-height:1.4}#step-04 #custom-step-04-number{position:absolute;left:42px;top:232px;width:210px;line-height:1.2;font-weight:300}#step-04 #custom-step-04-short{position:absolute;left:42px;top:402px;width:210px;line-height:1.3;font-weight:700}#step-04 #custom-step-04-heading{position:absolute;left:280px;top:952px;width:1570px;line-height:1.3;font-weight:600}#step-04 #custom-step-04-note{position:absolute;left:280px;top:1010px;width:1570px;line-height:1.3}#step-04 #custom-step-04-meta{position:absolute;left:42px;top:817px;width:210px;line-height:1.7}#step-04 #custom-step-04-progress{position:absolute;left:280px;top:938px;width:1600px;height:4px;background:#168A89;transform-origin:left}
+#media-wrap-step-05-video{position:absolute;left:280px;top:28px;width:1600px;height:900px;border-radius:14px;overflow:hidden}#step-05 #custom-step-05-brand{position:absolute;left:42px;top:52px;width:210px;line-height:1.4;font-weight:600}#step-05 #custom-step-05-kicker{position:absolute;left:42px;top:106px;width:210px;line-height:1.4}#step-05 #custom-step-05-number{position:absolute;left:42px;top:232px;width:210px;line-height:1.2;font-weight:300}#step-05 #custom-step-05-short{position:absolute;left:42px;top:402px;width:210px;line-height:1.3;font-weight:700}#step-05 #custom-step-05-heading{position:absolute;left:280px;top:952px;width:1570px;line-height:1.3;font-weight:600}#step-05 #custom-step-05-note{position:absolute;left:280px;top:1010px;width:1570px;line-height:1.3}#step-05 #custom-step-05-meta{position:absolute;left:42px;top:817px;width:210px;line-height:1.7}#step-05 #custom-step-05-progress{position:absolute;left:280px;top:938px;width:1600px;height:4px;background:#168A89;transform-origin:left}
+#media-wrap-step-06-video{position:absolute;left:280px;top:28px;width:1600px;height:900px;border-radius:14px;overflow:hidden}#step-06 #custom-step-06-brand{position:absolute;left:42px;top:52px;width:210px;line-height:1.4;font-weight:600}#step-06 #custom-step-06-kicker{position:absolute;left:42px;top:106px;width:210px;line-height:1.4}#step-06 #custom-step-06-number{position:absolute;left:42px;top:232px;width:210px;line-height:1.2;font-weight:300}#step-06 #custom-step-06-short{position:absolute;left:42px;top:402px;width:210px;line-height:1.3;font-weight:700}#step-06 #custom-step-06-heading{position:absolute;left:280px;top:952px;width:1570px;line-height:1.3;font-weight:600}#step-06 #custom-step-06-note{position:absolute;left:280px;top:1010px;width:1570px;line-height:1.3}#step-06 #custom-step-06-meta{position:absolute;left:42px;top:817px;width:210px;line-height:1.7}#step-06 #custom-step-06-progress{position:absolute;left:280px;top:938px;width:1600px;height:4px;background:#168A89;transform-origin:left}
+#media-wrap-step-07-video{position:absolute;left:280px;top:28px;width:1600px;height:900px;border-radius:14px;overflow:hidden}#step-07 #custom-step-07-brand{position:absolute;left:42px;top:52px;width:210px;line-height:1.4;font-weight:600}#step-07 #custom-step-07-kicker{position:absolute;left:42px;top:106px;width:210px;line-height:1.4}#step-07 #custom-step-07-number{position:absolute;left:42px;top:232px;width:210px;line-height:1.2;font-weight:300}#step-07 #custom-step-07-short{position:absolute;left:42px;top:402px;width:210px;line-height:1.3;font-weight:700}#step-07 #custom-step-07-heading{position:absolute;left:280px;top:952px;width:1570px;line-height:1.3;font-weight:600}#step-07 #custom-step-07-note{position:absolute;left:280px;top:1010px;width:1570px;line-height:1.3}#step-07 #custom-step-07-meta{position:absolute;left:42px;top:817px;width:210px;line-height:1.7}#step-07 #custom-step-07-progress{position:absolute;left:280px;top:938px;width:1600px;height:4px;background:#168A89;transform-origin:left}
+    
+    
+    .parallax-front{inset:18% 20%;overflow:hidden;border-radius:24px;box-shadow:0 18px 60px #0006}
+    .callout-text{font:inherit;margin:0 0 10px}
+    .step-graph{position:relative;width:88%;height:100px;margin-top:70px}
+    .step-track,.step-line{position:absolute;top:46px;left:0;height:7px;width:100%;background:var(--accent);border-radius:8px;transform-origin:left}
+    .step-track{opacity:.18}.step-stop{position:absolute;top:27px;width:42px;height:42px;border:4px solid var(--accent);border-radius:12px;background:var(--bg);transform:translateX(-50%);box-sizing:border-box}
+    .stop-a{left:0}.stop-b{left:50%}.stop-c{left:100%}.step-runner{position:absolute;top:37px;left:0;width:24px;height:24px}.step-dot{width:24px;height:24px;border-radius:50%;background:var(--accent);transform:translateX(-50%)}
+    .scene-title-reveal .product-title,.scene-keyword-emphasis .product-title{font-size:clamp(56px,10vw,120px);line-height:1.18;max-width:100%}
+    .scene-media-cut .copy-panel,.scene-product-reveal .copy-panel,.scene-detail-inset .copy-panel,.scene-image-pan-zoom .copy-panel{background:var(--panel);padding:30px;border-radius:22px}
+    .scene-media-cut .scene-content{padding:5% 6%;pointer-events:none}
+    .scene-media-cut .copy-panel{width:max-content;max-width:74%;gap:10px;padding:12px 20px;border-radius:3px;border-left:4px solid var(--accent)}
+    .scene-media-cut .product-title{font-size:clamp(34px,3.1vw,60px);line-height:1.2;letter-spacing:.015em;max-width:100%}
+    .scene-media-cut .product-subtitle{font-size:clamp(28px,2.5vw,46px);line-height:1.25;max-width:100%}
+    .scene-media-cut .cta{font-size:clamp(30px,2.8vw,52px);line-height:1.2;background:none;color:inherit;border-radius:0;padding:0}
+  </style>
+</head>
+<body>
+  <div id="commerce-root" data-composition-id="commerce-root" data-start="0" data-duration="63.667" data-track-index="0" data-width="1920" data-height="1080">
+    <div id="media-gate-step-01-video" style="position:absolute;inset:0;z-index:40;visibility:visible" data-layout-allow-overflow><div id="media-wrap-step-01-video" data-object-id="step-01-video" data-scene-media="step-01" class="video-layer media-entrance managed-video" data-layout-allow-overflow style="z-index:40"><div class="media-motion motion"><video id="obj-step-01-video" src="assets/s03-footage.mp4" muted playsinline preload="auto" style="object-fit:contain" data-start="0" data-duration="7.933" data-media-start="0" data-playback-rate="1" data-track-index="30"></video></div></div></div>
+<div id="media-gate-step-02-video" style="position:absolute;inset:0;z-index:42;visibility:hidden" data-layout-allow-overflow><div id="media-wrap-step-02-video" data-object-id="step-02-video" data-scene-media="step-02" class="video-layer media-entrance managed-video" data-layout-allow-overflow style="z-index:42"><div class="media-motion motion"><video id="obj-step-02-video" src="assets/s03-footage.mp4" muted playsinline preload="auto" style="object-fit:contain" data-start="7.933" data-duration="11.967" data-media-start="7.933333333333334" data-playback-rate="1" data-track-index="31"></video></div></div></div>
+<div id="media-gate-step-03-video" style="position:absolute;inset:0;z-index:44;visibility:hidden" data-layout-allow-overflow><div id="media-wrap-step-03-video" data-object-id="step-03-video" data-scene-media="step-03" class="video-layer media-entrance managed-video" data-layout-allow-overflow style="z-index:44"><div class="media-motion motion"><video id="obj-step-03-video" src="assets/s03-footage.mp4" muted playsinline preload="auto" style="object-fit:contain" data-start="19.9" data-duration="6.3" data-media-start="19.9" data-playback-rate="1" data-track-index="32"></video></div></div></div>
+<div id="media-gate-step-04-video" style="position:absolute;inset:0;z-index:46;visibility:hidden" data-layout-allow-overflow><div id="media-wrap-step-04-video" data-object-id="step-04-video" data-scene-media="step-04" class="video-layer media-entrance managed-video" data-layout-allow-overflow style="z-index:46"><div class="media-motion motion"><video id="obj-step-04-video" src="assets/s03-footage.mp4" muted playsinline preload="auto" style="object-fit:contain" data-start="26.2" data-duration="6.133" data-media-start="26.2" data-playback-rate="1" data-track-index="33"></video></div></div></div>
+<div id="media-gate-step-05-video" style="position:absolute;inset:0;z-index:48;visibility:hidden" data-layout-allow-overflow><div id="media-wrap-step-05-video" data-object-id="step-05-video" data-scene-media="step-05" class="video-layer media-entrance managed-video" data-layout-allow-overflow style="z-index:48"><div class="media-motion motion"><video id="obj-step-05-video" src="assets/s03-footage.mp4" muted playsinline preload="auto" style="object-fit:contain" data-start="32.333" data-duration="5.867" data-media-start="32.333333333333336" data-playback-rate="1" data-track-index="34"></video></div></div></div>
+<div id="media-gate-step-06-video" style="position:absolute;inset:0;z-index:50;visibility:hidden" data-layout-allow-overflow><div id="media-wrap-step-06-video" data-object-id="step-06-video" data-scene-media="step-06" class="video-layer media-entrance managed-video" data-layout-allow-overflow style="z-index:50"><div class="media-motion motion"><video id="obj-step-06-video" src="assets/s03-footage.mp4" muted playsinline preload="auto" style="object-fit:contain" data-start="38.2" data-duration="10.233" data-media-start="38.2" data-playback-rate="1" data-track-index="35"></video></div></div></div>
+<div id="media-gate-step-07-video" style="position:absolute;inset:0;z-index:52;visibility:hidden" data-layout-allow-overflow><div id="media-wrap-step-07-video" data-object-id="step-07-video" data-scene-media="step-07" class="video-layer media-entrance managed-video" data-layout-allow-overflow style="z-index:52"><div class="media-motion motion"><video id="obj-step-07-video" src="assets/s03-footage.mp4" muted playsinline preload="auto" style="object-fit:contain" data-start="48.433" data-duration="15.233" data-media-start="48.43333333333333" data-playback-rate="1" data-track-index="36"></video></div></div></div>
+    <audio id="step-01-original-audio" src="assets/s03-footage.mp4" data-start="0" data-duration="7.933" data-media-start="0" data-playback-rate="1" data-volume="1" data-track-index="100"></audio>
+<audio id="step-02-original-audio" src="assets/s03-footage.mp4" data-start="7.933" data-duration="11.967" data-media-start="7.933333333333334" data-playback-rate="1" data-volume="1" data-track-index="101"></audio>
+<audio id="step-03-original-audio" src="assets/s03-footage.mp4" data-start="19.9" data-duration="6.3" data-media-start="19.9" data-playback-rate="1" data-volume="1" data-track-index="102"></audio>
+<audio id="step-04-original-audio" src="assets/s03-footage.mp4" data-start="26.2" data-duration="6.133" data-media-start="26.2" data-playback-rate="1" data-volume="1" data-track-index="103"></audio>
+<audio id="step-05-original-audio" src="assets/s03-footage.mp4" data-start="32.333" data-duration="5.867" data-media-start="32.333333333333336" data-playback-rate="1" data-volume="1" data-track-index="104"></audio>
+<audio id="step-06-original-audio" src="assets/s03-footage.mp4" data-start="38.2" data-duration="10.233" data-media-start="38.2" data-playback-rate="1" data-volume="1" data-track-index="105"></audio>
+<audio id="step-07-original-audio" src="assets/s03-footage.mp4" data-start="48.433" data-duration="15.233" data-media-start="48.43333333333333" data-playback-rate="1" data-volume="1" data-track-index="106"></audio>
+    
+    <section id="step-01" class="clip scene scene-custom-native scene-has-video" data-start="0" data-duration="7.933" data-track-index="1" style="z-index:41;opacity:1"><div id="custom-step-01-footage" data-object-id="step-01-video" style="display:none!important"></div><div id="custom-step-01-brand" data-object-id="step-01-brand" style="font-size:28px;color:#182526">操作演示</div><div id="custom-step-01-kicker" data-object-id="step-01-kicker" style="font-size:24px;color:#182526">S03 · 即食饭</div><div id="custom-step-01-number" data-object-id="step-01-number" style="font-size:112px;color:#168A89">01</div><div id="custom-step-01-short" data-object-id="step-01-short" style="font-size:64px;color:#182526">准备</div><div id="custom-step-01-heading" data-object-id="step-01-heading" style="font-size:38px;color:#182526">先观察盒内状态</div><div id="custom-step-01-note" data-object-id="step-01-note" style="font-size:30px;color:#526567">从原片已有状态开始，未展示完整拆封。</div><div id="custom-step-01-meta" data-object-id="step-01-meta" style="font-size:24px;color:#182526">1 / 7  ·  原速 / 原声</div><div id="custom-step-01-progress" data-object-id="step-01-progress"></div></section>
+<section id="step-02" class="clip scene scene-custom-native scene-has-video" data-start="7.933" data-duration="11.967" data-track-index="2" style="z-index:43;opacity:0"><div id="custom-step-02-footage" data-object-id="step-02-video" style="display:none!important"></div><div id="custom-step-02-brand" data-object-id="step-02-brand" style="font-size:28px;color:#182526">操作演示</div><div id="custom-step-02-kicker" data-object-id="step-02-kicker" style="font-size:24px;color:#182526">S03 · 即食饭</div><div id="custom-step-02-number" data-object-id="step-02-number" style="font-size:112px;color:#168A89">02</div><div id="custom-step-02-short" data-object-id="step-02-short" style="font-size:64px;color:#182526">加水</div><div id="custom-step-02-heading" data-object-id="step-02-heading" style="font-size:38px;color:#182526">倒入水</div><div id="custom-step-02-note" data-object-id="step-02-note" style="font-size:32px;color:#526567">保留真实加水过程；不推测用量。</div><div id="custom-step-02-meta" data-object-id="step-02-meta" style="font-size:24px;color:#182526">2 / 7  ·  原速 / 原声</div><div id="custom-step-02-progress" data-object-id="step-02-progress"></div></section>
+<section id="step-03" class="clip scene scene-custom-native scene-has-video" data-start="19.9" data-duration="6.3" data-track-index="1" style="z-index:45;opacity:0"><div id="custom-step-03-footage" data-object-id="step-03-video" style="display:none!important"></div><div id="custom-step-03-brand" data-object-id="step-03-brand" style="font-size:28px;color:#182526">操作演示</div><div id="custom-step-03-kicker" data-object-id="step-03-kicker" style="font-size:24px;color:#182526">S03 · 即食饭</div><div id="custom-step-03-number" data-object-id="step-03-number" style="font-size:112px;color:#168A89">03</div><div id="custom-step-03-short" data-object-id="step-03-short" style="font-size:64px;color:#182526">启动</div><div id="custom-step-03-heading" data-object-id="step-03-heading" style="font-size:38px;color:#182526">关门与控制操作</div><div id="custom-step-03-note" data-object-id="step-03-note" style="font-size:30px;color:#526567">原片未展示放入过程。</div><div id="custom-step-03-meta" data-object-id="step-03-meta" style="font-size:24px;color:#182526">3 / 7  ·  原速 / 原声</div><div id="custom-step-03-progress" data-object-id="step-03-progress"></div></section>
+<section id="step-04" class="clip scene scene-custom-native scene-has-video" data-start="26.2" data-duration="6.133" data-track-index="2" style="z-index:47;opacity:0"><div id="custom-step-04-footage" data-object-id="step-04-video" style="display:none!important"></div><div id="custom-step-04-brand" data-object-id="step-04-brand" style="font-size:28px;color:#182526">操作演示</div><div id="custom-step-04-kicker" data-object-id="step-04-kicker" style="font-size:24px;color:#182526">S03 · 即食饭</div><div id="custom-step-04-number" data-object-id="step-04-number" style="font-size:112px;color:#168A89">04</div><div id="custom-step-04-short" data-object-id="step-04-short" style="font-size:64px;color:#182526">开门</div><div id="custom-step-04-heading" data-object-id="step-04-heading" style="font-size:38px;color:#182526">等待后的开门画面</div><div id="custom-step-04-note" data-object-id="step-04-note" style="font-size:30px;color:#526567">等待画面已压缩，原片未展示取出过程。</div><div id="custom-step-04-meta" data-object-id="step-04-meta" style="font-size:24px;color:#182526">4 / 7  ·  原速 / 原声</div><div id="custom-step-04-progress" data-object-id="step-04-progress"></div></section>
+<section id="step-05" class="clip scene scene-custom-native scene-has-video" data-start="32.333" data-duration="5.867" data-track-index="1" style="z-index:49;opacity:0"><div id="custom-step-05-footage" data-object-id="step-05-video" style="display:none!important"></div><div id="custom-step-05-brand" data-object-id="step-05-brand" style="font-size:28px;color:#182526">操作演示</div><div id="custom-step-05-kicker" data-object-id="step-05-kicker" style="font-size:24px;color:#182526">S03 · 即食饭</div><div id="custom-step-05-number" data-object-id="step-05-number" style="font-size:112px;color:#168A89">05</div><div id="custom-step-05-short" data-object-id="step-05-short" style="font-size:64px;color:#182526">展示</div><div id="custom-step-05-heading" data-object-id="step-05-heading" style="font-size:38px;color:#182526">加热后的状态</div><div id="custom-step-05-note" data-object-id="step-05-note" style="font-size:30px;color:#526567">此时尚有后续操作，不代表最终完成。</div><div id="custom-step-05-meta" data-object-id="step-05-meta" style="font-size:24px;color:#182526">5 / 7  ·  原速 / 原声</div><div id="custom-step-05-progress" data-object-id="step-05-progress"></div></section>
+<section id="step-06" class="clip scene scene-custom-native scene-has-video" data-start="38.2" data-duration="10.233" data-track-index="2" style="z-index:51;opacity:0"><div id="custom-step-06-footage" data-object-id="step-06-video" style="display:none!important"></div><div id="custom-step-06-brand" data-object-id="step-06-brand" style="font-size:28px;color:#182526">操作演示</div><div id="custom-step-06-kicker" data-object-id="step-06-kicker" style="font-size:24px;color:#182526">S03 · 即食饭</div><div id="custom-step-06-number" data-object-id="step-06-number" style="font-size:112px;color:#168A89">06</div><div id="custom-step-06-short" data-object-id="step-06-short" style="font-size:64px;color:#182526">小袋</div><div id="custom-step-06-heading" data-object-id="step-06-heading" style="font-size:38px;color:#182526">处理小袋</div><div id="custom-step-06-note" data-object-id="step-06-note" style="font-size:30px;color:#526567">按原片呈现操作，不推断配料内容。</div><div id="custom-step-06-meta" data-object-id="step-06-meta" style="font-size:24px;color:#182526">6 / 7  ·  原速 / 原声</div><div id="custom-step-06-progress" data-object-id="step-06-progress"></div></section>
+<section id="step-07" class="clip scene scene-custom-native scene-has-video" data-start="48.433" data-duration="15.233" data-track-index="1" style="z-index:53;opacity:0"><div id="custom-step-07-footage" data-object-id="step-07-video" style="display:none!important"></div><div id="custom-step-07-brand" data-object-id="step-07-brand" style="font-size:28px;color:#182526">操作演示</div><div id="custom-step-07-kicker" data-object-id="step-07-kicker" style="font-size:24px;color:#182526">S03 · 即食饭</div><div id="custom-step-07-number" data-object-id="step-07-number" style="font-size:112px;color:#168A89">07</div><div id="custom-step-07-short" data-object-id="step-07-short" style="font-size:64px;color:#182526">翻拌</div><div id="custom-step-07-heading" data-object-id="step-07-heading" style="font-size:38px;color:#182526">餐具与翻拌动作</div><div id="custom-step-07-note" data-object-id="step-07-note" style="font-size:30px;color:#526567">原片在操作中结束，未记录完整完成状态。</div><div id="custom-step-07-meta" data-object-id="step-07-meta" style="font-size:24px;color:#182526">7 / 7  ·  原速 / 原声</div><div id="custom-step-07-progress" data-object-id="step-07-progress"></div></section>
+    
+    
+  </div>
+  <script src="assets/gsap.min.js"></script>
+  <script>
+    window.__timelines = window.__timelines || {};
+    const tl = gsap.timeline({paused:true});
+    tl.set("#step-01",{clipPath:"inset(0%)"},0);tl.set("#step-01",{clipPath:"inset(100%)"},7.933);
+tl.set("#step-02",{clipPath:"inset(0%)"},7.933);tl.set("#step-02",{clipPath:"inset(100%)"},19.9);
+tl.set("#step-03",{clipPath:"inset(0%)"},19.9);tl.set("#step-03",{clipPath:"inset(100%)"},26.2);
+tl.set("#step-04",{clipPath:"inset(0%)"},26.2);tl.set("#step-04",{clipPath:"inset(100%)"},32.333);
+tl.set("#step-05",{clipPath:"inset(0%)"},32.333);tl.set("#step-05",{clipPath:"inset(100%)"},38.2);
+tl.set("#step-06",{clipPath:"inset(0%)"},38.2);tl.set("#step-06",{clipPath:"inset(100%)"},48.433);
+tl.set("#step-07",{clipPath:"inset(0%)"},48.433);tl.set("#step-07",{clipPath:"inset(100%)"},63.667);
+    tl.set("#media-gate-step-01-video",{visibility:"visible",clipPath:"none"},0);tl.set("#media-gate-step-01-video",{visibility:"hidden",clipPath:"inset(100%)"},7.933);
+tl.set("#media-gate-step-02-video",{visibility:"visible",clipPath:"none"},7.933);tl.set("#media-gate-step-02-video",{visibility:"hidden",clipPath:"inset(100%)"},19.9);
+tl.set("#media-gate-step-03-video",{visibility:"visible",clipPath:"none"},19.9);tl.set("#media-gate-step-03-video",{visibility:"hidden",clipPath:"inset(100%)"},26.2);
+tl.set("#media-gate-step-04-video",{visibility:"visible",clipPath:"none"},26.2);tl.set("#media-gate-step-04-video",{visibility:"hidden",clipPath:"inset(100%)"},32.333);
+tl.set("#media-gate-step-05-video",{visibility:"visible",clipPath:"none"},32.333);tl.set("#media-gate-step-05-video",{visibility:"hidden",clipPath:"inset(100%)"},38.2);
+tl.set("#media-gate-step-06-video",{visibility:"visible",clipPath:"none"},38.2);tl.set("#media-gate-step-06-video",{visibility:"hidden",clipPath:"inset(100%)"},48.433);
+tl.set("#media-gate-step-07-video",{visibility:"visible",clipPath:"none"},48.433);tl.set("#media-gate-step-07-video",{visibility:"hidden",clipPath:"inset(100%)"},63.667);
+    tl.set("#step-01, [data-scene-media=\"step-01\"]",{opacity:1},0);
+    tl.fromTo("#custom-step-01-progress",{"scaleX":0},{"scaleX":0.12460732984293194,"duration":7.933333333333334,"ease":"none"},0);
+tl.from("#custom-step-01-number",{"y":10,"opacity":0,"duration":0.25,"ease":"power3.out"},0.03);
+tl.from("#custom-step-01-short",{"x":-8,"opacity":0,"duration":0.3,"ease":"power2.out"},0.08);
+tl.from("#custom-step-01-heading",{"y":6,"opacity":0,"duration":0.3,"ease":"sine.out"},0.05);
+tl.from("#custom-step-01-note",{"opacity":0,"duration":0.3,"ease":"sine.out"},0.1);
+    tl.set("#step-02, [data-scene-media=\"step-02\"]",{opacity:1},7.933);
+    tl.fromTo("#custom-step-02-progress",{"scaleX":0.12460732984293194},{"scaleX":0.312565445026178,"duration":11.966666666666667,"ease":"none"},7.933333333333334);
+tl.from("#custom-step-02-number",{"y":10,"opacity":0,"duration":0.25,"ease":"power3.out"},7.963333333333334);
+tl.from("#custom-step-02-short",{"x":-8,"opacity":0,"duration":0.3,"ease":"power2.out"},8.013333333333334);
+tl.from("#custom-step-02-heading",{"y":6,"opacity":0,"duration":0.3,"ease":"sine.out"},7.983333333333333);
+tl.from("#custom-step-02-note",{"opacity":0,"duration":0.3,"ease":"sine.out"},8.033333333333333);
+    tl.set("#step-03, [data-scene-media=\"step-03\"]",{opacity:1},19.9);
+    tl.fromTo("#custom-step-03-progress",{"scaleX":0.312565445026178},{"scaleX":0.41151832460732984,"duration":6.3,"ease":"none"},19.9);
+tl.from("#custom-step-03-number",{"y":10,"opacity":0,"duration":0.25,"ease":"power3.out"},19.93);
+tl.from("#custom-step-03-short",{"x":-8,"opacity":0,"duration":0.3,"ease":"power2.out"},19.979999999999997);
+tl.from("#custom-step-03-heading",{"y":6,"opacity":0,"duration":0.3,"ease":"sine.out"},19.95);
+tl.from("#custom-step-03-note",{"opacity":0,"duration":0.3,"ease":"sine.out"},20);
+    tl.set("#step-04, [data-scene-media=\"step-04\"]",{opacity:1},26.2);
+    tl.fromTo("#custom-step-04-progress",{"scaleX":0.41151832460732984},{"scaleX":0.5078534031413613,"duration":6.133333333333334,"ease":"none"},26.2);
+tl.from("#custom-step-04-number",{"y":10,"opacity":0,"duration":0.25,"ease":"power3.out"},26.23);
+tl.from("#custom-step-04-short",{"x":-8,"opacity":0,"duration":0.3,"ease":"power2.out"},26.279999999999998);
+tl.from("#custom-step-04-heading",{"y":6,"opacity":0,"duration":0.3,"ease":"sine.out"},26.25);
+tl.from("#custom-step-04-note",{"opacity":0,"duration":0.3,"ease":"sine.out"},26.3);
+    tl.set("#step-05, [data-scene-media=\"step-05\"]",{opacity:1},32.333);
+    tl.fromTo("#custom-step-05-progress",{"scaleX":0.5078534031413613},{"scaleX":0.6,"duration":5.866666666666666,"ease":"none"},32.333333333333336);
+tl.from("#custom-step-05-number",{"y":10,"opacity":0,"duration":0.25,"ease":"power3.out"},32.36333333333334);
+tl.from("#custom-step-05-short",{"x":-8,"opacity":0,"duration":0.3,"ease":"power2.out"},32.413333333333334);
+tl.from("#custom-step-05-heading",{"y":6,"opacity":0,"duration":0.3,"ease":"sine.out"},32.38333333333333);
+tl.from("#custom-step-05-note",{"opacity":0,"duration":0.3,"ease":"sine.out"},32.43333333333334);
+    tl.set("#step-06, [data-scene-media=\"step-06\"]",{opacity:1},38.2);
+    tl.fromTo("#custom-step-06-progress",{"scaleX":0.6},{"scaleX":0.7607329842931937,"duration":10.233333333333333,"ease":"none"},38.2);
+tl.from("#custom-step-06-number",{"y":10,"opacity":0,"duration":0.25,"ease":"power3.out"},38.230000000000004);
+tl.from("#custom-step-06-short",{"x":-8,"opacity":0,"duration":0.3,"ease":"power2.out"},38.28);
+tl.from("#custom-step-06-heading",{"y":6,"opacity":0,"duration":0.3,"ease":"sine.out"},38.25);
+tl.from("#custom-step-06-note",{"opacity":0,"duration":0.3,"ease":"sine.out"},38.300000000000004);
+    tl.set("#step-07, [data-scene-media=\"step-07\"]",{opacity:1},48.433);
+    tl.fromTo("#custom-step-07-progress",{"scaleX":0.7607329842931937},{"scaleX":1,"duration":15.233333333333333,"ease":"none"},48.43333333333333);
+tl.from("#custom-step-07-number",{"y":10,"opacity":0,"duration":0.25,"ease":"power3.out"},48.46333333333333);
+tl.from("#custom-step-07-short",{"x":-8,"opacity":0,"duration":0.3,"ease":"power2.out"},48.51333333333333);
+tl.from("#custom-step-07-heading",{"y":6,"opacity":0,"duration":0.3,"ease":"sine.out"},48.48333333333333);
+tl.from("#custom-step-07-note",{"opacity":0,"duration":0.3,"ease":"sine.out"},48.53333333333333);
+    window.__timelines["commerce-root"] = tl;
+    
+  </script>
+<script src="assets/runtime.js"></script></body>
+</html>

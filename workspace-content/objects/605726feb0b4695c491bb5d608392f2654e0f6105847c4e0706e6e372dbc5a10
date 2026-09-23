@@ -1,0 +1,249 @@
+{
+  "blockingGaps": [],
+  "gaps": [
+    "已提供实际素材观察记录，最新密集观察覆盖12张联系表、179个有序采样；不再将素材标为未观察。抽帧仍不能证明连续运动、完整滴落事件或精确剪点，后续须针对采用区间核验。",
+    "只有瓶身素材出现可辨包装，掌上滴管与面部护理素材尚未证明与其同款。关联核实前不得剪成本品取液及使用证据，中性字幕也不能消除剪接造成的同款暗示。",
+    "45秒有效内容容量尚未证实。保留45秒目标，继续核验可用区间；不能通过重复展示、文字轮换、慢放或延长署名补足时长。",
+    "三条视频均无音轨，suppliedAudio为空，没有可保留的原声。规划无声候选，不调用旁白合成，不自动补音乐或拟音。",
+    "横屏面部素材须完整容纳，保护脸、双手和滴管；竖屏成片中的主体尺寸、小字可读性及保护区域仍需实际预览验证。",
+    "资源目录标记兼容不等于已适配或运行。所选资源的合同、哈希、字体、依赖、许可与性能需由应用在适配阶段核验；本次未执行安装、编译或渲染。",
+    "Ron Lach / Pexels为用户提供的来源署名，完整来源及适用权利证据尚未核验。候选制作不代表正式交付、商用审核通过或真人认可。"
+  ],
+  "originalNeeds": [
+    "以受管原生对象制作1080×1920、30fps的详情片布局：奶油白底、深棕文字和少量暖肤色，保留实拍自然肤色；竖幅完整展示瓶身与双手，横幅完整容纳护理动作。文字面积不超过画布25%，安全边距至少6%。",
+    "原创整体与部位的解释布局，围绕深棕瓶身、黑色滴管头及浅色标签组织信息；文字置于保护区域外，不用未经跟踪的箭头，不把同一整体画面的裁切称为独立特写或对照。",
+    "按已观察内容与源内动作顺序组织45秒目标时间线，保留assetId、源区间、事实引用及保护区域。每段承担新增信息或必要收束，商品关联与容量未核实处保留待核状态，不用装饰填补证据。",
+    "视频、背景、主标题、说明、CTA和“Ron Lach / Pexels”署名分别保持原生可编辑；同镜头中的资源使用独立对象和局部样式，共享色彩与字体令牌，不重复控制同一对象的透明度或位移。",
+    "交由应用后续通过resources.adapt_native_bundle执行隔离适配，再进行native.compile、native.isolate及hyperframes.check，并根据真实回执更新状态。仅借鉴Showcase的多镜头展示和信息层级，不安装额外模板、不升级0.8.33。"
+  ],
+  "selected": [
+    {
+      "id": "lt-mask-reveal",
+      "reason": "适合在持续实拍旁承载简短外观说明，保持商品可见。采用Adapt：将人物身份条改为中性观察文字，减轻字重和扫光，仅让文字遮罩短暂显现后稳定停留；动作区不受遮罩影响。每屏一个重点，原则上不超过20字。采用目录所列0.8.33、提交6e3308be4f2ab886597fcee7c5896a5f842ec4b6的参考，通过当前应用原生合同适配，不直接执行上游脚本。"
+    },
+    {
+      "id": "titlecard-reveal",
+      "reason": "提供的完整参考中，单次克制显现后保持的机制适合开场主标题及片尾署名。采用Adapt：将文字置于商品旁的留白，不使用遮住商品的全屏卡；开场承载“日常护理，先看清细节”，结尾随完整瓶身呈现中性引导及独立署名。与说明条错时出现，不叠加重复入场动效。沿用目录所列0.8.33及同一来源提交，具体哈希由制作阶段校验；不虚构Logo、数据或社会证明。"
+    }
+  ],
+  "candidates": [
+    {
+      "id": "lt-mask-reveal",
+      "tags": [
+        "video",
+        "action",
+        "text",
+        "操作",
+        "实拍",
+        "口播",
+        "标签",
+        "文字"
+      ],
+      "inputs": [
+        "video"
+      ],
+      "description": "Transparent editable lower-third over continuing footage; no stat, price, or full-screen text takeover is required. Adapt the wipe and accent sweep to approved native text, local fonts and the managed timeline.",
+      "files": [
+        "registry/blocks/lt-mask-reveal/registry-item.json",
+        "registry/blocks/lt-mask-reveal/lt-mask-reveal.html"
+      ],
+      "requirements": {
+        "minMedia": 1,
+        "mediaKinds": [
+          "video"
+        ],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 2,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "titlecard-reveal",
+      "tags": [
+        "title",
+        "brand",
+        "text",
+        "收尾",
+        "标题"
+      ],
+      "inputs": [],
+      "files": [
+        "skills/hyperframes-animation/blueprints/titlecard-reveal.md",
+        "skills/hyperframes-animation/rules/discrete-text-sequence.md"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 2,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "comparison-split",
+      "tags": [
+        "compare",
+        "detail",
+        "image",
+        "比较",
+        "细节",
+        "双栏"
+      ],
+      "inputs": [
+        "visual-pair"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/comparison-split.md",
+        "skills/hyperframes-animation/rules/split-tilt-cards.md",
+        "registry/components/comparison-split/registry-item.json",
+        "registry/components/comparison-split/comparison-split.html"
+      ],
+      "requirements": {
+        "minMedia": 2,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 2,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "video-text-pivot",
+      "tags": [
+        "video",
+        "action",
+        "操作",
+        "实拍",
+        "讲解"
+      ],
+      "inputs": [
+        "video"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/video-text-pivot.md",
+        "skills/hyperframes-animation/rules/gsap-effects.md"
+      ],
+      "requirements": {
+        "minMedia": 1,
+        "mediaKinds": [
+          "video"
+        ],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "occluding",
+      "compatible": true,
+      "eligible": false,
+      "score": 2,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "grid-card-assemble",
+      "tags": [
+        "image",
+        "details",
+        "steps",
+        "参数",
+        "配件",
+        "步骤"
+      ],
+      "inputs": [],
+      "files": [
+        "skills/hyperframes-animation/blueprints/grid-card-assemble.md",
+        "skills/hyperframes-animation/rules/gsap-effects.md"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 1,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "caption-editorial-emphasis",
+      "tags": [
+        "caption",
+        "speech",
+        "字幕",
+        "口播",
+        "强调"
+      ],
+      "inputs": [
+        "text"
+      ],
+      "description": "Editable editorial text emphasis; align spoken captions to measured transcript timestamps, never invented timing.",
+      "files": [
+        "registry/components/caption-editorial-emphasis/registry-item.json",
+        "registry/components/caption-editorial-emphasis/caption-editorial-emphasis.html"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 0,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "kinetic-type-beats",
+      "tags": [
+        "text",
+        "caption",
+        "文字",
+        "字幕",
+        "强调"
+      ],
+      "inputs": [
+        "text"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/kinetic-type-beats.md",
+        "skills/hyperframes-animation/rules/discrete-text-sequence.md"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "occluding",
+      "compatible": true,
+      "eligible": false,
+      "score": 0,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    }
+  ],
+  "originalRequest": "用上传的精华护理实拍做45秒高级品牌风格商品详情片，竖屏。奶油白、暖肤色与深棕，小字号克制、主标题清楚；从日常护理需求进入，展示瓶身、滴液细节、真实使用和收尾，镜头有逻辑且商品充分露出。只描述可观察外观和护理动作，不编品牌、成分、功效或价格，不暗示模特代言。保留可用原声，不加旁白。素材 Ron Lach / Pexels，片尾署名。直接生成候选并保留可编辑工程。",
+  "assetKinds": {
+    "asset-27219712-b5a9-4a13-84ab-5637d5e28cc8": "video",
+    "asset-fdd5d110-1a06-4cd5-a69c-0594af08da90": "video",
+    "asset-caa9dfb3-1bb4-4ec3-af6c-ce2b9e16d245": "video"
+  }
+}

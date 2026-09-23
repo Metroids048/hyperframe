@@ -1,0 +1,75 @@
+{
+  "summary": "本批检查了 scene-01 至 scene-03 的关键帧。发现 scene-01 标题动画出现异常残留，scene-02 标签未按计划退出；scene-03 画面与标签基本可读。未评估声音、完整运动连续性及其他镜头。\n本批检查了 scene-04 至 scene-06 的关键帧。scene-04 标签在开头短暂显示为空框；scene-06 末尾进入源片英文收尾画面，与结尾展示意图不符。声音与全片运动同步未试听/未完整评估。",
+  "issues": [
+    {
+      "severity": "minor",
+      "repairKind": "layout",
+      "sceneId": "scene-01",
+      "startSeconds": 4.2,
+      "endSeconds": 4.2,
+      "nodeIds": [
+        "node-aa9af36075fb903e"
+      ],
+      "evidence": [
+        "review-0/batch-0/frame-02-at-4.2s.png"
+      ],
+      "problem": "标题对象在画面中央只剩“UE”样的残片，既未形成完整标题，也与左下角步骤标签的层级不一致，影响文字可读性。",
+      "repair": "将标题保持在左下角安全区并完整显示，或在进入淡出前直接隐藏，避免中途只剩残片；复查4.2秒关键帧。"
+    },
+    {
+      "severity": "major",
+      "repairKind": "text-timing",
+      "sceneId": "scene-02",
+      "startSeconds": 13.967,
+      "endSeconds": 13.967,
+      "nodeIds": [
+        "node-2cf3224ba1d4387e"
+      ],
+      "evidence": [
+        "review-0/batch-0/frame-07-at-13.967s.png"
+      ],
+      "problem": "“加入咖啡粉”标签在镜头末尾仍清晰可见，但动画证据计划在本镜头约6.8秒开始退出；标签持续到切点附近，造成与动作结束不同步。",
+      "repair": "把标签淡出严格对齐 scene-02 结束前约0.4秒，并确认13.967秒不再显示完整标签，同时不遮挡倒粉动作。"
+    },
+    {
+      "severity": "minor",
+      "repairKind": "text-timing",
+      "sceneId": "scene-04",
+      "startSeconds": 24.3,
+      "endSeconds": 24.3,
+      "nodeIds": [
+        "node-7de77532f3d4128d",
+        "node-2ea3417089c6cdf9"
+      ],
+      "evidence": [
+        "review-0/batch-1/frame-00-at-24.3s.png"
+      ],
+      "problem": "镜头刚开始时左下标签呈空框，文字尚未可读，短暂造成界面残留感。",
+      "repair": "将“注入液体”文字与标签背景同时淡入，或略提前文字出现；用24.3秒关键帧复核无空框。"
+    },
+    {
+      "severity": "major",
+      "repairKind": "source-selection",
+      "sceneId": "scene-06",
+      "startSeconds": 59.967,
+      "endSeconds": 59.967,
+      "nodeIds": [
+        "node-20b78d875cd515fb",
+        "node-3bfbccb0efe4332a"
+      ],
+      "evidence": [
+        "review-0/batch-1/frame-11-at-59.967s.png"
+      ],
+      "problem": "结尾切入源片英文“THANKS FOR WATCHING!”收尾画面，覆盖了原定稳定展示杯中饮品的结尾意图，并与中文步骤标签并置。",
+      "repair": "重选 scene-06 的原生媒体区间，在进入英文收尾卡前结束或截短，保持白色杯与饮品的稳定展示；复核59.967秒不再出现英文收尾画面。"
+    }
+  ],
+  "unreviewed": [
+    "声音是否保留且与切点同步",
+    "scene-01 至 scene-03 的完整运动连续性与动作是否在切点完整结束",
+    "scene-04 至 scene-06 及全片结尾",
+    "全片音量、混音与发布规格验证",
+    "未试听操作原声，无法评估音画同步、噪声或声音干扰。",
+    "未检查全片连续运动与镜头切点，仅依据本批关键帧评估。"
+  ]
+}

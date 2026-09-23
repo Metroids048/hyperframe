@@ -1,0 +1,1239 @@
+{
+  "id": "cea91b34-72df-40ca-8073-52ed5d701293",
+  "userRequest": "Create the first complete edited version from the uploaded existing video file. This is not a new product video generation task; it is a local timeline edit using the existing uploaded material. Add text title “新品体验” as an overlay for seconds 0.0 through 2.0 only. Keep original video dimensions/aspect ratio without crop or reframe, keep full original duration without trimming or extending, and keep original audio unchanged.",
+  "projectId": "513b9ab3-c0df-423b-b870-6ad683bdb147",
+  "baseRevisionId": null,
+  "inputFingerprint": "05c8b3d1cd1da7664d85f1759c811b03b67de3db921fc3908da20c084bdf6069",
+  "selectedSkills": [],
+  "constraints": {
+    "requirements": [
+      "Use only existing uploaded material; do not create or generate new product footage.",
+      "This is a local timeline edit, not a new product video generation task.",
+      "Keep original video dimensions and aspect ratio; no crop or reframe.",
+      "Keep full original duration; no trim or extension.",
+      "Keep original audio unchanged.",
+      "Title overlay must appear only from 0.0s through 2.0s.",
+      "Do not add price, product claims, CTA, or ending copy not present in the user request."
+    ]
+  },
+  "plan": null,
+  "artifacts": {},
+  "checkpoints": {
+    "brief": {
+      "idempotencyKey": "a7a814cdf146fee515b8eb4a295a2e67967ad0e4412ec7106c588aded7839699",
+      "status": "completed",
+      "result": {
+        "capabilities": [
+          "video-source-selection",
+          "native-composition",
+          "managed-original",
+          "native-editing",
+          "local-preview-review"
+        ],
+        "constraints": [
+          "Use only existing uploaded material; do not create or generate new product footage.",
+          "This is a local timeline edit, not a new product video generation task.",
+          "Keep original video dimensions and aspect ratio; no crop or reframe.",
+          "Keep full original duration; no trim or extension.",
+          "Keep original audio unchanged.",
+          "Title overlay must appear only from 0.0s through 2.0s.",
+          "Do not add price, product claims, CTA, or ending copy not present in the user request."
+        ],
+        "gaps": [],
+        "keepOriginalAudio": true,
+        "needsCaptions": false,
+        "needsNarration": false,
+        "needsTranscription": false,
+        "request": {
+          "cta": "",
+          "facts": [],
+          "name": "商品展示",
+          "output": {
+            "width": 1280,
+            "height": 720,
+            "durationSeconds": 120.022,
+            "fps": 30
+          },
+          "price": ""
+        },
+        "scenarioId": "general",
+        "workflow": {
+          "assumptions": [
+            "Use the uploaded source video material at native 1280x720 dimensions and approximately 120.022s duration based on provided metadata.",
+            "Because the request says an existing uploaded video file and no specific asset was named, treat the uploaded video material in the current asset scope as the source set and preserve native picture/audio timing."
+          ],
+          "gaps": [],
+          "objective": "Create a complete local timeline edit from the existing uploaded video material with a short editable title overlay, while preserving the source duration, framing, dimensions, and audio.",
+          "overrides": [],
+          "requirements": [
+            {
+              "endSeconds": null,
+              "excludeIds": [],
+              "kind": "goal",
+              "quote": "Create the first complete edited version from the uploaded existing video file",
+              "startSeconds": null,
+              "targetIds": []
+            },
+            {
+              "endSeconds": null,
+              "excludeIds": [],
+              "kind": "prohibit",
+              "quote": "This is not a new product video generation task",
+              "startSeconds": null,
+              "targetIds": []
+            },
+            {
+              "endSeconds": null,
+              "excludeIds": [],
+              "kind": "resource",
+              "quote": "using the existing uploaded material",
+              "startSeconds": null,
+              "targetIds": [
+                "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9",
+                "asset-1dfd42f4-ad14-4686-be73-528d8fe1ca11",
+                "asset-f19a9d72-efce-4f09-b52b-13324ea7e2cc"
+              ]
+            },
+            {
+              "endSeconds": 2,
+              "excludeIds": [],
+              "kind": "change",
+              "quote": "Add text title “新品体验” as an overlay for seconds 0.0 through 2.0 only.",
+              "startSeconds": 0,
+              "targetIds": []
+            },
+            {
+              "endSeconds": null,
+              "excludeIds": [],
+              "kind": "preserve",
+              "quote": "Keep original video dimensions/aspect ratio without crop or reframe",
+              "startSeconds": null,
+              "targetIds": [
+                "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9",
+                "asset-1dfd42f4-ad14-4686-be73-528d8fe1ca11",
+                "asset-f19a9d72-efce-4f09-b52b-13324ea7e2cc"
+              ]
+            },
+            {
+              "endSeconds": null,
+              "excludeIds": [],
+              "kind": "preserve",
+              "quote": "keep full original duration without trimming or extending",
+              "startSeconds": null,
+              "targetIds": [
+                "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9",
+                "asset-1dfd42f4-ad14-4686-be73-528d8fe1ca11",
+                "asset-f19a9d72-efce-4f09-b52b-13324ea7e2cc"
+              ]
+            },
+            {
+              "endSeconds": null,
+              "excludeIds": [],
+              "kind": "preserve",
+              "quote": "keep original audio unchanged",
+              "startSeconds": null,
+              "targetIds": [
+                "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9",
+                "asset-1dfd42f4-ad14-4686-be73-528d8fe1ca11",
+                "asset-f19a9d72-efce-4f09-b52b-13324ea7e2cc"
+              ]
+            }
+          ],
+          "taskMode": "create"
+        },
+        "productionBinding": {
+          "message": "Create the first complete edited version from the uploaded existing video file. This is not a new product video generation task; it is a local timeline edit using the existing uploaded material. Add text title “新品体验” as an overlay for seconds 0.0 through 2.0 only. Keep original video dimensions/aspect ratio without crop or reframe, keep full original duration without trimming or extending, and keep original audio unchanged.",
+          "contract": {
+            "schemaVersion": 1,
+            "profile": "commerce-focus-v1",
+            "scenarioId": "general",
+            "originalRequest": "Create the first complete edited version from the uploaded existing video file. This is not a new product video generation task; it is a local timeline edit using the existing uploaded material. Add text title “新品体验” as an overlay for seconds 0.0 through 2.0 only. Keep original video dimensions/aspect ratio without crop or reframe, keep full original duration without trimming or extending, and keep original audio unchanged.",
+            "taskMode": "create",
+            "workflowProfile": "create",
+            "workflow": {
+              "version": 1,
+              "taskMode": "create",
+              "taskModeExplicit": true,
+              "workflowProfile": "create",
+              "businessScenario": "general",
+              "baseProjectId": "513b9ab3-c0df-423b-b870-6ad683bdb147",
+              "baseRevisionId": null,
+              "assetScope": [
+                "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9",
+                "asset-1dfd42f4-ad14-4686-be73-528d8fe1ca11",
+                "asset-f19a9d72-efce-4f09-b52b-13324ea7e2cc"
+              ],
+              "originalRequest": "Create the first complete edited version from the uploaded existing video file. This is not a new product video generation task; it is a local timeline edit using the existing uploaded material. Add text title “新品体验” as an overlay for seconds 0.0 through 2.0 only. Keep original video dimensions/aspect ratio without crop or reframe, keep full original duration without trimming or extending, and keep original audio unchanged.",
+              "requirements": [
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "goal",
+                  "quote": "Create the first complete edited version from the uploaded existing video file",
+                  "startSeconds": null,
+                  "targetIds": [],
+                  "id": "requirement-b0e939774a03413e",
+                  "field": "goal",
+                  "inherited": false
+                },
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "prohibit",
+                  "quote": "This is not a new product video generation task",
+                  "startSeconds": null,
+                  "targetIds": [],
+                  "id": "requirement-a5c30d35fa3feb57",
+                  "field": "prohibit",
+                  "inherited": false
+                },
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "resource",
+                  "quote": "using the existing uploaded material",
+                  "startSeconds": null,
+                  "targetIds": [
+                    "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9",
+                    "asset-1dfd42f4-ad14-4686-be73-528d8fe1ca11",
+                    "asset-f19a9d72-efce-4f09-b52b-13324ea7e2cc"
+                  ],
+                  "id": "requirement-46e31704cbec45fc",
+                  "field": "resource",
+                  "inherited": false
+                },
+                {
+                  "endSeconds": 2,
+                  "excludeIds": [],
+                  "kind": "change",
+                  "quote": "Add text title “新品体验” as an overlay for seconds 0.0 through 2.0 only.",
+                  "startSeconds": 0,
+                  "targetIds": [],
+                  "id": "requirement-c9171949438af352",
+                  "field": "change",
+                  "inherited": false
+                },
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "preserve",
+                  "quote": "Keep original video dimensions/aspect ratio without crop or reframe",
+                  "startSeconds": null,
+                  "targetIds": [
+                    "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9",
+                    "asset-1dfd42f4-ad14-4686-be73-528d8fe1ca11",
+                    "asset-f19a9d72-efce-4f09-b52b-13324ea7e2cc"
+                  ],
+                  "id": "requirement-6fa9afb5f7c9ac57",
+                  "field": "preserve",
+                  "inherited": false
+                },
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "preserve",
+                  "quote": "keep full original duration without trimming or extending",
+                  "startSeconds": null,
+                  "targetIds": [
+                    "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9",
+                    "asset-1dfd42f4-ad14-4686-be73-528d8fe1ca11",
+                    "asset-f19a9d72-efce-4f09-b52b-13324ea7e2cc"
+                  ],
+                  "id": "requirement-a8f77add011d1860",
+                  "field": "preserve",
+                  "inherited": false
+                },
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "preserve",
+                  "quote": "keep original audio unchanged",
+                  "startSeconds": null,
+                  "targetIds": [
+                    "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9",
+                    "asset-1dfd42f4-ad14-4686-be73-528d8fe1ca11",
+                    "asset-f19a9d72-efce-4f09-b52b-13324ea7e2cc"
+                  ],
+                  "id": "requirement-5be187a99fb8ca4a",
+                  "field": "preserve",
+                  "inherited": false
+                }
+              ],
+              "assumptions": [
+                "Use the uploaded source video material at native 1280x720 dimensions and approximately 120.022s duration based on provided metadata.",
+                "Because the request says an existing uploaded video file and no specific asset was named, treat the uploaded video material in the current asset scope as the source set and preserve native picture/audio timing."
+              ],
+              "gaps": [],
+              "interpretation": "validated-semantic-analysis",
+              "objective": "Create a complete local timeline edit from the existing uploaded video material with a short editable title overlay, while preserving the source duration, framing, dimensions, and audio.",
+              "contractId": "contract-fa796cef9e23e781",
+              "parentContractId": null,
+              "sourceRequests": [
+                "Create the first complete edited version from the uploaded existing video file. This is not a new product video generation task; it is a local timeline edit using the existing uploaded material. Add text title “新品体验” as an overlay for seconds 0.0 through 2.0 only. Keep original video dimensions/aspect ratio without crop or reframe, keep full original duration without trimming or extending, and keep original audio unchanged."
+              ],
+              "requirementChanges": [],
+              "changeTargets": [
+                {
+                  "endSeconds": 2,
+                  "excludeIds": [],
+                  "kind": "change",
+                  "quote": "Add text title “新品体验” as an overlay for seconds 0.0 through 2.0 only.",
+                  "startSeconds": 0,
+                  "targetIds": [],
+                  "id": "requirement-c9171949438af352",
+                  "field": "change",
+                  "inherited": false
+                }
+              ],
+              "preserveTargets": [
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "preserve",
+                  "quote": "Keep original video dimensions/aspect ratio without crop or reframe",
+                  "startSeconds": null,
+                  "targetIds": [
+                    "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9",
+                    "asset-1dfd42f4-ad14-4686-be73-528d8fe1ca11",
+                    "asset-f19a9d72-efce-4f09-b52b-13324ea7e2cc"
+                  ],
+                  "id": "requirement-6fa9afb5f7c9ac57",
+                  "field": "preserve",
+                  "inherited": false
+                },
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "preserve",
+                  "quote": "keep full original duration without trimming or extending",
+                  "startSeconds": null,
+                  "targetIds": [
+                    "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9",
+                    "asset-1dfd42f4-ad14-4686-be73-528d8fe1ca11",
+                    "asset-f19a9d72-efce-4f09-b52b-13324ea7e2cc"
+                  ],
+                  "id": "requirement-a8f77add011d1860",
+                  "field": "preserve",
+                  "inherited": false
+                },
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "preserve",
+                  "quote": "keep original audio unchanged",
+                  "startSeconds": null,
+                  "targetIds": [
+                    "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9",
+                    "asset-1dfd42f4-ad14-4686-be73-528d8fe1ca11",
+                    "asset-f19a9d72-efce-4f09-b52b-13324ea7e2cc"
+                  ],
+                  "id": "requirement-5be187a99fb8ca4a",
+                  "field": "preserve",
+                  "inherited": false
+                }
+              ],
+              "resourceNeeds": [
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "resource",
+                  "quote": "using the existing uploaded material",
+                  "startSeconds": null,
+                  "targetIds": [
+                    "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9",
+                    "asset-1dfd42f4-ad14-4686-be73-528d8fe1ca11",
+                    "asset-f19a9d72-efce-4f09-b52b-13324ea7e2cc"
+                  ],
+                  "id": "requirement-46e31704cbec45fc",
+                  "field": "resource",
+                  "inherited": false
+                }
+              ],
+              "prohibitions": [
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "prohibit",
+                  "quote": "This is not a new product video generation task",
+                  "startSeconds": null,
+                  "targetIds": [],
+                  "id": "requirement-a5c30d35fa3feb57",
+                  "field": "prohibit",
+                  "inherited": false
+                }
+              ]
+            },
+            "persona": {
+              "creator": "商家／内容运营（待用户研究验证）",
+              "viewer": "首次了解商品的消费者"
+            },
+            "objective": "明确电商内容目标",
+            "product": {
+              "id": "product-1",
+              "name": "商品展示",
+              "facts": [],
+              "price": null,
+              "cta": "",
+              "audience": null,
+              "prohibited": []
+            },
+            "output": {
+              "width": 1280,
+              "height": 720,
+              "durationSeconds": 120.022,
+              "fps": 30
+            },
+            "audio": "unspecified",
+            "mustHave": [],
+            "mustNot": [],
+            "explicitConstraints": {
+              "schemaVersion": 1,
+              "originalRequest": "Create the first complete edited version from the uploaded existing video file. This is not a new product video generation task; it is a local timeline edit using the existing uploaded material. Add text title “新品体验” as an overlay for seconds 0.0 through 2.0 only. Keep original video dimensions/aspect ratio without crop or reframe, keep full original duration without trimming or extending, and keep original audio unchanged.",
+              "narration": "unspecified",
+              "music": "unspecified",
+              "original": "unspecified",
+              "price": "unspecified",
+              "silent": false
+            },
+            "generatedFootageAllowed": false,
+            "deliverables": [
+              "candidate_mp4",
+              "editable_project",
+              "source_index",
+              "quality_report"
+            ]
+          }
+        }
+      }
+    },
+    "observe": {
+      "idempotencyKey": "9bf1780a92fa1143ea133f74cc56d0b7591589c315f304a96ee808a43071df84",
+      "status": "completed",
+      "result": {
+        "candidates": [
+          {
+            "assetId": "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9",
+            "endSeconds": 120.022,
+            "reason": "用户要求保留完整原片时长、不剪裁不延长；该素材为三份上传视频中的原始主素材，另外两份sha256相同为重复文件。可作为完整本地时间线底片，0.0-2.0秒叠加文字标题。",
+            "startSeconds": 0
+          }
+        ],
+        "gaps": [],
+        "inspectRanges": [],
+        "observations": [
+          {
+            "assetId": "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9",
+            "confidence": 0.95,
+            "differentProductFrom": [],
+            "productGroup": "coffee_product_presentation_template",
+            "quality": "1280x720 landscape video, 30fps, h264, visible product/package slides; sampled frames are clear enough for layout confirmation. Audio exists by metadata, but semantic listening/transcription was not available in this stage.",
+            "role": "overview",
+            "safeCrop": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "sameProductAs": [
+              "asset-1dfd42f4-ad14-4686-be73-528d8fe1ca11",
+              "asset-f19a9d72-efce-4f09-b52b-13324ea7e2cc"
+            ],
+            "subjectBox": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "uncertainty": "Only interval contact-sheet frames were provided, not continuous playback. No action demonstration is required by the edit request, so no dense action inspection is needed. Original audio presence is supported by metadata, but unchanged-audio verification must occur at render/review stage.",
+            "visibleContent": "A designed coffee product presentation video with beige and brown slides, coffee bag imagery, cup/table props, and recurring Chinese promotional text. The uploaded duplicates show the same frames and metadata.",
+            "visibleText": [
+              "MORNING / 晨时",
+              "PRODUCT JOURNAL",
+              "把早晨，慢慢唤醒。",
+              "精品咖啡豆",
+              "巧克力风味",
+              "坚果香气",
+              "从一杯好咖啡开始"
+            ]
+          },
+          {
+            "assetId": "asset-1dfd42f4-ad14-4686-be73-528d8fe1ca11",
+            "confidence": 0.95,
+            "differentProductFrom": [],
+            "productGroup": "coffee_product_presentation_template",
+            "quality": "Duplicate of primary asset by sha256 and metadata; sampled frames match the same 1280x720 video.",
+            "role": "overview",
+            "safeCrop": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "sameProductAs": [
+              "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9",
+              "asset-f19a9d72-efce-4f09-b52b-13324ea7e2cc"
+            ],
+            "subjectBox": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "uncertainty": "Duplicate asset; no separate continuous playback evidence beyond matching contact sheets and hash.",
+            "visibleContent": "Same coffee product presentation slides as the primary uploaded video.",
+            "visibleText": [
+              "MORNING / 晨时",
+              "PRODUCT JOURNAL",
+              "精品咖啡豆",
+              "坚果香气"
+            ]
+          },
+          {
+            "assetId": "asset-f19a9d72-efce-4f09-b52b-13324ea7e2cc",
+            "confidence": 0.95,
+            "differentProductFrom": [],
+            "productGroup": "coffee_product_presentation_template",
+            "quality": "Duplicate of primary asset by sha256 and metadata; sampled frames match the same 1280x720 video.",
+            "role": "overview",
+            "safeCrop": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "sameProductAs": [
+              "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9",
+              "asset-1dfd42f4-ad14-4686-be73-528d8fe1ca11"
+            ],
+            "subjectBox": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "uncertainty": "Duplicate asset; no separate continuous playback evidence beyond matching contact sheets and hash.",
+            "visibleContent": "Same coffee product presentation slides as the primary uploaded video.",
+            "visibleText": [
+              "MORNING / 晨时",
+              "PRODUCT JOURNAL",
+              "精品咖啡豆",
+              "巧克力风味"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "toolCalls": [
+    {
+      "name": "brief.parse",
+      "input": {},
+      "inputHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "idempotencyKey": "a7a814cdf146fee515b8eb4a295a2e67967ad0e4412ec7106c588aded7839699",
+      "step": 1,
+      "startedAt": "2026-09-20T01:52:22.586Z"
+    },
+    {
+      "name": "assets.observe",
+      "input": {},
+      "inputHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "idempotencyKey": "9bf1780a92fa1143ea133f74cc56d0b7591589c315f304a96ee808a43071df84",
+      "step": 2,
+      "startedAt": "2026-09-20T01:53:19.618Z"
+    },
+    {
+      "name": "resources.plan",
+      "input": {},
+      "inputHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "idempotencyKey": "a7b22be207a5c208c3fec9d900bbe41674ffda4e6cf1dd697cfd7f951aa20b6d",
+      "step": 3,
+      "startedAt": "2026-09-20T01:54:30.885Z"
+    }
+  ],
+  "toolResults": [
+    {
+      "tool": "brief.parse",
+      "status": "completed",
+      "result": {
+        "capabilities": [
+          "video-source-selection",
+          "native-composition",
+          "managed-original",
+          "native-editing",
+          "local-preview-review"
+        ],
+        "constraints": [
+          "Use only existing uploaded material; do not create or generate new product footage.",
+          "This is a local timeline edit, not a new product video generation task.",
+          "Keep original video dimensions and aspect ratio; no crop or reframe.",
+          "Keep full original duration; no trim or extension.",
+          "Keep original audio unchanged.",
+          "Title overlay must appear only from 0.0s through 2.0s.",
+          "Do not add price, product claims, CTA, or ending copy not present in the user request."
+        ],
+        "gaps": [],
+        "keepOriginalAudio": true,
+        "needsCaptions": false,
+        "needsNarration": false,
+        "needsTranscription": false,
+        "request": {
+          "cta": "",
+          "facts": [],
+          "name": "商品展示",
+          "output": {
+            "width": 1280,
+            "height": 720,
+            "durationSeconds": 120.022,
+            "fps": 30
+          },
+          "price": ""
+        },
+        "scenarioId": "general",
+        "workflow": {
+          "assumptions": [
+            "Use the uploaded source video material at native 1280x720 dimensions and approximately 120.022s duration based on provided metadata.",
+            "Because the request says an existing uploaded video file and no specific asset was named, treat the uploaded video material in the current asset scope as the source set and preserve native picture/audio timing."
+          ],
+          "gaps": [],
+          "objective": "Create a complete local timeline edit from the existing uploaded video material with a short editable title overlay, while preserving the source duration, framing, dimensions, and audio.",
+          "overrides": [],
+          "requirements": [
+            {
+              "endSeconds": null,
+              "excludeIds": [],
+              "kind": "goal",
+              "quote": "Create the first complete edited version from the uploaded existing video file",
+              "startSeconds": null,
+              "targetIds": []
+            },
+            {
+              "endSeconds": null,
+              "excludeIds": [],
+              "kind": "prohibit",
+              "quote": "This is not a new product video generation task",
+              "startSeconds": null,
+              "targetIds": []
+            },
+            {
+              "endSeconds": null,
+              "excludeIds": [],
+              "kind": "resource",
+              "quote": "using the existing uploaded material",
+              "startSeconds": null,
+              "targetIds": [
+                "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9",
+                "asset-1dfd42f4-ad14-4686-be73-528d8fe1ca11",
+                "asset-f19a9d72-efce-4f09-b52b-13324ea7e2cc"
+              ]
+            },
+            {
+              "endSeconds": 2,
+              "excludeIds": [],
+              "kind": "change",
+              "quote": "Add text title “新品体验” as an overlay for seconds 0.0 through 2.0 only.",
+              "startSeconds": 0,
+              "targetIds": []
+            },
+            {
+              "endSeconds": null,
+              "excludeIds": [],
+              "kind": "preserve",
+              "quote": "Keep original video dimensions/aspect ratio without crop or reframe",
+              "startSeconds": null,
+              "targetIds": [
+                "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9",
+                "asset-1dfd42f4-ad14-4686-be73-528d8fe1ca11",
+                "asset-f19a9d72-efce-4f09-b52b-13324ea7e2cc"
+              ]
+            },
+            {
+              "endSeconds": null,
+              "excludeIds": [],
+              "kind": "preserve",
+              "quote": "keep full original duration without trimming or extending",
+              "startSeconds": null,
+              "targetIds": [
+                "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9",
+                "asset-1dfd42f4-ad14-4686-be73-528d8fe1ca11",
+                "asset-f19a9d72-efce-4f09-b52b-13324ea7e2cc"
+              ]
+            },
+            {
+              "endSeconds": null,
+              "excludeIds": [],
+              "kind": "preserve",
+              "quote": "keep original audio unchanged",
+              "startSeconds": null,
+              "targetIds": [
+                "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9",
+                "asset-1dfd42f4-ad14-4686-be73-528d8fe1ca11",
+                "asset-f19a9d72-efce-4f09-b52b-13324ea7e2cc"
+              ]
+            }
+          ],
+          "taskMode": "create"
+        },
+        "productionBinding": {
+          "message": "Create the first complete edited version from the uploaded existing video file. This is not a new product video generation task; it is a local timeline edit using the existing uploaded material. Add text title “新品体验” as an overlay for seconds 0.0 through 2.0 only. Keep original video dimensions/aspect ratio without crop or reframe, keep full original duration without trimming or extending, and keep original audio unchanged.",
+          "contract": {
+            "schemaVersion": 1,
+            "profile": "commerce-focus-v1",
+            "scenarioId": "general",
+            "originalRequest": "Create the first complete edited version from the uploaded existing video file. This is not a new product video generation task; it is a local timeline edit using the existing uploaded material. Add text title “新品体验” as an overlay for seconds 0.0 through 2.0 only. Keep original video dimensions/aspect ratio without crop or reframe, keep full original duration without trimming or extending, and keep original audio unchanged.",
+            "taskMode": "create",
+            "workflowProfile": "create",
+            "workflow": {
+              "version": 1,
+              "taskMode": "create",
+              "taskModeExplicit": true,
+              "workflowProfile": "create",
+              "businessScenario": "general",
+              "baseProjectId": "513b9ab3-c0df-423b-b870-6ad683bdb147",
+              "baseRevisionId": null,
+              "assetScope": [
+                "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9",
+                "asset-1dfd42f4-ad14-4686-be73-528d8fe1ca11",
+                "asset-f19a9d72-efce-4f09-b52b-13324ea7e2cc"
+              ],
+              "originalRequest": "Create the first complete edited version from the uploaded existing video file. This is not a new product video generation task; it is a local timeline edit using the existing uploaded material. Add text title “新品体验” as an overlay for seconds 0.0 through 2.0 only. Keep original video dimensions/aspect ratio without crop or reframe, keep full original duration without trimming or extending, and keep original audio unchanged.",
+              "requirements": [
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "goal",
+                  "quote": "Create the first complete edited version from the uploaded existing video file",
+                  "startSeconds": null,
+                  "targetIds": [],
+                  "id": "requirement-b0e939774a03413e",
+                  "field": "goal",
+                  "inherited": false
+                },
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "prohibit",
+                  "quote": "This is not a new product video generation task",
+                  "startSeconds": null,
+                  "targetIds": [],
+                  "id": "requirement-a5c30d35fa3feb57",
+                  "field": "prohibit",
+                  "inherited": false
+                },
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "resource",
+                  "quote": "using the existing uploaded material",
+                  "startSeconds": null,
+                  "targetIds": [
+                    "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9",
+                    "asset-1dfd42f4-ad14-4686-be73-528d8fe1ca11",
+                    "asset-f19a9d72-efce-4f09-b52b-13324ea7e2cc"
+                  ],
+                  "id": "requirement-46e31704cbec45fc",
+                  "field": "resource",
+                  "inherited": false
+                },
+                {
+                  "endSeconds": 2,
+                  "excludeIds": [],
+                  "kind": "change",
+                  "quote": "Add text title “新品体验” as an overlay for seconds 0.0 through 2.0 only.",
+                  "startSeconds": 0,
+                  "targetIds": [],
+                  "id": "requirement-c9171949438af352",
+                  "field": "change",
+                  "inherited": false
+                },
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "preserve",
+                  "quote": "Keep original video dimensions/aspect ratio without crop or reframe",
+                  "startSeconds": null,
+                  "targetIds": [
+                    "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9",
+                    "asset-1dfd42f4-ad14-4686-be73-528d8fe1ca11",
+                    "asset-f19a9d72-efce-4f09-b52b-13324ea7e2cc"
+                  ],
+                  "id": "requirement-6fa9afb5f7c9ac57",
+                  "field": "preserve",
+                  "inherited": false
+                },
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "preserve",
+                  "quote": "keep full original duration without trimming or extending",
+                  "startSeconds": null,
+                  "targetIds": [
+                    "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9",
+                    "asset-1dfd42f4-ad14-4686-be73-528d8fe1ca11",
+                    "asset-f19a9d72-efce-4f09-b52b-13324ea7e2cc"
+                  ],
+                  "id": "requirement-a8f77add011d1860",
+                  "field": "preserve",
+                  "inherited": false
+                },
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "preserve",
+                  "quote": "keep original audio unchanged",
+                  "startSeconds": null,
+                  "targetIds": [
+                    "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9",
+                    "asset-1dfd42f4-ad14-4686-be73-528d8fe1ca11",
+                    "asset-f19a9d72-efce-4f09-b52b-13324ea7e2cc"
+                  ],
+                  "id": "requirement-5be187a99fb8ca4a",
+                  "field": "preserve",
+                  "inherited": false
+                }
+              ],
+              "assumptions": [
+                "Use the uploaded source video material at native 1280x720 dimensions and approximately 120.022s duration based on provided metadata.",
+                "Because the request says an existing uploaded video file and no specific asset was named, treat the uploaded video material in the current asset scope as the source set and preserve native picture/audio timing."
+              ],
+              "gaps": [],
+              "interpretation": "validated-semantic-analysis",
+              "objective": "Create a complete local timeline edit from the existing uploaded video material with a short editable title overlay, while preserving the source duration, framing, dimensions, and audio.",
+              "contractId": "contract-fa796cef9e23e781",
+              "parentContractId": null,
+              "sourceRequests": [
+                "Create the first complete edited version from the uploaded existing video file. This is not a new product video generation task; it is a local timeline edit using the existing uploaded material. Add text title “新品体验” as an overlay for seconds 0.0 through 2.0 only. Keep original video dimensions/aspect ratio without crop or reframe, keep full original duration without trimming or extending, and keep original audio unchanged."
+              ],
+              "requirementChanges": [],
+              "changeTargets": [
+                {
+                  "endSeconds": 2,
+                  "excludeIds": [],
+                  "kind": "change",
+                  "quote": "Add text title “新品体验” as an overlay for seconds 0.0 through 2.0 only.",
+                  "startSeconds": 0,
+                  "targetIds": [],
+                  "id": "requirement-c9171949438af352",
+                  "field": "change",
+                  "inherited": false
+                }
+              ],
+              "preserveTargets": [
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "preserve",
+                  "quote": "Keep original video dimensions/aspect ratio without crop or reframe",
+                  "startSeconds": null,
+                  "targetIds": [
+                    "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9",
+                    "asset-1dfd42f4-ad14-4686-be73-528d8fe1ca11",
+                    "asset-f19a9d72-efce-4f09-b52b-13324ea7e2cc"
+                  ],
+                  "id": "requirement-6fa9afb5f7c9ac57",
+                  "field": "preserve",
+                  "inherited": false
+                },
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "preserve",
+                  "quote": "keep full original duration without trimming or extending",
+                  "startSeconds": null,
+                  "targetIds": [
+                    "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9",
+                    "asset-1dfd42f4-ad14-4686-be73-528d8fe1ca11",
+                    "asset-f19a9d72-efce-4f09-b52b-13324ea7e2cc"
+                  ],
+                  "id": "requirement-a8f77add011d1860",
+                  "field": "preserve",
+                  "inherited": false
+                },
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "preserve",
+                  "quote": "keep original audio unchanged",
+                  "startSeconds": null,
+                  "targetIds": [
+                    "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9",
+                    "asset-1dfd42f4-ad14-4686-be73-528d8fe1ca11",
+                    "asset-f19a9d72-efce-4f09-b52b-13324ea7e2cc"
+                  ],
+                  "id": "requirement-5be187a99fb8ca4a",
+                  "field": "preserve",
+                  "inherited": false
+                }
+              ],
+              "resourceNeeds": [
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "resource",
+                  "quote": "using the existing uploaded material",
+                  "startSeconds": null,
+                  "targetIds": [
+                    "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9",
+                    "asset-1dfd42f4-ad14-4686-be73-528d8fe1ca11",
+                    "asset-f19a9d72-efce-4f09-b52b-13324ea7e2cc"
+                  ],
+                  "id": "requirement-46e31704cbec45fc",
+                  "field": "resource",
+                  "inherited": false
+                }
+              ],
+              "prohibitions": [
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "prohibit",
+                  "quote": "This is not a new product video generation task",
+                  "startSeconds": null,
+                  "targetIds": [],
+                  "id": "requirement-a5c30d35fa3feb57",
+                  "field": "prohibit",
+                  "inherited": false
+                }
+              ]
+            },
+            "persona": {
+              "creator": "商家／内容运营（待用户研究验证）",
+              "viewer": "首次了解商品的消费者"
+            },
+            "objective": "明确电商内容目标",
+            "product": {
+              "id": "product-1",
+              "name": "商品展示",
+              "facts": [],
+              "price": null,
+              "cta": "",
+              "audience": null,
+              "prohibited": []
+            },
+            "output": {
+              "width": 1280,
+              "height": 720,
+              "durationSeconds": 120.022,
+              "fps": 30
+            },
+            "audio": "unspecified",
+            "mustHave": [],
+            "mustNot": [],
+            "explicitConstraints": {
+              "schemaVersion": 1,
+              "originalRequest": "Create the first complete edited version from the uploaded existing video file. This is not a new product video generation task; it is a local timeline edit using the existing uploaded material. Add text title “新品体验” as an overlay for seconds 0.0 through 2.0 only. Keep original video dimensions/aspect ratio without crop or reframe, keep full original duration without trimming or extending, and keep original audio unchanged.",
+              "narration": "unspecified",
+              "music": "unspecified",
+              "original": "unspecified",
+              "price": "unspecified",
+              "silent": false
+            },
+            "generatedFootageAllowed": false,
+            "deliverables": [
+              "candidate_mp4",
+              "editable_project",
+              "source_index",
+              "quality_report"
+            ]
+          }
+        }
+      },
+      "idempotencyKey": "a7a814cdf146fee515b8eb4a295a2e67967ad0e4412ec7106c588aded7839699",
+      "step": 1,
+      "durationMs": 57027
+    },
+    {
+      "tool": "assets.observe",
+      "status": "completed",
+      "result": {
+        "candidates": [
+          {
+            "assetId": "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9",
+            "endSeconds": 120.022,
+            "reason": "用户要求保留完整原片时长、不剪裁不延长；该素材为三份上传视频中的原始主素材，另外两份sha256相同为重复文件。可作为完整本地时间线底片，0.0-2.0秒叠加文字标题。",
+            "startSeconds": 0
+          }
+        ],
+        "gaps": [],
+        "inspectRanges": [],
+        "observations": [
+          {
+            "assetId": "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9",
+            "confidence": 0.95,
+            "differentProductFrom": [],
+            "productGroup": "coffee_product_presentation_template",
+            "quality": "1280x720 landscape video, 30fps, h264, visible product/package slides; sampled frames are clear enough for layout confirmation. Audio exists by metadata, but semantic listening/transcription was not available in this stage.",
+            "role": "overview",
+            "safeCrop": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "sameProductAs": [
+              "asset-1dfd42f4-ad14-4686-be73-528d8fe1ca11",
+              "asset-f19a9d72-efce-4f09-b52b-13324ea7e2cc"
+            ],
+            "subjectBox": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "uncertainty": "Only interval contact-sheet frames were provided, not continuous playback. No action demonstration is required by the edit request, so no dense action inspection is needed. Original audio presence is supported by metadata, but unchanged-audio verification must occur at render/review stage.",
+            "visibleContent": "A designed coffee product presentation video with beige and brown slides, coffee bag imagery, cup/table props, and recurring Chinese promotional text. The uploaded duplicates show the same frames and metadata.",
+            "visibleText": [
+              "MORNING / 晨时",
+              "PRODUCT JOURNAL",
+              "把早晨，慢慢唤醒。",
+              "精品咖啡豆",
+              "巧克力风味",
+              "坚果香气",
+              "从一杯好咖啡开始"
+            ]
+          },
+          {
+            "assetId": "asset-1dfd42f4-ad14-4686-be73-528d8fe1ca11",
+            "confidence": 0.95,
+            "differentProductFrom": [],
+            "productGroup": "coffee_product_presentation_template",
+            "quality": "Duplicate of primary asset by sha256 and metadata; sampled frames match the same 1280x720 video.",
+            "role": "overview",
+            "safeCrop": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "sameProductAs": [
+              "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9",
+              "asset-f19a9d72-efce-4f09-b52b-13324ea7e2cc"
+            ],
+            "subjectBox": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "uncertainty": "Duplicate asset; no separate continuous playback evidence beyond matching contact sheets and hash.",
+            "visibleContent": "Same coffee product presentation slides as the primary uploaded video.",
+            "visibleText": [
+              "MORNING / 晨时",
+              "PRODUCT JOURNAL",
+              "精品咖啡豆",
+              "坚果香气"
+            ]
+          },
+          {
+            "assetId": "asset-f19a9d72-efce-4f09-b52b-13324ea7e2cc",
+            "confidence": 0.95,
+            "differentProductFrom": [],
+            "productGroup": "coffee_product_presentation_template",
+            "quality": "Duplicate of primary asset by sha256 and metadata; sampled frames match the same 1280x720 video.",
+            "role": "overview",
+            "safeCrop": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "sameProductAs": [
+              "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9",
+              "asset-1dfd42f4-ad14-4686-be73-528d8fe1ca11"
+            ],
+            "subjectBox": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "uncertainty": "Duplicate asset; no separate continuous playback evidence beyond matching contact sheets and hash.",
+            "visibleContent": "Same coffee product presentation slides as the primary uploaded video.",
+            "visibleText": [
+              "MORNING / 晨时",
+              "PRODUCT JOURNAL",
+              "精品咖啡豆",
+              "巧克力风味"
+            ]
+          }
+        ]
+      },
+      "idempotencyKey": "9bf1780a92fa1143ea133f74cc56d0b7591589c315f304a96ee808a43071df84",
+      "step": 2,
+      "durationMs": 71263
+    },
+    {
+      "tool": "resources.plan",
+      "status": "failed",
+      "error": "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9：缺本次用途的素材审核与权利依据；asset-1dfd42f4-ad14-4686-be73-528d8fe1ca11：缺本次用途的素材审核与权利依据；asset-f19a9d72-efce-4f09-b52b-13324ea7e2cc：缺本次用途的素材审核与权利依据；素材缺少：product_identity",
+      "code": "COMMERCE_MATERIALS_BLOCKED",
+      "idempotencyKey": "a7b22be207a5c208c3fec9d900bbe41674ffda4e6cf1dd697cfd7f951aa20b6d",
+      "step": 3
+    }
+  ],
+  "verification": null,
+  "repairCount": 0,
+  "resultRevisionId": null,
+  "status": "recoverable",
+  "steps": 3,
+  "modelCalls": 4,
+  "maxModelCalls": 128,
+  "budgetSource": "application-default",
+  "completionReserve": 0,
+  "createdAt": "2026-09-20T01:52:22.585Z",
+  "updatedAt": "2026-09-20T01:54:30.889Z",
+  "stage": "resources",
+  "modelInvocations": [
+    {
+      "number": 1,
+      "runId": "aed3780f-5203-4e3c-8c36-166141b69bac",
+      "stage": "R1",
+      "invocation": 1,
+      "attempt": 1,
+      "model": "openclaw/commerce-stage",
+      "requestHash": "3643620d215827e6b8d3b5c0f3261f246a997ad8cfe2017bfc10807bf465d902",
+      "sessionHash": "44b47966164fb7d35626b2629fcbd8bfaf07e61f211ec251820891f07d268ee5",
+      "images": [],
+      "usage": "unknown",
+      "startedAt": "2026-09-20T01:52:22.595Z"
+    },
+    {
+      "number": 2,
+      "runId": "aed3780f-5203-4e3c-8c36-166141b69bac",
+      "stage": "R1",
+      "invocation": 2,
+      "attempt": 1,
+      "model": "openclaw/commerce-stage",
+      "requestHash": "72661ff25e4487a85de683ac8ec474c82bf767549025200ebd4cfce4303b5e93",
+      "sessionHash": "23c3f981d5589ac97d5b3196e4f7c3a9401cff1d3db8efe75e24da90cd3d2dc5",
+      "images": [],
+      "usage": "unknown",
+      "startedAt": "2026-09-20T01:52:51.430Z"
+    },
+    {
+      "number": 3,
+      "runId": "aed3780f-5203-4e3c-8c36-166141b69bac",
+      "stage": "R2",
+      "invocation": 3,
+      "attempt": 1,
+      "model": "openclaw/commerce-stage",
+      "requestHash": "7569a260da7897b162df7dbe24d220003241cfea96963c57417a19e07d94f7bd",
+      "sessionHash": "f1380731e6c06b0aac5fdd4ca48580a074732acc2e97141d0510d23d7caa9ee1",
+      "images": [
+        {
+          "ordinal": 0,
+          "messageIndex": 0,
+          "contentIndex": 2,
+          "mime": "image/jpeg",
+          "bytes": 110009,
+          "sha256": "b545cb14d588d8a7d4d1d0bf93f4be36d23a81b33315f6125721d390ee9f4406"
+        },
+        {
+          "ordinal": 1,
+          "messageIndex": 0,
+          "contentIndex": 4,
+          "mime": "image/jpeg",
+          "bytes": 36143,
+          "sha256": "411bb973c00c5e1eebea23044f6b88753d56ed2fdef8f5e5fd4c024c0a0e61b0"
+        },
+        {
+          "ordinal": 2,
+          "messageIndex": 0,
+          "contentIndex": 6,
+          "mime": "image/jpeg",
+          "bytes": 110009,
+          "sha256": "b545cb14d588d8a7d4d1d0bf93f4be36d23a81b33315f6125721d390ee9f4406"
+        },
+        {
+          "ordinal": 3,
+          "messageIndex": 0,
+          "contentIndex": 8,
+          "mime": "image/jpeg",
+          "bytes": 36143,
+          "sha256": "411bb973c00c5e1eebea23044f6b88753d56ed2fdef8f5e5fd4c024c0a0e61b0"
+        },
+        {
+          "ordinal": 4,
+          "messageIndex": 0,
+          "contentIndex": 10,
+          "mime": "image/jpeg",
+          "bytes": 110009,
+          "sha256": "b545cb14d588d8a7d4d1d0bf93f4be36d23a81b33315f6125721d390ee9f4406"
+        },
+        {
+          "ordinal": 5,
+          "messageIndex": 0,
+          "contentIndex": 12,
+          "mime": "image/jpeg",
+          "bytes": 36143,
+          "sha256": "411bb973c00c5e1eebea23044f6b88753d56ed2fdef8f5e5fd4c024c0a0e61b0"
+        }
+      ],
+      "usage": "unknown",
+      "startedAt": "2026-09-20T01:53:25.071Z"
+    },
+    {
+      "number": 4,
+      "runId": "aed3780f-5203-4e3c-8c36-166141b69bac",
+      "stage": "R2",
+      "invocation": 4,
+      "attempt": 1,
+      "model": "openclaw/commerce-stage",
+      "requestHash": "10ea656c12b622946c9960bae16ec2d694af8c7ce401d0306564845a441e446c",
+      "sessionHash": "f2a0d6a57d86f993fd52e07fd4219b62c4c089cb68068507c09d40fcfa588135",
+      "images": [
+        {
+          "ordinal": 0,
+          "messageIndex": 0,
+          "contentIndex": 2,
+          "mime": "image/jpeg",
+          "bytes": 110009,
+          "sha256": "b545cb14d588d8a7d4d1d0bf93f4be36d23a81b33315f6125721d390ee9f4406"
+        },
+        {
+          "ordinal": 1,
+          "messageIndex": 0,
+          "contentIndex": 4,
+          "mime": "image/jpeg",
+          "bytes": 36143,
+          "sha256": "411bb973c00c5e1eebea23044f6b88753d56ed2fdef8f5e5fd4c024c0a0e61b0"
+        },
+        {
+          "ordinal": 2,
+          "messageIndex": 0,
+          "contentIndex": 6,
+          "mime": "image/jpeg",
+          "bytes": 110009,
+          "sha256": "b545cb14d588d8a7d4d1d0bf93f4be36d23a81b33315f6125721d390ee9f4406"
+        },
+        {
+          "ordinal": 3,
+          "messageIndex": 0,
+          "contentIndex": 8,
+          "mime": "image/jpeg",
+          "bytes": 36143,
+          "sha256": "411bb973c00c5e1eebea23044f6b88753d56ed2fdef8f5e5fd4c024c0a0e61b0"
+        },
+        {
+          "ordinal": 4,
+          "messageIndex": 0,
+          "contentIndex": 10,
+          "mime": "image/jpeg",
+          "bytes": 110009,
+          "sha256": "b545cb14d588d8a7d4d1d0bf93f4be36d23a81b33315f6125721d390ee9f4406"
+        },
+        {
+          "ordinal": 5,
+          "messageIndex": 0,
+          "contentIndex": 12,
+          "mime": "image/jpeg",
+          "bytes": 36143,
+          "sha256": "411bb973c00c5e1eebea23044f6b88753d56ed2fdef8f5e5fd4c024c0a0e61b0"
+        }
+      ],
+      "usage": "unknown",
+      "startedAt": "2026-09-20T01:53:49.541Z"
+    }
+  ],
+  "error": "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9：缺本次用途的素材审核与权利依据；asset-1dfd42f4-ad14-4686-be73-528d8fe1ca11：缺本次用途的素材审核与权利依据；asset-f19a9d72-efce-4f09-b52b-13324ea7e2cc：缺本次用途的素材审核与权利依据；素材缺少：product_identity",
+  "code": "COMMERCE_MATERIALS_BLOCKED"
+}

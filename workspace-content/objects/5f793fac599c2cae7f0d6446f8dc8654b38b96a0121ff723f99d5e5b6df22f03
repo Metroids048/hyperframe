@@ -1,0 +1,64 @@
+{
+  "summary": "仅检查scene-07的4张关键帧：22.5秒主机下部被源画幅截断；22.92秒与23.46秒包内主机正面完整可辨；23.967秒手已抓住提带，片尾停在新动作准备阶段。商品名及署名准确、清晰且未遮挡主体，未发现需增加动效的问题。本镜需局部重选素材，不能据此判定全片通过。",
+  "issues": [
+    {
+      "severity": "major",
+      "repairKind": "source-selection",
+      "sceneId": "scene-07",
+      "startSeconds": 22.5,
+      "endSeconds": 22.5,
+      "nodeIds": [
+        "node-8e6c7efbc0abe993"
+      ],
+      "evidence": [
+        "review-attempt-h8s5Rc/round-0/batch-2/frame-00-at-22.5s.png"
+      ],
+      "problem": "对应requirement-d5cb94f4b38dc23d及requirement-2416ad4bb399ce62：包盖占据画面中心，主机屏幕下部及机身下缘被媒体底边截断，无法形成完整主机的收尾亮相。完整容纳横屏素材并未解决源内出画。",
+      "repair": "由导演重选scene-07的原生媒体区间，排除主机尚未完整入画的部分；与片尾问题合并寻找原速连续1.8秒的完整主体窗口，同步调整对应原声源区间。保留24秒总长、其他镜头、标题、署名及contain布局。重新渲染并连续检查本镜首帧至末帧；若找不到满足条件的窗口，记录素材缺口，不用放大、冻结或慢放补足。"
+    },
+    {
+      "severity": "major",
+      "repairKind": "source-selection",
+      "sceneId": "scene-07",
+      "startSeconds": 23.967,
+      "endSeconds": 24,
+      "nodeIds": [
+        "node-8e6c7efbc0abe993"
+      ],
+      "evidence": [
+        "review-attempt-h8s5Rc/round-0/batch-2/frame-02-at-23.46s.png",
+        "review-attempt-h8s5Rc/round-0/batch-2/frame-03-at-23.967s.png"
+      ],
+      "problem": "对应requirement-2416ad4bb399ce62：23.46秒仍在展示包内整体，末帧手已抓住提带并进入取机准备动作，未形成自然收束。sourceTimeline显示本镜源区间43.5—45.3秒紧接此前scene-05使用的取机区间45.3—48.4秒；回顾本身合理，但在结尾再次启动该动作会留下未完成感。",
+      "repair": "由导演将本镜出点选在抓提带动作开始前，并结合入点截断问题重新选择完整的1.8秒收尾区间；不能只提前出点后用静帧填时长。仅修改本镜视频及关联原声，保持标题、署名、其他镜头与总时长。连续核验最后一秒，确认结尾停在完整展示状态且没有启动随后被截断的新动作。"
+    }
+  ],
+  "unreviewed": [
+    "未连续观看scene-07；22.2秒准确入点、帧间主体保护、动作起点及实际动效观感未验证。",
+    "未试听原声，音画同步、讲话完整性、切点及片尾听感未评；音轨配置不能替代试听。",
+    "本批不评其他镜头、前2秒主体建立、完整开包动作及全片叙事；sourceTimeline仅用于源区间关系核对。",
+    "未核验最终MP4技术完整性、原生工程可编辑性及素材许可链；本报告不代表真人认可或发布批准。"
+  ],
+  "frameTimes": [
+    {
+      "file": "review-attempt-h8s5Rc/round-0/batch-2/frame-00-at-22.5s.png",
+      "seconds": 22.5,
+      "sceneId": "scene-07"
+    },
+    {
+      "file": "review-attempt-h8s5Rc/round-0/batch-2/frame-01-at-22.92s.png",
+      "seconds": 22.92,
+      "sceneId": "scene-07"
+    },
+    {
+      "file": "review-attempt-h8s5Rc/round-0/batch-2/frame-02-at-23.46s.png",
+      "seconds": 23.46,
+      "sceneId": "scene-07"
+    },
+    {
+      "file": "review-attempt-h8s5Rc/round-0/batch-2/frame-03-at-23.967s.png",
+      "seconds": 23.967,
+      "sceneId": "scene-07"
+    }
+  ]
+}

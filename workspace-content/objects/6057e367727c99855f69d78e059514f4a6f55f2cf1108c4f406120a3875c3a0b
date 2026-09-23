@@ -1,0 +1,95 @@
+{
+  "source": {
+    "html": "<div id=\"root\"><div id=\"media-1\"></div><div id=\"text-1\">背部屏幕与手持取景</div></div>",
+    "css": "#root{position:relative;width:1920px;height:1080px;background:transparent;font-family:Arial,sans-serif;}#media-1{position:absolute;inset:0;background:transparent;}#text-1{position:absolute;right:72px;top:72px;padding:8px 12px;background:rgba(242,241,243,0.78);border:1px solid #6B6D73;border-radius:4px;color:#1F2024;font-size:28px;font-weight:400;line-height:1.2;white-space:nowrap;}\n#media-1{background:transparent;opacity:1;z-index:1}",
+    "timeline": "",
+    "parameters": [],
+    "objects": [
+      {
+        "elementId": "media-1",
+        "ref": "media-1"
+      },
+      {
+        "elementId": "text-1",
+        "ref": "text-1"
+      }
+    ],
+    "motionTargets": [],
+    "textStyles": [
+      {
+        "elementId": "text-1",
+        "match": "背部屏幕与手持取景",
+        "fontSize": 28,
+        "fontWeight": 400,
+        "color": "#1F2024"
+      }
+    ],
+    "contractVersion": 2,
+    "tokens": {
+      "background": "#F2F1F3",
+      "foreground": "#1F2024",
+      "panel": "#FFFFFF",
+      "accent": "#6B6D73",
+      "accentContrast": "#FFFFFF"
+    }
+  },
+  "binding": {
+    "shotHash": "f0ca899574cbb4f1c357892c1318e430f427131c7ad043986c45d5a7c5d3c2b4",
+    "designHash": "8e61f431a3a2f59558d1b63514694075f7551ad853a2af4b05035c8a7702616b",
+    "outputHash": "f1745ca0f6847b0a63c40d6a41a12117e9f01a445e03fe45a7ac4c4e6836e9da"
+  },
+  "evidence": {
+    "inspectionVersion": 3,
+    "validationFiles": [
+      [
+        "lib/creative/custom-source.mjs",
+        "c1b2a00a6a6dd27dbc6ee2fcef5e226d972375ae0056808f40f630982c816894"
+      ],
+      [
+        "lib/creative/isolation.mjs",
+        "6d232d5019810af7d1ba75aca99e074b76841da20fb3fc7b55dfe1d7b43aaf0a"
+      ],
+      [
+        "lib/creative/isolation-protocol.mjs",
+        "b5344dfc6663b9a5a41461475ab08ecf141d7230d0e3b5bb1debf1c310e4ca7d"
+      ],
+      [
+        "scripts/native-scene-worker.mjs",
+        "c9fdeb53f010be5b70a29371a7305be0039e30a8a0660e9f36d237a006905d7c"
+      ]
+    ],
+    "inputHash": "6637ae98418ea68f5c09289065d9b8da431ced32955fd2bf7842cc99a67996d8",
+    "sceneId": "scene-04",
+    "sourceRevisionId": "rev-44baf4b90426cf8f",
+    "globalSeconds": 19.5,
+    "image": "frames/frame-00-at-4.5s.png",
+    "imageHash": "a0dfb4c95db48b3d3dc6b36c8c13b0eadeeab1cf553f47810b5264d72c4f5bea",
+    "engineering": "static-frame-checked",
+    "checkScope": {
+      "kind": "static-keyframe",
+      "atSeconds": 4.5,
+      "fullTimeline": "pending-assembly",
+      "mediaExtraction": "checked"
+    },
+    "animation": "not-yet-authored",
+    "imagePath": "/Users/a1234/Desktop/hyperframe-main/video-agent/data/result-completion-projects/2ba994d0-d750-494c-99ec-0f5527add49a/versions/job-27c1e043-2842-4953-8cf8-dcfdaf421ab8/keyframes/scene-04-6637ae98418ea68f/frames/frame-00-at-4.5s.png",
+    "folder": "keyframes/scene-04-6637ae98418ea68f"
+  },
+  "review": {
+    "issues": [
+      {
+        "severity": "minor",
+        "repairKind": "text-timing",
+        "problem": "静态关键帧显示标签“背部屏幕与手持取景”，但当前证据只覆盖单帧，未验证该文字在对应动作发生期间的持续时长与入出点同步。",
+        "repair": "在完整时间线上核对标签从手持取景开始出现，并在镜头结束或动作结束前合理退出；保留文字对象 node-ff180be8db594c30。"
+      },
+      {
+        "severity": "minor",
+        "repairKind": "source-selection",
+        "problem": "提供了源片段首帧、末帧和57.700秒关键帧，但仅凭离散帧无法确认53.200–59.167秒内屏幕与手持取景动作连续且无遮挡。",
+        "repair": "复核该源区间的连续视频；若中段屏幕被手部明显遮挡，改用同一素材中可见性更稳定的连续区间，并重新检查首末帧动作边界。"
+      }
+    ],
+    "summary": "静态关键帧中商品、手持状态和背部屏幕可见，新增标签位于画面上方黑色留白区，未发现明显主体遮挡或事实冲突。未实际听辨音轨，声音保留与同步未评；也未完成连续视频动作、文字时序和最终成片覆盖审查，因此当前只能视为待复核候选，不能判定通过。"
+  }
+}

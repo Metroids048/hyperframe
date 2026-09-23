@@ -1,0 +1,54 @@
+{
+  "inspectionVersion": 3,
+  "validationFiles": [
+    [
+      "lib/creative/custom-source.mjs",
+      "c1b2a00a6a6dd27dbc6ee2fcef5e226d972375ae0056808f40f630982c816894"
+    ],
+    [
+      "lib/creative/isolation.mjs",
+      "6d232d5019810af7d1ba75aca99e074b76841da20fb3fc7b55dfe1d7b43aaf0a"
+    ],
+    [
+      "lib/creative/isolation-protocol.mjs",
+      "b5344dfc6663b9a5a41461475ab08ecf141d7230d0e3b5bb1debf1c310e4ca7d"
+    ],
+    [
+      "scripts/native-scene-worker.mjs",
+      "c9fdeb53f010be5b70a29371a7305be0039e30a8a0660e9f36d237a006905d7c"
+    ]
+  ],
+  "inputHash": "4aaed24dfab3058a6af5941cd10f4c94c8ec1a5e397aeef110a0a883c80359b9",
+  "sceneId": "scene-05",
+  "sourceRevisionId": "rev-c2c2b3954f5d0cf3",
+  "globalSeconds": 19.566666666666666,
+  "image": "frames/frame-00-at-1.567s.png",
+  "imageHash": "4de997867484dc47974cbf2768888c531c37c2924f73a14d83a72b50bffe3631",
+  "engineering": "static-frame-checked",
+  "checkScope": {
+    "kind": "static-keyframe",
+    "atSeconds": 1.5666666666666669,
+    "fullTimeline": "pending-assembly",
+    "mediaExtraction": "checked"
+  },
+  "animation": "not-yet-authored",
+  "folder": "keyframes/scene-05-4aaed24dfab3058a",
+  "review": {
+    "issues": [
+      {
+        "severity": "major",
+        "repairKind": "fact-binding",
+        "problem": "关键帧中的新增文字“支架上的相机状态”与可观察画面不完全对应：画面显示相机被手持在小型手柄/云台类装置上，未能确认是“支架”，且该文字没有 factRefs。该表述可能让观众误解为固定支架状态。证据：scene-05 关键帧约 1.567 秒；源边界末帧约 63.478 秒。",
+        "repair": "将 node-6987f7b5ff7d73cd 改为可直接观察且不推断装置类型的文字，例如“相机与手柄状态”或“手持拍摄状态”；保留画面和独立可编辑文字对象。重新检查文字与末帧画面的一致性。"
+      },
+      {
+        "severity": "minor",
+        "repairKind": "layout",
+        "problem": "关键帧上下存在明显黑色边带，且新增标签位于左下角靠近画面下边界；在横屏成片中会降低有效画面占比，并使标签与黑边区域的层级关系不够清晰。证据：scene-05 关键帧约 1.567 秒。",
+        "repair": "在不裁掉相机、手部或源片标识的前提下，优先调整媒体适配或裁切范围以减少黑边；将标签保持在有效画面安全区内，并复核中文可读性和主体无遮挡。"
+      }
+    ],
+    "summary": "已检查未包装源片起止帧与 scene-05 静态合成关键帧。未发现应用新增文字与源片烧录文字重复；全片静音合同在该静态检查中无法验证。主要问题是“支架”表述缺乏画面证据，另有黑边与标签位置的轻微布局风险。"
+  },
+  "sourceHash": "baff3446023cb4a7b8d6a4bc6af48802d9e3d6b183e8f8d30b34846083d3cbfc"
+}

@@ -1,0 +1,87 @@
+{
+  "id": "bc3b9bb2-3741-418d-8fa8-317955f9a880",
+  "userRequest": "请基于已准备项目中的用户上传原始商品视频，制作约30秒的竖屏商品视频候选并导出高质量MP4。严格仅使用该上传原片及其原始音频，不使用外部素材、不生成画面、不编造卖点或未经画面证明的文字。原片已为约30秒、1080×1920竖屏、30fps，因此优先保留完整真实内容，仅进行必要的质量检查、轻量节奏整理（如确有必要）、竖屏构图适配和基础画质处理。保留原始声音，不添加音乐、旁白或配音。输出1080×1920、30fps、约30秒、高质量MP4，并生成可预览候选。",
+  "projectId": "af8ba48b-e9ae-4f65-b0c7-8c1c7695cffa",
+  "baseRevisionId": null,
+  "inputFingerprint": "3243712f72a5daa8cf179385d08189d20277ee21650d06640ad1af411876c685",
+  "selectedSkills": [],
+  "constraints": {},
+  "plan": null,
+  "artifacts": {},
+  "checkpoints": {},
+  "toolCalls": [
+    {
+      "name": "brief.parse",
+      "input": {},
+      "inputHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "idempotencyKey": "528ef4d2f3d7b8176841f37e2004bb7d5cfbfff4871f58e5662139ce658592ff",
+      "step": 1,
+      "startedAt": "2026-09-23T11:34:24.087Z"
+    }
+  ],
+  "toolResults": [
+    {
+      "tool": "brief.parse",
+      "status": "failed",
+      "error": "未要求保留原声且明确禁止旁白与音乐时，不自动保留未经试听的源混合音轨",
+      "code": "AUDIO_CONSTRAINT",
+      "idempotencyKey": "528ef4d2f3d7b8176841f37e2004bb7d5cfbfff4871f58e5662139ce658592ff",
+      "step": 1
+    }
+  ],
+  "verification": null,
+  "repairCount": 0,
+  "resultRevisionId": null,
+  "status": "recoverable",
+  "steps": 1,
+  "modelCalls": 3,
+  "maxModelCalls": 128,
+  "budgetSource": "application-default",
+  "completionReserve": 0,
+  "createdAt": "2026-09-23T11:34:24.079Z",
+  "updatedAt": "2026-09-23T11:36:24.142Z",
+  "stage": "brief",
+  "modelInvocations": [
+    {
+      "number": 1,
+      "runId": "ef7b78b5-4a92-4d77-a7a7-f84025723a1c",
+      "stage": "R1",
+      "invocation": 1,
+      "attempt": 1,
+      "model": "openclaw/commerce-stage",
+      "requestHash": "3653e6c48f763fb4000fe450341bd37189f4c3073b9fbc5cca8291b9a0194a7d",
+      "sessionHash": "25454877e609e8bbeadaad347fc90b01eb290bb0954115410cf71584b5dcaf93",
+      "images": [],
+      "usage": "unknown",
+      "startedAt": "2026-09-23T11:34:24.105Z"
+    },
+    {
+      "number": 2,
+      "runId": "ef7b78b5-4a92-4d77-a7a7-f84025723a1c",
+      "stage": "R1",
+      "invocation": 2,
+      "attempt": 1,
+      "model": "openclaw/commerce-stage",
+      "requestHash": "2cd7c03e18092c8ae86afe3aa620f5522a136cb1bcfd582eeea0559d14acae39",
+      "sessionHash": "abf9ad7c77db08ba08cfca02b14871f77601657d23ae9113eb28f7db3eb25433",
+      "images": [],
+      "usage": "unknown",
+      "startedAt": "2026-09-23T11:35:03.025Z"
+    },
+    {
+      "number": 3,
+      "runId": "ef7b78b5-4a92-4d77-a7a7-f84025723a1c",
+      "stage": "R1",
+      "invocation": 3,
+      "attempt": 1,
+      "model": "openclaw/commerce-stage",
+      "requestHash": "8992bb777edfdfa263bffe44ea39d5572cde8f4b818808bc215f679ba5f82a1b",
+      "sessionHash": "1ac21f78650886455821252c0a726a09ab2e5b9636b5906a0573fa301839036b",
+      "images": [],
+      "usage": "unknown",
+      "startedAt": "2026-09-23T11:36:00.344Z"
+    }
+  ],
+  "error": "未要求保留原声且明确禁止旁白与音乐时，不自动保留未经试听的源混合音轨",
+  "code": "AUDIO_CONSTRAINT"
+}

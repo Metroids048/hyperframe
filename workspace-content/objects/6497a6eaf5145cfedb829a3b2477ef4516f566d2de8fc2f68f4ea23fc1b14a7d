@@ -1,0 +1,140 @@
+{
+  "binding": {
+    "documentHash": "c751c662f3174defd45d2efdba0db0afa79e687f9ecba174eab74654664ff17d",
+    "implementationHash": "1b99fc7413ead7ca3afad1986aa81190be32e263e733fb83fa9ca6b16a6e6911",
+    "reviewAttempt": "review-attempt-h8s5Rc",
+    "reviewedAt": "2026-09-18T05:56:54.952Z",
+    "coverage": "keyframes_only"
+  },
+  "summary": "已检查本批scene-01至scene-03的12张关键帧。开场主机可辨，但烧录互动提示抢占注意；取包装段出现主体完全出画。新增文字仅为商品名和署名，未发现无依据参数承诺。建议局部修复，不能据本批认定全片通过。\n已逐图检查本批scene-04至scene-06的12张关键帧。可见闭包、开盖露出主机、取机、正背面展示及正面倾斜；“正面按键布局”与其出现时的画面相符，21.6秒已退场。发现末帧源内截断及烧录图形干扰、跨幕布局位置不一致，需局部修复。仅为关键帧审查，不代表全片或声音通过。\n仅检查scene-07的4张关键帧：22.5秒主机下部被源画幅截断；22.92秒与23.46秒包内主机正面完整可辨；23.967秒手已抓住提带，片尾停在新动作准备阶段。商品名及署名准确、清晰且未遮挡主体，未发现需增加动效的问题。本镜需局部重选素材，不能据此判定全片通过。",
+  "issues": [
+    {
+      "severity": "major",
+      "repairKind": "source-selection",
+      "sceneId": "scene-01",
+      "startSeconds": 0,
+      "endSeconds": 2,
+      "nodeIds": [
+        "node-602616f34e7021cc"
+      ],
+      "evidence": [
+        "review-attempt-h8s5Rc/round-0/batch-0/frame-00-at-0.3s.png",
+        "review-attempt-h8s5Rc/round-0/batch-0/frame-01-at-0.8s.png",
+        "review-attempt-h8s5Rc/round-0/batch-0/frame-02-at-1.4s.png",
+        "review-attempt-h8s5Rc/round-0/batch-0/frame-03-at-1.967s.png"
+      ],
+      "problem": "对应requirement-971bd5b7a7f20eed：四帧均出现高饱和红白点赞或订阅提示，末帧提示正在叠换。主机轮廓虽完整，源烧录动画仍分散开场识别注意，与克制展示要求不符；这些提示不是应用新增文字。",
+      "repair": "由导演仅重选本镜2秒原生媒体区间，要求连续展示完整主机且无烧录互动提示，同步更换对应原声。保留商品名、署名、contain布局及全片24秒；不得通过裁切、遮盖或CSS隐藏处理。先连续核验候选，再复查实际渲染0—2秒；若无满足条件的区间，记录素材缺口，不宣称修复完成。"
+    },
+    {
+      "severity": "major",
+      "repairKind": "source-selection",
+      "sceneId": "scene-02",
+      "startSeconds": 3.92,
+      "endSeconds": 5.36,
+      "nodeIds": [
+        "node-a0ad376e35abb241"
+      ],
+      "evidence": [
+        "review-attempt-h8s5Rc/round-0/batch-0/frame-05-at-3.92s.png",
+        "review-attempt-h8s5Rc/round-0/batch-0/frame-06-at-5.36s.png"
+      ],
+      "problem": "对应requirement-2416ad4bb399ce62：3.92秒画面仅剩空纸箱和周边物品，主包装与主要操作完全出画；5.36秒包装重新出现但左下部分仍被源画幅截断。取出动作的关键观看信息因此中断。当前只有署名，没有错误宣称动作的新增字幕；准确出画持续时间尚不能由抽帧确定。",
+      "repair": "由导演连续检查源23—27.8秒，定位最后可见取出动作与包装重新清楚入画的边界，仅剪去主体完全出画的无效区间，保留真实接触、举起及重新展示的先后关系，并同步裁切原声。24秒所需余量只能使用经核验的有效展示内容，不冻结或慢放填充；不足则记录时长与素材冲突。复验本镜及相邻切点，确认取出关系仍可理解。"
+    },
+    {
+      "severity": "major",
+      "repairKind": "source-selection",
+      "sceneId": "scene-06",
+      "startSeconds": 22.167,
+      "endSeconds": 22.2,
+      "nodeIds": [
+        "node-463454b7137a4ae0"
+      ],
+      "evidence": [
+        "review-attempt-h8s5Rc/round-0/batch-1/frame-11-at-22.167s.png"
+      ],
+      "problem": "对应requirement-d5cb94f4b38dc23d及requirement-971bd5b7a7f20eed：末帧主机被源画面上边界截断，手臂上出现红色烧录图形及残缺白字，干扰商品观察。实际证据不支持本镜已在烧录文字出现前结束。",
+      "repair": "由导演重选本镜原生视频源区间：逐帧定位烧录图形首次出现及主机出画时刻，将出点置于两者之前；向前寻找可维持本镜2秒的连续清晰正面窗口，并同步调整对应原声源区间。保留署名、原速及全片24秒，不以裁切、遮盖或冻结隐藏问题。重新渲染并检查整段及最后数帧；无足够窗口则记录素材缺口。"
+    },
+    {
+      "severity": "minor",
+      "repairKind": "layout",
+      "sceneId": "scene-05",
+      "startSeconds": 17.1,
+      "endSeconds": 20.2,
+      "nodeIds": [
+        "node-8c3f42e2206303cd"
+      ],
+      "evidence": [
+        "review-attempt-h8s5Rc/round-0/batch-1/frame-04-at-17.4s.png",
+        "review-attempt-h8s5Rc/round-0/batch-1/frame-07-at-20.167s.png"
+      ],
+      "problem": "本镜媒体窗口在540×960预览中位于约y=328—632，相比上一镜约y=300—604下移28像素，不符合design规定的全片固定媒体窗口，切点产生无叙事作用的位置跳动。",
+      "repair": "仅统一本镜媒体容器的纵向位置至全片共享窗口坐标；保留完整16:9比例、contain、源区间和原声。重新渲染17.1秒切点两侧，确认窗口边界对齐且未新增裁切。"
+    },
+    {
+      "severity": "minor",
+      "repairKind": "layout",
+      "sceneId": "scene-06",
+      "startSeconds": 20.2,
+      "endSeconds": 22.2,
+      "nodeIds": [
+        "node-6e44eccf95573156"
+      ],
+      "evidence": [
+        "review-attempt-h8s5Rc/round-0/batch-1/frame-08-at-20.5s.png",
+        "review-attempt-h8s5Rc/round-0/batch-1/frame-10-at-21.6s.png"
+      ],
+      "problem": "对应requirement-76983e27c330441d及design.labelStyle：署名仍清晰可见，但在本镜移至预览约y=671，前镜约y=751，切点上跳约80像素，违反署名各切点位置不变的设计约束。",
+      "repair": "将本镜署名位置绑定到前镜使用的共享署名坐标，保留原文、字号和独立可编辑对象。检查20.2秒切点两侧及本镜全段，确认署名静止、持续可读且位于媒体外。"
+    },
+    {
+      "severity": "major",
+      "repairKind": "source-selection",
+      "sceneId": "scene-07",
+      "startSeconds": 22.5,
+      "endSeconds": 22.5,
+      "nodeIds": [
+        "node-8e6c7efbc0abe993"
+      ],
+      "evidence": [
+        "review-attempt-h8s5Rc/round-0/batch-2/frame-00-at-22.5s.png"
+      ],
+      "problem": "对应requirement-d5cb94f4b38dc23d及requirement-2416ad4bb399ce62：包盖占据画面中心，主机屏幕下部及机身下缘被媒体底边截断，无法形成完整主机的收尾亮相。完整容纳横屏素材并未解决源内出画。",
+      "repair": "由导演重选scene-07的原生媒体区间，排除主机尚未完整入画的部分；与片尾问题合并寻找原速连续1.8秒的完整主体窗口，同步调整对应原声源区间。保留24秒总长、其他镜头、标题、署名及contain布局。重新渲染并连续检查本镜首帧至末帧；若找不到满足条件的窗口，记录素材缺口，不用放大、冻结或慢放补足。"
+    },
+    {
+      "severity": "major",
+      "repairKind": "source-selection",
+      "sceneId": "scene-07",
+      "startSeconds": 23.967,
+      "endSeconds": 24,
+      "nodeIds": [
+        "node-8e6c7efbc0abe993"
+      ],
+      "evidence": [
+        "review-attempt-h8s5Rc/round-0/batch-2/frame-02-at-23.46s.png",
+        "review-attempt-h8s5Rc/round-0/batch-2/frame-03-at-23.967s.png"
+      ],
+      "problem": "对应requirement-2416ad4bb399ce62：23.46秒仍在展示包内整体，末帧手已抓住提带并进入取机准备动作，未形成自然收束。sourceTimeline显示本镜源区间43.5—45.3秒紧接此前scene-05使用的取机区间45.3—48.4秒；回顾本身合理，但在结尾再次启动该动作会留下未完成感。",
+      "repair": "由导演将本镜出点选在抓提带动作开始前，并结合入点截断问题重新选择完整的1.8秒收尾区间；不能只提前出点后用静帧填时长。仅修改本镜视频及关联原声，保持标题、署名、其他镜头与总时长。连续核验最后一秒，确认结尾停在完整展示状态且没有启动随后被截断的新动作。"
+    }
+  ],
+  "unreviewed": [
+    "仅观察离散关键帧，未连续观看：前2秒逐帧清晰度、取包装动作完整性、纸套移除过程、切点及实际动效观感仍待核验。",
+    "scene-03在8.8秒、11秒和12.767秒可见包装或包体局部越出源画幅；缺少连续证据，尚未判定是否妨碍完整识别及应调整的准确边界。",
+    "本批未覆盖12.8—24秒，打开收纳包、按键布局标注和结尾完整性未评。sourceTimeline所列区间无重叠，scene-02与scene-03源时间连续，但这不证明全片动作完整。",
+    "未试听，原声实际保留情况、音画同步、讲话切断和切点听感未评；未验证实际音轨是否含新增声音。",
+    "未检查最终MP4技术信息、原生工程可编辑性、版本绑定及许可链；署名可见不等于发布权利已核验。",
+    "未连续播放；13.1秒仅见纸箱和手、包体尚未进入有效展示，无法据单帧确定空等持续时间。开盖、取机和翻转的完整性及切点流畅度仍待连续核验。",
+    "未试听，原声保留情况、音画同步、讲话完整性及切点听感未评。",
+    "本批不含scene-01至scene-03及scene-07的实际画面；前2秒主体建立、全片节奏和最终收束未评。sourceTimeline未显示源区间重叠，不能据此判定完整叙事已通过。",
+    "关键帧与animationEvidence支持标签使用遮罩揭示并及时退场，但实际运动流畅度及完整阅读时间未连续验证。",
+    "最终MP4技术检查、原生工程可编辑性、版本绑定及素材许可链未验证。",
+    "未连续观看scene-07；22.2秒准确入点、帧间主体保护、动作起点及实际动效观感未验证。",
+    "未试听原声，音画同步、讲话完整性、切点及片尾听感未评；音轨配置不能替代试听。",
+    "本批不评其他镜头、前2秒主体建立、完整开包动作及全片叙事；sourceTimeline仅用于源区间关系核对。",
+    "未核验最终MP4技术完整性、原生工程可编辑性及素材许可链；本报告不代表真人认可或发布批准。"
+  ]
+}

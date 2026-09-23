@@ -1,0 +1,59 @@
+{
+  "mode": "create",
+  "scenario": "general",
+  "objective": "基于已上传视频的内容，先制定制作方案。",
+  "auxiliaryModes": [],
+  "auxiliaryScenarios": [],
+  "requirements": [
+    {
+      "kind": "goal",
+      "quote": "都需要，你基于视频内容先给我出班方案吧"
+    ,
+      "targetIds": [],
+      "excludeIds": []
+    }
+  ],
+  "overrides": [],
+  "resources": [
+    {
+      "resourceKind": "source-asset",
+      "purpose": "作为内容观察与制作方案规划的来源。",
+      "query": "invideo生成.mp4",
+      "quote": "基于视频内容",
+      "required": true,
+      "targetIds": [
+        "asset-c582002c-74cb-4149-97d9-d39b69bd439f"
+      ],
+      "texts": [],
+      "actionProtected": true
+    }
+  ],
+  "gaps": [
+    {
+      "field": "objective.scope",
+      "question": "“都需要”具体指哪些需求？当前没有对应的前文，可先基于视频内容拟定方案。",
+      "blocking": false
+    }
+  ],
+  "procedureSubtype": "not_applicable",
+  "steps": [
+    {
+      "id": "observe_source",
+      "purpose": "待观察视频的主题、内容顺序、画面、文字和声音，核验可用内容与质量问题，不预设业务类型或动作。",
+      "requires": [],
+      "assetIds": [
+        "asset-c582002c-74cb-4149-97d9-d39b69bd439f"
+      ]
+    },
+    {
+      "id": "draft_plan",
+      "purpose": "依据观察结果，按1920×1080、120秒的输出配置拟定内容结构、节奏、字幕与声音处理方案；仅提交制作单。",
+      "requires": [
+        "observe_source"
+      ],
+      "assetIds": [
+        "asset-c582002c-74cb-4149-97d9-d39b69bd439f"
+      ]
+    }
+  ]
+}

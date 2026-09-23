@@ -1,0 +1,13 @@
+PASS fast import, immutable source cache, deferred analysis cache
+file:///Users/a1234/Desktop/hyperframe-main/video-agent/lib/edit/preview-check.mjs:137
+  }catch(e){if(signal?.aborted)throw failCancelled();if(controller.signal.aborted)throw new EditError('预览检查超时，输入已保留',422);if(e instanceof EditError)throw e;throw new EditError('预览检查未通过：'+e.message,422);}
+                                                                                                                                                                  ^
+
+EditError: 预览检查未通过：Navigating frame was detached
+    at checkPreviewRuntime (file:///Users/a1234/Desktop/hyperframe-main/video-agent/lib/edit/preview-check.mjs:137:163)
+    at async checkRevision (file:///Users/a1234/Desktop/hyperframe-main/video-agent/lib/edit/media.mjs:196:15)
+    at async file:///Users/a1234/Desktop/hyperframe-main/video-agent/scripts/test-upgrade-media.mjs:24:14 {
+  status: 422
+}
+
+Node.js v24.19.0

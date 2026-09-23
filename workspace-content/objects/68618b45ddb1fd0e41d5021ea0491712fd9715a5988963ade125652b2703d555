@@ -1,0 +1,76 @@
+{
+  "status": "needs-repair",
+  "engineering": "checked",
+  "revisionId": "rev-005686a39cc081c9",
+  "summary": "已检查本批唯一修改对象 node-aa9af36075fb903e（scene-01 标题）。在 1.5 秒关键帧中，“周末新品”完整可读、未裁切，位于左下安全区域，未见遮挡或明显孤字换行。未重新评审未修改对象；没有连续运动和实际声音证据，因此声音保持、原视频未裁切、完整时长及标题在 2 秒时准确退场均未完成验证。\n本批关键帧未能证明“仅在开头 2 秒添加周末新品并保持原视频”的修改已正确完成；相反，后段仍有与耳机画面不匹配的旧教程标签，且回执显示媒体、音频和播放速度被大范围改动。建议先回退非标题改动，再只叠加开头标题并重新抽取 0-2 秒和全片结尾证据复查。",
+  "issues": [
+    {
+      "evidence": "edit-review-0/batch-1/frame-00-at-25.5s.png",
+      "nodeId": "node-7de77532f3d4128d",
+      "problem": "局部修改后仍显示旧步骤标签“注入液体”，且画面实际是耳机产品页，不是液体注入动作；这是本次未要求修改的误导性文案，影响观看者理解。",
+      "repair": "删除该旧步骤标签，或按当前真实画面改成与耳机内容一致的中性说明；只改文字层，不改媒体和时长。",
+      "sceneId": "scene-04",
+      "seconds": 25.5,
+      "severity": "major"
+    },
+    {
+      "evidence": "edit-review-0/batch-1/frame-02-at-34.5s.png",
+      "nodeId": "node-1068bc3250651236",
+      "problem": "标签“装配并加热”与可见耳机产品图不匹配，没有装配或加热动作证据；该文字会造成商品事实/操作误导。",
+      "repair": "移除该标签，或替换为与耳机展示画面一致的短标签；保持原画幅、时长和媒体不再变动。",
+      "sceneId": "scene-05",
+      "seconds": 34.5,
+      "severity": "major"
+    },
+    {
+      "evidence": "edit-review-0/batch-1/frame-04-at-46.5s.png",
+      "nodeId": "node-3bfbccb0efe4332a",
+      "problem": "标签“倒入杯中”与实际耳机画面完全不匹配，且不是用户要求添加的“周末新品”标题。",
+      "repair": "删除该旧教程标签；如需保留说明，改为与当前耳机画面一致的文案，并限定在对应可见时段。",
+      "sceneId": "scene-06",
+      "seconds": 46.5,
+      "severity": "major"
+    },
+    {
+      "evidence": "edit-review-0/batch-1/frame-00-at-25.5s.png",
+      "nodeId": "node-17d321292281db74",
+      "problem": "用户要求“不要裁掉原视频、保持原来的画幅、完整时长和声音”，但变更回执显示多个媒体节点被 replace_asset/update_media 且 playbackRate 设为 0.5833；当前证据画面还出现底部黑边，说明本次不只是添加开头标题，存在改变原视频呈现/节奏的风险。",
+      "repair": "回退非标题相关的媒体替换、sourceStartSeconds、playbackRate 和音频重绑定；仅保留开头 2 秒标题层 node-aa9af36075fb903e，并重新导出核对完整时长、画幅和声音。",
+      "sceneId": "scene-04",
+      "seconds": 25.5,
+      "severity": "major"
+    },
+    {
+      "evidence": "edit-review-0/batch-1/frame-03-at-41.367s.png",
+      "nodeId": "node-9407c6a08ecd59bd",
+      "problem": "用户要求保持原视频画幅，但关键帧中主体视频被置于页面式版面中，左右留有大块背景区，并非直接保留原视频画面作为底层全幅呈现。",
+      "repair": "将原视频按原画幅完整放置，不使用会改变版面结构的页面/卡片布局；若原片比例与 1920x1080 不同，应等比完整适配并只用必要留边，不裁切主体。",
+      "sceneId": "scene-05",
+      "seconds": 41.367,
+      "severity": "major"
+    }
+  ],
+  "unreviewed": [
+    "声音是否保持原样及与画面同步",
+    "原视频完整时长和画幅是否保持不变",
+    "标题是否严格在 2.0 秒退场（现有关键帧仅覆盖 1.5 秒）",
+    "标题淡入/淡出期间的连续运动效果",
+    "未提供 0-2 秒开头关键帧，无法确认“周末新品”标题是否出现、是否只持续 2 秒、是否可读且不遮挡主体。",
+    "未提供连续视频或音频证据，无法确认声音是否完整保留、是否同步，亦无法确认全片完整时长。",
+    "未提供原始视频对照帧，无法最终判定每处画幅是否相对原片完全未裁切。"
+  ],
+  "invalidation": {
+    "changedScenes": [
+      "scene-01",
+      "scene-02",
+      "scene-03",
+      "scene-04",
+      "scene-05",
+      "scene-06"
+    ],
+    "fullRecompile": false
+  },
+  "fullPlayback": "pending",
+  "humanReview": "pending",
+  "rights": "requires-publisher-review"
+}

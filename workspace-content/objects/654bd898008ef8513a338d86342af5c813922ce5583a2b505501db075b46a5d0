@@ -1,0 +1,157 @@
+nifest与源文件hash一致；policyHash进入缓存／运行指纹；真实一次调用receipt中出现新规则；测试替身不能代表真实模型调用。启动时发现规则缺失或版本冲突应明确阻断新流程，不默默回退到旧自由生成或固定模板。
+
+{
+  "schemaVersion": 1,
+  "recordType": "implementation_spec_not_loaded_runtime_config",
+  "status": "pending_codex_integration",
+  "newCommerceTasksOnly": true,
+  "legacyProjectsPolicy": "preserve_view_and_edit_mark_legacy_unverified",
+  "scenarios": [
+    {
+      "id": "product_launch",
+      "displayName": "单品上新／种草",
+      "legacyAliases": [
+        "launch"
+      ],
+      "persona": {
+        "creator": "有真实商品素材的中小商家／品牌内容运营",
+        "viewer": "首次了解商品的潜在消费者",
+        "evidenceStatus": "design_hypothesis_not_user_research"
+      },
+      "businessGoal": "建立商品形象，展示可信重点，引导继续了解",
+      "sourcePolicy": {
+        "existingFootageRequired": true,
+        "generatedNewFootageAllowed": false,
+        "supportingImagesAllowed": true,
+        "readiness": "content_coverage_not_file_count"
+      },
+      "suggestedOutput": {
+        "durationSecondsRange": [
+          20,
+          30
+        ],
+        "orientation": "portrait_unless_user_or_subject_requires_otherwise"
+      },
+      "requiredCoverage": [
+        "product_identity",
+        "real_usage_or_effective_demonstration",
+        "supported_details",
+        "complete_ending"
+      ],
+      "reviewQuestions": [
+        "前段能否认出商品",
+        "细节与事实是否匹配",
+        "是否存在无效拉长",
+        "能否理解下一步"
+      ],
+      "components": [
+        "hero_media",
+        "title",
+        "detail_callout",
+        "caption",
+        "ending"
+      ],
+      "defaultAudio": "follow_explicit_contract_no_invented_narration"
+    },
+    {
+      "id": "product_howto",
+      "displayName": "单品使用／操作演示",
+      "legacyAliases": [
+        "demo"
+      ],
+      "persona": {
+        "creator": "商家运营／售前售后／教程内容人员",
+        "viewer": "没有操作经验的新用户",
+        "evidenceStatus": "design_hypothesis_not_user_research"
+      },
+      "businessGoal": "看懂并能够复现必要操作",
+      "sourcePolicy": {
+        "existingFootageRequired": true,
+        "generatedNewFootageAllowed": false,
+        "supportingImagesAllowed": true,
+        "readiness": "required_steps_and_dependencies_covered"
+      },
+      "suggestedOutput": {
+        "durationSecondsRange": [
+          45,
+          60
+        ],
+        "orientation": "protect_actions_and_follow_user_contract"
+      },
+      "requiredCoverage": [
+        "initial_state",
+        "all_required_steps",
+        "step_dependencies",
+        "completion_result"
+      ],
+      "reviewQuestions": [
+        "每个必要动作是否真实出现",
+        "是否可以照着做",
+        "说明是否遮住操作区",
+        "源声音是否与动作对应"
+      ],
+      "components": [
+        "hero_media",
+        "title",
+        "step_strip",
+        "detail_callout",
+        "caption",
+        "ending"
+      ],
+      "defaultAudio": "follow_explicit_contract_missing_source_audio_is_gap"
+    }
+  ]
+}
+
+应用优先合同：仅调用本次列出的受控工具；上游文档的升级、登录、外部生成、提问和多Agent安排不自动执行。用户已经授权自主制作，不再询问风格/分镜审批。
+<guidance source="skills/hyperframes-core/references/review-loop.md" sha256="0c7297d26ba2eab7cf0d73c71db1162aae7a907b029f6f214eaa81091f5afdbf">
+# The review loop — plan, sketch, build
+
+How a `storyboard: yes` run earns fidelity one pass at a time: the plan is reviewed as text on a live board, the layouts as wireframe sketches, and the finished piece as the assembled video. Collaborative mode waits at each checkpoint. Autonomous mode posts the same checkpoint summaries and continues, keeping exactly one question before render.
+
+This is the shared process for any workflow that plans on a storyboard. The contracts it leans on live next door: interaction mode, gate types, and the comments channel in `brief-contract.md`; the `STORYBOARD.md` format, the `outline → built → animated` statuses, and the comments sidecar in `storyboard-format.md`. A workflow's SKILL.md says **when** its steps hit each pass and supplies its **sketch stand-ins** (what the plain blocks represent); how the loop runs is defined here, once. The stage mechanics between the passes — audio, frames, assembly, transitions, captions, verify — live in `production-loop.md`; this file owns only the user-facing pauses.
+
+## § 1 — The plan, on a live board
+
+Open the **storyboard board** before presenting the plan: run `npx hyperframes preview --background` from the project directory, confirm it is serving, and open `http://localhost:<port>/?view=storyboard#project/<project-name>`. This is an early planning surface, not the final composition preview; it may open before composition checks. The plan appears as frame cards and refreshes as work lands.
+
+Present the plan as a proposal (shape: `hyperframes-creative/references/story-spine.md` § 3): open by echoing **"This video tells [audience] that [message]"**, then the frame table — one row per frame: frame · beat (type, duration) · on screen · why (its `narrativeRole`, traced to the message). Hand the board URL with it, noting feedback lands in both places — comment on the board or reply here, one revision loop — and that a board submit still needs one reply here (anything) to get picked up.
+
+In the same message ask two things: **(a)** approve or request changes, and **(b)** **sketches first** (recommended — a quick wireframe look check right after this approval) or skip sketches and build in one go. Iterate until approved — feedback arrives in chat or as the comments file (`brief-contract.md` § 1, the comments channel): revise exactly the frames it names, clear the file, re-present.
+
+This is a **checkpoint gate** (`brief-contract.md` § 1). A run that starts autonomous normally has `storyboard: no` and does not enter this loop. If mode switches to autonomous after a board exists, keep updating the board, post the same summary as a heads-up, and continue without waiting; the one kept question comes at § 4.
+
+## § 2 — The sketch pass (collaborative, unless skipped)
+
+The moment the plan is approved, wireframe every frame yourself — no sub-agents, no waiting on other steps (sketches don't use timings), straight from the approved frame table.
+
+A sketch is a **wireframe with the real words, not a styled frame**: the frame's layout at its key moment — the actual headline / stat / label text placed where it will live, plain blocks for panels, charts, diagrams, and media (the workflow says what its blocks stand in for), `frame.md`'s background and ink plus one accent on the focal, nothing else. No decoration, no full brand treatment, **no motion** — all of that arrives with the build pass.
+
+Keep each sketch a real composition file at `compositions/frames/NN-*.html` (template wrapper, `data-composition-id`, `#root` styling, one paused **empty** timeline registered at `window.__timelines["<frame_id>"]`) so the Studio poster renders — and the poster is the only picture this pass needs: **run no CLI here** — no `snapshot`, no `lint` / `check`, no rendering. A sketch is a few dozen lines of HTML; the whole board lands in minutes.
+
+Mark each frame `built` as its sketch lands — the user's open board fills in blue by itself. When every frame is `built`, pause and ask one thing: does the board look right, or which frames change? This is a **checkpoint gate**; the user reviews in Studio (open since § 1 — restart and re-hand the same URL if the server died), and feedback arrives in chat or as the comments file — check the file first when the reply arrives: revise **only the sketches named**, re-present, and loop until the layout is confirmed. Only then does the workflow's visual design get written onto the confirmed layouts.
+
+A confirmed board is also a valid place to **stop**. When the user asked for a storyboard rather than a finished video — a plan to pitch, review, or hand off — the sketched board is the deliverable: confirm it, hand the board URL, and go no further unless asked to build.
+
+In autonomous mode, or when the user chose to skip sketches at § 1, skip this pass — frames go straight from `outline` to `animated` in the build.
+
+## § 3 — Building on confirmed layouts
+
+However the workflow builds — sub-agent workers per frame, or inline scene by scene — a confirmed sketch's **composition is settled**: placement, hierarchy, and copy were approved on the board, so building means dressing that layout (full design treatment, real assets, motion), never redrawing it. Workflows that dispatch workers put "this frame has a **confirmed sketch** on disk" in the worker's context and carry the keep-the-layout rule in their worker prompt; a landed frame must still read as the approved wireframe, fully dressed.
+
+Mark each frame `animated` as it lands. The build gate carries the loop's condition: in collaborative mode, the sketch board was confirmed at § 2.
+
+## § 4 — The final look
+
+After the workflow's checks pass, use the **final composition preview**. In collaborative mode Studio may already be serving from § 1; hand the timeline URL and ask one thing: render now, or what changes? In autonomous mode this is the one question the mode keeps: ask “preview first, or render?” Open the final preview on yes; render on an explicit render answer. Render only on approval.
+
+**After approval, offer the recipe — once.** An approved run is a proven bundle. At delivery, offer to freeze it: `media-use` → `scripts/recipe.mjs freeze --name <name>` (the workflow comes from BRIEF.md; pass `--workflow` only in a project without one) keeps the design spec, the storyboard skeleton (structure kept, content blanked), the brief skeleton, and the confirmed brief values, and the next run of this type starts from it (the intent layer checks for a matching recipe before its first question). When the freeze lands, teach the recall in the confirmation — "Saved as **<name>** (v<N>). Next time say _make another <name>_, or just _like last time_." — the name is something the system reminds the user of, never something they must remember. In autonomous mode don't ask — name the freeze command in the delivery note instead.
+
+</guidance>
+对照同一时刻未包装源画面和合成关键帧，以及addedTextObjects明确列出的应用文字，区分源实拍自带的文字/标识与应用新增叠层；只有未包装源画面中也存在的字样才能称为源片烧录文字。源片已有标识不是应用虚构文案，不能仅因模型自己写的visualDirection不强调品牌就要求移除、遮盖或裁掉它。原用户要求高于模型创意说明。确实遮挡必需动作时归source-selection，选择真实可用源区间，不让布局作者以色块覆盖商品或删除原片标识。另提供源选段首末帧，用来核对入点和末帧的可见动作与本镜头说明是否相符；不能仅凭离散帧宣称完整连续动作通过。源边界未加包装，不检查其文字布局。检查静态关键画面中商品、文字主次、主体裁切和中文可读性。只报告图片可确认的问题；尚未添加动画，不把静止当缺陷。major需具体局部修复。repairKind仅在源区间或动作确实错误时为source-selection；对比度、遮挡、排版为layout；事实冲突为fact-binding。源片烧录标题与新增文字重复、或必须删除新增文字才能解决时归text-contract，由故事导演修订文字对象合同；layout只可调整样式，不能要求镜头作者删除、隐藏合同内对象。
+
+<editing_input>
+[{"role":"user","content":"{\"phase\":\"static-keyframe\",\"sceneId\":\"scene-03\",\"shot\":{\"purpose\":\"展示可信结构细节\",\"effect\":\"detail-inset\",\"weight\":1,\"durationSeconds\":5.5,\"reason\":\"展示可观察的底部螺丝、接口和盖板区域，不解释用途。\",\"media\":[{\"assetId\":\"asset-20c27ed0-26a8-428f-a232-2042a6e946a1\",\"sourceStartSeconds\":35.283,\"playbackRate\":1,\"fit\":\"contain\"}],\"text\":[{\"role\":\"feature\",\"text\":\"底部结构细节\",\"factRefs\":[]}],\"paragraphId\":\"p3\",\"newInformation\":\"看到底部螺丝、接口与盖板区域。\",\"resourceId\":\"video-text-pivot\",\"visualDirection\":\"保留细节镜头连续性，标签放在边缘；避免大色块遮挡手部和接口。\",\"productionMethod\":\"composition-adapt\",\"id\":\"scene-03\"},\"design\":{\"background\":\"#F3F1ED\",\"foreground\":\"#171717\",\"panel\":\"#FFFFFF\",\"accent\":\"#5B6470\",\"accentContrast\":\"#FFFFFF\",\"description\":\"安静简洁的产品观察风格；实拍画面占主导，短标签保持独立可编辑并避开相机主体与手部动作。\",\"fontFamily\":\"Microsoft YaHei\",\"typeScale\":{\"title\":46,\"body\":30,\"label\":26},\"safeMarginPx\":72,\"labelStyle\":\"左下角短标签，半透明米白底、1px灰线、12px内边距，统一层级\"},\"output\":{\"width\":1920,\"height\":1080,\"fit\":\"cover\"},\"keyframeAtSeconds\":4.133333333333334,\"addedTextObjects\":[{\"id\":\"node-428a69449e8e1b12\",\"text\":\"底部结构细节\"}],\"evidence\":\"keyframes/scene-03-90d98be3b4d047e1/frames/frame-00-at-4.133s.png\",\"businessContract\":{\"schemaVersion\":1,\"profile\":\"commerce-focus-v1\",\"scenarioId\":\"product_launch\",\"originalRequest\":\"做个24秒横屏短片，让第一次见到这款相机的人认识它。调性安静简洁，把机身外观和能看见的细节讲清楚。全片静音，不要读稿，不提价格，也别推断性能。\",\"persona\":{\"creator\":\"商家／内容运营（待用户研究验证）\",\"viewer\":\"首次了解商品的消费者\"},\"objective\":\"吸引首次观看者继续了解商品\",\"product\":{\"id\":\"product-1\",\"name\":\"相机外观与细节认识短片\",\"facts\":[],\"price\":null,\"cta\":\"\",\"audience\":null,\"prohibited\":[]},\"output\":{\"width\":1920,\"height\":1080,\"durationSeconds\":24,\"fps\":30},\"audio\":\"silent\",\"mustHave\":[],\"mustNot\":[],\"explicitConstraints\":{\"schemaVersion\":1,\"originalRequest\":\"做个24秒横屏短片，让第一次见到这款相机的人认识它。调性安静简洁，把机身外观和能看见的细节讲清楚。全片静音，不要读稿，不提价格，也别推断性能。\",\"narration\":\"forbidden\",\"music\":\"forbidden\",\"original\":\"forbidden\",\"price\":\"unspecified\",\"silent\":true},\"generatedFootageAllowed\":false,\"deliverables\":[\"candidate_mp4\",\"editable_project\",\"source_index\",\"quality_report\"]},\"scenarioResources\":{\"template\":{\"id\":\"commerce-launch-v1\",\"version\":1,\"structure\":[\"建立商品\",\"真实使用\",\"可信细节\",\"整体回归与收尾\"],\"components\":[\"hero_media\",\"title\",\"detail_callout\",\"caption\",\"ending\"],\"rule\":\"按有效内容调整镜头，不按槽位补造内容；先主体、后说明；价格与Logo可缺省。\"},\"components\":{\"hero_media\":{\"nativeKinds\":[\"video\",\"image\"],\"purpose\":\"保护主体的真实媒体容器\",\"resources\":[\"video-text-pivot\",\"comparison-split\"]},\"title\":{\"nativeKinds\":[\"text\"],\"purpose\":\"独立可改的标题\",\"resources\":[\"titlecard-reveal\"]},\"detail_callout\":{\"nativeKinds\":[\"text\",\"shape\"],\"purpose\":\"与可信细节对应的标注\",\"resources\":[\"comparison-split\",\"lt-ma[redacted]\"]},\"caption\":{\"nativeKinds\":[\"text\"],\"purpose\":\"普通字幕与声音独立\",\"resources\":[\"caption-editorial-emphasis\"]},\"ending\":{\"nativeKinds\":[\"text\",\"video\"],\"purpose\":\"完整收尾和已提供的下一步提示\",\"resources\":[\"titlecard-reveal\"]}},\"sha256\":\"7e684f50dd4ef5484357229720064e13b4605f932282470b27cd3df262b78c32\"},\"scenePackage\":{\"id\":\"product_launch\",\"version\":\"3.0.0\",\"hash\":\"dd6f72e387f8eb58ad3880d62431446c062709c5739e984072588f3fd94a7f18\",\"rules\":{\"QUALITY_RUBRIC.json\":{\"weights\":{\"product\":15,\"sourceSelection\":15,\"story\":15,\"editing\":15,\"motion\":10,\"typography\":10,\"audio\":10,\"finish\":10},\"perspectives\":[\"Merchant\",\"Viewer\",\"Editor\"],\"blockers\":[\"wrong_product\",\"unsupported_claim\",\"missing_action\",\"wrong_order\",\"subject_crop\",\"operation_obscured\",\"black_frame\",\"corrupt_frame\",\"audio_sync\",\"silence_contract\",\"incomplete_ending\"],\"passingScoreIsNotHumanAcceptance\":true},\"REPAIR_POLICY.md\":\"# REPAIR_POLICY\\n\\n最多3轮局部修复。每条记录issue、evidence、rootCause、operations、preserve、beforeRevision、afterRevision。优先事实／动作、主体、叙事、声音、装饰。两次同样失败改变方法。禁止整片随机重做；新版本使旧审查失效。\\n\"}},\"creativeDirection\":{\"businessGoal\":\"让首次观看者在24秒内认识这台黑色紧凑相机的外观与可见结构，并愿意继续了解。\",\"viewer\":\"第一次接触这款相机的潜在消费者。\",\"singleSentenceIdea\":\"用安静、连续的横屏镜头从正面机身转到侧背、底部、屏幕与支架状态，最后回到品牌标题卡。\",\"hookStrategy\":\"前3秒直接呈现正面圆形镜头与黑色机身，以清晰主体建立商品身份。\",\"storyStrategy\":\"按“正面身份→侧背轮廓→底部结构→背面屏幕→支架状态→品牌收尾”推进；每段只描述画面可见内容，不添加性能或功能推断。\",\"pace\":\"24秒内保持克制而有信息增量，镜头以平稳切换和短暂停留为主，不用无意义慢放。\",\"visualDirection\":\"premium-minimal\",\"businessTemplate\":\"launch-premium-v1\",\"motionDirection\":\"使用小幅遮罩揭示、轻微位移和干净硬切；主体画面占主导，文字只作独立短标签。\",\"typeDirection\":\"低密度无衬线短标签，依次使用“黑色紧凑机身”“侧面与背面轮廓”“底部结构细节”“背面屏幕”“支架上的相机状态”；不显示价格、型号或性能词。\",\"audioDirection\":\"全片静音，移除源音轨；不配旁白、不加音乐、不加字幕朗读。\",\"heroStrategy\":\"以23.2–29.867秒正面镜头与黑色机身作为开场Hero，结尾可短暂回到最清晰的整体外观，再进入标题卡。\",\"endingStrategy\":\"使用66.1–71.423秒已有“Mijia Compact Camera”品牌标题卡裁切约2.5秒收尾，保持文字独立可编辑，不添加行动号召。\",\"whatNotToDo\":[\"不推断型号、分辨率、续航、画质、稳定性或任何性能。\",\"不解释接口用途、屏幕内容、配件型号或支架安装步骤。\",\"不使用价格、优惠、销量、评价或保障信息。\",\"不把支架状态剪成完整安装或功能演示。\",\"不保留源视频音频，也不新增旁白、音乐或朗读字幕。\"]}}\n未加包装的真实源边界 入点；本镜头 0.000 秒，源 35.283 秒；仅用于核对实际动作，不是已制作关键画面。\n【附图 1】\n未加包装的真实源边界 末帧；本镜头 5.467 秒，源 40.750 秒；仅用于核对实际动作，不是已制作关键画面。\n【附图 2】\n与合成关键帧同一时刻的未包装源画面；关键画面候选：本镜头 4.133333333333334 秒，素材 asset-20c27ed0-26a8-428f-a232-2042a6e946a1 源 39.416 秒\n【附图 3】\n已检查的静态关键画面 keyframes/scene-03-90d98be3b4d047e1/frames/frame-00-at-4.133s.png\n【附图 4】"}]
+</editing_input>
+ERROR: Selected model is at capacity. Please try a different model.
+ERROR: Selected model is at capacity. Please try a different model.

@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "taskId": "P00-02",
+  "recordedAt": "2026-09-16T14:17:43Z",
+  "repository": "Metroids048/hyperframe",
+  "workspace": "/Users/a1234/Desktop/hyperframe-main/video-agent",
+  "sourceHead": "1bd0710314ba70e3e647477928b08d5fd0afa765",
+  "result": "engineering_verified_history_rotation_required",
+  "scope": {
+    "localConfigPreserved": true,
+    "localConfigIgnored": true,
+    "trackedPrivatePaths": [],
+    "workspaceManifestPrivatePaths": [],
+    "ordinaryLocalStartDoesNotSync": true,
+    "explicitPushRetained": true,
+    "providerCallsMade": false
+  },
+  "historyExposure": {
+    "path": "video-agent/config/minimax.local.env",
+    "firstObservedCommit": "f73511238b3dd62cb40d46f7d8977964fe587f68",
+    "rotationRequired": true,
+    "historyRewritten": false
+  },
+  "runtime": {
+    "url": "http://127.0.0.1:3024/",
+    "pid": 42182,
+    "health": "passed",
+    "workflowEntries": 8,
+    "minimaxConfigured": true,
+    "minimaxLiveVerification": "not_run"
+  },
+  "verification": [
+    {
+      "command": "node scripts/test-workspace-security.mjs",
+      "result": "6 passed"
+    },
+    {
+      "command": "node scripts/workspace-security.mjs .. --report outputs/full-closeout/P00-02/security-check.json",
+      "result": "passed"
+    },
+    {
+      "command": "node scripts/test-workspace-context.mjs",
+      "result": "passed"
+    },
+    {
+      "command": "DELIVERY_TEST_URL=http://127.0.0.1:3024 node scripts/test-shipped-workspace.mjs",
+      "result": "passed"
+    },
+    {
+      "command": "python3 scripts/test-launch-runtime.py",
+      "result": "4 runtime cases plus safe local-start dispatch passed"
+    },
+    {
+      "command": "preflightCheckout('..')",
+      "result": "passed"
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed"
+    }
+  ],
+  "evidence": {
+    "securityCheck": {
+      "path": "outputs/full-closeout/P00-02/security-check.json",
+      "sha256": "42a1ff26502888a2d5e437bce113575a1f2174adb0edf3f7fdb51ca946a1fc42"
+    },
+    "canaryResults": {
+      "path": "outputs/full-closeout/P00-02/canary-results.json",
+      "sha256": "e201847a408bd350f6a22750e54d28854e70283334288b221412f1800beff898"
+    }
+  },
+  "preserved": [
+    "all local config files",
+    "all existing source and generated assets",
+    "git history",
+    "security-quarantined manifest object"
+  ],
+  "nextTask": "P00-03"
+}

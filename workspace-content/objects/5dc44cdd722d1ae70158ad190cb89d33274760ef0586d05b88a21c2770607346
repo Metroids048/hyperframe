@@ -1,0 +1,249 @@
+{
+  "selected": [
+    {
+      "id": "grid-card-assemble",
+      "reason": "把包装上已观察到的可信信息（配料表、营养成分、沖調法文字说明）整理为分格/列表细节，适配 9:16 竖屏、零动态素材依赖，仅整理既有文字与静图，不据此生成或冒充冲泡动作。"
+    },
+    {
+      "id": "titlecard-reveal",
+      "reason": "承担结尾完整收尾落点（及必要的轻标题），仅使用已确认商品名『咖啡』，不虚构价格、品牌或 CTA；克制揭示后稳定停留，符合『结尾完整落点』。"
+    },
+    {
+      "id": "kinetic-type-beats",
+      "reason": "开场钩子的文字节奏场次，仅使用已观察到的中性文案（商品名『咖啡』），不出现价格、口感、性能等未证实信息。"
+    }
+  ],
+  "originalNeeds": [
+    "原生全屏商品主体容器：承载 1440×1920 竖版包装图，按 9:16 安全裁切（safeCrop 0.02/0.05/0.98/0.90），并避开底部手机水印与时间戳（REDMI NOTE 13 PRO / 2026.03.22 14:26）。",
+    "原生真实冲泡动作镜头容器：用于接收用户补入的冲泡过程视频源片；在源片到位前不以静图、文字卡或图形动效填充该镜头。"
+  ],
+  "gaps": [
+    "权利未决：主素材 web-65c21c2d-a1c2-48e4-b961-b14d464ab520 权利状态 source-review（来源 Wikimedia Commons，CC0，作者 MCMAZ Lunggma），是否可用于本商品宣传未确认；其副本 demo-web-65c21c2d… 标为演示权利。权利确认前不得对外发布。",
+    "商品身份未确认：画面品牌『咖啡樹 / COFFEE TREE PREMIUM QUALITY』与用户所填商品名『咖啡』是否为同一售卖商品未经确认；配料、营养、经销商/生产商、产地等信息均为包装观察所得，非用户确认的商品事实。",
+    "素材仅一张包装背面静态图（web-65c21c2d… 与其同 sha256 的演示副本 demo-web-65c21c2d…，内容完全重复），无包装正面、咖啡成品杯、粉末特写或人手动作，故不存在可列出的动作源区间。",
+    "音频未指定：未请求旁白/字幕/配乐，默认静音成片（audioCapabilities 支持旁白但未启用）。",
+    "竖屏成片需裁切，须避开主图底部手机水印与时间戳。"
+  ],
+  "blockingGaps": [
+    "缺少咖啡冲泡过程的真实动作视频素材。用户要求成片『展示咖啡包装和冲泡过程』，且明确『冲泡过程不得以静图或图形卡片冒充真实演示』。当前 assetScope 仅含一张包装背面静态 PNG（web-65c21c2d…）及其同 sha256 演示副本（demo-web-65c21c2d…），无任何视频、帧序列或动作源区间；mediaAcquisitionPolicy 为空，不可生成。需用户提供一段真实冲泡过程视频片段（建议竖屏或可裁切、含完整动作起止，如注水/搅拌/出杯），否则无法按要求制作。"
+  ],
+  "candidates": [
+    {
+      "id": "comparison-split",
+      "tags": [
+        "compare",
+        "detail",
+        "image",
+        "比较",
+        "细节",
+        "双栏"
+      ],
+      "inputs": [
+        "visual-pair"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/comparison-split.md",
+        "skills/hyperframes-animation/rules/split-tilt-cards.md",
+        "registry/components/comparison-split/registry-item.json",
+        "registry/components/comparison-split/comparison-split.html"
+      ],
+      "requirements": {
+        "minMedia": 2,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 1,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "grid-card-assemble",
+      "tags": [
+        "image",
+        "details",
+        "steps",
+        "参数",
+        "配件",
+        "步骤"
+      ],
+      "inputs": [],
+      "files": [
+        "skills/hyperframes-animation/blueprints/grid-card-assemble.md",
+        "skills/hyperframes-animation/rules/gsap-effects.md"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 1,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "lt-mask-reveal",
+      "tags": [
+        "video",
+        "action",
+        "text",
+        "操作",
+        "实拍",
+        "口播",
+        "标签",
+        "文字"
+      ],
+      "inputs": [
+        "video"
+      ],
+      "description": "Transparent editable lower-third over continuing footage; no stat, price, or full-screen text takeover is required. Adapt the wipe and accent sweep to approved native text, local fonts and the managed timeline.",
+      "files": [
+        "registry/blocks/lt-mask-reveal/registry-item.json",
+        "registry/blocks/lt-mask-reveal/lt-mask-reveal.html"
+      ],
+      "requirements": {
+        "minMedia": 1,
+        "mediaKinds": [
+          "video"
+        ],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": false,
+      "score": 0,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "caption-editorial-emphasis",
+      "tags": [
+        "caption",
+        "speech",
+        "字幕",
+        "口播",
+        "强调"
+      ],
+      "inputs": [
+        "text"
+      ],
+      "description": "Editable editorial text emphasis; align spoken captions to measured transcript timestamps, never invented timing.",
+      "files": [
+        "registry/components/caption-editorial-emphasis/registry-item.json",
+        "registry/components/caption-editorial-emphasis/caption-editorial-emphasis.html"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 0,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "titlecard-reveal",
+      "tags": [
+        "title",
+        "brand",
+        "text",
+        "收尾",
+        "标题"
+      ],
+      "inputs": [],
+      "files": [
+        "skills/hyperframes-animation/blueprints/titlecard-reveal.md",
+        "skills/hyperframes-animation/rules/discrete-text-sequence.md"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 0,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "video-text-pivot",
+      "tags": [
+        "video",
+        "action",
+        "操作",
+        "实拍",
+        "讲解"
+      ],
+      "inputs": [
+        "video"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/video-text-pivot.md",
+        "skills/hyperframes-animation/rules/gsap-effects.md"
+      ],
+      "requirements": {
+        "minMedia": 1,
+        "mediaKinds": [
+          "video"
+        ],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "occluding",
+      "compatible": true,
+      "eligible": false,
+      "score": 0,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "kinetic-type-beats",
+      "tags": [
+        "text",
+        "caption",
+        "文字",
+        "字幕",
+        "强调"
+      ],
+      "inputs": [
+        "text"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/kinetic-type-beats.md",
+        "skills/hyperframes-animation/rules/discrete-text-sequence.md"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "occluding",
+      "compatible": true,
+      "eligible": true,
+      "score": 0,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    }
+  ],
+  "originalRequest": "制作一个展示咖啡包装和冲泡过程的视频，30秒竖屏",
+  "assetKinds": {
+    "web-65c21c2d-a1c2-48e4-b961-b14d464ab520": "image",
+    "demo-web-65c21c2d-a1c2-48e4-b961-b14d464ab520": "image"
+  }
+}

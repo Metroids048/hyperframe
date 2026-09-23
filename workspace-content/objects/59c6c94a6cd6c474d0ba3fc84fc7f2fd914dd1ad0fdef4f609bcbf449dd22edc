@@ -1,0 +1,184 @@
+{
+  "workflow": {
+    "taskMode": "variant",
+    "objective": "以独立A版开头引导观众感受一杯咖啡的日常仪式，保留母片及后续内容。",
+    "requirements": [
+      {
+        "kind": "goal",
+        "quote": "从当前咖啡母片制作独立A版开头变体",
+        "targetIds": ["rev-6cb1827d9c4e5021"],
+        "excludeIds": [],
+        "startSeconds": null,
+        "endSeconds": null
+      },
+      {
+        "kind": "preserve",
+        "quote": "母版保留",
+        "targetIds": ["rev-6cb1827d9c4e5021"],
+        "excludeIds": [],
+        "startSeconds": null,
+        "endSeconds": null
+      },
+      {
+        "kind": "change",
+        "quote": "仅将第一幕主标题由“一杯咖啡的时间”改为“把时间，留给一杯咖啡”",
+        "targetIds": ["node-1a919ca6e9106e26"],
+        "excludeIds": [],
+        "startSeconds": null,
+        "endSeconds": null
+      },
+      {
+        "kind": "change",
+        "quote": "同时把这个标题的入场改为短促淡入、轻微上移",
+        "targetIds": ["node-1a919ca6e9106e26"],
+        "excludeIds": [],
+        "startSeconds": null,
+        "endSeconds": null
+      },
+      {
+        "kind": "preserve",
+        "quote": "保持暖白和咖啡棕风格",
+        "targetIds": ["scene-01"],
+        "excludeIds": [],
+        "startSeconds": null,
+        "endSeconds": null
+      },
+      {
+        "kind": "change",
+        "quote": "标题文字需要自然换行时可调整第一幕文字栏布局",
+        "targetIds": ["node-1a919ca6e9106e26", "source-scene-01"],
+        "excludeIds": [],
+        "startSeconds": null,
+        "endSeconds": null
+      },
+      {
+        "kind": "prohibit",
+        "quote": "不能压住真实画面",
+        "targetIds": ["node-1a919ca6e9106e26", "node-564ef5c6d300ae25"],
+        "excludeIds": [],
+        "startSeconds": null,
+        "endSeconds": null
+      },
+      {
+        "kind": "preserve",
+        "quote": "后五幕",
+        "targetIds": ["scene-02", "scene-03", "scene-04", "scene-05", "scene-06"],
+        "excludeIds": ["scene-01"],
+        "startSeconds": null,
+        "endSeconds": null
+      },
+      {
+        "kind": "preserve",
+        "quote": "全片原声",
+        "targetIds": ["audio-1-1", "audio-2-1", "audio-3-1", "audio-4-1", "audio-5-1", "audio-6-1"],
+        "excludeIds": [],
+        "startSeconds": null,
+        "endSeconds": null
+      },
+      {
+        "kind": "preserve",
+        "quote": "画面源区间",
+        "targetIds": ["node-564ef5c6d300ae25", "node-a04e0506f28cc4d0", "node-77692c9b5546e6ed", "node-53365affc01a73a2", "node-2dfa08d7f2d692f9", "node-293467027a1ee846"],
+        "excludeIds": [],
+        "startSeconds": null,
+        "endSeconds": null
+      },
+      {
+        "kind": "preserve",
+        "quote": "镜头顺序、35秒总时长保持不变",
+        "targetIds": ["scene-01", "scene-02", "scene-03", "scene-04", "scene-05", "scene-06"],
+        "excludeIds": [],
+        "startSeconds": 0,
+        "endSeconds": 35
+      },
+      {
+        "kind": "prohibit",
+        "quote": "不新增配音或音乐",
+        "targetIds": [],
+        "excludeIds": [],
+        "startSeconds": null,
+        "endSeconds": null
+      },
+      {
+        "kind": "goal",
+        "quote": "保存为独立分支候选",
+        "targetIds": ["rev-6cb1827d9c4e5021"],
+        "excludeIds": [],
+        "startSeconds": null,
+        "endSeconds": null
+      }
+    ],
+    "overrides": [
+      {
+        "requirementId": "requirement-2b3f8b7a50e7324e",
+        "replacementQuote": "仅将第一幕主标题由“一杯咖啡的时间”改为“把时间，留给一杯咖啡”"
+      }
+    ],
+    "assumptions": [
+      "短促入场采用原0.2秒起点，持续8帧，标题从下方8px上移至原位置并淡入。",
+      "新标题预计可容纳于原1100px文字栏，保留现有字号与单行布局；不强制换行。"
+    ],
+    "gaps": [
+      "独立分支创建与候选保存由版本服务依据variant制作单执行；本操作枚举没有分支保存操作，不能声称已保存。",
+      "执行后需重新编译第一幕源码并进行隔离检查，预览标题入场、完整可读性与5.5秒邻接切点；核对后五幕、全部音轨、源区间、1920×1080画幅和1050帧总长不变。新版本ID由服务端分配，旧审查结果不能替代新候选验证。"
+    ]
+  },
+  "summary": "规划基于rev-6cb1827d9c4e5021派生独立A版候选，仅替换第一幕标题并改为8帧淡入、上移8px；文字留在画外原栏。母版、后五幕、原声、源区间、顺序与35秒时长保留，尚未执行或验证。",
+  "operations": [
+    {
+      "type": "update_text",
+      "sceneId": "scene-01",
+      "nodeId": "node-1a919ca6e9106e26",
+      "assetId": null,
+      "text": "把时间，留给一杯咖啡",
+      "effect": null,
+      "durationFrames": null,
+      "sceneIds": null,
+      "fromSceneId": null,
+      "toSceneId": null,
+      "width": null,
+      "height": null,
+      "paramsJson": null,
+      "source": null
+    },
+    {
+      "type": "update_custom_source",
+      "sceneId": "scene-01",
+      "nodeId": null,
+      "assetId": null,
+      "text": null,
+      "effect": null,
+      "durationFrames": null,
+      "sceneIds": null,
+      "fromSceneId": null,
+      "toSceneId": null,
+      "width": null,
+      "height": null,
+      "paramsJson": null,
+      "source": {
+        "html": "<div id=\"scene01-layout\"><div id=\"scene01-footage\"></div><div id=\"scene01-title-panel\"><div id=\"scene01-rule\"></div><h1 id=\"scene01-title\"></h1></div></div>",
+        "css": "#scene01-layout{position:absolute;inset:0;width:1920px;height:1080px;background:transparent;}#scene01-footage{position:absolute;left:192px;top:40px;width:1536px;height:864px;object-fit:contain;overflow:hidden;}#scene01-title-panel{position:absolute;left:192px;top:904px;width:1536px;height:112px;background:#F5F0E8;box-sizing:border-box;}#scene01-rule{position:absolute;left:24px;top:12px;width:72px;height:1px;background:#805A40;}#scene01-title{position:absolute;left:24px;top:24px;width:1100px;height:80px;margin:0;font-family:Microsoft YaHei;font-size:64px;font-weight:400;line-height:80px;letter-spacing:0;color:#493126;text-align:left;white-space:nowrap;}\n#scene01-footage{background:transparent;opacity:1;z-index:1}",
+        "timeline": "tl.set(\"#scene01-title\",{opacity:0,y:8},0);\ntl.set(\"#scene01-rule\",{opacity:0,clipPath:\"inset(0% 100% 0% 0%)\"},0);\ntl.to(\"#scene01-title\",{opacity:1,y:0,duration:params.sceneSeconds*8/165,ease:\"power2.out\"},params.sceneSeconds*6/165);\ntl.set(\"#scene01-rule\",{opacity:1},params.sceneSeconds*6/165);\ntl.to(\"#scene01-rule\",{clipPath:\"inset(0% 0% 0% 0%)\",duration:params.sceneSeconds*12/165,ease:\"power1.out\"},params.sceneSeconds*6/165);",
+        "parameters": [],
+        "objects": [
+          {
+            "elementId": "scene01-footage",
+            "nodeId": "node-564ef5c6d300ae25"
+          },
+          {
+            "elementId": "scene01-title",
+            "nodeId": "node-1a919ca6e9106e26"
+          },
+          {
+            "elementId": "scene01-rule",
+            "nodeId": "node-6e0d0a610e21df5d"
+          }
+        ],
+        "motionTargets": ["scene01-title", "scene01-rule"],
+        "textStyles": [],
+        "values": []
+      }
+    }
+  ],
+  "alternatives": []
+}

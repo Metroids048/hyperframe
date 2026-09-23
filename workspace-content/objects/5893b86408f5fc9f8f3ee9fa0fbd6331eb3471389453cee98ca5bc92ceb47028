@@ -1,0 +1,111 @@
+{
+  "alternatives": [],
+  "operations": [
+    {
+      "assetId": null,
+      "durationFrames": null,
+      "effect": null,
+      "fromSceneId": null,
+      "height": null,
+      "nodeId": "step-01-heading",
+      "paramsJson": null,
+      "sceneId": null,
+      "sceneIds": null,
+      "source": null,
+      "text": "先观察盒内状态",
+      "toSceneId": null,
+      "type": "update_text",
+      "width": null
+    },
+    {
+      "assetId": null,
+      "durationFrames": null,
+      "effect": null,
+      "fromSceneId": null,
+      "height": null,
+      "nodeId": "step-02-note",
+      "paramsJson": null,
+      "sceneId": null,
+      "sceneIds": null,
+      "source": null,
+      "text": "加水用量请参照产品包装说明",
+      "toSceneId": null,
+      "type": "update_text",
+      "width": null
+    }
+  ],
+  "summary": "计划仅替换第一步标题和第二步底部说明，保留其他文字、缺失步骤标记、镜头顺序、原速动作、原声、样式与总时长。基于 rev-9d74141ff777090d 生成新修订；执行后需重新编译并检查两处文字可读性及第一至第三步衔接，不重新生成声音。本次仅输出计划，尚未执行或验证。",
+  "workflow": {
+    "assumptions": [],
+    "gaps": [],
+    "objective": "让观看者更清楚地理解第一步观察提示与第二步加水用量的参考依据。",
+    "overrides": [],
+    "requirements": [
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "只把第一步的标题改成“先观察盒内状态”",
+        "startSeconds": null,
+        "targetIds": ["step-01-heading"]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "第二步底部说明改成“加水用量请参照产品包装说明”",
+        "startSeconds": null,
+        "targetIds": ["step-02-note"]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": ["step-01-heading", "step-02-note"],
+        "kind": "preserve",
+        "quote": "不要改其他文字",
+        "startSeconds": null,
+        "targetIds": ["step-01", "step-02", "step-03", "step-04", "step-05", "step-06", "step-07"]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "镜头顺序",
+        "startSeconds": null,
+        "targetIds": ["step-01", "step-02", "step-03", "step-04", "step-05", "step-06", "step-07"]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "原速动作",
+        "startSeconds": null,
+        "targetIds": ["step-01-video", "step-02-video", "step-03-video", "step-04-video", "step-05-video", "step-06-video", "step-07-video"]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "原声",
+        "startSeconds": null,
+        "targetIds": ["step-01-original-audio", "step-02-original-audio", "step-03-original-audio", "step-04-original-audio", "step-05-original-audio", "step-06-original-audio", "step-07-original-audio"]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "缺失步骤标记",
+        "startSeconds": null,
+        "targetIds": ["step-01-note", "step-03-note", "step-04-note", "step-07-note"]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "prohibit",
+        "quote": "不新增配音或音乐",
+        "startSeconds": null,
+        "targetIds": []
+      }
+    ],
+    "taskMode": "edit"
+  }
+}

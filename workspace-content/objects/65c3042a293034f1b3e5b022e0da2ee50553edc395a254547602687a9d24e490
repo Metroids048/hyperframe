@@ -1,0 +1,168 @@
+{
+  "baseline": "3c4b91aa1cf151e8c3ddef992007dc200a86972a",
+  "createdAt": "2026-09-20T03:22:55.056Z",
+  "node": "v24.19.0",
+  "scope": "Source-function reproductions using synthetic metadata and temporary files, not Gateway/browser/model/render E2E.",
+  "usesCopiedExcerpts": false,
+  "sourceFiles": [
+    {
+      "rel": "scripts/patch-openclaw-2026.6.11.mjs",
+      "sha256": "ab35a70aef201fb3205eace1c85ff405ec12c54e71a2429328e836638be57c36",
+      "excerpt": false
+    },
+    {
+      "rel": "lib/creative/commerce-focus.mjs",
+      "sha256": "b66e9b890f16f8593c4b7b67f9d3f649845c6694d9eea7158365122f3015543c",
+      "excerpt": false
+    },
+    {
+      "rel": "lib/creative/service.mjs",
+      "sha256": "9471053fd38cfb790dd5c19e205c9894e0383e7a5a5fe46d6449ae68f3148c29",
+      "excerpt": false
+    },
+    {
+      "rel": "lib/creative/workflow-intent.mjs",
+      "sha256": "a1239e6f92cef0bc193575a7a5f35f4fa5080e4f10a6f7b22f1037a850b08d89",
+      "excerpt": false
+    }
+  ],
+  "stubs": [],
+  "fixtures": [
+    "synthetic asset/document metadata",
+    "temporary empty review registry",
+    "synthetic JS text for patch helpers"
+  ],
+  "admissionScope": "general only",
+  "checks": [
+    {
+      "id": "PATCH-01",
+      "description": "A marker alone must not establish complete upload integration",
+      "result": "DEFECT_REPRODUCED",
+      "observation": {
+        "returnedStatus": "already-patched",
+        "installerCalled": false,
+        "hasUploadHelper": false
+      },
+      "error": "Marker caused a false already-patched result, though upload implementation is absent"
+    },
+    {
+      "id": "PATCH-02",
+      "description": "A replacement matching nothing must not be reported as patched",
+      "result": "DEFECT_REPRODUCED",
+      "observation": {
+        "returnedStatus": "patched",
+        "contentChanged": false,
+        "failedClosed": false
+      },
+      "error": "No replacement happened but installer reported patched"
+    },
+    {
+      "id": "PATCH-03",
+      "description": "Unknown supplemental preimage should fail closed",
+      "result": "DEFECT_REPRODUCED",
+      "observation": {
+        "returnedStatus": "already-supplemented-or-source-changed",
+        "threw": false
+      },
+      "error": "Changed source was treated as already-supplemented-or-source-changed"
+    },
+    {
+      "id": "ADMISSION-01",
+      "description": "Rights/admission state should not be determined by special wording",
+      "result": "DEFECT_REPRODUCED",
+      "observation": {
+        "ordinary": {
+          "status": "blocked",
+          "issues": [
+            "source-a：缺本次用途的素材审核与权利依据",
+            "素材缺少：product_identity"
+          ]
+        },
+        "special": {
+          "status": "pass",
+          "issues": []
+        },
+        "fixture": "same metadata and rights; empty on-disk review registry"
+      },
+      "error": "Equivalent local-edit intents take different admission branches\n\n'blocked' !== 'pass'\n"
+    },
+    {
+      "id": "ADMISSION-02",
+      "description": "Do not manufacture verified observation evidence from wording",
+      "result": "DEFECT_REPRODUCED",
+      "observation": {
+        "status": "pass",
+        "identityStatus": "verified",
+        "fullObservation": true,
+        "evidence": [
+          "assets.observe:metadata-and-frame-review"
+        ],
+        "realObservationFilesCreated": false
+      },
+      "error": "Routine labels the asset fully observed without reading any observation record"
+    },
+    {
+      "id": "ADMISSION-03",
+      "description": "Two uploaded file hashes alone cannot prove different products",
+      "result": "DEFECT_REPRODUCED",
+      "observation": {
+        "status": "blocked",
+        "issues": [
+          "主体素材属于不同商品，不能混用"
+        ],
+        "identities": [
+          "user-upload-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "user-upload-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        ],
+        "fixture": "two metadata records; no independently verified product identity"
+      },
+      "error": "File-hash pseudo-identities are treated as different product identities"
+    },
+    {
+      "id": "EDIT-01",
+      "description": "Source preservation must not silently time-stretch to old project duration",
+      "result": "DEFECT_REPRODUCED",
+      "observation": {
+        "sourceSeconds": 120,
+        "hostSeconds": 35,
+        "playbackRates": [
+          3.4285714285714284
+        ],
+        "retimeOperations": []
+      },
+      "error": "120s source mapped to 35s host at 3.42857x despite explicit no-speed-change request"
+    },
+    {
+      "id": "EDIT-02",
+      "description": "A source without a pre-existing text node still needs the requested title",
+      "result": "DEFECT_REPRODUCED",
+      "observation": {
+        "returnedPlan": true,
+        "operationTypes": [
+          "replace_asset",
+          "update_media"
+        ],
+        "titleOperationCount": 0
+      },
+      "error": "The deterministic plan returns success-shaped output without creating any title"
+    },
+    {
+      "id": "EDIT-03",
+      "description": "Natural equivalent title wording without quotation marks must not be silently ignored",
+      "result": "DEFECT_REPRODUCED",
+      "observation": {
+        "operationTypes": [
+          "replace_asset",
+          "update_media"
+        ],
+        "titleOperationCount": 0
+      },
+      "error": "The fast path extracts only quoted text, but still returns a plan without title changes"
+    }
+  ],
+  "summary": {
+    "total": 9,
+    "defectsReproduced": 9,
+    "testErrors": 0
+  }
+}
