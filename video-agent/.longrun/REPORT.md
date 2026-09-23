@@ -1,16 +1,20 @@
 # Longrun Status
 
-更新时间：2026-09-23T05:22:55.399Z
+更新时间：2026-09-23T05:46:10.300Z
 
-当前阶段：clean_run_init
+当前阶段：选择制作资源
 
 长期目标：未完成
 
 最近实际成果：
-- 2026-09-23T01:30:00.000Z
+- 已在同一 OpenClaw WebUI 项目上传并持久化 Steam Deck 开箱素材。
+- 已在同一 projectId 提交真实视频任务，父任务 `job-c745922c-5971-4f9e-b9d3-4d5165ce00d4`，子任务 `job-f197ec14-7dfe-48bf-9c33-13cb91e3afe5`。
+- 任务已走过理解需求、观察真实素材、选择制作资源，未重复提交、未新建项目。
 
 当前视频任务：
-- none
+- projectId: `0aaf1b6d-47a4-44f0-ae52-8e751a9ea29f`
+- status: `needs_user`
+- revision/artifact: 暂无
 
 最近生成视频：
 - 暂无
@@ -19,16 +23,17 @@
 - pending
 
 当前最高优先级问题：
-- 恢复 OpenClaw gateway 18789 并允许当前 Codex 使用 Chrome 后，从 clean_run_init 继续 WebUI 上传；未创建视频任务，不得重复提交
+- 原始开箱片只有桌面开箱/手持/摆放内容，没有真实使用环境收尾。
+- 工程没有已挂入且权利清晰的节奏音乐，系统不允许隐式生成或自行检索音乐。
 
 最近错误：
-- OpenClaw gateway unavailable and Chrome computer-use denied
+- `needs_user`: 真实使用环境素材与权利清晰音乐缺口。
 
 下一动作：
-- 恢复 OpenClaw gateway 18789 并允许当前 Codex 使用 Chrome 后，从 clean_run_init 继续 WebUI 上传；未创建视频任务，不得重复提交
+- 等待用户提供同一商品真实使用环境素材与权利清晰节奏音乐，或明确同意无该素材/音乐的真实降级方案；收到后在同一 projectId 恢复，不新建、不重复提交。
 
 Writer：
 - stopped
 
 下次自动续跑：
-- 按15分钟任务检查
+- 等待用户决策
