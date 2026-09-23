@@ -94,12 +94,19 @@ export class CapabilityCatalog {
         const loader = new PromptLoaderV4(this.root);
         const v4Context = await loader.loadStage(stage);
 
-        prompts.push({
-          file: 'prompts/commerce/v4/' + v4Context.files.join(', '),
-          sha256: v4Context.hash,
-          content: v4Context.text,
-          version: 'v4'
-        });
+        // Keep each prompt as an individual resource record.  Joining the
+        // filenames into one display string makes the later resource packager
+        // try to open a literal path containing commas, which aborts the job
+        // during native-project assembly.
+        for (const file of v4Context.files) {
+          const content = await fs.readFile(path.join(this.root, 'prompts/commerce/v4', file), 'utf8');
+          prompts.push({
+            file: 'prompts/commerce/v4/' + file,
+            sha256: resourceHash(content),
+            content,
+            version: 'v4'
+          });
+        }
 
         console.log(`[V4] 已加载 ${stage} 阶段提示词：${v4Context.files.join(', ')}`);
       } catch (error) {
