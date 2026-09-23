@@ -1,0 +1,31 @@
+{
+  "status": "needs-repair",
+  "engineering": "checked",
+  "revisionId": "rev-e25406ebb96820bc",
+  "summary": "局部关键帧检查发现标题文字本身清晰、未被裁切；但标题在 4.167s 仍显示，违反“开头 2 秒添加标题”的时长要求，需要收短标题可见时间。",
+  "issues": [
+    {
+      "sceneId": "scene-01",
+      "evidence": "edit-review-0/batch-0/frame-01-at-4.167s.png",
+      "nodeId": "node-aa9af36075fb903e",
+      "problem": "用户要求标题“新品体验”只添加在视频开头 2 秒；但在 4.167s 关键帧中标题仍位于左下角并清晰可见，显示时长超出本次修改意图。",
+      "repair": "将标题节点的可见动画限制在 0–2s 内：保持当前入场和版式，最迟在 2.0s 前完成淡出；不要改动视频节点、声音、画幅或总时长。修复后复查 1.5s 标题可读、2s 后标题不可见。",
+      "seconds": 4.167,
+      "severity": "major"
+    }
+  ],
+  "unreviewed": [
+    "声音保留与同步未评审：本批证据仅包含静态关键帧，没有音频或波形证据。",
+    "完整时长与连续运动未评审：未提供完整视频连续播放证据。",
+    "原视频是否完全未裁切只能部分判断：当前关键帧未见标题裁切，但缺少源画幅对照和完整视频检查。"
+  ],
+  "invalidation": {
+    "changedScenes": [
+      "scene-01"
+    ],
+    "fullRecompile": false
+  },
+  "fullPlayback": "pending",
+  "humanReview": "pending",
+  "rights": "requires-publisher-review"
+}

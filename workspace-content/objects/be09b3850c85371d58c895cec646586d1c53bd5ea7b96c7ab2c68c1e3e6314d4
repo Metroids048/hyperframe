@@ -1,0 +1,171 @@
+{
+  "workflow": {
+    "taskMode": "edit",
+    "objective": "让观众更清楚地认识耳机的整体外观、头梁与耳垫轮廓，并引导查看商品详情。",
+    "requirements": [
+      {
+        "kind": "change",
+        "quote": "给我设计一套优化视频内容的方案，然后执行修改视频",
+        "targetIds": [
+          "node-9d8f0b83e0206efb",
+          "node-bbc3dd2c7399216b",
+          "node-c073faa5be6b1c5d",
+          "node-f54301215f0ff786",
+          "node-947eb374414ba555",
+          "scene-02-context",
+          "scene-03-detail",
+          "scene-05-end"
+        ],
+        "excludeIds": [],
+        "startSeconds": null,
+        "endSeconds": null
+      }
+    ],
+    "overrides": [],
+    "assumptions": [
+      "基于 rev-33a17397c8e18fa4 做可撤销的局部优化：保留开场主标题，以整体外观、头梁、耳垫、外观回顾、详情入口组织现有五幕。",
+      "保留120秒总时长、各幕时间与顺序、1920×1080画幅、全部素材引用、现有音轨及四处转场；不增加商品事实。",
+      "第二幕采用图文分区，第三幕采用双图细节布局，结尾采用商品收尾布局；均复用现有原生节点。",
+      "执行器需重新编译第二、三、五幕布局及修改文字，检查全部文字可读性、媒体完整性，以及四处相邻转场；音轨无需重新生成。",
+      "预期由版本服务创建当前版本的子修订；通过编译、对象保留校验和预览后才切换当前版本，失败保留原版本。"
+    ],
+    "gaps": [
+      "输入仅含工程结构和素材元数据，未提供可观察画面或成片；不能确认实际裁切、主体遮挡、商品一致性和素材权利。",
+      "五幕图片展示各持续约22至26秒，仅有三个已确认外观事实；保留120秒时，信息密度不足的问题无法仅靠布局和文案彻底解决。",
+      "现有音乐仅覆盖0至35秒，35至120秒无音乐；本次保持音轨，不擅自循环、拉慢或补充声音。",
+      "本轮只输出受控修改计划，尚无执行、渲染或预览回执，不能声明视频已经修改完成。"
+    ]
+  },
+  "summary": "优化方案：明确各幕观察重点，区分整体与细节布局，并把结尾改为“查看商品详情”。保留120秒、现有素材和声音。以下操作待执行器提交与验证；长时间图片停留及后85秒无音乐仍需注意。",
+  "operations": [
+    {
+      "type": "update_text",
+      "sceneId": "scene-01-hero",
+      "nodeId": "node-9d8f0b83e0206efb",
+      "assetId": null,
+      "text": "黑色耳机 · 从整体看细节",
+      "effect": null,
+      "durationFrames": null,
+      "sceneIds": null,
+      "fromSceneId": null,
+      "toSceneId": null,
+      "width": null,
+      "height": null,
+      "paramsJson": null,
+      "source": null
+    },
+    {
+      "type": "update_text",
+      "sceneId": "scene-02-context",
+      "nodeId": "node-bbc3dd2c7399216b",
+      "assetId": null,
+      "text": "看头梁：一条弧线连接两侧",
+      "effect": null,
+      "durationFrames": null,
+      "sceneIds": null,
+      "fromSceneId": null,
+      "toSceneId": null,
+      "width": null,
+      "height": null,
+      "paramsJson": null,
+      "source": null
+    },
+    {
+      "type": "set_scene_effect",
+      "sceneId": "scene-02-context",
+      "nodeId": null,
+      "assetId": null,
+      "text": null,
+      "effect": "split-detail",
+      "durationFrames": null,
+      "sceneIds": null,
+      "fromSceneId": null,
+      "toSceneId": null,
+      "width": null,
+      "height": null,
+      "paramsJson": null,
+      "source": null
+    },
+    {
+      "type": "update_text",
+      "sceneId": "scene-03-detail",
+      "nodeId": "node-c073faa5be6b1c5d",
+      "assetId": null,
+      "text": "看细节：耳垫轮廓",
+      "effect": null,
+      "durationFrames": null,
+      "sceneIds": null,
+      "fromSceneId": null,
+      "toSceneId": null,
+      "width": null,
+      "height": null,
+      "paramsJson": null,
+      "source": null
+    },
+    {
+      "type": "set_scene_effect",
+      "sceneId": "scene-03-detail",
+      "nodeId": null,
+      "assetId": null,
+      "text": null,
+      "effect": "detail-inset",
+      "durationFrames": null,
+      "sceneIds": null,
+      "fromSceneId": null,
+      "toSceneId": null,
+      "width": null,
+      "height": null,
+      "paramsJson": null,
+      "source": null
+    },
+    {
+      "type": "update_text",
+      "sceneId": "scene-04-feature",
+      "nodeId": "node-f54301215f0ff786",
+      "assetId": null,
+      "text": "外观回顾：黑色 · 弧形头梁 · 耳垫轮廓",
+      "effect": null,
+      "durationFrames": null,
+      "sceneIds": null,
+      "fromSceneId": null,
+      "toSceneId": null,
+      "width": null,
+      "height": null,
+      "paramsJson": null,
+      "source": null
+    },
+    {
+      "type": "update_text",
+      "sceneId": "scene-05-end",
+      "nodeId": "node-947eb374414ba555",
+      "assetId": null,
+      "text": "查看商品详情",
+      "effect": null,
+      "durationFrames": null,
+      "sceneIds": null,
+      "fromSceneId": null,
+      "toSceneId": null,
+      "width": null,
+      "height": null,
+      "paramsJson": null,
+      "source": null
+    },
+    {
+      "type": "set_scene_effect",
+      "sceneId": "scene-05-end",
+      "nodeId": null,
+      "assetId": null,
+      "text": null,
+      "effect": "end-card",
+      "durationFrames": null,
+      "sceneIds": null,
+      "fromSceneId": null,
+      "toSceneId": null,
+      "width": null,
+      "height": null,
+      "paramsJson": null,
+      "source": null
+    }
+  ],
+  "alternatives": []
+}

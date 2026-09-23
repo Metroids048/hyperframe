@@ -1,0 +1,5385 @@
+{
+  "id": "7bb4420c-ab94-4274-9855-cc1ecff5b37f",
+  "userRequest": "【resume，不 create 重跑、不新建工程、不重传素材】继续同一项目 c6cd5bb8-f3b8-4a49-a03e-6b45e16726b5。当前真实状态：job-bbdff9a2-5af9-4d08-8b69-eb2c575f8e51 为 recoverable、resumable=true、stage「安排整片内容与节奏」、error=OPENCLAW_STAGE_TIMEOUT；Stage Provider 的 tool_choice 受控重试已生效。请直接从该 checkpoint resume，保留已补齐的 scene-01 HyperFrames 绑定与压缩旁白，继续 timing 节奏编排 → 同步中文字幕 → 9 镜头 HyperFrames 视觉编排 → 源声轨+旁白 ducking → 渲染，输出真实新 revisionId 与 MP4 成品及 quality_report。\n\n【保留：scene-01 HyperFrames 执行绑定（可执行、seek-safe、确定性）】sceneId: scene-01（Hook 纸盒开箱，源 1.4–6.4s，落到时间轴 0–5s）；block: hyperframes@0.8.33 / hf.clip.source，executable:true；params: assetId asset-e8779cc0-0dba-4f37-a3a3-218c25440e01、sourceIn 1.4、sourceOut 6.4、outWidth 1080、outHeight 1920、fit cover、center crop、speed 1.0（不加速）、safeArea top12/bottom18、标题文字块「掌机开箱：便携游戏体验」；seekSafe:true、deterministic:true、timeBase{startAt:0,durationSeconds:5}、bindAt timeline.segment[0]。其余 8 镜同构绑定（各对应源区间、9:16 裁切、seek-safe）。\n\n【沿用 9 镜头（源区间互不重复）】1 Hook 纸盒开箱 1.4–6.4s；2 可见特点1 外包装盒 29.3–34.3s（局部放大）；3 可见特点2 黑色拉链收纳包 34.9–39.9s（局部放大）；4 可见特点3 掌机机身与屏幕 46.1–51.1s（局部放大）；5 真实操作 取物 40.5–45.5s；6 局部放大特写 机身 62.9–67.9s；7 步骤引导第1步 掀盒盖 7.0–12.0s；8 第2步 取内盒 12.6–17.6s；9 第3步 取说明卡 18.2–23.2s。\n\n【旁白（已压缩，逐镜对齐约 45s，禁止加速，仅描述真实可见内容）】1)“掌机开箱，便携游戏体验。”2)“白色包装盒，印有掌机线稿和标语。”3)“附黑色拉链收纳包，包面有圆形标志。”4)“黑色掌机本体，屏幕和两侧按键清晰可见。”5)“打开盒子，从里面取出物件。”6)“放大看机身和屏幕的细节。”7)“第一步，掀开盒盖。”8)“第二步，取出白色内盒。”9)“第三步，取出说明书和内衬。”\n\n【同步中文字幕】严格对齐上述旁白时间轴。【ducking 依据】源素材自带 opus 音轨与旁白时间重叠、互相掩蔽，构成真实画声冲突；旁白段压低源声轨、旁白间隙恢复。\n\n【BGM 可审计降级（已明确授权，勿再停 NEEDS_INPUT）】本工程无已授权 BGM/音乐资产，不隐式生成/检索/合成音乐。音频轨 = 源素材原声轨 + 中文旁白；旁白段 ducking、间隙恢复。在 quality_report 记录「BGM 缺口（科技感 BGM 未满足，缺授权音源）」。\n\n【其余不变】竖屏 1080×1920、总时长约 45 秒、9 镜头（≥5 段互不重复源区间）、Hook＋3 个可见特点（各配局部放大）＋真实操作＋局部放大特写＋步骤引导、标题「掌机开箱：便携游戏体验」；不编造任何参数/功能/卖点；保留可编辑工程（项目与修订）并输出新的 MP4 成品。",
+  "projectId": "c6cd5bb8-f3b8-4a49-a03e-6b45e16726b5",
+  "baseRevisionId": null,
+  "inputFingerprint": "c6f62c38417f1fc18f2238603ebf9411a3133f83e185029179554a79856e9be8",
+  "selectedSkills": [
+    "kinetic-type-beats",
+    "titlecard-reveal",
+    "lt-mask-reveal",
+    "video-text-pivot",
+    "caption-editorial-emphasis"
+  ],
+  "constraints": {
+    "requirements": [
+      "resume 执行：不 create 重跑、不新建工程、不重传素材；沿用同一项目与唯一素材 asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+      "保留已补齐的 scene-01 HyperFrames 执行绑定（hyperframes@0.8.33 / hf.clip.source，executable:true，seekSafe:true，deterministic:true，timeBase{startAt:0,durationSeconds:5}，bindAt timeline.segment[0]）与压缩旁白",
+      "竖屏 1080×1920，总时长约 45 秒，9 个镜头且 ≥5 段互不重复源区间",
+      "结构：Hook＋3 个可见特点（各配局部放大）＋真实操作＋局部放大特写＋步骤引导；标题「掌机开箱：便携游戏体验」",
+      "源区间：1 Hook 1.4–6.4s；2 外包装盒 29.3–34.3s；3 黑色拉链收纳包 34.9–39.9s；4 掌机机身与屏幕 46.1–51.1s；5 取物 40.5–45.5s；6 机身特写 62.9–67.9s；7 掀盒盖 7.0–12.0s；8 取内盒 12.6–17.6s；9 取说明卡 18.2–23.2s",
+      "禁止加速：所有镜头 speed 1.0（不加速、不慢放），中文旁白同样禁止加速",
+      "不编造任何参数/功能/卖点；旁白仅描述真实可见内容",
+      "源浮层「Like what you see?」「Enjoy my content?」在裁切时避让，不入成片",
+      "音频轨＝源素材原声轨＋中文旁白；旁白段压低源声轨、间隙恢复（ducking），不因 BGM 停 NEEDS_INPUT",
+      "同步中文字幕严格对齐上述 9 句旁白时间轴，字幕避开 safeArea 保护区（top 12% 标题位 / bottom 18% 字幕位）",
+      "每个镜头采用 hyperframes@0.8.33 / hf.clip.source 同构绑定（对应源区间、9:16 裁切、safeArea），seekSafe=true、deterministic=true",
+      "保留可编辑工程（项目与修订），输出真实新 revisionId 与新的 MP4 成品及 quality_report（含 BGM 缺口记录）"
+    ]
+  },
+  "plan": {
+    "paragraphs": [
+      {
+        "id": "p1",
+        "purpose": "钩子/主题",
+        "information": "掌机开箱主题与标题「掌机开箱：便携游戏体验」"
+      },
+      {
+        "id": "p2",
+        "purpose": "可见特点1",
+        "information": "白色外包装盒（掌机线稿与标语）"
+      },
+      {
+        "id": "p3",
+        "purpose": "可见特点2",
+        "information": "黑色拉链收纳包及包面圆形标志"
+      },
+      {
+        "id": "p4",
+        "purpose": "可见特点3",
+        "information": "掌机机身与屏幕、两侧按键"
+      },
+      {
+        "id": "p5",
+        "purpose": "真实操作",
+        "information": "从盒内取出物件的过程"
+      },
+      {
+        "id": "p6",
+        "purpose": "局部放大特写",
+        "information": "机身与屏幕细节"
+      },
+      {
+        "id": "p7",
+        "purpose": "步骤引导第1步",
+        "information": "掀开盒盖"
+      },
+      {
+        "id": "p8",
+        "purpose": "步骤引导第2步",
+        "information": "取出白色内盒"
+      },
+      {
+        "id": "p9",
+        "purpose": "步骤引导第3步",
+        "information": "取出说明书和内衬"
+      }
+    ],
+    "sceneCount": 9
+  },
+  "artifacts": {
+    "narrationScript": {
+      "value": {
+        "text": "掌机开箱，便携游戏体验。\n白色包装盒，印有掌机线稿和标语。\n附黑色拉链收纳包，包面有圆形标志。\n黑色掌机本体，屏幕和两侧按键清晰可见。\n打开盒子，从里面取出物件。\n放大看机身和屏幕的细节。\n第一步，掀开盒盖。\n第二步，取出白色内盒。\n第三步，取出说明书和内衬。",
+        "voice": "Chinese (Mandarin)_Gentle_Senior",
+        "basis": "在给定 voiceCandidates 中，Chinese (Mandarin)_Gentle_Senior（温柔学姐）得分最高（13），且与 AudioRequirement 匹配度最好：gender 为 neutral，与需求 gender=neutral 精确吻合（其余 top 候选 Gentle_Youth/Sweet_Lady/Warm_Girl 均为 male/female，性别即不匹配）；tone=warm、speed=medium、commercial_style 含 tutorial，三项与需求完全一致；recommended_scene 覆盖 product_tutorial，正对 product_demo 的教程性质；platform 含 general 常用投放端。已知取舍：其 emotion=neutral、age=young，与需求 emotion=trustworthy、age=adult 不完全对齐；候选中 emotion 最贴近 trustworthy 的 Chinese (Mandarin)_Reliable_Executive 为 male、tone=professional，性别与温暖调性均不符且得分仅 11，故不优先。综合性别、语调、语速与教程风格，首选温柔学姐用于本次 9 镜中性温和的中文教程口播，medium 语速适配约 45s 时长、不加速。"
+      },
+      "hash": "70362bbdf50169a86bb905227aacecef5b881a03083aa6a9542a3e72b88b9bd4"
+    }
+  },
+  "checkpoints": {
+    "brief": {
+      "idempotencyKey": "e78696ec7144f0544fb44c7f05e92172c6b29b3a876873953b8cbef095f3e88a",
+      "status": "completed",
+      "result": {
+        "request": {
+          "name": "掌机",
+          "cta": "",
+          "price": "",
+          "facts": [],
+          "output": {
+            "width": 1080,
+            "height": 1920,
+            "durationSeconds": 45,
+            "fps": 30
+          }
+        },
+        "needsTranscription": false,
+        "needsNarration": true,
+        "needsCaptions": true,
+        "keepOriginalAudio": true,
+        "capabilities": [
+          "video-source-selection",
+          "image-observation",
+          "native-composition",
+          "native-editing",
+          "local-preview-review",
+          "managed-original"
+        ],
+        "gaps": [
+          "BGM 缺口：需求要求科技感 BGM，但本工程无已授权音乐/音源（suppliedAudio 为空），不得隐式生成/检索/合成音乐；按已授权可审计降级交付（音频轨＝源素材原声轨＋中文旁白，旁白段 ducking、间隙恢复），BGM 为未满足项，需在 quality_report 记录"
+        ],
+        "constraints": [
+          "resume 执行：不 create 重跑、不新建工程、不重传素材；沿用同一项目与唯一素材 asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+          "保留已补齐的 scene-01 HyperFrames 执行绑定（hyperframes@0.8.33 / hf.clip.source，executable:true，seekSafe:true，deterministic:true，timeBase{startAt:0,durationSeconds:5}，bindAt timeline.segment[0]）与压缩旁白",
+          "竖屏 1080×1920，总时长约 45 秒，9 个镜头且 ≥5 段互不重复源区间",
+          "结构：Hook＋3 个可见特点（各配局部放大）＋真实操作＋局部放大特写＋步骤引导；标题「掌机开箱：便携游戏体验」",
+          "源区间：1 Hook 1.4–6.4s；2 外包装盒 29.3–34.3s；3 黑色拉链收纳包 34.9–39.9s；4 掌机机身与屏幕 46.1–51.1s；5 取物 40.5–45.5s；6 机身特写 62.9–67.9s；7 掀盒盖 7.0–12.0s；8 取内盒 12.6–17.6s；9 取说明卡 18.2–23.2s",
+          "禁止加速：所有镜头 speed 1.0（不加速、不慢放），中文旁白同样禁止加速",
+          "不编造任何参数/功能/卖点；旁白仅描述真实可见内容",
+          "源浮层「Like what you see?」「Enjoy my content?」在裁切时避让，不入成片",
+          "音频轨＝源素材原声轨＋中文旁白；旁白段压低源声轨、间隙恢复（ducking），不因 BGM 停 NEEDS_INPUT",
+          "同步中文字幕严格对齐上述 9 句旁白时间轴，字幕避开 safeArea 保护区（top 12% 标题位 / bottom 18% 字幕位）",
+          "每个镜头采用 hyperframes@0.8.33 / hf.clip.source 同构绑定（对应源区间、9:16 裁切、safeArea），seekSafe=true、deterministic=true",
+          "保留可编辑工程（项目与修订），输出真实新 revisionId 与新的 MP4 成品及 quality_report（含 BGM 缺口记录）"
+        ],
+        "workflow": {
+          "taskMode": "create",
+          "objective": "以 9 镜（Hook＋3 可见特点＋真实操作＋特写＋步骤引导）按真实顺序呈现掌机开箱，帮助第一次操作的新手理解并复现必要操作；源原速无加速，保留源声轨＋中文旁白 ducking，输出竖屏 1080×1920 约 45 秒教程成片",
+          "requirements": [],
+          "overrides": [],
+          "assumptions": [
+            "唯一用户素材（webm，1920×1080，72.663s，含 opus 音轨，hasAudio=true）可支持 9 段互不重复源区间的 9:16 裁切剪接",
+            "中文旁白由本地合成（narration.prepare）后测量并对齐字幕时间轴，禁止加速语速",
+            "无授权 BGM 时按源声轨＋中文旁白的降级方案执行，并在 quality_report 记录 BGM 缺口"
+          ],
+          "gaps": [
+            "BGM 缺口：需求要求科技感 BGM，但无已授权音源（suppliedAudio 为空），不隐式生成音乐；按已授权降级交付并在 quality_report 记录"
+          ]
+        },
+        "scenarioId": "product_demo",
+        "productionBinding": {
+          "message": "【resume，不 create 重跑、不新建工程、不重传素材】继续同一项目 c6cd5bb8-f3b8-4a49-a03e-6b45e16726b5。当前真实状态：job-bbdff9a2-5af9-4d08-8b69-eb2c575f8e51 为 recoverable、resumable=true、stage「安排整片内容与节奏」、error=OPENCLAW_STAGE_TIMEOUT；Stage Provider 的 tool_choice 受控重试已生效。请直接从该 checkpoint resume，保留已补齐的 scene-01 HyperFrames 绑定与压缩旁白，继续 timing 节奏编排 → 同步中文字幕 → 9 镜头 HyperFrames 视觉编排 → 源声轨+旁白 ducking → 渲染，输出真实新 revisionId 与 MP4 成品及 quality_report。\n\n【保留：scene-01 HyperFrames 执行绑定（可执行、seek-safe、确定性）】sceneId: scene-01（Hook 纸盒开箱，源 1.4–6.4s，落到时间轴 0–5s）；block: hyperframes@0.8.33 / hf.clip.source，executable:true；params: assetId asset-e8779cc0-0dba-4f37-a3a3-218c25440e01、sourceIn 1.4、sourceOut 6.4、outWidth 1080、outHeight 1920、fit cover、center crop、speed 1.0（不加速）、safeArea top12/bottom18、标题文字块「掌机开箱：便携游戏体验」；seekSafe:true、deterministic:true、timeBase{startAt:0,durationSeconds:5}、bindAt timeline.segment[0]。其余 8 镜同构绑定（各对应源区间、9:16 裁切、seek-safe）。\n\n【沿用 9 镜头（源区间互不重复）】1 Hook 纸盒开箱 1.4–6.4s；2 可见特点1 外包装盒 29.3–34.3s（局部放大）；3 可见特点2 黑色拉链收纳包 34.9–39.9s（局部放大）；4 可见特点3 掌机机身与屏幕 46.1–51.1s（局部放大）；5 真实操作 取物 40.5–45.5s；6 局部放大特写 机身 62.9–67.9s；7 步骤引导第1步 掀盒盖 7.0–12.0s；8 第2步 取内盒 12.6–17.6s；9 第3步 取说明卡 18.2–23.2s。\n\n【旁白（已压缩，逐镜对齐约 45s，禁止加速，仅描述真实可见内容）】1)“掌机开箱，便携游戏体验。”2)“白色包装盒，印有掌机线稿和标语。”3)“附黑色拉链收纳包，包面有圆形标志。”4)“黑色掌机本体，屏幕和两侧按键清晰可见。”5)“打开盒子，从里面取出物件。”6)“放大看机身和屏幕的细节。”7)“第一步，掀开盒盖。”8)“第二步，取出白色内盒。”9)“第三步，取出说明书和内衬。”\n\n【同步中文字幕】严格对齐上述旁白时间轴。【ducking 依据】源素材自带 opus 音轨与旁白时间重叠、互相掩蔽，构成真实画声冲突；旁白段压低源声轨、旁白间隙恢复。\n\n【BGM 可审计降级（已明确授权，勿再停 NEEDS_INPUT）】本工程无已授权 BGM/音乐资产，不隐式生成/检索/合成音乐。音频轨 = 源素材原声轨 + 中文旁白；旁白段 ducking、间隙恢复。在 quality_report 记录「BGM 缺口（科技感 BGM 未满足，缺授权音源）」。\n\n【其余不变】竖屏 1080×1920、总时长约 45 秒、9 镜头（≥5 段互不重复源区间）、Hook＋3 个可见特点（各配局部放大）＋真实操作＋局部放大特写＋步骤引导、标题「掌机开箱：便携游戏体验」；不编造任何参数/功能/卖点；保留可编辑工程（项目与修订）并输出新的 MP4 成品。",
+          "contract": {
+            "schemaVersion": 1,
+            "profile": "commerce-focus-v1",
+            "scenarioId": "product_demo",
+            "originalRequest": "【resume，不 create 重跑、不新建工程、不重传素材】继续同一项目 c6cd5bb8-f3b8-4a49-a03e-6b45e16726b5。当前真实状态：job-bbdff9a2-5af9-4d08-8b69-eb2c575f8e51 为 recoverable、resumable=true、stage「安排整片内容与节奏」、error=OPENCLAW_STAGE_TIMEOUT；Stage Provider 的 tool_choice 受控重试已生效。请直接从该 checkpoint resume，保留已补齐的 scene-01 HyperFrames 绑定与压缩旁白，继续 timing 节奏编排 → 同步中文字幕 → 9 镜头 HyperFrames 视觉编排 → 源声轨+旁白 ducking → 渲染，输出真实新 revisionId 与 MP4 成品及 quality_report。\n\n【保留：scene-01 HyperFrames 执行绑定（可执行、seek-safe、确定性）】sceneId: scene-01（Hook 纸盒开箱，源 1.4–6.4s，落到时间轴 0–5s）；block: hyperframes@0.8.33 / hf.clip.source，executable:true；params: assetId asset-e8779cc0-0dba-4f37-a3a3-218c25440e01、sourceIn 1.4、sourceOut 6.4、outWidth 1080、outHeight 1920、fit cover、center crop、speed 1.0（不加速）、safeArea top12/bottom18、标题文字块「掌机开箱：便携游戏体验」；seekSafe:true、deterministic:true、timeBase{startAt:0,durationSeconds:5}、bindAt timeline.segment[0]。其余 8 镜同构绑定（各对应源区间、9:16 裁切、seek-safe）。\n\n【沿用 9 镜头（源区间互不重复）】1 Hook 纸盒开箱 1.4–6.4s；2 可见特点1 外包装盒 29.3–34.3s（局部放大）；3 可见特点2 黑色拉链收纳包 34.9–39.9s（局部放大）；4 可见特点3 掌机机身与屏幕 46.1–51.1s（局部放大）；5 真实操作 取物 40.5–45.5s；6 局部放大特写 机身 62.9–67.9s；7 步骤引导第1步 掀盒盖 7.0–12.0s；8 第2步 取内盒 12.6–17.6s；9 第3步 取说明卡 18.2–23.2s。\n\n【旁白（已压缩，逐镜对齐约 45s，禁止加速，仅描述真实可见内容）】1)“掌机开箱，便携游戏体验。”2)“白色包装盒，印有掌机线稿和标语。”3)“附黑色拉链收纳包，包面有圆形标志。”4)“黑色掌机本体，屏幕和两侧按键清晰可见。”5)“打开盒子，从里面取出物件。”6)“放大看机身和屏幕的细节。”7)“第一步，掀开盒盖。”8)“第二步，取出白色内盒。”9)“第三步，取出说明书和内衬。”\n\n【同步中文字幕】严格对齐上述旁白时间轴。【ducking 依据】源素材自带 opus 音轨与旁白时间重叠、互相掩蔽，构成真实画声冲突；旁白段压低源声轨、旁白间隙恢复。\n\n【BGM 可审计降级（已明确授权，勿再停 NEEDS_INPUT）】本工程无已授权 BGM/音乐资产，不隐式生成/检索/合成音乐。音频轨 = 源素材原声轨 + 中文旁白；旁白段 ducking、间隙恢复。在 quality_report 记录「BGM 缺口（科技感 BGM 未满足，缺授权音源）」。\n\n【其余不变】竖屏 1080×1920、总时长约 45 秒、9 镜头（≥5 段互不重复源区间）、Hook＋3 个可见特点（各配局部放大）＋真实操作＋局部放大特写＋步骤引导、标题「掌机开箱：便携游戏体验」；不编造任何参数/功能/卖点；保留可编辑工程（项目与修订）并输出新的 MP4 成品。",
+            "taskMode": "create",
+            "workflowProfile": "create",
+            "workflow": {
+              "version": 1,
+              "taskMode": "create",
+              "taskModeExplicit": true,
+              "workflowProfile": "create",
+              "businessScenario": "product_demo",
+              "baseProjectId": "c6cd5bb8-f3b8-4a49-a03e-6b45e16726b5",
+              "baseRevisionId": null,
+              "assetScope": [
+                "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01"
+              ],
+              "originalRequest": "【resume，不 create 重跑、不新建工程、不重传素材】继续同一项目 c6cd5bb8-f3b8-4a49-a03e-6b45e16726b5。当前真实状态：job-bbdff9a2-5af9-4d08-8b69-eb2c575f8e51 为 recoverable、resumable=true、stage「安排整片内容与节奏」、error=OPENCLAW_STAGE_TIMEOUT；Stage Provider 的 tool_choice 受控重试已生效。请直接从该 checkpoint resume，保留已补齐的 scene-01 HyperFrames 绑定与压缩旁白，继续 timing 节奏编排 → 同步中文字幕 → 9 镜头 HyperFrames 视觉编排 → 源声轨+旁白 ducking → 渲染，输出真实新 revisionId 与 MP4 成品及 quality_report。\n\n【保留：scene-01 HyperFrames 执行绑定（可执行、seek-safe、确定性）】sceneId: scene-01（Hook 纸盒开箱，源 1.4–6.4s，落到时间轴 0–5s）；block: hyperframes@0.8.33 / hf.clip.source，executable:true；params: assetId asset-e8779cc0-0dba-4f37-a3a3-218c25440e01、sourceIn 1.4、sourceOut 6.4、outWidth 1080、outHeight 1920、fit cover、center crop、speed 1.0（不加速）、safeArea top12/bottom18、标题文字块「掌机开箱：便携游戏体验」；seekSafe:true、deterministic:true、timeBase{startAt:0,durationSeconds:5}、bindAt timeline.segment[0]。其余 8 镜同构绑定（各对应源区间、9:16 裁切、seek-safe）。\n\n【沿用 9 镜头（源区间互不重复）】1 Hook 纸盒开箱 1.4–6.4s；2 可见特点1 外包装盒 29.3–34.3s（局部放大）；3 可见特点2 黑色拉链收纳包 34.9–39.9s（局部放大）；4 可见特点3 掌机机身与屏幕 46.1–51.1s（局部放大）；5 真实操作 取物 40.5–45.5s；6 局部放大特写 机身 62.9–67.9s；7 步骤引导第1步 掀盒盖 7.0–12.0s；8 第2步 取内盒 12.6–17.6s；9 第3步 取说明卡 18.2–23.2s。\n\n【旁白（已压缩，逐镜对齐约 45s，禁止加速，仅描述真实可见内容）】1)“掌机开箱，便携游戏体验。”2)“白色包装盒，印有掌机线稿和标语。”3)“附黑色拉链收纳包，包面有圆形标志。”4)“黑色掌机本体，屏幕和两侧按键清晰可见。”5)“打开盒子，从里面取出物件。”6)“放大看机身和屏幕的细节。”7)“第一步，掀开盒盖。”8)“第二步，取出白色内盒。”9)“第三步，取出说明书和内衬。”\n\n【同步中文字幕】严格对齐上述旁白时间轴。【ducking 依据】源素材自带 opus 音轨与旁白时间重叠、互相掩蔽，构成真实画声冲突；旁白段压低源声轨、旁白间隙恢复。\n\n【BGM 可审计降级（已明确授权，勿再停 NEEDS_INPUT）】本工程无已授权 BGM/音乐资产，不隐式生成/检索/合成音乐。音频轨 = 源素材原声轨 + 中文旁白；旁白段 ducking、间隙恢复。在 quality_report 记录「BGM 缺口（科技感 BGM 未满足，缺授权音源）」。\n\n【其余不变】竖屏 1080×1920、总时长约 45 秒、9 镜头（≥5 段互不重复源区间）、Hook＋3 个可见特点（各配局部放大）＋真实操作＋局部放大特写＋步骤引导、标题「掌机开箱：便携游戏体验」；不编造任何参数/功能/卖点；保留可编辑工程（项目与修订）并输出新的 MP4 成品。",
+              "requirements": [],
+              "assumptions": [
+                "唯一用户素材（webm，1920×1080，72.663s，含 opus 音轨，hasAudio=true）可支持 9 段互不重复源区间的 9:16 裁切剪接",
+                "中文旁白由本地合成（narration.prepare）后测量并对齐字幕时间轴，禁止加速语速",
+                "无授权 BGM 时按源声轨＋中文旁白的降级方案执行，并在 quality_report 记录 BGM 缺口"
+              ],
+              "gaps": [
+                "BGM 缺口：需求要求科技感 BGM，但无已授权音源（suppliedAudio 为空），不隐式生成音乐；按已授权降级交付并在 quality_report 记录"
+              ],
+              "interpretation": "validated-semantic-analysis",
+              "objective": "以 9 镜（Hook＋3 可见特点＋真实操作＋特写＋步骤引导）按真实顺序呈现掌机开箱，帮助第一次操作的新手理解并复现必要操作；源原速无加速，保留源声轨＋中文旁白 ducking，输出竖屏 1080×1920 约 45 秒教程成片",
+              "contractId": "contract-4ed4215fb2105638",
+              "parentContractId": null,
+              "sourceRequests": [
+                "【resume，不 create 重跑、不新建工程、不重传素材】继续同一项目 c6cd5bb8-f3b8-4a49-a03e-6b45e16726b5。当前真实状态：job-bbdff9a2-5af9-4d08-8b69-eb2c575f8e51 为 recoverable、resumable=true、stage「安排整片内容与节奏」、error=OPENCLAW_STAGE_TIMEOUT；Stage Provider 的 tool_choice 受控重试已生效。请直接从该 checkpoint resume，保留已补齐的 scene-01 HyperFrames 绑定与压缩旁白，继续 timing 节奏编排 → 同步中文字幕 → 9 镜头 HyperFrames 视觉编排 → 源声轨+旁白 ducking → 渲染，输出真实新 revisionId 与 MP4 成品及 quality_report。\n\n【保留：scene-01 HyperFrames 执行绑定（可执行、seek-safe、确定性）】sceneId: scene-01（Hook 纸盒开箱，源 1.4–6.4s，落到时间轴 0–5s）；block: hyperframes@0.8.33 / hf.clip.source，executable:true；params: assetId asset-e8779cc0-0dba-4f37-a3a3-218c25440e01、sourceIn 1.4、sourceOut 6.4、outWidth 1080、outHeight 1920、fit cover、center crop、speed 1.0（不加速）、safeArea top12/bottom18、标题文字块「掌机开箱：便携游戏体验」；seekSafe:true、deterministic:true、timeBase{startAt:0,durationSeconds:5}、bindAt timeline.segment[0]。其余 8 镜同构绑定（各对应源区间、9:16 裁切、seek-safe）。\n\n【沿用 9 镜头（源区间互不重复）】1 Hook 纸盒开箱 1.4–6.4s；2 可见特点1 外包装盒 29.3–34.3s（局部放大）；3 可见特点2 黑色拉链收纳包 34.9–39.9s（局部放大）；4 可见特点3 掌机机身与屏幕 46.1–51.1s（局部放大）；5 真实操作 取物 40.5–45.5s；6 局部放大特写 机身 62.9–67.9s；7 步骤引导第1步 掀盒盖 7.0–12.0s；8 第2步 取内盒 12.6–17.6s；9 第3步 取说明卡 18.2–23.2s。\n\n【旁白（已压缩，逐镜对齐约 45s，禁止加速，仅描述真实可见内容）】1)“掌机开箱，便携游戏体验。”2)“白色包装盒，印有掌机线稿和标语。”3)“附黑色拉链收纳包，包面有圆形标志。”4)“黑色掌机本体，屏幕和两侧按键清晰可见。”5)“打开盒子，从里面取出物件。”6)“放大看机身和屏幕的细节。”7)“第一步，掀开盒盖。”8)“第二步，取出白色内盒。”9)“第三步，取出说明书和内衬。”\n\n【同步中文字幕】严格对齐上述旁白时间轴。【ducking 依据】源素材自带 opus 音轨与旁白时间重叠、互相掩蔽，构成真实画声冲突；旁白段压低源声轨、旁白间隙恢复。\n\n【BGM 可审计降级（已明确授权，勿再停 NEEDS_INPUT）】本工程无已授权 BGM/音乐资产，不隐式生成/检索/合成音乐。音频轨 = 源素材原声轨 + 中文旁白；旁白段 ducking、间隙恢复。在 quality_report 记录「BGM 缺口（科技感 BGM 未满足，缺授权音源）」。\n\n【其余不变】竖屏 1080×1920、总时长约 45 秒、9 镜头（≥5 段互不重复源区间）、Hook＋3 个可见特点（各配局部放大）＋真实操作＋局部放大特写＋步骤引导、标题「掌机开箱：便携游戏体验」；不编造任何参数/功能/卖点；保留可编辑工程（项目与修订）并输出新的 MP4 成品。"
+              ],
+              "requirementChanges": [],
+              "changeTargets": [],
+              "preserveTargets": [],
+              "resourceNeeds": [],
+              "prohibitions": []
+            },
+            "persona": {
+              "creator": "商家／内容运营（待用户研究验证）",
+              "viewer": "第一次操作的新手"
+            },
+            "objective": "理解并复现必要操作",
+            "product": {
+              "id": "product-1",
+              "name": "掌机",
+              "facts": [],
+              "price": null,
+              "cta": "",
+              "audience": null,
+              "prohibited": []
+            },
+            "output": {
+              "width": 1080,
+              "height": 1920,
+              "durationSeconds": 45,
+              "fps": 30
+            },
+            "audio": "unspecified",
+            "mustHave": [],
+            "mustNot": [],
+            "explicitConstraints": {
+              "schemaVersion": 1,
+              "originalRequest": "【resume，不 create 重跑、不新建工程、不重传素材】继续同一项目 c6cd5bb8-f3b8-4a49-a03e-6b45e16726b5。当前真实状态：job-bbdff9a2-5af9-4d08-8b69-eb2c575f8e51 为 recoverable、resumable=true、stage「安排整片内容与节奏」、error=OPENCLAW_STAGE_TIMEOUT；Stage Provider 的 tool_choice 受控重试已生效。请直接从该 checkpoint resume，保留已补齐的 scene-01 HyperFrames 绑定与压缩旁白，继续 timing 节奏编排 → 同步中文字幕 → 9 镜头 HyperFrames 视觉编排 → 源声轨+旁白 ducking → 渲染，输出真实新 revisionId 与 MP4 成品及 quality_report。\n\n【保留：scene-01 HyperFrames 执行绑定（可执行、seek-safe、确定性）】sceneId: scene-01（Hook 纸盒开箱，源 1.4–6.4s，落到时间轴 0–5s）；block: hyperframes@0.8.33 / hf.clip.source，executable:true；params: assetId asset-e8779cc0-0dba-4f37-a3a3-218c25440e01、sourceIn 1.4、sourceOut 6.4、outWidth 1080、outHeight 1920、fit cover、center crop、speed 1.0（不加速）、safeArea top12/bottom18、标题文字块「掌机开箱：便携游戏体验」；seekSafe:true、deterministic:true、timeBase{startAt:0,durationSeconds:5}、bindAt timeline.segment[0]。其余 8 镜同构绑定（各对应源区间、9:16 裁切、seek-safe）。\n\n【沿用 9 镜头（源区间互不重复）】1 Hook 纸盒开箱 1.4–6.4s；2 可见特点1 外包装盒 29.3–34.3s（局部放大）；3 可见特点2 黑色拉链收纳包 34.9–39.9s（局部放大）；4 可见特点3 掌机机身与屏幕 46.1–51.1s（局部放大）；5 真实操作 取物 40.5–45.5s；6 局部放大特写 机身 62.9–67.9s；7 步骤引导第1步 掀盒盖 7.0–12.0s；8 第2步 取内盒 12.6–17.6s；9 第3步 取说明卡 18.2–23.2s。\n\n【旁白（已压缩，逐镜对齐约 45s，禁止加速，仅描述真实可见内容）】1)“掌机开箱，便携游戏体验。”2)“白色包装盒，印有掌机线稿和标语。”3)“附黑色拉链收纳包，包面有圆形标志。”4)“黑色掌机本体，屏幕和两侧按键清晰可见。”5)“打开盒子，从里面取出物件。”6)“放大看机身和屏幕的细节。”7)“第一步，掀开盒盖。”8)“第二步，取出白色内盒。”9)“第三步，取出说明书和内衬。”\n\n【同步中文字幕】严格对齐上述旁白时间轴。【ducking 依据】源素材自带 opus 音轨与旁白时间重叠、互相掩蔽，构成真实画声冲突；旁白段压低源声轨、旁白间隙恢复。\n\n【BGM 可审计降级（已明确授权，勿再停 NEEDS_INPUT）】本工程无已授权 BGM/音乐资产，不隐式生成/检索/合成音乐。音频轨 = 源素材原声轨 + 中文旁白；旁白段 ducking、间隙恢复。在 quality_report 记录「BGM 缺口（科技感 BGM 未满足，缺授权音源）」。\n\n【其余不变】竖屏 1080×1920、总时长约 45 秒、9 镜头（≥5 段互不重复源区间）、Hook＋3 个可见特点（各配局部放大）＋真实操作＋局部放大特写＋步骤引导、标题「掌机开箱：便携游戏体验」；不编造任何参数/功能/卖点；保留可编辑工程（项目与修订）并输出新的 MP4 成品。",
+              "narration": "unspecified",
+              "music": "required",
+              "original": "unspecified",
+              "price": "unspecified",
+              "silent": false
+            },
+            "generatedFootageAllowed": false,
+            "deliverables": [
+              "candidate_mp4",
+              "editable_project",
+              "source_index",
+              "quality_report"
+            ]
+          }
+        }
+      }
+    },
+    "observe": {
+      "idempotencyKey": "4cbd6af4e0eb1cd6027f36a9cfee62dc6275cb4541748a23046b06a3c08803ce",
+      "status": "completed",
+      "result": {
+        "observations": [
+          {
+            "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+            "visibleContent": "源 1920×1080 横屏，蓝色垫面，主体为平放的牛皮纸运输箱。1.108s 无手、箱盖闭合；1.831–5.442s 双手进入画面推动/转动/抬起箱体，箱盖始终闭合。1.108s 起画面左下角出现红色圆角创作者浮层（Like what you see?），其后叠加 LIKED / Enjoy my content? / Stay notified! 变体。此段未见商品本体。",
+            "uncertainty": "采样约 0.7s/帧、非逐帧；箱体转动是否为开盖前置准备无法由画面证实；浮层位置逐帧变化，避让需按最大范围外扩。",
+            "role": "context",
+            "productGroup": "product-1",
+            "subjectBox": [
+              0.28,
+              0.3,
+              0.45,
+              0.4
+            ],
+            "safeCrop": [
+              0.3418,
+              0,
+              0.3164,
+              1
+            ],
+            "confidence": 0.7,
+            "quality": "clear",
+            "visibleText": [
+              "Like what you see?",
+              "LIKED",
+              "Enjoy my content?",
+              "Stay notified!"
+            ],
+            "sameProductAs": [],
+            "differentProductFrom": []
+          },
+          {
+            "assetId": "voice-8f2f6fed21e9229c",
+            "visibleContent": "实际合成旁白：掌机开箱，便携游戏体验。\n白色包装盒，印有掌机线稿和标语。\n附黑色拉链收纳包，包面有圆形标志。\n黑色掌机本体，屏幕和两侧按键清晰可见。\n打开盒子，从里面取出物件。\n放大看机身和屏幕的细节。\n第一步，掀开盒盖。\n第二步，取出白色内盒。\n第三步，取出说明书和内衬。",
+            "uncertainty": "声音感知质量仍待试听评审",
+            "role": "unknown",
+            "productGroup": "narration",
+            "subjectBox": [],
+            "safeCrop": [],
+            "confidence": 1,
+            "quality": "local audio measured",
+            "visibleText": [],
+            "sameProductAs": [],
+            "differentProductFrom": []
+          }
+        ],
+        "candidates": [
+          {
+            "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+            "startSeconds": 1.108,
+            "endSeconds": 5.442,
+            "reason": "箱体闭合、双手推动/转动/抬箱但未开盖；Hook 前置可用区间（未见商品本体）。"
+          },
+          {
+            "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+            "startSeconds": 5.442,
+            "endSeconds": 6.886,
+            "reason": "掀盒盖动作的真实区间：5.442 扶盖、6.164 掀起、6.886 已开。修正需求场景7『掀盒盖』(7.0–12.0s) 起点偏晚。"
+          },
+          {
+            "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+            "startSeconds": 7.192,
+            "endSeconds": 9.747,
+            "reason": "箱盖全开→抽出蓝色多语种警示卡→手持白色折页说明卡；说明/警示卡实际取出约在 8.5–9.7s（修正需求场景9『取说明卡』18.2–23.2s 不匹配）。"
+          },
+          {
+            "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+            "startSeconds": 11.025,
+            "endSeconds": 17.414,
+            "reason": "手伸入箱内并提起印 valve 标识的白色盒体；可作为『取内盒』候选，但盒体在 12.3s/13.6s 出现反复，边界待定。"
+          },
+          {
+            "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+            "startSeconds": 18.2,
+            "endSeconds": 28.867,
+            "reason": "手持白盒→剪刀切割→伸入取物（黑色疑似线材）→抽出印条码白盒→白色零售盒（STEAM DECK／your games are going places）现身，黑色收纳包同框。"
+          },
+          {
+            "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+            "startSeconds": 27.533,
+            "endSeconds": 30.275,
+            "reason": "白色零售盒（印 STEAM DECK／your games are going places）实际展示区间；修正需求场景2『外包装盒』29.3–34.3s 起点偏晚。"
+          },
+          {
+            "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+            "startSeconds": 32.108,
+            "endSeconds": 39.442,
+            "reason": "黑色拉链收纳包（带提手）手持展示区间，与需求场景3『黑色拉链收纳包』(34.9–39.9s) 大致重合。"
+          },
+          {
+            "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+            "startSeconds": 44.942,
+            "endSeconds": 51.303,
+            "reason": "黑色掌机机身（屏幕与两侧按键朝上）展示区间；与需求场景4『掌机机身与屏幕』(46.1–51.1s) 重合。"
+          },
+          {
+            "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+            "startSeconds": 52.581,
+            "endSeconds": 56.414,
+            "reason": "打开黑色收纳包（网状内袋、拉链）的动作区间，可作为开合演示候选。"
+          },
+          {
+            "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+            "startSeconds": 57.192,
+            "endSeconds": 67.414,
+            "reason": "黑色网眼小袋→收纳包拉链→掌机机身特写（含末段创作者浮层）；与需求场景6『局部放大特写 机身』(62.9–67.9s) 重合，且可覆盖收尾。"
+          }
+        ],
+        "inspectRanges": [],
+        "gaps": [
+          "加密观察已按加密画面执行完毕（本次约 0.7–1.8s/帧），inspectRanges 置空；但抽帧仍非逐帧，动作精确起止帧（掀盖、取卡、取盒、收纳包开合、机身离箱）仍未确定，除非再提高抽帧密度，否则不得当作已确认切点。",
+          "需求 9 镜区间与实测动作存在错位，需导演阶段据实测重排或明确标注不匹配：步骤1『掀盒盖』实际约 5.4–6.9s，而需求给 7.0–12.0s（该区间盒盖已开）；步骤3『取说明卡』——多语种警示/说明卡实际取出约 8.5–9.7s，而需求 18.2–23.2s 只见手持白盒与剪刀切割；场景2『外包装盒』实际为印 STEAM DECK／your games are going places 的白色零售盒，展示约 27.5–30.3s，需求 29.3–34.3s 后段已是黑色收纳包；『取物』需求 40.5–45.5s 实为黑包/机身展示，取物动作更集中在 8.5/12.3/20.9/26.2s。",
+          "商品身份、型号与任何参数/功能/用途无法由画面证据确认；画面仅出现英文盒面文字与品牌字样（STEAM DECK、valve、your games are going places、Attention!），中文商品名与卖点未经证实，禁止据文件名或用户预期补写；多条旁白（如『白色包装盒，印有掌机线稿和标语』『包面有圆形标志』『黑色掌机本体，屏幕和两侧按键清晰可见』）与画面基本吻合，但『便携』『收纳』等用途性表述仍属画面外推断，须保守。",
+          "源创作者浮层（Like what you see? / Enjoy my content? / Subscribe / LIKED / Stay notified!）位置逐帧变化，末段及中段部分帧浮层靠近画面中下部，9:16 居中裁切 (safeCrop x 0.3418–0.6582) 可能仍带入边缘且与底部 18% 字幕保护区冲突，需按最大外扩避让或后期遮挡确认。",
+          "音频语义仍未经人耳复核（listening.available=false），源 opus 音轨存在但语音/对话未验证，不得据源音轨生成字幕。",
+          "BGM 缺口未变：本工程无已授权音乐资产（suppliedAudio 为空），不隐式生成/检索/合成音乐，按源声轨＋旁白降级并在 quality_report 记录。"
+        ]
+      }
+    },
+    "resources": {
+      "idempotencyKey": "0b47c3f456cf7c6162af654a2bf6766f6d428e8697c19b5aa1319264fda368a0",
+      "status": "completed",
+      "result": {
+        "selected": [
+          {
+            "id": "kinetic-type-beats",
+            "reason": "Hook/开场标题「掌机开箱：便携游戏体验」以文字节拍呈现，适配无布景、以文字承载开场的镜头；仅用原生文本，不编造卖点。"
+          },
+          {
+            "id": "titlecard-reveal",
+            "reason": "开场/收尾单一标题卡的克制揭示（低动效、可编辑），用于片头标题位与步骤引导收束，不与实拍动作争抢。"
+          },
+          {
+            "id": "lt-mask-reveal",
+            "reason": "在持续的真实操作素材上叠加可编辑下三分之一（步骤说明/可见特点标签），不打断动作、不覆盖源声，适配步骤引导与真实操作镜头；文字控制在 80 字符内。"
+          },
+          {
+            "id": "video-text-pivot",
+            "reason": "实拍特点镜头滑出、交出画面重心给可见特点标签，视频保持可见，适配 3 个可见特点（各配局部放大）镜头。"
+          },
+          {
+            "id": "caption-editorial-emphasis",
+            "reason": "中文字幕严格对齐旁白测量时间轴（不臆造 Timing），避开 safeArea 保护区，用于全片同步字幕。"
+          }
+        ],
+        "originalNeeds": [
+          "9 镜竖屏原生编排：每镜 9:16 居中裁切（safeCrop x 0.3418–0.6582）并逐镜采用 hyperframes@0.8.33 / hf.clip.source 同构绑定（sourceIn/sourceOut、outWidth 1080、outHeight 1920、fit cover、speed 1.0、seekSafe、deterministic、timeBase、bindAt timeline.segment），无候选资源可直接套用，需原生编排。",
+          "音频：源素材原声轨 + 中文旁白双轨，旁白段 ducking、间隙恢复；无已授权音乐候选资源，需原生音频编排。",
+          "标题文字块「掌机开箱：便携游戏体验」及步骤说明文本层需原生文本创建（可编辑、可独立修改）。",
+          "逐镜 safeArea（top 12% / bottom 18%）与源创作者浮层（Like what you see? / Enjoy my content? 等）最大外扩避让，需原生遮罩/裁切编排。"
+        ],
+        "gaps": [
+          "BGM 缺口：需求要求科技感 BGM，但本工程无已授权音乐/音源（suppliedAudio 为空），不隐式生成/检索/合成音乐；按已授权可审计降级交付（源声轨＋中文旁白，旁白段 ducking、间隙恢复），BGM 为未满足项，须在 quality_report 记录。",
+          "需求 9 镜源区间与实测动作错位：步骤1『掀盒盖』实测约 5.4–6.9s（需求给 7.0–12.0s 时盒盖已开）；步骤3『取说明卡』实际约 8.5–9.7s（需求 18.2–23.2s 只见手持白盒与剪刀切割）；『外包装盒』实测约 27.5–30.3s；『取物』动作更集中在 8.5/12.3/20.9/26.2s——需导演阶段据实测重排或明确标注不匹配。",
+          "抽帧非逐帧（约 0.7–1.8s/帧），掀盖、取卡、取盒、收纳包开合、机身离箱等动作精确起止帧未确定，不得当作已确认切点。",
+          "商品身份、型号与任何参数/功能/用途无法由画面证据确认（仅见英文盒面 STEAM DECK / valve / your games are going places 等）；『便携』『收纳』等用途性表述属画面外推断，须保守。",
+          "源创作者浮层位置逐帧变化，9:16 居中裁切可能仍带入边缘且与底部 18% 字幕保护区冲突，需按最大外扩避让或后期遮挡确认。",
+          "音频语义未经人耳复核（listening.available=false），源 opus 音轨语音/对话未验证，不得据源音轨生成字幕；中文旁白需 narration.prepare 真实合成并测量后才可对齐。"
+        ],
+        "blockingGaps": [],
+        "candidates": [
+          {
+            "id": "lt-mask-reveal",
+            "tags": [
+              "video",
+              "action",
+              "text",
+              "操作",
+              "实拍",
+              "口播",
+              "标签",
+              "文字"
+            ],
+            "inputs": [
+              "video"
+            ],
+            "description": "Transparent editable lower-third over continuing footage; no stat, price, or full-screen text takeover is required. Adapt the wipe and accent sweep to approved native text, local fonts and the managed timeline.",
+            "files": [
+              "registry/blocks/lt-mask-reveal/registry-item.json",
+              "registry/blocks/lt-mask-reveal/lt-mask-reveal.html"
+            ],
+            "requirements": {
+              "minMedia": 1,
+              "mediaKinds": [
+                "video"
+              ],
+              "maxTextCharacters": 80
+            },
+            "motionRisk": "low",
+            "compatible": true,
+            "eligible": true,
+            "score": 3,
+            "kind": "reviewed-blueprint-adapter",
+            "runtime": "0.8.33",
+            "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+          },
+          {
+            "id": "grid-card-assemble",
+            "tags": [
+              "image",
+              "details",
+              "steps",
+              "参数",
+              "配件",
+              "步骤"
+            ],
+            "inputs": [],
+            "files": [
+              "skills/hyperframes-animation/blueprints/grid-card-assemble.md",
+              "skills/hyperframes-animation/rules/gsap-effects.md"
+            ],
+            "requirements": {
+              "minMedia": 0,
+              "mediaKinds": [],
+              "maxTextCharacters": 80
+            },
+            "motionRisk": "low",
+            "compatible": true,
+            "eligible": true,
+            "score": 3,
+            "kind": "reviewed-blueprint-adapter",
+            "runtime": "0.8.33",
+            "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+          },
+          {
+            "id": "comparison-split",
+            "tags": [
+              "compare",
+              "detail",
+              "image",
+              "比较",
+              "细节",
+              "双栏"
+            ],
+            "inputs": [
+              "visual-pair"
+            ],
+            "files": [
+              "skills/hyperframes-animation/blueprints/comparison-split.md",
+              "skills/hyperframes-animation/rules/split-tilt-cards.md",
+              "registry/components/comparison-split/registry-item.json",
+              "registry/components/comparison-split/comparison-split.html"
+            ],
+            "requirements": {
+              "minMedia": 2,
+              "mediaKinds": [],
+              "maxTextCharacters": 80
+            },
+            "motionRisk": "low",
+            "compatible": true,
+            "eligible": false,
+            "score": 2,
+            "kind": "reviewed-blueprint-adapter",
+            "runtime": "0.8.33",
+            "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+          },
+          {
+            "id": "video-text-pivot",
+            "tags": [
+              "video",
+              "action",
+              "操作",
+              "实拍",
+              "讲解"
+            ],
+            "inputs": [
+              "video"
+            ],
+            "files": [
+              "skills/hyperframes-animation/blueprints/video-text-pivot.md",
+              "skills/hyperframes-animation/rules/gsap-effects.md"
+            ],
+            "requirements": {
+              "minMedia": 1,
+              "mediaKinds": [
+                "video"
+              ],
+              "maxTextCharacters": 80
+            },
+            "motionRisk": "occluding",
+            "compatible": true,
+            "eligible": true,
+            "score": 2,
+            "kind": "reviewed-blueprint-adapter",
+            "runtime": "0.8.33",
+            "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+          },
+          {
+            "id": "kinetic-type-beats",
+            "tags": [
+              "text",
+              "caption",
+              "文字",
+              "字幕",
+              "强调"
+            ],
+            "inputs": [
+              "text"
+            ],
+            "files": [
+              "skills/hyperframes-animation/blueprints/kinetic-type-beats.md",
+              "skills/hyperframes-animation/rules/discrete-text-sequence.md"
+            ],
+            "requirements": {
+              "minMedia": 0,
+              "mediaKinds": [],
+              "maxTextCharacters": 80
+            },
+            "motionRisk": "occluding",
+            "compatible": true,
+            "eligible": true,
+            "score": 2,
+            "kind": "reviewed-blueprint-adapter",
+            "runtime": "0.8.33",
+            "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+          },
+          {
+            "id": "caption-editorial-emphasis",
+            "tags": [
+              "caption",
+              "speech",
+              "字幕",
+              "口播",
+              "强调"
+            ],
+            "inputs": [
+              "text"
+            ],
+            "description": "Editable editorial text emphasis; align spoken captions to measured transcript timestamps, never invented timing.",
+            "files": [
+              "registry/components/caption-editorial-emphasis/registry-item.json",
+              "registry/components/caption-editorial-emphasis/caption-editorial-emphasis.html"
+            ],
+            "requirements": {
+              "minMedia": 0,
+              "mediaKinds": [],
+              "maxTextCharacters": 80
+            },
+            "motionRisk": "low",
+            "compatible": true,
+            "eligible": true,
+            "score": 1,
+            "kind": "reviewed-blueprint-adapter",
+            "runtime": "0.8.33",
+            "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+          },
+          {
+            "id": "titlecard-reveal",
+            "tags": [
+              "title",
+              "brand",
+              "text",
+              "收尾",
+              "标题"
+            ],
+            "inputs": [],
+            "files": [
+              "skills/hyperframes-animation/blueprints/titlecard-reveal.md",
+              "skills/hyperframes-animation/rules/discrete-text-sequence.md"
+            ],
+            "requirements": {
+              "minMedia": 0,
+              "mediaKinds": [],
+              "maxTextCharacters": 80
+            },
+            "motionRisk": "low",
+            "compatible": true,
+            "eligible": true,
+            "score": 1,
+            "kind": "reviewed-blueprint-adapter",
+            "runtime": "0.8.33",
+            "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+          }
+        ],
+        "originalRequest": "【resume，不 create 重跑、不新建工程、不重传素材】继续同一项目 c6cd5bb8-f3b8-4a49-a03e-6b45e16726b5。当前真实状态：job-bbdff9a2-5af9-4d08-8b69-eb2c575f8e51 为 recoverable、resumable=true、stage「安排整片内容与节奏」、error=OPENCLAW_STAGE_TIMEOUT；Stage Provider 的 tool_choice 受控重试已生效。请直接从该 checkpoint resume，保留已补齐的 scene-01 HyperFrames 绑定与压缩旁白，继续 timing 节奏编排 → 同步中文字幕 → 9 镜头 HyperFrames 视觉编排 → 源声轨+旁白 ducking → 渲染，输出真实新 revisionId 与 MP4 成品及 quality_report。\n\n【保留：scene-01 HyperFrames 执行绑定（可执行、seek-safe、确定性）】sceneId: scene-01（Hook 纸盒开箱，源 1.4–6.4s，落到时间轴 0–5s）；block: hyperframes@0.8.33 / hf.clip.source，executable:true；params: assetId asset-e8779cc0-0dba-4f37-a3a3-218c25440e01、sourceIn 1.4、sourceOut 6.4、outWidth 1080、outHeight 1920、fit cover、center crop、speed 1.0（不加速）、safeArea top12/bottom18、标题文字块「掌机开箱：便携游戏体验」；seekSafe:true、deterministic:true、timeBase{startAt:0,durationSeconds:5}、bindAt timeline.segment[0]。其余 8 镜同构绑定（各对应源区间、9:16 裁切、seek-safe）。\n\n【沿用 9 镜头（源区间互不重复）】1 Hook 纸盒开箱 1.4–6.4s；2 可见特点1 外包装盒 29.3–34.3s（局部放大）；3 可见特点2 黑色拉链收纳包 34.9–39.9s（局部放大）；4 可见特点3 掌机机身与屏幕 46.1–51.1s（局部放大）；5 真实操作 取物 40.5–45.5s；6 局部放大特写 机身 62.9–67.9s；7 步骤引导第1步 掀盒盖 7.0–12.0s；8 第2步 取内盒 12.6–17.6s；9 第3步 取说明卡 18.2–23.2s。\n\n【旁白（已压缩，逐镜对齐约 45s，禁止加速，仅描述真实可见内容）】1)“掌机开箱，便携游戏体验。”2)“白色包装盒，印有掌机线稿和标语。”3)“附黑色拉链收纳包，包面有圆形标志。”4)“黑色掌机本体，屏幕和两侧按键清晰可见。”5)“打开盒子，从里面取出物件。”6)“放大看机身和屏幕的细节。”7)“第一步，掀开盒盖。”8)“第二步，取出白色内盒。”9)“第三步，取出说明书和内衬。”\n\n【同步中文字幕】严格对齐上述旁白时间轴。【ducking 依据】源素材自带 opus 音轨与旁白时间重叠、互相掩蔽，构成真实画声冲突；旁白段压低源声轨、旁白间隙恢复。\n\n【BGM 可审计降级（已明确授权，勿再停 NEEDS_INPUT）】本工程无已授权 BGM/音乐资产，不隐式生成/检索/合成音乐。音频轨 = 源素材原声轨 + 中文旁白；旁白段 ducking、间隙恢复。在 quality_report 记录「BGM 缺口（科技感 BGM 未满足，缺授权音源）」。\n\n【其余不变】竖屏 1080×1920、总时长约 45 秒、9 镜头（≥5 段互不重复源区间）、Hook＋3 个可见特点（各配局部放大）＋真实操作＋局部放大特写＋步骤引导、标题「掌机开箱：便携游戏体验」；不编造任何参数/功能/卖点；保留可编辑工程（项目与修订）并输出新的 MP4 成品。",
+        "assetKinds": {
+          "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01": "video"
+        }
+      }
+    },
+    "narration": {
+      "idempotencyKey": "9bc9dff0b87983f04d00059535bf49e5262a40f421beeb5d6149a4f7be913fd0",
+      "status": "completed",
+      "result": {
+        "enabled": true,
+        "asset": {
+          "id": "voice-8f2f6fed21e9229c",
+          "kind": "audio",
+          "generatedVoice": true,
+          "compiledRef": "assets/voice-8f2f6fed21e9229c.wav",
+          "normalizedRef": "assets/voice-8f2f6fed21e9229c.wav",
+          "sha256": "2b0dd2d64f22103c6bb03b048c9dd5a495e7e6a7c40b784c8770baf552f3413c",
+          "mediaMetadata": {
+            "kind": "audio",
+            "duration": 27.307479,
+            "frames": 819,
+            "width": 0,
+            "height": 0,
+            "rotation": 0,
+            "hasAudio": true,
+            "videoCodec": null,
+            "pixelFormat": null,
+            "audioCodec": "pcm_s16le",
+            "sourceFps": null,
+            "nominalFps": null,
+            "size": 5243114
+          },
+          "status": "ready",
+          "volume": 1,
+          "rights": {
+            "status": "generated",
+            "engine": "minimax",
+            "review": "separate-publisher-review"
+          },
+          "audioRole": "narration",
+          "speechRequest": {
+            "text": "掌机开箱，便携游戏体验。\n白色包装盒，印有掌机线稿和标语。\n附黑色拉链收纳包，包面有圆形标志。\n黑色掌机本体，屏幕和两侧按键清晰可见。\n打开盒子，从里面取出物件。\n放大看机身和屏幕的细节。\n第一步，掀开盒盖。\n第二步，取出白色内盒。\n第三步，取出说明书和内衬。",
+            "voice": "Chinese (Mandarin)_Gentle_Senior",
+            "rate": 1
+          },
+          "providerTranscript": {
+            "model": "small",
+            "engine": "faster-whisper",
+            "language": "zh",
+            "text": "掌机开箱,便携游戏体验白色包装盒,亦有掌机线稿和标语附黑色拉链收纳包,包面有圆形标志黑色掌机本体,屏幕和两侧按键清晰可见打开盒子,从里面取出物件放大看机身和屏幕的细节第一步,先开盒盖第二步,取出白色内盒第三步,取出说明书和内衬",
+            "words": [
+              {
+                "text": "掌",
+                "start": 0,
+                "end": 0.3
+              },
+              {
+                "text": "机",
+                "start": 0.3,
+                "end": 0.46
+              },
+              {
+                "text": "开",
+                "start": 0.46,
+                "end": 0.64
+              },
+              {
+                "text": "箱,",
+                "start": 0.64,
+                "end": 0.92
+              },
+              {
+                "text": "便",
+                "start": 1.32,
+                "end": 1.4
+              },
+              {
+                "text": "携",
+                "start": 1.4,
+                "end": 1.64
+              },
+              {
+                "text": "游",
+                "start": 1.64,
+                "end": 1.84
+              },
+              {
+                "text": "戏",
+                "start": 1.84,
+                "end": 1.98
+              },
+              {
+                "text": "体",
+                "start": 1.98,
+                "end": 2.16
+              },
+              {
+                "text": "验",
+                "start": 2.16,
+                "end": 2.38
+              },
+              {
+                "text": "白",
+                "start": 2.38,
+                "end": 3.04
+              },
+              {
+                "text": "色",
+                "start": 3.04,
+                "end": 3.18
+              },
+              {
+                "text": "包",
+                "start": 3.18,
+                "end": 3.34
+              },
+              {
+                "text": "装",
+                "start": 3.34,
+                "end": 3.48
+              },
+              {
+                "text": "盒,",
+                "start": 3.48,
+                "end": 3.82
+              },
+              {
+                "text": "亦",
+                "start": 4.24,
+                "end": 4.3
+              },
+              {
+                "text": "有",
+                "start": 4.3,
+                "end": 4.54
+              },
+              {
+                "text": "掌",
+                "start": 4.54,
+                "end": 4.8
+              },
+              {
+                "text": "机",
+                "start": 4.8,
+                "end": 5
+              },
+              {
+                "text": "线",
+                "start": 5,
+                "end": 5.2
+              },
+              {
+                "text": "稿",
+                "start": 5.2,
+                "end": 5.4
+              },
+              {
+                "text": "和",
+                "start": 5.4,
+                "end": 5.62
+              },
+              {
+                "text": "标",
+                "start": 5.62,
+                "end": 5.8
+              },
+              {
+                "text": "语",
+                "start": 5.8,
+                "end": 6.2
+              },
+              {
+                "text": "附",
+                "start": 6.2,
+                "end": 6.72
+              },
+              {
+                "text": "黑",
+                "start": 6.72,
+                "end": 7.08
+              },
+              {
+                "text": "色",
+                "start": 7.08,
+                "end": 7.26
+              },
+              {
+                "text": "拉",
+                "start": 7.26,
+                "end": 7.44
+              },
+              {
+                "text": "链",
+                "start": 7.44,
+                "end": 7.6
+              },
+              {
+                "text": "收",
+                "start": 7.6,
+                "end": 7.8
+              },
+              {
+                "text": "纳",
+                "start": 7.8,
+                "end": 7.96
+              },
+              {
+                "text": "包,",
+                "start": 7.96,
+                "end": 8.2
+              },
+              {
+                "text": "包",
+                "start": 8.66,
+                "end": 8.86
+              },
+              {
+                "text": "面",
+                "start": 8.86,
+                "end": 9.08
+              },
+              {
+                "text": "有",
+                "start": 9.08,
+                "end": 9.36
+              },
+              {
+                "text": "圆",
+                "start": 9.36,
+                "end": 9.54
+              },
+              {
+                "text": "形",
+                "start": 9.54,
+                "end": 9.72
+              },
+              {
+                "text": "标",
+                "start": 9.72,
+                "end": 9.92
+              },
+              {
+                "text": "志",
+                "start": 9.92,
+                "end": 10.18
+              },
+              {
+                "text": "黑",
+                "start": 10.18,
+                "end": 10.82
+              },
+              {
+                "text": "色",
+                "start": 10.82,
+                "end": 11
+              },
+              {
+                "text": "掌",
+                "start": 11,
+                "end": 11.2
+              },
+              {
+                "text": "机",
+                "start": 11.2,
+                "end": 11.34
+              },
+              {
+                "text": "本",
+                "start": 11.34,
+                "end": 11.52
+              },
+              {
+                "text": "体,",
+                "start": 11.52,
+                "end": 11.8
+              },
+              {
+                "text": "屏",
+                "start": 12.28,
+                "end": 12.44
+              },
+              {
+                "text": "幕",
+                "start": 12.44,
+                "end": 12.72
+              },
+              {
+                "text": "和",
+                "start": 12.72,
+                "end": 12.88
+              },
+              {
+                "text": "两",
+                "start": 12.88,
+                "end": 13.06
+              },
+              {
+                "text": "侧",
+                "start": 13.06,
+                "end": 13.24
+              },
+              {
+                "text": "按",
+                "start": 13.24,
+                "end": 13.44
+              },
+              {
+                "text": "键",
+                "start": 13.44,
+                "end": 13.62
+              },
+              {
+                "text": "清",
+                "start": 13.62,
+                "end": 13.92
+              },
+              {
+                "text": "晰",
+                "start": 13.92,
+                "end": 14.08
+              },
+              {
+                "text": "可",
+                "start": 14.08,
+                "end": 14.28
+              },
+              {
+                "text": "见",
+                "start": 14.28,
+                "end": 14.54
+              },
+              {
+                "text": "打",
+                "start": 14.54,
+                "end": 15.12
+              },
+              {
+                "text": "开",
+                "start": 15.12,
+                "end": 15.3
+              },
+              {
+                "text": "盒",
+                "start": 15.3,
+                "end": 15.5
+              },
+              {
+                "text": "子,",
+                "start": 15.5,
+                "end": 15.72
+              },
+              {
+                "text": "从",
+                "start": 16.1,
+                "end": 16.18
+              },
+              {
+                "text": "里",
+                "start": 16.18,
+                "end": 16.36
+              },
+              {
+                "text": "面",
+                "start": 16.36,
+                "end": 16.54
+              },
+              {
+                "text": "取",
+                "start": 16.54,
+                "end": 16.68
+              },
+              {
+                "text": "出",
+                "start": 16.68,
+                "end": 16.84
+              },
+              {
+                "text": "物",
+                "start": 16.84,
+                "end": 17.02
+              },
+              {
+                "text": "件",
+                "start": 17.02,
+                "end": 17.2
+              },
+              {
+                "text": "放",
+                "start": 17.2,
+                "end": 17.9
+              },
+              {
+                "text": "大",
+                "start": 17.9,
+                "end": 18.1
+              },
+              {
+                "text": "看",
+                "start": 18.1,
+                "end": 18.28
+              },
+              {
+                "text": "机",
+                "start": 18.28,
+                "end": 18.5
+              },
+              {
+                "text": "身",
+                "start": 18.5,
+                "end": 18.72
+              },
+              {
+                "text": "和",
+                "start": 18.72,
+                "end": 18.92
+              },
+              {
+                "text": "屏",
+                "start": 18.92,
+                "end": 19.08
+              },
+              {
+                "text": "幕",
+                "start": 19.08,
+                "end": 19.22
+              },
+              {
+                "text": "的",
+                "start": 19.22,
+                "end": 19.32
+              },
+              {
+                "text": "细",
+                "start": 19.32,
+                "end": 19.52
+              },
+              {
+                "text": "节",
+                "start": 19.52,
+                "end": 19.78
+              },
+              {
+                "text": "第一",
+                "start": 19.78,
+                "end": 20.54
+              },
+              {
+                "text": "步,",
+                "start": 20.54,
+                "end": 20.8
+              },
+              {
+                "text": "先",
+                "start": 21.16,
+                "end": 21.32
+              },
+              {
+                "text": "开",
+                "start": 21.32,
+                "end": 21.52
+              },
+              {
+                "text": "盒",
+                "start": 21.52,
+                "end": 21.68
+              },
+              {
+                "text": "盖",
+                "start": 21.68,
+                "end": 21.88
+              },
+              {
+                "text": "第二",
+                "start": 21.88,
+                "end": 22.56
+              },
+              {
+                "text": "步,",
+                "start": 22.56,
+                "end": 22.86
+              },
+              {
+                "text": "取",
+                "start": 23.08,
+                "end": 23.16
+              },
+              {
+                "text": "出",
+                "start": 23.16,
+                "end": 23.32
+              },
+              {
+                "text": "白",
+                "start": 23.32,
+                "end": 23.46
+              },
+              {
+                "text": "色",
+                "start": 23.46,
+                "end": 23.64
+              },
+              {
+                "text": "内",
+                "start": 23.64,
+                "end": 23.8
+              },
+              {
+                "text": "盒",
+                "start": 23.8,
+                "end": 24.06
+              },
+              {
+                "text": "第三",
+                "start": 24.48,
+                "end": 24.88
+              },
+              {
+                "text": "步,",
+                "start": 24.88,
+                "end": 25.28
+              },
+              {
+                "text": "取",
+                "start": 25.58,
+                "end": 25.68
+              },
+              {
+                "text": "出",
+                "start": 25.68,
+                "end": 25.88
+              },
+              {
+                "text": "说",
+                "start": 25.88,
+                "end": 26.04
+              },
+              {
+                "text": "明",
+                "start": 26.04,
+                "end": 26.2
+              },
+              {
+                "text": "书",
+                "start": 26.2,
+                "end": 26.42
+              },
+              {
+                "text": "和",
+                "start": 26.42,
+                "end": 26.58
+              },
+              {
+                "text": "内",
+                "start": 26.58,
+                "end": 26.76
+              },
+              {
+                "text": "衬",
+                "start": 26.76,
+                "end": 26.94
+              }
+            ],
+            "segments": [
+              {
+                "start": 0,
+                "end": 2.38,
+                "text": "掌机开箱,便携游戏体验"
+              },
+              {
+                "start": 2.38,
+                "end": 6.2,
+                "text": "白色包装盒,亦有掌机线稿和标语"
+              },
+              {
+                "start": 6.2,
+                "end": 10.18,
+                "text": "附黑色拉链收纳包,包面有圆形标志"
+              },
+              {
+                "start": 10.18,
+                "end": 14.54,
+                "text": "黑色掌机本体,屏幕和两侧按键清晰可见"
+              },
+              {
+                "start": 14.54,
+                "end": 17.2,
+                "text": "打开盒子,从里面取出物件"
+              },
+              {
+                "start": 17.2,
+                "end": 19.78,
+                "text": "放大看机身和屏幕的细节"
+              },
+              {
+                "start": 19.78,
+                "end": 21.88,
+                "text": "第一步,先开盒盖"
+              },
+              {
+                "start": 21.88,
+                "end": 24.06,
+                "text": "第二步,取出白色内盒"
+              },
+              {
+                "start": 24.48,
+                "end": 26.94,
+                "text": "第三步,取出说明书和内衬"
+              }
+            ],
+            "reviewRequired": true,
+            "metrics": {
+              "asrMs": 6690,
+              "queueMs": 1,
+              "workerMs": 6737,
+              "cacheHit": false
+            },
+            "status": "completed",
+            "sourceSha256": "2b0dd2d64f22103c6bb03b048c9dd5a495e7e6a7c40b784c8770baf552f3413c",
+            "source": "local-asr"
+          }
+        },
+        "script": {
+          "text": "掌机开箱，便携游戏体验。\n白色包装盒，印有掌机线稿和标语。\n附黑色拉链收纳包，包面有圆形标志。\n黑色掌机本体，屏幕和两侧按键清晰可见。\n打开盒子，从里面取出物件。\n放大看机身和屏幕的细节。\n第一步，掀开盒盖。\n第二步，取出白色内盒。\n第三步，取出说明书和内衬。",
+          "voice": "Chinese (Mandarin)_Gentle_Senior",
+          "basis": "在给定 voiceCandidates 中，Chinese (Mandarin)_Gentle_Senior（温柔学姐）得分最高（13），且与 AudioRequirement 匹配度最好：gender 为 neutral，与需求 gender=neutral 精确吻合（其余 top 候选 Gentle_Youth/Sweet_Lady/Warm_Girl 均为 male/female，性别即不匹配）；tone=warm、speed=medium、commercial_style 含 tutorial，三项与需求完全一致；recommended_scene 覆盖 product_tutorial，正对 product_demo 的教程性质；platform 含 general 常用投放端。已知取舍：其 emotion=neutral、age=young，与需求 emotion=trustworthy、age=adult 不完全对齐；候选中 emotion 最贴近 trustworthy 的 Chinese (Mandarin)_Reliable_Executive 为 male、tone=professional，性别与温暖调性均不符且得分仅 11，故不优先。综合性别、语调、语速与教程风格，首选温柔学姐用于本次 9 镜中性温和的中文教程口播，medium 语速适配约 45s 时长、不加速。"
+        },
+        "transcript": {
+          "model": "small",
+          "engine": "faster-whisper",
+          "language": "zh",
+          "text": "掌机开箱,便携游戏体验白色包装盒,亦有掌机线稿和标语附黑色拉链收纳包,包面有圆形标志黑色掌机本体,屏幕和两侧按键清晰可见打开盒子,从里面取出物件放大看机身和屏幕的细节第一步,先开盒盖第二步,取出白色内盒第三步,取出说明书和内衬",
+          "words": [
+            {
+              "text": "掌",
+              "start": 0,
+              "end": 0.3
+            },
+            {
+              "text": "机",
+              "start": 0.3,
+              "end": 0.46
+            },
+            {
+              "text": "开",
+              "start": 0.46,
+              "end": 0.64
+            },
+            {
+              "text": "箱,",
+              "start": 0.64,
+              "end": 0.92
+            },
+            {
+              "text": "便",
+              "start": 1.32,
+              "end": 1.4
+            },
+            {
+              "text": "携",
+              "start": 1.4,
+              "end": 1.64
+            },
+            {
+              "text": "游",
+              "start": 1.64,
+              "end": 1.84
+            },
+            {
+              "text": "戏",
+              "start": 1.84,
+              "end": 1.98
+            },
+            {
+              "text": "体",
+              "start": 1.98,
+              "end": 2.16
+            },
+            {
+              "text": "验",
+              "start": 2.16,
+              "end": 2.38
+            },
+            {
+              "text": "白",
+              "start": 2.38,
+              "end": 3.04
+            },
+            {
+              "text": "色",
+              "start": 3.04,
+              "end": 3.18
+            },
+            {
+              "text": "包",
+              "start": 3.18,
+              "end": 3.34
+            },
+            {
+              "text": "装",
+              "start": 3.34,
+              "end": 3.48
+            },
+            {
+              "text": "盒,",
+              "start": 3.48,
+              "end": 3.82
+            },
+            {
+              "text": "亦",
+              "start": 4.24,
+              "end": 4.3
+            },
+            {
+              "text": "有",
+              "start": 4.3,
+              "end": 4.54
+            },
+            {
+              "text": "掌",
+              "start": 4.54,
+              "end": 4.8
+            },
+            {
+              "text": "机",
+              "start": 4.8,
+              "end": 5
+            },
+            {
+              "text": "线",
+              "start": 5,
+              "end": 5.2
+            },
+            {
+              "text": "稿",
+              "start": 5.2,
+              "end": 5.4
+            },
+            {
+              "text": "和",
+              "start": 5.4,
+              "end": 5.62
+            },
+            {
+              "text": "标",
+              "start": 5.62,
+              "end": 5.8
+            },
+            {
+              "text": "语",
+              "start": 5.8,
+              "end": 6.2
+            },
+            {
+              "text": "附",
+              "start": 6.2,
+              "end": 6.72
+            },
+            {
+              "text": "黑",
+              "start": 6.72,
+              "end": 7.08
+            },
+            {
+              "text": "色",
+              "start": 7.08,
+              "end": 7.26
+            },
+            {
+              "text": "拉",
+              "start": 7.26,
+              "end": 7.44
+            },
+            {
+              "text": "链",
+              "start": 7.44,
+              "end": 7.6
+            },
+            {
+              "text": "收",
+              "start": 7.6,
+              "end": 7.8
+            },
+            {
+              "text": "纳",
+              "start": 7.8,
+              "end": 7.96
+            },
+            {
+              "text": "包,",
+              "start": 7.96,
+              "end": 8.2
+            },
+            {
+              "text": "包",
+              "start": 8.66,
+              "end": 8.86
+            },
+            {
+              "text": "面",
+              "start": 8.86,
+              "end": 9.08
+            },
+            {
+              "text": "有",
+              "start": 9.08,
+              "end": 9.36
+            },
+            {
+              "text": "圆",
+              "start": 9.36,
+              "end": 9.54
+            },
+            {
+              "text": "形",
+              "start": 9.54,
+              "end": 9.72
+            },
+            {
+              "text": "标",
+              "start": 9.72,
+              "end": 9.92
+            },
+            {
+              "text": "志",
+              "start": 9.92,
+              "end": 10.18
+            },
+            {
+              "text": "黑",
+              "start": 10.18,
+              "end": 10.82
+            },
+            {
+              "text": "色",
+              "start": 10.82,
+              "end": 11
+            },
+            {
+              "text": "掌",
+              "start": 11,
+              "end": 11.2
+            },
+            {
+              "text": "机",
+              "start": 11.2,
+              "end": 11.34
+            },
+            {
+              "text": "本",
+              "start": 11.34,
+              "end": 11.52
+            },
+            {
+              "text": "体,",
+              "start": 11.52,
+              "end": 11.8
+            },
+            {
+              "text": "屏",
+              "start": 12.28,
+              "end": 12.44
+            },
+            {
+              "text": "幕",
+              "start": 12.44,
+              "end": 12.72
+            },
+            {
+              "text": "和",
+              "start": 12.72,
+              "end": 12.88
+            },
+            {
+              "text": "两",
+              "start": 12.88,
+              "end": 13.06
+            },
+            {
+              "text": "侧",
+              "start": 13.06,
+              "end": 13.24
+            },
+            {
+              "text": "按",
+              "start": 13.24,
+              "end": 13.44
+            },
+            {
+              "text": "键",
+              "start": 13.44,
+              "end": 13.62
+            },
+            {
+              "text": "清",
+              "start": 13.62,
+              "end": 13.92
+            },
+            {
+              "text": "晰",
+              "start": 13.92,
+              "end": 14.08
+            },
+            {
+              "text": "可",
+              "start": 14.08,
+              "end": 14.28
+            },
+            {
+              "text": "见",
+              "start": 14.28,
+              "end": 14.54
+            },
+            {
+              "text": "打",
+              "start": 14.54,
+              "end": 15.12
+            },
+            {
+              "text": "开",
+              "start": 15.12,
+              "end": 15.3
+            },
+            {
+              "text": "盒",
+              "start": 15.3,
+              "end": 15.5
+            },
+            {
+              "text": "子,",
+              "start": 15.5,
+              "end": 15.72
+            },
+            {
+              "text": "从",
+              "start": 16.1,
+              "end": 16.18
+            },
+            {
+              "text": "里",
+              "start": 16.18,
+              "end": 16.36
+            },
+            {
+              "text": "面",
+              "start": 16.36,
+              "end": 16.54
+            },
+            {
+              "text": "取",
+              "start": 16.54,
+              "end": 16.68
+            },
+            {
+              "text": "出",
+              "start": 16.68,
+              "end": 16.84
+            },
+            {
+              "text": "物",
+              "start": 16.84,
+              "end": 17.02
+            },
+            {
+              "text": "件",
+              "start": 17.02,
+              "end": 17.2
+            },
+            {
+              "text": "放",
+              "start": 17.2,
+              "end": 17.9
+            },
+            {
+              "text": "大",
+              "start": 17.9,
+              "end": 18.1
+            },
+            {
+              "text": "看",
+              "start": 18.1,
+              "end": 18.28
+            },
+            {
+              "text": "机",
+              "start": 18.28,
+              "end": 18.5
+            },
+            {
+              "text": "身",
+              "start": 18.5,
+              "end": 18.72
+            },
+            {
+              "text": "和",
+              "start": 18.72,
+              "end": 18.92
+            },
+            {
+              "text": "屏",
+              "start": 18.92,
+              "end": 19.08
+            },
+            {
+              "text": "幕",
+              "start": 19.08,
+              "end": 19.22
+            },
+            {
+              "text": "的",
+              "start": 19.22,
+              "end": 19.32
+            },
+            {
+              "text": "细",
+              "start": 19.32,
+              "end": 19.52
+            },
+            {
+              "text": "节",
+              "start": 19.52,
+              "end": 19.78
+            },
+            {
+              "text": "第一",
+              "start": 19.78,
+              "end": 20.54
+            },
+            {
+              "text": "步,",
+              "start": 20.54,
+              "end": 20.8
+            },
+            {
+              "text": "先",
+              "start": 21.16,
+              "end": 21.32
+            },
+            {
+              "text": "开",
+              "start": 21.32,
+              "end": 21.52
+            },
+            {
+              "text": "盒",
+              "start": 21.52,
+              "end": 21.68
+            },
+            {
+              "text": "盖",
+              "start": 21.68,
+              "end": 21.88
+            },
+            {
+              "text": "第二",
+              "start": 21.88,
+              "end": 22.56
+            },
+            {
+              "text": "步,",
+              "start": 22.56,
+              "end": 22.86
+            },
+            {
+              "text": "取",
+              "start": 23.08,
+              "end": 23.16
+            },
+            {
+              "text": "出",
+              "start": 23.16,
+              "end": 23.32
+            },
+            {
+              "text": "白",
+              "start": 23.32,
+              "end": 23.46
+            },
+            {
+              "text": "色",
+              "start": 23.46,
+              "end": 23.64
+            },
+            {
+              "text": "内",
+              "start": 23.64,
+              "end": 23.8
+            },
+            {
+              "text": "盒",
+              "start": 23.8,
+              "end": 24.06
+            },
+            {
+              "text": "第三",
+              "start": 24.48,
+              "end": 24.88
+            },
+            {
+              "text": "步,",
+              "start": 24.88,
+              "end": 25.28
+            },
+            {
+              "text": "取",
+              "start": 25.58,
+              "end": 25.68
+            },
+            {
+              "text": "出",
+              "start": 25.68,
+              "end": 25.88
+            },
+            {
+              "text": "说",
+              "start": 25.88,
+              "end": 26.04
+            },
+            {
+              "text": "明",
+              "start": 26.04,
+              "end": 26.2
+            },
+            {
+              "text": "书",
+              "start": 26.2,
+              "end": 26.42
+            },
+            {
+              "text": "和",
+              "start": 26.42,
+              "end": 26.58
+            },
+            {
+              "text": "内",
+              "start": 26.58,
+              "end": 26.76
+            },
+            {
+              "text": "衬",
+              "start": 26.76,
+              "end": 26.94
+            }
+          ],
+          "segments": [
+            {
+              "start": 0,
+              "end": 2.38,
+              "text": "掌机开箱,便携游戏体验"
+            },
+            {
+              "start": 2.38,
+              "end": 6.2,
+              "text": "白色包装盒,亦有掌机线稿和标语"
+            },
+            {
+              "start": 6.2,
+              "end": 10.18,
+              "text": "附黑色拉链收纳包,包面有圆形标志"
+            },
+            {
+              "start": 10.18,
+              "end": 14.54,
+              "text": "黑色掌机本体,屏幕和两侧按键清晰可见"
+            },
+            {
+              "start": 14.54,
+              "end": 17.2,
+              "text": "打开盒子,从里面取出物件"
+            },
+            {
+              "start": 17.2,
+              "end": 19.78,
+              "text": "放大看机身和屏幕的细节"
+            },
+            {
+              "start": 19.78,
+              "end": 21.88,
+              "text": "第一步,先开盒盖"
+            },
+            {
+              "start": 21.88,
+              "end": 24.06,
+              "text": "第二步,取出白色内盒"
+            },
+            {
+              "start": 24.48,
+              "end": 26.94,
+              "text": "第三步,取出说明书和内衬"
+            }
+          ],
+          "reviewRequired": true,
+          "metrics": {
+            "asrMs": 6690,
+            "queueMs": 1,
+            "workerMs": 6737,
+            "cacheHit": false
+          },
+          "status": "completed"
+        },
+        "tool": "minimax.tts-and-local.transcribe",
+        "voice": "Chinese (Mandarin)_Gentle_Senior",
+        "rate": 1,
+        "measuredSeconds": 27.307479,
+        "metrics": {
+          "engine": "minimax",
+          "voice": "Chinese (Mandarin)_Gentle_Senior",
+          "rate": 1,
+          "cacheHit": true,
+          "operationId": "c78e5e7b-3045-42f2-a149-edbaf3b1c31d",
+          "provenance": "minimax-live"
+        }
+      }
+    },
+    "story": {
+      "idempotencyKey": "05f6af3fb7d2e829dfc919c5853499d30db3dba77f654ac3a483cb55ac3df3d5",
+      "status": "completed",
+      "result": {
+        "inspectActions": [],
+        "inspectRanges": [],
+        "blockingGaps": [],
+        "summary": "resume 承接同一项目 c6cd5bb8（checkpoint：stage 安排整片内容与节奏，OPENCLAW_STAGE_TIMEOUT）；不 create、不新建工程、不重传素材；沿用唯一素材 asset-e8779cc0-0dba-4f37-a3a3-218c25440e01 与既有旁白 voice-8f2f6fed21e9229c。修正上一轮退回项「video-text-pivot / subject-or-action-protection」：需保护主体与动作的关键镜头（特点1/2/3、真实操作、特写、步骤1/2/3）改用低遮挡 lt-mask-reveal；仅首镜 title-reveal 用标题位。总长 approximate，target 1350 帧@30fps（45s），允许 1283–1417；9 镜 ×5s、cut，总帧数=各幕之和=1350=target，实际 45.000s。源区间（互不重复）：1 Hook 1.4–6.4s；2 外包装盒 29.3–34.3s；3 收纳包 34.9–39.9s；4 机身与屏幕 46.1–51.1s；5 取物 40.5–45.5s；6 机身特写 62.9–67.9s；7 掀盒盖 7.0–12.0s；8 取内盒 12.6–17.6s；9 取说明卡 18.2–23.2s；逐镜 9:16 居中裁切、speed 1.0、seek-safe、deterministic。音频：旁白拆 9 项，源时间 0→27.307s 连续无重叠无遗漏，成片起点 0/5/10/15/20/25/30/35/40s，原速；源声轨 volume 1 整段保留，旁白段 ducking、间隙恢复。字幕对齐实测时间轴、避开上12%/下18%保护区。BGM 缺口按授权降级（源声轨＋旁白），记入 quality_report。限制：抽帧非逐帧（约0.7–1.8s/帧），入出点近似；镜头2/5/7/9 锁定区间与实测动作错位，按 resume 需求保留并在 cutBasis 标注；源创作者浮层按最大外扩避让；未试听源声（listening.available=false）。未提交 inspectActions/inspectRanges；旁白无容量冲突，narrationRevision 保留当前完整稿。",
+        "transition": "cut",
+        "design": {
+          "background": "#0B0E13",
+          "foreground": "#FFFFFF",
+          "panel": "#141A22",
+          "accent": "#2F7BFF",
+          "accentContrast": "#FFFFFF",
+          "fontFamily": "Microsoft YaHei",
+          "typeScale": {
+            "title": 68,
+            "body": 42,
+            "label": 32
+          },
+          "safeMarginPx": 72,
+          "labelStyle": "统一标签：半透明深色胶囊（#141A22、约90%不透明、圆角10px），左侧4px强调竖条 #2F7BFF，文字 #FFFFFF / Microsoft YaHei Medium / 32px，内边距12×22；只置下三分之一且不越过 safeArea（上12%/下18%）；标题68px仅首镜标题位。全片标签字体、形状、边距、层级一致。",
+          "description": "竖屏1080×1920教程包装：源画面全屏9:16居中裁切为底，顶部12%标题区仅首镜使用，底部18%用统一深色半透明胶囊标签承载可见特点/步骤说明；文字与源创作者浮层互不重叠。"
+        },
+        "audio": [
+          {
+            "assetId": "voice-8f2f6fed21e9229c",
+            "volume": 1,
+            "sourceStartSeconds": 0,
+            "startSeconds": 0,
+            "durationSeconds": 2.38
+          },
+          {
+            "assetId": "voice-8f2f6fed21e9229c",
+            "volume": 1,
+            "sourceStartSeconds": 2.38,
+            "startSeconds": 5,
+            "durationSeconds": 3.82
+          },
+          {
+            "assetId": "voice-8f2f6fed21e9229c",
+            "volume": 1,
+            "sourceStartSeconds": 6.2,
+            "startSeconds": 10,
+            "durationSeconds": 3.98
+          },
+          {
+            "assetId": "voice-8f2f6fed21e9229c",
+            "volume": 1,
+            "sourceStartSeconds": 10.18,
+            "startSeconds": 15,
+            "durationSeconds": 4.36
+          },
+          {
+            "assetId": "voice-8f2f6fed21e9229c",
+            "volume": 1,
+            "sourceStartSeconds": 14.54,
+            "startSeconds": 20,
+            "durationSeconds": 2.66
+          },
+          {
+            "assetId": "voice-8f2f6fed21e9229c",
+            "volume": 1,
+            "sourceStartSeconds": 17.2,
+            "startSeconds": 25,
+            "durationSeconds": 2.58
+          },
+          {
+            "assetId": "voice-8f2f6fed21e9229c",
+            "volume": 1,
+            "sourceStartSeconds": 19.78,
+            "startSeconds": 30,
+            "durationSeconds": 2.1
+          },
+          {
+            "assetId": "voice-8f2f6fed21e9229c",
+            "volume": 1,
+            "sourceStartSeconds": 21.88,
+            "startSeconds": 35,
+            "durationSeconds": 2.18
+          },
+          {
+            "assetId": "voice-8f2f6fed21e9229c",
+            "volume": 1,
+            "sourceStartSeconds": 24.06,
+            "startSeconds": 40,
+            "durationSeconds": 3.247479
+          },
+          {
+            "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+            "volume": 1,
+            "sourceStartSeconds": 0,
+            "startSeconds": 0,
+            "durationSeconds": 45
+          }
+        ],
+        "omitted": [],
+        "paragraphs": [
+          {
+            "id": "p1",
+            "purpose": "钩子/主题",
+            "information": "掌机开箱主题与标题「掌机开箱：便携游戏体验」"
+          },
+          {
+            "id": "p2",
+            "purpose": "可见特点1",
+            "information": "白色外包装盒（掌机线稿与标语）"
+          },
+          {
+            "id": "p3",
+            "purpose": "可见特点2",
+            "information": "黑色拉链收纳包及包面圆形标志"
+          },
+          {
+            "id": "p4",
+            "purpose": "可见特点3",
+            "information": "掌机机身与屏幕、两侧按键"
+          },
+          {
+            "id": "p5",
+            "purpose": "真实操作",
+            "information": "从盒内取出物件的过程"
+          },
+          {
+            "id": "p6",
+            "purpose": "局部放大特写",
+            "information": "机身与屏幕细节"
+          },
+          {
+            "id": "p7",
+            "purpose": "步骤引导第1步",
+            "information": "掀开盒盖"
+          },
+          {
+            "id": "p8",
+            "purpose": "步骤引导第2步",
+            "information": "取出白色内盒"
+          },
+          {
+            "id": "p9",
+            "purpose": "步骤引导第3步",
+            "information": "取出说明书和内衬"
+          }
+        ],
+        "narrationRevision": null,
+        "scenes": [
+          {
+            "purpose": "Hook：真实开箱动作点题并建立观看动机",
+            "effect": "title-reveal",
+            "weight": 1,
+            "durationSeconds": 5,
+            "reason": "以真实开箱动作充当钩子，避免空镜与虚构卖点；标题点题，动作保持可见。",
+            "media": [
+              {
+                "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+                "sourceStartSeconds": 1.4,
+                "playbackRate": 1,
+                "fit": "cover"
+              }
+            ],
+            "text": [
+              {
+                "role": "title",
+                "text": "掌机开箱：便携游戏体验",
+                "factRefs": []
+              }
+            ],
+            "paragraphId": "p1",
+            "newInformation": "确立掌机开箱主题与标题定位。",
+            "resourceId": "titlecard-reveal",
+            "visualDirection": "画面辅文字主：真实开箱全屏为底，标题置上安全区不遮挡箱体；开场吸引点=纸盒闭合到掀开的真实动作；克制=不出现价格参数卖点。",
+            "layoutVariant": "auto",
+            "editorialDecision": {
+              "placementReason": "第1镜，全片开头；用真实开箱动作在前3秒建立兴趣并点题。",
+              "cutBasis": "需求锁定1.4–6.4s；抽帧（detail-contact-0，约0.7s/帧）实测纸盒闭合→双手推动转动→约5.44s扶盖、6.16s掀起；入出点为近似、非逐帧确认。",
+              "subjectProtection": "9:16居中裁切（safeCrop x0.3418–0.6582）保持纸盒居中；标题置上安全区不覆盖箱体；源创作者浮层按最大外扩避让。",
+              "audioRelationship": "保留源声轨；旁白第1句置于0s起、长2.38s；未试听源声（listening.available=false），不虚构衔接。",
+              "transitionPurpose": "首镜硬切入。"
+            },
+            "productionMethod": "parameterized",
+            "id": "scene-01"
+          },
+          {
+            "purpose": "可见特点1：展示白色外包装盒（含掌机线稿与标语），局部放大",
+            "effect": "feature-callout",
+            "weight": 1,
+            "durationSeconds": 5,
+            "reason": "承接Hook后先给最直观的包装可见特征；用低遮挡下三分之一标签保持盒面可见。",
+            "media": [
+              {
+                "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+                "sourceStartSeconds": 29.3,
+                "playbackRate": 1,
+                "fit": "cover"
+              }
+            ],
+            "text": [
+              {
+                "role": "feature",
+                "text": "白色包装盒",
+                "factRefs": []
+              }
+            ],
+            "paragraphId": "p2",
+            "newInformation": "看到外包装盒正面（掌机线稿与标语）这一可见实物特征。",
+            "resourceId": "lt-mask-reveal",
+            "visualDirection": "画面主文字辅：盒体全屏并局部放大盒面；标签仅作下三分之一标注不接管全屏；克制=不解读参数卖点。",
+            "layoutVariant": "auto",
+            "editorialDecision": {
+              "placementReason": "第2镜，承接Hook后先给最直观的外包装盒可见特征。",
+              "cutBasis": "需求锁定29.3–34.3s；实测白色零售盒展示约27.5–30.3s、约32.1s起为黑色收纳包——区间与实测动作部分错位，前段覆盖盒体，按 resume 需求保留并标注不匹配，入出点近似。",
+              "subjectProtection": "盒体居中放大；标签置下三分之一不覆盖盒面文字；改用低遮挡 lt-mask-reveal 保证主体与动作始终可见。",
+              "audioRelationship": "旁白第2句5s起、长3.82s，与画面同步；未试听源声，不虚构衔接。",
+              "transitionPurpose": "与上镜同源连续动作，硬切。"
+            },
+            "productionMethod": "parameterized",
+            "id": "scene-02"
+          },
+          {
+            "purpose": "可见特点2：黑色拉链收纳包，局部放大",
+            "effect": "detail-inset",
+            "weight": 1,
+            "durationSeconds": 5,
+            "reason": "展示第二个可见配件特征，保持真实证据与动作可见。",
+            "media": [
+              {
+                "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+                "sourceStartSeconds": 34.9,
+                "playbackRate": 1,
+                "fit": "cover"
+              }
+            ],
+            "text": [
+              {
+                "role": "feature",
+                "text": "黑色拉链收纳包",
+                "factRefs": []
+              }
+            ],
+            "paragraphId": "p3",
+            "newInformation": "看到黑色拉链收纳包及其包面圆形标志。",
+            "resourceId": "lt-mask-reveal",
+            "visualDirection": "收纳包居中放大、圆形标志可见；标签下三分之一；克制=不夸大收纳性能，不做全屏文字接管。",
+            "layoutVariant": "auto",
+            "editorialDecision": {
+              "placementReason": "第3镜，展示第二个可见配件特征。",
+              "cutBasis": "需求锁定34.9–39.9s；实测收纳包手持展示约32.1–39.4s，与本区间大体重合，入出点近似（非逐帧）。",
+              "subjectProtection": "收纳包居中，标签置下三分之一，不遮挡包面圆形标志与手持动作。",
+              "audioRelationship": "旁白第3句10s起、长3.98s；未试听源声，不虚构衔接。",
+              "transitionPurpose": "硬切。"
+            },
+            "productionMethod": "parameterized",
+            "id": "scene-03"
+          },
+          {
+            "purpose": "可见特点3：掌机机身与屏幕，局部放大",
+            "effect": "detail-inset",
+            "weight": 1,
+            "durationSeconds": 5,
+            "reason": "呈现核心可见特征（本体与屏幕），保护主体细节不被文字遮挡。",
+            "media": [
+              {
+                "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+                "sourceStartSeconds": 46.1,
+                "playbackRate": 1,
+                "fit": "cover"
+              }
+            ],
+            "text": [
+              {
+                "role": "feature",
+                "text": "掌机机身与屏幕",
+                "factRefs": []
+              }
+            ],
+            "paragraphId": "p4",
+            "newInformation": "看到掌机本体、屏幕与两侧按键的真实可见形态。",
+            "resourceId": "lt-mask-reveal",
+            "visualDirection": "机身居中，屏幕与两侧按键清晰；标签下三分之一；克制=不标未证实参数。",
+            "layoutVariant": "auto",
+            "editorialDecision": {
+              "placementReason": "第4镜，给掌机本体与屏幕这一核心可见特征。",
+              "cutBasis": "需求锁定46.1–51.1s；实测机身（屏幕按键朝上）展示约44.9–51.3s，重合良好，入出点近似。",
+              "subjectProtection": "机身在裁切内居中，标签置下三分之一，不覆盖屏幕与按键；低遮挡标签保证本体细节可见。",
+              "audioRelationship": "旁白第4句15s起、长4.36s；未试听源声，不虚构衔接。",
+              "transitionPurpose": "特征段内的硬切。"
+            },
+            "productionMethod": "parameterized",
+            "id": "scene-04"
+          },
+          {
+            "purpose": "真实操作：从盒内取出物件（过程可见）",
+            "effect": "media-cut",
+            "weight": 1,
+            "durationSeconds": 5,
+            "reason": "用真实操作承接特征到过程，服务新手复现；单段实拍加下三分之一标签，不覆盖动作。",
+            "media": [
+              {
+                "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+                "sourceStartSeconds": 40.5,
+                "playbackRate": 1,
+                "fit": "cover"
+              }
+            ],
+            "text": [
+              {
+                "role": "feature",
+                "text": "取出盒内物件",
+                "factRefs": []
+              }
+            ],
+            "paragraphId": "p5",
+            "newInformation": "看到从盒内取出物件的真实操作过程。",
+            "resourceId": "lt-mask-reveal",
+            "visualDirection": "手部操作居中下，标签下三分之一避让；强调过程完整可见；克制=不覆盖操作动作。",
+            "layoutVariant": "auto",
+            "editorialDecision": {
+              "placementReason": "第5镜，回到真实操作，承接特征展示后的过程说明。",
+              "cutBasis": "需求锁定40.5–45.5s；实测该段主要为收纳包与机身展示，取物动作更集中在8.5/12.3/20.9/26.2s——区间与实测动作错位，按 resume 需求保留并标注不匹配，入出点近似。",
+              "subjectProtection": "手部动作居中下，标签置下三分之一避免遮挡操作主体；低遮挡标签不中断动作。",
+              "audioRelationship": "旁白第5句20s起、长2.66s；未试听源声，不虚构衔接。",
+              "transitionPurpose": "硬切。"
+            },
+            "productionMethod": "parameterized",
+            "id": "scene-05"
+          },
+          {
+            "purpose": "局部放大特写：机身与屏幕细节",
+            "effect": "detail-inset",
+            "weight": 1,
+            "durationSeconds": 5,
+            "reason": "以局部放大强化细节记忆，收束特征段；保护特写主体不被文字遮挡。",
+            "media": [
+              {
+                "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+                "sourceStartSeconds": 62.9,
+                "playbackRate": 1,
+                "fit": "cover"
+              }
+            ],
+            "text": [
+              {
+                "role": "feature",
+                "text": "机身屏幕细节",
+                "factRefs": []
+              }
+            ],
+            "paragraphId": "p6",
+            "newInformation": "通过局部放大看机身与屏幕细节。",
+            "resourceId": "lt-mask-reveal",
+            "visualDirection": "机身特写居中，标签下三分之一；避让末段创作者浮层；克制=不叠加多余图形。",
+            "layoutVariant": "auto",
+            "editorialDecision": {
+              "placementReason": "第6镜，在收尾前给机身与屏幕的局部放大特写，强化细节记忆。",
+              "cutBasis": "需求锁定62.9–67.9s；实测57.2–67.4s为网眼袋→拉链→机身特写，末段机身特写与本区间重合，入出点近似。",
+              "subjectProtection": "机身特写居中，标签置下三分之一；末段有创作者浮层，按最大外扩避让。",
+              "audioRelationship": "旁白第6句25s起、长2.58s；未试听源声，不虚构衔接。",
+              "transitionPurpose": "硬切。"
+            },
+            "productionMethod": "parameterized",
+            "id": "scene-06"
+          },
+          {
+            "purpose": "步骤引导第1步：掀开盒盖",
+            "effect": "feature-callout",
+            "weight": 1,
+            "durationSeconds": 5,
+            "reason": "按真实顺序给第1个必要步骤；动作保持可见。",
+            "media": [
+              {
+                "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+                "sourceStartSeconds": 7,
+                "playbackRate": 1,
+                "fit": "cover"
+              }
+            ],
+            "text": [
+              {
+                "role": "feature",
+                "text": "第一步 · 掀开盒盖",
+                "factRefs": []
+              }
+            ],
+            "paragraphId": "p7",
+            "newInformation": "步骤1：掀开盒盖。",
+            "resourceId": "lt-mask-reveal",
+            "visualDirection": "步骤标签统一下三分之一，画面保持动作可见；克制=不用图形转场覆盖动作。",
+            "layoutVariant": "auto",
+            "editorialDecision": {
+              "placementReason": "第7镜，进入步骤引导第1步。",
+              "cutBasis": "需求锁定7.0–12.0s；实测掀盖动作约5.44–6.89s、该区间盒盖已开（8.5–9.7s为取出警示与说明卡）——区间与「掀盒盖」文案错位，按 resume 需求保留并标注不匹配，入出点近似。",
+              "subjectProtection": "盒体居中，步骤标签置下三分之一，不遮挡掀盖与取物手部。",
+              "audioRelationship": "旁白第7句30s起、长2.10s；未试听源声，不虚构衔接。",
+              "transitionPurpose": "进入步骤段的硬切。"
+            },
+            "productionMethod": "parameterized",
+            "id": "scene-07"
+          },
+          {
+            "purpose": "步骤引导第2步：取出白色内盒",
+            "effect": "feature-callout",
+            "weight": 1,
+            "durationSeconds": 5,
+            "reason": "第2个必要步骤，保持与上一步连续，动作可见。",
+            "media": [
+              {
+                "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+                "sourceStartSeconds": 12.6,
+                "playbackRate": 1,
+                "fit": "cover"
+              }
+            ],
+            "text": [
+              {
+                "role": "feature",
+                "text": "第二步 · 取出内盒",
+                "factRefs": []
+              }
+            ],
+            "paragraphId": "p8",
+            "newInformation": "步骤2：取出白色内盒。",
+            "resourceId": "lt-mask-reveal",
+            "visualDirection": "步骤标签统一样式，动作完整可见；克制=不覆盖手部取件。",
+            "layoutVariant": "auto",
+            "editorialDecision": {
+              "placementReason": "第8镜，步骤引导第2步（取出内盒）。",
+              "cutBasis": "需求锁定12.6–17.6s；实测11.0–17.4s为手伸入箱内并提起白色盒体，与本区间重合，入出点近似。",
+              "subjectProtection": "内盒与手部居中，步骤标签置下三分之一，不遮挡取件动作。",
+              "audioRelationship": "旁白第8句35s起、长2.18s；未试听源声，不虚构衔接。",
+              "transitionPurpose": "步骤间硬切。"
+            },
+            "productionMethod": "parameterized",
+            "id": "scene-08"
+          },
+          {
+            "purpose": "步骤引导第3步：取出说明书和内衬，收束全片",
+            "effect": "feature-callout",
+            "weight": 1,
+            "durationSeconds": 5,
+            "reason": "第3个必要步骤并结束全片；动作可见。",
+            "media": [
+              {
+                "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+                "sourceStartSeconds": 18.2,
+                "playbackRate": 1,
+                "fit": "cover"
+              }
+            ],
+            "text": [
+              {
+                "role": "feature",
+                "text": "第三步 · 取出说明卡",
+                "factRefs": []
+              }
+            ],
+            "paragraphId": "p9",
+            "newInformation": "步骤3：取出说明书和内衬，收束开箱流程。",
+            "resourceId": "lt-mask-reveal",
+            "visualDirection": "步骤标签统一样式，收束于取件动作；克制=不加未证实结尾信息。",
+            "layoutVariant": "auto",
+            "editorialDecision": {
+              "placementReason": "第9镜，步骤引导第3步（取出说明书和内衬），收束全片。",
+              "cutBasis": "需求锁定18.2–23.2s；实测该段为手持白色盒体并剪刀切割，取说明卡动作实际约8.5–9.7s——区间与文案错位，按 resume 需求保留并标注不匹配，入出点近似。",
+              "subjectProtection": "盒体与手部居中，步骤标签置下三分之一，不遮挡剪切动作。",
+              "audioRelationship": "旁白第9句40s起、长3.247s；未试听源声，不虚构衔接。",
+              "transitionPurpose": "末镜硬切收束。"
+            },
+            "productionMethod": "parameterized",
+            "id": "scene-09"
+          }
+        ]
+      }
+    },
+    "timing": {
+      "idempotencyKey": "1ea15c9962e62d5b19776480ff105488e06301ac39ffaf18be814f043b36e3bf",
+      "status": "completed",
+      "result": {
+        "durationFrames": 1350,
+        "scenes": [
+          {
+            "id": "scene-01",
+            "startFrame": 0,
+            "durationFrames": 150
+          },
+          {
+            "id": "scene-02",
+            "startFrame": 150,
+            "durationFrames": 150
+          },
+          {
+            "id": "scene-03",
+            "startFrame": 300,
+            "durationFrames": 150
+          },
+          {
+            "id": "scene-04",
+            "startFrame": 450,
+            "durationFrames": 150
+          },
+          {
+            "id": "scene-05",
+            "startFrame": 600,
+            "durationFrames": 150
+          },
+          {
+            "id": "scene-06",
+            "startFrame": 750,
+            "durationFrames": 150
+          },
+          {
+            "id": "scene-07",
+            "startFrame": 900,
+            "durationFrames": 150
+          },
+          {
+            "id": "scene-08",
+            "startFrame": 1050,
+            "durationFrames": 150
+          },
+          {
+            "id": "scene-09",
+            "startFrame": 1200,
+            "durationFrames": 150
+          }
+        ],
+        "audioGraph": [
+          {
+            "id": "audio-1",
+            "assetId": "voice-8f2f6fed21e9229c",
+            "startFrame": 0,
+            "sourceStartSeconds": 0,
+            "durationFrames": 71,
+            "volume": 1,
+            "role": "narration"
+          },
+          {
+            "id": "audio-2",
+            "assetId": "voice-8f2f6fed21e9229c",
+            "startFrame": 150,
+            "sourceStartSeconds": 2.38,
+            "durationFrames": 115,
+            "volume": 1,
+            "role": "narration"
+          },
+          {
+            "id": "audio-3",
+            "assetId": "voice-8f2f6fed21e9229c",
+            "startFrame": 300,
+            "sourceStartSeconds": 6.2,
+            "durationFrames": 119,
+            "volume": 1,
+            "role": "narration"
+          },
+          {
+            "id": "audio-4",
+            "assetId": "voice-8f2f6fed21e9229c",
+            "startFrame": 450,
+            "sourceStartSeconds": 10.18,
+            "durationFrames": 131,
+            "volume": 1,
+            "role": "narration"
+          },
+          {
+            "id": "audio-5",
+            "assetId": "voice-8f2f6fed21e9229c",
+            "startFrame": 600,
+            "sourceStartSeconds": 14.54,
+            "durationFrames": 80,
+            "volume": 1,
+            "role": "narration"
+          },
+          {
+            "id": "audio-6",
+            "assetId": "voice-8f2f6fed21e9229c",
+            "startFrame": 750,
+            "sourceStartSeconds": 17.2,
+            "durationFrames": 77,
+            "volume": 1,
+            "role": "narration"
+          },
+          {
+            "id": "audio-7",
+            "assetId": "voice-8f2f6fed21e9229c",
+            "startFrame": 900,
+            "sourceStartSeconds": 19.78,
+            "durationFrames": 63,
+            "volume": 1,
+            "role": "narration"
+          },
+          {
+            "id": "audio-8",
+            "assetId": "voice-8f2f6fed21e9229c",
+            "startFrame": 1050,
+            "sourceStartSeconds": 21.88,
+            "durationFrames": 65,
+            "volume": 1,
+            "role": "narration"
+          },
+          {
+            "id": "audio-9",
+            "assetId": "voice-8f2f6fed21e9229c",
+            "startFrame": 1200,
+            "sourceStartSeconds": 24.06,
+            "durationFrames": 97,
+            "volume": 1,
+            "role": "narration"
+          },
+          {
+            "id": "audio-10-1",
+            "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+            "sceneId": "scene-01",
+            "sourceNodeId": "node-1238c520eb420dbf",
+            "startFrame": 0,
+            "sourceStartSeconds": 1.4,
+            "playbackRate": 1,
+            "durationFrames": 150,
+            "volume": 1
+          },
+          {
+            "id": "audio-10-2",
+            "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+            "sceneId": "scene-02",
+            "sourceNodeId": "node-039f63919536989e",
+            "startFrame": 150,
+            "sourceStartSeconds": 29.3,
+            "playbackRate": 1,
+            "durationFrames": 150,
+            "volume": 1
+          },
+          {
+            "id": "audio-10-3",
+            "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+            "sceneId": "scene-03",
+            "sourceNodeId": "node-8c529822b9193c6c",
+            "startFrame": 300,
+            "sourceStartSeconds": 34.9,
+            "playbackRate": 1,
+            "durationFrames": 150,
+            "volume": 1
+          },
+          {
+            "id": "audio-10-4",
+            "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+            "sceneId": "scene-04",
+            "sourceNodeId": "node-496178029e49061c",
+            "startFrame": 450,
+            "sourceStartSeconds": 46.1,
+            "playbackRate": 1,
+            "durationFrames": 150,
+            "volume": 1
+          },
+          {
+            "id": "audio-10-5",
+            "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+            "sceneId": "scene-05",
+            "sourceNodeId": "node-cf30cdebe7362c6b",
+            "startFrame": 600,
+            "sourceStartSeconds": 40.5,
+            "playbackRate": 1,
+            "durationFrames": 150,
+            "volume": 1
+          },
+          {
+            "id": "audio-10-6",
+            "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+            "sceneId": "scene-06",
+            "sourceNodeId": "node-926c9d923ad2a0c2",
+            "startFrame": 750,
+            "sourceStartSeconds": 62.9,
+            "playbackRate": 1,
+            "durationFrames": 150,
+            "volume": 1
+          },
+          {
+            "id": "audio-10-7",
+            "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+            "sceneId": "scene-07",
+            "sourceNodeId": "node-4da877ebcc1156fe",
+            "startFrame": 900,
+            "sourceStartSeconds": 7,
+            "playbackRate": 1,
+            "durationFrames": 150,
+            "volume": 1
+          },
+          {
+            "id": "audio-10-8",
+            "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+            "sceneId": "scene-08",
+            "sourceNodeId": "node-910da0f5526a9c5c",
+            "startFrame": 1050,
+            "sourceStartSeconds": 12.6,
+            "playbackRate": 1,
+            "durationFrames": 150,
+            "volume": 1
+          },
+          {
+            "id": "audio-10-9",
+            "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+            "sceneId": "scene-09",
+            "sourceNodeId": "node-dd098f4b055392a9",
+            "startFrame": 1200,
+            "sourceStartSeconds": 18.2,
+            "playbackRate": 1,
+            "durationFrames": 150,
+            "volume": 1
+          }
+        ],
+        "basis": "measured-narration-transcript",
+        "readingAndActionsReviewed": false
+      }
+    }
+  },
+  "toolCalls": [
+    {
+      "name": "brief.parse",
+      "input": {},
+      "inputHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "idempotencyKey": "e78696ec7144f0544fb44c7f05e92172c6b29b3a876873953b8cbef095f3e88a",
+      "step": 1,
+      "startedAt": "2026-09-22T00:28:17.285Z"
+    },
+    {
+      "name": "assets.observe",
+      "input": {},
+      "inputHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "idempotencyKey": "4cbd6af4e0eb1cd6027f36a9cfee62dc6275cb4541748a23046b06a3c08803ce",
+      "step": 2,
+      "startedAt": "2026-09-22T00:28:53.451Z"
+    },
+    {
+      "name": "resources.plan",
+      "input": {},
+      "inputHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "idempotencyKey": "0b47c3f456cf7c6162af654a2bf6766f6d428e8697c19b5aa1319264fda368a0",
+      "step": 3,
+      "startedAt": "2026-09-22T00:30:37.397Z"
+    },
+    {
+      "name": "narration.prepare",
+      "input": {
+        "scriptHash": null
+      },
+      "inputHash": "8c0cdeb4c903304e09cdb96e4d2be42dcce118109e6c51c69d1c78b9cc694cce",
+      "idempotencyKey": "9bc9dff0b87983f04d00059535bf49e5262a40f421beeb5d6149a4f7be913fd0",
+      "step": 4,
+      "startedAt": "2026-09-22T00:30:50.786Z"
+    },
+    {
+      "name": "story.plan",
+      "input": {
+        "narrationState": "442af93b9b05e36de01a4b2f793c41fd8307ff3f7bbfc89bfcd53ae38737b6bd"
+      },
+      "inputHash": "f7682b52b3a8f4e136cb9e395203da437f6b5f3de8ccee046be625cc77a63122",
+      "idempotencyKey": "05f6af3fb7d2e829dfc919c5853499d30db3dba77f654ac3a483cb55ac3df3d5",
+      "step": 5,
+      "startedAt": "2026-09-22T00:31:09.105Z"
+    },
+    {
+      "name": "timing.verify",
+      "input": {},
+      "inputHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "idempotencyKey": "1ea15c9962e62d5b19776480ff105488e06301ac39ffaf18be814f043b36e3bf",
+      "step": 6,
+      "startedAt": "2026-09-22T00:37:57.979Z"
+    },
+    {
+      "name": "scene.author",
+      "input": {
+        "index": 0
+      },
+      "inputHash": "ffbf81d654b1b5c8d67a4459f25003c9434e10d05ffea0708e825ece8f9976c6",
+      "idempotencyKey": "22066744ada7ab02d255d5a2cda6ec120960368dbffb58be78bc610ee7526bac",
+      "step": 7,
+      "startedAt": "2026-09-22T00:37:57.998Z"
+    }
+  ],
+  "toolResults": [
+    {
+      "tool": "brief.parse",
+      "status": "completed",
+      "result": {
+        "request": {
+          "name": "掌机",
+          "cta": "",
+          "price": "",
+          "facts": [],
+          "output": {
+            "width": 1080,
+            "height": 1920,
+            "durationSeconds": 45,
+            "fps": 30
+          }
+        },
+        "needsTranscription": false,
+        "needsNarration": true,
+        "needsCaptions": true,
+        "keepOriginalAudio": true,
+        "capabilities": [
+          "video-source-selection",
+          "image-observation",
+          "native-composition",
+          "native-editing",
+          "local-preview-review",
+          "managed-original"
+        ],
+        "gaps": [
+          "BGM 缺口：需求要求科技感 BGM，但本工程无已授权音乐/音源（suppliedAudio 为空），不得隐式生成/检索/合成音乐；按已授权可审计降级交付（音频轨＝源素材原声轨＋中文旁白，旁白段 ducking、间隙恢复），BGM 为未满足项，需在 quality_report 记录"
+        ],
+        "constraints": [
+          "resume 执行：不 create 重跑、不新建工程、不重传素材；沿用同一项目与唯一素材 asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+          "保留已补齐的 scene-01 HyperFrames 执行绑定（hyperframes@0.8.33 / hf.clip.source，executable:true，seekSafe:true，deterministic:true，timeBase{startAt:0,durationSeconds:5}，bindAt timeline.segment[0]）与压缩旁白",
+          "竖屏 1080×1920，总时长约 45 秒，9 个镜头且 ≥5 段互不重复源区间",
+          "结构：Hook＋3 个可见特点（各配局部放大）＋真实操作＋局部放大特写＋步骤引导；标题「掌机开箱：便携游戏体验」",
+          "源区间：1 Hook 1.4–6.4s；2 外包装盒 29.3–34.3s；3 黑色拉链收纳包 34.9–39.9s；4 掌机机身与屏幕 46.1–51.1s；5 取物 40.5–45.5s；6 机身特写 62.9–67.9s；7 掀盒盖 7.0–12.0s；8 取内盒 12.6–17.6s；9 取说明卡 18.2–23.2s",
+          "禁止加速：所有镜头 speed 1.0（不加速、不慢放），中文旁白同样禁止加速",
+          "不编造任何参数/功能/卖点；旁白仅描述真实可见内容",
+          "源浮层「Like what you see?」「Enjoy my content?」在裁切时避让，不入成片",
+          "音频轨＝源素材原声轨＋中文旁白；旁白段压低源声轨、间隙恢复（ducking），不因 BGM 停 NEEDS_INPUT",
+          "同步中文字幕严格对齐上述 9 句旁白时间轴，字幕避开 safeArea 保护区（top 12% 标题位 / bottom 18% 字幕位）",
+          "每个镜头采用 hyperframes@0.8.33 / hf.clip.source 同构绑定（对应源区间、9:16 裁切、safeArea），seekSafe=true、deterministic=true",
+          "保留可编辑工程（项目与修订），输出真实新 revisionId 与新的 MP4 成品及 quality_report（含 BGM 缺口记录）"
+        ],
+        "workflow": {
+          "taskMode": "create",
+          "objective": "以 9 镜（Hook＋3 可见特点＋真实操作＋特写＋步骤引导）按真实顺序呈现掌机开箱，帮助第一次操作的新手理解并复现必要操作；源原速无加速，保留源声轨＋中文旁白 ducking，输出竖屏 1080×1920 约 45 秒教程成片",
+          "requirements": [],
+          "overrides": [],
+          "assumptions": [
+            "唯一用户素材（webm，1920×1080，72.663s，含 opus 音轨，hasAudio=true）可支持 9 段互不重复源区间的 9:16 裁切剪接",
+            "中文旁白由本地合成（narration.prepare）后测量并对齐字幕时间轴，禁止加速语速",
+            "无授权 BGM 时按源声轨＋中文旁白的降级方案执行，并在 quality_report 记录 BGM 缺口"
+          ],
+          "gaps": [
+            "BGM 缺口：需求要求科技感 BGM，但无已授权音源（suppliedAudio 为空），不隐式生成音乐；按已授权降级交付并在 quality_report 记录"
+          ]
+        },
+        "scenarioId": "product_demo",
+        "productionBinding": {
+          "message": "【resume，不 create 重跑、不新建工程、不重传素材】继续同一项目 c6cd5bb8-f3b8-4a49-a03e-6b45e16726b5。当前真实状态：job-bbdff9a2-5af9-4d08-8b69-eb2c575f8e51 为 recoverable、resumable=true、stage「安排整片内容与节奏」、error=OPENCLAW_STAGE_TIMEOUT；Stage Provider 的 tool_choice 受控重试已生效。请直接从该 checkpoint resume，保留已补齐的 scene-01 HyperFrames 绑定与压缩旁白，继续 timing 节奏编排 → 同步中文字幕 → 9 镜头 HyperFrames 视觉编排 → 源声轨+旁白 ducking → 渲染，输出真实新 revisionId 与 MP4 成品及 quality_report。\n\n【保留：scene-01 HyperFrames 执行绑定（可执行、seek-safe、确定性）】sceneId: scene-01（Hook 纸盒开箱，源 1.4–6.4s，落到时间轴 0–5s）；block: hyperframes@0.8.33 / hf.clip.source，executable:true；params: assetId asset-e8779cc0-0dba-4f37-a3a3-218c25440e01、sourceIn 1.4、sourceOut 6.4、outWidth 1080、outHeight 1920、fit cover、center crop、speed 1.0（不加速）、safeArea top12/bottom18、标题文字块「掌机开箱：便携游戏体验」；seekSafe:true、deterministic:true、timeBase{startAt:0,durationSeconds:5}、bindAt timeline.segment[0]。其余 8 镜同构绑定（各对应源区间、9:16 裁切、seek-safe）。\n\n【沿用 9 镜头（源区间互不重复）】1 Hook 纸盒开箱 1.4–6.4s；2 可见特点1 外包装盒 29.3–34.3s（局部放大）；3 可见特点2 黑色拉链收纳包 34.9–39.9s（局部放大）；4 可见特点3 掌机机身与屏幕 46.1–51.1s（局部放大）；5 真实操作 取物 40.5–45.5s；6 局部放大特写 机身 62.9–67.9s；7 步骤引导第1步 掀盒盖 7.0–12.0s；8 第2步 取内盒 12.6–17.6s；9 第3步 取说明卡 18.2–23.2s。\n\n【旁白（已压缩，逐镜对齐约 45s，禁止加速，仅描述真实可见内容）】1)“掌机开箱，便携游戏体验。”2)“白色包装盒，印有掌机线稿和标语。”3)“附黑色拉链收纳包，包面有圆形标志。”4)“黑色掌机本体，屏幕和两侧按键清晰可见。”5)“打开盒子，从里面取出物件。”6)“放大看机身和屏幕的细节。”7)“第一步，掀开盒盖。”8)“第二步，取出白色内盒。”9)“第三步，取出说明书和内衬。”\n\n【同步中文字幕】严格对齐上述旁白时间轴。【ducking 依据】源素材自带 opus 音轨与旁白时间重叠、互相掩蔽，构成真实画声冲突；旁白段压低源声轨、旁白间隙恢复。\n\n【BGM 可审计降级（已明确授权，勿再停 NEEDS_INPUT）】本工程无已授权 BGM/音乐资产，不隐式生成/检索/合成音乐。音频轨 = 源素材原声轨 + 中文旁白；旁白段 ducking、间隙恢复。在 quality_report 记录「BGM 缺口（科技感 BGM 未满足，缺授权音源）」。\n\n【其余不变】竖屏 1080×1920、总时长约 45 秒、9 镜头（≥5 段互不重复源区间）、Hook＋3 个可见特点（各配局部放大）＋真实操作＋局部放大特写＋步骤引导、标题「掌机开箱：便携游戏体验」；不编造任何参数/功能/卖点；保留可编辑工程（项目与修订）并输出新的 MP4 成品。",
+          "contract": {
+            "schemaVersion": 1,
+            "profile": "commerce-focus-v1",
+            "scenarioId": "product_demo",
+            "originalRequest": "【resume，不 create 重跑、不新建工程、不重传素材】继续同一项目 c6cd5bb8-f3b8-4a49-a03e-6b45e16726b5。当前真实状态：job-bbdff9a2-5af9-4d08-8b69-eb2c575f8e51 为 recoverable、resumable=true、stage「安排整片内容与节奏」、error=OPENCLAW_STAGE_TIMEOUT；Stage Provider 的 tool_choice 受控重试已生效。请直接从该 checkpoint resume，保留已补齐的 scene-01 HyperFrames 绑定与压缩旁白，继续 timing 节奏编排 → 同步中文字幕 → 9 镜头 HyperFrames 视觉编排 → 源声轨+旁白 ducking → 渲染，输出真实新 revisionId 与 MP4 成品及 quality_report。\n\n【保留：scene-01 HyperFrames 执行绑定（可执行、seek-safe、确定性）】sceneId: scene-01（Hook 纸盒开箱，源 1.4–6.4s，落到时间轴 0–5s）；block: hyperframes@0.8.33 / hf.clip.source，executable:true；params: assetId asset-e8779cc0-0dba-4f37-a3a3-218c25440e01、sourceIn 1.4、sourceOut 6.4、outWidth 1080、outHeight 1920、fit cover、center crop、speed 1.0（不加速）、safeArea top12/bottom18、标题文字块「掌机开箱：便携游戏体验」；seekSafe:true、deterministic:true、timeBase{startAt:0,durationSeconds:5}、bindAt timeline.segment[0]。其余 8 镜同构绑定（各对应源区间、9:16 裁切、seek-safe）。\n\n【沿用 9 镜头（源区间互不重复）】1 Hook 纸盒开箱 1.4–6.4s；2 可见特点1 外包装盒 29.3–34.3s（局部放大）；3 可见特点2 黑色拉链收纳包 34.9–39.9s（局部放大）；4 可见特点3 掌机机身与屏幕 46.1–51.1s（局部放大）；5 真实操作 取物 40.5–45.5s；6 局部放大特写 机身 62.9–67.9s；7 步骤引导第1步 掀盒盖 7.0–12.0s；8 第2步 取内盒 12.6–17.6s；9 第3步 取说明卡 18.2–23.2s。\n\n【旁白（已压缩，逐镜对齐约 45s，禁止加速，仅描述真实可见内容）】1)“掌机开箱，便携游戏体验。”2)“白色包装盒，印有掌机线稿和标语。”3)“附黑色拉链收纳包，包面有圆形标志。”4)“黑色掌机本体，屏幕和两侧按键清晰可见。”5)“打开盒子，从里面取出物件。”6)“放大看机身和屏幕的细节。”7)“第一步，掀开盒盖。”8)“第二步，取出白色内盒。”9)“第三步，取出说明书和内衬。”\n\n【同步中文字幕】严格对齐上述旁白时间轴。【ducking 依据】源素材自带 opus 音轨与旁白时间重叠、互相掩蔽，构成真实画声冲突；旁白段压低源声轨、旁白间隙恢复。\n\n【BGM 可审计降级（已明确授权，勿再停 NEEDS_INPUT）】本工程无已授权 BGM/音乐资产，不隐式生成/检索/合成音乐。音频轨 = 源素材原声轨 + 中文旁白；旁白段 ducking、间隙恢复。在 quality_report 记录「BGM 缺口（科技感 BGM 未满足，缺授权音源）」。\n\n【其余不变】竖屏 1080×1920、总时长约 45 秒、9 镜头（≥5 段互不重复源区间）、Hook＋3 个可见特点（各配局部放大）＋真实操作＋局部放大特写＋步骤引导、标题「掌机开箱：便携游戏体验」；不编造任何参数/功能/卖点；保留可编辑工程（项目与修订）并输出新的 MP4 成品。",
+            "taskMode": "create",
+            "workflowProfile": "create",
+            "workflow": {
+              "version": 1,
+              "taskMode": "create",
+              "taskModeExplicit": true,
+              "workflowProfile": "create",
+              "businessScenario": "product_demo",
+              "baseProjectId": "c6cd5bb8-f3b8-4a49-a03e-6b45e16726b5",
+              "baseRevisionId": null,
+              "assetScope": [
+                "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01"
+              ],
+              "originalRequest": "【resume，不 create 重跑、不新建工程、不重传素材】继续同一项目 c6cd5bb8-f3b8-4a49-a03e-6b45e16726b5。当前真实状态：job-bbdff9a2-5af9-4d08-8b69-eb2c575f8e51 为 recoverable、resumable=true、stage「安排整片内容与节奏」、error=OPENCLAW_STAGE_TIMEOUT；Stage Provider 的 tool_choice 受控重试已生效。请直接从该 checkpoint resume，保留已补齐的 scene-01 HyperFrames 绑定与压缩旁白，继续 timing 节奏编排 → 同步中文字幕 → 9 镜头 HyperFrames 视觉编排 → 源声轨+旁白 ducking → 渲染，输出真实新 revisionId 与 MP4 成品及 quality_report。\n\n【保留：scene-01 HyperFrames 执行绑定（可执行、seek-safe、确定性）】sceneId: scene-01（Hook 纸盒开箱，源 1.4–6.4s，落到时间轴 0–5s）；block: hyperframes@0.8.33 / hf.clip.source，executable:true；params: assetId asset-e8779cc0-0dba-4f37-a3a3-218c25440e01、sourceIn 1.4、sourceOut 6.4、outWidth 1080、outHeight 1920、fit cover、center crop、speed 1.0（不加速）、safeArea top12/bottom18、标题文字块「掌机开箱：便携游戏体验」；seekSafe:true、deterministic:true、timeBase{startAt:0,durationSeconds:5}、bindAt timeline.segment[0]。其余 8 镜同构绑定（各对应源区间、9:16 裁切、seek-safe）。\n\n【沿用 9 镜头（源区间互不重复）】1 Hook 纸盒开箱 1.4–6.4s；2 可见特点1 外包装盒 29.3–34.3s（局部放大）；3 可见特点2 黑色拉链收纳包 34.9–39.9s（局部放大）；4 可见特点3 掌机机身与屏幕 46.1–51.1s（局部放大）；5 真实操作 取物 40.5–45.5s；6 局部放大特写 机身 62.9–67.9s；7 步骤引导第1步 掀盒盖 7.0–12.0s；8 第2步 取内盒 12.6–17.6s；9 第3步 取说明卡 18.2–23.2s。\n\n【旁白（已压缩，逐镜对齐约 45s，禁止加速，仅描述真实可见内容）】1)“掌机开箱，便携游戏体验。”2)“白色包装盒，印有掌机线稿和标语。”3)“附黑色拉链收纳包，包面有圆形标志。”4)“黑色掌机本体，屏幕和两侧按键清晰可见。”5)“打开盒子，从里面取出物件。”6)“放大看机身和屏幕的细节。”7)“第一步，掀开盒盖。”8)“第二步，取出白色内盒。”9)“第三步，取出说明书和内衬。”\n\n【同步中文字幕】严格对齐上述旁白时间轴。【ducking 依据】源素材自带 opus 音轨与旁白时间重叠、互相掩蔽，构成真实画声冲突；旁白段压低源声轨、旁白间隙恢复。\n\n【BGM 可审计降级（已明确授权，勿再停 NEEDS_INPUT）】本工程无已授权 BGM/音乐资产，不隐式生成/检索/合成音乐。音频轨 = 源素材原声轨 + 中文旁白；旁白段 ducking、间隙恢复。在 quality_report 记录「BGM 缺口（科技感 BGM 未满足，缺授权音源）」。\n\n【其余不变】竖屏 1080×1920、总时长约 45 秒、9 镜头（≥5 段互不重复源区间）、Hook＋3 个可见特点（各配局部放大）＋真实操作＋局部放大特写＋步骤引导、标题「掌机开箱：便携游戏体验」；不编造任何参数/功能/卖点；保留可编辑工程（项目与修订）并输出新的 MP4 成品。",
+              "requirements": [],
+              "assumptions": [
+                "唯一用户素材（webm，1920×1080，72.663s，含 opus 音轨，hasAudio=true）可支持 9 段互不重复源区间的 9:16 裁切剪接",
+                "中文旁白由本地合成（narration.prepare）后测量并对齐字幕时间轴，禁止加速语速",
+                "无授权 BGM 时按源声轨＋中文旁白的降级方案执行，并在 quality_report 记录 BGM 缺口"
+              ],
+              "gaps": [
+                "BGM 缺口：需求要求科技感 BGM，但无已授权音源（suppliedAudio 为空），不隐式生成音乐；按已授权降级交付并在 quality_report 记录"
+              ],
+              "interpretation": "validated-semantic-analysis",
+              "objective": "以 9 镜（Hook＋3 可见特点＋真实操作＋特写＋步骤引导）按真实顺序呈现掌机开箱，帮助第一次操作的新手理解并复现必要操作；源原速无加速，保留源声轨＋中文旁白 ducking，输出竖屏 1080×1920 约 45 秒教程成片",
+              "contractId": "contract-4ed4215fb2105638",
+              "parentContractId": null,
+              "sourceRequests": [
+                "【resume，不 create 重跑、不新建工程、不重传素材】继续同一项目 c6cd5bb8-f3b8-4a49-a03e-6b45e16726b5。当前真实状态：job-bbdff9a2-5af9-4d08-8b69-eb2c575f8e51 为 recoverable、resumable=true、stage「安排整片内容与节奏」、error=OPENCLAW_STAGE_TIMEOUT；Stage Provider 的 tool_choice 受控重试已生效。请直接从该 checkpoint resume，保留已补齐的 scene-01 HyperFrames 绑定与压缩旁白，继续 timing 节奏编排 → 同步中文字幕 → 9 镜头 HyperFrames 视觉编排 → 源声轨+旁白 ducking → 渲染，输出真实新 revisionId 与 MP4 成品及 quality_report。\n\n【保留：scene-01 HyperFrames 执行绑定（可执行、seek-safe、确定性）】sceneId: scene-01（Hook 纸盒开箱，源 1.4–6.4s，落到时间轴 0–5s）；block: hyperframes@0.8.33 / hf.clip.source，executable:true；params: assetId asset-e8779cc0-0dba-4f37-a3a3-218c25440e01、sourceIn 1.4、sourceOut 6.4、outWidth 1080、outHeight 1920、fit cover、center crop、speed 1.0（不加速）、safeArea top12/bottom18、标题文字块「掌机开箱：便携游戏体验」；seekSafe:true、deterministic:true、timeBase{startAt:0,durationSeconds:5}、bindAt timeline.segment[0]。其余 8 镜同构绑定（各对应源区间、9:16 裁切、seek-safe）。\n\n【沿用 9 镜头（源区间互不重复）】1 Hook 纸盒开箱 1.4–6.4s；2 可见特点1 外包装盒 29.3–34.3s（局部放大）；3 可见特点2 黑色拉链收纳包 34.9–39.9s（局部放大）；4 可见特点3 掌机机身与屏幕 46.1–51.1s（局部放大）；5 真实操作 取物 40.5–45.5s；6 局部放大特写 机身 62.9–67.9s；7 步骤引导第1步 掀盒盖 7.0–12.0s；8 第2步 取内盒 12.6–17.6s；9 第3步 取说明卡 18.2–23.2s。\n\n【旁白（已压缩，逐镜对齐约 45s，禁止加速，仅描述真实可见内容）】1)“掌机开箱，便携游戏体验。”2)“白色包装盒，印有掌机线稿和标语。”3)“附黑色拉链收纳包，包面有圆形标志。”4)“黑色掌机本体，屏幕和两侧按键清晰可见。”5)“打开盒子，从里面取出物件。”6)“放大看机身和屏幕的细节。”7)“第一步，掀开盒盖。”8)“第二步，取出白色内盒。”9)“第三步，取出说明书和内衬。”\n\n【同步中文字幕】严格对齐上述旁白时间轴。【ducking 依据】源素材自带 opus 音轨与旁白时间重叠、互相掩蔽，构成真实画声冲突；旁白段压低源声轨、旁白间隙恢复。\n\n【BGM 可审计降级（已明确授权，勿再停 NEEDS_INPUT）】本工程无已授权 BGM/音乐资产，不隐式生成/检索/合成音乐。音频轨 = 源素材原声轨 + 中文旁白；旁白段 ducking、间隙恢复。在 quality_report 记录「BGM 缺口（科技感 BGM 未满足，缺授权音源）」。\n\n【其余不变】竖屏 1080×1920、总时长约 45 秒、9 镜头（≥5 段互不重复源区间）、Hook＋3 个可见特点（各配局部放大）＋真实操作＋局部放大特写＋步骤引导、标题「掌机开箱：便携游戏体验」；不编造任何参数/功能/卖点；保留可编辑工程（项目与修订）并输出新的 MP4 成品。"
+              ],
+              "requirementChanges": [],
+              "changeTargets": [],
+              "preserveTargets": [],
+              "resourceNeeds": [],
+              "prohibitions": []
+            },
+            "persona": {
+              "creator": "商家／内容运营（待用户研究验证）",
+              "viewer": "第一次操作的新手"
+            },
+            "objective": "理解并复现必要操作",
+            "product": {
+              "id": "product-1",
+              "name": "掌机",
+              "facts": [],
+              "price": null,
+              "cta": "",
+              "audience": null,
+              "prohibited": []
+            },
+            "output": {
+              "width": 1080,
+              "height": 1920,
+              "durationSeconds": 45,
+              "fps": 30
+            },
+            "audio": "unspecified",
+            "mustHave": [],
+            "mustNot": [],
+            "explicitConstraints": {
+              "schemaVersion": 1,
+              "originalRequest": "【resume，不 create 重跑、不新建工程、不重传素材】继续同一项目 c6cd5bb8-f3b8-4a49-a03e-6b45e16726b5。当前真实状态：job-bbdff9a2-5af9-4d08-8b69-eb2c575f8e51 为 recoverable、resumable=true、stage「安排整片内容与节奏」、error=OPENCLAW_STAGE_TIMEOUT；Stage Provider 的 tool_choice 受控重试已生效。请直接从该 checkpoint resume，保留已补齐的 scene-01 HyperFrames 绑定与压缩旁白，继续 timing 节奏编排 → 同步中文字幕 → 9 镜头 HyperFrames 视觉编排 → 源声轨+旁白 ducking → 渲染，输出真实新 revisionId 与 MP4 成品及 quality_report。\n\n【保留：scene-01 HyperFrames 执行绑定（可执行、seek-safe、确定性）】sceneId: scene-01（Hook 纸盒开箱，源 1.4–6.4s，落到时间轴 0–5s）；block: hyperframes@0.8.33 / hf.clip.source，executable:true；params: assetId asset-e8779cc0-0dba-4f37-a3a3-218c25440e01、sourceIn 1.4、sourceOut 6.4、outWidth 1080、outHeight 1920、fit cover、center crop、speed 1.0（不加速）、safeArea top12/bottom18、标题文字块「掌机开箱：便携游戏体验」；seekSafe:true、deterministic:true、timeBase{startAt:0,durationSeconds:5}、bindAt timeline.segment[0]。其余 8 镜同构绑定（各对应源区间、9:16 裁切、seek-safe）。\n\n【沿用 9 镜头（源区间互不重复）】1 Hook 纸盒开箱 1.4–6.4s；2 可见特点1 外包装盒 29.3–34.3s（局部放大）；3 可见特点2 黑色拉链收纳包 34.9–39.9s（局部放大）；4 可见特点3 掌机机身与屏幕 46.1–51.1s（局部放大）；5 真实操作 取物 40.5–45.5s；6 局部放大特写 机身 62.9–67.9s；7 步骤引导第1步 掀盒盖 7.0–12.0s；8 第2步 取内盒 12.6–17.6s；9 第3步 取说明卡 18.2–23.2s。\n\n【旁白（已压缩，逐镜对齐约 45s，禁止加速，仅描述真实可见内容）】1)“掌机开箱，便携游戏体验。”2)“白色包装盒，印有掌机线稿和标语。”3)“附黑色拉链收纳包，包面有圆形标志。”4)“黑色掌机本体，屏幕和两侧按键清晰可见。”5)“打开盒子，从里面取出物件。”6)“放大看机身和屏幕的细节。”7)“第一步，掀开盒盖。”8)“第二步，取出白色内盒。”9)“第三步，取出说明书和内衬。”\n\n【同步中文字幕】严格对齐上述旁白时间轴。【ducking 依据】源素材自带 opus 音轨与旁白时间重叠、互相掩蔽，构成真实画声冲突；旁白段压低源声轨、旁白间隙恢复。\n\n【BGM 可审计降级（已明确授权，勿再停 NEEDS_INPUT）】本工程无已授权 BGM/音乐资产，不隐式生成/检索/合成音乐。音频轨 = 源素材原声轨 + 中文旁白；旁白段 ducking、间隙恢复。在 quality_report 记录「BGM 缺口（科技感 BGM 未满足，缺授权音源）」。\n\n【其余不变】竖屏 1080×1920、总时长约 45 秒、9 镜头（≥5 段互不重复源区间）、Hook＋3 个可见特点（各配局部放大）＋真实操作＋局部放大特写＋步骤引导、标题「掌机开箱：便携游戏体验」；不编造任何参数/功能/卖点；保留可编辑工程（项目与修订）并输出新的 MP4 成品。",
+              "narration": "unspecified",
+              "music": "required",
+              "original": "unspecified",
+              "price": "unspecified",
+              "silent": false
+            },
+            "generatedFootageAllowed": false,
+            "deliverables": [
+              "candidate_mp4",
+              "editable_project",
+              "source_index",
+              "quality_report"
+            ]
+          }
+        }
+      },
+      "idempotencyKey": "e78696ec7144f0544fb44c7f05e92172c6b29b3a876873953b8cbef095f3e88a",
+      "step": 1,
+      "durationMs": 36157
+    },
+    {
+      "tool": "assets.observe",
+      "status": "completed",
+      "result": {
+        "observations": [
+          {
+            "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+            "visibleContent": "源 1920×1080 横屏，蓝色垫面，主体为平放的牛皮纸运输箱。1.108s 无手、箱盖闭合；1.831–5.442s 双手进入画面推动/转动/抬起箱体，箱盖始终闭合。1.108s 起画面左下角出现红色圆角创作者浮层（Like what you see?），其后叠加 LIKED / Enjoy my content? / Stay notified! 变体。此段未见商品本体。",
+            "uncertainty": "采样约 0.7s/帧、非逐帧；箱体转动是否为开盖前置准备无法由画面证实；浮层位置逐帧变化，避让需按最大范围外扩。",
+            "role": "context",
+            "productGroup": "product-1",
+            "subjectBox": [
+              0.28,
+              0.3,
+              0.45,
+              0.4
+            ],
+            "safeCrop": [
+              0.3418,
+              0,
+              0.3164,
+              1
+            ],
+            "confidence": 0.7,
+            "quality": "clear",
+            "visibleText": [
+              "Like what you see?",
+              "LIKED",
+              "Enjoy my content?",
+              "Stay notified!"
+            ],
+            "sameProductAs": [],
+            "differentProductFrom": []
+          },
+          {
+            "assetId": "voice-8f2f6fed21e9229c",
+            "visibleContent": "实际合成旁白：掌机开箱，便携游戏体验。\n白色包装盒，印有掌机线稿和标语。\n附黑色拉链收纳包，包面有圆形标志。\n黑色掌机本体，屏幕和两侧按键清晰可见。\n打开盒子，从里面取出物件。\n放大看机身和屏幕的细节。\n第一步，掀开盒盖。\n第二步，取出白色内盒。\n第三步，取出说明书和内衬。",
+            "uncertainty": "声音感知质量仍待试听评审",
+            "role": "unknown",
+            "productGroup": "narration",
+            "subjectBox": [],
+            "safeCrop": [],
+            "confidence": 1,
+            "quality": "local audio measured",
+            "visibleText": [],
+            "sameProductAs": [],
+            "differentProductFrom": []
+          }
+        ],
+        "candidates": [
+          {
+            "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+            "startSeconds": 1.108,
+            "endSeconds": 5.442,
+            "reason": "箱体闭合、双手推动/转动/抬箱但未开盖；Hook 前置可用区间（未见商品本体）。"
+          },
+          {
+            "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+            "startSeconds": 5.442,
+            "endSeconds": 6.886,
+            "reason": "掀盒盖动作的真实区间：5.442 扶盖、6.164 掀起、6.886 已开。修正需求场景7『掀盒盖』(7.0–12.0s) 起点偏晚。"
+          },
+          {
+            "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+            "startSeconds": 7.192,
+            "endSeconds": 9.747,
+            "reason": "箱盖全开→抽出蓝色多语种警示卡→手持白色折页说明卡；说明/警示卡实际取出约在 8.5–9.7s（修正需求场景9『取说明卡』18.2–23.2s 不匹配）。"
+          },
+          {
+            "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+            "startSeconds": 11.025,
+            "endSeconds": 17.414,
+            "reason": "手伸入箱内并提起印 valve 标识的白色盒体；可作为『取内盒』候选，但盒体在 12.3s/13.6s 出现反复，边界待定。"
+          },
+          {
+            "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+            "startSeconds": 18.2,
+            "endSeconds": 28.867,
+            "reason": "手持白盒→剪刀切割→伸入取物（黑色疑似线材）→抽出印条码白盒→白色零售盒（STEAM DECK／your games are going places）现身，黑色收纳包同框。"
+          },
+          {
+            "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+            "startSeconds": 27.533,
+            "endSeconds": 30.275,
+            "reason": "白色零售盒（印 STEAM DECK／your games are going places）实际展示区间；修正需求场景2『外包装盒』29.3–34.3s 起点偏晚。"
+          },
+          {
+            "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+            "startSeconds": 32.108,
+            "endSeconds": 39.442,
+            "reason": "黑色拉链收纳包（带提手）手持展示区间，与需求场景3『黑色拉链收纳包』(34.9–39.9s) 大致重合。"
+          },
+          {
+            "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+            "startSeconds": 44.942,
+            "endSeconds": 51.303,
+            "reason": "黑色掌机机身（屏幕与两侧按键朝上）展示区间；与需求场景4『掌机机身与屏幕』(46.1–51.1s) 重合。"
+          },
+          {
+            "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+            "startSeconds": 52.581,
+            "endSeconds": 56.414,
+            "reason": "打开黑色收纳包（网状内袋、拉链）的动作区间，可作为开合演示候选。"
+          },
+          {
+            "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+            "startSeconds": 57.192,
+            "endSeconds": 67.414,
+            "reason": "黑色网眼小袋→收纳包拉链→掌机机身特写（含末段创作者浮层）；与需求场景6『局部放大特写 机身』(62.9–67.9s) 重合，且可覆盖收尾。"
+          }
+        ],
+        "inspectRanges": [],
+        "gaps": [
+          "加密观察已按加密画面执行完毕（本次约 0.7–1.8s/帧），inspectRanges 置空；但抽帧仍非逐帧，动作精确起止帧（掀盖、取卡、取盒、收纳包开合、机身离箱）仍未确定，除非再提高抽帧密度，否则不得当作已确认切点。",
+          "需求 9 镜区间与实测动作存在错位，需导演阶段据实测重排或明确标注不匹配：步骤1『掀盒盖』实际约 5.4–6.9s，而需求给 7.0–12.0s（该区间盒盖已开）；步骤3『取说明卡』——多语种警示/说明卡实际取出约 8.5–9.7s，而需求 18.2–23.2s 只见手持白盒与剪刀切割；场景2『外包装盒』实际为印 STEAM DECK／your games are going places 的白色零售盒，展示约 27.5–30.3s，需求 29.3–34.3s 后段已是黑色收纳包；『取物』需求 40.5–45.5s 实为黑包/机身展示，取物动作更集中在 8.5/12.3/20.9/26.2s。",
+          "商品身份、型号与任何参数/功能/用途无法由画面证据确认；画面仅出现英文盒面文字与品牌字样（STEAM DECK、valve、your games are going places、Attention!），中文商品名与卖点未经证实，禁止据文件名或用户预期补写；多条旁白（如『白色包装盒，印有掌机线稿和标语』『包面有圆形标志』『黑色掌机本体，屏幕和两侧按键清晰可见』）与画面基本吻合，但『便携』『收纳』等用途性表述仍属画面外推断，须保守。",
+          "源创作者浮层（Like what you see? / Enjoy my content? / Subscribe / LIKED / Stay notified!）位置逐帧变化，末段及中段部分帧浮层靠近画面中下部，9:16 居中裁切 (safeCrop x 0.3418–0.6582) 可能仍带入边缘且与底部 18% 字幕保护区冲突，需按最大外扩避让或后期遮挡确认。",
+          "音频语义仍未经人耳复核（listening.available=false），源 opus 音轨存在但语音/对话未验证，不得据源音轨生成字幕。",
+          "BGM 缺口未变：本工程无已授权音乐资产（suppliedAudio 为空），不隐式生成/检索/合成音乐，按源声轨＋旁白降级并在 quality_report 记录。"
+        ]
+      },
+      "idempotencyKey": "4cbd6af4e0eb1cd6027f36a9cfee62dc6275cb4541748a23046b06a3c08803ce",
+      "step": 2,
+      "durationMs": 103935
+    },
+    {
+      "tool": "resources.plan",
+      "status": "completed",
+      "result": {
+        "selected": [
+          {
+            "id": "kinetic-type-beats",
+            "reason": "Hook/开场标题「掌机开箱：便携游戏体验」以文字节拍呈现，适配无布景、以文字承载开场的镜头；仅用原生文本，不编造卖点。"
+          },
+          {
+            "id": "titlecard-reveal",
+            "reason": "开场/收尾单一标题卡的克制揭示（低动效、可编辑），用于片头标题位与步骤引导收束，不与实拍动作争抢。"
+          },
+          {
+            "id": "lt-mask-reveal",
+            "reason": "在持续的真实操作素材上叠加可编辑下三分之一（步骤说明/可见特点标签），不打断动作、不覆盖源声，适配步骤引导与真实操作镜头；文字控制在 80 字符内。"
+          },
+          {
+            "id": "video-text-pivot",
+            "reason": "实拍特点镜头滑出、交出画面重心给可见特点标签，视频保持可见，适配 3 个可见特点（各配局部放大）镜头。"
+          },
+          {
+            "id": "caption-editorial-emphasis",
+            "reason": "中文字幕严格对齐旁白测量时间轴（不臆造 Timing），避开 safeArea 保护区，用于全片同步字幕。"
+          }
+        ],
+        "originalNeeds": [
+          "9 镜竖屏原生编排：每镜 9:16 居中裁切（safeCrop x 0.3418–0.6582）并逐镜采用 hyperframes@0.8.33 / hf.clip.source 同构绑定（sourceIn/sourceOut、outWidth 1080、outHeight 1920、fit cover、speed 1.0、seekSafe、deterministic、timeBase、bindAt timeline.segment），无候选资源可直接套用，需原生编排。",
+          "音频：源素材原声轨 + 中文旁白双轨，旁白段 ducking、间隙恢复；无已授权音乐候选资源，需原生音频编排。",
+          "标题文字块「掌机开箱：便携游戏体验」及步骤说明文本层需原生文本创建（可编辑、可独立修改）。",
+          "逐镜 safeArea（top 12% / bottom 18%）与源创作者浮层（Like what you see? / Enjoy my content? 等）最大外扩避让，需原生遮罩/裁切编排。"
+        ],
+        "gaps": [
+          "BGM 缺口：需求要求科技感 BGM，但本工程无已授权音乐/音源（suppliedAudio 为空），不隐式生成/检索/合成音乐；按已授权可审计降级交付（源声轨＋中文旁白，旁白段 ducking、间隙恢复），BGM 为未满足项，须在 quality_report 记录。",
+          "需求 9 镜源区间与实测动作错位：步骤1『掀盒盖』实测约 5.4–6.9s（需求给 7.0–12.0s 时盒盖已开）；步骤3『取说明卡』实际约 8.5–9.7s（需求 18.2–23.2s 只见手持白盒与剪刀切割）；『外包装盒』实测约 27.5–30.3s；『取物』动作更集中在 8.5/12.3/20.9/26.2s——需导演阶段据实测重排或明确标注不匹配。",
+          "抽帧非逐帧（约 0.7–1.8s/帧），掀盖、取卡、取盒、收纳包开合、机身离箱等动作精确起止帧未确定，不得当作已确认切点。",
+          "商品身份、型号与任何参数/功能/用途无法由画面证据确认（仅见英文盒面 STEAM DECK / valve / your games are going places 等）；『便携』『收纳』等用途性表述属画面外推断，须保守。",
+          "源创作者浮层位置逐帧变化，9:16 居中裁切可能仍带入边缘且与底部 18% 字幕保护区冲突，需按最大外扩避让或后期遮挡确认。",
+          "音频语义未经人耳复核（listening.available=false），源 opus 音轨语音/对话未验证，不得据源音轨生成字幕；中文旁白需 narration.prepare 真实合成并测量后才可对齐。"
+        ],
+        "blockingGaps": [],
+        "candidates": [
+          {
+            "id": "lt-mask-reveal",
+            "tags": [
+              "video",
+              "action",
+              "text",
+              "操作",
+              "实拍",
+              "口播",
+              "标签",
+              "文字"
+            ],
+            "inputs": [
+              "video"
+            ],
+            "description": "Transparent editable lower-third over continuing footage; no stat, price, or full-screen text takeover is required. Adapt the wipe and accent sweep to approved native text, local fonts and the managed timeline.",
+            "files": [
+              "registry/blocks/lt-mask-reveal/registry-item.json",
+              "registry/blocks/lt-mask-reveal/lt-mask-reveal.html"
+            ],
+            "requirements": {
+              "minMedia": 1,
+              "mediaKinds": [
+                "video"
+              ],
+              "maxTextCharacters": 80
+            },
+            "motionRisk": "low",
+            "compatible": true,
+            "eligible": true,
+            "score": 3,
+            "kind": "reviewed-blueprint-adapter",
+            "runtime": "0.8.33",
+            "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+          },
+          {
+            "id": "grid-card-assemble",
+            "tags": [
+              "image",
+              "details",
+              "steps",
+              "参数",
+              "配件",
+              "步骤"
+            ],
+            "inputs": [],
+            "files": [
+              "skills/hyperframes-animation/blueprints/grid-card-assemble.md",
+              "skills/hyperframes-animation/rules/gsap-effects.md"
+            ],
+            "requirements": {
+              "minMedia": 0,
+              "mediaKinds": [],
+              "maxTextCharacters": 80
+            },
+            "motionRisk": "low",
+            "compatible": true,
+            "eligible": true,
+            "score": 3,
+            "kind": "reviewed-blueprint-adapter",
+            "runtime": "0.8.33",
+            "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+          },
+          {
+            "id": "comparison-split",
+            "tags": [
+              "compare",
+              "detail",
+              "image",
+              "比较",
+              "细节",
+              "双栏"
+            ],
+            "inputs": [
+              "visual-pair"
+            ],
+            "files": [
+              "skills/hyperframes-animation/blueprints/comparison-split.md",
+              "skills/hyperframes-animation/rules/split-tilt-cards.md",
+              "registry/components/comparison-split/registry-item.json",
+              "registry/components/comparison-split/comparison-split.html"
+            ],
+            "requirements": {
+              "minMedia": 2,
+              "mediaKinds": [],
+              "maxTextCharacters": 80
+            },
+            "motionRisk": "low",
+            "compatible": true,
+            "eligible": false,
+            "score": 2,
+            "kind": "reviewed-blueprint-adapter",
+            "runtime": "0.8.33",
+            "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+          },
+          {
+            "id": "video-text-pivot",
+            "tags": [
+              "video",
+              "action",
+              "操作",
+              "实拍",
+              "讲解"
+            ],
+            "inputs": [
+              "video"
+            ],
+            "files": [
+              "skills/hyperframes-animation/blueprints/video-text-pivot.md",
+              "skills/hyperframes-animation/rules/gsap-effects.md"
+            ],
+            "requirements": {
+              "minMedia": 1,
+              "mediaKinds": [
+                "video"
+              ],
+              "maxTextCharacters": 80
+            },
+            "motionRisk": "occluding",
+            "compatible": true,
+            "eligible": true,
+            "score": 2,
+            "kind": "reviewed-blueprint-adapter",
+            "runtime": "0.8.33",
+            "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+          },
+          {
+            "id": "kinetic-type-beats",
+            "tags": [
+              "text",
+              "caption",
+              "文字",
+              "字幕",
+              "强调"
+            ],
+            "inputs": [
+              "text"
+            ],
+            "files": [
+              "skills/hyperframes-animation/blueprints/kinetic-type-beats.md",
+              "skills/hyperframes-animation/rules/discrete-text-sequence.md"
+            ],
+            "requirements": {
+              "minMedia": 0,
+              "mediaKinds": [],
+              "maxTextCharacters": 80
+            },
+            "motionRisk": "occluding",
+            "compatible": true,
+            "eligible": true,
+            "score": 2,
+            "kind": "reviewed-blueprint-adapter",
+            "runtime": "0.8.33",
+            "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+          },
+          {
+            "id": "caption-editorial-emphasis",
+            "tags": [
+              "caption",
+              "speech",
+              "字幕",
+              "口播",
+              "强调"
+            ],
+            "inputs": [
+              "text"
+            ],
+            "description": "Editable editorial text emphasis; align spoken captions to measured transcript timestamps, never invented timing.",
+            "files": [
+              "registry/components/caption-editorial-emphasis/registry-item.json",
+              "registry/components/caption-editorial-emphasis/caption-editorial-emphasis.html"
+            ],
+            "requirements": {
+              "minMedia": 0,
+              "mediaKinds": [],
+              "maxTextCharacters": 80
+            },
+            "motionRisk": "low",
+            "compatible": true,
+            "eligible": true,
+            "score": 1,
+            "kind": "reviewed-blueprint-adapter",
+            "runtime": "0.8.33",
+            "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+          },
+          {
+            "id": "titlecard-reveal",
+            "tags": [
+              "title",
+              "brand",
+              "text",
+              "收尾",
+              "标题"
+            ],
+            "inputs": [],
+            "files": [
+              "skills/hyperframes-animation/blueprints/titlecard-reveal.md",
+              "skills/hyperframes-animation/rules/discrete-text-sequence.md"
+            ],
+            "requirements": {
+              "minMedia": 0,
+              "mediaKinds": [],
+              "maxTextCharacters": 80
+            },
+            "motionRisk": "low",
+            "compatible": true,
+            "eligible": true,
+            "score": 1,
+            "kind": "reviewed-blueprint-adapter",
+            "runtime": "0.8.33",
+            "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+          }
+        ],
+        "originalRequest": "【resume，不 create 重跑、不新建工程、不重传素材】继续同一项目 c6cd5bb8-f3b8-4a49-a03e-6b45e16726b5。当前真实状态：job-bbdff9a2-5af9-4d08-8b69-eb2c575f8e51 为 recoverable、resumable=true、stage「安排整片内容与节奏」、error=OPENCLAW_STAGE_TIMEOUT；Stage Provider 的 tool_choice 受控重试已生效。请直接从该 checkpoint resume，保留已补齐的 scene-01 HyperFrames 绑定与压缩旁白，继续 timing 节奏编排 → 同步中文字幕 → 9 镜头 HyperFrames 视觉编排 → 源声轨+旁白 ducking → 渲染，输出真实新 revisionId 与 MP4 成品及 quality_report。\n\n【保留：scene-01 HyperFrames 执行绑定（可执行、seek-safe、确定性）】sceneId: scene-01（Hook 纸盒开箱，源 1.4–6.4s，落到时间轴 0–5s）；block: hyperframes@0.8.33 / hf.clip.source，executable:true；params: assetId asset-e8779cc0-0dba-4f37-a3a3-218c25440e01、sourceIn 1.4、sourceOut 6.4、outWidth 1080、outHeight 1920、fit cover、center crop、speed 1.0（不加速）、safeArea top12/bottom18、标题文字块「掌机开箱：便携游戏体验」；seekSafe:true、deterministic:true、timeBase{startAt:0,durationSeconds:5}、bindAt timeline.segment[0]。其余 8 镜同构绑定（各对应源区间、9:16 裁切、seek-safe）。\n\n【沿用 9 镜头（源区间互不重复）】1 Hook 纸盒开箱 1.4–6.4s；2 可见特点1 外包装盒 29.3–34.3s（局部放大）；3 可见特点2 黑色拉链收纳包 34.9–39.9s（局部放大）；4 可见特点3 掌机机身与屏幕 46.1–51.1s（局部放大）；5 真实操作 取物 40.5–45.5s；6 局部放大特写 机身 62.9–67.9s；7 步骤引导第1步 掀盒盖 7.0–12.0s；8 第2步 取内盒 12.6–17.6s；9 第3步 取说明卡 18.2–23.2s。\n\n【旁白（已压缩，逐镜对齐约 45s，禁止加速，仅描述真实可见内容）】1)“掌机开箱，便携游戏体验。”2)“白色包装盒，印有掌机线稿和标语。”3)“附黑色拉链收纳包，包面有圆形标志。”4)“黑色掌机本体，屏幕和两侧按键清晰可见。”5)“打开盒子，从里面取出物件。”6)“放大看机身和屏幕的细节。”7)“第一步，掀开盒盖。”8)“第二步，取出白色内盒。”9)“第三步，取出说明书和内衬。”\n\n【同步中文字幕】严格对齐上述旁白时间轴。【ducking 依据】源素材自带 opus 音轨与旁白时间重叠、互相掩蔽，构成真实画声冲突；旁白段压低源声轨、旁白间隙恢复。\n\n【BGM 可审计降级（已明确授权，勿再停 NEEDS_INPUT）】本工程无已授权 BGM/音乐资产，不隐式生成/检索/合成音乐。音频轨 = 源素材原声轨 + 中文旁白；旁白段 ducking、间隙恢复。在 quality_report 记录「BGM 缺口（科技感 BGM 未满足，缺授权音源）」。\n\n【其余不变】竖屏 1080×1920、总时长约 45 秒、9 镜头（≥5 段互不重复源区间）、Hook＋3 个可见特点（各配局部放大）＋真实操作＋局部放大特写＋步骤引导、标题「掌机开箱：便携游戏体验」；不编造任何参数/功能/卖点；保留可编辑工程（项目与修订）并输出新的 MP4 成品。",
+        "assetKinds": {
+          "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01": "video"
+        }
+      },
+      "idempotencyKey": "0b47c3f456cf7c6162af654a2bf6766f6d428e8697c19b5aa1319264fda368a0",
+      "step": 3,
+      "durationMs": 13378
+    },
+    {
+      "tool": "narration.prepare",
+      "status": "completed",
+      "result": {
+        "enabled": true,
+        "asset": {
+          "id": "voice-8f2f6fed21e9229c",
+          "kind": "audio",
+          "generatedVoice": true,
+          "compiledRef": "assets/voice-8f2f6fed21e9229c.wav",
+          "normalizedRef": "assets/voice-8f2f6fed21e9229c.wav",
+          "sha256": "2b0dd2d64f22103c6bb03b048c9dd5a495e7e6a7c40b784c8770baf552f3413c",
+          "mediaMetadata": {
+            "kind": "audio",
+            "duration": 27.307479,
+            "frames": 819,
+            "width": 0,
+            "height": 0,
+            "rotation": 0,
+            "hasAudio": true,
+            "videoCodec": null,
+            "pixelFormat": null,
+            "audioCodec": "pcm_s16le",
+            "sourceFps": null,
+            "nominalFps": null,
+            "size": 5243114
+          },
+          "status": "ready",
+          "volume": 1,
+          "rights": {
+            "status": "generated",
+            "engine": "minimax",
+            "review": "separate-publisher-review"
+          },
+          "audioRole": "narration",
+          "speechRequest": {
+            "text": "掌机开箱，便携游戏体验。\n白色包装盒，印有掌机线稿和标语。\n附黑色拉链收纳包，包面有圆形标志。\n黑色掌机本体，屏幕和两侧按键清晰可见。\n打开盒子，从里面取出物件。\n放大看机身和屏幕的细节。\n第一步，掀开盒盖。\n第二步，取出白色内盒。\n第三步，取出说明书和内衬。",
+            "voice": "Chinese (Mandarin)_Gentle_Senior",
+            "rate": 1
+          },
+          "providerTranscript": {
+            "model": "small",
+            "engine": "faster-whisper",
+            "language": "zh",
+            "text": "掌机开箱,便携游戏体验白色包装盒,亦有掌机线稿和标语附黑色拉链收纳包,包面有圆形标志黑色掌机本体,屏幕和两侧按键清晰可见打开盒子,从里面取出物件放大看机身和屏幕的细节第一步,先开盒盖第二步,取出白色内盒第三步,取出说明书和内衬",
+            "words": [
+              {
+                "text": "掌",
+                "start": 0,
+                "end": 0.3
+              },
+              {
+                "text": "机",
+                "start": 0.3,
+                "end": 0.46
+              },
+              {
+                "text": "开",
+                "start": 0.46,
+                "end": 0.64
+              },
+              {
+                "text": "箱,",
+                "start": 0.64,
+                "end": 0.92
+              },
+              {
+                "text": "便",
+                "start": 1.32,
+                "end": 1.4
+              },
+              {
+                "text": "携",
+                "start": 1.4,
+                "end": 1.64
+              },
+              {
+                "text": "游",
+                "start": 1.64,
+                "end": 1.84
+              },
+              {
+                "text": "戏",
+                "start": 1.84,
+                "end": 1.98
+              },
+              {
+                "text": "体",
+                "start": 1.98,
+                "end": 2.16
+              },
+              {
+                "text": "验",
+                "start": 2.16,
+                "end": 2.38
+              },
+              {
+                "text": "白",
+                "start": 2.38,
+                "end": 3.04
+              },
+              {
+                "text": "色",
+                "start": 3.04,
+                "end": 3.18
+              },
+              {
+                "text": "包",
+                "start": 3.18,
+                "end": 3.34
+              },
+              {
+                "text": "装",
+                "start": 3.34,
+                "end": 3.48
+              },
+              {
+                "text": "盒,",
+                "start": 3.48,
+                "end": 3.82
+              },
+              {
+                "text": "亦",
+                "start": 4.24,
+                "end": 4.3
+              },
+              {
+                "text": "有",
+                "start": 4.3,
+                "end": 4.54
+              },
+              {
+                "text": "掌",
+                "start": 4.54,
+                "end": 4.8
+              },
+              {
+                "text": "机",
+                "start": 4.8,
+                "end": 5
+              },
+              {
+                "text": "线",
+                "start": 5,
+                "end": 5.2
+              },
+              {
+                "text": "稿",
+                "start": 5.2,
+                "end": 5.4
+              },
+              {
+                "text": "和",
+                "start": 5.4,
+                "end": 5.62
+              },
+              {
+                "text": "标",
+                "start": 5.62,
+                "end": 5.8
+              },
+              {
+                "text": "语",
+                "start": 5.8,
+                "end": 6.2
+              },
+              {
+                "text": "附",
+                "start": 6.2,
+                "end": 6.72
+              },
+              {
+                "text": "黑",
+                "start": 6.72,
+                "end": 7.08
+              },
+              {
+                "text": "色",
+                "start": 7.08,
+                "end": 7.26
+              },
+              {
+                "text": "拉",
+                "start": 7.26,
+                "end": 7.44
+              },
+              {
+                "text": "链",
+                "start": 7.44,
+                "end": 7.6
+              },
+              {
+                "text": "收",
+                "start": 7.6,
+                "end": 7.8
+              },
+              {
+                "text": "纳",
+                "start": 7.8,
+                "end": 7.96
+              },
+              {
+                "text": "包,",
+                "start": 7.96,
+                "end": 8.2
+              },
+              {
+                "text": "包",
+                "start": 8.66,
+                "end": 8.86
+              },
+              {
+                "text": "面",
+                "start": 8.86,
+                "end": 9.08
+              },
+              {
+                "text": "有",
+                "start": 9.08,
+                "end": 9.36
+              },
+              {
+                "text": "圆",
+                "start": 9.36,
+                "end": 9.54
+              },
+              {
+                "text": "形",
+                "start": 9.54,
+                "end": 9.72
+              },
+              {
+                "text": "标",
+                "start": 9.72,
+                "end": 9.92
+              },
+              {
+                "text": "志",
+                "start": 9.92,
+                "end": 10.18
+              },
+              {
+                "text": "黑",
+                "start": 10.18,
+                "end": 10.82
+              },
+              {
+                "text": "色",
+                "start": 10.82,
+                "end": 11
+              },
+              {
+                "text": "掌",
+                "start": 11,
+                "end": 11.2
+              },
+              {
+                "text": "机",
+                "start": 11.2,
+                "end": 11.34
+              },
+              {
+                "text": "本",
+                "start": 11.34,
+                "end": 11.52
+              },
+              {
+                "text": "体,",
+                "start": 11.52,
+                "end": 11.8
+              },
+              {
+                "text": "屏",
+                "start": 12.28,
+                "end": 12.44
+              },
+              {
+                "text": "幕",
+                "start": 12.44,
+                "end": 12.72
+              },
+              {
+                "text": "和",
+                "start": 12.72,
+                "end": 12.88
+              },
+              {
+                "text": "两",
+                "start": 12.88,
+                "end": 13.06
+              },
+              {
+                "text": "侧",
+                "start": 13.06,
+                "end": 13.24
+              },
+              {
+                "text": "按",
+                "start": 13.24,
+                "end": 13.44
+              },
+              {
+                "text": "键",
+                "start": 13.44,
+                "end": 13.62
+              },
+              {
+                "text": "清",
+                "start": 13.62,
+                "end": 13.92
+              },
+              {
+                "text": "晰",
+                "start": 13.92,
+                "end": 14.08
+              },
+              {
+                "text": "可",
+                "start": 14.08,
+                "end": 14.28
+              },
+              {
+                "text": "见",
+                "start": 14.28,
+                "end": 14.54
+              },
+              {
+                "text": "打",
+                "start": 14.54,
+                "end": 15.12
+              },
+              {
+                "text": "开",
+                "start": 15.12,
+                "end": 15.3
+              },
+              {
+                "text": "盒",
+                "start": 15.3,
+                "end": 15.5
+              },
+              {
+                "text": "子,",
+                "start": 15.5,
+                "end": 15.72
+              },
+              {
+                "text": "从",
+                "start": 16.1,
+                "end": 16.18
+              },
+              {
+                "text": "里",
+                "start": 16.18,
+                "end": 16.36
+              },
+              {
+                "text": "面",
+                "start": 16.36,
+                "end": 16.54
+              },
+              {
+                "text": "取",
+                "start": 16.54,
+                "end": 16.68
+              },
+              {
+                "text": "出",
+                "start": 16.68,
+                "end": 16.84
+              },
+              {
+                "text": "物",
+                "start": 16.84,
+                "end": 17.02
+              },
+              {
+                "text": "件",
+                "start": 17.02,
+                "end": 17.2
+              },
+              {
+                "text": "放",
+                "start": 17.2,
+                "end": 17.9
+              },
+              {
+                "text": "大",
+                "start": 17.9,
+                "end": 18.1
+              },
+              {
+                "text": "看",
+                "start": 18.1,
+                "end": 18.28
+              },
+              {
+                "text": "机",
+                "start": 18.28,
+                "end": 18.5
+              },
+              {
+                "text": "身",
+                "start": 18.5,
+                "end": 18.72
+              },
+              {
+                "text": "和",
+                "start": 18.72,
+                "end": 18.92
+              },
+              {
+                "text": "屏",
+                "start": 18.92,
+                "end": 19.08
+              },
+              {
+                "text": "幕",
+                "start": 19.08,
+                "end": 19.22
+              },
+              {
+                "text": "的",
+                "start": 19.22,
+                "end": 19.32
+              },
+              {
+                "text": "细",
+                "start": 19.32,
+                "end": 19.52
+              },
+              {
+                "text": "节",
+                "start": 19.52,
+                "end": 19.78
+              },
+              {
+                "text": "第一",
+                "start": 19.78,
+                "end": 20.54
+              },
+              {
+                "text": "步,",
+                "start": 20.54,
+                "end": 20.8
+              },
+              {
+                "text": "先",
+                "start": 21.16,
+                "end": 21.32
+              },
+              {
+                "text": "开",
+                "start": 21.32,
+                "end": 21.52
+              },
+              {
+                "text": "盒",
+                "start": 21.52,
+                "end": 21.68
+              },
+              {
+                "text": "盖",
+                "start": 21.68,
+                "end": 21.88
+              },
+              {
+                "text": "第二",
+                "start": 21.88,
+                "end": 22.56
+              },
+              {
+                "text": "步,",
+                "start": 22.56,
+                "end": 22.86
+              },
+              {
+                "text": "取",
+                "start": 23.08,
+                "end": 23.16
+              },
+              {
+                "text": "出",
+                "start": 23.16,
+                "end": 23.32
+              },
+              {
+                "text": "白",
+                "start": 23.32,
+                "end": 23.46
+              },
+              {
+                "text": "色",
+                "start": 23.46,
+                "end": 23.64
+              },
+              {
+                "text": "内",
+                "start": 23.64,
+                "end": 23.8
+              },
+              {
+                "text": "盒",
+                "start": 23.8,
+                "end": 24.06
+              },
+              {
+                "text": "第三",
+                "start": 24.48,
+                "end": 24.88
+              },
+              {
+                "text": "步,",
+                "start": 24.88,
+                "end": 25.28
+              },
+              {
+                "text": "取",
+                "start": 25.58,
+                "end": 25.68
+              },
+              {
+                "text": "出",
+                "start": 25.68,
+                "end": 25.88
+              },
+              {
+                "text": "说",
+                "start": 25.88,
+                "end": 26.04
+              },
+              {
+                "text": "明",
+                "start": 26.04,
+                "end": 26.2
+              },
+              {
+                "text": "书",
+                "start": 26.2,
+                "end": 26.42
+              },
+              {
+                "text": "和",
+                "start": 26.42,
+                "end": 26.58
+              },
+              {
+                "text": "内",
+                "start": 26.58,
+                "end": 26.76
+              },
+              {
+                "text": "衬",
+                "start": 26.76,
+                "end": 26.94
+              }
+            ],
+            "segments": [
+              {
+                "start": 0,
+                "end": 2.38,
+                "text": "掌机开箱,便携游戏体验"
+              },
+              {
+                "start": 2.38,
+                "end": 6.2,
+                "text": "白色包装盒,亦有掌机线稿和标语"
+              },
+              {
+                "start": 6.2,
+                "end": 10.18,
+                "text": "附黑色拉链收纳包,包面有圆形标志"
+              },
+              {
+                "start": 10.18,
+                "end": 14.54,
+                "text": "黑色掌机本体,屏幕和两侧按键清晰可见"
+              },
+              {
+                "start": 14.54,
+                "end": 17.2,
+                "text": "打开盒子,从里面取出物件"
+              },
+              {
+                "start": 17.2,
+                "end": 19.78,
+                "text": "放大看机身和屏幕的细节"
+              },
+              {
+                "start": 19.78,
+                "end": 21.88,
+                "text": "第一步,先开盒盖"
+              },
+              {
+                "start": 21.88,
+                "end": 24.06,
+                "text": "第二步,取出白色内盒"
+              },
+              {
+                "start": 24.48,
+                "end": 26.94,
+                "text": "第三步,取出说明书和内衬"
+              }
+            ],
+            "reviewRequired": true,
+            "metrics": {
+              "asrMs": 6690,
+              "queueMs": 1,
+              "workerMs": 6737,
+              "cacheHit": false
+            },
+            "status": "completed",
+            "sourceSha256": "2b0dd2d64f22103c6bb03b048c9dd5a495e7e6a7c40b784c8770baf552f3413c",
+            "source": "local-asr"
+          }
+        },
+        "script": {
+          "text": "掌机开箱，便携游戏体验。\n白色包装盒，印有掌机线稿和标语。\n附黑色拉链收纳包，包面有圆形标志。\n黑色掌机本体，屏幕和两侧按键清晰可见。\n打开盒子，从里面取出物件。\n放大看机身和屏幕的细节。\n第一步，掀开盒盖。\n第二步，取出白色内盒。\n第三步，取出说明书和内衬。",
+          "voice": "Chinese (Mandarin)_Gentle_Senior",
+          "basis": "在给定 voiceCandidates 中，Chinese (Mandarin)_Gentle_Senior（温柔学姐）得分最高（13），且与 AudioRequirement 匹配度最好：gender 为 neutral，与需求 gender=neutral 精确吻合（其余 top 候选 Gentle_Youth/Sweet_Lady/Warm_Girl 均为 male/female，性别即不匹配）；tone=warm、speed=medium、commercial_style 含 tutorial，三项与需求完全一致；recommended_scene 覆盖 product_tutorial，正对 product_demo 的教程性质；platform 含 general 常用投放端。已知取舍：其 emotion=neutral、age=young，与需求 emotion=trustworthy、age=adult 不完全对齐；候选中 emotion 最贴近 trustworthy 的 Chinese (Mandarin)_Reliable_Executive 为 male、tone=professional，性别与温暖调性均不符且得分仅 11，故不优先。综合性别、语调、语速与教程风格，首选温柔学姐用于本次 9 镜中性温和的中文教程口播，medium 语速适配约 45s 时长、不加速。"
+        },
+        "transcript": {
+          "model": "small",
+          "engine": "faster-whisper",
+          "language": "zh",
+          "text": "掌机开箱,便携游戏体验白色包装盒,亦有掌机线稿和标语附黑色拉链收纳包,包面有圆形标志黑色掌机本体,屏幕和两侧按键清晰可见打开盒子,从里面取出物件放大看机身和屏幕的细节第一步,先开盒盖第二步,取出白色内盒第三步,取出说明书和内衬",
+          "words": [
+            {
+              "text": "掌",
+              "start": 0,
+              "end": 0.3
+            },
+            {
+              "text": "机",
+              "start": 0.3,
+              "end": 0.46
+            },
+            {
+              "text": "开",
+              "start": 0.46,
+              "end": 0.64
+            },
+            {
+              "text": "箱,",
+              "start": 0.64,
+              "end": 0.92
+            },
+            {
+              "text": "便",
+              "start": 1.32,
+              "end": 1.4
+            },
+            {
+              "text": "携",
+              "start": 1.4,
+              "end": 1.64
+            },
+            {
+              "text": "游",
+              "start": 1.64,
+              "end": 1.84
+            },
+            {
+              "text": "戏",
+              "start": 1.84,
+              "end": 1.98
+            },
+            {
+              "text": "体",
+              "start": 1.98,
+              "end": 2.16
+            },
+            {
+              "text": "验",
+              "start": 2.16,
+              "end": 2.38
+            },
+            {
+              "text": "白",
+              "start": 2.38,
+              "end": 3.04
+            },
+            {
+              "text": "色",
+              "start": 3.04,
+              "end": 3.18
+            },
+            {
+              "text": "包",
+              "start": 3.18,
+              "end": 3.34
+            },
+            {
+              "text": "装",
+              "start": 3.34,
+              "end": 3.48
+            },
+            {
+              "text": "盒,",
+              "start": 3.48,
+              "end": 3.82
+            },
+            {
+              "text": "亦",
+              "start": 4.24,
+              "end": 4.3
+            },
+            {
+              "text": "有",
+              "start": 4.3,
+              "end": 4.54
+            },
+            {
+              "text": "掌",
+              "start": 4.54,
+              "end": 4.8
+            },
+            {
+              "text": "机",
+              "start": 4.8,
+              "end": 5
+            },
+            {
+              "text": "线",
+              "start": 5,
+              "end": 5.2
+            },
+            {
+              "text": "稿",
+              "start": 5.2,
+              "end": 5.4
+            },
+            {
+              "text": "和",
+              "start": 5.4,
+              "end": 5.62
+            },
+            {
+              "text": "标",
+              "start": 5.62,
+              "end": 5.8
+            },
+            {
+              "text": "语",
+              "start": 5.8,
+              "end": 6.2
+            },
+            {
+              "text": "附",
+              "start": 6.2,
+              "end": 6.72
+            },
+            {
+              "text": "黑",
+              "start": 6.72,
+              "end": 7.08
+            },
+            {
+              "text": "色",
+              "start": 7.08,
+              "end": 7.26
+            },
+            {
+              "text": "拉",
+              "start": 7.26,
+              "end": 7.44
+            },
+            {
+              "text": "链",
+              "start": 7.44,
+              "end": 7.6
+            },
+            {
+              "text": "收",
+              "start": 7.6,
+              "end": 7.8
+            },
+            {
+              "text": "纳",
+              "start": 7.8,
+              "end": 7.96
+            },
+            {
+              "text": "包,",
+              "start": 7.96,
+              "end": 8.2
+            },
+            {
+              "text": "包",
+              "start": 8.66,
+              "end": 8.86
+            },
+            {
+              "text": "面",
+              "start": 8.86,
+              "end": 9.08
+            },
+            {
+              "text": "有",
+              "start": 9.08,
+              "end": 9.36
+            },
+            {
+              "text": "圆",
+              "start": 9.36,
+              "end": 9.54
+            },
+            {
+              "text": "形",
+              "start": 9.54,
+              "end": 9.72
+            },
+            {
+              "text": "标",
+              "start": 9.72,
+              "end": 9.92
+            },
+            {
+              "text": "志",
+              "start": 9.92,
+              "end": 10.18
+            },
+            {
+              "text": "黑",
+              "start": 10.18,
+              "end": 10.82
+            },
+            {
+              "text": "色",
+              "start": 10.82,
+              "end": 11
+            },
+            {
+              "text": "掌",
+              "start": 11,
+              "end": 11.2
+            },
+            {
+              "text": "机",
+              "start": 11.2,
+              "end": 11.34
+            },
+            {
+              "text": "本",
+              "start": 11.34,
+              "end": 11.52
+            },
+            {
+              "text": "体,",
+              "start": 11.52,
+              "end": 11.8
+            },
+            {
+              "text": "屏",
+              "start": 12.28,
+              "end": 12.44
+            },
+            {
+              "text": "幕",
+              "start": 12.44,
+              "end": 12.72
+            },
+            {
+              "text": "和",
+              "start": 12.72,
+              "end": 12.88
+            },
+            {
+              "text": "两",
+              "start": 12.88,
+              "end": 13.06
+            },
+            {
+              "text": "侧",
+              "start": 13.06,
+              "end": 13.24
+            },
+            {
+              "text": "按",
+              "start": 13.24,
+              "end": 13.44
+            },
+            {
+              "text": "键",
+              "start": 13.44,
+              "end": 13.62
+            },
+            {
+              "text": "清",
+              "start": 13.62,
+              "end": 13.92
+            },
+            {
+              "text": "晰",
+              "start": 13.92,
+              "end": 14.08
+            },
+            {
+              "text": "可",
+              "start": 14.08,
+              "end": 14.28
+            },
+            {
+              "text": "见",
+              "start": 14.28,
+              "end": 14.54
+            },
+            {
+              "text": "打",
+              "start": 14.54,
+              "end": 15.12
+            },
+            {
+              "text": "开",
+              "start": 15.12,
+              "end": 15.3
+            },
+            {
+              "text": "盒",
+              "start": 15.3,
+              "end": 15.5
+            },
+            {
+              "text": "子,",
+              "start": 15.5,
+              "end": 15.72
+            },
+            {
+              "text": "从",
+              "start": 16.1,
+              "end": 16.18
+            },
+            {
+              "text": "里",
+              "start": 16.18,
+              "end": 16.36
+            },
+            {
+              "text": "面",
+              "start": 16.36,
+              "end": 16.54
+            },
+            {
+              "text": "取",
+              "start": 16.54,
+              "end": 16.68
+            },
+            {
+              "text": "出",
+              "start": 16.68,
+              "end": 16.84
+            },
+            {
+              "text": "物",
+              "start": 16.84,
+              "end": 17.02
+            },
+            {
+              "text": "件",
+              "start": 17.02,
+              "end": 17.2
+            },
+            {
+              "text": "放",
+              "start": 17.2,
+              "end": 17.9
+            },
+            {
+              "text": "大",
+              "start": 17.9,
+              "end": 18.1
+            },
+            {
+              "text": "看",
+              "start": 18.1,
+              "end": 18.28
+            },
+            {
+              "text": "机",
+              "start": 18.28,
+              "end": 18.5
+            },
+            {
+              "text": "身",
+              "start": 18.5,
+              "end": 18.72
+            },
+            {
+              "text": "和",
+              "start": 18.72,
+              "end": 18.92
+            },
+            {
+              "text": "屏",
+              "start": 18.92,
+              "end": 19.08
+            },
+            {
+              "text": "幕",
+              "start": 19.08,
+              "end": 19.22
+            },
+            {
+              "text": "的",
+              "start": 19.22,
+              "end": 19.32
+            },
+            {
+              "text": "细",
+              "start": 19.32,
+              "end": 19.52
+            },
+            {
+              "text": "节",
+              "start": 19.52,
+              "end": 19.78
+            },
+            {
+              "text": "第一",
+              "start": 19.78,
+              "end": 20.54
+            },
+            {
+              "text": "步,",
+              "start": 20.54,
+              "end": 20.8
+            },
+            {
+              "text": "先",
+              "start": 21.16,
+              "end": 21.32
+            },
+            {
+              "text": "开",
+              "start": 21.32,
+              "end": 21.52
+            },
+            {
+              "text": "盒",
+              "start": 21.52,
+              "end": 21.68
+            },
+            {
+              "text": "盖",
+              "start": 21.68,
+              "end": 21.88
+            },
+            {
+              "text": "第二",
+              "start": 21.88,
+              "end": 22.56
+            },
+            {
+              "text": "步,",
+              "start": 22.56,
+              "end": 22.86
+            },
+            {
+              "text": "取",
+              "start": 23.08,
+              "end": 23.16
+            },
+            {
+              "text": "出",
+              "start": 23.16,
+              "end": 23.32
+            },
+            {
+              "text": "白",
+              "start": 23.32,
+              "end": 23.46
+            },
+            {
+              "text": "色",
+              "start": 23.46,
+              "end": 23.64
+            },
+            {
+              "text": "内",
+              "start": 23.64,
+              "end": 23.8
+            },
+            {
+              "text": "盒",
+              "start": 23.8,
+              "end": 24.06
+            },
+            {
+              "text": "第三",
+              "start": 24.48,
+              "end": 24.88
+            },
+            {
+              "text": "步,",
+              "start": 24.88,
+              "end": 25.28
+            },
+            {
+              "text": "取",
+              "start": 25.58,
+              "end": 25.68
+            },
+            {
+              "text": "出",
+              "start": 25.68,
+              "end": 25.88
+            },
+            {
+              "text": "说",
+              "start": 25.88,
+              "end": 26.04
+            },
+            {
+              "text": "明",
+              "start": 26.04,
+              "end": 26.2
+            },
+            {
+              "text": "书",
+              "start": 26.2,
+              "end": 26.42
+            },
+            {
+              "text": "和",
+              "start": 26.42,
+              "end": 26.58
+            },
+            {
+              "text": "内",
+              "start": 26.58,
+              "end": 26.76
+            },
+            {
+              "text": "衬",
+              "start": 26.76,
+              "end": 26.94
+            }
+          ],
+          "segments": [
+            {
+              "start": 0,
+              "end": 2.38,
+              "text": "掌机开箱,便携游戏体验"
+            },
+            {
+              "start": 2.38,
+              "end": 6.2,
+              "text": "白色包装盒,亦有掌机线稿和标语"
+            },
+            {
+              "start": 6.2,
+              "end": 10.18,
+              "text": "附黑色拉链收纳包,包面有圆形标志"
+            },
+            {
+              "start": 10.18,
+              "end": 14.54,
+              "text": "黑色掌机本体,屏幕和两侧按键清晰可见"
+            },
+            {
+              "start": 14.54,
+              "end": 17.2,
+              "text": "打开盒子,从里面取出物件"
+            },
+            {
+              "start": 17.2,
+              "end": 19.78,
+              "text": "放大看机身和屏幕的细节"
+            },
+            {
+              "start": 19.78,
+              "end": 21.88,
+              "text": "第一步,先开盒盖"
+            },
+            {
+              "start": 21.88,
+              "end": 24.06,
+              "text": "第二步,取出白色内盒"
+            },
+            {
+              "start": 24.48,
+              "end": 26.94,
+              "text": "第三步,取出说明书和内衬"
+            }
+          ],
+          "reviewRequired": true,
+          "metrics": {
+            "asrMs": 6690,
+            "queueMs": 1,
+            "workerMs": 6737,
+            "cacheHit": false
+          },
+          "status": "completed"
+        },
+        "tool": "minimax.tts-and-local.transcribe",
+        "voice": "Chinese (Mandarin)_Gentle_Senior",
+        "rate": 1,
+        "measuredSeconds": 27.307479,
+        "metrics": {
+          "engine": "minimax",
+          "voice": "Chinese (Mandarin)_Gentle_Senior",
+          "rate": 1,
+          "cacheHit": true,
+          "operationId": "c78e5e7b-3045-42f2-a149-edbaf3b1c31d",
+          "provenance": "minimax-live"
+        }
+      },
+      "idempotencyKey": "9bc9dff0b87983f04d00059535bf49e5262a40f421beeb5d6149a4f7be913fd0",
+      "step": 4,
+      "durationMs": 18308
+    },
+    {
+      "tool": "story.plan",
+      "status": "completed",
+      "result": {
+        "inspectActions": [],
+        "inspectRanges": [],
+        "blockingGaps": [],
+        "summary": "resume 承接同一项目 c6cd5bb8（checkpoint：stage 安排整片内容与节奏，OPENCLAW_STAGE_TIMEOUT）；不 create、不新建工程、不重传素材；沿用唯一素材 asset-e8779cc0-0dba-4f37-a3a3-218c25440e01 与既有旁白 voice-8f2f6fed21e9229c。修正上一轮退回项「video-text-pivot / subject-or-action-protection」：需保护主体与动作的关键镜头（特点1/2/3、真实操作、特写、步骤1/2/3）改用低遮挡 lt-mask-reveal；仅首镜 title-reveal 用标题位。总长 approximate，target 1350 帧@30fps（45s），允许 1283–1417；9 镜 ×5s、cut，总帧数=各幕之和=1350=target，实际 45.000s。源区间（互不重复）：1 Hook 1.4–6.4s；2 外包装盒 29.3–34.3s；3 收纳包 34.9–39.9s；4 机身与屏幕 46.1–51.1s；5 取物 40.5–45.5s；6 机身特写 62.9–67.9s；7 掀盒盖 7.0–12.0s；8 取内盒 12.6–17.6s；9 取说明卡 18.2–23.2s；逐镜 9:16 居中裁切、speed 1.0、seek-safe、deterministic。音频：旁白拆 9 项，源时间 0→27.307s 连续无重叠无遗漏，成片起点 0/5/10/15/20/25/30/35/40s，原速；源声轨 volume 1 整段保留，旁白段 ducking、间隙恢复。字幕对齐实测时间轴、避开上12%/下18%保护区。BGM 缺口按授权降级（源声轨＋旁白），记入 quality_report。限制：抽帧非逐帧（约0.7–1.8s/帧），入出点近似；镜头2/5/7/9 锁定区间与实测动作错位，按 resume 需求保留并在 cutBasis 标注；源创作者浮层按最大外扩避让；未试听源声（listening.available=false）。未提交 inspectActions/inspectRanges；旁白无容量冲突，narrationRevision 保留当前完整稿。",
+        "transition": "cut",
+        "design": {
+          "background": "#0B0E13",
+          "foreground": "#FFFFFF",
+          "panel": "#141A22",
+          "accent": "#2F7BFF",
+          "accentContrast": "#FFFFFF",
+          "fontFamily": "Microsoft YaHei",
+          "typeScale": {
+            "title": 68,
+            "body": 42,
+            "label": 32
+          },
+          "safeMarginPx": 72,
+          "labelStyle": "统一标签：半透明深色胶囊（#141A22、约90%不透明、圆角10px），左侧4px强调竖条 #2F7BFF，文字 #FFFFFF / Microsoft YaHei Medium / 32px，内边距12×22；只置下三分之一且不越过 safeArea（上12%/下18%）；标题68px仅首镜标题位。全片标签字体、形状、边距、层级一致。",
+          "description": "竖屏1080×1920教程包装：源画面全屏9:16居中裁切为底，顶部12%标题区仅首镜使用，底部18%用统一深色半透明胶囊标签承载可见特点/步骤说明；文字与源创作者浮层互不重叠。"
+        },
+        "audio": [
+          {
+            "assetId": "voice-8f2f6fed21e9229c",
+            "volume": 1,
+            "sourceStartSeconds": 0,
+            "startSeconds": 0,
+            "durationSeconds": 2.38
+          },
+          {
+            "assetId": "voice-8f2f6fed21e9229c",
+            "volume": 1,
+            "sourceStartSeconds": 2.38,
+            "startSeconds": 5,
+            "durationSeconds": 3.82
+          },
+          {
+            "assetId": "voice-8f2f6fed21e9229c",
+            "volume": 1,
+            "sourceStartSeconds": 6.2,
+            "startSeconds": 10,
+            "durationSeconds": 3.98
+          },
+          {
+            "assetId": "voice-8f2f6fed21e9229c",
+            "volume": 1,
+            "sourceStartSeconds": 10.18,
+            "startSeconds": 15,
+            "durationSeconds": 4.36
+          },
+          {
+            "assetId": "voice-8f2f6fed21e9229c",
+            "volume": 1,
+            "sourceStartSeconds": 14.54,
+            "startSeconds": 20,
+            "durationSeconds": 2.66
+          },
+          {
+            "assetId": "voice-8f2f6fed21e9229c",
+            "volume": 1,
+            "sourceStartSeconds": 17.2,
+            "startSeconds": 25,
+            "durationSeconds": 2.58
+          },
+          {
+            "assetId": "voice-8f2f6fed21e9229c",
+            "volume": 1,
+            "sourceStartSeconds": 19.78,
+            "startSeconds": 30,
+            "durationSeconds": 2.1
+          },
+          {
+            "assetId": "voice-8f2f6fed21e9229c",
+            "volume": 1,
+            "sourceStartSeconds": 21.88,
+            "startSeconds": 35,
+            "durationSeconds": 2.18
+          },
+          {
+            "assetId": "voice-8f2f6fed21e9229c",
+            "volume": 1,
+            "sourceStartSeconds": 24.06,
+            "startSeconds": 40,
+            "durationSeconds": 3.247479
+          },
+          {
+            "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+            "volume": 1,
+            "sourceStartSeconds": 0,
+            "startSeconds": 0,
+            "durationSeconds": 45
+          }
+        ],
+        "omitted": [],
+        "paragraphs": [
+          {
+            "id": "p1",
+            "purpose": "钩子/主题",
+            "information": "掌机开箱主题与标题「掌机开箱：便携游戏体验」"
+          },
+          {
+            "id": "p2",
+            "purpose": "可见特点1",
+            "information": "白色外包装盒（掌机线稿与标语）"
+          },
+          {
+            "id": "p3",
+            "purpose": "可见特点2",
+            "information": "黑色拉链收纳包及包面圆形标志"
+          },
+          {
+            "id": "p4",
+            "purpose": "可见特点3",
+            "information": "掌机机身与屏幕、两侧按键"
+          },
+          {
+            "id": "p5",
+            "purpose": "真实操作",
+            "information": "从盒内取出物件的过程"
+          },
+          {
+            "id": "p6",
+            "purpose": "局部放大特写",
+            "information": "机身与屏幕细节"
+          },
+          {
+            "id": "p7",
+            "purpose": "步骤引导第1步",
+            "information": "掀开盒盖"
+          },
+          {
+            "id": "p8",
+            "purpose": "步骤引导第2步",
+            "information": "取出白色内盒"
+          },
+          {
+            "id": "p9",
+            "purpose": "步骤引导第3步",
+            "information": "取出说明书和内衬"
+          }
+        ],
+        "narrationRevision": null,
+        "scenes": [
+          {
+            "purpose": "Hook：真实开箱动作点题并建立观看动机",
+            "effect": "title-reveal",
+            "weight": 1,
+            "durationSeconds": 5,
+            "reason": "以真实开箱动作充当钩子，避免空镜与虚构卖点；标题点题，动作保持可见。",
+            "media": [
+              {
+                "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+                "sourceStartSeconds": 1.4,
+                "playbackRate": 1,
+                "fit": "cover"
+              }
+            ],
+            "text": [
+              {
+                "role": "title",
+                "text": "掌机开箱：便携游戏体验",
+                "factRefs": []
+              }
+            ],
+            "paragraphId": "p1",
+            "newInformation": "确立掌机开箱主题与标题定位。",
+            "resourceId": "titlecard-reveal",
+            "visualDirection": "画面辅文字主：真实开箱全屏为底，标题置上安全区不遮挡箱体；开场吸引点=纸盒闭合到掀开的真实动作；克制=不出现价格参数卖点。",
+            "layoutVariant": "auto",
+            "editorialDecision": {
+              "placementReason": "第1镜，全片开头；用真实开箱动作在前3秒建立兴趣并点题。",
+              "cutBasis": "需求锁定1.4–6.4s；抽帧（detail-contact-0，约0.7s/帧）实测纸盒闭合→双手推动转动→约5.44s扶盖、6.16s掀起；入出点为近似、非逐帧确认。",
+              "subjectProtection": "9:16居中裁切（safeCrop x0.3418–0.6582）保持纸盒居中；标题置上安全区不覆盖箱体；源创作者浮层按最大外扩避让。",
+              "audioRelationship": "保留源声轨；旁白第1句置于0s起、长2.38s；未试听源声（listening.available=false），不虚构衔接。",
+              "transitionPurpose": "首镜硬切入。"
+            },
+            "productionMethod": "parameterized",
+            "id": "scene-01"
+          },
+          {
+            "purpose": "可见特点1：展示白色外包装盒（含掌机线稿与标语），局部放大",
+            "effect": "feature-callout",
+            "weight": 1,
+            "durationSeconds": 5,
+            "reason": "承接Hook后先给最直观的包装可见特征；用低遮挡下三分之一标签保持盒面可见。",
+            "media": [
+              {
+                "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+                "sourceStartSeconds": 29.3,
+                "playbackRate": 1,
+                "fit": "cover"
+              }
+            ],
+            "text": [
+              {
+                "role": "feature",
+                "text": "白色包装盒",
+                "factRefs": []
+              }
+            ],
+            "paragraphId": "p2",
+            "newInformation": "看到外包装盒正面（掌机线稿与标语）这一可见实物特征。",
+            "resourceId": "lt-mask-reveal",
+            "visualDirection": "画面主文字辅：盒体全屏并局部放大盒面；标签仅作下三分之一标注不接管全屏；克制=不解读参数卖点。",
+            "layoutVariant": "auto",
+            "editorialDecision": {
+              "placementReason": "第2镜，承接Hook后先给最直观的外包装盒可见特征。",
+              "cutBasis": "需求锁定29.3–34.3s；实测白色零售盒展示约27.5–30.3s、约32.1s起为黑色收纳包——区间与实测动作部分错位，前段覆盖盒体，按 resume 需求保留并标注不匹配，入出点近似。",
+              "subjectProtection": "盒体居中放大；标签置下三分之一不覆盖盒面文字；改用低遮挡 lt-mask-reveal 保证主体与动作始终可见。",
+              "audioRelationship": "旁白第2句5s起、长3.82s，与画面同步；未试听源声，不虚构衔接。",
+              "transitionPurpose": "与上镜同源连续动作，硬切。"
+            },
+            "productionMethod": "parameterized",
+            "id": "scene-02"
+          },
+          {
+            "purpose": "可见特点2：黑色拉链收纳包，局部放大",
+            "effect": "detail-inset",
+            "weight": 1,
+            "durationSeconds": 5,
+            "reason": "展示第二个可见配件特征，保持真实证据与动作可见。",
+            "media": [
+              {
+                "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+                "sourceStartSeconds": 34.9,
+                "playbackRate": 1,
+                "fit": "cover"
+              }
+            ],
+            "text": [
+              {
+                "role": "feature",
+                "text": "黑色拉链收纳包",
+                "factRefs": []
+              }
+            ],
+            "paragraphId": "p3",
+            "newInformation": "看到黑色拉链收纳包及其包面圆形标志。",
+            "resourceId": "lt-mask-reveal",
+            "visualDirection": "收纳包居中放大、圆形标志可见；标签下三分之一；克制=不夸大收纳性能，不做全屏文字接管。",
+            "layoutVariant": "auto",
+            "editorialDecision": {
+              "placementReason": "第3镜，展示第二个可见配件特征。",
+              "cutBasis": "需求锁定34.9–39.9s；实测收纳包手持展示约32.1–39.4s，与本区间大体重合，入出点近似（非逐帧）。",
+              "subjectProtection": "收纳包居中，标签置下三分之一，不遮挡包面圆形标志与手持动作。",
+              "audioRelationship": "旁白第3句10s起、长3.98s；未试听源声，不虚构衔接。",
+              "transitionPurpose": "硬切。"
+            },
+            "productionMethod": "parameterized",
+            "id": "scene-03"
+          },
+          {
+            "purpose": "可见特点3：掌机机身与屏幕，局部放大",
+            "effect": "detail-inset",
+            "weight": 1,
+            "durationSeconds": 5,
+            "reason": "呈现核心可见特征（本体与屏幕），保护主体细节不被文字遮挡。",
+            "media": [
+              {
+                "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+                "sourceStartSeconds": 46.1,
+                "playbackRate": 1,
+                "fit": "cover"
+              }
+            ],
+            "text": [
+              {
+                "role": "feature",
+                "text": "掌机机身与屏幕",
+                "factRefs": []
+              }
+            ],
+            "paragraphId": "p4",
+            "newInformation": "看到掌机本体、屏幕与两侧按键的真实可见形态。",
+            "resourceId": "lt-mask-reveal",
+            "visualDirection": "机身居中，屏幕与两侧按键清晰；标签下三分之一；克制=不标未证实参数。",
+            "layoutVariant": "auto",
+            "editorialDecision": {
+              "placementReason": "第4镜，给掌机本体与屏幕这一核心可见特征。",
+              "cutBasis": "需求锁定46.1–51.1s；实测机身（屏幕按键朝上）展示约44.9–51.3s，重合良好，入出点近似。",
+              "subjectProtection": "机身在裁切内居中，标签置下三分之一，不覆盖屏幕与按键；低遮挡标签保证本体细节可见。",
+              "audioRelationship": "旁白第4句15s起、长4.36s；未试听源声，不虚构衔接。",
+              "transitionPurpose": "特征段内的硬切。"
+            },
+            "productionMethod": "parameterized",
+            "id": "scene-04"
+          },
+          {
+            "purpose": "真实操作：从盒内取出物件（过程可见）",
+            "effect": "media-cut",
+            "weight": 1,
+            "durationSeconds": 5,
+            "reason": "用真实操作承接特征到过程，服务新手复现；单段实拍加下三分之一标签，不覆盖动作。",
+            "media": [
+              {
+                "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+                "sourceStartSeconds": 40.5,
+                "playbackRate": 1,
+                "fit": "cover"
+              }
+            ],
+            "text": [
+              {
+                "role": "feature",
+                "text": "取出盒内物件",
+                "factRefs": []
+              }
+            ],
+            "paragraphId": "p5",
+            "newInformation": "看到从盒内取出物件的真实操作过程。",
+            "resourceId": "lt-mask-reveal",
+            "visualDirection": "手部操作居中下，标签下三分之一避让；强调过程完整可见；克制=不覆盖操作动作。",
+            "layoutVariant": "auto",
+            "editorialDecision": {
+              "placementReason": "第5镜，回到真实操作，承接特征展示后的过程说明。",
+              "cutBasis": "需求锁定40.5–45.5s；实测该段主要为收纳包与机身展示，取物动作更集中在8.5/12.3/20.9/26.2s——区间与实测动作错位，按 resume 需求保留并标注不匹配，入出点近似。",
+              "subjectProtection": "手部动作居中下，标签置下三分之一避免遮挡操作主体；低遮挡标签不中断动作。",
+              "audioRelationship": "旁白第5句20s起、长2.66s；未试听源声，不虚构衔接。",
+              "transitionPurpose": "硬切。"
+            },
+            "productionMethod": "parameterized",
+            "id": "scene-05"
+          },
+          {
+            "purpose": "局部放大特写：机身与屏幕细节",
+            "effect": "detail-inset",
+            "weight": 1,
+            "durationSeconds": 5,
+            "reason": "以局部放大强化细节记忆，收束特征段；保护特写主体不被文字遮挡。",
+            "media": [
+              {
+                "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+                "sourceStartSeconds": 62.9,
+                "playbackRate": 1,
+                "fit": "cover"
+              }
+            ],
+            "text": [
+              {
+                "role": "feature",
+                "text": "机身屏幕细节",
+                "factRefs": []
+              }
+            ],
+            "paragraphId": "p6",
+            "newInformation": "通过局部放大看机身与屏幕细节。",
+            "resourceId": "lt-mask-reveal",
+            "visualDirection": "机身特写居中，标签下三分之一；避让末段创作者浮层；克制=不叠加多余图形。",
+            "layoutVariant": "auto",
+            "editorialDecision": {
+              "placementReason": "第6镜，在收尾前给机身与屏幕的局部放大特写，强化细节记忆。",
+              "cutBasis": "需求锁定62.9–67.9s；实测57.2–67.4s为网眼袋→拉链→机身特写，末段机身特写与本区间重合，入出点近似。",
+              "subjectProtection": "机身特写居中，标签置下三分之一；末段有创作者浮层，按最大外扩避让。",
+              "audioRelationship": "旁白第6句25s起、长2.58s；未试听源声，不虚构衔接。",
+              "transitionPurpose": "硬切。"
+            },
+            "productionMethod": "parameterized",
+            "id": "scene-06"
+          },
+          {
+            "purpose": "步骤引导第1步：掀开盒盖",
+            "effect": "feature-callout",
+            "weight": 1,
+            "durationSeconds": 5,
+            "reason": "按真实顺序给第1个必要步骤；动作保持可见。",
+            "media": [
+              {
+                "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+                "sourceStartSeconds": 7,
+                "playbackRate": 1,
+                "fit": "cover"
+              }
+            ],
+            "text": [
+              {
+                "role": "feature",
+                "text": "第一步 · 掀开盒盖",
+                "factRefs": []
+              }
+            ],
+            "paragraphId": "p7",
+            "newInformation": "步骤1：掀开盒盖。",
+            "resourceId": "lt-mask-reveal",
+            "visualDirection": "步骤标签统一下三分之一，画面保持动作可见；克制=不用图形转场覆盖动作。",
+            "layoutVariant": "auto",
+            "editorialDecision": {
+              "placementReason": "第7镜，进入步骤引导第1步。",
+              "cutBasis": "需求锁定7.0–12.0s；实测掀盖动作约5.44–6.89s、该区间盒盖已开（8.5–9.7s为取出警示与说明卡）——区间与「掀盒盖」文案错位，按 resume 需求保留并标注不匹配，入出点近似。",
+              "subjectProtection": "盒体居中，步骤标签置下三分之一，不遮挡掀盖与取物手部。",
+              "audioRelationship": "旁白第7句30s起、长2.10s；未试听源声，不虚构衔接。",
+              "transitionPurpose": "进入步骤段的硬切。"
+            },
+            "productionMethod": "parameterized",
+            "id": "scene-07"
+          },
+          {
+            "purpose": "步骤引导第2步：取出白色内盒",
+            "effect": "feature-callout",
+            "weight": 1,
+            "durationSeconds": 5,
+            "reason": "第2个必要步骤，保持与上一步连续，动作可见。",
+            "media": [
+              {
+                "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+                "sourceStartSeconds": 12.6,
+                "playbackRate": 1,
+                "fit": "cover"
+              }
+            ],
+            "text": [
+              {
+                "role": "feature",
+                "text": "第二步 · 取出内盒",
+                "factRefs": []
+              }
+            ],
+            "paragraphId": "p8",
+            "newInformation": "步骤2：取出白色内盒。",
+            "resourceId": "lt-mask-reveal",
+            "visualDirection": "步骤标签统一样式，动作完整可见；克制=不覆盖手部取件。",
+            "layoutVariant": "auto",
+            "editorialDecision": {
+              "placementReason": "第8镜，步骤引导第2步（取出内盒）。",
+              "cutBasis": "需求锁定12.6–17.6s；实测11.0–17.4s为手伸入箱内并提起白色盒体，与本区间重合，入出点近似。",
+              "subjectProtection": "内盒与手部居中，步骤标签置下三分之一，不遮挡取件动作。",
+              "audioRelationship": "旁白第8句35s起、长2.18s；未试听源声，不虚构衔接。",
+              "transitionPurpose": "步骤间硬切。"
+            },
+            "productionMethod": "parameterized",
+            "id": "scene-08"
+          },
+          {
+            "purpose": "步骤引导第3步：取出说明书和内衬，收束全片",
+            "effect": "feature-callout",
+            "weight": 1,
+            "durationSeconds": 5,
+            "reason": "第3个必要步骤并结束全片；动作可见。",
+            "media": [
+              {
+                "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+                "sourceStartSeconds": 18.2,
+                "playbackRate": 1,
+                "fit": "cover"
+              }
+            ],
+            "text": [
+              {
+                "role": "feature",
+                "text": "第三步 · 取出说明卡",
+                "factRefs": []
+              }
+            ],
+            "paragraphId": "p9",
+            "newInformation": "步骤3：取出说明书和内衬，收束开箱流程。",
+            "resourceId": "lt-mask-reveal",
+            "visualDirection": "步骤标签统一样式，收束于取件动作；克制=不加未证实结尾信息。",
+            "layoutVariant": "auto",
+            "editorialDecision": {
+              "placementReason": "第9镜，步骤引导第3步（取出说明书和内衬），收束全片。",
+              "cutBasis": "需求锁定18.2–23.2s；实测该段为手持白色盒体并剪刀切割，取说明卡动作实际约8.5–9.7s——区间与文案错位，按 resume 需求保留并标注不匹配，入出点近似。",
+              "subjectProtection": "盒体与手部居中，步骤标签置下三分之一，不遮挡剪切动作。",
+              "audioRelationship": "旁白第9句40s起、长3.247s；未试听源声，不虚构衔接。",
+              "transitionPurpose": "末镜硬切收束。"
+            },
+            "productionMethod": "parameterized",
+            "id": "scene-09"
+          }
+        ]
+      },
+      "idempotencyKey": "05f6af3fb7d2e829dfc919c5853499d30db3dba77f654ac3a483cb55ac3df3d5",
+      "step": 5,
+      "durationMs": 408864
+    },
+    {
+      "tool": "timing.verify",
+      "status": "completed",
+      "result": {
+        "durationFrames": 1350,
+        "scenes": [
+          {
+            "id": "scene-01",
+            "startFrame": 0,
+            "durationFrames": 150
+          },
+          {
+            "id": "scene-02",
+            "startFrame": 150,
+            "durationFrames": 150
+          },
+          {
+            "id": "scene-03",
+            "startFrame": 300,
+            "durationFrames": 150
+          },
+          {
+            "id": "scene-04",
+            "startFrame": 450,
+            "durationFrames": 150
+          },
+          {
+            "id": "scene-05",
+            "startFrame": 600,
+            "durationFrames": 150
+          },
+          {
+            "id": "scene-06",
+            "startFrame": 750,
+            "durationFrames": 150
+          },
+          {
+            "id": "scene-07",
+            "startFrame": 900,
+            "durationFrames": 150
+          },
+          {
+            "id": "scene-08",
+            "startFrame": 1050,
+            "durationFrames": 150
+          },
+          {
+            "id": "scene-09",
+            "startFrame": 1200,
+            "durationFrames": 150
+          }
+        ],
+        "audioGraph": [
+          {
+            "id": "audio-1",
+            "assetId": "voice-8f2f6fed21e9229c",
+            "startFrame": 0,
+            "sourceStartSeconds": 0,
+            "durationFrames": 71,
+            "volume": 1,
+            "role": "narration"
+          },
+          {
+            "id": "audio-2",
+            "assetId": "voice-8f2f6fed21e9229c",
+            "startFrame": 150,
+            "sourceStartSeconds": 2.38,
+            "durationFrames": 115,
+            "volume": 1,
+            "role": "narration"
+          },
+          {
+            "id": "audio-3",
+            "assetId": "voice-8f2f6fed21e9229c",
+            "startFrame": 300,
+            "sourceStartSeconds": 6.2,
+            "durationFrames": 119,
+            "volume": 1,
+            "role": "narration"
+          },
+          {
+            "id": "audio-4",
+            "assetId": "voice-8f2f6fed21e9229c",
+            "startFrame": 450,
+            "sourceStartSeconds": 10.18,
+            "durationFrames": 131,
+            "volume": 1,
+            "role": "narration"
+          },
+          {
+            "id": "audio-5",
+            "assetId": "voice-8f2f6fed21e9229c",
+            "startFrame": 600,
+            "sourceStartSeconds": 14.54,
+            "durationFrames": 80,
+            "volume": 1,
+            "role": "narration"
+          },
+          {
+            "id": "audio-6",
+            "assetId": "voice-8f2f6fed21e9229c",
+            "startFrame": 750,
+            "sourceStartSeconds": 17.2,
+            "durationFrames": 77,
+            "volume": 1,
+            "role": "narration"
+          },
+          {
+            "id": "audio-7",
+            "assetId": "voice-8f2f6fed21e9229c",
+            "startFrame": 900,
+            "sourceStartSeconds": 19.78,
+            "durationFrames": 63,
+            "volume": 1,
+            "role": "narration"
+          },
+          {
+            "id": "audio-8",
+            "assetId": "voice-8f2f6fed21e9229c",
+            "startFrame": 1050,
+            "sourceStartSeconds": 21.88,
+            "durationFrames": 65,
+            "volume": 1,
+            "role": "narration"
+          },
+          {
+            "id": "audio-9",
+            "assetId": "voice-8f2f6fed21e9229c",
+            "startFrame": 1200,
+            "sourceStartSeconds": 24.06,
+            "durationFrames": 97,
+            "volume": 1,
+            "role": "narration"
+          },
+          {
+            "id": "audio-10-1",
+            "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+            "sceneId": "scene-01",
+            "sourceNodeId": "node-1238c520eb420dbf",
+            "startFrame": 0,
+            "sourceStartSeconds": 1.4,
+            "playbackRate": 1,
+            "durationFrames": 150,
+            "volume": 1
+          },
+          {
+            "id": "audio-10-2",
+            "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+            "sceneId": "scene-02",
+            "sourceNodeId": "node-039f63919536989e",
+            "startFrame": 150,
+            "sourceStartSeconds": 29.3,
+            "playbackRate": 1,
+            "durationFrames": 150,
+            "volume": 1
+          },
+          {
+            "id": "audio-10-3",
+            "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+            "sceneId": "scene-03",
+            "sourceNodeId": "node-8c529822b9193c6c",
+            "startFrame": 300,
+            "sourceStartSeconds": 34.9,
+            "playbackRate": 1,
+            "durationFrames": 150,
+            "volume": 1
+          },
+          {
+            "id": "audio-10-4",
+            "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+            "sceneId": "scene-04",
+            "sourceNodeId": "node-496178029e49061c",
+            "startFrame": 450,
+            "sourceStartSeconds": 46.1,
+            "playbackRate": 1,
+            "durationFrames": 150,
+            "volume": 1
+          },
+          {
+            "id": "audio-10-5",
+            "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+            "sceneId": "scene-05",
+            "sourceNodeId": "node-cf30cdebe7362c6b",
+            "startFrame": 600,
+            "sourceStartSeconds": 40.5,
+            "playbackRate": 1,
+            "durationFrames": 150,
+            "volume": 1
+          },
+          {
+            "id": "audio-10-6",
+            "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+            "sceneId": "scene-06",
+            "sourceNodeId": "node-926c9d923ad2a0c2",
+            "startFrame": 750,
+            "sourceStartSeconds": 62.9,
+            "playbackRate": 1,
+            "durationFrames": 150,
+            "volume": 1
+          },
+          {
+            "id": "audio-10-7",
+            "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+            "sceneId": "scene-07",
+            "sourceNodeId": "node-4da877ebcc1156fe",
+            "startFrame": 900,
+            "sourceStartSeconds": 7,
+            "playbackRate": 1,
+            "durationFrames": 150,
+            "volume": 1
+          },
+          {
+            "id": "audio-10-8",
+            "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+            "sceneId": "scene-08",
+            "sourceNodeId": "node-910da0f5526a9c5c",
+            "startFrame": 1050,
+            "sourceStartSeconds": 12.6,
+            "playbackRate": 1,
+            "durationFrames": 150,
+            "volume": 1
+          },
+          {
+            "id": "audio-10-9",
+            "assetId": "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+            "sceneId": "scene-09",
+            "sourceNodeId": "node-dd098f4b055392a9",
+            "startFrame": 1200,
+            "sourceStartSeconds": 18.2,
+            "playbackRate": 1,
+            "durationFrames": 150,
+            "volume": 1
+          }
+        ],
+        "basis": "measured-narration-transcript",
+        "readingAndActionsReviewed": false
+      },
+      "idempotencyKey": "1ea15c9962e62d5b19776480ff105488e06301ac39ffaf18be814f043b36e3bf",
+      "step": 6,
+      "durationMs": 9
+    },
+    {
+      "tool": "scene.author",
+      "status": "failed",
+      "error": "导演镜头缺少 HyperFrames 执行绑定：scene-01",
+      "code": "HF_DESIGN_BINDING",
+      "idempotencyKey": "22066744ada7ab02d255d5a2cda6ec120960368dbffb58be78bc610ee7526bac",
+      "step": 7
+    }
+  ],
+  "verification": null,
+  "repairCount": 0,
+  "resultRevisionId": null,
+  "status": "recoverable",
+  "steps": 7,
+  "modelCalls": 7,
+  "maxModelCalls": 128,
+  "budgetSource": "application-default",
+  "completionReserve": 0,
+  "createdAt": "2026-09-22T00:28:17.280Z",
+  "updatedAt": "2026-09-22T00:37:58.006Z",
+  "stage": "shot-0",
+  "modelInvocations": [
+    {
+      "number": 1,
+      "runId": "63d90604-b23e-4dbe-9e5e-289067f60334",
+      "stage": "R1",
+      "invocation": 1,
+      "attempt": 1,
+      "model": "openclaw/commerce-stage",
+      "requestHash": "dc706fb448983207718fd6acb0f6bf2fd7f3dc536d49a85638cdc8410834600d",
+      "sessionHash": "87a36cc6a86af14a141e01115b8d2fb043d0ddf8adba7277ed423314b91d2478",
+      "images": [],
+      "usage": "unknown",
+      "startedAt": "2026-09-22T00:28:17.292Z"
+    },
+    {
+      "number": 2,
+      "runId": "63d90604-b23e-4dbe-9e5e-289067f60334",
+      "stage": "R2",
+      "invocation": 2,
+      "attempt": 1,
+      "model": "openclaw/commerce-stage",
+      "requestHash": "3fc7a8dcba48d43e44fd925fda13c1ea71f561280006d594ecc409d0fecaecb2",
+      "sessionHash": "ff47e362f7f2490268737d0dab55f1cc8e10a34d929ca80e3e20341b0d6b6073",
+      "images": [
+        {
+          "ordinal": 0,
+          "messageIndex": 0,
+          "contentIndex": 2,
+          "mime": "image/jpeg",
+          "bytes": 120493,
+          "sha256": "7d7486d111948ba700434dc6db93c8459c14737c9149d235855904930dff8db2"
+        },
+        {
+          "ordinal": 1,
+          "messageIndex": 0,
+          "contentIndex": 4,
+          "mime": "image/jpeg",
+          "bytes": 11646,
+          "sha256": "b464e90640540b5308537c0724a3d407373801281260aafb3e48d1db9e548226"
+        }
+      ],
+      "usage": "unknown",
+      "startedAt": "2026-09-22T00:28:56.217Z"
+    },
+    {
+      "number": 3,
+      "runId": "63d90604-b23e-4dbe-9e5e-289067f60334",
+      "stage": "R2",
+      "invocation": 3,
+      "attempt": 1,
+      "model": "openclaw/commerce-stage",
+      "requestHash": "755075594f2c21b6bec459d907dbffabb3693813552bd57ff78e7ce75df6e9f6",
+      "sessionHash": "52ac1379ef34be1d6a31c038308b5cd1db383da6364a13d5a3d2c4ddd0b9e034",
+      "images": [
+        {
+          "ordinal": 0,
+          "messageIndex": 0,
+          "contentIndex": 2,
+          "mime": "image/jpeg",
+          "bytes": 109906,
+          "sha256": "2da6ff08cfaf54d31f2bb32bf7b81d643dab9a0c9eb788766272f44273d68aa2"
+        },
+        {
+          "ordinal": 1,
+          "messageIndex": 0,
+          "contentIndex": 4,
+          "mime": "image/jpeg",
+          "bytes": 134265,
+          "sha256": "e2d7e636d678d9d0b46ea897dc37b362226a0cbbe39ad4f8e989a36d880f6778"
+        },
+        {
+          "ordinal": 2,
+          "messageIndex": 0,
+          "contentIndex": 6,
+          "mime": "image/jpeg",
+          "bytes": 128986,
+          "sha256": "121ad1b2a8a6cac4e700747d76845fce9398b393f9dd62fde849c758bf2159c0"
+        },
+        {
+          "ordinal": 3,
+          "messageIndex": 0,
+          "contentIndex": 8,
+          "mime": "image/jpeg",
+          "bytes": 114770,
+          "sha256": "fbfefddbe5b8ea71e1c22c32c31d1a815c5d548e72b4729e02b6cabb5f3553f0"
+        },
+        {
+          "ordinal": 4,
+          "messageIndex": 0,
+          "contentIndex": 10,
+          "mime": "image/jpeg",
+          "bytes": 130083,
+          "sha256": "acada3ac030ab485240cb2e71301a28e39da6ac78484a9e39f2831dc9bfdf9ce"
+        },
+        {
+          "ordinal": 5,
+          "messageIndex": 0,
+          "contentIndex": 12,
+          "mime": "image/jpeg",
+          "bytes": 127567,
+          "sha256": "1cf53146365e1df62542cba9f06aee65aae30110f3deb7b36e7d185df505b412"
+        }
+      ],
+      "usage": "unknown",
+      "startedAt": "2026-09-22T00:29:37.997Z"
+    },
+    {
+      "number": 4,
+      "runId": "63d90604-b23e-4dbe-9e5e-289067f60334",
+      "stage": "R3",
+      "invocation": 4,
+      "attempt": 1,
+      "model": "openclaw/commerce-stage",
+      "requestHash": "3158bc75ca8f4f78cd5b58c5db09d930b82d95c2ea97c9114fec0b14899b4835",
+      "sessionHash": "defa803be290305bec92a293a80c02cf7961e9b5e91c88dd0bcaedfe53c74228",
+      "images": [],
+      "usage": "unknown",
+      "startedAt": "2026-09-22T00:30:37.408Z"
+    },
+    {
+      "number": 5,
+      "runId": "63d90604-b23e-4dbe-9e5e-289067f60334",
+      "stage": "R4",
+      "invocation": 5,
+      "attempt": 1,
+      "model": "openclaw/commerce-stage",
+      "requestHash": "787a289301cc9dc766f1d3cd5e3651cce320cd9788d6abca9a7779f69ca40cab",
+      "sessionHash": "811de904b334f5ab24dfe827a2309a0d7b25b8c4fe09ebd4391744cc449e6625",
+      "images": [],
+      "usage": "unknown",
+      "startedAt": "2026-09-22T00:30:50.803Z"
+    },
+    {
+      "number": 6,
+      "runId": "63d90604-b23e-4dbe-9e5e-289067f60334",
+      "stage": "R4",
+      "invocation": 6,
+      "attempt": 1,
+      "model": "openclaw/commerce-stage",
+      "requestHash": "96e6d0c8d0467601ecf568ffd645000293fe2d3fdfb27680eb0368307ecfcbe6",
+      "sessionHash": "c5186d34d8fd7ef54b91a1e52ec86852075c00f674a4819c891f88ac106ae636",
+      "images": [
+        {
+          "ordinal": 0,
+          "messageIndex": 0,
+          "contentIndex": 2,
+          "mime": "image/jpeg",
+          "bytes": 120493,
+          "sha256": "7d7486d111948ba700434dc6db93c8459c14737c9149d235855904930dff8db2"
+        },
+        {
+          "ordinal": 1,
+          "messageIndex": 0,
+          "contentIndex": 4,
+          "mime": "image/jpeg",
+          "bytes": 109906,
+          "sha256": "2da6ff08cfaf54d31f2bb32bf7b81d643dab9a0c9eb788766272f44273d68aa2"
+        },
+        {
+          "ordinal": 2,
+          "messageIndex": 0,
+          "contentIndex": 6,
+          "mime": "image/jpeg",
+          "bytes": 134265,
+          "sha256": "e2d7e636d678d9d0b46ea897dc37b362226a0cbbe39ad4f8e989a36d880f6778"
+        },
+        {
+          "ordinal": 3,
+          "messageIndex": 0,
+          "contentIndex": 8,
+          "mime": "image/jpeg",
+          "bytes": 128986,
+          "sha256": "121ad1b2a8a6cac4e700747d76845fce9398b393f9dd62fde849c758bf2159c0"
+        },
+        {
+          "ordinal": 4,
+          "messageIndex": 0,
+          "contentIndex": 10,
+          "mime": "image/jpeg",
+          "bytes": 114770,
+          "sha256": "fbfefddbe5b8ea71e1c22c32c31d1a815c5d548e72b4729e02b6cabb5f3553f0"
+        },
+        {
+          "ordinal": 5,
+          "messageIndex": 0,
+          "contentIndex": 12,
+          "mime": "image/jpeg",
+          "bytes": 130083,
+          "sha256": "acada3ac030ab485240cb2e71301a28e39da6ac78484a9e39f2831dc9bfdf9ce"
+        },
+        {
+          "ordinal": 6,
+          "messageIndex": 0,
+          "contentIndex": 14,
+          "mime": "image/jpeg",
+          "bytes": 127567,
+          "sha256": "1cf53146365e1df62542cba9f06aee65aae30110f3deb7b36e7d185df505b412"
+        },
+        {
+          "ordinal": 7,
+          "messageIndex": 0,
+          "contentIndex": 16,
+          "mime": "image/jpeg",
+          "bytes": 11646,
+          "sha256": "b464e90640540b5308537c0724a3d407373801281260aafb3e48d1db9e548226"
+        }
+      ],
+      "usage": "unknown",
+      "startedAt": "2026-09-22T00:31:09.136Z"
+    },
+    {
+      "number": 7,
+      "runId": "63d90604-b23e-4dbe-9e5e-289067f60334",
+      "stage": "R4",
+      "invocation": 7,
+      "attempt": 1,
+      "model": "openclaw/commerce-stage",
+      "requestHash": "24954a64d155faaf032fab6906dd30775aac4c9d3c17ef436f03203b698ba4a7",
+      "sessionHash": "27ad5cfa23a6c70faa3c8da31e4367b71d5736ac9b000e3a270358bbeb87faa2",
+      "images": [
+        {
+          "ordinal": 0,
+          "messageIndex": 0,
+          "contentIndex": 2,
+          "mime": "image/jpeg",
+          "bytes": 120493,
+          "sha256": "7d7486d111948ba700434dc6db93c8459c14737c9149d235855904930dff8db2"
+        },
+        {
+          "ordinal": 1,
+          "messageIndex": 0,
+          "contentIndex": 4,
+          "mime": "image/jpeg",
+          "bytes": 109906,
+          "sha256": "2da6ff08cfaf54d31f2bb32bf7b81d643dab9a0c9eb788766272f44273d68aa2"
+        },
+        {
+          "ordinal": 2,
+          "messageIndex": 0,
+          "contentIndex": 6,
+          "mime": "image/jpeg",
+          "bytes": 134265,
+          "sha256": "e2d7e636d678d9d0b46ea897dc37b362226a0cbbe39ad4f8e989a36d880f6778"
+        },
+        {
+          "ordinal": 3,
+          "messageIndex": 0,
+          "contentIndex": 8,
+          "mime": "image/jpeg",
+          "bytes": 128986,
+          "sha256": "121ad1b2a8a6cac4e700747d76845fce9398b393f9dd62fde849c758bf2159c0"
+        },
+        {
+          "ordinal": 4,
+          "messageIndex": 0,
+          "contentIndex": 10,
+          "mime": "image/jpeg",
+          "bytes": 114770,
+          "sha256": "fbfefddbe5b8ea71e1c22c32c31d1a815c5d548e72b4729e02b6cabb5f3553f0"
+        },
+        {
+          "ordinal": 5,
+          "messageIndex": 0,
+          "contentIndex": 12,
+          "mime": "image/jpeg",
+          "bytes": 130083,
+          "sha256": "acada3ac030ab485240cb2e71301a28e39da6ac78484a9e39f2831dc9bfdf9ce"
+        },
+        {
+          "ordinal": 6,
+          "messageIndex": 0,
+          "contentIndex": 14,
+          "mime": "image/jpeg",
+          "bytes": 127567,
+          "sha256": "1cf53146365e1df62542cba9f06aee65aae30110f3deb7b36e7d185df505b412"
+        },
+        {
+          "ordinal": 7,
+          "messageIndex": 0,
+          "contentIndex": 16,
+          "mime": "image/jpeg",
+          "bytes": 11646,
+          "sha256": "b464e90640540b5308537c0724a3d407373801281260aafb3e48d1db9e548226"
+        }
+      ],
+      "usage": "unknown",
+      "startedAt": "2026-09-22T00:34:24.929Z"
+    }
+  ],
+  "error": "导演镜头缺少 HyperFrames 执行绑定：scene-01",
+  "code": "HF_DESIGN_BINDING"
+}

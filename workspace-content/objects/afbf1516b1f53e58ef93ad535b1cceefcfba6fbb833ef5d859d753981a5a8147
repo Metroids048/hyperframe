@@ -1,0 +1,129 @@
+{
+  "story": {
+    "audio": [
+      {
+        "assetId": "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9",
+        "durationSeconds": null,
+        "sourceStartSeconds": 0,
+        "startSeconds": null,
+        "volume": 1
+      }
+    ],
+    "blockingGaps": [],
+    "design": {
+      "accent": "#5A2F1E",
+      "accentContrast": "#F6EFE3",
+      "background": "#F6EFE3",
+      "description": "保持源视频原有1280x720横屏咖啡商品展示版式，不重构画面、不生成新素材；仅在开头0.0-2.0秒添加一个独立可编辑标题层。标题使用深咖啡色底托和浅色文字，控制在左上安全区，源视频始终是主视觉。",
+      "fontFamily": "Microsoft YaHei",
+      "foreground": "#2A1A12",
+      "labelStyle": "左上安全区短标题标签：深咖啡色半透明圆角底托，横向内边距约18px、纵向内边距约10px，无价格、无卖点扩写、无额外图形；标题层只在0.0-2.0秒显示。",
+      "panel": "#EFE3D0",
+      "safeMarginPx": 48,
+      "typeScale": {
+        "body": 24,
+        "label": 28,
+        "title": 54
+      }
+    },
+    "inspectActions": [],
+    "inspectRanges": [],
+    "narrationRevision": null,
+    "omitted": [
+      {
+        "assetId": "asset-1dfd42f4-ad14-4686-be73-528d8fe1ca11",
+        "reason": "用户明确要求排除，只使用当前会话刚上传的单个源视频 asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9。"
+      },
+      {
+        "assetId": "asset-f19a9d72-efce-4f09-b52b-13324ea7e2cc",
+        "reason": "用户明确要求排除，只使用当前会话刚上传的单个源视频 asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9。"
+      }
+    ],
+    "paragraphs": [
+      {
+        "id": "p1",
+        "information": "0.0-2.0秒在原视频上叠加标题“新品体验”，不增加商品事实。",
+        "purpose": "满足用户指定的唯一画面修改，让开头明确这是新品体验内容。"
+      },
+      {
+        "id": "p2",
+        "information": "2.0秒后继续完整播放同一源视频，保留原始画幅、原始节奏和原始AAC声音。",
+        "purpose": "满足完整导出、不裁剪、不截短、不重构或替换声音的保持要求。"
+      }
+    ],
+    "scenes": [
+      {
+        "durationSeconds": 2,
+        "editorialDecision": {
+          "audioRelationship": "保留同一源视频原始AAC声音，声音从源0.0秒开始随底层视频连续播放；标题层不引入旁白、音乐或音效。当前无真实听音能力，因此不对声音内容作语义判断。",
+          "cutBasis": "入点绑定源视频0.0秒；标题显示到成片2.0秒整，对应30fps下60帧，满足用户指定的0.0-2.0秒叠加窗口。",
+          "placementReason": "这是用户唯一要求新增的信息，必须放在开头；叠加在原片之上而不是做标题卡，才能保持源视频画面和声音连续。",
+          "subjectProtection": "标题放在左上安全区，避开抽帧中主要出现在中部/右侧的咖啡包装袋、咖啡杯和咖啡豆；源画面保持1280x720完整显示，不裁切。",
+          "transitionPurpose": "成片从源视频首帧直接开始，无转场可最大限度保留原片节奏；标题作为覆盖层出现，不改变底层视频切点。"
+        },
+        "effect": "editorial-display",
+        "layoutVariant": "auto",
+        "media": [
+          {
+            "assetId": "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9",
+            "fit": "contain",
+            "playbackRate": 1,
+            "sourceStartSeconds": 0
+          }
+        ],
+        "newInformation": "新增可编辑标题“新品体验”，仅作为开头标识。",
+        "paragraphId": "p1",
+        "productionMethod": "composition-adapt",
+        "purpose": "完成0.0-2.0秒标题叠加，同时保持源视频和源声音原速连续播放。",
+        "reason": "用户要求只做开头标题叠加；使用低遮挡原生文字层能满足修改，同时不生成新素材、不改变商品事实。",
+        "resourceId": "lt-mask-reveal",
+        "text": [
+          {
+            "factRefs": [],
+            "role": "title",
+            "text": "新品体验"
+          }
+        ],
+        "visualDirection": "源视频全幅为主视觉；标题是次级信息，采用小面积深咖啡色半透明底托和浅色中文标题。开场吸引点是明确“新品体验”主题；保持克制，不添加价格、功效、香气评价或CTA，不遮挡包装袋和咖啡杯。",
+        "weight": 1,
+        "id": "scene-01"
+      },
+      {
+        "durationSeconds": 118.03333333333333,
+        "editorialDecision": {
+          "audioRelationship": "继续保留同一源视频原始AAC声音；audio数组按连续整段源音频排程，不替换、不重构。当前无真实听音能力，不虚构音乐、口播或声画情绪。",
+          "cutBasis": "从成片2.0秒接续到底层源视频剩余内容，时间线按exact目标3601帧结束；源素材标注时长120.022秒与30fps输出帧边界相差小于一帧，按覆盖实际媒体尾帧的输出边界处理，不重复片段、不循环、不变速。",
+          "placementReason": "标题完成后用户没有要求任何二次包装，后续应完整保留源视频本身，让原素材的咖啡商品版式继续呈现。",
+          "subjectProtection": "保持1280x720原画幅contain显示，不裁切、不缩放破坏版式，不再添加图形或字幕遮挡商品包装、杯子、咖啡豆及源视频已有文字。",
+          "transitionPurpose": "标题层在2.0秒结束，底层源视频连续播放；不设置视觉转场，避免制造不必要的重构感。"
+        },
+        "effect": "media-cut",
+        "layoutVariant": "auto",
+        "media": [
+          {
+            "assetId": "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9",
+            "fit": "contain",
+            "playbackRate": 1,
+            "sourceStartSeconds": 2
+          }
+        ],
+        "newInformation": "无新增文案；保留源视频已有咖啡商品展示版式、节奏和声音。",
+        "paragraphId": "p2",
+        "productionMethod": "footage-cut",
+        "purpose": "完整保留标题结束后的源视频主体内容，完成指定单源视频的完整MP4时间线。",
+        "reason": "用户明确要求保留完整120.022秒源视频和原始AAC声音，不裁剪、不截短、不重构或替换声音；标题结束后应回到纯源素材播放。",
+        "resourceId": "native-original",
+        "text": [],
+        "visualDirection": "源视频占满1280x720画布并保持原始比例，商品包装、咖啡杯、咖啡豆和源视频已有版式文字均为主视觉；不添加价格、卖点、字幕、CTA或新素材，避免把原片重构成新的宣传片。",
+        "weight": 1,
+        "id": "scene-02"
+      }
+    ],
+    "summary": "计划只做一个受控叠加：0.0-2.0秒在唯一允许素材 asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9 上添加可编辑标题“新品体验”，2.0秒后不再增加任何画面元素。时间线严格按exact目标3601帧、30fps规划，总时长120.033333秒；源素材标注约120.022秒，与输出帧边界差异小于一帧，按覆盖实际媒体尾部的帧边界处理，不通过重复、循环、定格或变速来改变原素材。音频保留源AAC连续整段播放，不添加旁白、音乐或音效；未执行真实听音，后续导出需技术核查画幅1280x720、标题窗口0.0-2.0秒、单素材绑定和AAC保留。",
+    "transition": "cut"
+  },
+  "error": {
+    "code": "INVALID_SCENE_TIME",
+    "message": "镜头时间必须精确匹配需求；不能延长停留补齐"
+  }
+}

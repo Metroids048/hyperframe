@@ -1,0 +1,211 @@
+{
+  "generated_at": "2026-09-23T11:38:00.236224+00:00",
+  "review_mode": "keyframes_only",
+  "continuous_viewing": false,
+  "audio_listened": false,
+  "sources": [
+    {
+      "label": "source-1",
+      "project_id": "0f1a3c3b-f074-4fc1-be65-838d01d2d628",
+      "source": "/Users/a1234/.openclaw/hyperframe/state/projects/0f1a3c3b-f074-4fc1-be65-838d01d2d628/uploads/asset-f7a10c49-ff07-44df-965f-18c67df7efe0.mp4",
+      "sha256": "05575455019774c8ef17a576a1a3b9d80a0f6741c3f2d57af02015954201679f",
+      "source_unchanged": true,
+      "duration": 30.0,
+      "width": 1080,
+      "height": 1920,
+      "fps": 30.0,
+      "frames": 900,
+      "audio_streams": 0,
+      "sampled_frames": 31
+    },
+    {
+      "label": "source-2",
+      "project_id": "cd60df6d-227a-452e-bc13-d7f49f894da1",
+      "source": "/Users/a1234/.openclaw/hyperframe/state/projects/cd60df6d-227a-452e-bc13-d7f49f894da1/uploads/asset-3db4c32f-af6c-4f80-ad87-355840a6a894.mp4",
+      "sha256": "c4c5219cfc8d4fdf8e30094f35b8cd91bda7aca22bd250284ff8df2f1982e052",
+      "source_unchanged": true,
+      "duration": 55.0,
+      "width": 1080,
+      "height": 1920,
+      "fps": 30.0,
+      "frames": 1650,
+      "audio_streams": 1,
+      "sampled_frames": 56
+    }
+  ],
+  "commands": [
+    {
+      "argv": [
+        "/Users/a1234/Desktop/hyperframe-main/video-agent/node_modules/@ffprobe-installer/darwin-arm64/ffprobe",
+        "-v",
+        "error",
+        "-show_streams",
+        "-show_format",
+        "-of",
+        "json",
+        "/Users/a1234/.openclaw/hyperframe/state/projects/0f1a3c3b-f074-4fc1-be65-838d01d2d628/uploads/asset-f7a10c49-ff07-44df-965f-18c67df7efe0.mp4"
+      ],
+      "exit_code": 0,
+      "output": "source-1/ffprobe.json"
+    },
+    {
+      "argv": [
+        "/Users/a1234/Desktop/hyperframe-main/video-agent/node_modules/@ffmpeg-installer/darwin-arm64/ffmpeg",
+        "-hide_banner",
+        "-nostdin",
+        "-y",
+        "-i",
+        "/Users/a1234/.openclaw/hyperframe/state/projects/0f1a3c3b-f074-4fc1-be65-838d01d2d628/uploads/asset-f7a10c49-ff07-44df-965f-18c67df7efe0.mp4",
+        "-map",
+        "0:v:0",
+        "-vf",
+        "select=not(mod(n\\,30)),scale=360:-2,showinfo",
+        "-vsync",
+        "0",
+        "-q:v",
+        "2",
+        "/Users/a1234/Desktop/hyperframe-main/video-agent/outputs/openclaw-two-session-recovery/media-audit/source-1/frame-%03d.jpg"
+      ],
+      "exit_code": 0,
+      "output": "source-1/extraction.stdout.log"
+    },
+    {
+      "argv": [
+        "/Users/a1234/Desktop/hyperframe-main/video-agent/node_modules/@ffmpeg-installer/darwin-arm64/ffmpeg",
+        "-hide_banner",
+        "-nostdin",
+        "-y",
+        "-i",
+        "/Users/a1234/.openclaw/hyperframe/state/projects/0f1a3c3b-f074-4fc1-be65-838d01d2d628/uploads/asset-f7a10c49-ff07-44df-965f-18c67df7efe0.mp4",
+        "-map",
+        "0:v:0",
+        "-vf",
+        "select=eq(n\\,899)",
+        "-vsync",
+        "0",
+        "-frames:v",
+        "1",
+        "-q:v",
+        "2",
+        "/Users/a1234/Desktop/hyperframe-main/video-agent/outputs/openclaw-two-session-recovery/media-audit/source-1/last-frame.jpg"
+      ],
+      "exit_code": 0,
+      "output": "source-1/tail.stdout.log"
+    },
+    {
+      "argv": [
+        "/Users/a1234/Desktop/hyperframe-main/video-agent/node_modules/@ffmpeg-installer/darwin-arm64/ffmpeg",
+        "-hide_banner",
+        "-nostdin",
+        "-v",
+        "error",
+        "-i",
+        "/Users/a1234/.openclaw/hyperframe/state/projects/0f1a3c3b-f074-4fc1-be65-838d01d2d628/uploads/asset-f7a10c49-ff07-44df-965f-18c67df7efe0.mp4",
+        "-map",
+        "0:v:0",
+        "-map",
+        "0:a?",
+        "-f",
+        "null",
+        "-"
+      ],
+      "exit_code": 0,
+      "output": "source-1/decode.stdout.log"
+    },
+    {
+      "argv": [
+        "/Users/a1234/Desktop/hyperframe-main/video-agent/node_modules/@ffprobe-installer/darwin-arm64/ffprobe",
+        "-v",
+        "error",
+        "-show_streams",
+        "-show_format",
+        "-of",
+        "json",
+        "/Users/a1234/.openclaw/hyperframe/state/projects/cd60df6d-227a-452e-bc13-d7f49f894da1/uploads/asset-3db4c32f-af6c-4f80-ad87-355840a6a894.mp4"
+      ],
+      "exit_code": 0,
+      "output": "source-2/ffprobe.json"
+    },
+    {
+      "argv": [
+        "/Users/a1234/Desktop/hyperframe-main/video-agent/node_modules/@ffmpeg-installer/darwin-arm64/ffmpeg",
+        "-hide_banner",
+        "-nostdin",
+        "-y",
+        "-i",
+        "/Users/a1234/.openclaw/hyperframe/state/projects/cd60df6d-227a-452e-bc13-d7f49f894da1/uploads/asset-3db4c32f-af6c-4f80-ad87-355840a6a894.mp4",
+        "-map",
+        "0:v:0",
+        "-vf",
+        "select=not(mod(n\\,30)),scale=360:-2,showinfo",
+        "-vsync",
+        "0",
+        "-q:v",
+        "2",
+        "/Users/a1234/Desktop/hyperframe-main/video-agent/outputs/openclaw-two-session-recovery/media-audit/source-2/frame-%03d.jpg"
+      ],
+      "exit_code": 0,
+      "output": "source-2/extraction.stdout.log"
+    },
+    {
+      "argv": [
+        "/Users/a1234/Desktop/hyperframe-main/video-agent/node_modules/@ffmpeg-installer/darwin-arm64/ffmpeg",
+        "-hide_banner",
+        "-nostdin",
+        "-y",
+        "-i",
+        "/Users/a1234/.openclaw/hyperframe/state/projects/cd60df6d-227a-452e-bc13-d7f49f894da1/uploads/asset-3db4c32f-af6c-4f80-ad87-355840a6a894.mp4",
+        "-map",
+        "0:v:0",
+        "-vf",
+        "select=eq(n\\,1649)",
+        "-vsync",
+        "0",
+        "-frames:v",
+        "1",
+        "-q:v",
+        "2",
+        "/Users/a1234/Desktop/hyperframe-main/video-agent/outputs/openclaw-two-session-recovery/media-audit/source-2/last-frame.jpg"
+      ],
+      "exit_code": 0,
+      "output": "source-2/tail.stdout.log"
+    },
+    {
+      "argv": [
+        "/Users/a1234/Desktop/hyperframe-main/video-agent/node_modules/@ffmpeg-installer/darwin-arm64/ffmpeg",
+        "-hide_banner",
+        "-nostdin",
+        "-v",
+        "error",
+        "-i",
+        "/Users/a1234/.openclaw/hyperframe/state/projects/cd60df6d-227a-452e-bc13-d7f49f894da1/uploads/asset-3db4c32f-af6c-4f80-ad87-355840a6a894.mp4",
+        "-map",
+        "0:v:0",
+        "-map",
+        "0:a?",
+        "-f",
+        "null",
+        "-"
+      ],
+      "exit_code": 0,
+      "output": "source-2/decode.stdout.log"
+    },
+    {
+      "argv": [
+        "/Users/a1234/Desktop/hyperframe-main/video-agent/node_modules/@ffmpeg-installer/darwin-arm64/ffmpeg",
+        "-hide_banner",
+        "-nostdin",
+        "-i",
+        "/Users/a1234/.openclaw/hyperframe/state/projects/cd60df6d-227a-452e-bc13-d7f49f894da1/uploads/asset-3db4c32f-af6c-4f80-ad87-355840a6a894.mp4",
+        "-vn",
+        "-af",
+        "volumedetect",
+        "-f",
+        "null",
+        "-"
+      ],
+      "exit_code": 0,
+      "output": "source-2/audio-level.stdout.log"
+    }
+  ]
+}

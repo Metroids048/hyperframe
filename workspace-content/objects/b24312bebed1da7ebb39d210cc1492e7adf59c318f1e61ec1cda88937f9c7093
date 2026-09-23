@@ -1,0 +1,257 @@
+{
+  "selected": [
+    {
+      "id": "kinetic-type-beats",
+      "reason": "0-3s 强钩子：在缺少实拍咖啡机钩子素材的情况下，用文字驱动的节拍开场承载产品名与「新」的记忆点，命中 Hook 角色，且不依赖未证实内容。"
+    },
+    {
+      "id": "grid-card-assemble",
+      "reason": "用于 3-4 个关键镜头的结构化呈现（自组装网格/列表），把「产品身份 + 使用氛围」的镜头组织成有节奏的一屏；仅承载已观察的中性信息，不罗列未证实卖点。"
+    },
+    {
+      "id": "titlecard-reveal",
+      "reason": "收尾品牌/记忆点：单次克制动效 + 定格的落点卡，命中结尾 ending 角色，低动效即完整落点。"
+    },
+    {
+      "id": "caption-editorial-emphasis",
+      "reason": "小红书风格字幕轨：对齐已测量的旁白时间戳，不臆造时间，满足「字幕同步」要求。"
+    }
+  ],
+  "originalNeeds": [
+    "咖啡机主体的原生媒体容器：0-3s 钩子与 3-4 关键镜头所需的咖啡机外观/质感/使用画面在现有素材中完全缺失，须先经 mediaAcquisitionPolicy（local_library 或 runninghub_generation）补齐真实镜头，再绑定到原生 video/image 容器；不得以内含咖啡粉包装冒充咖啡机。",
+    "原生分镜组合：3-4 个关键镜头无直接匹配的候选蓝图，需用原生媒体容器 + 克制动效（揭示/推近/细节标注）原创组合，并逐镜头标注商业目的与证据来源。",
+    "小红书竖屏排版：9:16 安全区、顶部/底部 UI 避让、字幕描边/字号/停留时长需原生 CSS 微调（caption-editorial-emphasis 仅提供字幕轨）。",
+    "收尾记忆点：无品牌/Logo/价格/CTA 资产，需以原生文字落点呈现，不编造未提供内容。",
+    "背景音乐轨：在取得可授权音乐资产前保留原生占位并等待授权音源，不隐式搜索或生成。"
+  ],
+  "gaps": [
+    "现有素材仅为「COFFEE TREE／咖啡樹」速溶咖啡粉包装背面静帧（Wikimedia CC0；含同 sha256 的演示副本 demo-web-1e32b463-39b5-4a05-b847-9c6832bc64a5），属另一商品，非目标「咖啡机」；不含机器外观/按钮/出水/制作过程，无法据此建立咖啡机产品身份。",
+    "素材全部为静帧，无视频轨道、无任何可观察的动作源区间（candidates 为空是事实，非未检查）。",
+    "咖啡机使用氛围/关键镜头完全缺失：0-3s 钩子所需机器质感与 3-4 关键镜头所需使用画面在现有素材中不存在，须按 mediaAcquisitionPolicy 经本地素材库或 RunningHub 生成补齐。",
+    "无可核验商品参数：公开来源研究超时无结果（query 咖啡机 xiaohongshu，code 23 timeout），facts 为空，不得编造参数/卖点。",
+    "背景音乐缺失：工程 suppliedAudio 为空，音乐仅支持调度已挂入的可授权资产，不支持隐式搜索或生成，需提供可授权音乐素材后方可满足「背景音乐」要求。",
+    "旁白尚未合成：narration.available 为 true，后续 narration.prepare 将调用真实供应商并测量；成功前不得声称旁白已合成。",
+    "RunningHub 生成存在依赖：仅当服务端凭证、能力配置与调用授权齐全时才可提交；未取得真实回执前不得声称已生成任何镜头。",
+    "素材底部含手机水印与时间戳（REDMI NOTE 13 PRO / 2026.03.22 14:26），需按 safeCrop 下切至 0.92 规避。"
+  ],
+  "blockingGaps": [],
+  "candidates": [
+    {
+      "id": "grid-card-assemble",
+      "tags": [
+        "image",
+        "details",
+        "steps",
+        "参数",
+        "配件",
+        "步骤"
+      ],
+      "inputs": [],
+      "files": [
+        "skills/hyperframes-animation/blueprints/grid-card-assemble.md",
+        "skills/hyperframes-animation/rules/gsap-effects.md"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 2,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "lt-mask-reveal",
+      "tags": [
+        "video",
+        "action",
+        "text",
+        "操作",
+        "实拍",
+        "口播",
+        "标签",
+        "文字"
+      ],
+      "inputs": [
+        "video"
+      ],
+      "description": "Transparent editable lower-third over continuing footage; no stat, price, or full-screen text takeover is required. Adapt the wipe and accent sweep to approved native text, local fonts and the managed timeline.",
+      "files": [
+        "registry/blocks/lt-mask-reveal/registry-item.json",
+        "registry/blocks/lt-mask-reveal/lt-mask-reveal.html"
+      ],
+      "requirements": {
+        "minMedia": 1,
+        "mediaKinds": [
+          "video"
+        ],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": false,
+      "score": 1,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "caption-editorial-emphasis",
+      "tags": [
+        "caption",
+        "speech",
+        "字幕",
+        "口播",
+        "强调"
+      ],
+      "inputs": [
+        "text"
+      ],
+      "description": "Editable editorial text emphasis; align spoken captions to measured transcript timestamps, never invented timing.",
+      "files": [
+        "registry/components/caption-editorial-emphasis/registry-item.json",
+        "registry/components/caption-editorial-emphasis/caption-editorial-emphasis.html"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 1,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "titlecard-reveal",
+      "tags": [
+        "title",
+        "brand",
+        "text",
+        "收尾",
+        "标题"
+      ],
+      "inputs": [],
+      "files": [
+        "skills/hyperframes-animation/blueprints/titlecard-reveal.md",
+        "skills/hyperframes-animation/rules/discrete-text-sequence.md"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 1,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "comparison-split",
+      "tags": [
+        "compare",
+        "detail",
+        "image",
+        "比较",
+        "细节",
+        "双栏"
+      ],
+      "inputs": [
+        "visual-pair"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/comparison-split.md",
+        "skills/hyperframes-animation/rules/split-tilt-cards.md",
+        "registry/components/comparison-split/registry-item.json",
+        "registry/components/comparison-split/comparison-split.html"
+      ],
+      "requirements": {
+        "minMedia": 2,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 1,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "video-text-pivot",
+      "tags": [
+        "video",
+        "action",
+        "操作",
+        "实拍",
+        "讲解"
+      ],
+      "inputs": [
+        "video"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/video-text-pivot.md",
+        "skills/hyperframes-animation/rules/gsap-effects.md"
+      ],
+      "requirements": {
+        "minMedia": 1,
+        "mediaKinds": [
+          "video"
+        ],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "occluding",
+      "compatible": true,
+      "eligible": false,
+      "score": 1,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "kinetic-type-beats",
+      "tags": [
+        "text",
+        "caption",
+        "文字",
+        "字幕",
+        "强调"
+      ],
+      "inputs": [
+        "text"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/kinetic-type-beats.md",
+        "skills/hyperframes-animation/rules/discrete-text-sequence.md"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "occluding",
+      "compatible": true,
+      "eligible": true,
+      "score": 1,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    }
+  ],
+  "originalRequest": "为小红书做一条「咖啡机」新品种草短视频（product_launch / awareness / 竖屏 1080x1920 / 约30s）。目标是用可核验的观察性证据建立产品身份与记忆点，而不是罗列未证实的卖点。\n\n执行要求：\n1) 素材优先使用服务器本地素材库中已检索到的咖啡素材（如 edit-samples/coffee.mp4、edit-samples/coffee.jpg 等），只保留与咖啡机主体相关的可用镜头；\n2) 公开来源研究若超时/无结果，则不得编造参数；缺失镜头走 RunningHub 生成补齐；\n3) 结构：强钩子开场（0-3s，突出咖啡机外观质感与\"新\"）→ 3-4 个关键镜头展示产品身份与使用氛围 → 收尾品牌/记忆点 + 小红书风格字幕与轻量旁白；\n4) 画幅 9:16，声音：轻量旁白 + 背景音乐，字幕同步；\n5) 逐镜头标注商业目的与所用证据来源，保留当前 revision 可继续编辑。",
+  "assetKinds": {
+    "web-1e32b463-39b5-4a05-b847-9c6832bc64a5": "image",
+    "demo-web-1e32b463-39b5-4a05-b847-9c6832bc64a5": "image"
+  }
+}

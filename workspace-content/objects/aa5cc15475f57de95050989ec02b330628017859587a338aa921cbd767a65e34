@@ -1,0 +1,266 @@
+{
+  "selected": [
+    {
+      "id": "caption-editorial-emphasis",
+      "reason": "全片要求中文讲解+同步字幕；该组件是可编辑的编辑体字幕强调，且明确要求字幕对齐实测转写时间戳、不得预填时间，正好承载'旁白合成后再转写驱动字幕'的统一字幕层。"
+    },
+    {
+      "id": "video-text-pivot",
+      "reason": "需求①要以真实商品状态/结果开场、不先放整页标题，②要用一段关键使用过程说明看点；该蓝图让真实视频居中呼吸后再把重心交给文字信息，画面始终在动、不与静态底板抢位，适合开场钩子镜头与关键过程镜头。"
+    },
+    {
+      "id": "lt-mask-reveal",
+      "reason": "需求要整体到局部联动、文字层级，且删等待不切断必要动作；该模板在连续实拍上叠加可编辑的下三分之一文字/标注（无价格、无全屏接管），用于操作步骤说明与两处真实细节标注，不遮挡动作。"
+    },
+    {
+      "id": "titlecard-reveal",
+      "reason": "需求④要克制地收在清楚的商品画面、且要清晰文字层级；该蓝图是单一干净卡片、单一克制动作后静置的落地节拍，作为结尾收束/标题层最省动作、不堆特效（不用作整页开场标题）。"
+    }
+  ],
+  "originalNeeds": [
+    "竖屏重构：源为1920×1080横屏、9:16可用宽度仅约0.316，需原生布局与按主体跟踪的裁切以保护操作主体动作（候选资源不含该能力）。",
+    "整体到局部联动：需原生缩放/位移把局部特写与该商品整体画面无缝衔接（候选模板未提供该联动）。",
+    "操作原声层：需原生音频编辑保留素材自带操作原声，并配合旁白做闪避/压低；配乐无法自动调度（见缺项）。",
+    "旁白与同步字幕：需 narration.prepare 真实合成后经 provider.transcribe 实测时间戳驱动字幕，不得预填时间。",
+    "剪辑与动作保护：按真实操作顺序硬切衔接六段素材，删等待/重复但不切断必要动作——原生剪辑。",
+    "统一克制的视觉层级：字体、色板、留白与标题/正文/字幕三级排版需原生定义，避免每段同一底板加文字。",
+    "开场聚焦与结尾回收：开场用最有吸引力的真实状态/细节，结尾以原生视频保持/定格回到清晰商品画面（无名称/价格可写）。"
+  ],
+  "gaps": [
+    "缺少已授权配乐音源：suppliedAudio 为空，无法排程配乐；不得假设未挂入工程的音乐可用，也不得检索或生成音乐。",
+    "「磨豆」环节在6段素材、54帧中均未见研磨机具或结构；asset-ff7ef593 的容器+金属勺只能确认为搅/舀/备料，不得表述为磨豆。",
+    "「注水」环节未观察到：asset-f981a0ce 首帧即已在下壶萃取（水在镜头前已注入），asset-49fa1ebc 注入的浅色液体外观更接近奶类；均不能作为注水/倒咖啡证据。",
+    "asset-b8246957 出液器具主体在画外，无法确认与前四段不锈钢壶属同一商品，暂不能归因。",
+    "商品名称/品牌/型号/价格/优惠/CTA 在所有真实抽帧中均无可读文字证据，制作时不得填写。",
+    "「A-不锈钢壶组」「B-白瓷杯成品饮」的分组与同商品判定为外观推断，未做实测比对。",
+    "asset-ff7ef593 末帧(7.244s)白色碗内浅棕粉末与其余画面的环节/商品关系未确认。",
+    "asset-e8ad554e 电子秤读数(目测28.1/28.3/33.3)未逐字确认，且仅属设备显示，不作参数或卖点证据。",
+    "素材操作原声(aac)尚未试听核对，可保留区间待音频核对；listening.available=false，人工听审待完成。",
+    "9:16 竖裁窗口窄(约0.316宽度)，需按主体重定位，存在构图/画质风险。",
+    "旁白尚未合成（provider 执行未完成）；字幕时间轴依赖实测转写，暂为占位待定。"
+  ],
+  "blockingGaps": [],
+  "candidates": [
+    {
+      "id": "lt-mask-reveal",
+      "tags": [
+        "video",
+        "action",
+        "text",
+        "操作",
+        "实拍",
+        "口播",
+        "标签",
+        "文字"
+      ],
+      "inputs": [
+        "video"
+      ],
+      "description": "Transparent editable lower-third over continuing footage; no stat, price, or full-screen text takeover is required. Adapt the wipe and accent sweep to approved native text, local fonts and the managed timeline.",
+      "files": [
+        "registry/blocks/lt-mask-reveal/registry-item.json",
+        "registry/blocks/lt-mask-reveal/lt-mask-reveal.html"
+      ],
+      "requirements": {
+        "minMedia": 1,
+        "mediaKinds": [
+          "video"
+        ],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 3,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "video-text-pivot",
+      "tags": [
+        "video",
+        "action",
+        "操作",
+        "实拍",
+        "讲解"
+      ],
+      "inputs": [
+        "video"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/video-text-pivot.md",
+        "skills/hyperframes-animation/rules/gsap-effects.md"
+      ],
+      "requirements": {
+        "minMedia": 1,
+        "mediaKinds": [
+          "video"
+        ],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "occluding",
+      "compatible": true,
+      "eligible": true,
+      "score": 3,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "comparison-split",
+      "tags": [
+        "compare",
+        "detail",
+        "image",
+        "比较",
+        "细节",
+        "双栏"
+      ],
+      "inputs": [
+        "visual-pair"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/comparison-split.md",
+        "skills/hyperframes-animation/rules/split-tilt-cards.md",
+        "registry/components/comparison-split/registry-item.json",
+        "registry/components/comparison-split/comparison-split.html"
+      ],
+      "requirements": {
+        "minMedia": 2,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 2,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "kinetic-type-beats",
+      "tags": [
+        "text",
+        "caption",
+        "文字",
+        "字幕",
+        "强调"
+      ],
+      "inputs": [
+        "text"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/kinetic-type-beats.md",
+        "skills/hyperframes-animation/rules/discrete-text-sequence.md"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "occluding",
+      "compatible": true,
+      "eligible": true,
+      "score": 2,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "grid-card-assemble",
+      "tags": [
+        "image",
+        "details",
+        "steps",
+        "参数",
+        "配件",
+        "步骤"
+      ],
+      "inputs": [],
+      "files": [
+        "skills/hyperframes-animation/blueprints/grid-card-assemble.md",
+        "skills/hyperframes-animation/rules/gsap-effects.md"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 2,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "caption-editorial-emphasis",
+      "tags": [
+        "caption",
+        "speech",
+        "字幕",
+        "口播",
+        "强调"
+      ],
+      "inputs": [
+        "text"
+      ],
+      "description": "Editable editorial text emphasis; align spoken captions to measured transcript timestamps, never invented timing.",
+      "files": [
+        "registry/components/caption-editorial-emphasis/registry-item.json",
+        "registry/components/caption-editorial-emphasis/caption-editorial-emphasis.html"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 1,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "titlecard-reveal",
+      "tags": [
+        "title",
+        "brand",
+        "text",
+        "收尾",
+        "标题"
+      ],
+      "inputs": [],
+      "files": [
+        "skills/hyperframes-animation/blueprints/titlecard-reveal.md",
+        "skills/hyperframes-animation/rules/discrete-text-sequence.md"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 1,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    }
+  ],
+  "originalRequest": "继续当前项目和同一个视频任务，从已有检查点恢复，不新建任务。做一条约45秒、1080×1920的小红书竖屏商品种草视频，面向第一次了解这个商品、关心实际使用体验的人，先看懂6段真实操作素材（磨豆→装粉→组装→萃取→注水→完成）再剪辑。结构要求：①开头用最有吸引力的真实商品状态、细节或使用结果抓住注意力，不要先放一整页标题；②中间先让人认清商品，再用两处真实细节和一段关键使用过程说明它值得关注的地方；③删掉等待和重复，但不要切断必要动作；④结尾回到清楚的商品画面。声音：自然的中文讲解 + 同步字幕，使用已有授权的低音量配乐，保留有价值的操作原声（素材本身带操作原声）。画面：用 HyperFrames 做统一、克制但有设计感的商品展示、整体到局部的联动和文字层级，避免每段都是同一块底板加文字，不要堆与商品无关的特效。证据约束：所有卖点、参数、功能、价格、优惠只能来自上传素材与可核验公开来源，没有证据的不要编造。",
+  "assetKinds": {
+    "asset-ff7ef593-4b18-4e97-a789-0cf625fcae3c": "video",
+    "asset-ec0191da-eba8-49ec-8787-d7b1c592f6c4": "video",
+    "asset-e8ad554e-6dd3-4f27-847e-b1aabf44a32b": "video",
+    "asset-f981a0ce-90e8-48bc-9799-d338ef9d5d75": "video",
+    "asset-b8246957-ccad-4465-a61d-d58b83277af5": "video",
+    "asset-49fa1ebc-8a0f-497f-9766-10091f4c5c1e": "video"
+  }
+}

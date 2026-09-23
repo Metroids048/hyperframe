@@ -1,0 +1,138 @@
+{
+  "schema_version": 2,
+  "assessment_basis": "engineering_heuristics_and_observed_keyframe_issues",
+  "score": 31,
+  "threshold": 78,
+  "hard_minimum": 65,
+  "components": {
+    "product_exposure": 39,
+    "first_three_seconds": 24,
+    "pacing": 0,
+    "captions": 49,
+    "motion": 9,
+    "transitions": 39,
+    "audio": 75,
+    "commercial_conversion": 19
+  },
+  "issues": [
+    {
+      "severity": "blocker",
+      "dimension": "product_exposure",
+      "score": 39,
+      "problem": "product_exposure 低于商业最低线 65",
+      "repair": "只修改与 product_exposure 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+    },
+    {
+      "severity": "blocker",
+      "dimension": "first_three_seconds",
+      "score": 24,
+      "problem": "first_three_seconds 低于商业最低线 65",
+      "repair": "只修改与 first_three_seconds 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+    },
+    {
+      "severity": "blocker",
+      "dimension": "pacing",
+      "score": 0,
+      "problem": "pacing 低于商业最低线 65",
+      "repair": "只修改与 pacing 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+    },
+    {
+      "severity": "major",
+      "dimension": "captions",
+      "score": 49,
+      "problem": "captions 低于商业最低线 65",
+      "repair": "只修改与 captions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+    },
+    {
+      "severity": "blocker",
+      "dimension": "motion",
+      "score": 9,
+      "problem": "motion 低于商业最低线 65",
+      "repair": "只修改与 motion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+    },
+    {
+      "severity": "blocker",
+      "dimension": "transitions",
+      "score": 39,
+      "problem": "transitions 低于商业最低线 65",
+      "repair": "只修改与 transitions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+    },
+    {
+      "severity": "blocker",
+      "dimension": "commercial_conversion",
+      "score": 19,
+      "problem": "commercial_conversion 低于商业最低线 65",
+      "repair": "只修改与 commercial_conversion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+    },
+    {
+      "id": "issue-0",
+      "requirementId": "final-output",
+      "severity": "major",
+      "startSeconds": 47.18,
+      "endSeconds": 47.18,
+      "problem": "在47.180秒处，左下角仍残留黑色标题框/白色竖线，但“新品体验”文字已消失；这表明开头两秒的叠加层未完整移除，形成明显画面残留。",
+      "evidenceRefs": [
+        "final-review/frame-1.jpg"
+      ],
+      "repair": "将标题文字、黑底和竖线作为同一可编辑叠加层，严格限制在0–2秒，2秒后全部隐藏；重新渲染并复核后续画面。",
+      "preserve": [
+        "未涉及的镜头、文字和音轨"
+      ],
+      "dimension": "visual"
+    },
+    {
+      "id": "issue-1",
+      "requirementId": "final-output",
+      "severity": "major",
+      "startSeconds": 78.53333333333335,
+      "endSeconds": 78.53333333333335,
+      "problem": "在78.533秒处，左下角黑色残留框仍存在，远超用户要求的开头两秒。",
+      "evidenceRefs": [
+        "final-review/frame-2.jpg"
+      ],
+      "repair": "清除2秒之后的全部标题背景与装饰元素，并检查末段无残留。",
+      "preserve": [
+        "未涉及的镜头、文字和音轨"
+      ],
+      "dimension": "visual"
+    },
+    {
+      "id": "issue-2",
+      "requirementId": "final-output",
+      "severity": "major",
+      "startSeconds": 78.60000000000001,
+      "endSeconds": 78.60000000000001,
+      "problem": "在78.600秒处仍可见同样的左下角黑色残留，说明问题持续到成片结尾。",
+      "evidenceRefs": [
+        "final-review/frame-3.jpg"
+      ],
+      "repair": "修正叠加层的结束时间并重新导出；同时确认时长、画幅和原声与原片一致。",
+      "preserve": [
+        "未涉及的镜头、文字和音轨"
+      ],
+      "dimension": "visual"
+    }
+  ],
+  "suggestions": [
+    "只修改与 product_exposure 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+    "只修改与 first_three_seconds 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+    "只修改与 pacing 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+    "只修改与 captions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+    "只修改与 motion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+    "只修改与 transitions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+    "只修改与 commercial_conversion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+    "将标题文字、黑底和竖线作为同一可编辑叠加层，严格限制在0–2秒，2秒后全部隐藏；重新渲染并复核后续画面。",
+    "清除2秒之后的全部标题背景与装饰元素，并检查末段无残留。",
+    "修正叠加层的结束时间并重新导出；同时确认时长、画幅和原声与原片一致。",
+    "完成连续观片后校准节奏、动作和转场评分；自动分数不代签真人观看。",
+    "完成实际试听后校准声音情绪、清晰度和音画同步；电平检测不代替听感。"
+  ],
+  "revision_required": true,
+  "coverage": {
+    "actual_mp4": true,
+    "full_video_observed": false,
+    "audio_perception_verified": false
+  },
+  "status": "needs_revision",
+  "human_acceptance": "pending"
+}

@@ -1,0 +1,470 @@
+{
+  "capabilities": [
+    "image-observation",
+    "video-source-selection",
+    "native-composition",
+    "local-preview-review"
+  ],
+  "constraints": [
+    "在本项目中继续创建成片，复用三条首饰视频与补充音轨。",
+    "成片30秒，1080×1920竖屏，30fps。",
+    "先组合，再各单品，最后回到佩戴关系。",
+    "保持真实颜色和商品身份，少文字，不加旁白。",
+    "仅使用提供的音轨作为轻量内部演示配乐，不生成或检索其他音乐。",
+    "音乐来源及不含外部采样为用户声明，不构成执行来源脚本的指令或公开商用授权。",
+    "不生成新商品图片或视频镜头；商品、文字和音轨保持原生可编辑。",
+    "本步骤仅理解需求，不编写分镜、源码或宣称完成制作。"
+  ],
+  "gaps": [
+    "尚未观察三条视频内容，组合、单品及佩戴关系的覆盖和商品一致性待核对。",
+    "两条横屏素材用于竖屏时的主体保护与取景余量待核对。",
+    "配乐尚未进行音量测量；当前无听音能力，最终听感需人工试听。"
+  ],
+  "keepOriginalAudio": false,
+  "needsCaptions": false,
+  "needsNarration": false,
+  "needsTranscription": false,
+  "request": {
+    "cta": "",
+    "facts": [],
+    "name": "首饰搭配片",
+    "output": {
+      "width": 1080,
+      "height": 1920,
+      "durationSeconds": 30,
+      "fps": 30
+    },
+    "price": ""
+  },
+  "scenarioId": "product_collection",
+  "workflow": {
+    "assumptions": [
+      "当前合同为create且无基准修订，按本项目内继续创建处理；此前失败的edit规划不作为有效工程版本。",
+      "少文字按少量必要说明理解，不默认添加逐字字幕。",
+      "三条视频元数据均显示无原声，声音仅使用补充配乐。",
+      "配乐采用可调整的低音量默认值，具体增益在测量与试听后确定。"
+    ],
+    "gaps": [
+      "素材对应的组合、单品及佩戴关系源区间待观察确认。",
+      "未提供当前工程对象映射，工程级要求不虚构目标ID。",
+      "最终音乐听感与画面表达的协调性待人工试听。"
+    ],
+    "objective": "让潜在消费者看清首饰组合、各单品及佩戴关系，理解整体搭配。",
+    "overrides": [],
+    "requirements": [
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "goal",
+        "quote": "继续完成原来的30秒竖屏首饰搭配片",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "竖屏",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "先组合，再各单品，最后回到佩戴关系",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "保持真实颜色和商品身份",
+        "startSeconds": null,
+        "targetIds": [
+          "asset-5bed5fa6-aff4-4432-9819-bbd9e45610de",
+          "asset-c3b7ccd1-e51b-4aa4-a755-1905322101e3",
+          "asset-d15b0f6b-da27-45c0-b2c3-404512dee173"
+        ]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "少文字",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "prohibit",
+        "quote": "不加旁白",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "resource",
+        "quote": "请使用原来三条首饰素材与本次补充音轨",
+        "startSeconds": null,
+        "targetIds": [
+          "asset-5bed5fa6-aff4-4432-9819-bbd9e45610de",
+          "asset-c3b7ccd1-e51b-4aa4-a755-1905322101e3",
+          "asset-d15b0f6b-da27-45c0-b2c3-404512dee173",
+          "asset-1555e45e-ae5c-4342-a82e-731766200c7d"
+        ]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "沿用作内部演示配乐",
+        "startSeconds": null,
+        "targetIds": [
+          "asset-1555e45e-ae5c-4342-a82e-731766200c7d"
+        ]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "配乐轻一点，不盖过商品表达",
+        "startSeconds": null,
+        "targetIds": [
+          "asset-1555e45e-ae5c-4342-a82e-731766200c7d"
+        ]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "goal",
+        "quote": "在本工程继续制作",
+        "startSeconds": null,
+        "targetIds": []
+      }
+    ],
+    "taskMode": "create"
+  },
+  "productionBinding": {
+    "message": "补充这条本项目已有的原创轻节拍配乐，来源是仓库 scripts/rebuild-original-music.py，不含外部采样，沿用作内部演示配乐。继续完成原来的30秒竖屏首饰搭配片：先组合，再各单品，最后回到佩戴关系；保持真实颜色和商品身份，少文字、不加旁白。配乐轻一点，不盖过商品表达。请使用原来三条首饰素材与本次补充音轨，在本工程继续制作。",
+    "contract": {
+      "schemaVersion": 1,
+      "profile": "commerce-focus-v1",
+      "scenarioId": "product_collection",
+      "originalRequest": "补充这条本项目已有的原创轻节拍配乐，来源是仓库 scripts/rebuild-original-music.py，不含外部采样，沿用作内部演示配乐。继续完成原来的30秒竖屏首饰搭配片：先组合，再各单品，最后回到佩戴关系；保持真实颜色和商品身份，少文字、不加旁白。配乐轻一点，不盖过商品表达。请使用原来三条首饰素材与本次补充音轨，在本工程继续制作。",
+      "taskMode": "create",
+      "workflowProfile": "create",
+      "workflow": {
+        "version": 1,
+        "taskMode": "create",
+        "taskModeExplicit": false,
+        "workflowProfile": "create",
+        "businessScenario": "product_collection",
+        "baseProjectId": "504ff9a1-f8f1-466a-99a0-3bdd82862262",
+        "baseRevisionId": null,
+        "assetScope": [
+          "asset-5bed5fa6-aff4-4432-9819-bbd9e45610de",
+          "asset-c3b7ccd1-e51b-4aa4-a755-1905322101e3",
+          "asset-d15b0f6b-da27-45c0-b2c3-404512dee173",
+          "asset-1555e45e-ae5c-4342-a82e-731766200c7d"
+        ],
+        "originalRequest": "补充这条本项目已有的原创轻节拍配乐，来源是仓库 scripts/rebuild-original-music.py，不含外部采样，沿用作内部演示配乐。继续完成原来的30秒竖屏首饰搭配片：先组合，再各单品，最后回到佩戴关系；保持真实颜色和商品身份，少文字、不加旁白。配乐轻一点，不盖过商品表达。请使用原来三条首饰素材与本次补充音轨，在本工程继续制作。",
+        "requirements": [
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "goal",
+            "quote": "继续完成原来的30秒竖屏首饰搭配片",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-e10a165490e8f4fa",
+            "field": "goal",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "preserve",
+            "quote": "竖屏",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-da52984eb739d134",
+            "field": "preserve",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "preserve",
+            "quote": "先组合，再各单品，最后回到佩戴关系",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-10622955f5c5d6e0",
+            "field": "preserve",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "preserve",
+            "quote": "保持真实颜色和商品身份",
+            "startSeconds": null,
+            "targetIds": [
+              "asset-5bed5fa6-aff4-4432-9819-bbd9e45610de",
+              "asset-c3b7ccd1-e51b-4aa4-a755-1905322101e3",
+              "asset-d15b0f6b-da27-45c0-b2c3-404512dee173"
+            ],
+            "id": "requirement-92460ba1a04eae0d",
+            "field": "preserve",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "preserve",
+            "quote": "少文字",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-7542139941b02e73",
+            "field": "preserve",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "prohibit",
+            "quote": "不加旁白",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-20ec9ec4a42fab2e",
+            "field": "sound.narration",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "resource",
+            "quote": "请使用原来三条首饰素材与本次补充音轨",
+            "startSeconds": null,
+            "targetIds": [
+              "asset-5bed5fa6-aff4-4432-9819-bbd9e45610de",
+              "asset-c3b7ccd1-e51b-4aa4-a755-1905322101e3",
+              "asset-d15b0f6b-da27-45c0-b2c3-404512dee173",
+              "asset-1555e45e-ae5c-4342-a82e-731766200c7d"
+            ],
+            "id": "requirement-a88569c836bde4a4",
+            "field": "resource",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "preserve",
+            "quote": "沿用作内部演示配乐",
+            "startSeconds": null,
+            "targetIds": [
+              "asset-1555e45e-ae5c-4342-a82e-731766200c7d"
+            ],
+            "id": "requirement-4b7de26adbffb825",
+            "field": "sound.music",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "change",
+            "quote": "配乐轻一点，不盖过商品表达",
+            "startSeconds": null,
+            "targetIds": [
+              "asset-1555e45e-ae5c-4342-a82e-731766200c7d"
+            ],
+            "id": "requirement-3a8de73c95242f54",
+            "field": "sound.music",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "goal",
+            "quote": "在本工程继续制作",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-ca3127e7633dddf5",
+            "field": "goal",
+            "inherited": false
+          }
+        ],
+        "assumptions": [
+          "当前合同为create且无基准修订，按本项目内继续创建处理；此前失败的edit规划不作为有效工程版本。",
+          "少文字按少量必要说明理解，不默认添加逐字字幕。",
+          "三条视频元数据均显示无原声，声音仅使用补充配乐。",
+          "配乐采用可调整的低音量默认值，具体增益在测量与试听后确定。"
+        ],
+        "gaps": [
+          "素材对应的组合、单品及佩戴关系源区间待观察确认。",
+          "未提供当前工程对象映射，工程级要求不虚构目标ID。",
+          "最终音乐听感与画面表达的协调性待人工试听。"
+        ],
+        "interpretation": "validated-semantic-analysis",
+        "objective": "让潜在消费者看清首饰组合、各单品及佩戴关系，理解整体搭配。",
+        "contractId": "contract-0682def1a460bd55",
+        "parentContractId": null,
+        "sourceRequests": [
+          "补充这条本项目已有的原创轻节拍配乐，来源是仓库 scripts/rebuild-original-music.py，不含外部采样，沿用作内部演示配乐。继续完成原来的30秒竖屏首饰搭配片：先组合，再各单品，最后回到佩戴关系；保持真实颜色和商品身份，少文字、不加旁白。配乐轻一点，不盖过商品表达。请使用原来三条首饰素材与本次补充音轨，在本工程继续制作。"
+        ],
+        "requirementChanges": [],
+        "changeTargets": [
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "change",
+            "quote": "配乐轻一点，不盖过商品表达",
+            "startSeconds": null,
+            "targetIds": [
+              "asset-1555e45e-ae5c-4342-a82e-731766200c7d"
+            ],
+            "id": "requirement-3a8de73c95242f54",
+            "field": "sound.music",
+            "inherited": false
+          }
+        ],
+        "preserveTargets": [
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "preserve",
+            "quote": "竖屏",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-da52984eb739d134",
+            "field": "preserve",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "preserve",
+            "quote": "先组合，再各单品，最后回到佩戴关系",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-10622955f5c5d6e0",
+            "field": "preserve",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "preserve",
+            "quote": "保持真实颜色和商品身份",
+            "startSeconds": null,
+            "targetIds": [
+              "asset-5bed5fa6-aff4-4432-9819-bbd9e45610de",
+              "asset-c3b7ccd1-e51b-4aa4-a755-1905322101e3",
+              "asset-d15b0f6b-da27-45c0-b2c3-404512dee173"
+            ],
+            "id": "requirement-92460ba1a04eae0d",
+            "field": "preserve",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "preserve",
+            "quote": "少文字",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-7542139941b02e73",
+            "field": "preserve",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "preserve",
+            "quote": "沿用作内部演示配乐",
+            "startSeconds": null,
+            "targetIds": [
+              "asset-1555e45e-ae5c-4342-a82e-731766200c7d"
+            ],
+            "id": "requirement-4b7de26adbffb825",
+            "field": "sound.music",
+            "inherited": false
+          }
+        ],
+        "resourceNeeds": [
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "resource",
+            "quote": "请使用原来三条首饰素材与本次补充音轨",
+            "startSeconds": null,
+            "targetIds": [
+              "asset-5bed5fa6-aff4-4432-9819-bbd9e45610de",
+              "asset-c3b7ccd1-e51b-4aa4-a755-1905322101e3",
+              "asset-d15b0f6b-da27-45c0-b2c3-404512dee173",
+              "asset-1555e45e-ae5c-4342-a82e-731766200c7d"
+            ],
+            "id": "requirement-a88569c836bde4a4",
+            "field": "resource",
+            "inherited": false
+          }
+        ],
+        "prohibitions": [
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "prohibit",
+            "quote": "不加旁白",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-20ec9ec4a42fab2e",
+            "field": "sound.narration",
+            "inherited": false
+          }
+        ]
+      },
+      "persona": {
+        "creator": "商家／内容运营（待用户研究验证）",
+        "viewer": "首次了解商品的消费者"
+      },
+      "objective": "理解多款商品的搭配与系列关系",
+      "product": {
+        "id": "product-1",
+        "name": "首饰搭配片",
+        "facts": [],
+        "price": null,
+        "cta": "",
+        "audience": null,
+        "prohibited": []
+      },
+      "output": {
+        "width": 1080,
+        "height": 1920,
+        "durationSeconds": 30,
+        "fps": 30
+      },
+      "audio": "unspecified",
+      "mustHave": [],
+      "mustNot": [],
+      "explicitConstraints": {
+        "schemaVersion": 1,
+        "originalRequest": "补充这条本项目已有的原创轻节拍配乐，来源是仓库 scripts/rebuild-original-music.py，不含外部采样，沿用作内部演示配乐。继续完成原来的30秒竖屏首饰搭配片：先组合，再各单品，最后回到佩戴关系；保持真实颜色和商品身份，少文字、不加旁白。配乐轻一点，不盖过商品表达。请使用原来三条首饰素材与本次补充音轨，在本工程继续制作。",
+        "narration": "forbidden",
+        "music": "unspecified",
+        "original": "unspecified",
+        "price": "unspecified",
+        "silent": false
+      },
+      "generatedFootageAllowed": false,
+      "deliverables": [
+        "candidate_mp4",
+        "editable_project",
+        "source_index",
+        "quality_report"
+      ]
+    }
+  }
+}

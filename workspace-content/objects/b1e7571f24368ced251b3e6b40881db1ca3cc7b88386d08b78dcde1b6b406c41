@@ -1,0 +1,30 @@
+{
+  "status": "passed",
+  "validation": "mock media/provider integration; real media is covered separately",
+  "passed": [
+    "import and ordinary captions create previews without speech or automatic export",
+    "inserted tail can receive new narration and linked captions in one transaction",
+    "source transcript is mapped once after a same-round rearrangement and keeps future anchors",
+    "new inserted-source transcript uses deterministic clip IDs across preparation and commit",
+    "a failed staged check never moves the current revision or loses the prior preview",
+    "named effect retries the same capability after a preview failure and never publishes a substituted effect",
+    "cancellation interrupts work before commit and preserves the base version",
+    "editing remains available while an old revision is rendering",
+    "restore reuses immutable artifacts and does not compile or render again",
+    "ten conversational revisions retain history and refresh provider login each turn",
+    "event sequences persist and reconnect resumes after the last event",
+    "precise chat edits and invalid exact instructions never need a configured model",
+    "second source preparation does not block chat edits to the current revision",
+    "restart recovers revisions, analyses, event cursor and interrupts an uncommitted job",
+    "continuous undo, redo and Chinese revision restore follow content history"
+  ],
+  "calls": {
+    "compose": 41,
+    "check": 41,
+    "render": 1,
+    "speak": 1,
+    "transcribe": 2,
+    "plan": 10,
+    "refresh": 15
+  }
+}

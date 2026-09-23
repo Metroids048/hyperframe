@@ -1,0 +1,94 @@
+{
+  "alternatives": [],
+  "operations": [],
+  "summary": "暂不提交猜测性裁切：输入未提供静帧图像或连接座像素边界，无法可靠定位。保留当前版本，待补齐定位证据后仅修复右侧静帧窗口。",
+  "workflow": {
+    "assumptions": [],
+    "gaps": [
+      "s02-still-side仅有文字观察记录，subjectBox与safeCrop均为空；所引用的评审图片仅提供路径，没有图像内容。本轮禁止读取文件或调用工具，无法完成真实连接座像素边界定位。",
+      "当前scene06-detail使用left=-960px、top=-100px、width=1920px、height=1080px，位于560×360窗口内。评审已指出该裁切失败，但现有证据不足以推导正确偏移和缩放；不能再次猜测坐标，也不能用全图缩略展示冒充居中的细节裁切。",
+      "需补充该静帧的真实像素尺寸、连接座完整外框边界及周边参照范围。随后仅通过update_custom_source修改source-scene-06中scene06-detail的裁切偏移和必要等比缩放，保留其余源码、映射与动画。",
+      "后续补丁应基于rev-75e040887e1ee7bc，重新编译scene-06并检查隔离与对象保持；渲染核验17.1、17.433、19.767秒及scene-05/scene-07邻接边界，确认完整外框、居中、稳定和显示像素不超过截取像素。新修订ID由服务端生成。本轮未执行提交、渲染或验证。"
+    ],
+    "objective": "让观众在右侧静帧窗口清楚、稳定地辨认矩形连接座及周边位置关系。",
+    "overrides": [],
+    "requirements": [
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "仅调整右侧静帧的裁切位置与必要缩放",
+        "startSeconds": null,
+        "targetIds": ["scene06-detail-video"]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "goal",
+        "quote": "先定位该静帧中真实连接座的像素边界，以连接座为中心保留完整外框和周边参照",
+        "startSeconds": null,
+        "targetIds": ["scene06-detail-video"]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "prohibit",
+        "quote": "显示尺寸不超过截取原始像素，不锐化、不生成细节。",
+        "startSeconds": null,
+        "targetIds": ["scene06-detail-video"]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "保持左侧视频、文字、字幕、音轨和其他镜头不变。",
+        "startSeconds": null,
+        "targetIds": [
+          "node-6f1976475f26930e",
+          "node-273cc21cd4ec3159",
+          "node-4a2ff51527d8e3b4"
+        ]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "声音",
+        "startSeconds": null,
+        "targetIds": [
+          "audio-1",
+          "audio-2",
+          "audio-3",
+          "audio-4",
+          "audio-4124aaefa824859c",
+          "audio-bc35f0a994d81023"
+        ]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": ["scene-06"],
+        "kind": "preserve",
+        "quote": "其他镜头",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "保持字幕时间、全文字、媒体区间、声音、时长和其他镜头。",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "goal",
+        "quote": "重新渲染并检查本批三个时点，确认连接座完整、居中且裁切稳定。",
+        "startSeconds": null,
+        "targetIds": ["scene-06", "scene06-detail-video"]
+      }
+    ],
+    "taskMode": "edit"
+  }
+}

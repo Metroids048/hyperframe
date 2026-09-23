@@ -1,0 +1,46 @@
+{
+  "summary": "已检查本批 scene-01 至 scene-03 的关键帧。scene-01 与 scene-02 的字幕和可见动作基本对应；scene-03 画面持续显示滴管悬在皮肤上方，未能从证据确认“轻触皮肤”。全片声音与未提供的 scene-04 动效未评。\nscene-04画面主体与字幕基本匹配：28.8–30.5秒先展示滴管靠近脸颊，约40秒后出现手指涂抹及中性提示。片尾仍在进行涂抹动作，存在动作被截断风险；未提供试听或全片运动证据，声音与完整动效未评。",
+  "issues": [
+    {
+      "severity": "major",
+      "repairKind": "text-evidence",
+      "sceneId": "scene-03",
+      "startSeconds": 19.5,
+      "endSeconds": 28.5,
+      "nodeIds": [
+        "node-fcce7a70e367e1e1",
+        "node-bff8ca05dfbd53e9"
+      ],
+      "evidence": [
+        "review-0/batch-0/frame-08-at-19.8s.png",
+        "review-0/batch-0/frame-09-at-21.5s.png",
+        "review-0/batch-0/frame-10-at-25.8s.png",
+        "review-0/batch-0/frame-11-at-28.467s.png"
+      ],
+      "problem": "四张关键帧中滴管尖端均悬于皮肤上方，未显示明确接触；字幕“轻触皮肤”比实拍证据更强，可能误导观众认为已发生触碰。",
+      "repair": "将字幕改为中性且可见的“滴管靠近皮肤”或“液体接近皮肤”，保持原生媒体区间不变；用同一批关键帧复核字幕与画面一致性。"
+    },
+    {
+      "severity": "major",
+      "repairKind": "source-selection",
+      "sceneId": "scene-04",
+      "startSeconds": 44.5,
+      "endSeconds": 45,
+      "nodeIds": [
+        "node-f1054a469b82846b"
+      ],
+      "evidence": [
+        "review-0/batch-1/frame-03-at-44.967s.png"
+      ],
+      "problem": "片尾画面中手指仍在脸颊上进行涂抹，动作尚未明显结束即到达视频末端，可能形成新动作中的硬切，削弱使用闭环。",
+      "repair": "从同一原生横屏素材重选scene-04末段区间，保留完整涂抹收尾；若素材无自然结束点，应提前结束字幕并在动作完成后留出短暂静止帧。验证44.5秒至片尾手指动作是否完成且无截断。"
+    }
+  ],
+  "unreviewed": [
+    "未提供声音试听或音量测量证据，无法评估静音保持与音画同步。",
+    "scene-04（28.5–45秒）没有本批关键帧，无法评估面部涂抹动作、字幕时点及片尾是否截断。",
+    "仅有静态关键帧，未评估完整运动、转场和等待段是否被去除。",
+    "scene-04全片连续运动与转场未通过完整视频证据核验",
+    "scene-04音频未评审（未提供试听/波形证据）；需确认保持原片静音且未新增音乐或配音"
+  ]
+}

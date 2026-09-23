@@ -1,0 +1,481 @@
+{
+  "time": "2026-09-17T04:53:51.670Z",
+  "action": "message",
+  "sceneId": "S03",
+  "message": "把这份即食饭制作素材整理成约55秒横屏使用流程片。保留真实准备、操作、等待前后衔接和完成状态，删掉无信息的等待；中文步骤条不要遮住手部。原声能用就保留，不加音乐，不猜加水量、加热功率或时间。",
+  "projectId": "2bd26376-6826-45c1-a837-866e526db3f3",
+  "before": null,
+  "after": null,
+  "jobs": [
+    {
+      "id": "job-33672bba-f5a6-4c94-b721-9fa9bb8cfcfd",
+      "kind": "create",
+      "input": {
+        "action": "generate",
+        "projectId": "2bd26376-6826-45c1-a837-866e526db3f3",
+        "message": "把这份即食饭制作素材整理成约55秒横屏使用流程片。保留真实准备、操作、等待前后衔接和完成状态，删掉无信息的等待；中文步骤条不要遮住手部。原声能用就保留，不加音乐，不猜加水量、加热功率或时间。",
+        "request": {
+          "taskModeExplicit": false,
+          "taskMode": "create",
+          "workflowProfile": "demo",
+          "baseProjectId": "2bd26376-6826-45c1-a837-866e526db3f3",
+          "baseRevisionId": null,
+          "sourceAssetId": null,
+          "target": "marketing",
+          "scenarioId": "product_demo",
+          "businessGoal": [
+            "demo"
+          ],
+          "output": {
+            "width": 1920,
+            "height": 1080,
+            "durationSeconds": 55
+          },
+          "pipelineVersion": 3
+        },
+        "taskModeExplicit": true,
+        "taskMode": "create",
+        "workflowProfile": "demo",
+        "baseProjectId": "2bd26376-6826-45c1-a837-866e526db3f3",
+        "baseRevisionId": null,
+        "sourceAssetId": null,
+        "target": "marketing",
+        "scenarioId": "product_demo",
+        "businessGoal": [
+          "demo"
+        ],
+        "output": {
+          "width": 1920,
+          "height": 1080,
+          "durationSeconds": 55
+        },
+        "pipelineVersion": 3,
+        "idempotencyKey": "6f2cc179-1974-480c-945b-0c5f5af58b1c",
+        "routeDecision": {
+          "assetIds": [
+            "asset-b1b2921a-312d-4e48-9008-4b93cf2c715f"
+          ],
+          "mode": "create",
+          "preserve": [
+            "unmentioned-objects",
+            "source-assets",
+            "revision-history",
+            "真实准备、操作、等待前后衔接和完成状态",
+            "原声能用就保留"
+          ],
+          "question": "",
+          "quote": "把这份即食饭制作素材整理成约55秒横屏使用流程片。",
+          "reason": "当前没有工程或已有版本，用户明确要求使用所提供素材制作使用流程片，属于新建产品使用演示视频；删减等待是本次制作要求，不是对已有版本精剪。",
+          "revisionId": null,
+          "scenarioId": "product_demo",
+          "targets": [
+            {
+              "id": null,
+              "kind": "timeline",
+              "requirement": "把这份即食饭制作素材整理成约55秒横屏使用流程片。"
+            },
+            {
+              "id": "asset-b1b2921a-312d-4e48-9008-4b93cf2c715f",
+              "kind": "visual",
+              "requirement": "保留真实准备、操作、等待前后衔接和完成状态，删掉无信息的等待；"
+            },
+            {
+              "id": null,
+              "kind": "text",
+              "requirement": "中文步骤条不要遮住手部。"
+            },
+            {
+              "id": null,
+              "kind": "audio",
+              "requirement": "原声能用就保留，不加音乐"
+            },
+            {
+              "id": null,
+              "kind": "text",
+              "requirement": "不猜加水量、加热功率或时间。"
+            }
+          ],
+          "source": "semantic",
+          "model": "gpt-6-astra",
+          "baseRevisionId": null,
+          "version": 1,
+          "message": "把这份即食饭制作素材整理成约55秒横屏使用流程片。保留真实准备、操作、等待前后衔接和完成状态，删掉无信息的等待；中文步骤条不要遮住手部。原声能用就保留，不加音乐，不猜加水量、加热功率或时间。",
+          "scenario": "product_demo",
+          "executionStrategy": "L2",
+          "confidence": 0.8,
+          "fallback": {
+            "version": 1,
+            "categories": [
+              "missing_evidence",
+              "ambiguous_target",
+              "unsupported_capability",
+              "resource_incompatible",
+              "provider_unavailable",
+              "quality_failure",
+              "revision_conflict"
+            ],
+            "maxReplans": 2,
+            "identicalFailureLimit": 2,
+            "preserveCurrentRevision": true,
+            "allowSilentSubstitution": false,
+            "steps": [
+              "retry-same-capability",
+              "safe-equivalent-execution",
+              "retain-valid-revision",
+              "report-failed-targets",
+              "repair-only-gap"
+            ],
+            "classifiers": [
+              [
+                "revision_conflict",
+                "REVISION_CONFLICT|STALE_REVISION"
+              ],
+              [
+                "provider_unavailable",
+                "^(MINIMAX_|CODEX_|PROVIDER_)"
+              ],
+              [
+                "resource_incompatible",
+                "RESOURCE_|INCOMPATIBLE"
+              ],
+              [
+                "unsupported_capability",
+                "UNSUPPORTED|CAPABILITY|VOICE_NOT_FOUND"
+              ],
+              [
+                "ambiguous_target",
+                "AMBIGUOUS|SCOPE|TARGET|CONFLICT|CAPTION_ALIGNMENT_REQUIRED"
+              ],
+              [
+                "missing_evidence",
+                "MISSING|NEEDS_INPUT|INSUFFICIENT|SPEECH_SCRIPT_REQUIRED|NO_SPEECH|NO_CAPTION_AUDIO"
+              ]
+            ]
+          },
+          "selectedSkills": [
+            "timeline-edit",
+            "visual-composition",
+            "audio-mix",
+            "hyperframes-creative",
+            "conversation-edit"
+          ],
+          "skillReasons": {
+            "timeline-edit": [
+              "target:timeline",
+              "request-evidence"
+            ],
+            "visual-composition": [
+              "target:visual",
+              "target:text",
+              "target:text",
+              "request-evidence"
+            ],
+            "audio-mix": [
+              "target:audio",
+              "request-evidence"
+            ],
+            "hyperframes-creative": [
+              "request-evidence"
+            ],
+            "conversation-edit": [
+              "request-evidence"
+            ]
+          }
+        },
+        "workflow": {
+          "version": 1,
+          "taskMode": "create",
+          "taskModeExplicit": true,
+          "workflowProfile": "create",
+          "businessScenario": "product_demo",
+          "baseProjectId": "2bd26376-6826-45c1-a837-866e526db3f3",
+          "baseRevisionId": null,
+          "assetScope": [
+            "asset-b1b2921a-312d-4e48-9008-4b93cf2c715f"
+          ],
+          "originalRequest": "把这份即食饭制作素材整理成约55秒横屏使用流程片。保留真实准备、操作、等待前后衔接和完成状态，删掉无信息的等待；中文步骤条不要遮住手部。原声能用就保留，不加音乐，不猜加水量、加热功率或时间。",
+          "requirements": [],
+          "assumptions": [],
+          "gaps": [],
+          "interpretation": "pending-semantic-analysis"
+        }
+      },
+      "routeDecision": {
+        "assetIds": [
+          "asset-b1b2921a-312d-4e48-9008-4b93cf2c715f"
+        ],
+        "mode": "create",
+        "preserve": [
+          "unmentioned-objects",
+          "source-assets",
+          "revision-history",
+          "真实准备、操作、等待前后衔接和完成状态",
+          "原声能用就保留"
+        ],
+        "question": "",
+        "quote": "把这份即食饭制作素材整理成约55秒横屏使用流程片。",
+        "reason": "当前没有工程或已有版本，用户明确要求使用所提供素材制作使用流程片，属于新建产品使用演示视频；删减等待是本次制作要求，不是对已有版本精剪。",
+        "revisionId": null,
+        "scenarioId": "product_demo",
+        "targets": [
+          {
+            "id": null,
+            "kind": "timeline",
+            "requirement": "把这份即食饭制作素材整理成约55秒横屏使用流程片。"
+          },
+          {
+            "id": "asset-b1b2921a-312d-4e48-9008-4b93cf2c715f",
+            "kind": "visual",
+            "requirement": "保留真实准备、操作、等待前后衔接和完成状态，删掉无信息的等待；"
+          },
+          {
+            "id": null,
+            "kind": "text",
+            "requirement": "中文步骤条不要遮住手部。"
+          },
+          {
+            "id": null,
+            "kind": "audio",
+            "requirement": "原声能用就保留，不加音乐"
+          },
+          {
+            "id": null,
+            "kind": "text",
+            "requirement": "不猜加水量、加热功率或时间。"
+          }
+        ],
+        "source": "semantic",
+        "model": "gpt-6-astra",
+        "baseRevisionId": null,
+        "version": 1,
+        "message": "把这份即食饭制作素材整理成约55秒横屏使用流程片。保留真实准备、操作、等待前后衔接和完成状态，删掉无信息的等待；中文步骤条不要遮住手部。原声能用就保留，不加音乐，不猜加水量、加热功率或时间。",
+        "scenario": "product_demo",
+        "executionStrategy": "L2",
+        "confidence": 0.8,
+        "fallback": {
+          "version": 1,
+          "categories": [
+            "missing_evidence",
+            "ambiguous_target",
+            "unsupported_capability",
+            "resource_incompatible",
+            "provider_unavailable",
+            "quality_failure",
+            "revision_conflict"
+          ],
+          "maxReplans": 2,
+          "identicalFailureLimit": 2,
+          "preserveCurrentRevision": true,
+          "allowSilentSubstitution": false,
+          "steps": [
+            "retry-same-capability",
+            "safe-equivalent-execution",
+            "retain-valid-revision",
+            "report-failed-targets",
+            "repair-only-gap"
+          ],
+          "classifiers": [
+            [
+              "revision_conflict",
+              "REVISION_CONFLICT|STALE_REVISION"
+            ],
+            [
+              "provider_unavailable",
+              "^(MINIMAX_|CODEX_|PROVIDER_)"
+            ],
+            [
+              "resource_incompatible",
+              "RESOURCE_|INCOMPATIBLE"
+            ],
+            [
+              "unsupported_capability",
+              "UNSUPPORTED|CAPABILITY|VOICE_NOT_FOUND"
+            ],
+            [
+              "ambiguous_target",
+              "AMBIGUOUS|SCOPE|TARGET|CONFLICT|CAPTION_ALIGNMENT_REQUIRED"
+            ],
+            [
+              "missing_evidence",
+              "MISSING|NEEDS_INPUT|INSUFFICIENT|SPEECH_SCRIPT_REQUIRED|NO_SPEECH|NO_CAPTION_AUDIO"
+            ]
+          ]
+        },
+        "selectedSkills": [
+          "timeline-edit",
+          "visual-composition",
+          "audio-mix",
+          "hyperframes-creative",
+          "conversation-edit"
+        ],
+        "skillReasons": {
+          "timeline-edit": [
+            "target:timeline",
+            "request-evidence"
+          ],
+          "visual-composition": [
+            "target:visual",
+            "target:text",
+            "target:text",
+            "request-evidence"
+          ],
+          "audio-mix": [
+            "target:audio",
+            "request-evidence"
+          ],
+          "hyperframes-creative": [
+            "request-evidence"
+          ],
+          "conversation-edit": [
+            "request-evidence"
+          ]
+        }
+      },
+      "baseRevisionId": null,
+      "status": "running",
+      "createdAt": "2026-09-17T04:53:51.592Z",
+      "idempotencyKey": "6f2cc179-1974-480c-945b-0c5f5af58b1c",
+      "startedAt": "2026-09-17T04:53:51.594Z",
+      "productionPolicy": {
+        "mediaGenerationPaused": true,
+        "source": "config/commerce.json"
+      },
+      "stage": "准备素材 1/1",
+      "resumeAllowed": false,
+      "budgetExhausted": false
+    }
+  ],
+  "route": {
+    "time": "2026-09-17T04:53:51.591Z",
+    "message": "把这份即食饭制作素材整理成约55秒横屏使用流程片。保留真实准备、操作、等待前后衔接和完成状态，删掉无信息的等待；中文步骤条不要遮住手部。原声能用就保留，不加音乐，不猜加水量、加热功率或时间。",
+    "baseRevisionId": null,
+    "assetIds": [
+      "asset-b1b2921a-312d-4e48-9008-4b93cf2c715f"
+    ],
+    "mode": "create",
+    "preserve": [
+      "unmentioned-objects",
+      "source-assets",
+      "revision-history",
+      "真实准备、操作、等待前后衔接和完成状态",
+      "原声能用就保留"
+    ],
+    "question": "",
+    "quote": "把这份即食饭制作素材整理成约55秒横屏使用流程片。",
+    "reason": "当前没有工程或已有版本，用户明确要求使用所提供素材制作使用流程片，属于新建产品使用演示视频；删减等待是本次制作要求，不是对已有版本精剪。",
+    "revisionId": null,
+    "scenarioId": "product_demo",
+    "targets": [
+      {
+        "id": null,
+        "kind": "timeline",
+        "requirement": "把这份即食饭制作素材整理成约55秒横屏使用流程片。"
+      },
+      {
+        "id": "asset-b1b2921a-312d-4e48-9008-4b93cf2c715f",
+        "kind": "visual",
+        "requirement": "保留真实准备、操作、等待前后衔接和完成状态，删掉无信息的等待；"
+      },
+      {
+        "id": null,
+        "kind": "text",
+        "requirement": "中文步骤条不要遮住手部。"
+      },
+      {
+        "id": null,
+        "kind": "audio",
+        "requirement": "原声能用就保留，不加音乐"
+      },
+      {
+        "id": null,
+        "kind": "text",
+        "requirement": "不猜加水量、加热功率或时间。"
+      }
+    ],
+    "source": "semantic",
+    "model": "gpt-6-astra",
+    "version": 1,
+    "scenario": "product_demo",
+    "executionStrategy": "L2",
+    "confidence": 0.8,
+    "fallback": {
+      "version": 1,
+      "categories": [
+        "missing_evidence",
+        "ambiguous_target",
+        "unsupported_capability",
+        "resource_incompatible",
+        "provider_unavailable",
+        "quality_failure",
+        "revision_conflict"
+      ],
+      "maxReplans": 2,
+      "identicalFailureLimit": 2,
+      "preserveCurrentRevision": true,
+      "allowSilentSubstitution": false,
+      "steps": [
+        "retry-same-capability",
+        "safe-equivalent-execution",
+        "retain-valid-revision",
+        "report-failed-targets",
+        "repair-only-gap"
+      ],
+      "classifiers": [
+        [
+          "revision_conflict",
+          "REVISION_CONFLICT|STALE_REVISION"
+        ],
+        [
+          "provider_unavailable",
+          "^(MINIMAX_|CODEX_|PROVIDER_)"
+        ],
+        [
+          "resource_incompatible",
+          "RESOURCE_|INCOMPATIBLE"
+        ],
+        [
+          "unsupported_capability",
+          "UNSUPPORTED|CAPABILITY|VOICE_NOT_FOUND"
+        ],
+        [
+          "ambiguous_target",
+          "AMBIGUOUS|SCOPE|TARGET|CONFLICT|CAPTION_ALIGNMENT_REQUIRED"
+        ],
+        [
+          "missing_evidence",
+          "MISSING|NEEDS_INPUT|INSUFFICIENT|SPEECH_SCRIPT_REQUIRED|NO_SPEECH|NO_CAPTION_AUDIO"
+        ]
+      ]
+    },
+    "selectedSkills": [
+      "timeline-edit",
+      "visual-composition",
+      "audio-mix",
+      "hyperframes-creative",
+      "conversation-edit"
+    ],
+    "skillReasons": {
+      "timeline-edit": [
+        "target:timeline",
+        "request-evidence"
+      ],
+      "visual-composition": [
+        "target:visual",
+        "target:text",
+        "target:text",
+        "request-evidence"
+      ],
+      "audio-mix": [
+        "target:audio",
+        "request-evidence"
+      ],
+      "hyperframes-creative": [
+        "request-evidence"
+      ],
+      "conversation-edit": [
+        "request-evidence"
+      ]
+    }
+  },
+  "uiError": ""
+}
