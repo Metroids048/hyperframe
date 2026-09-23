@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Pack oversized / ignored workspace files and push the current checkout to origin.
- * Local API keys are included so a new device can continue the same work.
+ * Local credentials and private configuration remain device-local.
  */
 import fs from 'node:fs/promises';
 import {createReadStream, existsSync, statSync} from 'node:fs';
@@ -25,6 +25,9 @@ const PACK_ROOTS = [
   'video-agent/deliverables',
   'video-agent/data',
   'video-agent/outputs',
+];
+const PACK_FILES = [
+  'video-agent/steam-deck-project-history.zip',
 ];
 const fingerprints = new Map();
 const GIT_FLAGS = [
@@ -122,6 +125,44 @@ async function fileFingerprint(file, size) {
   }
 }
 
+async function packFile(file, files, seen, tracked) {
+  const relative = posix(path.relative(ROOT, file));
+  if (skipEntry(path.basename(file), relative)) return;
+  await assertSafeFiles([{absolute:file,path:relative}],{context:'workspace bundle'});
+  const stat = await fs.stat(file);
+  if (tracked.has(relative) && stat.size <= GIT_FILE_LIMIT) return;
+  const previous = seen.get(relative);
+  if (previous && previous.bytes === stat.size) {
+    files.push(previous);
+    fingerprints.set(stat.size + ':' + previous.sha256, previous);
+    return;
+  }
+  const mark = await fileFingerprint(file, stat.size);
+  const reused = fingerprints.get(mark);
+  if (reused) {
+    files.push({
+      path: relative,
+      bytes: reused.bytes,
+      sha256: reused.sha256,
+      chunks: reused.chunks,
+      runtime: isRuntime(relative) || reused.bytes > GIT_FILE_LIMIT,
+    });
+    return;
+  }
+  if (stat.size >= 1024 * 1024) console.log('打包 ' + relative + ' (' + Math.round(stat.size / 1024 / 1024) + ' MiB)');
+  const packed = await hashAndStore(file);
+  const record = {
+    path: relative,
+    bytes: packed.bytes,
+    sha256: packed.sha256,
+    chunks: packed.chunks,
+    runtime: isRuntime(relative) || packed.bytes > GIT_FILE_LIMIT,
+  };
+  fingerprints.set(mark, record);
+  fingerprints.set(packed.bytes + ':' + packed.sha256, record);
+  files.push(record);
+}
+
 async function walkPack(dir, files, seen, tracked) {
   let entries;
   try { entries = await fs.readdir(dir, {withFileTypes: true}); }
@@ -135,39 +176,7 @@ async function walkPack(dir, files, seen, tracked) {
       continue;
     }
     if (!entry.isFile()) continue;
-    await assertSafeFiles([{absolute:file,path:relative}],{context:'workspace bundle'});
-    const stat = await fs.stat(file);
-    if (tracked.has(relative) && stat.size <= GIT_FILE_LIMIT) continue;
-    const previous = seen.get(relative);
-    if (previous && previous.bytes === stat.size) {
-      files.push(previous);
-      fingerprints.set(stat.size + ':' + previous.sha256, previous);
-      continue;
-    }
-    const mark = await fileFingerprint(file, stat.size);
-    const reused = fingerprints.get(mark);
-    if (reused) {
-      files.push({
-        path: relative,
-        bytes: reused.bytes,
-        sha256: reused.sha256,
-        chunks: reused.chunks,
-        runtime: isRuntime(relative) || reused.bytes > GIT_FILE_LIMIT,
-      });
-      continue;
-    }
-    if (stat.size >= 1024 * 1024) console.log('打包 ' + relative + ' (' + Math.round(stat.size / 1024 / 1024) + ' MiB)');
-    const packed = await hashAndStore(file);
-    const record = {
-      path: relative,
-      bytes: packed.bytes,
-      sha256: packed.sha256,
-      chunks: packed.chunks,
-      runtime: isRuntime(relative) || packed.bytes > GIT_FILE_LIMIT,
-    };
-    fingerprints.set(mark, record);
-    fingerprints.set(packed.bytes + ':' + packed.sha256, record);
-    files.push(record);
+    await packFile(file, files, seen, tracked);
   }
 }
 
@@ -186,6 +195,10 @@ export async function refreshWorkspaceBundle() {
   for (const relative of PACK_ROOTS) {
     console.log('扫描 ' + relative);
     await walkPack(path.join(ROOT, relative), files, seen, tracked);
+  }
+  for (const relative of PACK_FILES) {
+    console.log('扫描 ' + relative);
+    await packFile(path.join(ROOT, relative), files, seen, tracked);
   }
   for (const record of files) scanned.add(record.path);
   for (const record of previous.files || []) {
