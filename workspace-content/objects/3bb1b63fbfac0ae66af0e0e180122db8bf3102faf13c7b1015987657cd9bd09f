@@ -1,0 +1,48 @@
+{
+  "inspectionVersion": 3,
+  "validationFiles": [
+    [
+      "lib/creative/custom-source.mjs",
+      "c1b2a00a6a6dd27dbc6ee2fcef5e226d972375ae0056808f40f630982c816894"
+    ],
+    [
+      "lib/creative/isolation.mjs",
+      "6d232d5019810af7d1ba75aca99e074b76841da20fb3fc7b55dfe1d7b43aaf0a"
+    ],
+    [
+      "lib/creative/isolation-protocol.mjs",
+      "b5344dfc6663b9a5a41461475ab08ecf141d7230d0e3b5bb1debf1c310e4ca7d"
+    ],
+    [
+      "scripts/native-scene-worker.mjs",
+      "f52e421e34342f4bac42abf1e3439de37cf9f3f28505129a259713a7e8afafb0"
+    ]
+  ],
+  "inputHash": "a4663ebd1b2892b3e9c8c7c81b168e93aebb4e14052f6748ca188db500a3b925",
+  "sceneId": "scene-01",
+  "sourceRevisionId": "rev-b0caca4af11e8afc",
+  "globalSeconds": 0.4,
+  "image": "frames/frame-00-at-0.4s.png",
+  "imageHash": "9b271c59ab4361446825053bfc641d5e1e173aa4c98cff586f920203db8b549a",
+  "engineering": "static-frame-checked",
+  "checkScope": {
+    "kind": "static-keyframe",
+    "atSeconds": 0.4,
+    "fullTimeline": "pending-assembly",
+    "mediaExtraction": "checked"
+  },
+  "animation": "not-yet-authored",
+  "folder": "keyframes/scene-01-a4663ebd1b2892b3",
+  "review": {
+    "issues": [
+      {
+        "severity": "major",
+        "repairKind": "source-selection",
+        "problem": "scene-01，成片0—2秒：附图1（源63.000秒）主机上缘及部分控件已出框；附图2（源64.967秒／成片1.967秒）主机大幅转斜且上部出框。虽然0.4秒关键帧完整清晰，但当前源边界不支持“完整手持主机先出现、前2秒看清主体”的要求（requirement-a7439e2d8cb97a3c、requirement-19ef0e2c56e7e236）。这是源取景问题，合成布局无法恢复。",
+        "repair": "仅重选scene-01对应素材的连续2秒源区间，逐帧确认从入点到末帧机身四边及主要控件均清楚可见；同步调整对应原声音源区间。保持2秒时长、全幅等比容器、标题node-489bce1ad0406cd6与署名node-90e14e3e2d02cc26，不通过裁切或遮盖修补。重新渲染并连续检查0—2秒；若无合适区间，明确保留素材缺口。"
+      }
+    ],
+    "summary": "仅检查三张源画面与0.4秒合成静帧。该合成帧商品完整，标题和署名清晰且未遮挡主体；源入点与末帧存在主体出框，需局部重选。连续动作、完整成片、原声听感及音画同步未评，不据此判定全片通过。"
+  },
+  "sourceHash": "c356d93c92a53f759e94ad28c1558e7c8e733a1c58223748dac00d09930de664"
+}

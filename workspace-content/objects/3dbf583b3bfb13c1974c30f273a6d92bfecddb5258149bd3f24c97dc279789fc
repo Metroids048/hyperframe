@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "taskId": "M12-F01",
+  "recordedAt": "2026-09-18T00:00:00+08:00",
+  "sourceHead": "9283f550f6e639ecf20b7ca9635f39c887219ce9",
+  "result": "passed",
+  "implementation": "the existing work selector exposes presets in a dedicated read-only group; mutation remains behind the explicit create-editable-copy command",
+  "positive": "twenty browser selections preserved the draft and created no project; twenty concurrent explicit service copy requests resolved to one version-bound project across restart",
+  "negative": "missing request identity, missing or changed preset version, cross-preset idempotency reuse, and double click were rejected or deduplicated",
+  "commands": [
+    "node scripts/build-web.mjs",
+    "node --test scripts/test-preset-readonly.mjs",
+    "node scripts/test-finished-work-ui.mjs"
+  ],
+  "projectMutationCallsDuringBrowsing": 0,
+  "explicitCopiesAfterDoubleClick": 1,
+  "humanAcceptance": "not_performed"
+}

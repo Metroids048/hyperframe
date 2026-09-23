@@ -1,0 +1,125 @@
+{
+  "brief": {
+    "capabilities": [
+      "video-source-selection",
+      "native-composition",
+      "managed-original",
+      "local-preview-review",
+      "native-editing",
+      "image-observation"
+    ],
+    "constraints": [
+      "仅使用用户上传的原始商品视频 asset-861f7caf-7b2b-4e80-aaae-a53a95fa77cc；排除项目中的外部图片 web-52ae21ce-2a59-44e1-bb89-c0b9896c3f42。",
+      "保留上传原片原始音频；不添加音乐、旁白或配音。",
+      "不使用外部素材、不生成画面、不编造卖点或未经画面证明的文字。",
+      "优先保留原片真实内容，仅在必要时进行质量检查、轻量裁切、构图适配和基础画质处理。",
+      "输出要求为1080×1920、30fps、约30秒、高质量MP4，并生成可预览候选。"
+    ],
+    "gaps": [
+      "项目当前可核验的源视频元数据显示为120秒、1280×720横屏，而用户描述为约30秒、1080×1920竖屏；因此需要在制作阶段核验源文件并据实际画面选择约30秒片段与竖屏裁切，无法预先保证完整保留全部原片内容。",
+      "当前没有可核验的商品名称、商品事实或价格；不添加事实文字，商品信息交由原片真实画面核验。"
+    ],
+    "keepOriginalAudio": true,
+    "needsCaptions": false,
+    "needsNarration": false,
+    "needsTranscription": false,
+    "request": {
+      "cta": "",
+      "facts": [],
+      "name": "约30秒竖屏商品视频候选",
+      "output": {
+        "width": 1080,
+        "height": 1920,
+        "durationSeconds": 30,
+        "fps": 30
+      },
+      "price": ""
+    },
+    "scenarioId": "product_detail",
+    "workflow": {
+      "assumptions": [
+        "以项目中用户上传的视频 asset-861f7caf-7b2b-4e80-aaae-a53a95fa77cc 作为唯一画面来源。",
+        "以源文件实际元数据和画面为准处理时长、画幅与构图；不采用项目中外部图片。",
+        "约30秒目标优先通过保留连续真实内容实现，不为凑时长添加镜头或文字。"
+      ],
+      "gaps": [
+        "源视频的用户描述与项目元数据存在时长和画幅冲突，需以实际源文件核验。"
+      ],
+      "objective": "在不新增事实、素材或声音的前提下，基于用户上传原始商品视频制作约30秒、1080×1920、30fps的竖屏商品详情候选，并保留原始音频。",
+      "overrides": [],
+      "requirements": [
+        {
+          "endSeconds": null,
+          "excludeIds": [],
+          "kind": "resource",
+          "quote": "严格仅使用该上传原片及其原始音频",
+          "startSeconds": null,
+          "targetIds": [
+            "asset-861f7caf-7b2b-4e80-aaae-a53a95fa77cc"
+          ]
+        },
+        {
+          "endSeconds": null,
+          "excludeIds": [
+            "web-52ae21ce-2a59-44e1-bb89-c0b9896c3f42"
+          ],
+          "kind": "prohibit",
+          "quote": "不使用外部素材、不生成画面",
+          "startSeconds": null,
+          "targetIds": []
+        },
+        {
+          "endSeconds": null,
+          "excludeIds": [],
+          "kind": "prohibit",
+          "quote": "不编造卖点或未经画面证明的文字",
+          "startSeconds": null,
+          "targetIds": []
+        },
+        {
+          "endSeconds": null,
+          "excludeIds": [],
+          "kind": "preserve",
+          "quote": "优先保留完整真实内容",
+          "startSeconds": null,
+          "targetIds": [
+            "asset-861f7caf-7b2b-4e80-aaae-a53a95fa77cc"
+          ]
+        },
+        {
+          "endSeconds": null,
+          "excludeIds": [],
+          "kind": "change",
+          "quote": "输出1080×1920、30fps、约30秒、高质量MP4",
+          "startSeconds": null,
+          "targetIds": [
+            "asset-861f7caf-7b2b-4e80-aaae-a53a95fa77cc"
+          ]
+        },
+        {
+          "endSeconds": null,
+          "excludeIds": [],
+          "kind": "preserve",
+          "quote": "保留原始声音",
+          "startSeconds": null,
+          "targetIds": [
+            "asset-861f7caf-7b2b-4e80-aaae-a53a95fa77cc"
+          ]
+        },
+        {
+          "endSeconds": null,
+          "excludeIds": [],
+          "kind": "prohibit",
+          "quote": "不添加音乐、旁白或配音",
+          "startSeconds": null,
+          "targetIds": []
+        }
+      ],
+      "taskMode": "recut"
+    }
+  },
+  "error": {
+    "code": "AUDIO_CONSTRAINT",
+    "message": "未要求保留原声且明确禁止旁白与音乐时，不自动保留未经试听的源混合音轨"
+  }
+}

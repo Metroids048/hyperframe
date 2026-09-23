@@ -1,0 +1,157 @@
+{
+  "workflow": {
+    "taskMode": "variant",
+    "objective": "制作独立A版开头，以克制的原标题入场帮助观众建立商品整体印象，保留母版及后续详情内容。",
+    "requirements": [
+      {
+        "kind": "goal",
+        "quote": "制作独立A版开头视觉变体，保留母版。",
+        "targetIds": [],
+        "excludeIds": [],
+        "startSeconds": null,
+        "endSeconds": null
+      },
+      {
+        "kind": "preserve",
+        "quote": "撤回新增标题和替换标题文字的要求，全部文字原样保留。",
+        "targetIds": [],
+        "excludeIds": [],
+        "startSeconds": null,
+        "endSeconds": null
+      },
+      {
+        "kind": "change",
+        "quote": "只重新编排第一幕原标题的入场动效：前0.2至0.8秒从下方轻微上移并淡入，伴随一次克制的细线揭示或标题底板扩展",
+        "targetIds": [
+          "node-7577747edc2ff37a",
+          "node-cba1da9d845663fa"
+        ],
+        "excludeIds": [],
+        "startSeconds": 0.2,
+        "endSeconds": 0.8
+      },
+      {
+        "kind": "preserve",
+        "quote": "2.6秒时全部对象的位置、样式和可见性恢复母版同期状态。",
+        "targetIds": [
+          "scene-01"
+        ],
+        "excludeIds": [],
+        "startSeconds": 2.6,
+        "endSeconds": 2.6
+      },
+      {
+        "kind": "resource",
+        "quote": "通过现有原创场景源码修改完成",
+        "targetIds": [
+          "source-scene-01"
+        ],
+        "excludeIds": [],
+        "startSeconds": null,
+        "endSeconds": null
+      },
+      {
+        "kind": "prohibit",
+        "quote": "不新增文字对象，不改节点和素材。",
+        "targetIds": [],
+        "excludeIds": [],
+        "startSeconds": null,
+        "endSeconds": null
+      },
+      {
+        "kind": "preserve",
+        "quote": "第3秒之后完全保持",
+        "targetIds": [],
+        "excludeIds": [],
+        "startSeconds": 3,
+        "endSeconds": null
+      },
+      {
+        "kind": "preserve",
+        "quote": "所有声音",
+        "targetIds": [
+          "audio-1",
+          "audio-2",
+          "audio-3",
+          "audio-4",
+          "audio-4124aaefa824859c",
+          "audio-bc35f0a994d81023"
+        ],
+        "excludeIds": [],
+        "startSeconds": null,
+        "endSeconds": null
+      },
+      {
+        "kind": "preserve",
+        "quote": "字幕、镜头、35秒总时长与横屏画幅保持。",
+        "targetIds": [],
+        "excludeIds": [],
+        "startSeconds": null,
+        "endSeconds": null
+      },
+      {
+        "kind": "goal",
+        "quote": "执行并保存为独立分支候选。",
+        "targetIds": [],
+        "excludeIds": [],
+        "startSeconds": null,
+        "endSeconds": null
+      }
+    ],
+    "overrides": [],
+    "assumptions": [
+      "母版为rev-cd7c6ea7ebdf228e；原标题保持当前“从整体认识显卡”，不回退历史文字。",
+      "轻微上移采用12像素；复用现有标题底板，以右侧12%的裁切释放形成一次克制扩展。0.8秒完成后恢复原视觉状态，保留母版3.0—3.2秒的淡出。",
+      "只修改scene-01源码中的timeline；HTML、CSS、对象映射及全部节点数据保持。"
+    ],
+    "gaps": [
+      "独立分支创建及保存由版本服务执行，当前对象操作枚举没有分支操作；必须先从指定母版派生A版，再应用补丁，不得覆盖母版。本输出未执行或保存。",
+      "执行后须重新编译第一幕并进行隔离与预览检查，核对0.2—0.8秒入场、2.6秒母版状态及2.8—3.2秒原色散转场；比对3秒后画面、全部文字、字幕、音轨、1050帧时长及1920×1080输出。检查通过后保存独立候选，失败保留母版。"
+    ]
+  },
+  "summary": "A版仅调整第一幕原标题及既有底板的入场；文字、素材、声音、字幕、转场及35秒横屏保持。待执行器创建独立分支、应用并验证。",
+  "operations": [
+    {
+      "type": "update_custom_source",
+      "sceneId": "scene-01",
+      "nodeId": null,
+      "assetId": null,
+      "text": null,
+      "effect": null,
+      "durationFrames": null,
+      "sceneIds": null,
+      "fromSceneId": null,
+      "toSceneId": null,
+      "width": null,
+      "height": null,
+      "paramsJson": null,
+      "source": {
+        "html": "<div id=\"scene01-overlay\"><div id=\"scene01-media\"></div><div id=\"scene01-title-panel\"><h1 id=\"scene01-title\"></h1></div></div>",
+        "css": "#scene01-overlay{position:absolute;inset:0;width:1920px;height:1080px;background:transparent;}#scene01-media{position:absolute;left:0;top:0;width:1920px;height:1080px;object-fit:contain;}#scene01-title-panel{position:absolute;left:116px;top:100px;width:380px;height:92px;display:flex;align-items:center;padding:16px;box-sizing:border-box;background:var(--brand-panel);border-left:3px solid var(--brand-accent);z-index:2;}#scene01-title{margin:0;width:345px;font-family:Microsoft YaHei;font-size:52px;font-weight:600;line-height:1.15;letter-spacing:0;color:var(--brand-foreground);white-space:nowrap;}\n#scene01-media{background:transparent;opacity:1;z-index:1}",
+        "timeline": "tl.set(\"#scene01-title-panel\",{opacity:0,clipPath:\"inset(0 12% 0 0)\"},0);tl.set(\"#scene01-title\",{opacity:0,y:12},0);tl.to(\"#scene01-title-panel\",{opacity:1,clipPath:\"inset(0 0% 0 0)\",duration:params.sceneSeconds*0.1875,ease:\"power1.out\"},params.sceneSeconds*0.0625);tl.to(\"#scene01-title\",{opacity:1,y:0,duration:params.sceneSeconds*0.1875,ease:\"power1.out\"},params.sceneSeconds*0.0625);tl.set(\"#scene01-title-panel\",{clipPath:\"none\"},params.sceneSeconds*0.25);tl.to(\"#scene01-title-panel\",{opacity:0,duration:0.2},params.sceneSeconds-0.2);",
+        "parameters": [],
+        "objects": [
+          {
+            "elementId": "scene01-media",
+            "nodeId": "node-81ffaeb692ba5fc1"
+          },
+          {
+            "elementId": "scene01-title",
+            "nodeId": "node-7577747edc2ff37a"
+          },
+          {
+            "elementId": "scene01-title-panel",
+            "nodeId": "node-cba1da9d845663fa"
+          }
+        ],
+        "motionTargets": [
+          "scene01-title",
+          "scene01-title-panel"
+        ],
+        "textStyles": [],
+        "values": []
+      }
+    }
+  ],
+  "alternatives": []
+}

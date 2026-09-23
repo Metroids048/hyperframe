@@ -1,0 +1,138 @@
+{
+  "schema_version": 2,
+  "assessment_basis": "engineering_heuristics_and_observed_keyframe_issues",
+  "score": 22,
+  "threshold": 78,
+  "hard_minimum": 65,
+  "components": {
+    "product_exposure": 26,
+    "first_three_seconds": 11,
+    "pacing": 0,
+    "captions": 36,
+    "motion": 0,
+    "transitions": 26,
+    "audio": 75,
+    "commercial_conversion": 6
+  },
+  "issues": [
+    {
+      "severity": "blocker",
+      "dimension": "product_exposure",
+      "score": 26,
+      "problem": "product_exposure 低于商业最低线 65",
+      "repair": "只修改与 product_exposure 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+    },
+    {
+      "severity": "blocker",
+      "dimension": "first_three_seconds",
+      "score": 11,
+      "problem": "first_three_seconds 低于商业最低线 65",
+      "repair": "只修改与 first_three_seconds 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+    },
+    {
+      "severity": "blocker",
+      "dimension": "pacing",
+      "score": 0,
+      "problem": "pacing 低于商业最低线 65",
+      "repair": "只修改与 pacing 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+    },
+    {
+      "severity": "blocker",
+      "dimension": "captions",
+      "score": 36,
+      "problem": "captions 低于商业最低线 65",
+      "repair": "只修改与 captions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+    },
+    {
+      "severity": "blocker",
+      "dimension": "motion",
+      "score": 0,
+      "problem": "motion 低于商业最低线 65",
+      "repair": "只修改与 motion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+    },
+    {
+      "severity": "blocker",
+      "dimension": "transitions",
+      "score": 26,
+      "problem": "transitions 低于商业最低线 65",
+      "repair": "只修改与 transitions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+    },
+    {
+      "severity": "blocker",
+      "dimension": "commercial_conversion",
+      "score": 6,
+      "problem": "commercial_conversion 低于商业最低线 65",
+      "repair": "只修改与 commercial_conversion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+    },
+    {
+      "id": "issue-0",
+      "requirementId": "final-output",
+      "severity": "blocker",
+      "startSeconds": 0,
+      "endSeconds": 0,
+      "problem": "在 0.000 秒关键帧，画面左下方叠加文字为“severity”，与用户明确要求的“新品体验”不一致；该文字也占据画面区域，虽未明显遮住人物主体，但内容错误直接违反本次唯一画面修改要求。",
+      "evidenceRefs": [
+        "final-review/frame-0.jpg"
+      ],
+      "repair": "仅将 0.000–2.000 秒的文字对象改为“新品体验”，保持清晰易读并避开人物及关键主体区域；删除或替换现有“severity”对象，不改动其他画面、速度、顺序和音频。重新导出后复查开头帧。",
+      "preserve": [
+        "未涉及的镜头、文字和音轨"
+      ],
+      "dimension": "visual"
+    },
+    {
+      "id": "issue-1",
+      "requirementId": "final-output",
+      "severity": "major",
+      "startSeconds": 47.18,
+      "endSeconds": 47.18,
+      "problem": "47.180 秒抽样帧未见“新品体验”叠加文字，符合文字仅在前 2 秒出现的范围要求；但仅凭单帧不能证明 2 秒边界准确，也不能证明中间连续画面没有残留或异常叠加。",
+      "evidenceRefs": [
+        "final-review/frame-1.jpg"
+      ],
+      "repair": "重新导出后检查 0.000–2.000 秒的显示区间，以及 2.000 秒之后的首个连续画面，确认文字只存在于指定区间。",
+      "preserve": [
+        "未涉及的镜头、文字和音轨"
+      ],
+      "dimension": "visual"
+    },
+    {
+      "id": "issue-2",
+      "requirementId": "final-output",
+      "severity": "major",
+      "startSeconds": 78.60000000000001,
+      "endSeconds": 78.60000000000001,
+      "problem": "最终抽样时间为 78.600 秒，而合同输出元数据标注时长为 30 秒；由于未提供原视频可核对的实际时长，无法确认 78.600 秒是否是原视频时长，也无法证明严格保持了原视频总时长。",
+      "evidenceRefs": [
+        "final-review/frame-3.jpg"
+      ],
+      "repair": "绑定并核对原视频与导出视频的实际媒体时长、画幅/分辨率、帧率及音频轨道；若导出时长并非原视频实际时长，必须修复为与原视频完全一致后再审查。",
+      "preserve": [
+        "未涉及的镜头、文字和音轨"
+      ],
+      "dimension": "visual"
+    }
+  ],
+  "suggestions": [
+    "只修改与 product_exposure 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+    "只修改与 first_three_seconds 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+    "只修改与 pacing 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+    "只修改与 captions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+    "只修改与 motion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+    "只修改与 transitions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+    "只修改与 commercial_conversion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+    "仅将 0.000–2.000 秒的文字对象改为“新品体验”，保持清晰易读并避开人物及关键主体区域；删除或替换现有“severity”对象，不改动其他画面、速度、顺序和音频。重新导出后复查开头帧。",
+    "重新导出后检查 0.000–2.000 秒的显示区间，以及 2.000 秒之后的首个连续画面，确认文字只存在于指定区间。",
+    "绑定并核对原视频与导出视频的实际媒体时长、画幅/分辨率、帧率及音频轨道；若导出时长并非原视频实际时长，必须修复为与原视频完全一致后再审查。",
+    "完成连续观片后校准节奏、动作和转场评分；自动分数不代签真人观看。",
+    "完成实际试听后校准声音情绪、清晰度和音画同步；电平检测不代替听感。"
+  ],
+  "revision_required": true,
+  "coverage": {
+    "actual_mp4": true,
+    "full_video_observed": false,
+    "audio_perception_verified": false
+  },
+  "status": "needs_revision",
+  "human_acceptance": "pending"
+}

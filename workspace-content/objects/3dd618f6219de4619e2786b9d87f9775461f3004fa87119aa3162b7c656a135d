@@ -1,0 +1,201 @@
+{
+  "selected": [
+    {
+      "id": "video-text-pivot",
+      "reason": "适合以真实视频为主视觉，按手持调整→举起→佩戴→稳定状态的自然节奏组织镜头，并用克制的可编辑文字完成信息交接。"
+    },
+    {
+      "id": "lt-mask-reveal",
+      "reason": "适合在持续实拍画面上叠加少量独立可编辑的中性文字与细节强调，不遮挡人物和耳机操作区域。"
+    },
+    {
+      "id": "titlecard-reveal",
+      "reason": "适合以单一、低动效的可编辑文字完成简短收尾，同时保留稳定正面佩戴画面和完整片尾余量。"
+    }
+  ],
+  "originalNeeds": [
+    "使用唯一真实视频素材完成横屏约20至25秒的原生可编辑剪辑；保留主体全片可见，不使用历史商品图片。",
+    "仅添加中性可观察文字，如“4K耳机”“白色头戴式耳机”“佩戴状态”，不添加品牌、型号、价格或性能宣称。",
+    "全片保持静音，不添加旁白、音乐或音效。",
+    "需要在实际连续视频中复核源区间、佩戴动作连续性、文字遮挡和最终导出效果。",
+    "当前可观察证据未确认“取下”动作，无法据此完成包含真实取下过程的完整叙事。"
+  ],
+  "gaps": [
+    "关键帧未证明明确的耳机取下动作，当前只能可靠表现手持/调整、举向头部、佩戴和稳定最终状态。",
+    "尚未有连续视频播放证据，佩戴动作的精确起止、连续性和是否存在中断仍需复核。",
+    "没有品牌、型号、价格、音质、降噪或其他性能事实，文案必须保持中性。",
+    "源素材元数据显示无音频，最终版本需保持静音。",
+    "当前没有已验证的最终MP4、工程编译结果或独立成片审查证据。"
+  ],
+  "blockingGaps": [
+    "用户明确要求呈现真实耳机“取下”动作，但当前唯一素材的已观察证据无法确认该动作，且没有其他可用真实素材可补足。"
+  ],
+  "candidates": [
+    {
+      "id": "lt-mask-reveal",
+      "tags": [
+        "video",
+        "action",
+        "text",
+        "操作",
+        "实拍",
+        "口播",
+        "标签",
+        "文字"
+      ],
+      "inputs": [
+        "video"
+      ],
+      "description": "Transparent editable lower-third over continuing footage; no stat, price, or full-screen text takeover is required. Adapt the wipe and accent sweep to approved native text, local fonts and the managed timeline.",
+      "files": [
+        "registry/blocks/lt-mask-reveal/registry-item.json",
+        "registry/blocks/lt-mask-reveal/lt-mask-reveal.html"
+      ],
+      "compatible": true,
+      "eligible": true,
+      "score": 3,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "ea7e1dbd0bd2afb77370b946461c4ea16afdb387"
+    },
+    {
+      "id": "video-text-pivot",
+      "tags": [
+        "video",
+        "action",
+        "操作",
+        "实拍",
+        "讲解"
+      ],
+      "inputs": [
+        "video"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/video-text-pivot.md",
+        "skills/hyperframes-animation/rules/gsap-effects.md"
+      ],
+      "compatible": true,
+      "eligible": true,
+      "score": 2,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "ea7e1dbd0bd2afb77370b946461c4ea16afdb387"
+    },
+    {
+      "id": "kinetic-type-beats",
+      "tags": [
+        "text",
+        "caption",
+        "文字",
+        "字幕",
+        "强调"
+      ],
+      "inputs": [
+        "text"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/kinetic-type-beats.md",
+        "skills/hyperframes-animation/rules/discrete-text-sequence.md"
+      ],
+      "compatible": true,
+      "eligible": true,
+      "score": 2,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "ea7e1dbd0bd2afb77370b946461c4ea16afdb387"
+    },
+    {
+      "id": "caption-editorial-emphasis",
+      "tags": [
+        "caption",
+        "speech",
+        "字幕",
+        "口播",
+        "强调"
+      ],
+      "inputs": [
+        "text"
+      ],
+      "description": "Editable editorial text emphasis; align spoken captions to measured transcript timestamps, never invented timing.",
+      "files": [
+        "registry/components/caption-editorial-emphasis/registry-item.json",
+        "registry/components/caption-editorial-emphasis/caption-editorial-emphasis.html"
+      ],
+      "compatible": true,
+      "eligible": true,
+      "score": 1,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "ea7e1dbd0bd2afb77370b946461c4ea16afdb387"
+    },
+    {
+      "id": "titlecard-reveal",
+      "tags": [
+        "title",
+        "brand",
+        "text",
+        "收尾",
+        "标题"
+      ],
+      "inputs": [],
+      "files": [
+        "skills/hyperframes-animation/blueprints/titlecard-reveal.md",
+        "skills/hyperframes-animation/rules/discrete-text-sequence.md"
+      ],
+      "compatible": true,
+      "eligible": true,
+      "score": 1,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "ea7e1dbd0bd2afb77370b946461c4ea16afdb387"
+    },
+    {
+      "id": "comparison-split",
+      "tags": [
+        "compare",
+        "detail",
+        "image",
+        "比较",
+        "细节",
+        "双栏"
+      ],
+      "inputs": [
+        "visual-pair"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/comparison-split.md",
+        "skills/hyperframes-animation/rules/split-tilt-cards.md",
+        "registry/components/comparison-split/registry-item.json",
+        "registry/components/comparison-split/comparison-split.html"
+      ],
+      "compatible": true,
+      "eligible": true,
+      "score": 1,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "ea7e1dbd0bd2afb77370b946461c4ea16afdb387"
+    },
+    {
+      "id": "grid-card-assemble",
+      "tags": [
+        "image",
+        "details",
+        "steps",
+        "参数",
+        "配件",
+        "步骤"
+      ],
+      "inputs": [],
+      "files": [
+        "skills/hyperframes-animation/blueprints/grid-card-assemble.md",
+        "skills/hyperframes-animation/rules/gsap-effects.md"
+      ],
+      "compatible": true,
+      "eligible": true,
+      "score": 0,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "ea7e1dbd0bd2afb77370b946461c4ea16afdb387"
+    }
+  ]
+}
