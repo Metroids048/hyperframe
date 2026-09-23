@@ -17,7 +17,7 @@ import {materialSchema,directionSchema,validateMaterial,selectStorySources,bindS
 import {commerceResourceContext} from './commerce-components.mjs';
 import {assertProductionAdmission,businessContract} from './commerce-focus.mjs';
 import {boundObservationRanges} from './observation-request.mjs';
-import {directionPrefix,createDirectionPreview} from './direction-preview.mjs';
+import {directionPrefix,createDirectionPreview,openingCandidateDocument} from './direction-preview.mjs';
 import {instantiateNativeRecipe,nativeRecipeContract} from './native-recipes.mjs';
 import {buildEvidenceIndex,queryEvidence,readEvidenceImages,reusableInspection,selectEvidenceInputs} from './evidence-index.mjs';
 import {repairRoute,requiredRepairs,keyframeFailure,changesTextContract} from './repair-routing.mjs';
@@ -49,7 +49,7 @@ import {sourceWindowRecoveryTarget,replaceSourceWindow} from './quality-source-r
 import {productBriefSchema,marketingPlanSchema,directorTimelineSchema,validateProductBrief,validateMarketingPlan,validateDirectorTimeline,directorTimelineSeed,buildHyperFramesDesignPlan,directorBinding,hyperframesScenarioPolicy} from './commerce-agent-v2.mjs';
 import {buildVoiceProfiles,audioRequirement,voiceCandidates} from './voice-matching.mjs';
 import {createStructuredProvider,createMediaProvider} from '../openclaw/provider-selection.mjs';
-import {creativeLoopPolicy,buildVisualContract,validateVisualContract,buildOpeningCandidates,validateOpeningCandidates,compareOpeningCandidates,directorReplanSchema,validateDirectorReplan,applyDirectorReplan,openingComparisonSchema} from './creative-decision-loop.mjs';
+import {creativeLoopPolicy,buildVisualContract,validateVisualContract,buildOpeningCandidates,validateOpeningCandidates,compareOpeningCandidates,promoteOpeningCandidate,directorReplanSchema,validateDirectorReplan,applyDirectorReplan,openingComparisonSchema} from './creative-decision-loop.mjs';
 
 const obj=properties=>({type:'object',additionalProperties:false,properties,required:Object.keys(properties)}),str={type:'string'},num={type:'number'},bool={type:'boolean'},list=items=>({type:'array',items});
 const briefSchema=obj({request:creationSchema.properties.inferredRequest,needsTranscription:bool,needsNarration:bool,needsCaptions:bool,keepOriginalAudio:bool,capabilities:list(str),gaps:list(str),constraints:list(str)});
@@ -130,6 +130,20 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
   const saveJSON=async(name,value)=>{if(/^(?:quality-(?:round-[\d-]+(?:batch-\d+)?|report)|scene-\d+|keyframe-\d+|failed-(?:keyframe|shot|story)-[\d-]+|keyframe-review-[\d-]+)\.json$/.test(name)){const prior=await fs.readFile(path.join(outputDir,name)).catch(e=>{if(e.code!=='ENOENT')throw e;return null;});if(prior){await fs.mkdir(path.join(outputDir,'source-history'),{recursive:true});await fs.writeFile(path.join(outputDir,'source-history',name.replace('.json','-')+resourceHash(prior)+'.json'),prior);}}await fs.writeFile(path.join(outputDir,name),JSON.stringify(value,null,2));return value;};
   const readJSON=name=>fs.readFile(path.join(outputDir,name),'utf8').then(JSON.parse);
   const result=(run,key)=>run.checkpoints[key]?.result;
+  async function openingCandidateImages(candidates){
+    const inputs=[];
+    for(const candidate of candidates){
+      for(const file of candidate.keyframe_evidence||[]){
+        const resolved=path.resolve(outputDir,file);
+        insist(resolved===outputDir||resolved.startsWith(outputDir+path.sep),'开场证据路径越界','OPENING_EVIDENCE_PATH');
+        const bytes=await fs.readFile(resolved);
+        const mime=/\.png$/i.test(file)?'image/png':'image/jpeg';
+        inputs.push({type:'input_text',text:`开场候选 ${candidate.id} 的实际关键帧：${file}`},{type:'input_image',image_url:`data:${mime};base64,`+bytes.toString('base64')});
+      }
+    }
+    insist(inputs.some(item=>item.type==='input_image'),'开场比较没有实际图片证据','OPENING_EVIDENCE_MISSING');
+    return inputs;
+  }
   async function ask(ctx,stage,data,schema,{images=[],resources=[],extra=''}={}){
     data={...data,editorialProfile:editorialProfile(currentContract?.scenarioId,currentContract?.workflow?.taskMode||currentContract?.taskMode),audioCapabilities:{
       narration:{available:typeof provider.speak==='function',execution:'narration.prepare',timing:'after resources.plan, before story.plan',readiness:'provider execution must succeed; availability is not a successful synthesis'},
@@ -158,7 +172,7 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
     const previous=provider.onInvocation;
     let counted=false;provider.onInvocation=async invocation=>{counted=true;await ctx.recordModelCall({...invocation,stage});await previous?.(invocation);};
     const input=[{role:'user',content:[{type:'input_text',text:JSON.stringify(data)},...images]}];
-    const callNo=ctx.run.modelCalls+1,receipt={inputTextBytes:Buffer.byteLength(JSON.stringify(data)),imageBytes:images.reduce((n,i)=>n+(i.image_url?.length||0),0),guidanceBytes:Buffer.byteLength(guidance.text+extra),stage,workflowBinding:data.workflowBinding,context:guidance.records,inputHash:resourceHash(data),imageEvidence:selectEvidenceInputs(images,Infinity).inputs.map(i=>i.type==='input_text'?{label:i.text}:{imageHash:resourceHash(i.image_url)}),imageHashes:images.filter(i=>i.type==='input_image').map(i=>resourceHash(i.image_url)),implementationHash,resources,sceneRules,auxiliarySceneRules,startedAt:new Date().toISOString()};
+    const callNo=ctx.run.modelCalls+1,receipt={inputTextBytes:Buffer.byteLength(JSON.stringify(data)),imageBytes:images.reduce((n,i)=>n+(i.image_url?.length||0),0),imageCount:images.filter(i=>i.type==='input_image').length,guidanceBytes:Buffer.byteLength(guidance.text+extra),stage,workflowBinding:data.workflowBinding,context:guidance.records,inputHash:resourceHash(data),imageEvidence:selectEvidenceInputs(images,Infinity).inputs.map(i=>i.type==='input_text'?{label:i.text}:{imageHash:resourceHash(i.image_url)}),imageHashes:images.filter(i=>i.type==='input_image').map(i=>resourceHash(i.image_url)),implementationHash,resources,sceneRules,auxiliarySceneRules,startedAt:new Date().toISOString()};
     try{
       if(!(provider instanceof CodexProvider)&&!provider.recordsInvocations){counted=true;await ctx.recordModelCall({stage,provider:'injected-test-provider'});}
       const answer=await provider.structured(guidance.text+'\n'+extra,input,schema,signal);
@@ -431,22 +445,59 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
   registry.register('creative.opening_candidates',async(_,ctx)=>{
     insist(v3,'开场候选只用于新版电商导演链路','OPENING_CANDIDATES_PIPELINE');
     const preview=result(ctx.run,'direction-preview'),story=result(ctx.run,'story');
-    const candidates=buildOpeningCandidates({story,completedSceneIds:preview?.sceneIds||[],previewRecord:preview});
-    validateOpeningCandidates(candidates);
+    insist(preview?.directory,'开场候选缺少方向预览工程','OPENING_PREVIEW_MISSING');
+    // Each candidate gets its own document, keyframes and rendered MP4.  The
+    // comparison model is deliberately fed those real frames below; the
+    // textual candidate descriptions are only labels for traceability.
+    const previewDocument=JSON.parse(await fs.readFile(path.join(outputDir,preview.directory,'document.json'),'utf8'));
+    const candidatePreviews=[];
+    for(const candidateId of ['opening-a','opening-b']){
+      const candidateDocument=openingCandidateDocument(previewDocument,candidateId,assets,story);
+      const candidatePreview=await createDirectionPreview(previewDocument,preview.sceneIds||[],assets,outputDir,root,runHyperFrames,{signal,candidateId,documentOverride:candidateDocument,render:true,captureFrames:true,binding:{runId:ctx.run.id,parentPreviewKey:preview.key,inputFingerprint:fingerprint,storyHash:resourceHash(story),implementationHash}});
+      candidatePreviews.push({id:candidateId,...candidatePreview});
+    }
+    const candidates=buildOpeningCandidates({story,completedSceneIds:preview?.sceneIds||[],previewRecord:{...preview,candidatePreviews}});
+    validateOpeningCandidates(candidates,{requireRendered:true});
     const blindCandidates=Number.parseInt(resourceHash(candidates).slice(0,2),16)%2?[...candidates].reverse():candidates;
-    const comparison=await ask(ctx,'R4',{phase:'opening-direction-comparison',message:request.message,productBrief:result(ctx.run,'product'),marketingPlan:result(ctx.run,'marketing'),creativeDirection:result(ctx.run,'creative'),visualContract:await readJSON('visual-contract.json').catch(()=>null),preview,openingCandidates:blindCandidates,reviewContract:{criteria:['商品识别速度','信息清晰度','发布目标匹配','通用模板风险'],allowBothBad:true,blindOrder:blindCandidates.map(x=>x.id)}},openingComparisonSchema,{extra:'你是独立开场审片。候选 A/B 必须基于同一真实素材，但构图、叙事切入或运动结构有实质差异。只根据实际关键画面和短预览证据比较；不能因为写了Hook或动效名就给高评价。可以选择一个、判定都不好或差异不明确。若都不好，说明下一轮应改变的源区间、镜头顺序或构图。不要代签真人验收。'});
-    const record={schema_version:1,policy:creativeLoopPolicy,preview, candidates, comparison:compareOpeningCandidates(candidates,comparison),status:'compared',createdAt:new Date().toISOString()};
+    const images=await openingCandidateImages(blindCandidates);
+    const comparison=await ask(ctx,'R4',{phase:'opening-direction-comparison',message:request.message,productBrief:result(ctx.run,'product'),marketingPlan:result(ctx.run,'marketing'),creativeDirection:result(ctx.run,'creative'),visualContract:await readJSON('visual-contract.json').catch(()=>null),preview:{...preview,candidatePreviews},openingCandidates:blindCandidates,reviewContract:{criteria:['商品识别速度','信息清晰度','发布目标匹配','通用模板风险'],allowBothBad:true,blindOrder:blindCandidates.map(x=>x.id)}},{images,extra:'你是独立开场审片。候选 A/B 必须基于同一真实素材，但构图、叙事切入或运动结构有实质差异。输入中的每张图片都带有候选 ID 和真实文件路径标签；只根据实际关键画面比较，不能把候选说明当作画面证据。可以选择一个、判定都不好或差异不明确。若都不好，说明下一轮应改变的源区间、镜头顺序或构图。不要代签真人验收。'});
+    const record={schema_version:1,policy:creativeLoopPolicy,preview:{...preview,candidatePreviews}, candidates, comparison:compareOpeningCandidates(candidates,comparison),status:'compared',createdAt:new Date().toISOString()};
     ctx.run.artifacts.openingComparison=record.comparison;await ctx.persist();return saveJSON('opening-candidates.json',record);
   });
   registry.register('creative.director_replan',async(_,ctx)=>{
     insist(v3,'导演重规划只用于新版电商导演链路','DIRECTOR_REPLAN_PIPELINE');
     const opening=await readJSON('opening-candidates.json'),story=result(ctx.run,'story'),comparison=opening.comparison;
-    if(!comparison.replan_required&&comparison.decision==='select')return saveJSON('director-replan.json',{schema_version:1,mode:'accept',reason:comparison.reason,target_scene_ids:[],reorder_scene_ids:[],scene_edits:[],preserve:['已验证商品事实','未受影响镜头与声音'],comparisonHash:resourceHash(comparison),changed:false});
+    const selected=opening.candidates?.find(candidate=>candidate.id===comparison.winner_id);
+    if(!comparison.replan_required&&comparison.decision==='select'){
+      insist(selected,'选中的开场候选记录不存在','OPENING_SELECTION');
+      const promoted=promoteOpeningCandidate(story,selected,{assets});
+      if(promoted.changed){
+        validateRequestedTransitionPlan(promoted.story,request.message);validateStory(promoted.story,result(ctx.run,'brief'),result(ctx.run,'resources'));await ensureSourceBoundaries(promoted.story,ctx);
+        const invalidated=promoted.invalidated.filter(key=>key!=='opening-candidates');
+        invalidateStageResults(ctx.run,invalidated,{code:'OPENING_WINNER_PROMOTED',winnerId:selected.id,comparisonHash:resourceHash(comparison)});
+        ctx.run.checkpoints.story={idempotencyKey:resourceHash(['story',promoted.story]),status:'completed',result:promoted.story};
+        await saveJSON('story-before-opening-selection.json',story);await saveJSON('story-plan.json',promoted.story);
+        await ctx.persist();
+      }
+      return saveJSON('director-replan.json',{schema_version:1,mode:'accept',reason:comparison.reason,target_scene_ids:[],reorder_scene_ids:[],scene_edits:[],preserve:['已验证商品事实','未受影响镜头与声音'],comparisonHash:resourceHash(comparison),winner_id:selected.id,promoted:true,changed:promoted.changed,story:promoted.story});
+    }
     const proposal=await ask(ctx,'VD',{phase:'creative-replan-after-preview',message:request.message,storyPlan:story,openingComparison:comparison,preview:opening.preview,visualContract:await readJSON('visual-contract.json').catch(()=>null),preserve:['商品事实和素材身份','未受影响镜头','已正确声音与用户保持集'],limits:{maxRounds:creativeLoopPolicy.maxReplanRounds,round:ctx.run.artifacts.creativeReplanRounds||0}},directorReplanSchema,{extra:'你现在拥有根据真实预览提出创意重规划的权利。只有开头无吸引力、主次不清、整体像幻灯片或跨镜头关系失效时才重规划；错字、遮挡、音量等局部问题留给局部修复。可以改变指定镜头的源入点、时长和顺序，但必须声明保持集。不能发明素材、事实、价格或动作。若两个方向都不好，提出一套新的可验证结构；无法给出有证据的改法时返回both_bad并说明阻塞，不要强行继续。'});
     validateDirectorReplan(proposal,story,{round:ctx.run.artifacts.creativeReplanRounds||0});
     if(proposal.mode==='both_bad')throw Object.assign(new Error('两套开场都未达到最低创作标准，已停止继续制作并保留候选证据'),{code:'CREATIVE_DIRECTION_BLOCKED'});
+    if(proposal.mode==='accept'&&comparison.decision==='select'&&selected){
+      const promoted=promoteOpeningCandidate(story,selected,{assets});
+      if(promoted.changed){
+        validateRequestedTransitionPlan(promoted.story,request.message);validateStory(promoted.story,result(ctx.run,'brief'),result(ctx.run,'resources'));await ensureSourceBoundaries(promoted.story,ctx);
+        invalidateStageResults(ctx.run,promoted.invalidated.filter(key=>key!=='opening-candidates'),{code:'OPENING_WINNER_PROMOTED',winnerId:selected.id,comparisonHash:resourceHash(comparison)});
+        await saveJSON('story-before-opening-selection.json',story);await saveJSON('story-plan.json',promoted.story);ctx.run.checkpoints.story={idempotencyKey:resourceHash(['story',promoted.story]),status:'completed',result:promoted.story};await ctx.persist();
+      }
+      return saveJSON('director-replan.json',{schema_version:1,...proposal,winner_id:selected.id,promoted:true,changed:promoted.changed,story:promoted.story,comparisonHash:resourceHash(comparison),status:'accepted'});
+    }
     const applied=applyDirectorReplan(story,proposal,{round:ctx.run.artifacts.creativeReplanRounds||0,assets});
-    if(applied.changed){validateRequestedTransitionPlan(applied.story,request.message);validateStory(applied.story,result(ctx.run,'brief'),result(ctx.run,'resources'));await ensureSourceBoundaries(applied.story,ctx);if(v3){const selected=selectStorySources(applied.story,assets,result(ctx.run,'material'),{demo:requiresActionProtection(currentContract),evidenceIndex:await readJSON('source-evidence-index.json')});await saveJSON('source-selections.json',selected);}ctx.run.checkpoints.story.result=applied.story;await saveJSON('story-before-replan-'+(ctx.run.artifacts.creativeReplanRounds||0)+'.json',story);await saveJSON('story-plan.json',applied.story);for(const key of ['timing','director','hyperframes','assemble','quality','direction-preview',...Object.keys(ctx.run.checkpoints).filter(key=>key.startsWith('shot-'))])delete ctx.run.checkpoints[key];ctx.run.artifacts.creativeReplanRounds=(ctx.run.artifacts.creativeReplanRounds||0)+1;await ctx.persist();}
+    if(applied.changed){validateRequestedTransitionPlan(applied.story,request.message);validateStory(applied.story,result(ctx.run,'brief'),result(ctx.run,'resources'));await ensureSourceBoundaries(applied.story,ctx);if(v3){const selectedSources=selectStorySources(applied.story,assets,result(ctx.run,'material'),{demo:requiresActionProtection(currentContract),evidenceIndex:await readJSON('source-evidence-index.json')});await saveJSON('source-selections.json',selectedSources);}ctx.run.checkpoints.story.result=applied.story;await saveJSON('story-before-replan-'+(ctx.run.artifacts.creativeReplanRounds||0)+'.json',story);await saveJSON('story-plan.json',applied.story);
+      const dependent=['timing','director','hyperframes','assemble','quality','direction-preview','opening-candidates','director-replan',...Object.keys(ctx.run.checkpoints).filter(key=>key.startsWith('shot-'))];
+      const oldOpening=await fs.readFile(path.join(outputDir,'opening-candidates.json'),'utf8').catch(()=>null);if(oldOpening){const invalidatedAt=new Date().toISOString(),priorOpening=JSON.parse(oldOpening);await saveJSON('opening-candidates-invalidated-'+resourceHash(oldOpening).slice(0,16)+'.json',{invalidatedAt,reason:'creative replan changed the opening story',record:priorOpening});await saveJSON('opening-candidates.json',{...priorOpening,status:'invalidated',invalidatedAt,invalidatedReason:'creative replan changed the opening story'});}
+      invalidateStageResults(ctx.run,dependent,{code:'CREATIVE_REPLAN_INVALIDATED',replanRound:ctx.run.artifacts.creativeReplanRounds||0,proposalHash:applied.proposalHash});(ctx.run.artifacts.invalidatedOpeningComparisons??=[]).push({comparisonHash:resourceHash(comparison),proposalHash:applied.proposalHash,at:new Date().toISOString()});delete ctx.run.artifacts.openingComparison;ctx.run.checkpoints.story={idempotencyKey:resourceHash(['story',applied.story]),status:'completed',result:applied.story};ctx.run.artifacts.creativeReplanRounds=(ctx.run.artifacts.creativeReplanRounds||0)+1;await ctx.persist();}
     return saveJSON('director-replan.json',{schema_version:1,...proposal,...applied,comparisonHash:resourceHash(comparison),status:applied.changed?'replanned':'accepted'});
   });
   registry.register('hyperframes.adapt',async(_,ctx)=>{
@@ -801,7 +852,9 @@ export async function produceDocument(request,assets,{root,outputDir,signal,prov
     // remaining shots are authored; an accepted replan invalidates only the
     // dependent checkpoints and rebuilds them through the normal validators.
     if(v3&&result(run,'direction-preview')&&!result(run,'opening-candidates')){await onStage?.('比较两套真实开场方向');return {kind:'tool',tool:'creative.opening_candidates',checkpoint:'opening-candidates',input:{}};}
-    if(v3&&result(run,'opening-candidates')&&!result(run,'director-replan')){await onStage?.('根据开场预览决定是否重剪');return {kind:'tool',tool:'creative.director_replan',checkpoint:'director-replan',input:{}};}
+    const openingComparison=result(run,'opening-candidates')?.comparison;
+    const replanResult=result(run,'director-replan');
+    if(v3&&openingComparison&&(!replanResult||replanResult.comparisonHash!==resourceHash(openingComparison))){await onStage?.('根据开场预览决定是否重剪');return {kind:'tool',tool:'creative.director_replan',checkpoint:'director-replan',input:{comparisonHash:resourceHash(openingComparison)}};}
     for(const [index] of result(run,'story').scenes.entries())if(!result(run,'shot-'+index)){await onStage?.('制作镜头 '+(index+1)+'/'+result(run,'story').scenes.length);return {kind:'tool',tool:'scene.author',checkpoint:'shot-'+index,input:{index}};}
     if(!result(run,'assemble')){await onStage?.(labels.assemble);return {kind:'tool',tool:'project.assemble',checkpoint:'assemble'};}
     if(!result(run,'quality')){await onStage?.(labels.quality);return {kind:'tool',tool:'preview.review',checkpoint:'quality'};}

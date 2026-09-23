@@ -1,0 +1,3 @@
+import {execFile} from 'node:child_process';import {promisify} from 'node:util';import fs from 'node:fs/promises';import path from 'node:path';import os from 'node:os';
+const exec=promisify(execFile),uid=String(process.getuid?.()||0),domain=`gui/${uid}`,agents=path.join(os.homedir(),'Library','LaunchAgents');
+for(const label of ['com.hyperframe.longrun.watchdog','com.hyperframe.longrun.resume','com.hyperframe.longrun.report']){await exec('launchctl',['bootout',domain+'/'+label]).catch(()=>{});await fs.unlink(path.join(agents,label+'.plist')).catch(()=>{});}console.log(JSON.stringify({removed:true,labels:['com.hyperframe.longrun.watchdog','com.hyperframe.longrun.resume','com.hyperframe.longrun.report']},null,2));

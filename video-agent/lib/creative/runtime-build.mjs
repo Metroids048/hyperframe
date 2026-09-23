@@ -69,7 +69,7 @@ export function invalidatedProductionCheckpoints(before,after,checkpoints,{polic
   [/config\/voice_profiles\.json$/,7],
   [/\/(?:contracts|commerce-focus|commerce-skills|workflow-intent|workflow-design|workflow-gates|intake|business-constraints|model-director|production|scene-package|editorial-strategy|production-gaps)\.mjs$/,0],
   [/\/(?:source-inspection|observation-request|evidence-index|commerce-directors|inspection-budget)\.mjs$/,1],
-  [/\/visual-direction-evidence\.mjs$/,5],
+  [/\/(?:visual-direction-evidence|creative-decision-loop|direction-preview|recovery)\.mjs$/,12],
   [/\/(?:capabilities|resource-catalog|resource-discovery|native-recipes)\.mjs$/,6],
   [/\/(?:voice|voice-matching|captions|narration-timing|audio-assets|minimax-client|minimax|codex-provider)\.mjs$/,7],
   [/\/local-speak\.py$/,7],
@@ -83,5 +83,6 @@ export function invalidatedProductionCheckpoints(before,after,checkpoints,{polic
   if(file==='lib/creative/capabilities.mjs'&&before?.dependencyScopes?.capabilities?.planning&&before.dependencyScopes.capabilities.planning===after?.dependencyScopes?.capabilities?.planning)continue;
   for(const [pattern,index]of rules)if(pattern.test(file))first=Math.min(first,index);
  }
- return {changedFiles:changed,from:order[first],keys:Object.keys(checkpoints).filter(key=>key==='direction-preview'||(key.startsWith('shot-')?12:order.indexOf(key))>=first)};
+ const rank=key=>key==='direction-preview'?12.5:key==='opening-candidates'||key==='director-replan'?13.5:key.startsWith('shot-')?12:order.indexOf(key);
+ return {changedFiles:changed,from:order[first],keys:Object.keys(checkpoints).filter(key=>rank(key)>=first)};
 }

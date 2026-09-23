@@ -16,23 +16,15 @@ console.log('🔍 OpenClaw连接诊断\n');
 // 1. 检查环境配置
 console.log('1️⃣ 检查环境配置');
 const envPath = path.join(process.env.HOME, '.openclaw/hyperframe/environment.json');
+let runtimeEnv;
 try {
-  const env = JSON.parse(await fs.readFile(envPath, 'utf8'));
-  const bridgeUrl = env.VIDEO_AGENT_BRIDGE_URL;
+  runtimeEnv = JSON.parse(await fs.readFile(envPath, 'utf8'));
+  const bridgeUrl = String(runtimeEnv.VIDEO_AGENT_BRIDGE_URL || '').replace(/\/$/, '');
   console.log(`   ✅ VIDEO_AGENT_BRIDGE_URL = ${bridgeUrl}`);
 
   if (!bridgeUrl) {
     console.log('   ❌ VIDEO_AGENT_BRIDGE_URL未配置');
     process.exit(1);
-  }
-
-  if (bridgeUrl.includes(':3024')) {
-    console.log('   ⚠️  警告：端口配置为3024，但服务运行在3020');
-    process.exit(1);
-  }
-
-  if (!bridgeUrl.includes(':3020')) {
-    console.log(`   ⚠️  警告：端口不是3020，请检查配置`);
   }
 } catch (error) {
   console.log(`   ❌ 无法读取环境配置: ${error.message}`);
@@ -54,7 +46,7 @@ try {
   console.log(`   ✅ 插件已配置`);
   console.log(`   - bridgeUrl: ${plugin.config.bridgeUrl}`);
   console.log(`   - bridgeTokenEnv: ${plugin.config.bridgeTokenEnv}`);
-  console.log(`   - workspaceId: ${plugin.config.workspaceId.slice(0, 16)}...`);
+  console.log(`   - workspaceId: ${String(plugin.config.workspaceId || '').slice(0, 16)}...`);
 
   if (plugin.config.bridgeUrl === '${VIDEO_AGENT_BRIDGE_URL}') {
     console.log('   ✅ 使用环境变量（正确）');
@@ -67,20 +59,26 @@ try {
 // 3. 测试video-agent服务
 console.log('\n3️⃣ 测试video-agent服务');
 try {
-  const response = await fetch('http://127.0.0.1:3020/api/openclaw/tools', {
+  const bridgeUrl = String(runtimeEnv.VIDEO_AGENT_BRIDGE_URL).replace(/\/$/, '');
+  const bridgeToken = runtimeEnv.OPENCLAW_BRIDGE_TOKEN;
+  const workspaceId = runtimeEnv.VIDEO_AGENT_WORKSPACE_ID;
+  if (!bridgeToken || !workspaceId) {
+    throw new Error('OPENCLAW_BRIDGE_TOKEN或VIDEO_AGENT_WORKSPACE_ID未配置');
+  }
+  const response = await fetch(`${bridgeUrl}/api/openclaw/tools`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': 'Bearer rzpK63TwqLKE-mOSe6kG6XYLzMTc79RnJV9If9_2tJE'
+      'Authorization': `Bearer ${bridgeToken}`
     },
     body: JSON.stringify({
       tool: 'video_project_list',
       input: { maxItems: 1 },
       trustedContext: {
         trusted: true,
-        workspaceId: 'd0fb89afb7b883c48c5e2ae75aefb24f6987c3b487135e6d1b4a7cd4a0d085cf',
+        workspaceId,
         sessionKey: 'test-session',
-        agentId: null,
+        agentId: 'commerce-control',
         toolCallId: 'diagnostic-call',
         messageId: 'diagnostic-msg'
       }
@@ -99,14 +97,14 @@ try {
   }
 } catch (error) {
   console.log(`   ❌ 无法连接video-agent服务: ${error.message}`);
-  console.log('   提示：检查服务是否运行在3020端口');
+  console.log('   提示：检查VIDEO_AGENT_BRIDGE_URL对应的服务是否运行');
   process.exit(1);
 }
 
 // 4. 检查OpenClaw网关
 console.log('\n4️⃣ 检查OpenClaw网关');
 try {
-  const response = await fetch('http://127.0.0.1:18789/api/health', {
+  const response = await fetch('http://127.0.0.1:18789/health', {
     headers: { 'Accept': 'application/json' }
   });
 

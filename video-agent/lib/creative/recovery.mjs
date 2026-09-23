@@ -23,9 +23,10 @@ export function isRecoverableProviderFailure(error) {
 // Invalidate every historical variant of a changed stage, not only the latest
 // checkpoint. Otherwise kernel idempotency can resurrect an older successful call.
 export function invalidateStageResults(run, keys, reason) {
-  const stages=new Set(keys), ids=new Set(keys.map(key=>run.checkpoints[key]?.idempotencyKey).filter(Boolean));
-  const names={brief:'brief.parse',observe:'assets.observe',material:'materials.analyze',creative:'creative.direct',resources:'resources.plan',narration:'narration.prepare',story:'story.plan',timing:'timing.verify'};
-  const tools=new Set(keys.map(key=>names[key]).filter(Boolean));
+  const expanded=[...new Set(keys.flatMap(key=>key==='shot-*'?Object.keys(run.checkpoints||{}).filter(name=>name.startsWith('shot-')):[key]))];
+  const stages=new Set(expanded), ids=new Set(expanded.map(key=>run.checkpoints[key]?.idempotencyKey).filter(Boolean));
+  const names={brief:'brief.parse',observe:'assets.observe',material:'materials.analyze',creative:'creative.direct',resources:'resources.plan',narration:'narration.prepare',story:'story.plan',timing:'timing.verify',director:'video.direct',hyperframes:'hyperframes.adapt','direction-preview':'project.direction_preview','opening-candidates':'creative.opening_candidates','director-replan':'creative.director_replan',assemble:'project.assemble',quality:'preview.review'};
+  const tools=new Set(expanded.map(key=>names[key]|| (key.startsWith('shot-')?'scene.author':null)).filter(Boolean));
   for(const call of run.toolCalls||[])if(tools.has(call.name))ids.add(call.idempotencyKey);
   for(const entry of run.toolResults||[])if(entry.status==='completed'&&(ids.has(entry.idempotencyKey)||tools.has(entry.tool))){entry.status='invalidated';entry.invalidation=structuredClone(reason);}
   for(const key of stages)delete run.checkpoints[key];
@@ -39,7 +40,7 @@ export function refreshActionMaterial(run, evidenceHash) {
   const reason={code:'ACTION_EVIDENCE_CHANGED',evidenceHash};
   (run.artifacts.materialEvidenceHistory??=[]).push({material:structuredClone(material),evidenceHash:run.artifacts.materialActionEvidenceHash??null,modelCalls:run.modelCalls});
   run.artifacts.priorActionMaterial=structuredClone(material);
-  const keys=['material','creative','resources','story','timing','direction-preview','assemble','quality',...Object.keys(run.checkpoints).filter(k=>k.startsWith('shot-'))];
+  const keys=['material','creative','resources','story','timing','direction-preview','opening-candidates','director-replan','assemble','quality',...Object.keys(run.checkpoints).filter(k=>k.startsWith('shot-'))];
   invalidateStageResults(run,keys,reason);
   return true;
 }

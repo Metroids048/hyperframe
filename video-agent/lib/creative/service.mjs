@@ -789,11 +789,11 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
         );
         const sourceRebuildWorkflow=job.input.routeDecision?.reason==='explicit-upload-source-rebuild';
         const sourceWorkflowRequested=!sourceRebuildWorkflow&&isUploadedSourceWorkflow(job.input.message,uploadedSource);
-        if(sourceWorkflowRequested){
+        if(sourceWorkflowRequested||sourceRebuildWorkflow){
           const objectReplacementRequested=/(?:替换|换成|改成|改为)/u.test(job.input.message||'')
             && /(?:袋|蛋白粉|商品|产品|主体|物体|对象)/u.test(job.input.message||'')
             && !/(?:标题|文字|字幕|颜色|字号|音量)/u.test(job.input.message||'');
-          if(objectReplacementRequested){
+          if(sourceWorkflowRequested&&objectReplacementRequested){
             // Search for a traceable target asset before pausing. A source
             // video alone is not evidence of an object mask/tracking pass, so
             // never publish an unchanged video as if replacement succeeded.

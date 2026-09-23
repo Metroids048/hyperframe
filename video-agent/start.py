@@ -6,7 +6,7 @@
 
 用法：
   python start.py              交互菜单
-  python start.py all          构建前端并启动后端（完整项目）
+  python start.py all          构建前端并启动后端（完整项目，不打开工作台）
   python start.py frontend     只构建前端
   python start.py backend      只启动后端（需已有 web-dist，不打开工作台）
   python start.py push         把当前工程、素材和本机配置推送到 origin
@@ -376,7 +376,6 @@ def dispatch(action: str) -> int:
         return 0
     if action == "all":
         start_backend(rebuild=True)
-        open_browser()
     elif action == "frontend":
         build_frontend()
     elif action == "backend":

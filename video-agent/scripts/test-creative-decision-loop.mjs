@@ -3,7 +3,10 @@ import {buildOpeningCandidates,validateOpeningCandidates,compareOpeningCandidate
 import {scoreCommerceVideo} from '../lib/creative/quality-scoring.mjs';
 
 const story={transition:'cut',scenes:[{id:'scene-01',durationSeconds:4,media:[{assetId:'video',sourceStartSeconds:1,playbackRate:1}],purpose:'建立开场商品识别',newInformation:'商品整体',visualDirection:'主体优先'},{id:'scene-02',durationSeconds:5,media:[{assetId:'video',sourceStartSeconds:8,playbackRate:1}],purpose:'证明卖点',newInformation:'动作证据',visualDirection:'细节'}]};
-const candidates=buildOpeningCandidates({story,completedSceneIds:['scene-01'],previewRecord:{directory:'direction-preview/abc',frames:[{file:'keyframe-0.jpg'}]}});
+const candidates=buildOpeningCandidates({story,completedSceneIds:['scene-01'],previewRecord:{directory:'direction-preview/abc',candidatePreviews:[
+  {id:'opening-a',frames:[{file:'opening-candidates/opening-a/frame-0.jpg',sha256:'1'.repeat(64)}],video:'opening-candidates/opening-a/candidate.mp4',videoSha256:'3'.repeat(64),rendered:true,documentHash:'a'.repeat(64)},
+  {id:'opening-b',frames:[{file:'opening-candidates/opening-b/frame-0.jpg',sha256:'2'.repeat(64)}],video:'opening-candidates/opening-b/candidate.mp4',videoSha256:'4'.repeat(64),rendered:true,documentHash:'b'.repeat(64)}
+]}});
 validateOpeningCandidates(candidates);
 assert.equal(compareOpeningCandidates(candidates,{decision:'select',winner_id:'opening-b',reason:'先看动作证据',criteria:{recognition:'快',clarity:'清楚',fit:'匹配',template_risk:'低'}}).winner_id,'opening-b');
 const visual=buildVisualContract({creativeDirection:{motionDirection:'克制推进'},story:{design:{fontFamily:'Arial',background:'#111111',foreground:'#FFFFFF',panel:'#222222',accent:'#FFAA00',typeScale:{title:64,body:32,label:20}}},output:{width:1080,height:1920},fontContract:{systemFamilies:['Arial']}});
