@@ -184,7 +184,68 @@ OpenClaw 是外部对话入口和控制层。它可以接收用户请求、调�
 2. 同一个项目可以从 Web 工作台或 OpenClaw 继续修改。
 3. 任务状态、版本和失败原因来自真实项目，而不是对话中的口头描述。
 
-## 项目保存的核心内容
+## 八、相较官方开源版本，项目具体增加了什么
+
+这一节专门区分“官方项目原本提供的能力”和“本项目在上面增加的业务层”。这里的“增加”不等于修改了上游源码：当前仓库保留了 HyperFrames 官方代码和 OpenClaw `v2026.6.11` 运行时，主要通过适配层、插件、配置和服务端桥接完成定制。
+
+### 1. HyperFrames：引擎保持上游，项目增加了一套商品视频适配层
+
+官方 HyperFrames 主要解决通用的视频工程问题：组织媒体和图形、控制时间线和动画、预览、检查、渲染，并提供可继续编辑的原生工程。
+
+本项目没有直接改写 `third_party/hyperframes` 中的引擎代码。它固定使用上游 `v0.8.33`，该目录是只读参考和运行基线。本项目真正新增的内容主要有：
+
+| 本项目新增层 | 具体增加的能力 | 代表位置 |
+|---|---|---|
+| 商品场景策略 | 把新品、详情、教程、系列、促销、FAQ 等目标转换成不同的镜头和视觉要求 | `lib/creative/commerce-agent-v2.mjs`、`commerce/scenes/` |
+| 导演到 HyperFrames 的翻译 | 把“这一幕要证明什么”翻译成组件、布局、文字、动画、转场和保护区域 | `DIRECTOR_TO_HYPERFRAMES_STRATEGY.md`、`production.mjs` |
+| 资源发现与调度 | 扫描官方资源、本地组件、场景包和组合，按镜头意图筛选并绑定 | `config/hyperframes/discovery.json`、`resource-catalog.mjs`、`resource-discovery.mjs` |
+| 原生工程桥接 | 把商品分镜、素材和音频整理成 `NativeDocument`，再编译为 HTML/CSS/GSAP 并调用 HyperFrames | `document.mjs`、`compiler.mjs`、`runner.mjs` |
+| 可追溯资源回执 | 记录资源来源、运行版本、使用镜头和实际渲染结果，避免“只搜索未使用” | `resource-receipts.mjs`、`hyperframes-resource-receipt.json` |
+| 商品化质量门 | 检查场景是否有足够的产品强调、局部证据、步骤保护、条件层级和 CTA 依据 | `quality-scoring.mjs`、`media-review.mjs`、`delivery-gate.mjs` |
+
+换句话说，官方 HyperFrames 提供“怎么把东西呈现出来”，本项目增加了“什么内容应该被呈现、为什么这样呈现、是否真的符合商品场景”。
+
+例如，官方能力可以实现字幕、转场和动画；本项目进一步规定：教程的步骤条不能盖住手部，促销的条件要有足够停留时间，商品详情的 callout 必须指向真实可见部位，不能用装饰动画代替产品证据。
+
+### 2. OpenClaw 2026.6.11：运行时保持官方，项目增加控制插件和视频服务桥
+
+官方 OpenClaw 主要提供 Gateway、Agent 会话、Control UI、模型调用、Skill 加载和通用工具权限。本项目没有复制一套 OpenClaw，也没有让 OpenClaw 直接操作视频工程，而是在固定版本上增加了 `commerce-engine` 插件和服务端桥接。
+
+具体增加的内容如下：
+
+| 本项目新增层 | 具体改动 | 代表位置 |
+|---|---|---|
+| 视频工具协议 | 提供准备需求、搜索资源、网络研究、提交任务、列出/打开项目、查询任务、读取结果和取消任务等 `video_*` 工具 | `openclaw-plugin/index.mjs` |
+| 服务端工具外壳 | 将 OpenClaw 工具映射到现有 `createCreativeService`，不另起第二套视频服务 | `lib/openclaw/commerce-engine-facade.mjs` |
+| 控制 Agent 桥接 | 适配 OpenClaw Responses 调用，把准备、研究、制作和结果回传串成受控流程 | `lib/openclaw/commerce-agent-bridge.mjs` |
+| 会话与项目绑定 | 将 OpenClaw 会话绑定到具体工程，支持明确切换项目，防止一个会话误写另一个工程 | `session-bindings.mjs` |
+| 写授权与目录租约 | 写操作必须由服务端签发短期授权，并取得项目目录租约；模型不能自己填写或伪造授权 | `execution-authorizations.mjs`、`directory-lease.mjs` |
+| 幂等和故障恢复 | 用稳定操作 ID、操作日志和任务检查点避免重复创建项目，并支持恢复、取消和未知提交状态 | `commerce-engine-facade.mjs`、`service.mjs` |
+| 入站媒体安全 | 只接收 OpenClaw 入站目录中的受控媒体，校验项目、会话、基准版本和文件大小后再导入工程 | `server.mjs`、`openclaw-plugin/index.mjs` |
+| 工具权限收窄 | OpenClaw Agent 只允许视频工具，禁用 shell、文件读写、浏览器、进程和任意子 Agent 工具 | `runtime/openclaw/openclaw.example.json` |
+| 阶段模型分工 | OpenClaw 阶段模型只负责结构化商品规划和审查；ASR、TTS、音频混音和字幕对齐仍由原有本地能力负责 | `openclaw-stage-provider.mjs`、`provider-selection.mjs` |
+
+### 3. 迁移过程中解决的官方协议适配问题
+
+OpenClaw 6.11 接入时，项目还针对真实运行时修正了几类不能靠 Mock 发现的协议差异：
+
+- 两个适配器补齐 Gateway 要求的消息类型字段；
+- 不再向 stage 接口发送不兼容的文本格式参数；
+- 将图片输入转换为目标 Responses 接口接受的结构；
+- 使用 Gateway 的标准 Agent 会话前缀，让执行授权和实际会话一致；
+- 原生 Control UI 的 `MediaPath` 先进入受控入站目录，再由服务端导入项目；
+- 原生写工具不再要求用户或模型提供内部授权 ID，而是由服务端根据会话、项目和基准版本签发；
+- 同一会话切换项目时采用明确的替换绑定语义，避免错误的 `SESSION_WORKSPACE_CONFLICT`。
+
+这些改动的目标不是改变 OpenClaw 的通用行为，而是让它能够安全、可恢复地调用本项目已有的视频服务。
+
+### 4. 当前迁移边界
+
+当前使用的是 OpenClaw `v2026.6.11` 的固定安装和本项目插件；普通工作台的 legacy 入口仍然保留，OpenClaw 不是无条件替换。迁移报告中已验证 Gateway、插件加载、阶段文字/图片调用、只读项目操作和一次真实 Control UI 编辑导出；付费生成、完整真人视听验收、所有回滚场景和默认入口切换仍需单独确认。
+
+因此，项目现状应理解为：**官方 OpenClaw/HyperFrames 作为底座，本仓库增加视频领域的控制面、适配层和质量门，而不是维护两个被私自改写的上游分支。**
+
+## 九、项目保存的核心内容
 
 读者不需要记住所有文件名，但可以用下面几类内容理解项目为什么能够继续修改：
 
@@ -199,7 +260,7 @@ OpenClaw 是外部对话入口和控制层。它可以接收用户请求、调�
 
 常见的对应文件包括 `native-project.json`、`business-contract.json`、`document.json`、`production-run.json`、`hyperframes-resource-receipt.json`、`quality-report.json` 和最终的 `commerce-final.mp4`。这些文件共同描述一个项目，不能只看 MP4 判断任务是否完成。
 
-## 三道质量门
+## 十、三道质量门
 
 | 阶段 | 要回答的问题 | 结果 |
 |---|---|---|
@@ -209,7 +270,7 @@ OpenClaw 是外部对话入口和控制层。它可以接收用户请求、调�
 
 这三道门把“能生成文件”和“可以交付给用户”区分开，避免用技术成功掩盖事实错误、动作缺失或审查不足。
 
-## 需要深入时再看
+## 十一、需要深入时再看
 
 - [架构图源文件](./PROJECT_ARCHITECTURE.mmd)：查看组件之间的关系。
 - [代码与配置清单](./PROJECT_CODE_INVENTORY.md)：按目录查找具体文件，已排除依赖、缓存、运行数据和交付产物。

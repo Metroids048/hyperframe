@@ -75,8 +75,17 @@ function isRuntime(relative) {
 
 function skipEntry(name, relative) {
   if (SKIP_DIRS.has(name) || SKIP_NAMES.has(name)) return true;
+  // Portable-security runs contain deliberately malformed and hostile import
+  // archives. They are test fixtures, not restorable project artifacts.
+  if (relative.startsWith('video-agent/outputs/resume/portable-security-')) return true;
   if (isPrivateConfigPath(relative)) return true;
   if (relative === 'hyperframe_closeout_r1/evidence/baseline-repo') return true;
+  // This historical local backup is a duplicate source tree and may contain
+  // credential-shaped assignments from old experiments; it is never a
+  // canonical workspace artifact.
+  if (relative.startsWith('video-agent/outputs/eight-scenarios-20260916/preserved-before-sync/')
+    || /^video-agent\/outputs\/[^/]+\/before\//.test(relative)
+    || relative.startsWith('video-agent/outputs/tooling/')) return true;
   if (/(?:^|\/)(?:server\.pid|\.lock|\.tmp|\.bundle-partial|\.log)$/.test(relative)) return true;
   if (relative === 'video-agent/outputs/workspace-context.json') return false;
   return false;

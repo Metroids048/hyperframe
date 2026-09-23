@@ -74,10 +74,14 @@ function externalVideoLayers(document, assets, custom=new Map()) {
       const asset = assets[node.assetId];
       const mediaStart = Number(node.params?.sourceStartSeconds ?? asset.sourceStartSeconds ?? 0);
       const managed=custom.get(scene.id)?.managedVideoNodeIds?.includes(node.id);
+      // A node-level focal point is an explicit editing decision and must win
+      // over a wrapper-level custom CSS declaration.
+      const nodePosition=mediaPosition(node);
       const objectPosition=custom.get(scene.id)?.videoObjectPositions?.[node.id];
+      const positionStyle=nodePosition||objectPosition?`;object-position:${nodePosition ? nodePosition.slice(nodePosition.indexOf(':')+1) : objectPosition}`:'';
       // Gate every source layer. A plain cut must disappear at its end frame
       // before an inset/native layout reveals the next source at the same cut.
-      layers.push(`<div id="media-gate-${esc(node.id)}" style="position:absolute;inset:0;z-index:${40+document.scenes.indexOf(scene)*2};visibility:${node.startFrame===0?'visible':'hidden'}" data-layout-allow-overflow><div id="media-wrap-${esc(node.id)}" data-object-id="${esc(node.id)}" data-scene-media="${esc(scene.id)}" class="video-layer media-entrance${managed?' managed-video':''}" data-layout-allow-overflow style="${managed?'':videoLayout(scene, order)}z-index:${40 + document.scenes.indexOf(scene) * 2}"><div class="media-motion motion"><video id="obj-${esc(node.id)}" src="${esc(publicAsset(asset))}" muted playsinline preload="auto" style="object-fit:${node.params?.fit === 'contain' ? 'contain' : 'cover'}${objectPosition?';object-position:'+objectPosition:mediaPosition(node)}" data-start="${sec(node.startFrame)}" data-duration="${sec(node.durationFrames)}" data-media-start="${mediaStart}" data-playback-rate="${Number(node.params?.playbackRate??1)}" data-track-index="${track++}"></video></div></div></div>`);
+      layers.push(`<div id="media-gate-${esc(node.id)}" style="position:absolute;inset:0;z-index:${40+document.scenes.indexOf(scene)*2};visibility:${node.startFrame===0?'visible':'hidden'}" data-layout-allow-overflow><div id="media-wrap-${esc(node.id)}" data-object-id="${esc(node.id)}" data-scene-media="${esc(scene.id)}" class="video-layer media-entrance${managed?' managed-video':''}" data-layout-allow-overflow style="${managed?'':videoLayout(scene, order)}z-index:${40 + document.scenes.indexOf(scene) * 2}"><div class="media-motion motion"><video id="obj-${esc(node.id)}" src="${esc(publicAsset(asset))}" muted playsinline preload="auto" style="object-fit:${node.params?.fit === 'contain' ? 'contain' : 'cover'}${positionStyle}" data-start="${sec(node.startFrame)}" data-duration="${sec(node.durationFrames)}" data-media-start="${mediaStart}" data-playback-rate="${Number(node.params?.playbackRate??1)}" data-track-index="${track++}"></video></div></div></div>`);
     });
   }
   return layers.join('\n');
