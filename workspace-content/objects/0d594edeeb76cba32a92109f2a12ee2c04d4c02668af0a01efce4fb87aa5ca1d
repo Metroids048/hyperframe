@@ -1,0 +1,577 @@
+{
+  "id": "f2ba628f-283b-4b0d-9087-12bcb7c48353",
+  "userRequest": "做一条上新介绍，让观众先看清商品，再认识有素材依据的特点。",
+  "projectId": "b62c48f7-1510-4420-a8ed-1be70bc3d4c2",
+  "baseRevisionId": null,
+  "inputFingerprint": "f20ac3d4afe01e1e885fc2dc4618b4169565ae030cb4b6b52fa72411ee53382c",
+  "selectedSkills": [],
+  "constraints": {
+    "requirements": [
+      "场景为单品上新／种草",
+      "先让观众看清商品，再呈现有真实素材依据的特点",
+      "仅使用用户提供的真实视频素材",
+      "不生成新的实拍视频镜头",
+      "不得编造商品名称、参数、性能、价格、优惠或评价",
+      "未指定画幅时按真实素材宽高与主体保护决定；当前真实素材为横屏，优先横屏输出",
+      "默认成片约30秒，不以无效重复凑时长",
+      "保留原始音频；不擅自添加配音或字幕"
+    ]
+  },
+  "plan": null,
+  "artifacts": {},
+  "checkpoints": {
+    "brief": {
+      "idempotencyKey": "02b400a1cc6ef058f2af4758c2804e87e4db29b13070bb440c257484f538488c",
+      "status": "completed",
+      "result": {
+        "request": {
+          "name": "上新介绍",
+          "cta": "",
+          "price": "",
+          "facts": [],
+          "output": {
+            "width": 1920,
+            "height": 1080,
+            "durationSeconds": 30,
+            "fps": 30
+          }
+        },
+        "needsTranscription": false,
+        "needsNarration": false,
+        "needsCaptions": false,
+        "keepOriginalAudio": true,
+        "capabilities": [
+          "image-observation",
+          "video-source-selection",
+          "native-composition",
+          "managed-original",
+          "local-preview-review",
+          "native-editing"
+        ],
+        "gaps": [
+          "需要先观察真实视频以确认商品主体、可用镜头和有素材依据的特点；当前未提供可直接写入的商品事实。"
+        ],
+        "constraints": [
+          "场景为单品上新／种草",
+          "先让观众看清商品，再呈现有真实素材依据的特点",
+          "仅使用用户提供的真实视频素材",
+          "不生成新的实拍视频镜头",
+          "不得编造商品名称、参数、性能、价格、优惠或评价",
+          "未指定画幅时按真实素材宽高与主体保护决定；当前真实素材为横屏，优先横屏输出",
+          "默认成片约30秒，不以无效重复凑时长",
+          "保留原始音频；不擅自添加配音或字幕"
+        ],
+        "scenarioId": "product_launch"
+      }
+    },
+    "observe": {
+      "idempotencyKey": "9638b9f4804cfd0fa4ba29a1bbebbdefe0805b126889c3cdcd10500858101d2c",
+      "status": "completed",
+      "result": {
+        "observations": [
+          {
+            "assetId": "asset-51bb0464-52f6-44ea-8384-cf084bae16a5",
+            "visibleContent": "横屏视频中持续出现一只被手握持、转动或调整的红色近圆形物体，表面有明显黄色区域及深色边缘。主体多位于画面中部至左侧，右侧常见黑色服装人体局部。未见可读商品名称、型号、Logo、价格、优惠或参数文字。",
+            "uncertainty": "商品身份、用途、功能、材质及红黄色区域含义未确认。离散帧不能证明连续动作起止，也不能确认打开、按压、分离、放下或完成结果。音频内容和同步关系未观察。",
+            "role": "overview",
+            "productGroup": "unidentified red-yellow handheld object",
+            "subjectBox": [
+              0.06,
+              0.04,
+              0.9,
+              0.96
+            ],
+            "safeCrop": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "confidence": 0.84,
+            "quality": "1920×1080横屏；主体颜色和大致形态可辨，部分动作有运动模糊或手部遮挡。适合横屏构图，需保护手部和物体区域。",
+            "visibleText": [],
+            "sameProductAs": [],
+            "differentProductFrom": []
+          },
+          {
+            "assetId": "asset-51bb0464-52f6-44ea-8384-cf084bae16a5",
+            "visibleContent": "可作为外观展示候选的源区间：1.448-13.033秒、18.826-30.411秒、36.204-47.789秒、70.959-82.545秒、88.337-99.923秒。各区间均可见手部托持或调整该红黄色物体。",
+            "uncertainty": "候选范围来自抽帧，连续镜头边界及动作语义未验证；不能据此宣称具体功能演示、特点或完整收尾。",
+            "role": "detail",
+            "productGroup": "unidentified red-yellow handheld object",
+            "subjectBox": [
+              0.06,
+              0.04,
+              0.9,
+              0.96
+            ],
+            "safeCrop": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "confidence": 0.66,
+            "quality": "适合候选剪辑和主体建立；功能事实、可信卖点、收尾及原声可用性仍未确认。",
+            "visibleText": [],
+            "sameProductAs": [],
+            "differentProductFrom": []
+          }
+        ],
+        "candidates": [
+          {
+            "assetId": "asset-51bb0464-52f6-44ea-8384-cf084bae16a5",
+            "startSeconds": 1.448,
+            "endSeconds": 13.033,
+            "reason": "双手接触并调整红黄色物体，可用于建立外观；动作含义未确认。"
+          },
+          {
+            "assetId": "asset-51bb0464-52f6-44ea-8384-cf084bae16a5",
+            "startSeconds": 18.826,
+            "endSeconds": 30.411,
+            "reason": "持续握持并改变朝向，可用于持续展示；无可靠功能事实。"
+          },
+          {
+            "assetId": "asset-51bb0464-52f6-44ea-8384-cf084bae16a5",
+            "startSeconds": 36.204,
+            "endSeconds": 47.789,
+            "reason": "主体位置相对稳定，可作握持状态细节展示。"
+          },
+          {
+            "assetId": "asset-51bb0464-52f6-44ea-8384-cf084bae16a5",
+            "startSeconds": 70.959,
+            "endSeconds": 82.545,
+            "reason": "黄色区域多次朝向镜头，可作外观展示。"
+          },
+          {
+            "assetId": "asset-51bb0464-52f6-44ea-8384-cf084bae16a5",
+            "startSeconds": 88.337,
+            "endSeconds": 99.923,
+            "reason": "物体较完整地出现在手中，可作后段整体回归候选；收尾未确认。"
+          }
+        ],
+        "inspectRanges": [],
+        "gaps": [
+          "商品身份、名称、型号、用途和功能未确认，不能写具体商品事实或卖点。",
+          "上新片所需的真实使用或有效演示、可信特点和完整收尾尚未由连续视频证据确认。",
+          "候选区间来自离散抽帧，连续动作起止及语义未验证。",
+          "未观察音频，原声是否可用及其与动作同步关系未知。",
+          "未提供价格、CTA、Logo、性能、评价或其他可核实文案事实。"
+        ]
+      }
+    }
+  },
+  "toolCalls": [
+    {
+      "name": "brief.parse",
+      "input": {},
+      "inputHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "idempotencyKey": "02b400a1cc6ef058f2af4758c2804e87e4db29b13070bb440c257484f538488c",
+      "step": 1,
+      "startedAt": "2026-09-15T02:23:41.016Z"
+    },
+    {
+      "name": "assets.observe",
+      "input": {},
+      "inputHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "idempotencyKey": "9638b9f4804cfd0fa4ba29a1bbebbdefe0805b126889c3cdcd10500858101d2c",
+      "step": 2,
+      "startedAt": "2026-09-15T02:24:24.060Z"
+    },
+    {
+      "name": "assets.observe",
+      "input": {},
+      "inputHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "idempotencyKey": "9638b9f4804cfd0fa4ba29a1bbebbdefe0805b126889c3cdcd10500858101d2c",
+      "step": 3,
+      "startedAt": "2026-09-15T02:25:56.039Z"
+    },
+    {
+      "name": "materials.analyze",
+      "input": {},
+      "inputHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "idempotencyKey": "080696093867dfd0b8043948543b086bf45bb616f0cdbdd753eca98da279bae9",
+      "step": 4,
+      "startedAt": "2026-09-15T02:31:37.272Z"
+    },
+    {
+      "name": "materials.analyze",
+      "input": {},
+      "inputHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "idempotencyKey": "080696093867dfd0b8043948543b086bf45bb616f0cdbdd753eca98da279bae9",
+      "step": 5,
+      "startedAt": "2026-09-15T02:33:29.280Z"
+    }
+  ],
+  "toolResults": [
+    {
+      "tool": "brief.parse",
+      "status": "completed",
+      "result": {
+        "request": {
+          "name": "上新介绍",
+          "cta": "",
+          "price": "",
+          "facts": [],
+          "output": {
+            "width": 1920,
+            "height": 1080,
+            "durationSeconds": 30,
+            "fps": 30
+          }
+        },
+        "needsTranscription": false,
+        "needsNarration": false,
+        "needsCaptions": false,
+        "keepOriginalAudio": true,
+        "capabilities": [
+          "image-observation",
+          "video-source-selection",
+          "native-composition",
+          "managed-original",
+          "local-preview-review",
+          "native-editing"
+        ],
+        "gaps": [
+          "需要先观察真实视频以确认商品主体、可用镜头和有素材依据的特点；当前未提供可直接写入的商品事实。"
+        ],
+        "constraints": [
+          "场景为单品上新／种草",
+          "先让观众看清商品，再呈现有真实素材依据的特点",
+          "仅使用用户提供的真实视频素材",
+          "不生成新的实拍视频镜头",
+          "不得编造商品名称、参数、性能、价格、优惠或评价",
+          "未指定画幅时按真实素材宽高与主体保护决定；当前真实素材为横屏，优先横屏输出",
+          "默认成片约30秒，不以无效重复凑时长",
+          "保留原始音频；不擅自添加配音或字幕"
+        ],
+        "scenarioId": "product_launch"
+      },
+      "idempotencyKey": "02b400a1cc6ef058f2af4758c2804e87e4db29b13070bb440c257484f538488c",
+      "step": 1,
+      "durationMs": 43042
+    },
+    {
+      "tool": "assets.observe",
+      "status": "failed",
+      "error": "可用模型当前都很繁忙，输入已保存，请稍后重试",
+      "code": "CODEX_LIMIT",
+      "idempotencyKey": "9638b9f4804cfd0fa4ba29a1bbebbdefe0805b126889c3cdcd10500858101d2c",
+      "step": 2
+    },
+    {
+      "tool": "assets.observe",
+      "status": "completed",
+      "result": {
+        "observations": [
+          {
+            "assetId": "asset-51bb0464-52f6-44ea-8384-cf084bae16a5",
+            "visibleContent": "横屏视频中持续出现一只被手握持、转动或调整的红色近圆形物体，表面有明显黄色区域及深色边缘。主体多位于画面中部至左侧，右侧常见黑色服装人体局部。未见可读商品名称、型号、Logo、价格、优惠或参数文字。",
+            "uncertainty": "商品身份、用途、功能、材质及红黄色区域含义未确认。离散帧不能证明连续动作起止，也不能确认打开、按压、分离、放下或完成结果。音频内容和同步关系未观察。",
+            "role": "overview",
+            "productGroup": "unidentified red-yellow handheld object",
+            "subjectBox": [
+              0.06,
+              0.04,
+              0.9,
+              0.96
+            ],
+            "safeCrop": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "confidence": 0.84,
+            "quality": "1920×1080横屏；主体颜色和大致形态可辨，部分动作有运动模糊或手部遮挡。适合横屏构图，需保护手部和物体区域。",
+            "visibleText": [],
+            "sameProductAs": [],
+            "differentProductFrom": []
+          },
+          {
+            "assetId": "asset-51bb0464-52f6-44ea-8384-cf084bae16a5",
+            "visibleContent": "可作为外观展示候选的源区间：1.448-13.033秒、18.826-30.411秒、36.204-47.789秒、70.959-82.545秒、88.337-99.923秒。各区间均可见手部托持或调整该红黄色物体。",
+            "uncertainty": "候选范围来自抽帧，连续镜头边界及动作语义未验证；不能据此宣称具体功能演示、特点或完整收尾。",
+            "role": "detail",
+            "productGroup": "unidentified red-yellow handheld object",
+            "subjectBox": [
+              0.06,
+              0.04,
+              0.9,
+              0.96
+            ],
+            "safeCrop": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "confidence": 0.66,
+            "quality": "适合候选剪辑和主体建立；功能事实、可信卖点、收尾及原声可用性仍未确认。",
+            "visibleText": [],
+            "sameProductAs": [],
+            "differentProductFrom": []
+          }
+        ],
+        "candidates": [
+          {
+            "assetId": "asset-51bb0464-52f6-44ea-8384-cf084bae16a5",
+            "startSeconds": 1.448,
+            "endSeconds": 13.033,
+            "reason": "双手接触并调整红黄色物体，可用于建立外观；动作含义未确认。"
+          },
+          {
+            "assetId": "asset-51bb0464-52f6-44ea-8384-cf084bae16a5",
+            "startSeconds": 18.826,
+            "endSeconds": 30.411,
+            "reason": "持续握持并改变朝向，可用于持续展示；无可靠功能事实。"
+          },
+          {
+            "assetId": "asset-51bb0464-52f6-44ea-8384-cf084bae16a5",
+            "startSeconds": 36.204,
+            "endSeconds": 47.789,
+            "reason": "主体位置相对稳定，可作握持状态细节展示。"
+          },
+          {
+            "assetId": "asset-51bb0464-52f6-44ea-8384-cf084bae16a5",
+            "startSeconds": 70.959,
+            "endSeconds": 82.545,
+            "reason": "黄色区域多次朝向镜头，可作外观展示。"
+          },
+          {
+            "assetId": "asset-51bb0464-52f6-44ea-8384-cf084bae16a5",
+            "startSeconds": 88.337,
+            "endSeconds": 99.923,
+            "reason": "物体较完整地出现在手中，可作后段整体回归候选；收尾未确认。"
+          }
+        ],
+        "inspectRanges": [],
+        "gaps": [
+          "商品身份、名称、型号、用途和功能未确认，不能写具体商品事实或卖点。",
+          "上新片所需的真实使用或有效演示、可信特点和完整收尾尚未由连续视频证据确认。",
+          "候选区间来自离散抽帧，连续动作起止及语义未验证。",
+          "未观察音频，原声是否可用及其与动作同步关系未知。",
+          "未提供价格、CTA、Logo、性能、评价或其他可核实文案事实。"
+        ]
+      },
+      "idempotencyKey": "9638b9f4804cfd0fa4ba29a1bbebbdefe0805b126889c3cdcd10500858101d2c",
+      "step": 3,
+      "durationMs": 341228
+    },
+    {
+      "tool": "materials.analyze",
+      "status": "failed",
+      "error": "可用模型当前都很繁忙，输入已保存，请稍后重试",
+      "code": "CODEX_LIMIT",
+      "idempotencyKey": "080696093867dfd0b8043948543b086bf45bb616f0cdbdd753eca98da279bae9",
+      "step": 4
+    },
+    {
+      "tool": "materials.analyze",
+      "status": "failed",
+      "error": "可用模型当前都很繁忙，输入已保存，请稍后重试",
+      "code": "CODEX_LIMIT",
+      "idempotencyKey": "080696093867dfd0b8043948543b086bf45bb616f0cdbdd753eca98da279bae9",
+      "step": 5
+    }
+  ],
+  "verification": null,
+  "repairCount": 0,
+  "resultRevisionId": null,
+  "status": "recoverable",
+  "steps": 5,
+  "modelCalls": 13,
+  "maxModelCalls": 128,
+  "budgetSource": "application-default",
+  "completionReserve": 0,
+  "createdAt": "2026-09-15T02:23:41.015Z",
+  "updatedAt": "2026-09-15T02:34:03.553Z",
+  "stage": "material",
+  "modelInvocations": [
+    {
+      "number": 1,
+      "model": "gpt-6-astra",
+      "timeoutMs": 600000,
+      "reasoningEffort": "low",
+      "attempt": 0,
+      "imageCount": 0,
+      "promptSha256": "a5326e046adbccdb680722c5c06207e4eba30200c5f7028c7a6f8404de18e81e",
+      "schemaSha256": "9be84d871b9eee11f8de5f9f6f886891ec53f428f489d3da09bfcc68679de80b",
+      "directory": "/Users/a1234/Desktop/hyperframe-main/video-agent/data/result-completion-projects/b62c48f7-1510-4420-a8ed-1be70bc3d4c2/versions/job-c107945f-d9c7-4525-9ae5-eee669607bab/model-calls/edit-engine/88e8b8fe-62e7-4c27-a400-f1fcf62e2588",
+      "stage": "R1",
+      "startedAt": "2026-09-15T02:23:41.041Z"
+    },
+    {
+      "number": 2,
+      "model": "gpt-5.5",
+      "timeoutMs": 600000,
+      "reasoningEffort": "low",
+      "attempt": 1,
+      "imageCount": 0,
+      "promptSha256": "a5326e046adbccdb680722c5c06207e4eba30200c5f7028c7a6f8404de18e81e",
+      "schemaSha256": "9be84d871b9eee11f8de5f9f6f886891ec53f428f489d3da09bfcc68679de80b",
+      "directory": "/Users/a1234/Desktop/hyperframe-main/video-agent/data/result-completion-projects/b62c48f7-1510-4420-a8ed-1be70bc3d4c2/versions/job-c107945f-d9c7-4525-9ae5-eee669607bab/model-calls/edit-engine/19f0ccb2-fa39-4f9f-9a83-096be0d1fb87",
+      "stage": "R1",
+      "startedAt": "2026-09-15T02:23:47.750Z"
+    },
+    {
+      "number": 3,
+      "model": "gpt-5.5",
+      "timeoutMs": 600000,
+      "reasoningEffort": "low",
+      "attempt": 0,
+      "imageCount": 2,
+      "promptSha256": "3fdf249e57d25253911f9d5d584f9d279493d5988d3097a6f0b9232b5ee83af5",
+      "schemaSha256": "9525e3f542b7ec8df6b581b8932b92c0184a246ad9fd5a9ef5b0cb3a44a3dc32",
+      "directory": "/Users/a1234/Desktop/hyperframe-main/video-agent/data/result-completion-projects/b62c48f7-1510-4420-a8ed-1be70bc3d4c2/versions/job-c107945f-d9c7-4525-9ae5-eee669607bab/model-calls/edit-engine/d75242e0-d885-478b-b1c5-56a122d9805d",
+      "stage": "R2",
+      "startedAt": "2026-09-15T02:24:26.943Z"
+    },
+    {
+      "number": 4,
+      "model": "gpt-6-astra",
+      "timeoutMs": 600000,
+      "reasoningEffort": "low",
+      "attempt": 1,
+      "imageCount": 2,
+      "promptSha256": "3fdf249e57d25253911f9d5d584f9d279493d5988d3097a6f0b9232b5ee83af5",
+      "schemaSha256": "9525e3f542b7ec8df6b581b8932b92c0184a246ad9fd5a9ef5b0cb3a44a3dc32",
+      "directory": "/Users/a1234/Desktop/hyperframe-main/video-agent/data/result-completion-projects/b62c48f7-1510-4420-a8ed-1be70bc3d4c2/versions/job-c107945f-d9c7-4525-9ae5-eee669607bab/model-calls/edit-engine/548ae5b1-2916-4496-8cdd-9b656766ecba",
+      "stage": "R2",
+      "startedAt": "2026-09-15T02:25:31.319Z"
+    },
+    {
+      "number": 5,
+      "model": "gpt-6-astra",
+      "timeoutMs": 600000,
+      "reasoningEffort": "low",
+      "attempt": 0,
+      "imageCount": 2,
+      "promptSha256": "b09800b239711975546ad35593709865c55e7f28f9cc27e61150299104b9933f",
+      "schemaSha256": "9525e3f542b7ec8df6b581b8932b92c0184a246ad9fd5a9ef5b0cb3a44a3dc32",
+      "directory": "/Users/a1234/Desktop/hyperframe-main/video-agent/data/result-completion-projects/b62c48f7-1510-4420-a8ed-1be70bc3d4c2/versions/job-c107945f-d9c7-4525-9ae5-eee669607bab/model-calls/edit-engine/84ea352b-bc75-42c2-ba7f-3570247a7822",
+      "stage": "R2",
+      "startedAt": "2026-09-15T02:25:58.969Z"
+    },
+    {
+      "number": 6,
+      "model": "gpt-5.5",
+      "timeoutMs": 600000,
+      "reasoningEffort": "low",
+      "attempt": 1,
+      "imageCount": 2,
+      "promptSha256": "b09800b239711975546ad35593709865c55e7f28f9cc27e61150299104b9933f",
+      "schemaSha256": "9525e3f542b7ec8df6b581b8932b92c0184a246ad9fd5a9ef5b0cb3a44a3dc32",
+      "directory": "/Users/a1234/Desktop/hyperframe-main/video-agent/data/result-completion-projects/b62c48f7-1510-4420-a8ed-1be70bc3d4c2/versions/job-c107945f-d9c7-4525-9ae5-eee669607bab/model-calls/edit-engine/1eed6f4c-0511-48a8-b69b-1d7eb6491882",
+      "stage": "R2",
+      "startedAt": "2026-09-15T02:26:12.312Z"
+    },
+    {
+      "number": 7,
+      "model": "gpt-5.5",
+      "timeoutMs": 600000,
+      "reasoningEffort": "low",
+      "attempt": 0,
+      "imageCount": 5,
+      "promptSha256": "74cb162a183b118af2e7dedcf93f5e5c50a6251ee5da385a06d945c04b06461b",
+      "schemaSha256": "9525e3f542b7ec8df6b581b8932b92c0184a246ad9fd5a9ef5b0cb3a44a3dc32",
+      "directory": "/Users/a1234/Desktop/hyperframe-main/video-agent/data/result-completion-projects/b62c48f7-1510-4420-a8ed-1be70bc3d4c2/versions/job-c107945f-d9c7-4525-9ae5-eee669607bab/model-calls/edit-engine/7e854fdd-b1f9-4fe2-aede-4289ec7af624",
+      "stage": "R2",
+      "startedAt": "2026-09-15T02:28:16.998Z"
+    },
+    {
+      "number": 8,
+      "model": "gpt-6-astra",
+      "timeoutMs": 600000,
+      "reasoningEffort": "low",
+      "attempt": 1,
+      "imageCount": 5,
+      "promptSha256": "74cb162a183b118af2e7dedcf93f5e5c50a6251ee5da385a06d945c04b06461b",
+      "schemaSha256": "9525e3f542b7ec8df6b581b8932b92c0184a246ad9fd5a9ef5b0cb3a44a3dc32",
+      "directory": "/Users/a1234/Desktop/hyperframe-main/video-agent/data/result-completion-projects/b62c48f7-1510-4420-a8ed-1be70bc3d4c2/versions/job-c107945f-d9c7-4525-9ae5-eee669607bab/model-calls/edit-engine/f94bce2a-8a4e-4779-a9f9-2a5205bd7220",
+      "stage": "R2",
+      "startedAt": "2026-09-15T02:28:30.916Z"
+    },
+    {
+      "number": 9,
+      "model": "gpt-6-astra",
+      "timeoutMs": 600000,
+      "reasoningEffort": "low",
+      "attempt": 0,
+      "imageCount": 7,
+      "promptSha256": "1f93f58cf39078a4fe6390580116d8b78bc40eaf9e356608432acbedc6d416ca",
+      "schemaSha256": "9525e3f542b7ec8df6b581b8932b92c0184a246ad9fd5a9ef5b0cb3a44a3dc32",
+      "directory": "/Users/a1234/Desktop/hyperframe-main/video-agent/data/result-completion-projects/b62c48f7-1510-4420-a8ed-1be70bc3d4c2/versions/job-c107945f-d9c7-4525-9ae5-eee669607bab/model-calls/edit-engine/7379cd12-37cb-4129-b478-c5b414f63969",
+      "stage": "R2",
+      "startedAt": "2026-09-15T02:30:18.443Z"
+    },
+    {
+      "number": 10,
+      "model": "gpt-6-astra",
+      "timeoutMs": 600000,
+      "reasoningEffort": "low",
+      "attempt": 0,
+      "imageCount": 7,
+      "promptSha256": "25a2a2bddaca003155c4c885559ae22412c727ebb09b7f81b71d515c1efc0fd6",
+      "schemaSha256": "32544d73700206e3f3ed64f359e6b993ae4e0a1ca319874fb4a2d6cf635f4ac3",
+      "directory": "/Users/a1234/Desktop/hyperframe-main/video-agent/data/result-completion-projects/b62c48f7-1510-4420-a8ed-1be70bc3d4c2/versions/job-c107945f-d9c7-4525-9ae5-eee669607bab/model-calls/edit-engine/e0bdf591-0a06-496b-975f-ab15f24f0384",
+      "stage": "MA",
+      "startedAt": "2026-09-15T02:31:37.319Z"
+    },
+    {
+      "number": 11,
+      "model": "gpt-5.5",
+      "timeoutMs": 600000,
+      "reasoningEffort": "low",
+      "attempt": 1,
+      "imageCount": 7,
+      "promptSha256": "25a2a2bddaca003155c4c885559ae22412c727ebb09b7f81b71d515c1efc0fd6",
+      "schemaSha256": "32544d73700206e3f3ed64f359e6b993ae4e0a1ca319874fb4a2d6cf635f4ac3",
+      "directory": "/Users/a1234/Desktop/hyperframe-main/video-agent/data/result-completion-projects/b62c48f7-1510-4420-a8ed-1be70bc3d4c2/versions/job-c107945f-d9c7-4525-9ae5-eee669607bab/model-calls/edit-engine/85ebebf5-7c49-46f7-a0d2-37653b148e92",
+      "stage": "MA",
+      "startedAt": "2026-09-15T02:31:58.834Z"
+    },
+    {
+      "number": 12,
+      "model": "gpt-6-astra",
+      "timeoutMs": 600000,
+      "reasoningEffort": "low",
+      "attempt": 0,
+      "imageCount": 7,
+      "promptSha256": "25a2a2bddaca003155c4c885559ae22412c727ebb09b7f81b71d515c1efc0fd6",
+      "schemaSha256": "32544d73700206e3f3ed64f359e6b993ae4e0a1ca319874fb4a2d6cf635f4ac3",
+      "directory": "/Users/a1234/Desktop/hyperframe-main/video-agent/data/result-completion-projects/b62c48f7-1510-4420-a8ed-1be70bc3d4c2/versions/job-c107945f-d9c7-4525-9ae5-eee669607bab/model-calls/edit-engine/05716ccc-1a03-4de8-bb04-25b2dcee18a2",
+      "stage": "MA",
+      "startedAt": "2026-09-15T02:33:29.410Z"
+    },
+    {
+      "number": 13,
+      "model": "gpt-5.5",
+      "timeoutMs": 600000,
+      "reasoningEffort": "low",
+      "attempt": 1,
+      "imageCount": 7,
+      "promptSha256": "25a2a2bddaca003155c4c885559ae22412c727ebb09b7f81b71d515c1efc0fd6",
+      "schemaSha256": "32544d73700206e3f3ed64f359e6b993ae4e0a1ca319874fb4a2d6cf635f4ac3",
+      "directory": "/Users/a1234/Desktop/hyperframe-main/video-agent/data/result-completion-projects/b62c48f7-1510-4420-a8ed-1be70bc3d4c2/versions/job-c107945f-d9c7-4525-9ae5-eee669607bab/model-calls/edit-engine/8ea6ddd4-3edd-4c3f-a677-51fed8be9d65",
+      "stage": "MA",
+      "startedAt": "2026-09-15T02:33:46.873Z"
+    }
+  ],
+  "recoveries": [
+    {
+      "at": "2026-09-15T02:25:56.038Z",
+      "from": "recoverable",
+      "code": "CODEX_LIMIT",
+      "error": "可用模型当前都很繁忙，输入已保存，请稍后重试"
+    },
+    {
+      "at": "2026-09-15T02:33:29.279Z",
+      "from": "recoverable",
+      "code": "CODEX_LIMIT",
+      "error": "可用模型当前都很繁忙，输入已保存，请稍后重试"
+    }
+  ],
+  "error": "可用模型当前都很繁忙，输入已保存，请稍后重试",
+  "code": "CODEX_LIMIT"
+}

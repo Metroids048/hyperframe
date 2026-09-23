@@ -1,0 +1,166 @@
+{
+  "alternatives": [],
+  "operations": [],
+  "summary": "本轮修复计划受阻，保留当前版本：第六幕缺少可复用的局部窗口和标记节点，也没有连接座定位证据；不能在禁止新增节点的合同下伪造同屏与准确标注。尚未执行修改或检查。",
+  "workflow": {
+    "assumptions": [],
+    "gaps": [
+      "基准版本为rev-e5673f8397083708。scene-06只有一个视频节点和两个文字节点；实现整体与局部同屏及独立可编辑标记需要新增原生节点，但本轮操作合同禁止新增节点，且未提供相应受控操作。不能重复映射同一视频节点冒充两个独立窗口，也不能挪用片尾节点。",
+      "现有观察仅提供抽帧文字描述，未提供矩形连接座的像素位置、有效裁切范围或连续运动轨迹；无法可靠填写准确指向坐标，也无法验证局部窗的有效清晰度。不能猜测坐标或用固定箭头冒充跟踪。",
+      "继承要求requirement-764ab62ebd9a9bc1保护全部声音与画面，requirement-60cd6fafb35790cb也同时包含声音和画面保护。本轮允许修复scene-06与scene-10，但替换规则要求新旧targetIds、excludeIds及字段完全一致；无法安全地将这些混合保护项拆成局部画面例外，因此保留旧约束，overrides为空，未擅自删除或扩大覆盖。",
+      "解除上述阻断后，需仅重新编译scene-06、scene-10及其源码包，检查15.6—21.6秒和31—35秒的画面、说明同步、编号顺序及字幕安全区，并复核15.6秒、21.6秒和31秒邻接切点；全片核对1050帧、1920×1080、全部音轨和字幕保持。新版本ID由执行器生成，检查成功前不得替换当前版本。",
+      "本轮未调用工具，未观看连续视频或试听；输入中的旧检查不能作为本轮修复通过的证据。"
+    ],
+    "objective": "让观众清楚辨认长侧边矩形连接座与整体的关系，并按明确顺序阅读片尾三个真实视角。",
+    "overrides": [],
+    "requirements": [
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "保持35秒横屏",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "全部现有旁白和音乐",
+        "startSeconds": null,
+        "targetIds": [
+          "audio-1",
+          "audio-2",
+          "audio-3",
+          "audio-4",
+          "audio-4124aaefa824859c",
+          "audio-bc35f0a994d81023"
+        ]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "字幕文字与时间",
+        "startSeconds": null,
+        "targetIds": [
+          "s02-caption-1",
+          "s02-caption-2",
+          "s02-caption-3",
+          "s02-caption-4",
+          "s02-caption-5",
+          "cue-d18b235a237e72cf"
+        ]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "商品事实",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [
+          "scene-06",
+          "scene-10"
+        ],
+        "kind": "preserve",
+        "quote": "未提及镜头不变",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "请基于现有实拍做整体与局部同屏，整体保留取景，局部窗不要超过原始清晰度，标注准确指向矩形连接座",
+        "startSeconds": null,
+        "targetIds": [
+          "scene-06"
+        ]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "prohibit",
+        "quote": "不能锐化编造细节",
+        "startSeconds": null,
+        "targetIds": [
+          "node-6f1976475f26930e"
+        ]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "说明文字和底板同步出现，不让空底板先出来。",
+        "startSeconds": null,
+        "targetIds": [
+          "scene-06",
+          "node-273cc21cd4ec3159",
+          "node-4a2ff51527d8e3b4"
+        ]
+      },
+      {
+        "endSeconds": 35,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "以整体正面为主、两个细节为辅，使用清楚编号与统一标签对应三个真实视角，依次强调再稳定停留",
+        "startSeconds": 31,
+        "targetIds": [
+          "scene-10",
+          "node-836609ad08c71a49",
+          "s02-end-side",
+          "s02-end-ports",
+          "node-bed21125458ac347",
+          "s02-end-side-label",
+          "s02-end-ports-label"
+        ]
+      },
+      {
+        "endSeconds": 35,
+        "excludeIds": [],
+        "kind": "prohibit",
+        "quote": "不在正面上标出看不见的位置。",
+        "startSeconds": 31,
+        "targetIds": [
+          "scene-10",
+          "node-836609ad08c71a49"
+        ]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "底部字幕留出独立安全区，不与标签抢位置。",
+        "startSeconds": null,
+        "targetIds": [
+          "scene-06",
+          "scene-10"
+        ]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "所有文字、视频窗口、标记和动效继续原生可编辑。",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "goal",
+        "quote": "请只修这些可见问题，通过检查后保留新版本。",
+        "startSeconds": null,
+        "targetIds": [
+          "scene-06",
+          "scene-10"
+        ]
+      }
+    ],
+    "taskMode": "edit"
+  }
+}

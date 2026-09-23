@@ -1,0 +1,43 @@
+{
+  "inspectActions": [],
+  "inspectRanges": [],
+  "blockingGaps": [
+    "目标主体（咖啡机）画面完全缺失，且属用户明确必需内容：现有可观察素材仅为「COFFEE TREE／咖啡樹」PREMIUM QUALITY 速溶咖啡粉包装袋背面静帧（Wikimedia CC0；含与之同 sha256 的演示副本 demo-web-1e32b463-39b5-4a05-b847-9c6832bc64a5），属另一商品，画面不含任何咖啡机外观、按钮、出水或冲煮过程；用户要求 0-3s 钩子「突出咖啡机外观质感与‘新’」及 3-4 个「展示产品身份与使用氛围」的关键镜头，这些画面在现有素材中为零，且不得以内含咖啡粉包装冒充咖啡机。请提供咖啡机主体的真实镜头/图片。",
+    "无任何视频源：素材全部为静帧（两张同源图片，无视频轨道），不存在任何可观察的动作起始/结束源区间，candidates 为空是已检查的事实；既无法做 footage-cut 实拍剪接，需 video 的资源（video-text-pivot、lt-mask-reveal）也不 eligible。",
+    "补齐途径未落地：mediaAcquisitionPolicy 为 null，本轮没有任何 RunningHub／本地素材库的生成回执或新增 asset/hash，不能把生成结果绑定到不存在的 assetId；须先按策略完成真实咖啡机镜头补齐后再出分镜。",
+    "背景音乐缺失：suppliedAudio 仅含人声旁白 voice-ab794419c0696c73，工程内无可授权 BGM 资产，音乐只支持调度已挂入的可授权资产、不支持隐式搜索或生成；因此「轻量旁白 + 背景音乐」中的背景音乐无法满足，需提供可授权音乐素材。",
+    "无可核验商品参数：公开来源研究超时无结果（query 咖啡机 xiaohongshu，code 23 timeout），brief facts 为空，不得为咖啡机编造规格/价格/性能/卖点。"
+  ],
+  "summary": "本轮仍无可执行分镜：视觉媒体缺口与上一轮相比没有变化，仅旁白修订被真实合成，故按规则以 blockingGaps 上报，不提交假时间轴。\n\n状态核对：\n1) 旁白已实测：voice-ab794419c0696c73（Minimax，Chinese (Mandarin)_Gentleman）实测 7.579s；转写「新的咖啡机来了。关于咖啡的日常,从这里开始。新的咖啡机,新的日常。」分段 0–1.90 / 2.52–4.70 / 5.24–7.30。无新的旁白-画面时长冲突，保留当前完整声音。\n2) 视觉素材未新增：可观察素材仍只有两张同源（sha256 一致的演示副本）静帧——「COFFEE TREE／咖啡樹」速溶咖啡粉包装袋背面，属另一商品，画面不含任何咖啡机外观/按钮/出水/冲煮过程；无任何视频源，candidates 为空是已核对事实，非未检查。已有素材均已观察，不存在更多可请求的源区间，故 inspectActions / inspectRanges 均为空。\n3) 目标主体仍缺失：用户明确要求的钩子「咖啡机外观质感」与「产品身份 + 使用氛围」镜头在现有素材中为零，且不得以咖啡粉包装冒充咖啡机；需 video 的资源不 eligible，无法实拍剪接。\n4) 补齐未落地：mediaAcquisitionPolicy 为 null，本轮无任何 RunningHub／本地素材库生成回执或新增 asset，不能绑定不存在的 assetId。\n5) 背景音乐仍缺失：suppliedAudio 仅有人声旁白，「背景音乐」这一用户要求无资产可调度。\n6) 事实为空：公开来源研究超时无结果，故不写任何规格/性能/价格段，不编造卖点。\n\n后续解锁条件（满足其一即可出分镜）：提供咖啡机主体的真实镜头/图片，或授权并完成 local_library／runninghub_generation 补齐并返回真实 asset；另需提供可授权 BGM 素材以满足「背景音乐」。在拿到真实咖啡机素材前不具备制作条件，故按 timingContract（approximate，28.5–31.5s）本轮不产出 scenes/audio。",
+  "transition": "cut",
+  "design": {
+    "background": "#F4ECE1",
+    "foreground": "#2A2018",
+    "panel": "#E7DACB",
+    "accent": "#C06B3A",
+    "accentContrast": "#FFFFFF",
+    "description": "暖调咖啡编辑风设计令牌（备用，待咖啡机主体素材到位后套用）：奶油纸底 + 深烘咖啡墨色文字，单一铜褐 accent 仅用于关键标签与强调；因无品牌/Logo/价格与任何可核验事实，令牌不写入规格、价格、性能或品牌标识；按 9:16 输出尺寸（1080x1920）调校。",
+    "fontFamily": "Microsoft YaHei",
+    "typeScale": {
+      "title": 100,
+      "body": 44,
+      "label": 30
+    },
+    "safeMarginPx": 96,
+    "labelStyle": "全片标签统一：Microsoft YaHei 30px / 字重 600 / 字距 0.08em / 行高 1.4；直角小标签，1px accent 描边、panel 8% 填充；上下边距与安全边距一致（96px），层级低于标题与正文；各镜头必须继承，不另行发明字体或标签风格。"
+  },
+  "scenes": [],
+  "audio": [],
+  "omitted": [
+    {
+      "assetId": "web-1e32b463-39b5-4a05-b847-9c6832bc64a5",
+      "reason": "非目标商品：为「COFFEE TREE／咖啡樹」速溶咖啡粉包装袋背面静帧，画面不含咖啡机，不得用作咖啡机主体，故本片不使用。"
+    },
+    {
+      "assetId": "demo-web-1e32b463-39b5-4a05-b847-9c6832bc64a5",
+      "reason": "同上，且为与原图同 sha256 的演示副本，无新增信息。"
+    }
+  ],
+  "paragraphs": [],
+  "narrationRevision": null
+}

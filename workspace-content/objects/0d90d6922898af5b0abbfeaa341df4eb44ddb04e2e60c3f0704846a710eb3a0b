@@ -1,0 +1,54 @@
+{
+  "observation": {
+    "candidates": [
+      {
+        "assetId": "asset-ce3e07ba-acbd-4aac-9e5e-0408ce2534ac",
+        "endSeconds": 35,
+        "reason": "用户要求保留原视频完整时长、画幅和声音；本次只需在0-2秒叠加可编辑标题，不需要裁剪或重排动作，因此全片作为源区间。",
+        "startSeconds": 0
+      }
+    ],
+    "gaps": [
+      "当前仅有间隔抽帧与接触表，未进行完整连续观片；但本次修改不依赖识别具体动作起止。",
+      "未实际听音，已有元数据仅能确认源视频包含AAC音轨；保留原声应作为后续合成/导出检查项。"
+    ],
+    "inspectRanges": [],
+    "observations": [
+      {
+        "assetId": "asset-ce3e07ba-acbd-4aac-9e5e-0408ce2534ac",
+        "confidence": 0.86,
+        "differentProductFrom": [],
+        "productGroup": "黑色头戴式耳机/耳罩式耳机展示视频",
+        "quality": "1920x1080横屏，30fps，35秒；抽帧画面清晰，主体多为白色或浅色背景上的黑色耳机，已有画面内文字和版式。",
+        "role": "overview",
+        "safeCrop": [
+          0,
+          0,
+          1,
+          1
+        ],
+        "sameProductAs": [],
+        "subjectBox": [
+          0.22,
+          0.15,
+          0.86,
+          0.82
+        ],
+        "uncertainty": "仅根据6个间隔抽帧判断，不能确认每个转场和全部画面细节；未听音，不能评价声音内容。",
+        "visibleContent": "视频展示黑色头戴式耳机，多帧包含产品整体图、正面佩戴形态/耳罩细节、头梁与轮廓等静态展示版式。开头抽帧已有页面式标题区域和耳机产品图，后续抽帧包含多页中文说明。",
+        "visibleText": [
+          "验收标题",
+          "象音耳机，外观展示",
+          "一条弧线，连接两侧",
+          "从整体，到耳垫轮廓",
+          "弧形头梁 / 黑色外观",
+          "回到，完整形状。"
+        ]
+      }
+    ]
+  },
+  "error": {
+    "code": "INVALID_OBSERVATION",
+    "message": "观察 asset-ce3e07ba-acbd-4aac-9e5e-0408ce2534ac.subjectBox=[0.22,0.15,0.86,0.82] 必须为归一化[x,y,width,height]：width>0、height>0、x+width<=1、y+height<=1。当前右边界=1.08，下边界=0.97。例如左上(0.4,0.25)、右下(0.63,0.73)应输出[0.4,0.25,0.23,0.48]；无法确认可输出[]，不得猜测。"
+  }
+}

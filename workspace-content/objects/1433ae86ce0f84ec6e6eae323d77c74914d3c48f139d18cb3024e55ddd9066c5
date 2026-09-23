@@ -1,0 +1,93 @@
+{
+  "brief": {
+    "capabilities": [
+      "native-editing",
+      "native-composition",
+      "local-preview-review",
+      "video-source-selection"
+    ],
+    "constraints": [
+      "叠加文字必须为独立可编辑原生文字对象，时间范围为0.0至2.0秒。",
+      "保持上传视频原始画幅、完整时长、原帧率、原画面内容以及原声音轨道和时间关系不变。",
+      "禁止裁剪、补帧、配音、加音乐、替换素材。",
+      "上传素材的可观察元数据为1920x1080、35秒、30fps、有音频；以源素材元数据为一致性检查基准，不采用请求上下文中冲突的1080x1920、30秒作为改动目标。",
+      "文字样式、位置和视觉处理未由用户指定，应使用可逆且不遮挡关键主体的默认布局，待预览复核。"
+    ],
+    "gaps": [
+      "项目当前没有currentRevisionId，且revisions为空；编辑前缺少可绑定的基准修订，无法安全定位已有原生对象并提交修改。",
+      "用户要求的最终视频、可编辑工程和时长/音频/画幅检查尚未执行；本阶段仅完成需求理解。",
+      "未提供可用于听感判断的模型音频聆听能力；可保留源音轨并做技术轨道一致性检查，但主观听感仍需后续复核。"
+    ],
+    "keepOriginalAudio": true,
+    "needsCaptions": false,
+    "needsNarration": false,
+    "needsTranscription": false,
+    "request": {
+      "cta": "了解更多",
+      "facts": [],
+      "name": "上传视频项目",
+      "output": {
+        "durationSeconds": 35,
+        "height": 1080,
+        "width": 1920
+      },
+      "price": ""
+    },
+    "scenarioId": "product_launch",
+    "workflow": {
+      "assumptions": [
+        "将“新品体验”作为独立原生文字对象叠加在源视频之上，不改变源视频对象及其音频对象。",
+        "使用上传素材asset-ce3e07ba-acbd-4aac-9e5e-0408ce2534ac的实际元数据作为输出一致性基准。",
+        "在未指定样式和位置时，采用可逆、可读且避开主体的默认文字布局。"
+      ],
+      "gaps": [
+        "基准修订缺失，当前项目无法定位可编辑的既有工程对象。"
+      ],
+      "objective": "在上传视频开头0.0至2.0秒叠加“新品体验”，并输出保持原始音画属性的完整视频。",
+      "overrides": [],
+      "requirements": [
+        {
+          "endSeconds": 2,
+          "excludeIds": [],
+          "kind": "change",
+          "quote": "在用户上传的视频开头 0.0 至 2.0 秒叠加“新品体验”四个字。",
+          "startSeconds": 0,
+          "targetIds": []
+        },
+        {
+          "endSeconds": null,
+          "excludeIds": [],
+          "kind": "preserve",
+          "quote": "保持原视频完整时长、原画幅、原帧率、原画面内容和原声音轨道及时间不变；",
+          "startSeconds": null,
+          "targetIds": [
+            "asset-ce3e07ba-acbd-4aac-9e5e-0408ce2534ac"
+          ]
+        },
+        {
+          "endSeconds": null,
+          "excludeIds": [],
+          "kind": "prohibit",
+          "quote": "不要裁剪、补帧、配音、加音乐或替换素材。",
+          "startSeconds": null,
+          "targetIds": [
+            "asset-ce3e07ba-acbd-4aac-9e5e-0408ce2534ac"
+          ]
+        },
+        {
+          "endSeconds": null,
+          "excludeIds": [],
+          "kind": "goal",
+          "quote": "完成后输出完整视频，并执行时长、音频和画幅一致性检查。",
+          "startSeconds": null,
+          "targetIds": []
+        }
+      ],
+      "taskMode": "edit"
+    }
+  },
+  "error": {
+    "code": "EDIT_BASE_REQUIRED",
+    "message": "修改需要已有工程版本"
+  }
+}

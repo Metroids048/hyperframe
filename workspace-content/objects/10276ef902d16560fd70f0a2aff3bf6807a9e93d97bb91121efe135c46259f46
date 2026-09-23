@@ -1,0 +1,428 @@
+{
+  "message": "仅更新文本对象 title-2859194914cface0 的 params.text：将“severity”改为“周末新品”。严格禁止修改该对象的其他字段或参数；禁止修改视频对象、音频对象、时长、画幅、原视频、原声、音量、速度及任何其他对象。基于 rev-b83966ce1fb8c67d 创建新版本，并保留旧版本。",
+  "baseRevisionId": "rev-b83966ce1fb8c67d",
+  "routeDecision": {
+    "mode": "edit",
+    "source": "model",
+    "targets": [
+      {
+        "id": "title-2859194914cface0",
+        "kind": "text",
+        "operation": "update_text"
+      }
+    ],
+    "requestedTargets": [],
+    "reason": "基于修订 rev-b83966ce1fb8c67d，仅更新现有文本节点 title-2859194914cface0 的 params.text，将“severity”替换为“周末新品”。保留该节点的其他字段与参数，以及视频对象、音频对象、时长、画幅、原视频、原声、音量、速度和所有其他对象；旧版本保留。计划校验未能完成，原因是校验服务返回内部读取错误，需由执行器在提交前复核目标节点与基准修订。",
+    "version": 1,
+    "message": "仅更新文本对象 title-2859194914cface0 的 params.text：将“severity”改为“周末新品”。严格禁止修改该对象的其他字段或参数；禁止修改视频对象、音频对象、时长、画幅、原视频、原声、音量、速度及任何其他对象。基于 rev-b83966ce1fb8c67d 创建新版本，并保留旧版本。",
+    "scenario": "general",
+    "preserve": [
+      "unmentioned-objects",
+      "source-assets",
+      "revision-history"
+    ],
+    "executionStrategy": "L2",
+    "confidence": 0.8,
+    "fallback": {
+      "version": 1,
+      "categories": [
+        "missing_evidence",
+        "ambiguous_target",
+        "unsupported_capability",
+        "resource_incompatible",
+        "provider_unavailable",
+        "quality_failure",
+        "revision_conflict"
+      ],
+      "maxReplans": 2,
+      "identicalFailureLimit": 2,
+      "preserveCurrentRevision": true,
+      "allowSilentSubstitution": false,
+      "steps": [
+        "retry-same-capability",
+        "safe-equivalent-execution",
+        "retain-valid-revision",
+        "report-failed-targets",
+        "repair-only-gap"
+      ],
+      "classifiers": [
+        [
+          "revision_conflict",
+          "REVISION_CONFLICT|STALE_REVISION"
+        ],
+        [
+          "provider_unavailable",
+          "^(MINIMAX_|CODEX_|PROVIDER_)"
+        ],
+        [
+          "resource_incompatible",
+          "RESOURCE_|INCOMPATIBLE"
+        ],
+        [
+          "unsupported_capability",
+          "UNSUPPORTED|CAPABILITY|VOICE_NOT_FOUND"
+        ],
+        [
+          "ambiguous_target",
+          "AMBIGUOUS|SCOPE|TARGET|CONFLICT|CAPTION_ALIGNMENT_REQUIRED"
+        ],
+        [
+          "missing_evidence",
+          "MISSING|NEEDS_INPUT|INSUFFICIENT|SPEECH_SCRIPT_REQUIRED|NO_SPEECH|NO_CAPTION_AUDIO"
+        ]
+      ]
+    },
+    "baseRevisionId": "rev-b83966ce1fb8c67d",
+    "selectedSkills": [
+      "timeline-edit",
+      "visual-composition",
+      "audio-mix",
+      "hyperframes",
+      "conversation-edit"
+    ],
+    "skillReasons": {
+      "visual-composition": [
+        "target:text",
+        "request-evidence"
+      ],
+      "timeline-edit": [
+        "request-evidence"
+      ],
+      "audio-mix": [
+        "request-evidence"
+      ],
+      "conversation-edit": [
+        "request-evidence",
+        "existing-revision"
+      ],
+      "hyperframes": [
+        "native-document"
+      ]
+    }
+  },
+  "changeReceipt": {
+    "baseRevision": "rev-b83966ce1fb8c67d",
+    "userRequest": "仅更新文本对象 title-2859194914cface0 的 params.text：将“severity”改为“周末新品”。严格禁止修改该对象的其他字段或参数；禁止修改视频对象、音频对象、时长、画幅、原视频、原声、音量、速度及任何其他对象。基于 rev-b83966ce1fb8c67d 创建新版本，并保留旧版本。",
+    "targetSet": [
+      {
+        "type": "update_text",
+        "id": "title-2859194914cface0"
+      }
+    ],
+    "preserveSet": [
+      "audioGraph",
+      "captions",
+      "transitions",
+      "untargeted-content",
+      "output"
+    ],
+    "changeSet": [
+      {
+        "nodeId": "title-2859194914cface0",
+        "sceneId": "scene-01-uploaded-source",
+        "sceneIds": [],
+        "text": "周末新品",
+        "type": "update_text"
+      }
+    ],
+    "changedFields": [
+      "nodes"
+    ],
+    "validation": {
+      "passed": true,
+      "checks": [
+        {
+          "field": "audioGraph",
+          "passed": true
+        },
+        {
+          "field": "captions",
+          "passed": true
+        },
+        {
+          "field": "transitions",
+          "passed": true
+        },
+        {
+          "field": "untargeted-content",
+          "passed": true
+        },
+        {
+          "field": "output",
+          "passed": true
+        }
+      ]
+    },
+    "newRevision": "rev-b0729b3c8d3f0ccf"
+  },
+  "workflow": {
+    "version": 1,
+    "taskMode": "edit",
+    "taskModeExplicit": true,
+    "workflowProfile": "edit",
+    "businessScenario": "general",
+    "baseProjectId": "8e608f0a-7a74-445f-85db-52aaf72fa38b",
+    "baseRevisionId": "rev-b83966ce1fb8c67d",
+    "assetScope": [
+      "asset-b3957e58-e8f6-478c-b70b-b9ec84003d46"
+    ],
+    "originalRequest": "仅更新文本对象 title-2859194914cface0 的 params.text：将“severity”改为“周末新品”。严格禁止修改该对象的其他字段或参数；禁止修改视频对象、音频对象、时长、画幅、原视频、原声、音量、速度及任何其他对象。基于 rev-b83966ce1fb8c67d 创建新版本，并保留旧版本。",
+    "requirements": [
+      {
+        "kind": "prohibit",
+        "field": "sound.music",
+        "fieldSpecific": true,
+        "quote": "请基于上传的原视频制作完整视频：仅在视频开头0.0至2.0秒叠加文字“新品体验”，文字清晰易读且不遮挡主体；严格保持原视频总时长、画幅/分辨率、原声轨道与音量、画面内容/顺序/速度不变。不要裁剪、变速、静音或改动其他内容。完成后生成可导出的完整视频。",
+        "targetIds": [],
+        "excludeIds": [],
+        "id": "requirement-873c8cd695447ba3",
+        "inherited": true
+      },
+      {
+        "kind": "prohibit",
+        "field": "sound.narration",
+        "fieldSpecific": true,
+        "quote": "请基于上传的原视频制作完整视频：仅在视频开头0.0至2.0秒叠加文字“新品体验”，文字清晰易读且不遮挡主体；严格保持原视频总时长、画幅/分辨率、原声轨道与音量、画面内容/顺序/速度不变。不要裁剪、变速、静音或改动其他内容。完成后生成可导出的完整视频。",
+        "targetIds": [],
+        "excludeIds": [],
+        "id": "requirement-60f2363b85f8c586",
+        "inherited": true
+      },
+      {
+        "kind": "prohibit",
+        "field": "sound.original",
+        "fieldSpecific": true,
+        "quote": "请基于上传的原视频制作完整视频：仅在视频开头0.0至2.0秒叠加文字“新品体验”，文字清晰易读且不遮挡主体；严格保持原视频总时长、画幅/分辨率、原声轨道与音量、画面内容/顺序/速度不变。不要裁剪、变速、静音或改动其他内容。完成后生成可导出的完整视频。",
+        "targetIds": [],
+        "excludeIds": [],
+        "id": "requirement-04b7a00089346ea7",
+        "inherited": true
+      },
+      {
+        "kind": "change",
+        "field": "edit.objects",
+        "quote": "根据实际MP4质量报告执行一次局部导演修复。只处理这些问题：[{\"severity\":\"blocker\",\"dimension\":\"product_exposure\",\"score\":38,\"problem\":\"product_exposure 低于商业最低线 65\",\"repair\":\"只修改与 product_exposure 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"first_three_seconds\",\"score\":23,\"problem\":\"first_three_seconds 低于商业最低线 65\",\"repair\":\"只修改与 first_three_seconds 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"pacing\",\"score\":0,\"problem\":\"pacing 低于商业最低线 65\",\"repair\":\"只修改与 pacing 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"major\",\"dimension\":\"captions\",\"score\":48,\"problem\":\"captions 低于商业最低线 65\",\"repair\":\"只修改与 captions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"motion\",\"score\":8,\"problem\":\"motion 低于商业最低线 65\",\"repair\":\"只修改与 motion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"transitions\",\"score\":38,\"problem\":\"transitions 低于商业最低线 65\",\"repair\":\"只修改与 transitions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"commercial_conversion\",\"score\":18,\"problem\":\"commercial_conversion 低于商业最低线 65\",\"repair\":\"只修改与 commercial_conversion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"id\":\"issue-0\",\"requirementId\":\"final-output\",\"severity\":\"blocker\",\"startSeconds\":47.18,\"endSeconds\":47.18,\"problem\":\"仅凭提供的关键帧无法验证原声轨道、音量是否与源视频完全一致，也无法验证全片连续性、画面顺序和速度未被改动。该帧位于47.180秒，画面中未见“新品体验”文字，符合文字仅在开头2秒出现，但不构成音频与全片不变的证明。\",\"evidenceRefs\":[\"final-review/frame-1.jpg\"],\"repair\":\"对导出的实际MP4执行完整技术核验：确认时长、帧率、分辨率、视频帧序列/速度与源一致，并逐项比对音频轨道存在性、编码、时长、采样参数及音量；同时检查0.0至2.0秒外标题节点不存在。\",\"preserve\":[\"未涉及的镜头、文字和音轨\"],\"dimension\":\"visual\"}]。参考建议：[\"只修改与 product_exposure 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 first_three_seconds 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 pacing 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 captions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 motion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 transitions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 commercial_conversion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"对导出的实际MP4执行完整技术核验：确认时长、帧率、分辨率、视频帧序列/速度与源一致，并逐项比对音频轨道存在性、编码、时长、采样参数及音量；同时检查0.0至2.0秒外标题节点不存在。\"]。保留未涉及镜头、素材源区间、商品事实、声音和历史；不要整片重做。",
+        "targetIds": [
+          "video-asset-b3957e58-e8f6-478c-b70b-b9ec84003d46",
+          "audio-ca33f203c09b6e17",
+          "title-2859194914cface0"
+        ],
+        "excludeIds": [],
+        "id": "requirement-4c3faaff257c3794",
+        "inherited": true
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [
+          "video-asset-b3957e58-e8f6-478c-b70b-b9ec84003d46",
+          "audio-ca33f203c09b6e17",
+          "scene-01-uploaded-source"
+        ],
+        "kind": "change",
+        "quote": "仅更新文本对象 title-2859194914cface0 的 params.text：将“severity”改为“周末新品”。",
+        "startSeconds": null,
+        "targetIds": [
+          "title-2859194914cface0"
+        ],
+        "id": "requirement-4e2e468b8338948a",
+        "field": "change",
+        "inherited": false
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [
+          "title-2859194914cface0"
+        ],
+        "kind": "preserve",
+        "quote": "严格禁止修改该对象的其他字段或参数；禁止修改视频对象、音频对象、时长、画幅、原视频、原声、音量、速度及任何其他对象。",
+        "startSeconds": null,
+        "targetIds": [
+          "video-asset-b3957e58-e8f6-478c-b70b-b9ec84003d46",
+          "audio-ca33f203c09b6e17",
+          "scene-01-uploaded-source"
+        ],
+        "id": "requirement-0d8321e35c3ecac1",
+        "field": "sound.original",
+        "inherited": false
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "基于 rev-b83966ce1fb8c67d 创建新版本，并保留旧版本。",
+        "startSeconds": null,
+        "targetIds": [],
+        "id": "requirement-f8cdf620bb26cd6c",
+        "field": "preserve",
+        "inherited": false
+      }
+    ],
+    "assumptions": [],
+    "gaps": [
+      "commerce_plan_validate 返回内部错误：Cannot read properties of undefined (reading 'find')；未能取得校验通过凭证。",
+      "本阶段仅能提出受控文本更新操作，未执行实际提交、渲染或导出验证。"
+    ],
+    "interpretation": "validated-semantic-analysis",
+    "auxiliaryModes": [],
+    "auxiliaryScenarios": [],
+    "procedureSubtype": "not_applicable",
+    "steps": [],
+    "parentContractId": null,
+    "sourceRequests": [
+      "请基于上传的原视频制作完整视频：仅在视频开头0.0至2.0秒叠加文字“新品体验”，文字清晰易读且不遮挡主体；严格保持原视频总时长、画幅/分辨率、原声轨道与音量、画面内容/顺序/速度不变。不要裁剪、变速、静音或改动其他内容。完成后生成可导出的完整视频。",
+      "根据实际MP4质量报告执行一次局部导演修复。只处理这些问题：[{\"severity\":\"blocker\",\"dimension\":\"product_exposure\",\"score\":38,\"problem\":\"product_exposure 低于商业最低线 65\",\"repair\":\"只修改与 product_exposure 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"first_three_seconds\",\"score\":23,\"problem\":\"first_three_seconds 低于商业最低线 65\",\"repair\":\"只修改与 first_three_seconds 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"pacing\",\"score\":0,\"problem\":\"pacing 低于商业最低线 65\",\"repair\":\"只修改与 pacing 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"major\",\"dimension\":\"captions\",\"score\":48,\"problem\":\"captions 低于商业最低线 65\",\"repair\":\"只修改与 captions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"motion\",\"score\":8,\"problem\":\"motion 低于商业最低线 65\",\"repair\":\"只修改与 motion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"transitions\",\"score\":38,\"problem\":\"transitions 低于商业最低线 65\",\"repair\":\"只修改与 transitions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"commercial_conversion\",\"score\":18,\"problem\":\"commercial_conversion 低于商业最低线 65\",\"repair\":\"只修改与 commercial_conversion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"id\":\"issue-0\",\"requirementId\":\"final-output\",\"severity\":\"blocker\",\"startSeconds\":47.18,\"endSeconds\":47.18,\"problem\":\"仅凭提供的关键帧无法验证原声轨道、音量是否与源视频完全一致，也无法验证全片连续性、画面顺序和速度未被改动。该帧位于47.180秒，画面中未见“新品体验”文字，符合文字仅在开头2秒出现，但不构成音频与全片不变的证明。\",\"evidenceRefs\":[\"final-review/frame-1.jpg\"],\"repair\":\"对导出的实际MP4执行完整技术核验：确认时长、帧率、分辨率、视频帧序列/速度与源一致，并逐项比对音频轨道存在性、编码、时长、采样参数及音量；同时检查0.0至2.0秒外标题节点不存在。\",\"preserve\":[\"未涉及的镜头、文字和音轨\"],\"dimension\":\"visual\"}]。参考建议：[\"只修改与 product_exposure 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 first_three_seconds 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 pacing 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 captions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 motion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 transitions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 commercial_conversion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"对导出的实际MP4执行完整技术核验：确认时长、帧率、分辨率、视频帧序列/速度与源一致，并逐项比对音频轨道存在性、编码、时长、采样参数及音量；同时检查0.0至2.0秒外标题节点不存在。\"]。保留未涉及镜头、素材源区间、商品事实、声音和历史；不要整片重做。",
+      "仅更新文本对象 title-2859194914cface0 的 params.text：将“severity”改为“周末新品”。严格禁止修改该对象的其他字段或参数；禁止修改视频对象、音频对象、时长、画幅、原视频、原声、音量、速度及任何其他对象。基于 rev-b83966ce1fb8c67d 创建新版本，并保留旧版本。"
+    ],
+    "facts": [],
+    "objective": "仅把现有文本对象 title-2859194914cface0 的 params.text 从“severity”改为“周末新品”。",
+    "contractId": "contract-fd4821bed19dbc2d",
+    "requirementChanges": [],
+    "changeTargets": [
+      {
+        "kind": "change",
+        "field": "edit.objects",
+        "quote": "根据实际MP4质量报告执行一次局部导演修复。只处理这些问题：[{\"severity\":\"blocker\",\"dimension\":\"product_exposure\",\"score\":38,\"problem\":\"product_exposure 低于商业最低线 65\",\"repair\":\"只修改与 product_exposure 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"first_three_seconds\",\"score\":23,\"problem\":\"first_three_seconds 低于商业最低线 65\",\"repair\":\"只修改与 first_three_seconds 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"pacing\",\"score\":0,\"problem\":\"pacing 低于商业最低线 65\",\"repair\":\"只修改与 pacing 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"major\",\"dimension\":\"captions\",\"score\":48,\"problem\":\"captions 低于商业最低线 65\",\"repair\":\"只修改与 captions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"motion\",\"score\":8,\"problem\":\"motion 低于商业最低线 65\",\"repair\":\"只修改与 motion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"transitions\",\"score\":38,\"problem\":\"transitions 低于商业最低线 65\",\"repair\":\"只修改与 transitions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"commercial_conversion\",\"score\":18,\"problem\":\"commercial_conversion 低于商业最低线 65\",\"repair\":\"只修改与 commercial_conversion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"id\":\"issue-0\",\"requirementId\":\"final-output\",\"severity\":\"blocker\",\"startSeconds\":47.18,\"endSeconds\":47.18,\"problem\":\"仅凭提供的关键帧无法验证原声轨道、音量是否与源视频完全一致，也无法验证全片连续性、画面顺序和速度未被改动。该帧位于47.180秒，画面中未见“新品体验”文字，符合文字仅在开头2秒出现，但不构成音频与全片不变的证明。\",\"evidenceRefs\":[\"final-review/frame-1.jpg\"],\"repair\":\"对导出的实际MP4执行完整技术核验：确认时长、帧率、分辨率、视频帧序列/速度与源一致，并逐项比对音频轨道存在性、编码、时长、采样参数及音量；同时检查0.0至2.0秒外标题节点不存在。\",\"preserve\":[\"未涉及的镜头、文字和音轨\"],\"dimension\":\"visual\"}]。参考建议：[\"只修改与 product_exposure 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 first_three_seconds 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 pacing 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 captions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 motion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 transitions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 commercial_conversion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"对导出的实际MP4执行完整技术核验：确认时长、帧率、分辨率、视频帧序列/速度与源一致，并逐项比对音频轨道存在性、编码、时长、采样参数及音量；同时检查0.0至2.0秒外标题节点不存在。\"]。保留未涉及镜头、素材源区间、商品事实、声音和历史；不要整片重做。",
+        "targetIds": [
+          "video-asset-b3957e58-e8f6-478c-b70b-b9ec84003d46",
+          "audio-ca33f203c09b6e17",
+          "title-2859194914cface0"
+        ],
+        "excludeIds": [],
+        "id": "requirement-4c3faaff257c3794",
+        "inherited": true
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [
+          "video-asset-b3957e58-e8f6-478c-b70b-b9ec84003d46",
+          "audio-ca33f203c09b6e17",
+          "scene-01-uploaded-source"
+        ],
+        "kind": "change",
+        "quote": "仅更新文本对象 title-2859194914cface0 的 params.text：将“severity”改为“周末新品”。",
+        "startSeconds": null,
+        "targetIds": [
+          "title-2859194914cface0"
+        ],
+        "id": "requirement-4e2e468b8338948a",
+        "field": "change",
+        "inherited": false
+      }
+    ],
+    "preserveTargets": [
+      {
+        "endSeconds": null,
+        "excludeIds": [
+          "title-2859194914cface0"
+        ],
+        "kind": "preserve",
+        "quote": "严格禁止修改该对象的其他字段或参数；禁止修改视频对象、音频对象、时长、画幅、原视频、原声、音量、速度及任何其他对象。",
+        "startSeconds": null,
+        "targetIds": [
+          "video-asset-b3957e58-e8f6-478c-b70b-b9ec84003d46",
+          "audio-ca33f203c09b6e17",
+          "scene-01-uploaded-source"
+        ],
+        "id": "requirement-0d8321e35c3ecac1",
+        "field": "sound.original",
+        "inherited": false
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "基于 rev-b83966ce1fb8c67d 创建新版本，并保留旧版本。",
+        "startSeconds": null,
+        "targetIds": [],
+        "id": "requirement-f8cdf620bb26cd6c",
+        "field": "preserve",
+        "inherited": false
+      }
+    ],
+    "resourceNeeds": [],
+    "prohibitions": [
+      {
+        "kind": "prohibit",
+        "field": "sound.music",
+        "fieldSpecific": true,
+        "quote": "请基于上传的原视频制作完整视频：仅在视频开头0.0至2.0秒叠加文字“新品体验”，文字清晰易读且不遮挡主体；严格保持原视频总时长、画幅/分辨率、原声轨道与音量、画面内容/顺序/速度不变。不要裁剪、变速、静音或改动其他内容。完成后生成可导出的完整视频。",
+        "targetIds": [],
+        "excludeIds": [],
+        "id": "requirement-873c8cd695447ba3",
+        "inherited": true
+      },
+      {
+        "kind": "prohibit",
+        "field": "sound.narration",
+        "fieldSpecific": true,
+        "quote": "请基于上传的原视频制作完整视频：仅在视频开头0.0至2.0秒叠加文字“新品体验”，文字清晰易读且不遮挡主体；严格保持原视频总时长、画幅/分辨率、原声轨道与音量、画面内容/顺序/速度不变。不要裁剪、变速、静音或改动其他内容。完成后生成可导出的完整视频。",
+        "targetIds": [],
+        "excludeIds": [],
+        "id": "requirement-60f2363b85f8c586",
+        "inherited": true
+      },
+      {
+        "kind": "prohibit",
+        "field": "sound.original",
+        "fieldSpecific": true,
+        "quote": "请基于上传的原视频制作完整视频：仅在视频开头0.0至2.0秒叠加文字“新品体验”，文字清晰易读且不遮挡主体；严格保持原视频总时长、画幅/分辨率、原声轨道与音量、画面内容/顺序/速度不变。不要裁剪、变速、静音或改动其他内容。完成后生成可导出的完整视频。",
+        "targetIds": [],
+        "excludeIds": [],
+        "id": "requirement-04b7a00089346ea7",
+        "inherited": true
+      }
+    ]
+  },
+  "operations": [
+    {
+      "nodeId": "title-2859194914cface0",
+      "sceneId": "scene-01-uploaded-source",
+      "sceneIds": [],
+      "text": "周末新品",
+      "type": "update_text"
+    }
+  ],
+  "alternatives": [],
+  "resourceScopes": [],
+  "summary": "基于修订 rev-b83966ce1fb8c67d，仅更新现有文本节点 title-2859194914cface0 的 params.text，将“severity”替换为“周末新品”。保留该节点的其他字段与参数，以及视频对象、音频对象、时长、画幅、原视频、原声、音量、速度和所有其他对象；旧版本保留。计划校验未能完成，原因是校验服务返回内部读取错误，需由执行器在提交前复核目标节点与基准修订。",
+  "mode": "model",
+  "model": "openclaw/commerce-stage",
+  "promptContext": [
+    {
+      "file": "prompts/commerce/R0.md",
+      "sha256": "b253f55c56fe3b45ef85dd40958034c3ee7cbfefd01572fc835f776d480aa306"
+    },
+    {
+      "file": "prompts/commerce/R7.md",
+      "sha256": "59fc8e53bd9e9c7c243ce97210a512aa62a7be6ca16bdf26649a73c64ef2c247"
+    },
+    {
+      "file": "agent.md",
+      "sha256": "91e592dbf5a9a9f090e7ced8ec1ced07c89b177da3040e21ecfd570f8c7f4568"
+    },
+    {
+      "file": "prompts/commerce/commerce-focus.md",
+      "sha256": "7fe5a32d4ed1d530d2daa5c8b661e1d95621fd69dbe8e249f1448e62dabce35f"
+    },
+    {
+      "file": "docs/commerce-focus-v1/scenario-registry.spec.json",
+      "sha256": "d8c28def4a22ab875c65642942a7fa1417b8b7f62dbeaca74bd0007feed8c430"
+    },
+    {
+      "id": "commerce.general",
+      "version": 1,
+      "sha256": "880f0609105ab8940b584ec12b5b36da6e3217a54aa7e03de13c2c2963638bf8",
+      "source": "lib/creative/commerce-skills.mjs"
+    }
+  ],
+  "targetScope": null,
+  "requestedOperations": [
+    {
+      "nodeId": "title-2859194914cface0",
+      "sceneId": "scene-01-uploaded-source",
+      "sceneIds": [],
+      "text": "周末新品",
+      "type": "update_text"
+    }
+  ]
+}
