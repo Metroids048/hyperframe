@@ -1,0 +1,103 @@
+{
+  "summary": "本批检查了 scene-01 至 scene-03 的关键帧。发现 scene-01 标题动画出现异常残留，scene-02 标签未按计划退出；scene-03 画面与标签基本可读。未评估声音、完整运动连续性及其他镜头。",
+  "issues": [
+    {
+      "severity": "minor",
+      "repairKind": "layout",
+      "sceneId": "scene-01",
+      "startSeconds": 4.2,
+      "endSeconds": 4.2,
+      "nodeIds": [
+        "node-aa9af36075fb903e"
+      ],
+      "evidence": [
+        "review-0/batch-0/frame-02-at-4.2s.png"
+      ],
+      "problem": "标题对象在画面中央只剩“UE”样的残片，既未形成完整标题，也与左下角步骤标签的层级不一致，影响文字可读性。",
+      "repair": "将标题保持在左下角安全区并完整显示，或在进入淡出前直接隐藏，避免中途只剩残片；复查4.2秒关键帧。"
+    },
+    {
+      "severity": "major",
+      "repairKind": "text-timing",
+      "sceneId": "scene-02",
+      "startSeconds": 13.967,
+      "endSeconds": 13.967,
+      "nodeIds": [
+        "node-2cf3224ba1d4387e"
+      ],
+      "evidence": [
+        "review-0/batch-0/frame-07-at-13.967s.png"
+      ],
+      "problem": "“加入咖啡粉”标签在镜头末尾仍清晰可见，但动画证据计划在本镜头约6.8秒开始退出；标签持续到切点附近，造成与动作结束不同步。",
+      "repair": "把标签淡出严格对齐 scene-02 结束前约0.4秒，并确认13.967秒不再显示完整标签，同时不遮挡倒粉动作。"
+    }
+  ],
+  "unreviewed": [
+    "声音是否保留且与切点同步",
+    "scene-01 至 scene-03 的完整运动连续性与动作是否在切点完整结束",
+    "scene-04 至 scene-06 及全片结尾",
+    "全片音量、混音与发布规格验证"
+  ],
+  "frameTimes": [
+    {
+      "file": "review-0/batch-0/frame-00-at-0.3s.png",
+      "seconds": 0.3,
+      "sceneId": "scene-01"
+    },
+    {
+      "file": "review-0/batch-0/frame-01-at-2s.png",
+      "seconds": 2,
+      "sceneId": "scene-01"
+    },
+    {
+      "file": "review-0/batch-0/frame-02-at-4.2s.png",
+      "seconds": 4.2,
+      "sceneId": "scene-01"
+    },
+    {
+      "file": "review-0/batch-0/frame-03-at-5.967s.png",
+      "seconds": 5.967,
+      "sceneId": "scene-01"
+    },
+    {
+      "file": "review-0/batch-0/frame-04-at-6.3s.png",
+      "seconds": 6.3,
+      "sceneId": "scene-02"
+    },
+    {
+      "file": "review-0/batch-0/frame-05-at-8s.png",
+      "seconds": 8,
+      "sceneId": "scene-02"
+    },
+    {
+      "file": "review-0/batch-0/frame-06-at-11.6s.png",
+      "seconds": 11.6,
+      "sceneId": "scene-02"
+    },
+    {
+      "file": "review-0/batch-0/frame-07-at-13.967s.png",
+      "seconds": 13.967,
+      "sceneId": "scene-02"
+    },
+    {
+      "file": "review-0/batch-0/frame-08-at-14.3s.png",
+      "seconds": 14.3,
+      "sceneId": "scene-03"
+    },
+    {
+      "file": "review-0/batch-0/frame-09-at-16s.png",
+      "seconds": 16,
+      "sceneId": "scene-03"
+    },
+    {
+      "file": "review-0/batch-0/frame-10-at-21s.png",
+      "seconds": 21,
+      "sceneId": "scene-03"
+    },
+    {
+      "file": "review-0/batch-0/frame-11-at-23.967s.png",
+      "seconds": 23.967,
+      "sceneId": "scene-03"
+    }
+  ]
+}

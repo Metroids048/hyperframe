@@ -1,0 +1,30 @@
+◆  Checking job-27c1e043-2842-4953-8cf8-dcfdaf421ab8
+
+Lint
+  ⚠ duplicate_media_discovery_risk: Detected 5 matching audio entries with the same source/start/duration.
+    /Users/a1234/Desktop/hyperframe-main/video-agent/data/result-completion-projects/2ba994d0-d750-494c-99ec-0f5527add49a/versions/job-27c1e043-2842-4953-8cf8-dcfdaf421ab8/index.html [data-composition-id] t=0s
+    Fix: Avoid duplicated media nodes that can be discovered twice during compilation.
+  ✗ gsap_exit_missing_hard_kill: GSAP exit on "#custom-scene-04-scene04-label" ends at the 18.20s clip start boundary without a matching tl.set hard kill. Non-linear seeking can land after the fade and leave stale visibility state.
+    /Users/a1234/Desktop/hyperframe-main/video-agent/data/result-completion-projects/2ba994d0-d750-494c-99ec-0f5527add49a/versions/job-27c1e043-2842-4953-8cf8-dcfdaf421ab8/index.html #custom-scene-04-scene04-label t=0s
+    Fix: Add `tl.set("#custom-scene-04-scene04-label", { opacity: 0 }, 18.20)` after the exit tween.
+  ⚠ gsap_timeline_set_initial_hide: Initial hidden state for "#custom-scene-01-text-1" is set via tl.set(...) at position 0 inside the paused timeline. A zero-duration set at 0 does not render while the playhead sits exactly at 0, so frame 0 shows the un-hidden state.
+    /Users/a1234/Desktop/hyperframe-main/video-agent/data/result-completion-projects/2ba994d0-d750-494c-99ec-0f5527add49a/versions/job-27c1e043-2842-4953-8cf8-dcfdaf421ab8/index.html #custom-scene-01-text-1 t=0s
+    Fix: Use gsap.set(...) (immediate, outside the timeline) for initial states, or author the hidden state directly in CSS/attributes.
+  1 error(s), 2 warning(s), 0 info(s)
+
+Runtime
+  ◇ 0 errors, 0 warnings
+
+Layout
+  ◇ 0 issues across 0 sample(s)
+
+Motion
+  ◇ 0 errors, 0 warnings
+
+Contrast
+  ◇ 0/0 text checks pass WCAG AA
+
+Snapshots
+  ◇ disabled
+
+◇  Check failed

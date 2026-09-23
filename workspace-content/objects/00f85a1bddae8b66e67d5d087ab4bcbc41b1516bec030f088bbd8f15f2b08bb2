@@ -1,0 +1,175 @@
+{
+  "brief": {
+    "request": {
+      "name": "掌机",
+      "cta": "",
+      "price": "",
+      "facts": [],
+      "output": {
+        "width": 1080,
+        "height": 1920,
+        "durationSeconds": 45
+      }
+    },
+    "needsTranscription": false,
+    "needsNarration": true,
+    "needsCaptions": true,
+    "keepOriginalAudio": true,
+    "capabilities": [
+      "image-observation",
+      "video-source-selection",
+      "managed-original",
+      "native-composition",
+      "native-editing",
+      "local-preview-review"
+    ],
+    "gaps": [],
+    "constraints": [
+      "竖屏 1080×1920，总时长 45 秒；6–9 镜头，至少 5 段互不重复源区间",
+      "结构：Hook＋3 个可见特点（各配局部放大）＋真实操作＋局部放大特写＋步骤引导",
+      "标题「掌机开箱：便携游戏体验」",
+      "音频轨 = 源素材原声轨 + 中文旁白；旁白段对源声轨 ducking（压低），旁白间隙恢复",
+      "不生成、不检索、不引入任何未授权音乐；不得凭空合成 BGM",
+      "BGM 缺口：需求要求科技感 BGM，但本工程无已授权音源，按用户明确授权以可审计降级交付（源声轨＋中文旁白 ducking），须在 quality_report 记录为未满足项，不得因此停在 NEEDS_INPUT",
+      "中文旁白仅描述真实可见内容；不编造任何参数/功能/卖点",
+      "同步中文字幕严格对齐旁白时间轴，置于底部字幕安全区，避开主体与源浮层",
+      "源画面自带平台浮层（“Like what you see?”、“Enjoy my content?”）需在裁切时避让",
+      "沿用同一工程 c6cd5bb8-f3b8-4a49-a03e-6b45e16726b5，不新建工程、不重新上传素材；保留可编辑工程（项目与修订）并输出新的 MP4 成品"
+    ],
+    "workflow": {
+      "taskMode": "create",
+      "objective": "在同一工程内完成掌机开箱演示（observe→分镜→timing 节奏编排→同步中文字幕→渲染），输出新的可编辑 revision 与真实 MP4；音频以源声轨＋中文旁白 ducking 的可审计降级交付",
+      "requirements": [
+        {
+          "kind": "change",
+          "quote": "继续同一项目 c6cd5bb8-f3b8-4a49-a03e-6b45e16726b5，不新建工程、不重新上传素材",
+          "targetIds": [
+            "c6cd5bb8-f3b8-4a49-a03e-6b45e16726b5"
+          ],
+          "excludeIds": [],
+          "startSeconds": null,
+          "endSeconds": null
+        },
+        {
+          "kind": "resource",
+          "quote": "【观察记录 OBS-1】asset-e8779cc0-0dba-4f37-a3a3-218c25440e01",
+          "targetIds": [
+            "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01"
+          ],
+          "excludeIds": [],
+          "startSeconds": null,
+          "endSeconds": null
+        },
+        {
+          "kind": "preserve",
+          "quote": "【沿用分镜 9 镜头（源区间互不重复）】1 Hook 纸盒开箱 1.4–6.4s；2 可见特点1 外包装盒 29.3–34.3s（局部放大）；3 可见特点2 黑色拉链收纳包 34.9–39.9s（局部放大）；4 可见特点3 掌机机身与屏幕 46.1–51.1s（局部放大）；5 真实操作 取物 40.5–45.5s；6 局部放大特写 机身 62.9–67.9s；7 步骤引导第1步 掀盒盖 7.0–12.0s；8 第2步 取内盒 12.6–17.6s；9 第3步 取说明卡 18.2–23.2s",
+          "targetIds": [
+            "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01"
+          ],
+          "excludeIds": [],
+          "startSeconds": null,
+          "endSeconds": null
+        },
+        {
+          "kind": "change",
+          "quote": "【中文旁白台词（逐镜对齐，总 45s，仅描述真实可见内容）】",
+          "targetIds": [],
+          "excludeIds": [],
+          "startSeconds": null,
+          "endSeconds": null
+        },
+        {
+          "kind": "change",
+          "quote": "【同步中文字幕】严格对齐上述旁白时间轴",
+          "targetIds": [],
+          "excludeIds": [],
+          "startSeconds": null,
+          "endSeconds": null
+        },
+        {
+          "kind": "change",
+          "quote": "音频轨 = 源素材原声轨 + 中文旁白",
+          "targetIds": [
+            "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01"
+          ],
+          "excludeIds": [],
+          "startSeconds": null,
+          "endSeconds": null
+        },
+        {
+          "kind": "change",
+          "quote": "在旁白段对源声轨执行 ducking（压低），旁白间隙恢复",
+          "targetIds": [
+            "asset-e8779cc0-0dba-4f37-a3a3-218c25440e01"
+          ],
+          "excludeIds": [],
+          "startSeconds": null,
+          "endSeconds": null
+        },
+        {
+          "kind": "prohibit",
+          "quote": "不生成、不检索、不引入任何未授权音乐；不得凭空合成 BGM",
+          "targetIds": [],
+          "excludeIds": [],
+          "startSeconds": null,
+          "endSeconds": null
+        },
+        {
+          "kind": "preserve",
+          "quote": "竖屏 1080×1920、总时长 45 秒、6–9 镜头（≥5 段互不重复源区间）",
+          "targetIds": [],
+          "excludeIds": [],
+          "startSeconds": null,
+          "endSeconds": null
+        },
+        {
+          "kind": "change",
+          "quote": "标题「掌机开箱：便携游戏体验」",
+          "targetIds": [],
+          "excludeIds": [],
+          "startSeconds": null,
+          "endSeconds": null
+        },
+        {
+          "kind": "prohibit",
+          "quote": "不编造任何参数/功能/卖点",
+          "targetIds": [],
+          "excludeIds": [],
+          "startSeconds": null,
+          "endSeconds": null
+        },
+        {
+          "kind": "change",
+          "quote": "在 quality_report 中明确记录「BGM 缺口（科技感 BGM 未满足，缺授权音源）」",
+          "targetIds": [],
+          "excludeIds": [],
+          "startSeconds": null,
+          "endSeconds": null
+        },
+        {
+          "kind": "goal",
+          "quote": "【请完成】observe（OBS-1 已提供）→ 分镜 → timing 节奏编排 → 同步中文字幕 → 渲染，输出真实的 revision 与 MP4 成品",
+          "targetIds": [
+            "c6cd5bb8-f3b8-4a49-a03e-6b45e16726b5"
+          ],
+          "excludeIds": [],
+          "startSeconds": null,
+          "endSeconds": null
+        }
+      ],
+      "overrides": [],
+      "assumptions": [
+        "输出画幅 1080×1920（竖屏）、总时长 45 秒，按用户本轮明确要求执行，覆盖历史默认 30 秒",
+        "唯一素材为 asset-e8779cc0-0dba-4f37-a3a3-218c25440e01（72.663s、1920×1080、60fps、含 opus 音轨）",
+        "沿用工程内已有 9 镜头分镜与源区间（generationPlan.shots），仅做 timing 节奏编排与对齐",
+        "BGM 无已授权音源，按用户明确授权降级，不阻塞制作流水线"
+      ],
+      "gaps": []
+    },
+    "scenarioId": "product_demo"
+  },
+  "error": {
+    "code": "WORKFLOW_TARGET_INVALID",
+    "message": "修改目标不属于当前版本"
+  }
+}

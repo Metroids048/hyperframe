@@ -1,0 +1,317 @@
+{
+  "message": "在可编辑工程中新增独立文字对象“新品体验”，将其放置在视频起始 0–2.000 秒并确保清晰可见；保持现有视频片段、1280×720 画幅、约 78.616 秒时长及原声音轨不变。",
+  "baseRevisionId": "rev-1b131122b39c5636",
+  "routeDecision": {
+    "mode": "edit",
+    "source": "deterministic-uploaded-video",
+    "targets": [
+      {
+        "id": "video-asset-7a426ac8-488e-459b-b57d-cca3ba2493a6",
+        "kind": "timeline",
+        "operation": "replace_asset"
+      },
+      {
+        "id": "video-asset-7a426ac8-488e-459b-b57d-cca3ba2493a6",
+        "kind": "timeline",
+        "operation": "update_media"
+      },
+      {
+        "id": "audio-222c44c1b0504814",
+        "kind": "audio",
+        "operation": "update_audio"
+      },
+      {
+        "id": "scene-01-uploaded-source",
+        "kind": "text",
+        "operation": "add_text"
+      }
+    ],
+    "requestedTargets": [],
+    "reason": "已将上传视频 asset-7a426ac8-488e-459b-b57d-cca3ba2493a6 作为当前工程主源，按原片真实时长与 1 倍速保留画面和原声。",
+    "version": 1,
+    "message": "在可编辑工程中新增独立文字对象“新品体验”，将其放置在视频起始 0–2.000 秒并确保清晰可见；保持现有视频片段、1280×720 画幅、约 78.616 秒时长及原声音轨不变。",
+    "scenario": null,
+    "preserve": [
+      "unmentioned-objects",
+      "source-assets",
+      "revision-history"
+    ],
+    "executionStrategy": "L1",
+    "confidence": 1,
+    "fallback": {
+      "version": 1,
+      "categories": [
+        "missing_evidence",
+        "ambiguous_target",
+        "unsupported_capability",
+        "resource_incompatible",
+        "provider_unavailable",
+        "quality_failure",
+        "revision_conflict"
+      ],
+      "maxReplans": 2,
+      "identicalFailureLimit": 2,
+      "preserveCurrentRevision": true,
+      "allowSilentSubstitution": false,
+      "steps": [
+        "retry-same-capability",
+        "safe-equivalent-execution",
+        "retain-valid-revision",
+        "report-failed-targets",
+        "repair-only-gap"
+      ],
+      "classifiers": [
+        [
+          "revision_conflict",
+          "REVISION_CONFLICT|STALE_REVISION"
+        ],
+        [
+          "provider_unavailable",
+          "^(MINIMAX_|CODEX_|PROVIDER_)"
+        ],
+        [
+          "resource_incompatible",
+          "RESOURCE_|INCOMPATIBLE"
+        ],
+        [
+          "unsupported_capability",
+          "UNSUPPORTED|CAPABILITY|VOICE_NOT_FOUND"
+        ],
+        [
+          "ambiguous_target",
+          "AMBIGUOUS|SCOPE|TARGET|CONFLICT|CAPTION_ALIGNMENT_REQUIRED"
+        ],
+        [
+          "missing_evidence",
+          "MISSING|NEEDS_INPUT|INSUFFICIENT|SPEECH_SCRIPT_REQUIRED|NO_SPEECH|NO_CAPTION_AUDIO"
+        ]
+      ]
+    },
+    "baseRevisionId": "rev-1b131122b39c5636",
+    "selectedSkills": [
+      "timeline-edit",
+      "visual-composition",
+      "audio-mix",
+      "hyperframes",
+      "conversation-edit"
+    ],
+    "skillReasons": {
+      "visual-composition": [
+        "operation:update_media",
+        "target:text",
+        "request-evidence"
+      ],
+      "audio-mix": [
+        "operation:update_audio",
+        "target:audio",
+        "request-evidence"
+      ],
+      "timeline-edit": [
+        "target:timeline",
+        "target:timeline"
+      ],
+      "conversation-edit": [
+        "existing-revision"
+      ],
+      "hyperframes": [
+        "native-document"
+      ]
+    }
+  },
+  "changeReceipt": {
+    "baseRevision": "rev-1b131122b39c5636",
+    "userRequest": "在可编辑工程中新增独立文字对象“新品体验”，将其放置在视频起始 0–2.000 秒并确保清晰可见；保持现有视频片段、1280×720 画幅、约 78.616 秒时长及原声音轨不变。",
+    "targetSet": [
+      {
+        "type": "replace_asset",
+        "id": "video-asset-7a426ac8-488e-459b-b57d-cca3ba2493a6"
+      },
+      {
+        "type": "update_media",
+        "id": "video-asset-7a426ac8-488e-459b-b57d-cca3ba2493a6"
+      },
+      {
+        "type": "update_audio",
+        "id": "audio-222c44c1b0504814"
+      },
+      {
+        "type": "add_text",
+        "id": "scene-01-uploaded-source"
+      }
+    ],
+    "preserveSet": [
+      "transitions",
+      "untargeted-content",
+      "output"
+    ],
+    "changeSet": [
+      {
+        "type": "replace_asset",
+        "nodeId": "video-asset-7a426ac8-488e-459b-b57d-cca3ba2493a6",
+        "assetId": "asset-7a426ac8-488e-459b-b57d-cca3ba2493a6"
+      },
+      {
+        "type": "update_media",
+        "nodeId": "video-asset-7a426ac8-488e-459b-b57d-cca3ba2493a6",
+        "params": {
+          "sourceStartSeconds": 0,
+          "playbackRate": 1
+        }
+      },
+      {
+        "type": "update_audio",
+        "nodeId": "audio-222c44c1b0504814",
+        "assetId": "asset-7a426ac8-488e-459b-b57d-cca3ba2493a6",
+        "params": {
+          "assetId": "asset-7a426ac8-488e-459b-b57d-cca3ba2493a6",
+          "sourceNodeId": "video-asset-7a426ac8-488e-459b-b57d-cca3ba2493a6",
+          "sourceStartSeconds": 0,
+          "playbackRate": 1,
+          "durationFrames": 2359,
+          "startFrame": 0
+        }
+      },
+      {
+        "type": "add_text",
+        "sceneId": "scene-01-uploaded-source",
+        "text": "新品体验",
+        "durationFrames": 60,
+        "localStartFrame": 0,
+        "node": {
+          "id": "title-uploaded-cca3ba2493a6",
+          "semanticRole": "title",
+          "params": {
+            "immediate": true,
+            "style": {
+              "color": "#FFFFFF",
+              "fontSize": 60,
+              "fontWeight": 800
+            }
+          }
+        }
+      }
+    ],
+    "changedFields": [
+      "nodes",
+      "audioGraph"
+    ],
+    "validation": {
+      "passed": true,
+      "checks": [
+        {
+          "field": "transitions",
+          "passed": true
+        },
+        {
+          "field": "untargeted-content",
+          "passed": true
+        },
+        {
+          "field": "output",
+          "passed": true
+        }
+      ]
+    },
+    "newRevision": "rev-e4252376b2ad9475"
+  },
+  "mode": "deterministic-uploaded-video",
+  "model": "local",
+  "summary": "已将上传视频 asset-7a426ac8-488e-459b-b57d-cca3ba2493a6 作为当前工程主源，按原片真实时长与 1 倍速保留画面和原声。",
+  "operations": [
+    {
+      "type": "replace_asset",
+      "nodeId": "video-asset-7a426ac8-488e-459b-b57d-cca3ba2493a6",
+      "assetId": "asset-7a426ac8-488e-459b-b57d-cca3ba2493a6"
+    },
+    {
+      "type": "update_media",
+      "nodeId": "video-asset-7a426ac8-488e-459b-b57d-cca3ba2493a6",
+      "params": {
+        "sourceStartSeconds": 0,
+        "playbackRate": 1
+      }
+    },
+    {
+      "type": "update_audio",
+      "nodeId": "audio-222c44c1b0504814",
+      "assetId": "asset-7a426ac8-488e-459b-b57d-cca3ba2493a6",
+      "params": {
+        "assetId": "asset-7a426ac8-488e-459b-b57d-cca3ba2493a6",
+        "sourceNodeId": "video-asset-7a426ac8-488e-459b-b57d-cca3ba2493a6",
+        "sourceStartSeconds": 0,
+        "playbackRate": 1,
+        "durationFrames": 2359,
+        "startFrame": 0
+      }
+    },
+    {
+      "type": "add_text",
+      "sceneId": "scene-01-uploaded-source",
+      "text": "新品体验",
+      "durationFrames": 60,
+      "localStartFrame": 0,
+      "node": {
+        "id": "title-uploaded-cca3ba2493a6",
+        "semanticRole": "title",
+        "params": {
+          "immediate": true,
+          "style": {
+            "color": "#FFFFFF",
+            "fontSize": 60,
+            "fontWeight": 800
+          }
+        }
+      }
+    }
+  ],
+  "alternatives": [],
+  "workflow": null,
+  "resourceScopes": [],
+  "requestedOperations": [
+    {
+      "type": "replace_asset",
+      "nodeId": "video-asset-7a426ac8-488e-459b-b57d-cca3ba2493a6",
+      "assetId": "asset-7a426ac8-488e-459b-b57d-cca3ba2493a6"
+    },
+    {
+      "type": "update_media",
+      "nodeId": "video-asset-7a426ac8-488e-459b-b57d-cca3ba2493a6",
+      "params": {
+        "sourceStartSeconds": 0,
+        "playbackRate": 1
+      }
+    },
+    {
+      "type": "update_audio",
+      "nodeId": "audio-222c44c1b0504814",
+      "assetId": "asset-7a426ac8-488e-459b-b57d-cca3ba2493a6",
+      "params": {
+        "assetId": "asset-7a426ac8-488e-459b-b57d-cca3ba2493a6",
+        "sourceNodeId": "video-asset-7a426ac8-488e-459b-b57d-cca3ba2493a6",
+        "sourceStartSeconds": 0,
+        "playbackRate": 1,
+        "durationFrames": 2359,
+        "startFrame": 0
+      }
+    },
+    {
+      "type": "add_text",
+      "sceneId": "scene-01-uploaded-source",
+      "text": "新品体验",
+      "durationFrames": 60,
+      "localStartFrame": 0,
+      "node": {
+        "id": "title-uploaded-cca3ba2493a6",
+        "semanticRole": "title",
+        "params": {
+          "immediate": true,
+          "style": {
+            "color": "#FFFFFF",
+            "fontSize": 60,
+            "fontWeight": 800
+          }
+        }
+      }
+    }
+  ]
+}

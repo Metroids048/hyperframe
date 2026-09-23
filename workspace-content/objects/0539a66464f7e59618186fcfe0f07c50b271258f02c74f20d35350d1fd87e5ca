@@ -1,0 +1,32 @@
+{
+  "status": "needs-repair",
+  "engineering": "checked",
+  "revisionId": "rev-75e040887e1ee7bc",
+  "summary": "仅审查所给三张关键帧。右侧静帧窗口裁切偏离连接座，需要局部修复；第二行说明已显示为所需文字，未见裁切或遮挡。",
+  "issues": [
+    {
+      "evidence": "edit-review-0/batch-0/frame-02-at-19.767s.png",
+      "nodeId": "scene06-detail-video",
+      "problem": "major：在17.1、17.433及19.767秒的实帧中，右侧局部窗大部分为黑色，仅左下角露出斜向边缘，未显示矩形连接座及完整外框。局部窗裁切偏离目标，无法实现用户要求的稳定细节定位。",
+      "repair": "仅调整右侧静帧的裁切位置与必要缩放：先定位该静帧中真实连接座的像素边界，以连接座为中心保留完整外框和周边参照；显示尺寸不超过截取原始像素，不锐化、不生成细节。保持左侧视频、文字、字幕、音轨和其他镜头不变。重新渲染并检查本批三个时点，确认连接座完整、居中且裁切稳定。",
+      "sceneId": "scene-06",
+      "seconds": 19.767,
+      "severity": "major"
+    }
+  ],
+  "unreviewed": [
+    "未提供说明入场阶段的实际连续画面，无法验证第二行文字与背景板同时出现。",
+    "未提供源静帧原始像素及完整图像，无法核实显示倍率、素材身份或是否经过锐化。",
+    "未检查实际声音及连续运动，旁白、音乐、字幕同步与全程稳定性未评审。",
+    "未提供完整35秒成片及修改前画面对照；其他镜头、片尾编号和左侧视频保持不变仅有修改回执声明，未独立验证。"
+  ],
+  "invalidation": {
+    "changedScenes": [
+      "scene-06"
+    ],
+    "fullRecompile": false
+  },
+  "fullPlayback": "pending",
+  "humanReview": "pending",
+  "rights": "requires-publisher-review"
+}

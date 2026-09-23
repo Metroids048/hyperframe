@@ -1,0 +1,1507 @@
+{
+  "id": "89affe26-74a6-4430-a3cb-efdb79833ab5",
+  "userRequest": "立即生成并导出成品。唯一允许使用的视觉与音频素材是用户上传的视频 asset-afb8a9ff-57d6-437c-8b12-d4581aa02240。禁止使用项目中的网络图片、外部素材、生成画面、HyperFrames 动画模板、字幕、标题、卖点文字、音乐、旁白或配音。从原片中选择连续且完整可理解的约30秒商品内容，保留该片段对应的原始音轨；进行必要的9:16主体居中构图适配和基础画质处理。输出1080x1920、30fps、高质量MP4，并生成可预览候选与最终可下载成品。",
+  "projectId": "af8ba48b-e9ae-4f65-b0c7-8c1c7695cffa",
+  "baseRevisionId": null,
+  "inputFingerprint": "1329988c9439f5180cd4d0876a7fa99bc0cee5a3609e7b98f76bc6bc027547f6",
+  "selectedSkills": [],
+  "constraints": {
+    "requirements": [
+      "唯一允许使用的视觉与音频素材是用户上传的视频 asset-afb8a9ff-57d6-437c-8b12-d4581aa02240",
+      "禁止使用项目中的网络图片、外部素材、生成画面、HyperFrames 动画模板、字幕、标题、卖点文字、音乐、旁白或配音",
+      "从原片中选择连续且完整可理解的约30秒商品内容",
+      "保留该片段对应的原始音轨",
+      "进行必要的9:16主体居中构图适配和基础画质处理",
+      "输出1080x1920、30fps、高质量MP4",
+      "生成可预览候选与最终可下载成品"
+    ]
+  },
+  "plan": null,
+  "artifacts": {},
+  "checkpoints": {
+    "brief": {
+      "idempotencyKey": "4b8f9d2654a3a41d6fc6de76b02b4577c90d8e80c07c7ed273fbff089e26d113",
+      "status": "completed",
+      "result": {
+        "capabilities": [
+          "image-observation",
+          "video-source-selection",
+          "native-editing",
+          "native-composition",
+          "managed-original",
+          "local-preview-review"
+        ],
+        "constraints": [
+          "唯一允许使用的视觉与音频素材是用户上传的视频 asset-afb8a9ff-57d6-437c-8b12-d4581aa02240",
+          "禁止使用项目中的网络图片、外部素材、生成画面、HyperFrames 动画模板、字幕、标题、卖点文字、音乐、旁白或配音",
+          "从原片中选择连续且完整可理解的约30秒商品内容",
+          "保留该片段对应的原始音轨",
+          "进行必要的9:16主体居中构图适配和基础画质处理",
+          "输出1080x1920、30fps、高质量MP4",
+          "生成可预览候选与最终可下载成品"
+        ],
+        "gaps": [
+          "用户指定的 asset-afb8a9ff-57d6-437c-8b12-d4581aa02240 未出现在当前提供的素材清单中；清单中的视频素材为 asset-861f7caf-7b2b-4e80-aaae-a53a95fa77cc，不能在唯一素材约束下擅自替换。",
+          "当前音频能力标记 listening.available=false，无法在本阶段确认约30秒片段的语义完整性与原声内容；需要后续实际预览复核。"
+        ],
+        "keepOriginalAudio": true,
+        "needsCaptions": false,
+        "needsNarration": false,
+        "needsTranscription": false,
+        "request": {
+          "cta": "",
+          "facts": [],
+          "name": "",
+          "output": {
+            "width": 1080,
+            "height": 1920,
+            "durationSeconds": 30,
+            "fps": 30
+          },
+          "price": ""
+        },
+        "scenarioId": "product_detail",
+        "workflow": {
+          "assumptions": [
+            "沿用既有 product_detail 业务场景与 create 任务模式。",
+            "输出帧率30fps按用户明确要求处理。"
+          ],
+          "gaps": [
+            "指定视频 asset-afb8a9ff-57d6-437c-8b12-d4581aa02240 与当前素材清单不匹配。",
+            "当前无法进行人类听感确认，需候选预览阶段复核片段是否连续、完整且可理解。"
+          ],
+          "objective": "从指定用户上传视频中选取约30秒连续商品内容，保持原始音轨并完成竖屏主体保护适配后导出成品。",
+          "overrides": [],
+          "requirements": [
+            {
+              "endSeconds": null,
+              "excludeIds": [],
+              "kind": "resource",
+              "quote": "唯一允许使用的视觉与音频素材是用户上传的视频 asset-afb8a9ff-57d6-437c-8b12-d4581aa02240",
+              "startSeconds": null,
+              "targetIds": []
+            },
+            {
+              "endSeconds": null,
+              "excludeIds": [],
+              "kind": "prohibit",
+              "quote": "禁止使用项目中的网络图片、外部素材、生成画面、HyperFrames 动画模板、字幕、标题、卖点文字、音乐、旁白或配音",
+              "startSeconds": null,
+              "targetIds": []
+            },
+            {
+              "endSeconds": null,
+              "excludeIds": [],
+              "kind": "goal",
+              "quote": "从原片中选择连续且完整可理解的约30秒商品内容",
+              "startSeconds": null,
+              "targetIds": []
+            },
+            {
+              "endSeconds": null,
+              "excludeIds": [],
+              "kind": "preserve",
+              "quote": "保留该片段对应的原始音轨",
+              "startSeconds": null,
+              "targetIds": []
+            },
+            {
+              "endSeconds": null,
+              "excludeIds": [],
+              "kind": "change",
+              "quote": "进行必要的9:16主体居中构图适配和基础画质处理",
+              "startSeconds": null,
+              "targetIds": []
+            },
+            {
+              "endSeconds": 30,
+              "excludeIds": [],
+              "kind": "goal",
+              "quote": "输出1080x1920、30fps、高质量MP4",
+              "startSeconds": 0,
+              "targetIds": []
+            },
+            {
+              "endSeconds": null,
+              "excludeIds": [],
+              "kind": "goal",
+              "quote": "生成可预览候选与最终可下载成品",
+              "startSeconds": null,
+              "targetIds": []
+            }
+          ],
+          "taskMode": "create"
+        },
+        "productionBinding": {
+          "message": "立即生成并导出成品。唯一允许使用的视觉与音频素材是用户上传的视频 asset-afb8a9ff-57d6-437c-8b12-d4581aa02240。禁止使用项目中的网络图片、外部素材、生成画面、HyperFrames 动画模板、字幕、标题、卖点文字、音乐、旁白或配音。从原片中选择连续且完整可理解的约30秒商品内容，保留该片段对应的原始音轨；进行必要的9:16主体居中构图适配和基础画质处理。输出1080x1920、30fps、高质量MP4，并生成可预览候选与最终可下载成品。",
+          "contract": {
+            "schemaVersion": 1,
+            "profile": "commerce-focus-v1",
+            "scenarioId": "product_detail",
+            "originalRequest": "立即生成并导出成品。唯一允许使用的视觉与音频素材是用户上传的视频 asset-afb8a9ff-57d6-437c-8b12-d4581aa02240。禁止使用项目中的网络图片、外部素材、生成画面、HyperFrames 动画模板、字幕、标题、卖点文字、音乐、旁白或配音。从原片中选择连续且完整可理解的约30秒商品内容，保留该片段对应的原始音轨；进行必要的9:16主体居中构图适配和基础画质处理。输出1080x1920、30fps、高质量MP4，并生成可预览候选与最终可下载成品。",
+            "taskMode": "create",
+            "workflowProfile": "create",
+            "workflow": {
+              "version": 1,
+              "taskMode": "create",
+              "taskModeExplicit": true,
+              "workflowProfile": "create",
+              "businessScenario": "product_detail",
+              "baseProjectId": "af8ba48b-e9ae-4f65-b0c7-8c1c7695cffa",
+              "baseRevisionId": null,
+              "assetScope": [
+                "asset-861f7caf-7b2b-4e80-aaae-a53a95fa77cc",
+                "web-52ae21ce-2a59-44e1-bb89-c0b9896c3f42"
+              ],
+              "originalRequest": "立即生成并导出成品。唯一允许使用的视觉与音频素材是用户上传的视频 asset-afb8a9ff-57d6-437c-8b12-d4581aa02240。禁止使用项目中的网络图片、外部素材、生成画面、HyperFrames 动画模板、字幕、标题、卖点文字、音乐、旁白或配音。从原片中选择连续且完整可理解的约30秒商品内容，保留该片段对应的原始音轨；进行必要的9:16主体居中构图适配和基础画质处理。输出1080x1920、30fps、高质量MP4，并生成可预览候选与最终可下载成品。",
+              "requirements": [
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "resource",
+                  "quote": "唯一允许使用的视觉与音频素材是用户上传的视频 asset-afb8a9ff-57d6-437c-8b12-d4581aa02240",
+                  "startSeconds": null,
+                  "targetIds": [],
+                  "id": "requirement-d0417b4ba45954af",
+                  "field": "resource",
+                  "inherited": false
+                },
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "prohibit",
+                  "quote": "禁止使用项目中的网络图片、外部素材、生成画面、HyperFrames 动画模板、字幕、标题、卖点文字、音乐、旁白或配音",
+                  "startSeconds": null,
+                  "targetIds": [],
+                  "id": "requirement-d5e9662bdf6e7239",
+                  "field": "sound.music",
+                  "inherited": false
+                },
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "goal",
+                  "quote": "从原片中选择连续且完整可理解的约30秒商品内容",
+                  "startSeconds": null,
+                  "targetIds": [],
+                  "id": "requirement-4f58fbf31b061610",
+                  "field": "goal",
+                  "inherited": false
+                },
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "preserve",
+                  "quote": "保留该片段对应的原始音轨",
+                  "startSeconds": null,
+                  "targetIds": [],
+                  "id": "requirement-178560be21061a78",
+                  "field": "preserve",
+                  "inherited": false
+                },
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "change",
+                  "quote": "进行必要的9:16主体居中构图适配和基础画质处理",
+                  "startSeconds": null,
+                  "targetIds": [],
+                  "id": "requirement-d6beeed09edf6497",
+                  "field": "change",
+                  "inherited": false
+                },
+                {
+                  "endSeconds": 30,
+                  "excludeIds": [],
+                  "kind": "goal",
+                  "quote": "输出1080x1920、30fps、高质量MP4",
+                  "startSeconds": 0,
+                  "targetIds": [],
+                  "id": "requirement-36da6ceae7a35b01",
+                  "field": "goal",
+                  "inherited": false
+                },
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "goal",
+                  "quote": "生成可预览候选与最终可下载成品",
+                  "startSeconds": null,
+                  "targetIds": [],
+                  "id": "requirement-16cb32f24a449cb8",
+                  "field": "goal",
+                  "inherited": false
+                }
+              ],
+              "assumptions": [
+                "沿用既有 product_detail 业务场景与 create 任务模式。",
+                "输出帧率30fps按用户明确要求处理。"
+              ],
+              "gaps": [
+                "指定视频 asset-afb8a9ff-57d6-437c-8b12-d4581aa02240 与当前素材清单不匹配。",
+                "当前无法进行人类听感确认，需候选预览阶段复核片段是否连续、完整且可理解。"
+              ],
+              "interpretation": "validated-semantic-analysis",
+              "objective": "从指定用户上传视频中选取约30秒连续商品内容，保持原始音轨并完成竖屏主体保护适配后导出成品。",
+              "contractId": "contract-2d50bf589f0f31f7",
+              "parentContractId": null,
+              "sourceRequests": [
+                "立即生成并导出成品。唯一允许使用的视觉与音频素材是用户上传的视频 asset-afb8a9ff-57d6-437c-8b12-d4581aa02240。禁止使用项目中的网络图片、外部素材、生成画面、HyperFrames 动画模板、字幕、标题、卖点文字、音乐、旁白或配音。从原片中选择连续且完整可理解的约30秒商品内容，保留该片段对应的原始音轨；进行必要的9:16主体居中构图适配和基础画质处理。输出1080x1920、30fps、高质量MP4，并生成可预览候选与最终可下载成品。"
+              ],
+              "requirementChanges": [],
+              "changeTargets": [
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "change",
+                  "quote": "进行必要的9:16主体居中构图适配和基础画质处理",
+                  "startSeconds": null,
+                  "targetIds": [],
+                  "id": "requirement-d6beeed09edf6497",
+                  "field": "change",
+                  "inherited": false
+                }
+              ],
+              "preserveTargets": [
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "preserve",
+                  "quote": "保留该片段对应的原始音轨",
+                  "startSeconds": null,
+                  "targetIds": [],
+                  "id": "requirement-178560be21061a78",
+                  "field": "preserve",
+                  "inherited": false
+                }
+              ],
+              "resourceNeeds": [
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "resource",
+                  "quote": "唯一允许使用的视觉与音频素材是用户上传的视频 asset-afb8a9ff-57d6-437c-8b12-d4581aa02240",
+                  "startSeconds": null,
+                  "targetIds": [],
+                  "id": "requirement-d0417b4ba45954af",
+                  "field": "resource",
+                  "inherited": false
+                }
+              ],
+              "prohibitions": [
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "prohibit",
+                  "quote": "禁止使用项目中的网络图片、外部素材、生成画面、HyperFrames 动画模板、字幕、标题、卖点文字、音乐、旁白或配音",
+                  "startSeconds": null,
+                  "targetIds": [],
+                  "id": "requirement-d5e9662bdf6e7239",
+                  "field": "sound.music",
+                  "inherited": false
+                }
+              ]
+            },
+            "persona": {
+              "creator": "商家／内容运营（待用户研究验证）",
+              "viewer": "首次了解商品的消费者"
+            },
+            "objective": "讲清商品结构与可信卖点",
+            "product": {
+              "id": "product-1",
+              "name": "",
+              "facts": [],
+              "price": null,
+              "cta": "",
+              "audience": null,
+              "prohibited": []
+            },
+            "output": {
+              "width": 1080,
+              "height": 1920,
+              "durationSeconds": 30,
+              "fps": 30
+            },
+            "audio": "original",
+            "mustHave": [],
+            "mustNot": [],
+            "explicitConstraints": {
+              "schemaVersion": 1,
+              "originalRequest": "立即生成并导出成品。唯一允许使用的视觉与音频素材是用户上传的视频 asset-afb8a9ff-57d6-437c-8b12-d4581aa02240。禁止使用项目中的网络图片、外部素材、生成画面、HyperFrames 动画模板、字幕、标题、卖点文字、音乐、旁白或配音。从原片中选择连续且完整可理解的约30秒商品内容，保留该片段对应的原始音轨；进行必要的9:16主体居中构图适配和基础画质处理。输出1080x1920、30fps、高质量MP4，并生成可预览候选与最终可下载成品。",
+              "narration": "required",
+              "music": "unspecified",
+              "original": "required",
+              "price": "unspecified",
+              "silent": false
+            },
+            "mediaAcquisitionPolicy": null,
+            "deliverables": [
+              "candidate_mp4",
+              "editable_project",
+              "source_index",
+              "quality_report"
+            ]
+          }
+        }
+      }
+    },
+    "observe": {
+      "idempotencyKey": "e7da56cd6f9e41e828e80ec60a0046d9f53445ad290396a097f2456d3475a733",
+      "status": "completed",
+      "result": {
+        "candidates": [
+          {
+            "assetId": "asset-861f7caf-7b2b-4e80-aaae-a53a95fa77cc",
+            "endSeconds": 30,
+            "reason": "0.75至25.75秒的加密观察显示内容从第01页连续推进至第05页，30.75秒已进入第06页；0-30秒可作为连续约30秒候选，但30秒可能位于第05/06页切换附近，且该素材并非用户唯一授权的asset-afb8a9ff-57d6-437c-8b12-d4581aa02240，因此不得直接用于成片。",
+            "startSeconds": 0
+          },
+          {
+            "assetId": "asset-861f7caf-7b2b-4e80-aaae-a53a95fa77cc",
+            "endSeconds": 60,
+            "reason": "30.75至55.75秒连续显示第06至第10页，60.75秒已进入第11页；30-60秒形成连续商品展示段，但边界可能落在页面切换附近，原声语义未确认，且素材ID不符合唯一授权约束。",
+            "startSeconds": 30
+          },
+          {
+            "assetId": "asset-861f7caf-7b2b-4e80-aaae-a53a95fa77cc",
+            "endSeconds": 120,
+            "reason": "90.75至115.75秒连续显示第16至第20页，内容由商品展示推进到收尾页，90-120秒在视觉上是最完整的约30秒收束段；但120秒末帧、原声连续性及语义完整性未获听感确认，且该素材不是用户指定的唯一授权素材。",
+            "startSeconds": 90
+          }
+        ],
+        "gaps": [
+          "唯一获准使用的asset-afb8a9ff-57d6-437c-8b12-d4581aa02240仍未出现在当前素材清单或本次加密观察中；现有观察全部来自asset-861f7caf-7b2b-4e80-aaae-a53a95fa77cc，不能擅自替换并执行成片。",
+          "本次加密观察仅确认了5秒间隔的视觉页面状态，未提供可听音频证据；无法确认任一约30秒候选的原声语义完整性、对白起止或听感质量。",
+          "横向页面的商品图、标题和说明在左右两侧反复换位，不存在覆盖全段的固定9:16中心裁切安全区；仅做固定主体居中裁切会在部分页面截断商品或原片文字，需要后续对获准素材逐段复核并采用可变构图，不能根据当前样本宣称已完成主体保护。",
+          "画面把“PURE PROTEIN”白色罐装商品与“精品咖啡豆、坚果香气、巧克力风味”等文字及棕色袋装包装并置；仅凭画面不能确认这些对象的真实商品关系或文案准确性。",
+          "网络图片web-52ae21ce-2a59-44e1-bb89-c0b9896c3f42违反唯一素材约束，不能用于候选或成片。"
+        ],
+        "inspectRanges": [],
+        "observations": [
+          {
+            "assetId": "asset-861f7caf-7b2b-4e80-aaae-a53a95fa77cc",
+            "confidence": 0.97,
+            "differentProductFrom": [],
+            "productGroup": "MORNING商品展示幻灯片；主要出现白色PURE PROTEIN罐装商品，并多次并置棕色袋装包装与咖啡主题文案，二者关系未确认",
+            "quality": "1280x720、30fps横向视频；加密抽帧中的静态页面清晰，未验证转场运动质量和音频质量",
+            "role": "overview",
+            "safeCrop": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "sameProductAs": [],
+            "subjectBox": [
+              0.01,
+              0.08,
+              0.99,
+              0.92
+            ],
+            "uncertainty": "本次证据为0.75至115.75秒、约5秒间隔抽帧，能够确认页面顺序和主体横向换位，但不能确认精确转场帧、120秒末帧、原声内容、运动画质或固定9:16裁切效果；该素材也不是用户指定的唯一授权asset。",
+            "visibleContent": "全片为横向商品展示幻灯片，观察到第01至第20页顺序推进。白色PURE PROTEIN罐在页面左侧、中央或右侧反复换位，部分页面同时出现咖啡杯、咖啡豆和棕色袋装包装；未观察到真人操作、冲泡、倒粉或其他连续实拍动作。90.75至115.75秒由第16页推进至第20页收尾，视觉叙事相对完整。",
+            "visibleText": [
+              "MORNING / 早尚",
+              "PRODUCT JOURNAL",
+              "PURE PROTEIN",
+              "把早晨，慢慢唤醒。",
+              "精品咖啡豆",
+              "坚果香气",
+              "巧克力风味",
+              "醇厚口感",
+              "从一杯好咖啡开始"
+            ]
+          },
+          {
+            "assetId": "web-52ae21ce-2a59-44e1-bb89-c0b9896c3f42",
+            "confidence": 0.99,
+            "differentProductFrom": [],
+            "productGroup": "非获准网络图片",
+            "quality": "690x80 PNG",
+            "role": "context",
+            "safeCrop": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "sameProductAs": [],
+            "subjectBox": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "uncertainty": "该资源不属于用户唯一授权视频，不能作为成片来源；其内容也不是商品画面。",
+            "visibleContent": "Google Workspace Marketplace横幅，不是商品视频素材。",
+            "visibleText": [
+              "Google Workspace Marketplace"
+            ]
+          }
+        ]
+      }
+    },
+    "resources": {
+      "idempotencyKey": "056871aaa6b66e3d6672a58bf31b66ef8f61af5548110de2cf0cc00ac0057cdc",
+      "status": "completed",
+      "result": {
+        "blockingGaps": [
+          "用户唯一授权的视频 asset-afb8a9ff-57d6-437c-8b12-d4581aa02240 不在当前项目素材清单或已完成观察结果中；现有视频 asset-861f7caf-7b2b-4e80-aaae-a53a95fa77cc 不能替代，因此无法在授权范围内制作或导出成品。"
+        ],
+        "gaps": [
+          "当前仅有对其他视频的视觉抽帧观察，未对指定素材进行观察，无法选择约30秒连续且完整可理解的片段。",
+          "当前 listening.available=false，无法对指定片段进行原声语义与听感复核；原始音轨要求只能在指定素材可用后保留并复核。",
+          "现有候选资源均涉及字幕、标题、文字、模板动画或其他不符合本次禁止条件的元素，因此不选择任何候选。",
+          "无法据现有横向视频观察结果确认指定素材的9:16主体安全区、可变构图需求或基础画质处理效果。"
+        ],
+        "originalNeeds": [
+          "仅使用用户上传的视频 asset-afb8a9ff-57d6-437c-8b12-d4581aa02240 作为唯一视觉与音频来源。",
+          "禁止网络图片、外部素材、生成画面、HyperFrames动画模板、字幕、标题、卖点文字、音乐、旁白和配音。",
+          "从指定原片中选择连续且完整可理解的约30秒商品内容，并保留对应原始音轨。",
+          "完成必要的9:16主体居中构图适配和基础画质处理。",
+          "输出1080x1920、30fps、高质量MP4，并生成可预览候选、可编辑工程和最终可下载成品。"
+        ],
+        "selected": [],
+        "candidates": [
+          {
+            "id": "lt-mask-reveal",
+            "tags": [
+              "video",
+              "action",
+              "text",
+              "操作",
+              "实拍",
+              "口播",
+              "标签",
+              "文字"
+            ],
+            "inputs": [
+              "video"
+            ],
+            "description": "Transparent editable lower-third over continuing footage; no stat, price, or full-screen text takeover is required. Adapt the wipe and accent sweep to approved native text, local fonts and the managed timeline.",
+            "files": [
+              "registry/blocks/lt-mask-reveal/registry-item.json",
+              "registry/blocks/lt-mask-reveal/lt-mask-reveal.html"
+            ],
+            "requirements": {
+              "minMedia": 1,
+              "mediaKinds": [
+                "video"
+              ],
+              "maxTextCharacters": 80
+            },
+            "motionRisk": "low",
+            "compatible": true,
+            "eligible": true,
+            "score": 2,
+            "kind": "reviewed-blueprint-adapter",
+            "runtime": "0.8.33",
+            "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+          },
+          {
+            "id": "kinetic-type-beats",
+            "tags": [
+              "text",
+              "caption",
+              "文字",
+              "字幕",
+              "强调"
+            ],
+            "inputs": [
+              "text"
+            ],
+            "files": [
+              "skills/hyperframes-animation/blueprints/kinetic-type-beats.md",
+              "skills/hyperframes-animation/rules/discrete-text-sequence.md"
+            ],
+            "requirements": {
+              "minMedia": 0,
+              "mediaKinds": [],
+              "maxTextCharacters": 80
+            },
+            "motionRisk": "occluding",
+            "compatible": true,
+            "eligible": true,
+            "score": 2,
+            "kind": "reviewed-blueprint-adapter",
+            "runtime": "0.8.33",
+            "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+          },
+          {
+            "id": "caption-editorial-emphasis",
+            "tags": [
+              "caption",
+              "speech",
+              "字幕",
+              "口播",
+              "强调"
+            ],
+            "inputs": [
+              "text"
+            ],
+            "description": "Editable editorial text emphasis; align spoken captions to measured transcript timestamps, never invented timing.",
+            "files": [
+              "registry/components/caption-editorial-emphasis/registry-item.json",
+              "registry/components/caption-editorial-emphasis/caption-editorial-emphasis.html"
+            ],
+            "requirements": {
+              "minMedia": 0,
+              "mediaKinds": [],
+              "maxTextCharacters": 80
+            },
+            "motionRisk": "low",
+            "compatible": true,
+            "eligible": true,
+            "score": 1,
+            "kind": "reviewed-blueprint-adapter",
+            "runtime": "0.8.33",
+            "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+          },
+          {
+            "id": "titlecard-reveal",
+            "tags": [
+              "title",
+              "brand",
+              "text",
+              "收尾",
+              "标题"
+            ],
+            "inputs": [],
+            "files": [
+              "skills/hyperframes-animation/blueprints/titlecard-reveal.md",
+              "skills/hyperframes-animation/rules/discrete-text-sequence.md"
+            ],
+            "requirements": {
+              "minMedia": 0,
+              "mediaKinds": [],
+              "maxTextCharacters": 80
+            },
+            "motionRisk": "low",
+            "compatible": true,
+            "eligible": true,
+            "score": 1,
+            "kind": "reviewed-blueprint-adapter",
+            "runtime": "0.8.33",
+            "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+          },
+          {
+            "id": "comparison-split",
+            "tags": [
+              "compare",
+              "detail",
+              "image",
+              "比较",
+              "细节",
+              "双栏"
+            ],
+            "inputs": [
+              "visual-pair"
+            ],
+            "files": [
+              "skills/hyperframes-animation/blueprints/comparison-split.md",
+              "skills/hyperframes-animation/rules/split-tilt-cards.md",
+              "registry/components/comparison-split/registry-item.json",
+              "registry/components/comparison-split/comparison-split.html"
+            ],
+            "requirements": {
+              "minMedia": 2,
+              "mediaKinds": [],
+              "maxTextCharacters": 80
+            },
+            "motionRisk": "low",
+            "compatible": true,
+            "eligible": true,
+            "score": 1,
+            "kind": "reviewed-blueprint-adapter",
+            "runtime": "0.8.33",
+            "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+          },
+          {
+            "id": "video-text-pivot",
+            "tags": [
+              "video",
+              "action",
+              "操作",
+              "实拍",
+              "讲解"
+            ],
+            "inputs": [
+              "video"
+            ],
+            "files": [
+              "skills/hyperframes-animation/blueprints/video-text-pivot.md",
+              "skills/hyperframes-animation/rules/gsap-effects.md"
+            ],
+            "requirements": {
+              "minMedia": 1,
+              "mediaKinds": [
+                "video"
+              ],
+              "maxTextCharacters": 80
+            },
+            "motionRisk": "occluding",
+            "compatible": true,
+            "eligible": true,
+            "score": 1,
+            "kind": "reviewed-blueprint-adapter",
+            "runtime": "0.8.33",
+            "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+          },
+          {
+            "id": "grid-card-assemble",
+            "tags": [
+              "image",
+              "details",
+              "steps",
+              "参数",
+              "配件",
+              "步骤"
+            ],
+            "inputs": [],
+            "files": [
+              "skills/hyperframes-animation/blueprints/grid-card-assemble.md",
+              "skills/hyperframes-animation/rules/gsap-effects.md"
+            ],
+            "requirements": {
+              "minMedia": 0,
+              "mediaKinds": [],
+              "maxTextCharacters": 80
+            },
+            "motionRisk": "low",
+            "compatible": true,
+            "eligible": true,
+            "score": 1,
+            "kind": "reviewed-blueprint-adapter",
+            "runtime": "0.8.33",
+            "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+          }
+        ],
+        "originalRequest": "立即生成并导出成品。唯一允许使用的视觉与音频素材是用户上传的视频 asset-afb8a9ff-57d6-437c-8b12-d4581aa02240。禁止使用项目中的网络图片、外部素材、生成画面、HyperFrames 动画模板、字幕、标题、卖点文字、音乐、旁白或配音。从原片中选择连续且完整可理解的约30秒商品内容，保留该片段对应的原始音轨；进行必要的9:16主体居中构图适配和基础画质处理。输出1080x1920、30fps、高质量MP4，并生成可预览候选与最终可下载成品。",
+        "assetKinds": {
+          "asset-861f7caf-7b2b-4e80-aaae-a53a95fa77cc": "video",
+          "web-52ae21ce-2a59-44e1-bb89-c0b9896c3f42": "image"
+        }
+      }
+    }
+  },
+  "toolCalls": [
+    {
+      "name": "brief.parse",
+      "input": {},
+      "inputHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "idempotencyKey": "4b8f9d2654a3a41d6fc6de76b02b4577c90d8e80c07c7ed273fbff089e26d113",
+      "step": 1,
+      "startedAt": "2026-09-23T11:45:05.888Z"
+    },
+    {
+      "name": "assets.observe",
+      "input": {},
+      "inputHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "idempotencyKey": "e7da56cd6f9e41e828e80ec60a0046d9f53445ad290396a097f2456d3475a733",
+      "step": 2,
+      "startedAt": "2026-09-23T11:46:24.337Z"
+    },
+    {
+      "name": "resources.plan",
+      "input": {},
+      "inputHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "idempotencyKey": "056871aaa6b66e3d6672a58bf31b66ef8f61af5548110de2cf0cc00ac0057cdc",
+      "step": 3,
+      "startedAt": "2026-09-23T11:48:31.013Z"
+    }
+  ],
+  "toolResults": [
+    {
+      "tool": "brief.parse",
+      "status": "completed",
+      "result": {
+        "capabilities": [
+          "image-observation",
+          "video-source-selection",
+          "native-editing",
+          "native-composition",
+          "managed-original",
+          "local-preview-review"
+        ],
+        "constraints": [
+          "唯一允许使用的视觉与音频素材是用户上传的视频 asset-afb8a9ff-57d6-437c-8b12-d4581aa02240",
+          "禁止使用项目中的网络图片、外部素材、生成画面、HyperFrames 动画模板、字幕、标题、卖点文字、音乐、旁白或配音",
+          "从原片中选择连续且完整可理解的约30秒商品内容",
+          "保留该片段对应的原始音轨",
+          "进行必要的9:16主体居中构图适配和基础画质处理",
+          "输出1080x1920、30fps、高质量MP4",
+          "生成可预览候选与最终可下载成品"
+        ],
+        "gaps": [
+          "用户指定的 asset-afb8a9ff-57d6-437c-8b12-d4581aa02240 未出现在当前提供的素材清单中；清单中的视频素材为 asset-861f7caf-7b2b-4e80-aaae-a53a95fa77cc，不能在唯一素材约束下擅自替换。",
+          "当前音频能力标记 listening.available=false，无法在本阶段确认约30秒片段的语义完整性与原声内容；需要后续实际预览复核。"
+        ],
+        "keepOriginalAudio": true,
+        "needsCaptions": false,
+        "needsNarration": false,
+        "needsTranscription": false,
+        "request": {
+          "cta": "",
+          "facts": [],
+          "name": "",
+          "output": {
+            "width": 1080,
+            "height": 1920,
+            "durationSeconds": 30,
+            "fps": 30
+          },
+          "price": ""
+        },
+        "scenarioId": "product_detail",
+        "workflow": {
+          "assumptions": [
+            "沿用既有 product_detail 业务场景与 create 任务模式。",
+            "输出帧率30fps按用户明确要求处理。"
+          ],
+          "gaps": [
+            "指定视频 asset-afb8a9ff-57d6-437c-8b12-d4581aa02240 与当前素材清单不匹配。",
+            "当前无法进行人类听感确认，需候选预览阶段复核片段是否连续、完整且可理解。"
+          ],
+          "objective": "从指定用户上传视频中选取约30秒连续商品内容，保持原始音轨并完成竖屏主体保护适配后导出成品。",
+          "overrides": [],
+          "requirements": [
+            {
+              "endSeconds": null,
+              "excludeIds": [],
+              "kind": "resource",
+              "quote": "唯一允许使用的视觉与音频素材是用户上传的视频 asset-afb8a9ff-57d6-437c-8b12-d4581aa02240",
+              "startSeconds": null,
+              "targetIds": []
+            },
+            {
+              "endSeconds": null,
+              "excludeIds": [],
+              "kind": "prohibit",
+              "quote": "禁止使用项目中的网络图片、外部素材、生成画面、HyperFrames 动画模板、字幕、标题、卖点文字、音乐、旁白或配音",
+              "startSeconds": null,
+              "targetIds": []
+            },
+            {
+              "endSeconds": null,
+              "excludeIds": [],
+              "kind": "goal",
+              "quote": "从原片中选择连续且完整可理解的约30秒商品内容",
+              "startSeconds": null,
+              "targetIds": []
+            },
+            {
+              "endSeconds": null,
+              "excludeIds": [],
+              "kind": "preserve",
+              "quote": "保留该片段对应的原始音轨",
+              "startSeconds": null,
+              "targetIds": []
+            },
+            {
+              "endSeconds": null,
+              "excludeIds": [],
+              "kind": "change",
+              "quote": "进行必要的9:16主体居中构图适配和基础画质处理",
+              "startSeconds": null,
+              "targetIds": []
+            },
+            {
+              "endSeconds": 30,
+              "excludeIds": [],
+              "kind": "goal",
+              "quote": "输出1080x1920、30fps、高质量MP4",
+              "startSeconds": 0,
+              "targetIds": []
+            },
+            {
+              "endSeconds": null,
+              "excludeIds": [],
+              "kind": "goal",
+              "quote": "生成可预览候选与最终可下载成品",
+              "startSeconds": null,
+              "targetIds": []
+            }
+          ],
+          "taskMode": "create"
+        },
+        "productionBinding": {
+          "message": "立即生成并导出成品。唯一允许使用的视觉与音频素材是用户上传的视频 asset-afb8a9ff-57d6-437c-8b12-d4581aa02240。禁止使用项目中的网络图片、外部素材、生成画面、HyperFrames 动画模板、字幕、标题、卖点文字、音乐、旁白或配音。从原片中选择连续且完整可理解的约30秒商品内容，保留该片段对应的原始音轨；进行必要的9:16主体居中构图适配和基础画质处理。输出1080x1920、30fps、高质量MP4，并生成可预览候选与最终可下载成品。",
+          "contract": {
+            "schemaVersion": 1,
+            "profile": "commerce-focus-v1",
+            "scenarioId": "product_detail",
+            "originalRequest": "立即生成并导出成品。唯一允许使用的视觉与音频素材是用户上传的视频 asset-afb8a9ff-57d6-437c-8b12-d4581aa02240。禁止使用项目中的网络图片、外部素材、生成画面、HyperFrames 动画模板、字幕、标题、卖点文字、音乐、旁白或配音。从原片中选择连续且完整可理解的约30秒商品内容，保留该片段对应的原始音轨；进行必要的9:16主体居中构图适配和基础画质处理。输出1080x1920、30fps、高质量MP4，并生成可预览候选与最终可下载成品。",
+            "taskMode": "create",
+            "workflowProfile": "create",
+            "workflow": {
+              "version": 1,
+              "taskMode": "create",
+              "taskModeExplicit": true,
+              "workflowProfile": "create",
+              "businessScenario": "product_detail",
+              "baseProjectId": "af8ba48b-e9ae-4f65-b0c7-8c1c7695cffa",
+              "baseRevisionId": null,
+              "assetScope": [
+                "asset-861f7caf-7b2b-4e80-aaae-a53a95fa77cc",
+                "web-52ae21ce-2a59-44e1-bb89-c0b9896c3f42"
+              ],
+              "originalRequest": "立即生成并导出成品。唯一允许使用的视觉与音频素材是用户上传的视频 asset-afb8a9ff-57d6-437c-8b12-d4581aa02240。禁止使用项目中的网络图片、外部素材、生成画面、HyperFrames 动画模板、字幕、标题、卖点文字、音乐、旁白或配音。从原片中选择连续且完整可理解的约30秒商品内容，保留该片段对应的原始音轨；进行必要的9:16主体居中构图适配和基础画质处理。输出1080x1920、30fps、高质量MP4，并生成可预览候选与最终可下载成品。",
+              "requirements": [
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "resource",
+                  "quote": "唯一允许使用的视觉与音频素材是用户上传的视频 asset-afb8a9ff-57d6-437c-8b12-d4581aa02240",
+                  "startSeconds": null,
+                  "targetIds": [],
+                  "id": "requirement-d0417b4ba45954af",
+                  "field": "resource",
+                  "inherited": false
+                },
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "prohibit",
+                  "quote": "禁止使用项目中的网络图片、外部素材、生成画面、HyperFrames 动画模板、字幕、标题、卖点文字、音乐、旁白或配音",
+                  "startSeconds": null,
+                  "targetIds": [],
+                  "id": "requirement-d5e9662bdf6e7239",
+                  "field": "sound.music",
+                  "inherited": false
+                },
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "goal",
+                  "quote": "从原片中选择连续且完整可理解的约30秒商品内容",
+                  "startSeconds": null,
+                  "targetIds": [],
+                  "id": "requirement-4f58fbf31b061610",
+                  "field": "goal",
+                  "inherited": false
+                },
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "preserve",
+                  "quote": "保留该片段对应的原始音轨",
+                  "startSeconds": null,
+                  "targetIds": [],
+                  "id": "requirement-178560be21061a78",
+                  "field": "preserve",
+                  "inherited": false
+                },
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "change",
+                  "quote": "进行必要的9:16主体居中构图适配和基础画质处理",
+                  "startSeconds": null,
+                  "targetIds": [],
+                  "id": "requirement-d6beeed09edf6497",
+                  "field": "change",
+                  "inherited": false
+                },
+                {
+                  "endSeconds": 30,
+                  "excludeIds": [],
+                  "kind": "goal",
+                  "quote": "输出1080x1920、30fps、高质量MP4",
+                  "startSeconds": 0,
+                  "targetIds": [],
+                  "id": "requirement-36da6ceae7a35b01",
+                  "field": "goal",
+                  "inherited": false
+                },
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "goal",
+                  "quote": "生成可预览候选与最终可下载成品",
+                  "startSeconds": null,
+                  "targetIds": [],
+                  "id": "requirement-16cb32f24a449cb8",
+                  "field": "goal",
+                  "inherited": false
+                }
+              ],
+              "assumptions": [
+                "沿用既有 product_detail 业务场景与 create 任务模式。",
+                "输出帧率30fps按用户明确要求处理。"
+              ],
+              "gaps": [
+                "指定视频 asset-afb8a9ff-57d6-437c-8b12-d4581aa02240 与当前素材清单不匹配。",
+                "当前无法进行人类听感确认，需候选预览阶段复核片段是否连续、完整且可理解。"
+              ],
+              "interpretation": "validated-semantic-analysis",
+              "objective": "从指定用户上传视频中选取约30秒连续商品内容，保持原始音轨并完成竖屏主体保护适配后导出成品。",
+              "contractId": "contract-2d50bf589f0f31f7",
+              "parentContractId": null,
+              "sourceRequests": [
+                "立即生成并导出成品。唯一允许使用的视觉与音频素材是用户上传的视频 asset-afb8a9ff-57d6-437c-8b12-d4581aa02240。禁止使用项目中的网络图片、外部素材、生成画面、HyperFrames 动画模板、字幕、标题、卖点文字、音乐、旁白或配音。从原片中选择连续且完整可理解的约30秒商品内容，保留该片段对应的原始音轨；进行必要的9:16主体居中构图适配和基础画质处理。输出1080x1920、30fps、高质量MP4，并生成可预览候选与最终可下载成品。"
+              ],
+              "requirementChanges": [],
+              "changeTargets": [
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "change",
+                  "quote": "进行必要的9:16主体居中构图适配和基础画质处理",
+                  "startSeconds": null,
+                  "targetIds": [],
+                  "id": "requirement-d6beeed09edf6497",
+                  "field": "change",
+                  "inherited": false
+                }
+              ],
+              "preserveTargets": [
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "preserve",
+                  "quote": "保留该片段对应的原始音轨",
+                  "startSeconds": null,
+                  "targetIds": [],
+                  "id": "requirement-178560be21061a78",
+                  "field": "preserve",
+                  "inherited": false
+                }
+              ],
+              "resourceNeeds": [
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "resource",
+                  "quote": "唯一允许使用的视觉与音频素材是用户上传的视频 asset-afb8a9ff-57d6-437c-8b12-d4581aa02240",
+                  "startSeconds": null,
+                  "targetIds": [],
+                  "id": "requirement-d0417b4ba45954af",
+                  "field": "resource",
+                  "inherited": false
+                }
+              ],
+              "prohibitions": [
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "prohibit",
+                  "quote": "禁止使用项目中的网络图片、外部素材、生成画面、HyperFrames 动画模板、字幕、标题、卖点文字、音乐、旁白或配音",
+                  "startSeconds": null,
+                  "targetIds": [],
+                  "id": "requirement-d5e9662bdf6e7239",
+                  "field": "sound.music",
+                  "inherited": false
+                }
+              ]
+            },
+            "persona": {
+              "creator": "商家／内容运营（待用户研究验证）",
+              "viewer": "首次了解商品的消费者"
+            },
+            "objective": "讲清商品结构与可信卖点",
+            "product": {
+              "id": "product-1",
+              "name": "",
+              "facts": [],
+              "price": null,
+              "cta": "",
+              "audience": null,
+              "prohibited": []
+            },
+            "output": {
+              "width": 1080,
+              "height": 1920,
+              "durationSeconds": 30,
+              "fps": 30
+            },
+            "audio": "original",
+            "mustHave": [],
+            "mustNot": [],
+            "explicitConstraints": {
+              "schemaVersion": 1,
+              "originalRequest": "立即生成并导出成品。唯一允许使用的视觉与音频素材是用户上传的视频 asset-afb8a9ff-57d6-437c-8b12-d4581aa02240。禁止使用项目中的网络图片、外部素材、生成画面、HyperFrames 动画模板、字幕、标题、卖点文字、音乐、旁白或配音。从原片中选择连续且完整可理解的约30秒商品内容，保留该片段对应的原始音轨；进行必要的9:16主体居中构图适配和基础画质处理。输出1080x1920、30fps、高质量MP4，并生成可预览候选与最终可下载成品。",
+              "narration": "required",
+              "music": "unspecified",
+              "original": "required",
+              "price": "unspecified",
+              "silent": false
+            },
+            "mediaAcquisitionPolicy": null,
+            "deliverables": [
+              "candidate_mp4",
+              "editable_project",
+              "source_index",
+              "quality_report"
+            ]
+          }
+        }
+      },
+      "idempotencyKey": "4b8f9d2654a3a41d6fc6de76b02b4577c90d8e80c07c7ed273fbff089e26d113",
+      "step": 1,
+      "durationMs": 78432
+    },
+    {
+      "tool": "assets.observe",
+      "status": "completed",
+      "result": {
+        "candidates": [
+          {
+            "assetId": "asset-861f7caf-7b2b-4e80-aaae-a53a95fa77cc",
+            "endSeconds": 30,
+            "reason": "0.75至25.75秒的加密观察显示内容从第01页连续推进至第05页，30.75秒已进入第06页；0-30秒可作为连续约30秒候选，但30秒可能位于第05/06页切换附近，且该素材并非用户唯一授权的asset-afb8a9ff-57d6-437c-8b12-d4581aa02240，因此不得直接用于成片。",
+            "startSeconds": 0
+          },
+          {
+            "assetId": "asset-861f7caf-7b2b-4e80-aaae-a53a95fa77cc",
+            "endSeconds": 60,
+            "reason": "30.75至55.75秒连续显示第06至第10页，60.75秒已进入第11页；30-60秒形成连续商品展示段，但边界可能落在页面切换附近，原声语义未确认，且素材ID不符合唯一授权约束。",
+            "startSeconds": 30
+          },
+          {
+            "assetId": "asset-861f7caf-7b2b-4e80-aaae-a53a95fa77cc",
+            "endSeconds": 120,
+            "reason": "90.75至115.75秒连续显示第16至第20页，内容由商品展示推进到收尾页，90-120秒在视觉上是最完整的约30秒收束段；但120秒末帧、原声连续性及语义完整性未获听感确认，且该素材不是用户指定的唯一授权素材。",
+            "startSeconds": 90
+          }
+        ],
+        "gaps": [
+          "唯一获准使用的asset-afb8a9ff-57d6-437c-8b12-d4581aa02240仍未出现在当前素材清单或本次加密观察中；现有观察全部来自asset-861f7caf-7b2b-4e80-aaae-a53a95fa77cc，不能擅自替换并执行成片。",
+          "本次加密观察仅确认了5秒间隔的视觉页面状态，未提供可听音频证据；无法确认任一约30秒候选的原声语义完整性、对白起止或听感质量。",
+          "横向页面的商品图、标题和说明在左右两侧反复换位，不存在覆盖全段的固定9:16中心裁切安全区；仅做固定主体居中裁切会在部分页面截断商品或原片文字，需要后续对获准素材逐段复核并采用可变构图，不能根据当前样本宣称已完成主体保护。",
+          "画面把“PURE PROTEIN”白色罐装商品与“精品咖啡豆、坚果香气、巧克力风味”等文字及棕色袋装包装并置；仅凭画面不能确认这些对象的真实商品关系或文案准确性。",
+          "网络图片web-52ae21ce-2a59-44e1-bb89-c0b9896c3f42违反唯一素材约束，不能用于候选或成片。"
+        ],
+        "inspectRanges": [],
+        "observations": [
+          {
+            "assetId": "asset-861f7caf-7b2b-4e80-aaae-a53a95fa77cc",
+            "confidence": 0.97,
+            "differentProductFrom": [],
+            "productGroup": "MORNING商品展示幻灯片；主要出现白色PURE PROTEIN罐装商品，并多次并置棕色袋装包装与咖啡主题文案，二者关系未确认",
+            "quality": "1280x720、30fps横向视频；加密抽帧中的静态页面清晰，未验证转场运动质量和音频质量",
+            "role": "overview",
+            "safeCrop": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "sameProductAs": [],
+            "subjectBox": [
+              0.01,
+              0.08,
+              0.99,
+              0.92
+            ],
+            "uncertainty": "本次证据为0.75至115.75秒、约5秒间隔抽帧，能够确认页面顺序和主体横向换位，但不能确认精确转场帧、120秒末帧、原声内容、运动画质或固定9:16裁切效果；该素材也不是用户指定的唯一授权asset。",
+            "visibleContent": "全片为横向商品展示幻灯片，观察到第01至第20页顺序推进。白色PURE PROTEIN罐在页面左侧、中央或右侧反复换位，部分页面同时出现咖啡杯、咖啡豆和棕色袋装包装；未观察到真人操作、冲泡、倒粉或其他连续实拍动作。90.75至115.75秒由第16页推进至第20页收尾，视觉叙事相对完整。",
+            "visibleText": [
+              "MORNING / 早尚",
+              "PRODUCT JOURNAL",
+              "PURE PROTEIN",
+              "把早晨，慢慢唤醒。",
+              "精品咖啡豆",
+              "坚果香气",
+              "巧克力风味",
+              "醇厚口感",
+              "从一杯好咖啡开始"
+            ]
+          },
+          {
+            "assetId": "web-52ae21ce-2a59-44e1-bb89-c0b9896c3f42",
+            "confidence": 0.99,
+            "differentProductFrom": [],
+            "productGroup": "非获准网络图片",
+            "quality": "690x80 PNG",
+            "role": "context",
+            "safeCrop": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "sameProductAs": [],
+            "subjectBox": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "uncertainty": "该资源不属于用户唯一授权视频，不能作为成片来源；其内容也不是商品画面。",
+            "visibleContent": "Google Workspace Marketplace横幅，不是商品视频素材。",
+            "visibleText": [
+              "Google Workspace Marketplace"
+            ]
+          }
+        ]
+      },
+      "idempotencyKey": "e7da56cd6f9e41e828e80ec60a0046d9f53445ad290396a097f2456d3475a733",
+      "step": 2,
+      "durationMs": 126659
+    },
+    {
+      "tool": "resources.plan",
+      "status": "completed",
+      "result": {
+        "blockingGaps": [
+          "用户唯一授权的视频 asset-afb8a9ff-57d6-437c-8b12-d4581aa02240 不在当前项目素材清单或已完成观察结果中；现有视频 asset-861f7caf-7b2b-4e80-aaae-a53a95fa77cc 不能替代，因此无法在授权范围内制作或导出成品。"
+        ],
+        "gaps": [
+          "当前仅有对其他视频的视觉抽帧观察，未对指定素材进行观察，无法选择约30秒连续且完整可理解的片段。",
+          "当前 listening.available=false，无法对指定片段进行原声语义与听感复核；原始音轨要求只能在指定素材可用后保留并复核。",
+          "现有候选资源均涉及字幕、标题、文字、模板动画或其他不符合本次禁止条件的元素，因此不选择任何候选。",
+          "无法据现有横向视频观察结果确认指定素材的9:16主体安全区、可变构图需求或基础画质处理效果。"
+        ],
+        "originalNeeds": [
+          "仅使用用户上传的视频 asset-afb8a9ff-57d6-437c-8b12-d4581aa02240 作为唯一视觉与音频来源。",
+          "禁止网络图片、外部素材、生成画面、HyperFrames动画模板、字幕、标题、卖点文字、音乐、旁白和配音。",
+          "从指定原片中选择连续且完整可理解的约30秒商品内容，并保留对应原始音轨。",
+          "完成必要的9:16主体居中构图适配和基础画质处理。",
+          "输出1080x1920、30fps、高质量MP4，并生成可预览候选、可编辑工程和最终可下载成品。"
+        ],
+        "selected": [],
+        "candidates": [
+          {
+            "id": "lt-mask-reveal",
+            "tags": [
+              "video",
+              "action",
+              "text",
+              "操作",
+              "实拍",
+              "口播",
+              "标签",
+              "文字"
+            ],
+            "inputs": [
+              "video"
+            ],
+            "description": "Transparent editable lower-third over continuing footage; no stat, price, or full-screen text takeover is required. Adapt the wipe and accent sweep to approved native text, local fonts and the managed timeline.",
+            "files": [
+              "registry/blocks/lt-mask-reveal/registry-item.json",
+              "registry/blocks/lt-mask-reveal/lt-mask-reveal.html"
+            ],
+            "requirements": {
+              "minMedia": 1,
+              "mediaKinds": [
+                "video"
+              ],
+              "maxTextCharacters": 80
+            },
+            "motionRisk": "low",
+            "compatible": true,
+            "eligible": true,
+            "score": 2,
+            "kind": "reviewed-blueprint-adapter",
+            "runtime": "0.8.33",
+            "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+          },
+          {
+            "id": "kinetic-type-beats",
+            "tags": [
+              "text",
+              "caption",
+              "文字",
+              "字幕",
+              "强调"
+            ],
+            "inputs": [
+              "text"
+            ],
+            "files": [
+              "skills/hyperframes-animation/blueprints/kinetic-type-beats.md",
+              "skills/hyperframes-animation/rules/discrete-text-sequence.md"
+            ],
+            "requirements": {
+              "minMedia": 0,
+              "mediaKinds": [],
+              "maxTextCharacters": 80
+            },
+            "motionRisk": "occluding",
+            "compatible": true,
+            "eligible": true,
+            "score": 2,
+            "kind": "reviewed-blueprint-adapter",
+            "runtime": "0.8.33",
+            "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+          },
+          {
+            "id": "caption-editorial-emphasis",
+            "tags": [
+              "caption",
+              "speech",
+              "字幕",
+              "口播",
+              "强调"
+            ],
+            "inputs": [
+              "text"
+            ],
+            "description": "Editable editorial text emphasis; align spoken captions to measured transcript timestamps, never invented timing.",
+            "files": [
+              "registry/components/caption-editorial-emphasis/registry-item.json",
+              "registry/components/caption-editorial-emphasis/caption-editorial-emphasis.html"
+            ],
+            "requirements": {
+              "minMedia": 0,
+              "mediaKinds": [],
+              "maxTextCharacters": 80
+            },
+            "motionRisk": "low",
+            "compatible": true,
+            "eligible": true,
+            "score": 1,
+            "kind": "reviewed-blueprint-adapter",
+            "runtime": "0.8.33",
+            "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+          },
+          {
+            "id": "titlecard-reveal",
+            "tags": [
+              "title",
+              "brand",
+              "text",
+              "收尾",
+              "标题"
+            ],
+            "inputs": [],
+            "files": [
+              "skills/hyperframes-animation/blueprints/titlecard-reveal.md",
+              "skills/hyperframes-animation/rules/discrete-text-sequence.md"
+            ],
+            "requirements": {
+              "minMedia": 0,
+              "mediaKinds": [],
+              "maxTextCharacters": 80
+            },
+            "motionRisk": "low",
+            "compatible": true,
+            "eligible": true,
+            "score": 1,
+            "kind": "reviewed-blueprint-adapter",
+            "runtime": "0.8.33",
+            "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+          },
+          {
+            "id": "comparison-split",
+            "tags": [
+              "compare",
+              "detail",
+              "image",
+              "比较",
+              "细节",
+              "双栏"
+            ],
+            "inputs": [
+              "visual-pair"
+            ],
+            "files": [
+              "skills/hyperframes-animation/blueprints/comparison-split.md",
+              "skills/hyperframes-animation/rules/split-tilt-cards.md",
+              "registry/components/comparison-split/registry-item.json",
+              "registry/components/comparison-split/comparison-split.html"
+            ],
+            "requirements": {
+              "minMedia": 2,
+              "mediaKinds": [],
+              "maxTextCharacters": 80
+            },
+            "motionRisk": "low",
+            "compatible": true,
+            "eligible": true,
+            "score": 1,
+            "kind": "reviewed-blueprint-adapter",
+            "runtime": "0.8.33",
+            "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+          },
+          {
+            "id": "video-text-pivot",
+            "tags": [
+              "video",
+              "action",
+              "操作",
+              "实拍",
+              "讲解"
+            ],
+            "inputs": [
+              "video"
+            ],
+            "files": [
+              "skills/hyperframes-animation/blueprints/video-text-pivot.md",
+              "skills/hyperframes-animation/rules/gsap-effects.md"
+            ],
+            "requirements": {
+              "minMedia": 1,
+              "mediaKinds": [
+                "video"
+              ],
+              "maxTextCharacters": 80
+            },
+            "motionRisk": "occluding",
+            "compatible": true,
+            "eligible": true,
+            "score": 1,
+            "kind": "reviewed-blueprint-adapter",
+            "runtime": "0.8.33",
+            "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+          },
+          {
+            "id": "grid-card-assemble",
+            "tags": [
+              "image",
+              "details",
+              "steps",
+              "参数",
+              "配件",
+              "步骤"
+            ],
+            "inputs": [],
+            "files": [
+              "skills/hyperframes-animation/blueprints/grid-card-assemble.md",
+              "skills/hyperframes-animation/rules/gsap-effects.md"
+            ],
+            "requirements": {
+              "minMedia": 0,
+              "mediaKinds": [],
+              "maxTextCharacters": 80
+            },
+            "motionRisk": "low",
+            "compatible": true,
+            "eligible": true,
+            "score": 1,
+            "kind": "reviewed-blueprint-adapter",
+            "runtime": "0.8.33",
+            "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+          }
+        ],
+        "originalRequest": "立即生成并导出成品。唯一允许使用的视觉与音频素材是用户上传的视频 asset-afb8a9ff-57d6-437c-8b12-d4581aa02240。禁止使用项目中的网络图片、外部素材、生成画面、HyperFrames 动画模板、字幕、标题、卖点文字、音乐、旁白或配音。从原片中选择连续且完整可理解的约30秒商品内容，保留该片段对应的原始音轨；进行必要的9:16主体居中构图适配和基础画质处理。输出1080x1920、30fps、高质量MP4，并生成可预览候选与最终可下载成品。",
+        "assetKinds": {
+          "asset-861f7caf-7b2b-4e80-aaae-a53a95fa77cc": "video",
+          "web-52ae21ce-2a59-44e1-bb89-c0b9896c3f42": "image"
+        }
+      },
+      "idempotencyKey": "056871aaa6b66e3d6672a58bf31b66ef8f61af5548110de2cf0cc00ac0057cdc",
+      "step": 3,
+      "durationMs": 16737
+    }
+  ],
+  "verification": null,
+  "repairCount": 0,
+  "resultRevisionId": null,
+  "status": "needs_user",
+  "steps": 4,
+  "modelCalls": 4,
+  "maxModelCalls": 128,
+  "budgetSource": "application-default",
+  "completionReserve": 0,
+  "createdAt": "2026-09-23T11:45:05.880Z",
+  "updatedAt": "2026-09-23T11:48:47.761Z",
+  "stage": "resources",
+  "modelInvocations": [
+    {
+      "number": 1,
+      "runId": "a17c72da-678d-42fc-95c4-a142f8a6245a",
+      "stage": "R1",
+      "invocation": 1,
+      "attempt": 1,
+      "model": "openclaw/commerce-stage",
+      "requestHash": "1981d4a64e405519fc7f71e894e2ea06ca63be59b98d76b1f30ead71a64eef32",
+      "sessionHash": "2786ec435ce8aaf247d2b5a2580f3f4feea33329a778a87dd0609c581e7c4a57",
+      "images": [],
+      "usage": "unknown",
+      "startedAt": "2026-09-23T11:45:05.901Z"
+    },
+    {
+      "number": 2,
+      "runId": "a17c72da-678d-42fc-95c4-a142f8a6245a",
+      "stage": "R2",
+      "invocation": 2,
+      "attempt": 1,
+      "model": "openclaw/commerce-stage",
+      "requestHash": "0f4abaf3b71fff45f586d7772eaebf943106ea8bbb7d85a61f9488dfbadce221",
+      "sessionHash": "0e61f60d93a91893ac3bc763d0d14c4fef7fc643fe68c7528b20a599c1d5fa5c",
+      "images": [
+        {
+          "ordinal": 0,
+          "messageIndex": 0,
+          "contentIndex": 2,
+          "mime": "image/jpeg",
+          "bytes": 111471,
+          "sha256": "f08e90f54880555c7711e65936bb293260066c202708e71542d5dd0afc4cc320"
+        },
+        {
+          "ordinal": 1,
+          "messageIndex": 0,
+          "contentIndex": 4,
+          "mime": "image/jpeg",
+          "bytes": 73930,
+          "sha256": "2c14ceb4db1de43e4f2ff127c91c214c7fc25fbcefac574e2e2a9e4e0426fd29"
+        },
+        {
+          "ordinal": 2,
+          "messageIndex": 0,
+          "contentIndex": 6,
+          "mime": "image/jpeg",
+          "bytes": 7813,
+          "sha256": "37899822c8a24cfca13c813e6e20367f893a39ee669e97580cf78bf66793d5f8"
+        }
+      ],
+      "usage": "unknown",
+      "startedAt": "2026-09-23T11:46:26.745Z"
+    },
+    {
+      "number": 3,
+      "runId": "a17c72da-678d-42fc-95c4-a142f8a6245a",
+      "stage": "R2",
+      "invocation": 3,
+      "attempt": 1,
+      "model": "openclaw/commerce-stage",
+      "requestHash": "c109c0999601868ef8a6c2cffcda767b8c39491551a4b1b92c7bf3f40b15e8c0",
+      "sessionHash": "d18f9ffd0a8915fb96c63d8e2b89f085f6d7ed2600121fc4074aac8f779f5440",
+      "images": [
+        {
+          "ordinal": 0,
+          "messageIndex": 0,
+          "contentIndex": 2,
+          "mime": "image/jpeg",
+          "bytes": 104599,
+          "sha256": "346fdd0b22650f8eb09ad4b52befbb6deb9e5821cdd84a9f9fe0fe7c15ad559e"
+        },
+        {
+          "ordinal": 1,
+          "messageIndex": 0,
+          "contentIndex": 4,
+          "mime": "image/jpeg",
+          "bytes": 102152,
+          "sha256": "4a59452739499cc58ba68c750f2ac11a72acafdeff2bba4b5da7859b6e24df74"
+        },
+        {
+          "ordinal": 2,
+          "messageIndex": 0,
+          "contentIndex": 6,
+          "mime": "image/jpeg",
+          "bytes": 102604,
+          "sha256": "945ad2a233c1e5bce4a11982d5e6520d5a07ff0ed8332810c996f8990b1b7541"
+        }
+      ],
+      "usage": "unknown",
+      "startedAt": "2026-09-23T11:47:19.577Z"
+    },
+    {
+      "number": 4,
+      "runId": "a17c72da-678d-42fc-95c4-a142f8a6245a",
+      "stage": "R3",
+      "invocation": 4,
+      "attempt": 1,
+      "model": "openclaw/commerce-stage",
+      "requestHash": "c75379db7b3c3fedb471a1ad6f2a9cfaf7177f5f381602bdc4d86776281c1139",
+      "sessionHash": "c90dee2d3230315d0ae1b2447278f1f6d4d5dfc877b1527fd8e22112a63f4a23",
+      "images": [],
+      "usage": "unknown",
+      "startedAt": "2026-09-23T11:48:31.028Z"
+    }
+  ],
+  "gaps": [
+    "用户唯一授权的视频 asset-afb8a9ff-57d6-437c-8b12-d4581aa02240 不在当前项目素材清单或已完成观察结果中；现有视频 asset-861f7caf-7b2b-4e80-aaae-a53a95fa77cc 不能替代，因此无法在授权范围内制作或导出成品。"
+  ]
+}

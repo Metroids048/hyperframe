@@ -1,0 +1,383 @@
+{
+  "schema_version": 2,
+  "runtime": "0.8.33",
+  "scenario_id": "product_detail",
+  "output": {
+    "width": 1080,
+    "height": 1920,
+    "durationSeconds": 45,
+    "fps": 30
+  },
+  "design_system": {
+    "background": "#F3F0E7",
+    "foreground": "#35251F",
+    "panel": "#EAD8CE",
+    "accent": "#CDAF9E",
+    "font_family": "Microsoft YaHei",
+    "motion_direction": "实拍动作承担主要变化，文字采用约0.25—0.4秒的一次淡入后稳定停留；同源观察点转换以清楚硬切或说明替换完成。跨素材用明确段落边界进入，避免动作匹配暗示同次操作。业务模板采用给定1.0.0版本，声明兼容native-v2 / HyperFrames 0.8.33；此处仅作规划选择，未验证运行。titlecard-reveal可作为克制揭示的机制参考；lt-accent-underline与lt-side-rule仅为待评估候选，现有1920×1080规格需竖屏适配，缺完整实现、字体及许可验证，不能视为已选可执行资源。后续优先将标题、说明与媒体参数化为独立原生对象，不叠加多个组件控制同一属性。",
+    "type_direction": "以奶油白#F3F0E7作为补边和独立留白、深棕#35251F作为主要文字色，暖肤色与浅粉背景沿用实拍。1080像素宽画布建议主标题60—68像素、观察说明34—38像素、场景身份及署名30—32像素，字距为0；字体可用性待后续确认。主标题清楚，辅助信息克制且保持对比，每次只显示一个观察点，通常不超过28字。瓶身文字优先置于上方留白；滴管和面部说明置于媒体外，所有文字与视频独立可编辑。"
+  },
+  "shot_bindings": [
+    {
+      "shot_id": "scene-01",
+      "commercial_purpose": "让首次观看者立即认出商品主体，并愿意继续看清包装细节。",
+      "production_method": "composition-adapt",
+      "component": "titlecard-reveal",
+      "layout": "auto",
+      "typography": {
+        "font_family": "Microsoft YaHei",
+        "title_px": 64,
+        "body_px": 36,
+        "label_px": 32,
+        "label_style": "统一无底卡、左对齐、字距0；文字块内间距16px，必要分隔线1px。标题64px、观察说明36px、场景身份与署名32px。身份说明分两行持续显示。文字约0.3秒淡入后稳定停留，不使用移动部位上的静态箭头、弹跳、闪光或循环缩放。"
+      },
+      "animation": {
+        "camera_motion": "完整源画幅固定等比容纳，原速保留实拍运动；不新增推拉。标题借鉴titlecard-reveal一次淡入。",
+        "intents": [
+          "product-reveal",
+          "natural-footage"
+        ],
+        "entrance_required": true,
+        "seek_safe": true
+      },
+      "transition": {
+        "purpose": "直接进入商品；向下一镜连续承接同源画面，只转换解释内容。",
+        "type": "cut"
+      },
+      "product_emphasis": {
+        "focus": "完整瓶体和双手构成主体，立即兑现看清细节的观看理由。",
+        "protection": "1012×1920源画面完整呈现，左右各补34px；标题避开源归一化保护区[0.1,0.2,0.9,0.72]及右侧手腕。",
+        "success_criteria": [
+          "首帧至前三秒完整瓶体、滴管头与标签均可辨，商品不被标题覆盖。",
+          "标题在0.3秒内完成入场并可连续阅读，前三秒没有纯文字遮挡商品的片头。",
+          "未出现品牌、功效、价格或人物背书内容。"
+        ]
+      },
+      "enhanced": true,
+      "resource_receipt_ref": "resource-plan.json#titlecard-reveal"
+    },
+    {
+      "shot_id": "scene-02",
+      "commercial_purpose": "帮助观众记住黑色滴管头与深棕瓶身的包装构成。",
+      "production_method": "original",
+      "component": "native-original",
+      "layout": "auto",
+      "typography": {
+        "font_family": "Microsoft YaHei",
+        "title_px": 64,
+        "body_px": 36,
+        "label_px": 32,
+        "label_style": "统一无底卡、左对齐、字距0；文字块内间距16px，必要分隔线1px。标题64px、观察说明36px、场景身份与署名32px。身份说明分两行持续显示。文字约0.3秒淡入后稳定停留，不使用移动部位上的静态箭头、弹跳、闪光或循环缩放。"
+      },
+      "animation": {
+        "camera_motion": "保持前镜媒体尺寸、位置和原速连续播放；原创文字层按上下关系依次出现，不加追踪线或局部放大。",
+        "intents": [
+          "guided-callout",
+          "spatial-layout",
+          "natural-footage"
+        ],
+        "entrance_required": true,
+        "seek_safe": true
+      },
+      "transition": {
+        "purpose": "沿用整体空间坐标，从识别商品转为理解上下部位；下一镜转向标签关系。",
+        "type": "cut"
+      },
+      "product_emphasis": {
+        "focus": "真实滴管头与瓶身的上下位置和配色。",
+        "protection": "沿用完整竖片及主体保护区，文字仅在顶部留白，不覆盖滴管头、瓶体或双手。",
+        "success_criteria": [
+          "4秒交界处媒体位置、尺度和源时间连续。",
+          "两个说明的上下排列对应真实部位，第二项完整可读不少于3秒。",
+          "包装保持完整可见，未从深色外观推导材质或保护性能。"
+        ]
+      },
+      "enhanced": true,
+      "resource_receipt_ref": null
+    },
+    {
+      "shot_id": "scene-03",
+      "commercial_purpose": "用标签轮廓与明暗对比建立第二个可核对的包装记忆点。",
+      "production_method": "composition-adapt",
+      "component": "lt-mask-reveal",
+      "layout": "auto",
+      "typography": {
+        "font_family": "Microsoft YaHei",
+        "title_px": 64,
+        "body_px": 36,
+        "label_px": 32,
+        "label_style": "统一无底卡、左对齐、字距0；文字块内间距16px，必要分隔线1px。标题64px、观察说明36px、场景身份与署名32px。身份说明分两行持续显示。文字约0.3秒淡入后稳定停留，不使用移动部位上的静态箭头、弹跳、闪光或循环缩放。"
+      },
+      "animation": {
+        "camera_motion": "维持同源画面原速和固定尺度；lt-mask-reveal仅适配说明层，采用一次短淡入，不处理或重绘标签。",
+        "intents": [
+          "detail-emphasis",
+          "guided-callout",
+          "natural-footage"
+        ],
+        "entrance_required": true,
+        "seek_safe": true
+      },
+      "transition": {
+        "purpose": "同源连续播放中把关注点从上下结构移到标签；末尾硬切划分独立护理场景。",
+        "type": "cut"
+      },
+      "product_emphasis": {
+        "focus": "真实浅色矩形标签及其与深棕瓶身的对比。",
+        "protection": "完整保留瓶体、滴管头和双手；文字位于顶部安全背景，不锐化生成不可读内容。",
+        "success_criteria": [
+          "浅色标签轮廓及周围深棕瓶身同时可见，说明不覆盖标签。",
+          "文字稳定显示3秒，末尾0.7秒回到无说明整体。",
+          "没有补写标签原文、放大重绘文字或把明暗对比解释为性能。"
+        ]
+      },
+      "enhanced": true,
+      "resource_receipt_ref": "resource-plan.json#lt-mask-reveal"
+    },
+    {
+      "shot_id": "scene-04",
+      "commercial_purpose": "回应观众对滴管细节的关注，同时清楚限定该素材的参考身份。",
+      "production_method": "composition-adapt",
+      "component": "lt-mask-reveal",
+      "layout": "auto",
+      "typography": {
+        "font_family": "Microsoft YaHei",
+        "title_px": 64,
+        "body_px": 36,
+        "label_px": 32,
+        "label_style": "统一无底卡、左对齐、字距0；文字块内间距16px，必要分隔线1px。标题64px、观察说明36px、场景身份与署名32px。身份说明分两行持续显示。文字约0.3秒淡入后稳定停留，不使用移动部位上的静态箭头、弹跳、闪光或循环缩放。"
+      },
+      "animation": {
+        "camera_motion": "原速播放完整竖片，固定等比容纳约854×1620；不慢放、不放大追踪管尖，说明层采用既定lt-mask-reveal适配。",
+        "intents": [
+          "detail-emphasis",
+          "spatial-layout",
+          "natural-footage"
+        ],
+        "entrance_required": true,
+        "seek_safe": true
+      },
+      "transition": {
+        "purpose": "从瓶身外观硬切至明确标识的独立细节素材，阻断连续取液的错误联想。",
+        "type": "cut"
+      },
+      "product_emphasis": {
+        "focus": "透明滴管尖端、液滴状轮廓及掌面位置关系。",
+        "protection": "完整竖片顶部容纳，底部独立文字区；保护源归一化[0,0,1,0.9]，不进一步裁掉管体或掌缘。",
+        "success_criteria": [
+          "管尖至掌面的空间完整可见，媒体未被文字遮挡或进一步裁切。",
+          "12—19秒每一帧均保留独立场景身份说明，底部文字区全部可读。",
+          "原速源画面未复制液滴、冻结或变速，文案未声称本品内容物、滴数或黏度。"
+        ]
+      },
+      "enhanced": true,
+      "resource_receipt_ref": "resource-plan.json#lt-mask-reveal"
+    },
+    {
+      "shot_id": "scene-05",
+      "commercial_purpose": "为详情观看补充可辨认的面部护理场景语境。",
+      "production_method": "composition-adapt",
+      "component": "lt-mask-reveal",
+      "layout": "auto",
+      "typography": {
+        "font_family": "Microsoft YaHei",
+        "title_px": 64,
+        "body_px": 36,
+        "label_px": 32,
+        "label_style": "统一无底卡、左对齐、字距0；文字块内间距16px，必要分隔线1px。标题64px、观察说明36px、场景身份与署名32px。身份说明分两行持续显示。文字约0.3秒淡入后稳定停留，不使用移动部位上的静态箭头、弹跳、闪光或循环缩放。"
+      },
+      "animation": {
+        "camera_motion": "1920×1012横片完整等比容纳为1080×569.25，约置于y=610，固定位置原速播放；lt-mask-reveal仅作用于媒体外说明。",
+        "intents": [
+          "natural-footage",
+          "spatial-layout"
+        ],
+        "entrance_required": true,
+        "seek_safe": true
+      },
+      "transition": {
+        "purpose": "硬切进入另一独立场景，不把掌上滴管与面部素材接成同次操作；下一镜保持本源连续。",
+        "type": "cut"
+      },
+      "product_emphasis": {
+        "focus": "滴管与面颊的实际位置变化，横片承担全部动作信息。",
+        "protection": "源归一化[0,0,1,1]完整保留，所有文字置于媒体下方留白，避开脸部和手部。",
+        "success_criteria": [
+          "脸部、手和滴管均在完整横片内可见，没有满屏竖裁或拉伸。",
+          "身份说明全程可读，观察说明不持续覆盖滴管已离开面部后的无关画面。",
+          "没有商品与人物并列背书、用量说明或功效文字。"
+        ]
+      },
+      "enhanced": true,
+      "resource_receipt_ref": "resource-plan.json#lt-mask-reveal"
+    },
+    {
+      "shot_id": "scene-06",
+      "commercial_purpose": "让观众看懂独立护理场景中的手掌接触过程。",
+      "production_method": "composition-adapt",
+      "component": "lt-mask-reveal",
+      "layout": "auto",
+      "typography": {
+        "font_family": "Microsoft YaHei",
+        "title_px": 64,
+        "body_px": 36,
+        "label_px": 32,
+        "label_style": "统一无底卡、左对齐、字距0；文字块内间距16px，必要分隔线1px。标题64px、观察说明36px、场景身份与署名32px。身份说明分两行持续显示。文字约0.3秒淡入后稳定停留，不使用移动部位上的静态箭头、弹跳、闪光或循环缩放。"
+      },
+      "animation": {
+        "camera_motion": "承接上一镜的横片尺寸与位置，源4.5—12秒原速连续播放；只更新独立说明层，不改变画面取景。",
+        "intents": [
+          "natural-footage",
+          "guided-callout"
+        ],
+        "entrance_required": true,
+        "seek_safe": true
+      },
+      "transition": {
+        "purpose": "从滴管离开连续进入手部接触，仅更换说明；下一镜继续跟随指尖位置变化。",
+        "type": "cut"
+      },
+      "product_emphasis": {
+        "focus": "手掌接触鼻侧和面颊的真实过程。",
+        "protection": "保持完整横片与既定位置，不抹除手部造成的真实遮挡，不改变皮肤反光。",
+        "success_criteria": [
+          "23.5秒交界处媒体源时间和空间位置连续，没有动作跳步或变速。",
+          "接触过程可辨，文字不覆盖操作手、鼻侧或面颊，身份说明无闪断。",
+          "没有动作编号、按摩方向、力度、吸收或前后效果比较。"
+        ]
+      },
+      "enhanced": true,
+      "resource_receipt_ref": "resource-plan.json#lt-mask-reveal"
+    },
+    {
+      "shot_id": "scene-07",
+      "commercial_purpose": "帮助观众辨认前段护理场景中指尖接触位置的收束变化。",
+      "production_method": "composition-adapt",
+      "component": "lt-mask-reveal",
+      "layout": "auto",
+      "typography": {
+        "font_family": "Microsoft YaHei",
+        "title_px": 64,
+        "body_px": 36,
+        "label_px": 32,
+        "label_style": "统一无底卡、左对齐、字距0；文字块内间距16px，必要分隔线1px。标题64px、观察说明36px、场景身份与署名32px。身份说明分两行持续显示。文字约0.3秒淡入后稳定停留，不使用移动部位上的静态箭头、弹跳、闪光或循环缩放。"
+      },
+      "animation": {
+        "camera_motion": "保持完整横片固定构图，原速延续指尖运动；不加引导线或跟随式数字推拉，说明沿用既定适配机制。",
+        "intents": [
+          "natural-footage",
+          "guided-callout"
+        ],
+        "entrance_required": true,
+        "seek_safe": true
+      },
+      "transition": {
+        "purpose": "连续承接接触过程；下一镜以明确后段节选标识承认源时间省略。",
+        "type": "cut"
+      },
+      "product_emphasis": {
+        "focus": "指尖相对下部面颊及下巴的位置变化。",
+        "protection": "脸部与下巴附近手指完整保留，文字在媒体外，不遮挡真实接触位置。",
+        "success_criteria": [
+          "31秒源画面连续，指尖及下巴附近区域完整可见。",
+          "观察说明稳定可读不少于3秒，身份说明无中断。",
+          "画面和字幕均未把位置变化解释为标准步骤、完成状态或使用效果。"
+        ]
+      },
+      "enhanced": true,
+      "resource_receipt_ref": "resource-plan.json#lt-mask-reveal"
+    },
+    {
+      "shot_id": "scene-08",
+      "commercial_purpose": "以清楚标识的动作退出结束护理参考段，为回到商品做好信息收束。",
+      "production_method": "composition-adapt",
+      "component": "lt-mask-reveal",
+      "layout": "auto",
+      "typography": {
+        "font_family": "Microsoft YaHei",
+        "title_px": 64,
+        "body_px": 36,
+        "label_px": 32,
+        "label_style": "统一无底卡、左对齐、字距0；文字块内间距16px，必要分隔线1px。标题64px、观察说明36px、场景身份与署名32px。身份说明分两行持续显示。文字约0.3秒淡入后稳定停留，不使用移动部位上的静态箭头、弹跳、闪光或循环缩放。"
+      },
+      "animation": {
+        "camera_motion": "固定完整横片尺寸和位置，源20—26秒原速播放；保留真实手部退出，不冻结、延长凝视或增加皮肤特写。",
+        "intents": [
+          "natural-footage",
+          "spatial-layout"
+        ],
+        "entrance_required": true,
+        "seek_safe": true
+      },
+      "transition": {
+        "purpose": "硬切明确同源时间省略，保留后段退出信息；随后返回商品而非停在人像上形成背书。",
+        "type": "cut"
+      },
+      "product_emphasis": {
+        "focus": "手部逐渐退出面部区域的实际变化。",
+        "protection": "完整横片持续容纳，不裁为皮肤高光特写，不改变人物肤色或面部状态。",
+        "success_criteria": [
+          "34.5秒跳至源20秒时，后段节选标识立即可见。",
+          "手部退出过程按源片原速呈现，没有重复前段、冻结或追加人物停留。",
+          "全段保留身份说明，40.5秒准时返回瓶身，不出现完成、吸收或推荐文案。"
+        ]
+      },
+      "enhanced": true,
+      "resource_receipt_ref": "resource-plan.json#lt-mask-reveal"
+    },
+    {
+      "shot_id": "scene-09",
+      "commercial_purpose": "将观众对包装的印象转为继续查看详情的中性下一步行动。",
+      "production_method": "composition-adapt",
+      "component": "titlecard-reveal",
+      "layout": "auto",
+      "typography": {
+        "font_family": "Microsoft YaHei",
+        "title_px": 64,
+        "body_px": 36,
+        "label_px": 32,
+        "label_style": "统一无底卡、左对齐、字距0；文字块内间距16px，必要分隔线1px。标题64px、观察说明36px、场景身份与署名32px。身份说明分两行持续显示。文字约0.3秒淡入后稳定停留，不使用移动部位上的静态箭头、弹跳、闪光或循环缩放。"
+      },
+      "animation": {
+        "camera_motion": "恢复开场完整竖片尺度和位置，源21.5—26秒原速播放；titlecard-reveal仅用于CTA与署名的一次轻淡入。",
+        "intents": [
+          "product-reveal",
+          "brand-system",
+          "natural-footage"
+        ],
+        "entrance_required": true,
+        "seek_safe": true
+      },
+      "transition": {
+        "purpose": "从护理参考回到唯一商品主体，闭合整体与细节关系；商品、CTA和署名保持至结束。",
+        "type": "cut"
+      },
+      "product_emphasis": {
+        "focus": "完整瓶体重新成为视觉中心，回顾前述配色和标签关系。",
+        "protection": "1012×1920源画面完整呈现，左右各补34px；文字避开主体保护区及右侧手腕。",
+        "success_criteria": [
+          "40.5秒返回完整瓶体，黑色滴管头、深棕瓶身与浅色标签同时可辨。",
+          "CTA严格为“查看详情”，署名严格为“Ron Lach / Pexels”，两者自40.8秒至最后一帧保持清楚可读。",
+          "CTA、署名不遮挡瓶体、双手或手腕，最后一帧没有空白尾卡或提前淡黑。",
+          "没有新增品牌标识、购买链接、价格、优惠、适用人群或权利通过声明。"
+        ]
+      },
+      "enhanced": true,
+      "resource_receipt_ref": "resource-plan.json#titlecard-reveal"
+    }
+  ],
+  "differentiation_budget": {
+    "total_shots": 9,
+    "enhanced_shots": 9,
+    "dynamic_typography_shots": 0,
+    "product_emphasis_shots": 7,
+    "advanced_ratio": 1
+  },
+  "rules": [
+    "镜头目的先于组件选择",
+    "静态 hero frame 先于动画",
+    "商品主体与动作保护优先",
+    "只使用可执行且有回执的资源",
+    "动效必须可 seek 且有限"
+  ]
+}

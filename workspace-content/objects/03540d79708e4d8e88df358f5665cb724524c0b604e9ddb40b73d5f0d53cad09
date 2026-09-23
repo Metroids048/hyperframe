@@ -1,0 +1,177 @@
+{
+  "message": "刚才那个标题小一点",
+  "baseRevisionId": "rev-5ae4b1391b7f1792",
+  "routeDecision": {
+    "mode": "edit",
+    "source": "local-native-text",
+    "quote": "刚才那个标题小一点",
+    "question": "",
+    "revisionId": null,
+    "assetIds": [],
+    "version": 1,
+    "message": "刚才那个标题小一点",
+    "scenario": "product_collection",
+    "targets": [
+      {
+        "id": "node-955788d805f23f36",
+        "kind": "text",
+        "operation": "update_text_style"
+      }
+    ],
+    "preserve": [
+      "unmentioned-objects",
+      "source-assets",
+      "revision-history"
+    ],
+    "executionStrategy": "L1",
+    "confidence": 1,
+    "reason": "只调整当前指定文字的样式，保留其他对象、镜头和声音。",
+    "fallback": {
+      "version": 1,
+      "categories": [
+        "missing_evidence",
+        "ambiguous_target",
+        "unsupported_capability",
+        "resource_incompatible",
+        "provider_unavailable",
+        "quality_failure",
+        "revision_conflict"
+      ],
+      "maxReplans": 2,
+      "identicalFailureLimit": 2,
+      "preserveCurrentRevision": true,
+      "allowSilentSubstitution": false,
+      "steps": [
+        "retry-same-capability",
+        "safe-equivalent-execution",
+        "retain-valid-revision",
+        "report-failed-targets",
+        "repair-only-gap"
+      ],
+      "classifiers": [
+        [
+          "revision_conflict",
+          "REVISION_CONFLICT|STALE_REVISION"
+        ],
+        [
+          "provider_unavailable",
+          "^(MINIMAX_|CODEX_|PROVIDER_)"
+        ],
+        [
+          "resource_incompatible",
+          "RESOURCE_|INCOMPATIBLE"
+        ],
+        [
+          "unsupported_capability",
+          "UNSUPPORTED|CAPABILITY|VOICE_NOT_FOUND"
+        ],
+        [
+          "ambiguous_target",
+          "AMBIGUOUS|SCOPE|TARGET|CONFLICT|CAPTION_ALIGNMENT_REQUIRED"
+        ],
+        [
+          "missing_evidence",
+          "MISSING|NEEDS_INPUT|INSUFFICIENT|SPEECH_SCRIPT_REQUIRED|NO_SPEECH|NO_CAPTION_AUDIO"
+        ]
+      ]
+    },
+    "baseRevisionId": "rev-5ae4b1391b7f1792",
+    "selectedSkills": [
+      "visual-composition",
+      "hyperframes",
+      "conversation-edit"
+    ],
+    "skillReasons": {
+      "visual-composition": [
+        "operation:update_text_style",
+        "target:text"
+      ],
+      "conversation-edit": [
+        "request-evidence",
+        "existing-revision"
+      ],
+      "hyperframes": [
+        "native-document"
+      ]
+    },
+    "requestedTargets": [
+      {
+        "id": "node-955788d805f23f36",
+        "kind": "text",
+        "operation": "update_text_style"
+      }
+    ]
+  },
+  "changeReceipt": {
+    "baseRevision": "rev-5ae4b1391b7f1792",
+    "userRequest": "刚才那个标题小一点",
+    "targetSet": [
+      {
+        "type": "update_text_style",
+        "id": "node-955788d805f23f36"
+      }
+    ],
+    "preserveSet": [
+      "audioGraph",
+      "captions",
+      "transitions",
+      "untargeted-content",
+      "output"
+    ],
+    "changeSet": [
+      {
+        "type": "update_text_style",
+        "nodeId": "node-955788d805f23f36",
+        "params": {
+          "fontSize": 68
+        }
+      }
+    ],
+    "validation": {
+      "passed": true,
+      "checks": [
+        {
+          "field": "audioGraph",
+          "passed": true
+        },
+        {
+          "field": "captions",
+          "passed": true
+        },
+        {
+          "field": "transitions",
+          "passed": true
+        },
+        {
+          "field": "untargeted-content",
+          "passed": true
+        },
+        {
+          "field": "output",
+          "passed": true
+        }
+      ]
+    },
+    "newRevision": "rev-5ce8dc7ba0465a5c"
+  },
+  "mode": "local-native-text",
+  "operations": [
+    {
+      "type": "update_text_style",
+      "nodeId": "node-955788d805f23f36",
+      "params": {
+        "fontSize": 68
+      }
+    }
+  ],
+  "summary": "只调整当前指定文字的样式，保留其他对象、镜头和声音。",
+  "requestedOperations": [
+    {
+      "type": "update_text_style",
+      "nodeId": "node-955788d805f23f36",
+      "params": {
+        "fontSize": 68
+      }
+    }
+  ]
+}

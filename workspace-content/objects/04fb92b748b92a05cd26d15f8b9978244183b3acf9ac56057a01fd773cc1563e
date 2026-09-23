@@ -1,0 +1,52 @@
+import hashlib
+import json
+import re
+import subprocess
+import urllib.request
+from datetime import datetime, timezone
+from pathlib import Path
+
+root = Path(__file__).resolve().parents[2]
+evidence = Path(__file__).resolve().parent
+project_id = '0f1a3c3b-f074-4fc1-be65-838d01d2d628'
+base = 'http://127.0.0.1:3024'
+project = json.load(urllib.request.urlopen(f'{base}/api/commerce/{project_id}'))['project']
+revision = next(item for item in project['revisions'] if item['id'] == project['currentRevisionId'])
+assert revision['id'] != 'rev-9a01aff661cef84d', 'incorrect title revision cannot be delivered'
+assert revision['rendered'] and revision['historyPackaged'], 'video and history package must both exist'
+project_dir = root / 'data/result-completion-projects' / project_id
+version = project_dir / revision['directory']
+document = json.loads((version / 'document.json').read_text())
+assert len(document['nodes']) == 1 and document['nodes'][0]['kind'] == 'video'
+assert not document.get('audioGraph') and not document.get('captions')
+assert document['durationFrames'] == 900
+video = version / 'commerce-final.mp4'
+source = project_dir / 'uploads/asset-f7a10c49-ff07-44df-965f-18c67df7efe0.mp4'
+ffmpeg = root / 'node_modules/@ffmpeg-installer/darwin-arm64/ffmpeg'
+ffprobe = root / 'node_modules/@ffprobe-installer/darwin-arm64/ffprobe'
+metadata = json.loads(subprocess.check_output([str(ffprobe), '-v', 'error', '-show_streams', '-show_format', '-of', 'json', str(video)]))
+streams = metadata['streams']
+assert len(streams) == 1 and streams[0]['codec_type'] == 'video'
+stream = streams[0]
+assert (stream['codec_name'], stream['width'], stream['height'], stream['avg_frame_rate'], int(stream['nb_frames'])) == ('h264', 1080, 1920, '30/1', 900)
+assert abs(float(metadata['format']['duration']) - 30) < 1/30
+decode = subprocess.run([str(ffmpeg), '-v', 'error', '-i', str(video), '-f', 'null', '-'], capture_output=True, text=True)
+assert decode.returncode == 0 and not decode.stderr, decode.stderr
+similarity = subprocess.run([str(ffmpeg), '-v', 'info', '-i', str(source), '-i', str(video), '-lavfi', f'ssim=stats_file={evidence}/source-output-ssim.log', '-f', 'null', '-'], capture_output=True, text=True)
+assert similarity.returncode == 0, similarity.stderr[-2000:]
+scores = [float(value) for value in re.findall(r'All:([0-9.]+)', (evidence / 'source-output-ssim.log').read_text())]
+assert len(scores) == 900 and min(scores) > 0.97 and sum(scores)/len(scores) > 0.99, {'frames':len(scores),'minimum':min(scores),'mean':sum(scores)/len(scores)}
+downloads = []
+for name, url in [('commerce-final.mp4', revision['videoUrl']+'?download=1'), ('history.zip', revision['packageUrl']+'?download=1')]:
+    with urllib.request.urlopen(url) as response:
+        digest = hashlib.sha256()
+        received = 0
+        while chunk := response.read(1024*1024):
+            digest.update(chunk)
+            received += len(chunk)
+        local_hash = hashlib.sha256((version / name).read_bytes()).hexdigest()
+        assert response.status == 200 and digest.hexdigest() == local_hash
+        downloads.append({'name':name,'url':url,'bytes':received,'sha256':local_hash,'httpStatus':response.status})
+report = {'checkedAt':datetime.now(timezone.utc).isoformat(),'projectId':project_id,'revisionId':revision['id'],'sourceSha256':hashlib.sha256(source.read_bytes()).hexdigest(),'metadata':{'codec':stream['codec_name'],'width':1080,'height':1920,'fps':30,'frames':900,'durationSeconds':30,'audioTracks':0},'nativeNodes':[{'kind':node['kind'],'assetId':node.get('assetId')} for node in document['nodes']],'fullDecode':'passed','sourceComparison':{'frames':len(scores),'minimumSSIM':min(scores),'meanSSIM':sum(scores)/len(scores)},'downloads':downloads,'humanAcceptance':'not-claimed','browserPlayback':'separate-check','historyReopen':'separate-check'}
+(evidence / 'delivery-verification.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')
+print(json.dumps(report,ensure_ascii=False,indent=2))
