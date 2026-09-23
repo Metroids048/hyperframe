@@ -1,0 +1,643 @@
+{
+  "message": "根据实际MP4质量报告执行一次局部导演修复。只处理这些问题：[{\"severity\":\"blocker\",\"dimension\":\"product_exposure\",\"score\":14,\"problem\":\"product_exposure 低于商业最低线 65\",\"repair\":\"只修改与 product_exposure 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"first_three_seconds\",\"score\":0,\"problem\":\"first_three_seconds 低于商业最低线 65\",\"repair\":\"只修改与 first_three_seconds 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"pacing\",\"score\":0,\"problem\":\"pacing 低于商业最低线 65\",\"repair\":\"只修改与 pacing 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"captions\",\"score\":0,\"problem\":\"captions 低于商业最低线 65\",\"repair\":\"只修改与 captions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"motion\",\"score\":0,\"problem\":\"motion 低于商业最低线 65\",\"repair\":\"只修改与 motion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"transitions\",\"score\":14,\"problem\":\"transitions 低于商业最低线 65\",\"repair\":\"只修改与 transitions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"audio\",\"score\":25,\"problem\":\"audio 低于商业最低线 65\",\"repair\":\"只修改与 audio 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"commercial_conversion\",\"score\":0,\"problem\":\"commercial_conversion 低于商业最低线 65\",\"repair\":\"只修改与 commercial_conversion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"}]。参考建议：[\"只修改与 product_exposure 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 first_three_seconds 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 pacing 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 captions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 motion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 transitions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 audio 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 commercial_conversion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"]。保留未涉及镜头、素材源区间、商品事实、声音和历史；不要整片重做。",
+  "baseRevisionId": "rev-b4bf5b896748d1c9",
+  "routeDecision": {
+    "mode": "edit",
+    "source": "model",
+    "targets": [
+      {
+        "id": "video-asset-1244ea15-654a-4893-97ed-40725a2d67c5",
+        "kind": "timeline",
+        "operation": "update_media"
+      },
+      {
+        "id": "scene-01-uploaded-source",
+        "kind": "timeline",
+        "operation": "set_scene_effect"
+      }
+    ],
+    "requestedTargets": [],
+    "reason": "基于当前工程只能做最小可执行修复：将唯一视频节点从 cover 调整为 contain，优先解决 product_exposure 与 first_three_seconds 中可能因裁切导致的主体不可见问题；同时把唯一场景效果切换为 product-reveal，在不改变素材源区间、原时长和工程历史的前提下补强首屏商品呈现与基础运动。当前版本没有可拆分后可引用的新场景ID、没有字幕节点、没有音轨、没有可用有声音素材、没有转场对象，也没有 custom-native 源码包，因此 captions、audio、transitions 相关问题只能记录为结构性缺口，不能伪造字幕、声音或转场。未修改素材 assetId、源起点、播放率、总时长、画幅、商品事实和历史。",
+    "version": 1,
+    "message": "根据实际MP4质量报告执行一次局部导演修复。只处理这些问题：[{\"severity\":\"blocker\",\"dimension\":\"product_exposure\",\"score\":14,\"problem\":\"product_exposure 低于商业最低线 65\",\"repair\":\"只修改与 product_exposure 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"first_three_seconds\",\"score\":0,\"problem\":\"first_three_seconds 低于商业最低线 65\",\"repair\":\"只修改与 first_three_seconds 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"pacing\",\"score\":0,\"problem\":\"pacing 低于商业最低线 65\",\"repair\":\"只修改与 pacing 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"captions\",\"score\":0,\"problem\":\"captions 低于商业最低线 65\",\"repair\":\"只修改与 captions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"motion\",\"score\":0,\"problem\":\"motion 低于商业最低线 65\",\"repair\":\"只修改与 motion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"transitions\",\"score\":14,\"problem\":\"transitions 低于商业最低线 65\",\"repair\":\"只修改与 transitions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"audio\",\"score\":25,\"problem\":\"audio 低于商业最低线 65\",\"repair\":\"只修改与 audio 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"commercial_conversion\",\"score\":0,\"problem\":\"commercial_conversion 低于商业最低线 65\",\"repair\":\"只修改与 commercial_conversion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"}]。参考建议：[\"只修改与 product_exposure 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 first_three_seconds 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 pacing 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 captions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 motion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 transitions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 audio 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 commercial_conversion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"]。保留未涉及镜头、素材源区间、商品事实、声音和历史；不要整片重做。",
+    "scenario": "general",
+    "preserve": [
+      "unmentioned-objects",
+      "source-assets",
+      "revision-history"
+    ],
+    "executionStrategy": "L2",
+    "confidence": 0.8,
+    "fallback": {
+      "version": 1,
+      "categories": [
+        "missing_evidence",
+        "ambiguous_target",
+        "unsupported_capability",
+        "resource_incompatible",
+        "provider_unavailable",
+        "quality_failure",
+        "revision_conflict"
+      ],
+      "maxReplans": 2,
+      "identicalFailureLimit": 2,
+      "preserveCurrentRevision": true,
+      "allowSilentSubstitution": false,
+      "steps": [
+        "retry-same-capability",
+        "safe-equivalent-execution",
+        "retain-valid-revision",
+        "report-failed-targets",
+        "repair-only-gap"
+      ],
+      "classifiers": [
+        [
+          "revision_conflict",
+          "REVISION_CONFLICT|STALE_REVISION"
+        ],
+        [
+          "provider_unavailable",
+          "^(MINIMAX_|CODEX_|PROVIDER_)"
+        ],
+        [
+          "resource_incompatible",
+          "RESOURCE_|INCOMPATIBLE"
+        ],
+        [
+          "unsupported_capability",
+          "UNSUPPORTED|CAPABILITY|VOICE_NOT_FOUND"
+        ],
+        [
+          "ambiguous_target",
+          "AMBIGUOUS|SCOPE|TARGET|CONFLICT|CAPTION_ALIGNMENT_REQUIRED"
+        ],
+        [
+          "missing_evidence",
+          "MISSING|NEEDS_INPUT|INSUFFICIENT|SPEECH_SCRIPT_REQUIRED|NO_SPEECH|NO_CAPTION_AUDIO"
+        ]
+      ]
+    },
+    "baseRevisionId": "rev-b4bf5b896748d1c9",
+    "selectedSkills": [
+      "timeline-edit",
+      "speech-captions",
+      "visual-composition",
+      "audio-mix",
+      "rough-cut",
+      "hyperframes",
+      "hyperframes-animation",
+      "commerce-promo",
+      "conversation-edit"
+    ],
+    "skillReasons": {
+      "visual-composition": [
+        "operation:update_media",
+        "operation:set_scene_effect",
+        "request-evidence"
+      ],
+      "hyperframes-animation": [
+        "operation:set_scene_effect",
+        "request-evidence"
+      ],
+      "timeline-edit": [
+        "target:timeline",
+        "target:timeline",
+        "request-evidence"
+      ],
+      "speech-captions": [
+        "request-evidence"
+      ],
+      "audio-mix": [
+        "request-evidence"
+      ],
+      "rough-cut": [
+        "request-evidence"
+      ],
+      "commerce-promo": [
+        "request-evidence"
+      ],
+      "conversation-edit": [
+        "request-evidence",
+        "existing-revision"
+      ],
+      "hyperframes": [
+        "native-document"
+      ]
+    }
+  },
+  "changeReceipt": {
+    "baseRevision": "rev-b4bf5b896748d1c9",
+    "userRequest": "根据实际MP4质量报告执行一次局部导演修复。只处理这些问题：[{\"severity\":\"blocker\",\"dimension\":\"product_exposure\",\"score\":14,\"problem\":\"product_exposure 低于商业最低线 65\",\"repair\":\"只修改与 product_exposure 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"first_three_seconds\",\"score\":0,\"problem\":\"first_three_seconds 低于商业最低线 65\",\"repair\":\"只修改与 first_three_seconds 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"pacing\",\"score\":0,\"problem\":\"pacing 低于商业最低线 65\",\"repair\":\"只修改与 pacing 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"captions\",\"score\":0,\"problem\":\"captions 低于商业最低线 65\",\"repair\":\"只修改与 captions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"motion\",\"score\":0,\"problem\":\"motion 低于商业最低线 65\",\"repair\":\"只修改与 motion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"transitions\",\"score\":14,\"problem\":\"transitions 低于商业最低线 65\",\"repair\":\"只修改与 transitions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"audio\",\"score\":25,\"problem\":\"audio 低于商业最低线 65\",\"repair\":\"只修改与 audio 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"commercial_conversion\",\"score\":0,\"problem\":\"commercial_conversion 低于商业最低线 65\",\"repair\":\"只修改与 commercial_conversion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"}]。参考建议：[\"只修改与 product_exposure 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 first_three_seconds 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 pacing 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 captions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 motion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 transitions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 audio 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 commercial_conversion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"]。保留未涉及镜头、素材源区间、商品事实、声音和历史；不要整片重做。",
+    "targetSet": [
+      {
+        "type": "update_media",
+        "id": "video-asset-1244ea15-654a-4893-97ed-40725a2d67c5"
+      },
+      {
+        "type": "set_scene_effect",
+        "id": "scene-01-uploaded-source"
+      }
+    ],
+    "preserveSet": [
+      "audioGraph",
+      "captions",
+      "transitions",
+      "untargeted-content",
+      "output"
+    ],
+    "changeSet": [
+      {
+        "nodeId": "video-asset-1244ea15-654a-4893-97ed-40725a2d67c5",
+        "sceneIds": [],
+        "type": "update_media",
+        "params": {
+          "fit": "contain",
+          "sourceStartSeconds": 0,
+          "playbackRate": 1
+        }
+      },
+      {
+        "effect": "product-reveal",
+        "sceneId": "scene-01-uploaded-source",
+        "sceneIds": [],
+        "type": "set_scene_effect",
+        "params": {}
+      }
+    ],
+    "changedFields": [
+      "nodes",
+      "scenes"
+    ],
+    "validation": {
+      "passed": true,
+      "checks": [
+        {
+          "field": "audioGraph",
+          "passed": true
+        },
+        {
+          "field": "captions",
+          "passed": true
+        },
+        {
+          "field": "transitions",
+          "passed": true
+        },
+        {
+          "field": "untargeted-content",
+          "passed": true
+        },
+        {
+          "field": "output",
+          "passed": true
+        }
+      ]
+    },
+    "newRevision": "rev-509e8f329bab5311"
+  },
+  "workflow": {
+    "version": 1,
+    "taskMode": "edit",
+    "taskModeExplicit": false,
+    "workflowProfile": "edit",
+    "businessScenario": "general",
+    "baseProjectId": "90e01cc8-4fa6-41d0-a829-6cfd757e15fe",
+    "baseRevisionId": "rev-b4bf5b896748d1c9",
+    "assetScope": [
+      "asset-1244ea15-654a-4893-97ed-40725a2d67c5"
+    ],
+    "originalRequest": "根据实际MP4质量报告执行一次局部导演修复。只处理这些问题：[{\"severity\":\"blocker\",\"dimension\":\"product_exposure\",\"score\":14,\"problem\":\"product_exposure 低于商业最低线 65\",\"repair\":\"只修改与 product_exposure 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"first_three_seconds\",\"score\":0,\"problem\":\"first_three_seconds 低于商业最低线 65\",\"repair\":\"只修改与 first_three_seconds 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"pacing\",\"score\":0,\"problem\":\"pacing 低于商业最低线 65\",\"repair\":\"只修改与 pacing 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"captions\",\"score\":0,\"problem\":\"captions 低于商业最低线 65\",\"repair\":\"只修改与 captions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"motion\",\"score\":0,\"problem\":\"motion 低于商业最低线 65\",\"repair\":\"只修改与 motion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"transitions\",\"score\":14,\"problem\":\"transitions 低于商业最低线 65\",\"repair\":\"只修改与 transitions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"audio\",\"score\":25,\"problem\":\"audio 低于商业最低线 65\",\"repair\":\"只修改与 audio 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"commercial_conversion\",\"score\":0,\"problem\":\"commercial_conversion 低于商业最低线 65\",\"repair\":\"只修改与 commercial_conversion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"}]。参考建议：[\"只修改与 product_exposure 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 first_three_seconds 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 pacing 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 captions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 motion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 transitions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 audio 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 commercial_conversion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"]。保留未涉及镜头、素材源区间、商品事实、声音和历史；不要整片重做。",
+    "requirements": [
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "根据实际MP4质量报告执行一次局部导演修复",
+        "startSeconds": null,
+        "targetIds": [
+          "scene-01-uploaded-source",
+          "video-asset-1244ea15-654a-4893-97ed-40725a2d67c5"
+        ],
+        "id": "requirement-ffb9312f7b9e488b",
+        "field": "change",
+        "inherited": false
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "只处理这些问题",
+        "startSeconds": null,
+        "targetIds": [
+          "scene-01-uploaded-source",
+          "video-asset-1244ea15-654a-4893-97ed-40725a2d67c5"
+        ],
+        "id": "requirement-91c8ad32c5a157c3",
+        "field": "change",
+        "inherited": false
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "只修改与 product_exposure 相关的 DirectorTimeline 镜头和对象",
+        "startSeconds": null,
+        "targetIds": [
+          "video-asset-1244ea15-654a-4893-97ed-40725a2d67c5"
+        ],
+        "id": "requirement-dbc05062ffba564b",
+        "field": "change",
+        "inherited": false
+      },
+      {
+        "endSeconds": 3,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "只修改与 first_three_seconds 相关的 DirectorTimeline 镜头和对象",
+        "startSeconds": 0,
+        "targetIds": [
+          "scene-01-uploaded-source",
+          "video-asset-1244ea15-654a-4893-97ed-40725a2d67c5"
+        ],
+        "id": "requirement-343a089c3b452af9",
+        "field": "change",
+        "inherited": false
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "只修改与 pacing 相关的 DirectorTimeline 镜头和对象",
+        "startSeconds": null,
+        "targetIds": [
+          "scene-01-uploaded-source"
+        ],
+        "id": "requirement-0d6e7cad4b3958a8",
+        "field": "change",
+        "inherited": false
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "只修改与 captions 相关的 DirectorTimeline 镜头和对象",
+        "startSeconds": null,
+        "targetIds": [],
+        "id": "requirement-e6df72547fe26d9f",
+        "field": "change",
+        "inherited": false
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "只修改与 motion 相关的 DirectorTimeline 镜头和对象",
+        "startSeconds": null,
+        "targetIds": [
+          "scene-01-uploaded-source"
+        ],
+        "id": "requirement-12853728246aa48b",
+        "field": "change",
+        "inherited": false
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "只修改与 transitions 相关的 DirectorTimeline 镜头和对象",
+        "startSeconds": null,
+        "targetIds": [],
+        "id": "requirement-0efaffc25457db9d",
+        "field": "change",
+        "inherited": false
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "只修改与 audio 相关的 DirectorTimeline 镜头和对象",
+        "startSeconds": null,
+        "targetIds": [],
+        "id": "requirement-cc65880eb118dabc",
+        "field": "change",
+        "inherited": false
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "只修改与 commercial_conversion 相关的 DirectorTimeline 镜头和对象",
+        "startSeconds": null,
+        "targetIds": [
+          "scene-01-uploaded-source",
+          "video-asset-1244ea15-654a-4893-97ed-40725a2d67c5"
+        ],
+        "id": "requirement-816e2430ed96287e",
+        "field": "change",
+        "inherited": false
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "保留其余素材、声音与工程历史",
+        "startSeconds": null,
+        "targetIds": [],
+        "id": "requirement-8b5f79e135865540",
+        "field": "preserve",
+        "inherited": false
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "保留未涉及镜头、素材源区间、商品事实、声音和历史",
+        "startSeconds": null,
+        "targetIds": [
+          "asset-1244ea15-654a-4893-97ed-40725a2d67c5"
+        ],
+        "id": "requirement-24d32a875e8b2347",
+        "field": "preserve",
+        "inherited": false
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "prohibit",
+        "quote": "不要整片重做",
+        "startSeconds": null,
+        "targetIds": [],
+        "id": "requirement-84da6ba6c5db3e6b",
+        "field": "prohibit",
+        "inherited": false
+      }
+    ],
+    "assumptions": [
+      "contain 会以完整主体可见优先，可能产生留边，但比 cover 裁切更适合修复商品曝光低的问题。",
+      "product-reveal 用作唯一场景的受控商品展示效果，不新增事实、不新增素材、不改变原片时长。"
+    ],
+    "gaps": [
+      "当前素材 metadata.hasAudio=false，audioGraph 为空，且没有其他有声素材，无法执行只与 audio 相关的有效修复。",
+      "当前 document.captions 不存在，且素材无音频，无法生成真实转写字幕；也不能凭空创建普通字幕节点。",
+      "当前只有一个场景且 transitions 为空；同批 split_scene 后新场景ID不可猜测引用，无法安全添加相邻转场对象。",
+      "当前 sourceBundles 为空，不能用 update_custom_source 新增局部导演包装、字幕层或复杂运动版式。",
+      "质量报告只提供维度分数，没有实际 MP4 时间戳证据；无法精确定位具体低曝光、节奏或构图失败的片段。"
+    ],
+    "interpretation": "validated-semantic-analysis",
+    "auxiliaryModes": [],
+    "auxiliaryScenarios": [],
+    "procedureSubtype": "not_applicable",
+    "steps": [],
+    "parentContractId": null,
+    "sourceRequests": [
+      "使用刚上传的视频创建可交付视频，保留原画面、原时长和原声。",
+      "根据实际MP4质量报告执行一次局部导演修复。只处理这些问题：[{\"severity\":\"blocker\",\"dimension\":\"product_exposure\",\"score\":14,\"problem\":\"product_exposure 低于商业最低线 65\",\"repair\":\"只修改与 product_exposure 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"first_three_seconds\",\"score\":0,\"problem\":\"first_three_seconds 低于商业最低线 65\",\"repair\":\"只修改与 first_three_seconds 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"pacing\",\"score\":0,\"problem\":\"pacing 低于商业最低线 65\",\"repair\":\"只修改与 pacing 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"captions\",\"score\":0,\"problem\":\"captions 低于商业最低线 65\",\"repair\":\"只修改与 captions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"motion\",\"score\":0,\"problem\":\"motion 低于商业最低线 65\",\"repair\":\"只修改与 motion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"transitions\",\"score\":14,\"problem\":\"transitions 低于商业最低线 65\",\"repair\":\"只修改与 transitions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"audio\",\"score\":25,\"problem\":\"audio 低于商业最低线 65\",\"repair\":\"只修改与 audio 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"},{\"severity\":\"blocker\",\"dimension\":\"commercial_conversion\",\"score\":0,\"problem\":\"commercial_conversion 低于商业最低线 65\",\"repair\":\"只修改与 commercial_conversion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"}]。参考建议：[\"只修改与 product_exposure 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 first_three_seconds 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 pacing 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 captions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 motion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 transitions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 audio 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\",\"只修改与 commercial_conversion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。\"]。保留未涉及镜头、素材源区间、商品事实、声音和历史；不要整片重做。"
+    ],
+    "facts": [],
+    "objective": "根据实际MP4质量报告对当前单素材候选进行局部导演修复，优先改善商品曝光、前三秒识别和基础运动表现，同时保留未涉及镜头、素材源区间、商品事实、声音和工程历史。",
+    "contractId": "contract-f8d0b58ac1353eae",
+    "requirementChanges": [],
+    "changeTargets": [
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "根据实际MP4质量报告执行一次局部导演修复",
+        "startSeconds": null,
+        "targetIds": [
+          "scene-01-uploaded-source",
+          "video-asset-1244ea15-654a-4893-97ed-40725a2d67c5"
+        ],
+        "id": "requirement-ffb9312f7b9e488b",
+        "field": "change",
+        "inherited": false
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "只处理这些问题",
+        "startSeconds": null,
+        "targetIds": [
+          "scene-01-uploaded-source",
+          "video-asset-1244ea15-654a-4893-97ed-40725a2d67c5"
+        ],
+        "id": "requirement-91c8ad32c5a157c3",
+        "field": "change",
+        "inherited": false
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "只修改与 product_exposure 相关的 DirectorTimeline 镜头和对象",
+        "startSeconds": null,
+        "targetIds": [
+          "video-asset-1244ea15-654a-4893-97ed-40725a2d67c5"
+        ],
+        "id": "requirement-dbc05062ffba564b",
+        "field": "change",
+        "inherited": false
+      },
+      {
+        "endSeconds": 3,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "只修改与 first_three_seconds 相关的 DirectorTimeline 镜头和对象",
+        "startSeconds": 0,
+        "targetIds": [
+          "scene-01-uploaded-source",
+          "video-asset-1244ea15-654a-4893-97ed-40725a2d67c5"
+        ],
+        "id": "requirement-343a089c3b452af9",
+        "field": "change",
+        "inherited": false
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "只修改与 pacing 相关的 DirectorTimeline 镜头和对象",
+        "startSeconds": null,
+        "targetIds": [
+          "scene-01-uploaded-source"
+        ],
+        "id": "requirement-0d6e7cad4b3958a8",
+        "field": "change",
+        "inherited": false
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "只修改与 captions 相关的 DirectorTimeline 镜头和对象",
+        "startSeconds": null,
+        "targetIds": [],
+        "id": "requirement-e6df72547fe26d9f",
+        "field": "change",
+        "inherited": false
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "只修改与 motion 相关的 DirectorTimeline 镜头和对象",
+        "startSeconds": null,
+        "targetIds": [
+          "scene-01-uploaded-source"
+        ],
+        "id": "requirement-12853728246aa48b",
+        "field": "change",
+        "inherited": false
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "只修改与 transitions 相关的 DirectorTimeline 镜头和对象",
+        "startSeconds": null,
+        "targetIds": [],
+        "id": "requirement-0efaffc25457db9d",
+        "field": "change",
+        "inherited": false
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "只修改与 audio 相关的 DirectorTimeline 镜头和对象",
+        "startSeconds": null,
+        "targetIds": [],
+        "id": "requirement-cc65880eb118dabc",
+        "field": "change",
+        "inherited": false
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "只修改与 commercial_conversion 相关的 DirectorTimeline 镜头和对象",
+        "startSeconds": null,
+        "targetIds": [
+          "scene-01-uploaded-source",
+          "video-asset-1244ea15-654a-4893-97ed-40725a2d67c5"
+        ],
+        "id": "requirement-816e2430ed96287e",
+        "field": "change",
+        "inherited": false
+      }
+    ],
+    "preserveTargets": [
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "保留其余素材、声音与工程历史",
+        "startSeconds": null,
+        "targetIds": [],
+        "id": "requirement-8b5f79e135865540",
+        "field": "preserve",
+        "inherited": false
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "保留未涉及镜头、素材源区间、商品事实、声音和历史",
+        "startSeconds": null,
+        "targetIds": [
+          "asset-1244ea15-654a-4893-97ed-40725a2d67c5"
+        ],
+        "id": "requirement-24d32a875e8b2347",
+        "field": "preserve",
+        "inherited": false
+      }
+    ],
+    "resourceNeeds": [],
+    "prohibitions": [
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "prohibit",
+        "quote": "不要整片重做",
+        "startSeconds": null,
+        "targetIds": [],
+        "id": "requirement-84da6ba6c5db3e6b",
+        "field": "prohibit",
+        "inherited": false
+      }
+    ]
+  },
+  "operations": [
+    {
+      "nodeId": "video-asset-1244ea15-654a-4893-97ed-40725a2d67c5",
+      "sceneIds": [],
+      "type": "update_media",
+      "params": {
+        "fit": "contain",
+        "sourceStartSeconds": 0,
+        "playbackRate": 1
+      }
+    },
+    {
+      "effect": "product-reveal",
+      "sceneId": "scene-01-uploaded-source",
+      "sceneIds": [],
+      "type": "set_scene_effect",
+      "params": {}
+    }
+  ],
+  "alternatives": [],
+  "resourceScopes": [],
+  "summary": "基于当前工程只能做最小可执行修复：将唯一视频节点从 cover 调整为 contain，优先解决 product_exposure 与 first_three_seconds 中可能因裁切导致的主体不可见问题；同时把唯一场景效果切换为 product-reveal，在不改变素材源区间、原时长和工程历史的前提下补强首屏商品呈现与基础运动。当前版本没有可拆分后可引用的新场景ID、没有字幕节点、没有音轨、没有可用有声音素材、没有转场对象，也没有 custom-native 源码包，因此 captions、audio、transitions 相关问题只能记录为结构性缺口，不能伪造字幕、声音或转场。未修改素材 assetId、源起点、播放率、总时长、画幅、商品事实和历史。",
+  "mode": "model",
+  "model": "openclaw/commerce-stage",
+  "promptContext": [
+    {
+      "file": "prompts/commerce/R0.md",
+      "sha256": "b253f55c56fe3b45ef85dd40958034c3ee7cbfefd01572fc835f776d480aa306"
+    },
+    {
+      "file": "prompts/commerce/R7.md",
+      "sha256": "59fc8e53bd9e9c7c243ce97210a512aa62a7be6ca16bdf26649a73c64ef2c247"
+    },
+    {
+      "file": "agent.md",
+      "sha256": "91e592dbf5a9a9f090e7ced8ec1ced07c89b177da3040e21ecfd570f8c7f4568"
+    },
+    {
+      "file": "prompts/commerce/commerce-focus.md",
+      "sha256": "7fe5a32d4ed1d530d2daa5c8b661e1d95621fd69dbe8e249f1448e62dabce35f"
+    },
+    {
+      "file": "docs/commerce-focus-v1/scenario-registry.spec.json",
+      "sha256": "d8c28def4a22ab875c65642942a7fa1417b8b7f62dbeaca74bd0007feed8c430"
+    },
+    {
+      "id": "commerce.general",
+      "version": 1,
+      "sha256": "880f0609105ab8940b584ec12b5b36da6e3217a54aa7e03de13c2c2963638bf8",
+      "source": "lib/creative/commerce-skills.mjs"
+    }
+  ],
+  "targetScope": null,
+  "requestedOperations": [
+    {
+      "nodeId": "video-asset-1244ea15-654a-4893-97ed-40725a2d67c5",
+      "sceneIds": [],
+      "type": "update_media",
+      "params": {
+        "fit": "contain",
+        "sourceStartSeconds": 0,
+        "playbackRate": 1
+      }
+    },
+    {
+      "effect": "product-reveal",
+      "sceneId": "scene-01-uploaded-source",
+      "sceneIds": [],
+      "type": "set_scene_effect",
+      "params": {}
+    }
+  ]
+}

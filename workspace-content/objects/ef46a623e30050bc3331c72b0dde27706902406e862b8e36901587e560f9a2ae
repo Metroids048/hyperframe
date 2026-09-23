@@ -1,0 +1,43 @@
+# 两个 OpenClaw 会话恢复
+
+## 当前结果：2026-09-23 20:47 +08:00
+
+第一条已生成并在原会话展示真实 MP4 和完整历史工程包；第二条仍因输入素材不足而阻断。不能宣称两个任务都完成，或自动完成通知已闭环。
+
+第一条工程 `0f1a3c3b-f074-4fc1-be65-838d01d2d628`，正确当前版本 `rev-1e8b8306c25c333f`。路由任务 `job-560763f5-7f07-4887-a406-80030e6818f7` 和制作任务 `job-b98edc17-e142-485d-8545-a65a41c346f4` 均 complete，交付状态为 `video_and_history_ready`。
+
+- [下载 MP4](http://127.0.0.1:3024/api/commerce/0f1a3c3b-f074-4fc1-be65-838d01d2d628/revisions/rev-1e8b8306c25c333f/commerce-final.mp4?download=1)
+- [下载完整历史工程 ZIP](http://127.0.0.1:3024/api/commerce/0f1a3c3b-f074-4fc1-be65-838d01d2d628/revisions/rev-1e8b8306c25c333f/history.zip?download=1)
+- [成片播放器](http://127.0.0.1:3024/api/commerce/0f1a3c3b-f074-4fc1-be65-838d01d2d628/revisions/rev-1e8b8306c25c333f/final-review/watch.html)
+- [可编辑工作台](http://127.0.0.1:3024/?project=0f1a3c3b-f074-4fc1-be65-838d01d2d628)
+
+实际文件目录为 `/Users/a1234/.openclaw/hyperframe/state/projects/0f1a3c3b-f074-4fc1-be65-838d01d2d628/versions/job-b98edc17-e142-485d-8545-a65a41c346f4/`。
+
+按会话后续原片原样导出要求，保留30秒、1080×1920、30fps、静音和原有画面及文字。原生文档只有一个 video 节点，无新增文字或音频，使用同 SHA 的最早重复上传资产。原片实际是 NOVA 香氛瓶插画式展示，不能称为实物拍摄。
+
+全流解码通过；900帧与源片对比最低 SSIM 0.997798、均值 0.9987135211111043。MP4 和 ZIP 均实际 HTTP 下载成功且哈希与本地一致。ZIP 已真实恢复，两版历史均重新编译并通过 HyperFrames check；测试恢复目录已删除。浏览器实际播放到30秒结束，`ended=true`、`error=null`。没有代签真人验收。
+
+20:46 原会话实际调用 `video_result`，展示该正确版本的 MP4 下载、完整历史 ZIP 和预览页面链接。此前原会话一直停留在排队回复，本次通过显式查询取回结果，不能将这次展示当作自动完成通知成功。进度订阅仍在内存中，跨重启恢复及自动完成消息尚未端到端验证。旧版 `rev-9a01aff661cef84d` 误加标题，仅作为历史保留，不是本次合格交付。
+
+第二条工程 `cd60df6d-227a-452e-bc13-d7f49f894da1` 仍为 `needs_user` / `NEEDS_INPUT`，无 revision、无成片。55秒附件抽帧覆盖完整时间跨度，看到纸箱、说明卡、内包装和其他场景，未找到足以验证的 Steam Deck 主机整体、取出实机的开箱后段及两处实体细节。原要求禁止外部素材，纸面线稿不能替代实机。需要补充这些真实镜头，或由用户明确修改需求；目前没有授权降级为包装片。原会话20:17已正常调用视频工具并说明缺口。素材审计为抽帧检查，不代表连续视听或真人验收，源音内容尚未试听确认。
+
+下方20:09记录中的待加载修复现已加载。插件已部署并加载；本机和模板均关闭不兼容的 memory flush，九个视频工具及文件工具禁用边界保留，真实会话工具调用恢复。`resumeJobId` 现接受 null，恢复意图冲突会被拒绝，防止新输入误恢复旧作品。已有工程明确原片导出在同一工程生成新版本，历史包以真实路径处理迁移工程。
+
+新增验证证据：`delivery-verification.json` / `source-output-ssim.log` 为实际MP4、900帧源片比对和HTTP下载；`history-reopen-verification.json` / `history-reopen-check.log` 为ZIP恢复与两版历史检查；`browser-delivery-verification.json` 为播放结束及原会话链接展示观察。`source-revision-routing-check.log` 同工程路由通过；`resume-contract-check.log` 20/20；`facade-final-check.log` 13/13。既有核心测试未全绿，限制详见下方记录；最终 `git diff --check` 通过。原有未提交改动保留，不将全部 dirty 文件归为本轮修复。
+
+## 历史诊断快照：2026-09-23 20:09 +08:00
+
+以下为恢复前记录，状态已被上方当前结果替代。
+
+- 会话 d81f5478-bd14-4af8-bfa7-bb3911a233be：原工程 0bf15b07-79f8-4fed-af43-ea17733bd254；当前恢复工程 0f1a3c3b-f074-4fc1-be65-838d01d2d628。旧 child job-c6f48769-72a7-4d0c-988f-8c82fb7ad9e5 已取消并保留。新 child job-18934a81-d7ba-46b8-81be-1d7c8f6a55d1 产出 rev-9a01aff661cef84d 的真实 MP4，但误加“任何新内容”标题且历史包失败，不能交付。当前 recoverable，stage=打包素材与完整历史，error=工程包路径越界。下一步加载 title parser / 既有工程原片导出 / 打包路径修复，在同工程生成正确新版本。
+- 会话 bf34748f-be55-41d3-8076-fd51a99b9a88：工程 cd60df6d-227a-452e-bc13-d7f49f894da1；child job-983c9043-f794-4091-99db-cc14f73f3f51，run 86cec2c2-79e5-47e9-b935-e65b589ec599，无 revision。恢复真实观察后进入 needs_user / 选择制作资源 / NEEDS_INPUT，主体和两个实体细节缺失。独立抽帧审计结论一致。已向用户提出保持要求补素材，或授权改为包装片的问题；尚无答复，不擅自降级。
+
+已验证根因：直接启动和启动器使用不同 creativeDataDir；原工程仍在 ~/.openclaw/hyperframe/state/projects，配置根目录未加载它们。已在配置目录为上述三个原工程建立链接，原文件与检查点保留。
+
+已修改：统一 server 默认数据目录与 config/start.local.json（隔离测试仍使用独立目录）；删除资源规划擅自清除主体缺失阻断的分支（该分支还对 const plan 赋值）；修复禁止网络素材被识别为索取外部素材；限定所选上传素材；修复 input-assets 404（实际 HTTP 200）；修复否定句被解析为标题；允许已有版本明确原片原样导出生成新 revision；打包对迁移工程的 assetRoot 使用真实目录，仍拒绝其他工程文件。
+
+OpenClaw：4.16MB 工具回包夹具压缩为最大约7617字节，保留阻断、链接和截断说明；真实SDK九工具注册测试通过，已复制plugin，尚待gateway重载。No callable tools 的20:02现场失败是 memory flush 只构造 read/write，却被全局 deny 过滤；累计三次后本轮跳过，20:06同会话正常 video_project_open/video_result 已成功。配置模板关闭此不兼容的文件记忆整理，保留九个视频工具和文件工具禁用边界；尚待应用本机配置。
+
+验证：final-fixes-check.log 10/10；plugin-check.log 6/6；acceptance.log 20/20；conversation-media-check.log 真实浏览器十轮编辑、刷新、MP4/ZIP通过。core-check.log 未通过既有 test-preset-readonly 的伪 MP4 fixture 真实探测，未降低验证标准。素材审计见 media-audit/REPORT.zh-CN.md，仅抽帧检查，未冒充连续视听或人评。
+
+加载修复前发现其他工程 f9679232-85a8-468b-bdff-6749edfd0340 和 af8ba48b-e9ae-4f65-b0c7-8c1c7695cffa 正在制作，暂不重启中断它们。第一条的当前 MP4 不满足内容要求；没有正确 MP4、工程包与原会话交付证据前不得标完成。

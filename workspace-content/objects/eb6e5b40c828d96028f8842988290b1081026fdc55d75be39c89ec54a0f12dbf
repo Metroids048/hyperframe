@@ -1,0 +1,5 @@
+import puppeteer from 'puppeteer-core';
+import fs from 'node:fs/promises';
+const revision=process.argv[2],base='http://127.0.0.1:3024',project='b2a3a09a-a6fa-4743-b281-f61e3a972cb7';
+const browser=await puppeteer.launch({executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true,args:['--no-sandbox']});
+try{const page=await browser.newPage();await page.goto(`${base}/?project=${project}`,{waitUntil:'networkidle2'});await page.waitForSelector(`#revisions option[value="${revision}"]`);await page.select('#revisions',revision);await page.click('#export');await page.waitForFunction(()=>document.querySelector('#jobs').textContent.includes('导出'));await page.screenshot({path:`outputs/scene-demos-phase2/S08/export-${revision}.png`});console.log(JSON.stringify({project,revision,action:'WebUI export clicked',at:new Date().toISOString()}));}finally{await browser.close();}

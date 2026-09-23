@@ -1,0 +1,76 @@
+{
+  "workflow": {
+    "taskMode": "variant",
+    "objective": "以独立开头分支A的新标题引导观众感受咖啡日常仪式，保留母版及其余内容。",
+    "requirements": [
+      {
+        "kind": "goal",
+        "quote": "制作独立开头分支A",
+        "targetIds": [],
+        "excludeIds": [],
+        "startSeconds": null,
+        "endSeconds": null
+      },
+      {
+        "kind": "change",
+        "quote": "仅把第一幕主标题改成“把时间，留给一杯咖啡”",
+        "targetIds": ["node-1a919ca6e9106e26"],
+        "excludeIds": [],
+        "startSeconds": null,
+        "endSeconds": null
+      },
+      {
+        "kind": "preserve",
+        "quote": "保留原版本",
+        "targetIds": ["rev-6cb1827d9c4e5021"],
+        "excludeIds": [],
+        "startSeconds": null,
+        "endSeconds": null
+      },
+      {
+        "kind": "preserve",
+        "quote": "其余所有内容、画面、时长和声音保持不变",
+        "targetIds": [],
+        "excludeIds": ["node-1a919ca6e9106e26"],
+        "startSeconds": null,
+        "endSeconds": null
+      },
+      {
+        "kind": "preserve",
+        "quote": "声音保持不变",
+        "targetIds": ["audio-1-1", "audio-2-1", "audio-3-1", "audio-4-1", "audio-5-1", "audio-6-1"],
+        "excludeIds": [],
+        "startSeconds": null,
+        "endSeconds": null
+      }
+    ],
+    "overrides": [
+      {
+        "requirementId": "requirement-2b3f8b7a50e7324e",
+        "replacementQuote": "仅把第一幕主标题改成“把时间，留给一杯咖啡”"
+      }
+    ],
+    "assumptions": [],
+    "gaps": []
+  },
+  "summary": "计划基于rev-6cb1827d9c4e5021派生独立分支A，仅更新第一幕标题节点的params.text，保留母版；标题样式、布局、动效、所有素材、音轨及1050帧总时长不变。执行后需重新编译标题依赖，检查0—5.5秒标题可读性及与第二幕的衔接，并核对全片保持项。新版本ID由服务端生成；本轮未执行或验证。",
+  "operations": [
+    {
+      "type": "update_text",
+      "sceneId": "scene-01",
+      "nodeId": "node-1a919ca6e9106e26",
+      "assetId": null,
+      "text": "把时间，留给一杯咖啡",
+      "effect": null,
+      "durationFrames": null,
+      "sceneIds": null,
+      "fromSceneId": null,
+      "toSceneId": null,
+      "width": null,
+      "height": null,
+      "paramsJson": null,
+      "source": null
+    }
+  ],
+  "alternatives": []
+}

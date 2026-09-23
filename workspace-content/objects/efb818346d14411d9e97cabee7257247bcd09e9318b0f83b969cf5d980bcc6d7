@@ -1,0 +1,36 @@
+{
+  "answer": {
+    "source": {
+      "html": "<div id=\"root\"><div id=\"scene-bg\"></div><div id=\"media-1\"></div><div id=\"text-1\">实拍：双手托举瓶身</div></div>",
+      "css": "#root{position:relative;width:1080px;height:1920px;overflow:hidden;font-family:Arial,sans-serif;color:#2A1F22}#scene-bg{position:absolute;inset:0;background:transparent}#media-1{position:absolute;left:180px;top:100px;width:720px;height:1600px;background:transparent;object-fit:contain}#text-1{position:absolute;left:72px;top:1500px;padding:12px 18px;background:#F4E4E8;color:#2A1F22;border:1px solid #2A1F22;border-radius:18px;font-size:30px;font-weight:400;line-height:1.2;text-align:left;white-space:nowrap}",
+      "timeline": "",
+      "parameters": [],
+      "objects": [
+        {
+          "elementId": "media-1",
+          "ref": "media-1"
+        },
+        {
+          "elementId": "text-1",
+          "ref": "text-1"
+        }
+      ],
+      "motionTargets": [],
+      "textStyles": [
+        {
+          "elementId": "text-1",
+          "match": "实拍：双手托举瓶身",
+          "fontSize": 30,
+          "fontWeight": 400,
+          "color": "#2A1F22"
+        }
+      ]
+    },
+    "notes": "修复实拍遮挡问题：全画幅背景容器保持透明，仅保留局部文字标签背景；保留完整竖幅视频与文字对象。",
+    "keyframeAtSeconds": 3.6
+  },
+  "error": {
+    "code": "KEYFRAME_LAYOUT",
+    "message": "[{\"severity\":\"major\",\"repairKind\":\"layout\",\"problem\":\"静态关键帧中，竖幅实拍被缩放到画布中央约720px宽，左右出现大面积纯粉色留白，商品和双手占画面比例明显低于源画面，削弱了“展示取用前实拍状态”的主体信息。证据：frame-00-at-3.6s.png 对比同刻未包装源画面。\",\"repair\":\"将源画面按输出竖幅比例放大至接近满高/满宽并保持完整主体；若必须保留边界，仅保留最小安全边距，确保瓶身和双手成为画面主视觉。验证3.6秒关键帧中商品尺寸、手部关系与源画面一致且无裁切。\"}]"
+  }
+}

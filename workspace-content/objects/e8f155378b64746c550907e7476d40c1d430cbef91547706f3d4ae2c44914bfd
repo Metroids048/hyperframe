@@ -1,0 +1,25 @@
+Capture key frames from a composition as PNG screenshots for visual verification (hyperframes snapshot v0.8.33)
+
+USAGE hyperframes snapshot [OPTIONS] [DIR]
+
+ARGUMENTS
+
+  DIR    Project directory
+
+OPTIONS
+
+      -o, --output=<output>    Directory to write snapshots into (default: <project>/snapshots)                                                                                                                                                                                                                           
+          --frames=<frames>    Number of evenly-spaced frames to capture (default: 5) (Default: 5)                                                                                                                                                                                                                        
+                  --at=<at>    Comma-separated timestamps in seconds (e.g., --at 3.0,10.5,18.0)                                                                                                                                                                                                                           
+        --timeout=<timeout>    Ms to wait for runtime to initialize (default: 5000) (Default: 5000)                                                                                                                                                                                                                       
+            --angle=<angle>    Orthogonal 3D camera for depth/occlusion checks: a preset (front|iso|top|side) or 'yaw,pitch' degrees. Tilts the whole stage before screenshotting (real pixels, not bbox markers).                                                                                                        
+                      --end    Always include a readable end-of-timeline frame (default: true). Pass --no-end to capture only your exact --at times. (Default: true)                                                                                                                                                      
+                   --no-end                                                                                                                                                                                                                                                                                               
+              --zoom=<zoom>    Zoom into a CSS selector or an exact pixel region 'x,y,w,h'. Crops a high-density screenshot instead of the full frame — a raised deviceScaleFactor, never CSS zoom or viewport resizing, so layout stays identical. A selector matching nothing is an error, not a silent full-frame shot.
+  --zoom-scale=<zoom_scale>    Device-scale-factor density for --zoom crops (default: 3) (Default: 3)                                                                                                                                                                                                                     
+        --against=<against>    Reference video (e.g. footage being rebuilt): also save its frame at each captured time and a render|reference pair sheet                                                                                                                                                                  
+      --describe=<describe>    Gemini vision frame analysis. Runs by default when GEMINI_API_KEY is set. Pass a custom question (e.g. --describe 'Is the logo visible in every beat?') to override the default prompt, or --describe false to opt out.                                                                    
+                    --proxy    Auto-transcode browser-hostile video codecs for snapshots (default: on; overrides hyperframes.json media.autoProxy)                                                                                                                                                                        
+              --browser-gpu    Use hardware browser GPU capture; pass --no-browser-gpu for deterministic SwiftShader (default: auto-detect, PRODUCER_BROWSER_GPU_MODE overrides)                                                                                                                                          
+
+

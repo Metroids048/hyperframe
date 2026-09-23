@@ -1,0 +1,307 @@
+{
+  "schemaVersion": 1,
+  "recordType": "runtime_quality_report",
+  "qualityPolicy": {
+    "id": "quality-acceptance-v1",
+    "policyHash": "54a9dfc4472786f37d1ae18811872a35892fc912a26b98ef13269680140f4d9f"
+  },
+  "binding": {
+    "projectId": "d1b7a75d-93d2-4dd7-92f7-22e230835020",
+    "revisionId": "rev-1b131122b39c5636",
+    "contractHash": "55e9d10c66de0d2a97a01285e3a2b46390ffca58c10592250537141165e4ba9b",
+    "assetManifestHash": "6ec6b5a092aac34f426468d38eb43594d7391494e3234e6b28ab18c754cb6cf5",
+    "policyHash": "2544cb10e0c9445610ceb2354e9deb87439d15fe99acbad74737039bf26bd262",
+    "documentHash": "37f5ab2740f30f400bf1c771b055aaa0fbfebe47bd9ba09b1e64e89b6fea34ef",
+    "finalVideoSha256": "aa7b8de545894a3b506020cc0c7a9e182b2773bdaae2f8ad5c03bc5b89722ffc",
+    "resourceHash": "2e77a322f849cb307074c9a6e0f5e6e05d8078681395e419bdf10b098fa8aee3",
+    "runId": null,
+    "jobId": "job-aaa766e6-14ec-427c-9199-608b132eb21d"
+  },
+  "origin": "scripted_runner",
+  "dimensions": {
+    "materials": "pending",
+    "technical": "pass",
+    "content": "pending",
+    "visual": "fail",
+    "actionContinuity": "pending",
+    "audioPerception": "pending",
+    "rights": "pending",
+    "humanAcceptance": "pending"
+  },
+  "coverage": {
+    "method": "keyframes_with_scene_tail",
+    "evidenceRefs": [
+      "final-review/frame-0.jpg",
+      "final-review/frame-1.jpg",
+      "final-review/frame-2.jpg",
+      "final-review/frame-3.jpg"
+    ],
+    "videoRangesObserved": [],
+    "audioRangesObserved": [],
+    "requirements": {
+      "technical": {
+        "required": [
+          "decode",
+          "duration",
+          "dimensions",
+          "tracks",
+          "version"
+        ],
+        "observed": [],
+        "unreviewed": [
+          "decode",
+          "duration",
+          "dimensions",
+          "tracks",
+          "version"
+        ]
+      },
+      "content": {
+        "required": [
+          "contract",
+          "facts",
+          "shotPurpose",
+          "sourceEvidence"
+        ],
+        "observed": [],
+        "unreviewed": [
+          "contract",
+          "facts",
+          "shotPurpose",
+          "sourceEvidence"
+        ]
+      },
+      "visual": {
+        "required": [
+          "keyframes",
+          "sceneBoundaries",
+          "textSafety"
+        ],
+        "observed": [],
+        "unreviewed": [
+          "keyframes",
+          "sceneBoundaries",
+          "textSafety"
+        ]
+      },
+      "motion": {
+        "required": [
+          "continuousPlayback",
+          "transitions",
+          "captionLifecycle"
+        ],
+        "observed": [],
+        "unreviewed": [
+          "continuousPlayback",
+          "transitions",
+          "captionLifecycle"
+        ]
+      },
+      "audio": {
+        "required": [
+          "audioInput",
+          "speech",
+          "musicMix",
+          "sync"
+        ],
+        "observed": [],
+        "unreviewed": [
+          "audioInput",
+          "speech",
+          "musicMix",
+          "sync"
+        ]
+      }
+    }
+  },
+  "evidenceIndex": [
+    {
+      "path": "final-review/frame-0.jpg",
+      "sha256": "8245d7c7dd55b37c4a55af7f059a8b991bba1866b96ad99a49ac242e20cb1ff0",
+      "seconds": 0
+    },
+    {
+      "path": "final-review/frame-1.jpg",
+      "sha256": "c8f62a04d7045872b79f1cefec02165c680cceb5a14848a3bddf168e0c11f50c",
+      "seconds": 47.18
+    },
+    {
+      "path": "final-review/frame-2.jpg",
+      "sha256": "7bcffff3945224569b6f5e983e957ced567896c3f2f3a1d7dbbf765b0719447c",
+      "seconds": 78.53333333333335
+    },
+    {
+      "path": "final-review/frame-3.jpg",
+      "sha256": "746a99d0c4c08dd9811e584813d0e32e5a4bccdbc1ecc7fec37bdfadb2b67a45",
+      "seconds": 78.60000000000001
+    }
+  ],
+  "issues": [
+    {
+      "id": "issue-0",
+      "requirementId": "final-output",
+      "severity": "blocker",
+      "startSeconds": 0,
+      "endSeconds": 0,
+      "problem": "用户要求在视频开头两秒加入“新品体验”，但 0.000 秒关键帧显示为原始人物画面，未观察到该文字或任何开场文字层。由于只提供了抽样关键帧，无法进一步确认 0–2 秒内是否曾短暂出现，但开头帧已不能证明该要求得到满足。",
+      "evidenceRefs": [
+        "final-review/frame-0.jpg"
+      ],
+      "repair": "在可编辑工程中新增独立文字对象“新品体验”，将其放置在视频起始 0–2.000 秒并确保清晰可见；保持现有视频片段、1280×720 画幅、约 78.616 秒时长及原声音轨不变，重新导出后至少复核 0.000 秒和 2.000 秒附近画面。",
+      "preserve": [
+        "未涉及的镜头、文字和音轨"
+      ]
+    }
+  ],
+  "unreviewed": [
+    "连续动作、节奏与完整观看",
+    "实际听感与音画同步"
+  ],
+  "score": {
+    "total": 36,
+    "max": 100,
+    "components": {
+      "product_exposure": 50,
+      "first_three_seconds": 35,
+      "pacing": 0,
+      "captions": 30,
+      "motion": 20,
+      "transitions": 50,
+      "audio": 75,
+      "commercial_conversion": 30
+    },
+    "status": "needs_revision"
+  },
+  "scenarioAssessment": {
+    "status": "pending",
+    "summary": "抽查了最终 MP4 的 4 个指定关键帧；源视频主体、横向画幅（1280×720）和约 78.6 秒时长与上传素材一致，无法从关键帧确认原声听感。核心修改未呈现：开头 0.000 秒画面未看到“新品体验”文字，因此当前版本不能视为完成用户要求，需修复后重新渲染并复核。（仅抽帧；完整业务目标待连续观片确认）"
+  },
+  "humanAcceptance": {
+    "status": "pending",
+    "eventId": null,
+    "actorContext": null,
+    "revisionId": "rev-1b131122b39c5636",
+    "submittedAt": null
+  },
+  "deliveryDecision": {
+    "computedBy": "backend-commerce-focus-v1",
+    "status": "needs_revision",
+    "reasonCodes": [
+      "COMMERCIAL_QUALITY_REVISION_REQUIRED",
+      "HUMAN_CONFIRMATION_PENDING"
+    ]
+  },
+  "playbackReview": {
+    "manifest": "final-review/playback-manifest.json",
+    "watch": "final-review/watch.html",
+    "finalVideoSha256": "aa7b8de545894a3b506020cc0c7a9e182b2773bdaae2f8ad5c03bc5b89722ffc",
+    "clipCount": 2,
+    "fullVideoObserved": false,
+    "audioPerceptionVerified": false
+  },
+  "editorialReview": null,
+  "commercialQuality": {
+    "schema_version": 2,
+    "assessment_basis": "engineering_heuristics_and_observed_keyframe_issues",
+    "score": 36,
+    "threshold": 78,
+    "hard_minimum": 65,
+    "components": {
+      "product_exposure": 50,
+      "first_three_seconds": 35,
+      "pacing": 0,
+      "captions": 30,
+      "motion": 20,
+      "transitions": 50,
+      "audio": 75,
+      "commercial_conversion": 30
+    },
+    "issues": [
+      {
+        "severity": "major",
+        "dimension": "product_exposure",
+        "score": 50,
+        "problem": "product_exposure 低于商业最低线 65",
+        "repair": "只修改与 product_exposure 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+      },
+      {
+        "severity": "blocker",
+        "dimension": "first_three_seconds",
+        "score": 35,
+        "problem": "first_three_seconds 低于商业最低线 65",
+        "repair": "只修改与 first_three_seconds 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+      },
+      {
+        "severity": "blocker",
+        "dimension": "pacing",
+        "score": 0,
+        "problem": "pacing 低于商业最低线 65",
+        "repair": "只修改与 pacing 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+      },
+      {
+        "severity": "blocker",
+        "dimension": "captions",
+        "score": 30,
+        "problem": "captions 低于商业最低线 65",
+        "repair": "只修改与 captions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+      },
+      {
+        "severity": "blocker",
+        "dimension": "motion",
+        "score": 20,
+        "problem": "motion 低于商业最低线 65",
+        "repair": "只修改与 motion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+      },
+      {
+        "severity": "major",
+        "dimension": "transitions",
+        "score": 50,
+        "problem": "transitions 低于商业最低线 65",
+        "repair": "只修改与 transitions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+      },
+      {
+        "severity": "blocker",
+        "dimension": "commercial_conversion",
+        "score": 30,
+        "problem": "commercial_conversion 低于商业最低线 65",
+        "repair": "只修改与 commercial_conversion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+      },
+      {
+        "id": "issue-0",
+        "requirementId": "final-output",
+        "severity": "blocker",
+        "startSeconds": 0,
+        "endSeconds": 0,
+        "problem": "用户要求在视频开头两秒加入“新品体验”，但 0.000 秒关键帧显示为原始人物画面，未观察到该文字或任何开场文字层。由于只提供了抽样关键帧，无法进一步确认 0–2 秒内是否曾短暂出现，但开头帧已不能证明该要求得到满足。",
+        "evidenceRefs": [
+          "final-review/frame-0.jpg"
+        ],
+        "repair": "在可编辑工程中新增独立文字对象“新品体验”，将其放置在视频起始 0–2.000 秒并确保清晰可见；保持现有视频片段、1280×720 画幅、约 78.616 秒时长及原声音轨不变，重新导出后至少复核 0.000 秒和 2.000 秒附近画面。",
+        "preserve": [
+          "未涉及的镜头、文字和音轨"
+        ],
+        "dimension": "visual"
+      }
+    ],
+    "suggestions": [
+      "只修改与 product_exposure 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+      "只修改与 first_three_seconds 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+      "只修改与 pacing 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+      "只修改与 captions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+      "只修改与 motion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+      "只修改与 transitions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+      "只修改与 commercial_conversion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+      "在可编辑工程中新增独立文字对象“新品体验”，将其放置在视频起始 0–2.000 秒并确保清晰可见；保持现有视频片段、1280×720 画幅、约 78.616 秒时长及原声音轨不变，重新导出后至少复核 0.000 秒和 2.000 秒附近画面。",
+      "完成连续观片后校准节奏、动作和转场评分；自动分数不代签真人观看。",
+      "完成实际试听后校准声音情绪、清晰度和音画同步；电平检测不代替听感。"
+    ],
+    "revision_required": true,
+    "coverage": {
+      "actual_mp4": true,
+      "full_video_observed": false,
+      "audio_perception_verified": false
+    },
+    "status": "needs_revision",
+    "human_acceptance": "pending"
+  }
+}

@@ -1,0 +1,110 @@
+{
+  "source": {
+    "html": "<div id=\"scene02-overlay\"><div id=\"scene02-video\"></div><div id=\"scene02-accent\"></div><h2 id=\"scene02-title\"></h2></div>",
+    "css": "#scene02-overlay { position: absolute; inset: 0; width: 1920px; height: 1080px; background: transparent; }\n#scene02-video { position: absolute; left: 192px; top: 0px; width: 1536px; height: 864px; object-fit: contain; overflow: hidden; }\n#scene02-accent { position: absolute; left: 192px; top: 929px; width: 48px; height: 2px; background-color: var(--brand-accent); }\n#scene02-title { position: absolute; left: 260px; top: 894px; width: 700px; height: 76px; margin: 0; padding: 0; display: flex; align-items: center; font-family: 'Microsoft YaHei', Arial; font-size: 52px; font-weight: 600; line-height: 1.25; color: var(--brand-foreground); white-space: nowrap; }\n#scene02-video{background:transparent;opacity:1;z-index:1}",
+    "timeline": "tl.set(\"#scene02-title\", {clipPath:\"inset(0% 100% 0% 0%)\"}, 0);\ntl.to(\"#scene02-title\", {clipPath:\"inset(0% 0% 0% 0%)\", duration:params.revealSeconds, ease:\"power2.out\"}, 0);",
+    "parameters": [
+      {
+        "name": "revealSeconds",
+        "value": 0.25,
+        "min": 0.1,
+        "max": 0.3
+      }
+    ],
+    "objects": [
+      {
+        "elementId": "scene02-video",
+        "ref": "media-1"
+      },
+      {
+        "elementId": "scene02-title",
+        "ref": "text-1"
+      },
+      {
+        "elementId": "scene02-accent",
+        "ref": "decoration-1"
+      }
+    ],
+    "motionTargets": [
+      "scene02-title"
+    ],
+    "textStyles": [],
+    "contractVersion": 2,
+    "tokens": {
+      "background": "#101214",
+      "foreground": "#F5F5F2",
+      "panel": "#202428",
+      "accent": "#C3A477",
+      "accentContrast": "#101214"
+    }
+  },
+  "bundle": {
+    "html": "<div id=\"scene02-overlay\"><div id=\"scene02-video\"></div><div id=\"scene02-accent\"></div><h2 id=\"scene02-title\"></h2></div>",
+    "css": "#scene02-overlay { position: absolute; inset: 0; width: 1920px; height: 1080px; background: transparent; }\n#scene02-video { position: absolute; left: 192px; top: 0px; width: 1536px; height: 864px; object-fit: contain; overflow: hidden; }\n#scene02-accent { position: absolute; left: 192px; top: 929px; width: 48px; height: 2px; background-color: var(--brand-accent); }\n#scene02-title { position: absolute; left: 260px; top: 894px; width: 700px; height: 76px; margin: 0; padding: 0; display: flex; align-items: center; font-family: 'Microsoft YaHei', Arial; font-size: 52px; font-weight: 600; line-height: 1.25; color: var(--brand-foreground); white-space: nowrap; }\n#scene02-video{background:transparent;opacity:1;z-index:1}",
+    "timeline": "tl.set(\"#scene02-title\", {clipPath:\"inset(0% 100% 0% 0%)\"}, 0);\ntl.to(\"#scene02-title\", {clipPath:\"inset(0% 0% 0% 0%)\", duration:params.revealSeconds, ease:\"power2.out\"}, 0);",
+    "parameters": [
+      {
+        "name": "revealSeconds",
+        "value": 0.25,
+        "min": 0.1,
+        "max": 0.3
+      }
+    ],
+    "objects": [
+      {
+        "elementId": "scene02-video",
+        "nodeId": "node-e9d71177c43d9197"
+      },
+      {
+        "elementId": "scene02-title",
+        "nodeId": "node-3f0bd1cca7a0e492"
+      },
+      {
+        "elementId": "scene02-accent",
+        "nodeId": "node-ca01377f2334fd42"
+      }
+    ],
+    "motionTargets": [
+      "scene02-title"
+    ],
+    "textStyles": [],
+    "contractVersion": 2,
+    "tokens": {
+      "background": "#101214",
+      "foreground": "#F5F5F2",
+      "panel": "#202428",
+      "accent": "#C3A477",
+      "accentContrast": "#101214"
+    },
+    "id": "source-scene-02",
+    "sceneId": "scene-02"
+  },
+  "receipt": {
+    "resourceId": "lt-mask-reveal",
+    "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6",
+    "tool": "resources.adapt_native_bundle",
+    "adapterVersion": 1,
+    "sceneId": "scene-02",
+    "objectIds": [
+      "node-3f0bd1cca7a0e492",
+      "node-e9d71177c43d9197",
+      "node-ca01377f2334fd42"
+    ],
+    "files": [
+      {
+        "file": "registry/blocks/lt-mask-reveal/registry-item.json",
+        "sha256": "befe86d7bd1598242f43fbdd032230d06f511184172d8dcf5b9990b53073b143"
+      },
+      {
+        "file": "registry/blocks/lt-mask-reveal/lt-mask-reveal.html",
+        "sha256": "7f348ec3124e211f7ec8e7241f21220134504ab713143e3f9dc10e016892e2e3"
+      }
+    ],
+    "sourceHash": "f84c63ae6078f48e53a72a46c22317ed83f861e327796d698efaf29458565de0",
+    "originalSourceHash": "f84c63ae6078f48e53a72a46c22317ed83f861e327796d698efaf29458565de0",
+    "normalizations": [],
+    "status": "compiled",
+    "method": "model adaptation of the supplied blueprint; not a verbatim component install"
+  },
+  "notes": "仅标题在镜头起始0.25秒内从左向右遮罩显现，随后稳定保持至3秒结束。保留已检查布局与静态金色短线，视频自然推进，不添加缩放或转场。此为动画计划，尚未编译或预览验证。"
+}

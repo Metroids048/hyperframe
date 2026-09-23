@@ -1,0 +1,25 @@
+{
+  "answer": {
+    "source": {
+      "html": "<div id=\"scene-root\">\n  <img id=\"media-main\" />\n  <div id=\"frame-vignette\"></div>\n</div>",
+      "css": "#scene-root {\n  position: relative;\n  width: 1920px;\n  height: 1080px;\n  overflow: hidden;\n  background-color: var(--brand-background);\n}\n#media-main {\n  position: absolute;\n  inset: 0;\n  width: 100%;\n  height: 100%;\n  object-fit: contain;\n  object-position: 40% 50%;\n}\n#frame-vignette {\n  position: absolute;\n  inset: 0;\n  box-shadow: inset 0 0 240px 80px rgba(23, 18, 14, 0.78);\n}",
+      "timeline": "",
+      "parameters": [],
+      "objects": [
+        {
+          "elementId": "media-main",
+          "ref": "media-1"
+        }
+      ],
+      "motionTargets": [],
+      "textStyles": []
+    },
+    "notes": "静态关键画面（phase=static-keyframe），未制作动画：timeline 为空字符串、motionTargets 为空数组。\n\n范围：本镜头 scene-01（duration 6s，1920×1080）。仅承载全片开场整体揭示的静帧关键画面。\n\n对象映射：nativeObjectRefs.media 仅声明 1 个图片对象（media-1，assetId web-87ab2cb8-df13-46bf-8461-ffa53e41fb3b，elementTag img）。已用 1 个唯一 img 视图（#media-main）映射 media-1，img 不写 src 由原生对象注入。nativeObjectRefs.text 为空、shot.text 为空，故无文字对象，textStyles=[]，无文字叠层。\n\n布局/质感：深浓缩咖啡色品牌底（var(--brand-background)）+ 4:3 源图 contain 居中偏左（object-position 40% 50%），右侧留深色负空间，契合 subjectBox 归一化 x 0.15–0.87 的安全构图；#frame-vignette 以 inset box-shadow 做轻微暗角营造 premium 静物氛围。static 状态全部可见，未使用 opacity:0 预置不可见状态。\n\nkeyframeAtSeconds：选 4.5s。静帧无可见时序差异，按 keyframeChoices [1.2, 2.7, 4.5] 选取本镜头推近收束、商品最完整自然的画面（1.0× 全貌），非中点。\n\nmediaBindingGap 为空：设计仅需 1 个同源媒体窗口，nativeObjectRefs 已声明 1 个媒体，映射齐备，无缺口。",
+    "keyframeAtSeconds": 4.5,
+    "mediaBindingGap": ""
+  },
+  "error": {
+    "code": "KEYFRAME_SOURCE",
+    "message": "[{\"severity\":\"major\",\"repairKind\":\"text-contract\",\"problem\":\"该合成关键帧（scene-01 @4.5s）全帧看不到任何应用新增文字（addedTextObjects 为空），但本片唯一素材 web-87ab2cb8-df13-46bf-8461-ffa53e41fb3b 为 Wikimedia Commons 的 CC BY 2.0 作品（Ricardo Martins），确认的设计 description 明确要求『保留 CC BY 2.0 署名』，且 labelStyle 专门定义了『品牌/细节/署名』三级中的『署名』层。即：设计合同要求必须实际显示的署名，在当前已渲染帧中缺失，不能以『稍后由尚未实现的全局层补上』搪塞。注意：画面中已有的 CAFÉ TASSE / Croquant de café Noir 属于源片烧录文字（源实拍自带），不是应用新增文案，不得要求移除、遮盖或裁掉。\",\"repair\":\"由故事导演按设计标签样式（药丸形圆角矩形、1px #E3C88C 描边、无填充或 8% 米金填充、30px、字重 600、字距 +0.08em、署名层用位置/透明度区分）在安全边距（96px）内、不遮挡商品的角落补充 CC BY 2.0 署名文字对象，使 required 署名在本镜头合成帧中真实可见；若该署名确实安排在片尾卡（shot-399da07f…，承载产品名与结尾字幕），需明确其实际渲染位置并在最终合成中核验，而非默认由未实现的全局层接管。\"}]"
+  }
+}
