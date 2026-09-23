@@ -1,0 +1,10 @@
+import urllib.request,json,uuid,pathlib
+base='http://127.0.0.1:3024';out=pathlib.Path('outputs/scene-demos-phase2/S08')
+message='用上传的六段咖啡实拍制作35秒1920×1080横屏日常展示短片，标题“一杯咖啡的时间”。暖白与咖啡棕配色，真实动态画面为主，短标题和克制动效形成层次，呈现磨豆器、摩卡壶、出液、倒杯和成品的日常仪式。最多六幕，仅描述可见内容，不写型号、价格、参数或性能承诺。保留原声，不加配乐，不加配音，不循环凑时长。画面说明避开商品与手部，保留Shokuiku Cuisine · CC BY 3.0来源署名。直接制作并导出可审阅候选，保留可编辑原生工程。'
+request={'message':message,'inferRequest':True,'target':'marketing','scenarioId':'general','businessGoal':[],'taskMode':'create','taskModeExplicit':True,'workflowProfile':'create','output':{'width':1920,'height':1080,'durationSeconds':35,'fps':30},'pipelineVersion':3}
+def post(data):
+ r=urllib.request.Request(base+'/api/commerce-chat',data=json.dumps(data).encode(),headers={'Content-Type':'application/json'});return json.load(urllib.request.urlopen(r,timeout=240))
+p=post({'action':'draft','request':request})['project'];pid=p['id'];(out/'fresh-coffee-project.json').write_text(json.dumps({'projectId':pid,'request':request},ensure_ascii=False,indent=2));print('project',pid,flush=True)
+for f in sorted(pathlib.Path('assets/commerce-motion').glob('*.mp4')):
+ req=urllib.request.Request(base+'/api/commerce/'+pid+'/assets',data=f.read_bytes(),headers={'x-file-name':f.name,'Content-Type':'video/mp4'});json.load(urllib.request.urlopen(req,timeout=120));print('uploaded',f.name,flush=True)
+data={'action':'message','projectId':pid,'message':message,'request':request,'scenarioId':'general','taskMode':'create','taskModeExplicit':True,'idempotencyKey':str(uuid.uuid4())};r=post(data);(out/'fresh-coffee-receipt.json').write_text(json.dumps(r,ensure_ascii=False,indent=2));print(json.dumps({'mode':r.get('route',{}).get('mode'),'jobs':[(j['id'],j['status']) for j in r['project']['jobs']]},ensure_ascii=False),flush=True)

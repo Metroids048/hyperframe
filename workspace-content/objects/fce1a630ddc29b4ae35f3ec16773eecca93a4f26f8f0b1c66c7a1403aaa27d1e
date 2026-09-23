@@ -1,0 +1,198 @@
+{
+  "capabilities": [
+    "image-observation",
+    "video-source-selection",
+    "native-composition",
+    "managed-original",
+    "local-preview-review",
+    "native-editing"
+  ],
+  "constraints": [
+    "按首饰组合搭配展示组织内容，不宣称属于同系列。",
+    "仅使用上传的三条真实视频和指定音乐，不生成新商品图片或镜头。",
+    "竖屏，目标58至60秒；合理分配不同源内容，不重复凑时长。",
+    "杂志画册感、少文字、真实颜色，不编造品牌、材质或价格。",
+    "使用本场景链路及可用分屏、网格、文字资源；局部视窗实际可见，裁切保护主体。",
+    "优先稳定清楚的实拍与分屏，无需复杂多窗口局部放大。",
+    "音乐轻，无旁白；标题和说明保持独立文字对象，不默认制作逐字字幕。",
+    "音乐绑定asset-1555e45e-ae5c-4342-a82e-731766200c7d，权利依据仅为user-provided。",
+    "标题、说明、镜头、音乐均保持原生可编辑，支持当前WebUI连续修改和撤销。",
+    "交付目标为可编辑候选工程和demo，不能将规划或自动检查声称为已完成制作或真人认可。"
+  ],
+  "gaps": [
+    "尚未观察三条视频，组合、各单品及佩戴关系的内容覆盖和可用源区间待核验。",
+    "视频总原始时长约62.368秒，距离目标余量有限；分屏并行占用素材后能否满足58至60秒且不重复，需结合真实内容核验。",
+    "指定音乐仅40秒，覆盖58至60秒成片的安排待确定；不默认已有全长音乐。",
+    "scenarioResources与scenePackage为空，本场景链路及分屏、网格、文字资源的可用性尚未确认。",
+    "无听音能力，音乐听感与衔接仍需人工核听。"
+  ],
+  "keepOriginalAudio": false,
+  "needsCaptions": false,
+  "needsNarration": false,
+  "needsTranscription": false,
+  "request": {
+    "cta": "",
+    "facts": [],
+    "name": "首饰搭配展示",
+    "output": {
+      "durationSeconds": 59,
+      "height": 1920,
+      "width": 1080
+    },
+    "price": ""
+  },
+  "scenarioId": "product_collection",
+  "workflow": {
+    "assumptions": [
+      "沿用当前合同的create模式：没有已有工程修订，结合校验错误，将“第四场景”理解为本次业务场景制作，不臆造已有时间线第四段或启动编辑任务。",
+      "默认输出1080×1920、59秒；在58至60秒范围内根据实际素材调整。",
+      "三条视频均无音轨，keepOriginalAudio=false；上传音乐另设独立原生音轨。",
+      "音乐暂按40秒真实音源配合留白考虑，不默认循环或生成延长；后续根据实际衔接核验调整。",
+      "当前有效合同requirements为空；priorBrief为同一请求的失败解析候选，本次纠正任务模式并重新提取原消息要求。"
+    ],
+    "gaps": [
+      "未提供时间线对象ID，所有构图、文字和场景目标留空；仅引用真实素材ID。",
+      "真实内容覆盖、分屏造成的时长消耗、音乐安排和场景资源可用性待后续核验。"
+    ],
+    "objective": "让潜在消费者先理解首饰整体组合，再看清戒指、项链和耳饰，最后理解佩戴搭配关系。",
+    "overrides": [],
+    "requirements": [
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "goal",
+        "quote": "现在把第四场景改为约一分钟的竖屏首饰搭配展示",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "竖屏",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "resource",
+        "quote": "用已上传的三条真实视频和原创音乐完成",
+        "startSeconds": null,
+        "targetIds": [
+          "asset-5bed5fa6-aff4-4432-9819-bbd9e45610de",
+          "asset-c3b7ccd1-e51b-4aa4-a755-1905322101e3",
+          "asset-d15b0f6b-da27-45c0-b2c3-404512dee173",
+          "asset-1555e45e-ae5c-4342-a82e-731766200c7d"
+        ]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "goal",
+        "quote": "先看组合，再分别看戒指、项链和耳饰，最后回到佩戴关系",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "goal",
+        "quote": "杂志画册感、文字少、真实颜色",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "prohibit",
+        "quote": "不编品牌材质价格或同系列",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "goal",
+        "quote": "总时长以58到60秒为目标",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "prohibit",
+        "quote": "合理剪辑分配，不重复凑时长",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "resource",
+        "quote": "要调用本场景链路与可用HyperFrames分屏、网格和文字资源",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "goal",
+        "quote": "局部视窗必须实际可见且不裁坏主体",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "goal",
+        "quote": "无需复杂多窗口局部放大，优先稳定清楚的实拍与分屏",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "音乐轻",
+        "startSeconds": null,
+        "targetIds": [
+          "asset-1555e45e-ae5c-4342-a82e-731766200c7d"
+        ]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "prohibit",
+        "quote": "无旁白",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "保留单品标题、说明、镜头和音乐为可独立修改的原生对象",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "goal",
+        "quote": "让我能在当前WebUI连续对话改标题、顺序、音乐并撤销",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "goal",
+        "quote": "先完成可编辑候选工程和demo",
+        "startSeconds": null,
+        "targetIds": []
+      }
+    ],
+    "taskMode": "create"
+  }
+}
