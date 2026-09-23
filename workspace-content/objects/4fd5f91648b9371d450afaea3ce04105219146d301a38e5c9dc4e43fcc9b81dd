@@ -1,0 +1,89 @@
+{
+  "alternatives": [],
+  "operations": [
+    {
+      "assetId": null,
+      "durationFrames": 12,
+      "effect": "chromatic-split",
+      "fromSceneId": "scene-01",
+      "height": null,
+      "nodeId": null,
+      "paramsJson": null,
+      "sceneId": null,
+      "sceneIds": null,
+      "source": null,
+      "text": null,
+      "toSceneId": "scene-02",
+      "type": "set_transition",
+      "width": null
+    }
+  ],
+  "summary": "计划仅在第一、二幕之间加入色散转场；其他切点、全部字幕和声音保持。尚未执行或验证。",
+  "workflow": {
+    "assumptions": [
+      "色散时长默认12帧（0.4秒），为可逆选择；保持原切点位置、各幕时间和35秒总时长。",
+      "切点要求中的scene-01与scene-02共同定位两幕之间的边界，不代表修改或排除整幕内容。"
+    ],
+    "gaps": [
+      "document.transitions为空，不将resourceScopes中的转场ID写入requirements；使用当前真实场景ID对定位已绑定的第一处切点，其他边界严格按resourceScopes排除。",
+      "执行器需重新编译转场，预览2.8秒切点及相邻两幕，并核验其余切点、字幕、音轨、画幅与1050帧总时长保持。不得通过缩短工程或移动后续片段实现转场；检查成功后由服务生成新修订，失败保留rev-afa566585ae466c8。"
+    ],
+    "objective": "用第一处色散衔接整体显卡与正面细节，保持原有结构说明、字幕阅读和声音。",
+    "overrides": [],
+    "requirements": [
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "只在第一处转场用色散",
+        "startSeconds": null,
+        "targetIds": [
+          "scene-01",
+          "scene-02"
+        ]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [
+          "scene-01",
+          "scene-02"
+        ],
+        "kind": "preserve",
+        "quote": "不要改其他切点",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "全部字幕",
+        "startSeconds": null,
+        "targetIds": [
+          "s02-caption-1",
+          "s02-caption-2",
+          "s02-caption-3",
+          "s02-caption-4",
+          "s02-caption-5",
+          "cue-d18b235a237e72cf"
+        ]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "声音保持",
+        "startSeconds": null,
+        "targetIds": [
+          "audio-1",
+          "audio-2",
+          "audio-3",
+          "audio-4",
+          "audio-4124aaefa824859c",
+          "audio-bc35f0a994d81023"
+        ]
+      }
+    ],
+    "taskMode": "edit"
+  }
+}

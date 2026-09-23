@@ -1,0 +1,121 @@
+{
+  "schema_version": 2,
+  "assessment_basis": "engineering_heuristics_and_observed_keyframe_issues",
+  "score": 40,
+  "threshold": 78,
+  "hard_minimum": 65,
+  "components": {
+    "product_exposure": 51,
+    "first_three_seconds": 36,
+    "pacing": 0,
+    "captions": 61,
+    "motion": 21,
+    "transitions": 51,
+    "audio": 75,
+    "commercial_conversion": 31
+  },
+  "issues": [
+    {
+      "severity": "major",
+      "dimension": "product_exposure",
+      "score": 51,
+      "problem": "product_exposure 低于商业最低线 65",
+      "repair": "只修改与 product_exposure 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+    },
+    {
+      "severity": "blocker",
+      "dimension": "first_three_seconds",
+      "score": 36,
+      "problem": "first_three_seconds 低于商业最低线 65",
+      "repair": "只修改与 first_three_seconds 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+    },
+    {
+      "severity": "blocker",
+      "dimension": "pacing",
+      "score": 0,
+      "problem": "pacing 低于商业最低线 65",
+      "repair": "只修改与 pacing 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+    },
+    {
+      "severity": "major",
+      "dimension": "captions",
+      "score": 61,
+      "problem": "captions 低于商业最低线 65",
+      "repair": "只修改与 captions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+    },
+    {
+      "severity": "blocker",
+      "dimension": "motion",
+      "score": 21,
+      "problem": "motion 低于商业最低线 65",
+      "repair": "只修改与 motion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+    },
+    {
+      "severity": "major",
+      "dimension": "transitions",
+      "score": 51,
+      "problem": "transitions 低于商业最低线 65",
+      "repair": "只修改与 transitions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+    },
+    {
+      "severity": "blocker",
+      "dimension": "commercial_conversion",
+      "score": 31,
+      "problem": "commercial_conversion 低于商业最低线 65",
+      "repair": "只修改与 commercial_conversion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+    },
+    {
+      "id": "issue-0",
+      "requirementId": "final-output",
+      "severity": "major",
+      "startSeconds": 47.18,
+      "endSeconds": 47.18,
+      "problem": "用户要求文字仅出现在开头两秒，但在标注为47.180秒的画面中仍可见“新品体验”，且后续78.533秒、78.600秒抽帧也仍存在，说明文字至少持续到视频后段。",
+      "evidenceRefs": [
+        "final-review/frame-1.jpg"
+      ],
+      "repair": "将“新品体验”图层的可见区间严格限制为0.000–2.000秒，并复查2秒后的画面无残留。",
+      "preserve": [
+        "未涉及的镜头、文字和音轨"
+      ],
+      "dimension": "visual"
+    },
+    {
+      "id": "issue-1",
+      "requirementId": "final-output",
+      "severity": "major",
+      "startSeconds": 78.60000000000001,
+      "endSeconds": 78.60000000000001,
+      "problem": "合同中的输出时长为30秒，而提供的最终成片抽帧时间已到78.600秒；这与“时长保持不变”及当前合同的30秒时长不一致。",
+      "evidenceRefs": [
+        "final-review/frame-3.jpg"
+      ],
+      "repair": "核对母片实际时长并恢复原始时长；若合同的30秒为硬约束，则裁切或替换为对应30秒版本后重新导出。",
+      "preserve": [
+        "未涉及的镜头、文字和音轨"
+      ],
+      "dimension": "visual"
+    }
+  ],
+  "suggestions": [
+    "只修改与 product_exposure 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+    "只修改与 first_three_seconds 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+    "只修改与 pacing 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+    "只修改与 captions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+    "只修改与 motion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+    "只修改与 transitions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+    "只修改与 commercial_conversion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+    "将“新品体验”图层的可见区间严格限制为0.000–2.000秒，并复查2秒后的画面无残留。",
+    "核对母片实际时长并恢复原始时长；若合同的30秒为硬约束，则裁切或替换为对应30秒版本后重新导出。",
+    "完成连续观片后校准节奏、动作和转场评分；自动分数不代签真人观看。",
+    "完成实际试听后校准声音情绪、清晰度和音画同步；电平检测不代替听感。"
+  ],
+  "revision_required": true,
+  "coverage": {
+    "actual_mp4": true,
+    "full_video_observed": false,
+    "audio_perception_verified": false
+  },
+  "status": "needs_revision",
+  "human_acceptance": "pending"
+}

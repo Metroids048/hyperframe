@@ -1,0 +1,78 @@
+{
+  "mode": "recut",
+  "scenario": "general",
+  "objective": "为已上传原片制作1920×1080、约80秒的视频包装，添加指定片头标题和三个简洁章节角标，保留画面顺序、必要动作、原声及来源署名。",
+  "auxiliaryModes": [],
+  "auxiliaryScenarios": [],
+  "requirements": [],
+  "overrides": [],
+  "resources": [
+    {
+      "resourceKind": "source-asset",
+      "purpose": "使用已上传原片作为画面与原声来源，保护画面顺序和必要动作。",
+      "query": "N3-0.mp4",
+      "quote": "完整保留原片中的画面顺序、必要动作和原声",
+      "required": true,
+      "targetIds": [
+        "asset-12c258dd-aa20-475e-9e80-6f80ebf84981"
+      ],
+      "texts": [],
+      "actionProtected": true
+    },
+    {
+      "resourceKind": "native-capability",
+      "purpose": "添加指定片头标题和三个简洁章节角标，根据待观察的手部活动范围安排位置。",
+      "query": "minimal opening title and three chapter corner labels with adjustable safe positioning",
+      "quote": "给上传的原片加片头标题“紫色领饰 · 系结记录”和三个简洁的章节角标",
+      "required": true,
+      "targetIds": [],
+      "texts": [
+        "紫色领饰 · 系结记录"
+      ],
+      "actionProtected": true
+    }
+  ],
+  "gaps": [],
+  "procedureSubtype": "not_applicable",
+  "steps": [
+    {
+      "id": "inspect_source",
+      "purpose": "待读取原片时长与音轨，观察画面顺序、必要动作、手部活动范围、来源署名及三个章节的合理划分，不预设已观察到的动作。",
+      "requires": [],
+      "assetIds": [
+        "asset-12c258dd-aa20-475e-9e80-6f80ebf84981"
+      ]
+    },
+    {
+      "id": "plan_native_project",
+      "purpose": "待以已上传原片直接建立原生工程，核验1920×1080画幅下主体和手部的完整可见性，无需用户预先提供母工程，不捏造revision。",
+      "requires": [
+        "inspect_source"
+      ],
+      "assetIds": [
+        "asset-12c258dd-aa20-475e-9e80-6f80ebf84981"
+      ]
+    },
+    {
+      "id": "plan_packaging",
+      "purpose": "待依据观察结果确定三个章节角标的简洁文案与出现时机，规划避开手部的指定片头标题及角标，并保留Coes Fashion · CC BY 3.0来源署名。核验约80秒与保留原片顺序、必要动作、原声及不加速动作的兼容性；仅在确认冲突后提出最小必要问题。",
+      "requires": [
+        "inspect_source",
+        "plan_native_project"
+      ],
+      "assetIds": [
+        "asset-12c258dd-aa20-475e-9e80-6f80ebf84981"
+      ]
+    },
+    {
+      "id": "verify_delivery",
+      "purpose": "待核验包装方案的1920×1080画幅、约80秒时长、指定标题和三个章节角标，确认原片顺序、必要动作、原声、署名及手部可见性均保留，无动作加速、新增背景音乐、旁白、商品上新广告或虚构商品参数。",
+      "requires": [
+        "plan_packaging"
+      ],
+      "assetIds": [
+        "asset-12c258dd-aa20-475e-9e80-6f80ebf84981"
+      ]
+    }
+  ]
+}

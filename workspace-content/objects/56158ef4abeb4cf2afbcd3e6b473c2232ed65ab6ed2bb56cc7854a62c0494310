@@ -1,0 +1,9 @@
+# P00-03 root cause
+
+隔离运行（清空全部 `MINIMAX_*_API_KEY`，固定 `VIDEO_AGENT_TTS_ENGINE=kokoro`）稳定复现两项失败：旁白修订链以 `STEP_BUDGET` 停在 1200 步；旁白恢复链以 `VOICE_NOT_FOUND` 停在合成前。完整原始输出见 `failure-before.log` 与 `failure-suite-before.log`。
+
+第一项的修订前后测试 WAV 字节相同，旧 `story.plan` 幂等输入只绑定 `asset.sha256`。虽然批准台词、asset ID 和实测旁白记录已经变化，调度键仍相同，旧分镜检查点被反复取回，直到真实步数预算安全暂停。修复使用包含批准稿、实际音色、速率、asset ID/SHA/时长和词时间的旁白状态指纹；没有提高 1200 步上限。
+
+第二项由音色目录合同升级后夹具未注入 provider 目录、且本地 provider 的目录方法返回空造成。本地引擎实际支持的 12 个音色现通过 `speechVoiceCatalog` 返回；两条正例显式注入各自目录。目录外音色的独立集成反例仍在 `provider.speak` 前以 `VOICE_NOT_FOUND` 拒绝。
+
+结果：目标正例 3/3，通过同组 `test-commerce-next` 与 `test-commerce-quality-next` 44/44；受影响 commerce、provider、旁白时间、旁白修订、旧阶段恢复回归通过。独立 AgentKernel 反例确认两步上限后仍为 `STEP_BUDGET`，恢复不重复工具调用。所有验证均未加载生产 Key、未调用 MiniMax、未生成新商品图片或镜头。

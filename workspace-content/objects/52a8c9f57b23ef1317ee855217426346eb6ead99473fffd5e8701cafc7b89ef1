@@ -1,0 +1,77 @@
+import hashlib
+import json
+import math
+import subprocess
+from datetime import datetime, timezone
+from pathlib import Path
+
+from PIL import Image, ImageDraw, ImageFont
+
+ROOT = Path('/Users/a1234/Desktop/hyperframe-main/video-agent')
+OUT = Path(__file__).resolve().parent
+FFMPEG = ROOT / 'node_modules/@ffmpeg-installer/darwin-arm64/ffmpeg'
+FFPROBE = ROOT / 'node_modules/@ffprobe-installer/darwin-arm64/ffprobe'
+SOURCES = [
+    ('source-1', '0f1a3c3b-f074-4fc1-be65-838d01d2d628', 'asset-f7a10c49-ff07-44df-965f-18c67df7efe0.mp4'),
+    ('source-2', 'cd60df6d-227a-452e-bc13-d7f49f894da1', 'asset-3db4c32f-af6c-4f80-ad87-355840a6a894.mp4'),
+]
+COMMANDS = []
+
+
+def run(arguments, destination):
+    result = subprocess.run([str(argument) for argument in arguments], capture_output=True)
+    destination.write_bytes(result.stdout)
+    destination.with_suffix(destination.suffix + '.stderr.log').write_bytes(result.stderr)
+    COMMANDS.append({'argv': [str(argument) for argument in arguments], 'exit_code': result.returncode, 'output': str(destination.relative_to(OUT))})
+    if result.returncode:
+        raise RuntimeError(f'Failed command; see {destination}')
+    return result.stdout
+
+
+def sheets(folder, records, prefix='contact', subtitle='1-second sampling; not continuous viewing'):
+    font = ImageFont.truetype('/System/Library/Fonts/Monaco.ttf', 17)
+    for offset in range(0, len(records), 15):
+        page_records = records[offset:offset + 15]
+        canvas = Image.new('RGB', (1250, 70 + 468 * math.ceil(len(page_records) / 5)), '#17202b')
+        draw = ImageDraw.Draw(canvas)
+        draw.text((16, 12), f'{folder.name} | {prefix} | page {offset // 15 + 1}', font=font, fill='white')
+        draw.text((16, 38), subtitle, font=font, fill='#b6c8dd')
+        for position, record in enumerate(page_records):
+            frame = Image.open(folder / record['file']).convert('RGB')
+            frame.thumbnail((240, 427))
+            left = (position % 5) * 250 + 5
+            top = 70 + (position // 5) * 468
+            canvas.paste(frame, (left, top))
+            draw.text((left, top + 431), f"{record['seconds']:.3f}s  #{record['frame']}", font=font, fill='white')
+        canvas.save(folder / f'{prefix}-{offset // 15 + 1:02d}.jpg', quality=94)
+
+
+def main():
+    summaries = []
+    for label, project, filename in SOURCES:
+        source = Path('/Users/a1234/.openclaw/hyperframe/state/projects') / project / 'uploads' / filename
+        folder = OUT / label
+        folder.mkdir(parents=True, exist_ok=True)
+        original_hash = hashlib.sha256(source.read_bytes()).hexdigest()
+        probe = json.loads(run([FFPROBE, '-v', 'error', '-show_streams', '-show_format', '-of', 'json', source], folder / 'ffprobe.json'))
+        video = next(stream for stream in probe['streams'] if stream['codec_type'] == 'video')
+        rate_numerator, rate_denominator = map(int, video['avg_frame_rate'].split('/'))
+        rate = rate_numerator / rate_denominator
+        frame_count = int(video['nb_frames'])
+        run([FFMPEG, '-hide_banner', '-nostdin', '-y', '-i', source, '-map', '0:v:0', '-vf', "select=not(mod(n\\,30)),scale=360:-2,showinfo", '-vsync', '0', '-q:v', '2', folder / 'frame-%03d.jpg'], folder / 'extraction.stdout.log')
+        records = [{'file': f'frame-{position + 1:03d}.jpg', 'frame': frame, 'seconds': frame / rate} for position, frame in enumerate(range(0, frame_count, 30))]
+        run([FFMPEG, '-hide_banner', '-nostdin', '-y', '-i', source, '-map', '0:v:0', '-vf', f'select=eq(n\\,{frame_count - 1})', '-vsync', '0', '-frames:v', '1', '-q:v', '2', folder / 'last-frame.jpg'], folder / 'tail.stdout.log')
+        records.append({'file': 'last-frame.jpg', 'frame': frame_count - 1, 'seconds': (frame_count - 1) / rate})
+        (folder / 'frame-index.json').write_text(json.dumps(records, indent=2) + '\n')
+        sheets(folder, records)
+        run([FFMPEG, '-hide_banner', '-nostdin', '-v', 'error', '-i', source, '-map', '0:v:0', '-map', '0:a?', '-f', 'null', '-'], folder / 'decode.stdout.log')
+        if any(stream['codec_type'] == 'audio' for stream in probe['streams']):
+            run([FFMPEG, '-hide_banner', '-nostdin', '-i', source, '-vn', '-af', 'volumedetect', '-f', 'null', '-'], folder / 'audio-level.stdout.log')
+        summary = {'label': label, 'project_id': project, 'source': str(source), 'sha256': original_hash, 'source_unchanged': hashlib.sha256(source.read_bytes()).hexdigest() == original_hash, 'duration': float(probe['format']['duration']), 'width': video['width'], 'height': video['height'], 'fps': rate, 'frames': frame_count, 'audio_streams': sum(stream['codec_type'] == 'audio' for stream in probe['streams']), 'sampled_frames': len(records)}
+        summaries.append(summary)
+        print(json.dumps(summary), flush=True)
+    (OUT / 'manifest.json').write_text(json.dumps({'generated_at': datetime.now(timezone.utc).isoformat(), 'review_mode': 'keyframes_only', 'continuous_viewing': False, 'audio_listened': False, 'sources': summaries, 'commands': COMMANDS}, indent=2) + '\n')
+
+
+if __name__ == '__main__':
+    main()

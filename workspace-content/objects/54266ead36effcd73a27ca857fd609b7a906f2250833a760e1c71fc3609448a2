@@ -1,0 +1,52 @@
+{
+  "answer": {
+    "source": {
+      "html": "<div id=\"scene-06-root\"><div id=\"scene-06-bg\"></div><img id=\"scene-06-media\" alt=\"\" /><div id=\"scene-06-overlay\"><div id=\"scene-06-title\">咖啡樹 COFFEE TREE</div><div id=\"scene-06-divider\"></div><div id=\"scene-06-feature\">PREMIUM QUALITY</div></div></div>",
+      "css": "#scene-06-root {\n  position: relative;\n  width: 1080px;\n  height: 1920px;\n  overflow: hidden;\n  background-color: #1B120E;\n  font-family: Microsoft YaHei, Arial, sans-serif;\n}\n#scene-06-bg {\n  position: absolute;\n  inset: 0;\n  z-index: 1;\n  background: radial-gradient(circle at 50% 32%, #3B281C 0%, #2C1D16 45%, #1B120E 82%);\n}\n#scene-06-media {\n  position: absolute;\n  top: 410px;\n  left: 50%;\n  width: 780px;\n  height: 1000px;\n  margin-left: -390px;\n  object-fit: contain;\n  object-position: center center;\n  z-index: 2;\n}\n#scene-06-overlay {\n  position: absolute;\n  inset: 0;\n  z-index: 3;\n  background-color: transparent;\n}\n#scene-06-title {\n  position: absolute;\n  top: 170px;\n  left: 72px;\n  width: 936px;\n  text-align: center;\n  font-size: 88px;\n  font-weight: 700;\n  line-height: 1.1;\n  letter-spacing: 2px;\n  color: #F3E9DA;\n}\n#scene-06-divider {\n  position: absolute;\n  top: 322px;\n  left: 50%;\n  width: 260px;\n  height: 2px;\n  margin-left: -130px;\n  background-color: #C8964F;\n}\n#scene-06-feature {\n  position: absolute;\n  top: 1450px;\n  left: 50%;\n  transform: translateX(-50%);\n  padding: 12px 24px;\n  border: 1px solid #C8964F;\n  border-radius: 8px;\n  background-color: #2C1D16;\n  font-size: 34px;\n  font-weight: 600;\n  line-height: 1.2;\n  letter-spacing: 3px;\n  color: #F3E9DA;\n  white-space: nowrap;\n}",
+      "timeline": "",
+      "parameters": [],
+      "objects": [
+        {
+          "elementId": "scene-06-media",
+          "ref": "media-1"
+        },
+        {
+          "elementId": "scene-06-title",
+          "ref": "text-1"
+        },
+        {
+          "elementId": "scene-06-feature",
+          "ref": "text-2"
+        },
+        {
+          "elementId": "scene-06-divider",
+          "ref": "decoration-1"
+        }
+      ],
+      "motionTargets": [],
+      "textStyles": [
+        {
+          "elementId": "scene-06-title",
+          "match": "咖啡樹 COFFEE TREE",
+          "fontSize": 88,
+          "fontWeight": 700,
+          "color": "#F3E9DA"
+        },
+        {
+          "elementId": "scene-06-feature",
+          "match": "PREMIUM QUALITY",
+          "fontSize": 34,
+          "fontWeight": 600,
+          "color": "#F3E9DA"
+        }
+      ]
+    },
+    "notes": "静态关键画面（end-card）交付：仅按已登记原生对象与已批准文字构建，无动画、无音轨、无 CTA/口号。\n\n范围与权威\n- 只映射 nativeObjectRefs：media-1（真实包装图 img）、text-1「咖啡樹 COFFEE TREE」、text-2「PREMIUM QUALITY」；divider 作为已声明的装饰 shape（decoration-1）。未新增任何 text-N，未复制源片自带印字。\n- 素材源区间 sourceStartSeconds=0，静态单帧；observation 记录为清晰可读静态包装图（confidence 0.94）。全部依据来自该观察，无推断性事实。\n\n布局（1080×1920 竖屏，中轴纵向分层）\n- 顶部品牌名（y≈170）→ 焦糖金细分隔线（y≈322）→ 包装主体居中含字（y≈410–1410，contain 全包装可见）→ 品质标识标签 pill（y≈1450–1514）。\n- 全部内容位于 y≤1594（画布高度的 83% 以上），满足底部字幕带 keep-out（本镜头无字幕亦遵守）。\n- 深咖啡底 #1B120E + 径向渐变 #3B281C→#2C1D16→#1B120E 营造烘焙/品质氛围；焦糖金 #C8964F 作强调与描边。\n\n约束核对\n- timeline 为空字符串、motionTargets 为空数组；全部文字在 CSS 静态态清晰可见，未用 opacity:0 预置不可见态。\n- 承载文字的全画幅 #scene-06-overlay 为透明（background-color: transparent），实拍层 #scene-06-media 位于其下层（z-index 2 < 3），未以不透明背景遮盖实拍主体。\n- 文字容器与图标无遮挡：标题/标签均避开包装 Logo 与「沖調法：DIRECTION：」印字区；包装底部水印/喷码由 contain 视觉构图弱化，未作主体。\n- CSS 仅使用本场 #id 选择器；无伪类、无全局、无 @规则、无 url()、无 animation/transition；仅使用白名单属性。font-family 用设计指定且已允许的本地字体 Microsoft YaHei。\n- img 不写 src，由原生对象注入；媒体窗口 1 个（≤4），无多窗口同源需求。\n\n结束语义\n- 结尾只做品牌整体回归：品牌名 + 品质标识 + 真实包装，落定后静止，留足阅读时间；不引入新事实、不添加未提供的下一步/CTA/价格。\n\nmediaBindingGap 为空：本镜头仅需 1 个同源素材窗口，nativeObjectRefs 已声明 media-1，无缺口。\n\nkeyframeAtSeconds：本镜头候选帧为静态包装图，各秒无可见时序差异；取 4.5s（品牌落定并保持静止的收尾态）作为主体与整体最清楚的取样点，非固定中点。",
+    "keyframeAtSeconds": 4.5,
+    "mediaBindingGap": ""
+  },
+  "error": {
+    "code": "KEYFRAME_SOURCE",
+    "message": "[{\"severity\":\"minor\",\"repairKind\":\"text-evidence\",\"problem\":\"新增叠层文字“PREMIUM QUALITY”的 factRefs 为空，业务合同也没有任何可支撑的品质事实；合同要求不虚构，scene-06 亦自述「不补写任何无依据文案」，但当前合成关键帧无法确认该字样属包装烧录文字。\",\"repair\":\"以未加包装的源图核对“PREMIUM QUALITY”是否确为包装上可见字样：若确实存在，则把该文字对象绑定到对应事实/证据；若不存在，则删除该叠加，避免出现无依据的品质宣称。\"}]"
+  }
+}

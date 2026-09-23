@@ -1,0 +1,371 @@
+{
+  "schemaVersion": 1,
+  "id": "5ee4fda3-9129-465f-a956-745a5fd1f67a",
+  "title": "咖啡袋替换为蛋白粉桶",
+  "createdAt": "2026-09-20T08:04:49.539Z",
+  "updatedAt": "2026-09-23T13:05:44.038Z",
+  "request": {
+    "message": "将用户上传视频中的咖啡袋替换为一桶蛋白粉。请自动分析咖啡袋在画面中的位置、遮挡、运动、透视和光照；寻找或生成适配的蛋白粉桶素材，完成主体替换。保留原视频的背景、动作、镜头节奏、原声、音乐和字幕；不要添加配音，不改变无关内容。",
+    "inputAttachments": [
+      {
+        "id": "media://inbound/06ca3299-d07d-4e9a-8397-e9ab430d156e-____.mp4",
+        "kind": "video"
+      }
+    ],
+    "scenario": "product_detail",
+    "taskMode": "create",
+    "output": {
+      "preserveAudio": true,
+      "preserveCaptions": true
+    },
+    "title": "咖啡袋替换为蛋白粉桶",
+    "scenarioId": "product_detail",
+    "workflow": {
+      "version": 1,
+      "taskMode": "create",
+      "taskModeExplicit": true,
+      "workflowProfile": "create",
+      "businessScenario": "product_detail",
+      "baseProjectId": "5ee4fda3-9129-465f-a956-745a5fd1f67a",
+      "baseRevisionId": null,
+      "assetScope": [],
+      "originalRequest": "将上传视频中可识别的咖啡袋替换为一桶蛋白粉。使用已有本地商品素材 /Users/a1234/Desktop/hyperframe-main/video-agent/assets/product.png 作为替换源，并调整为蛋白粉桶的合理外观与比例；自动跟踪原咖啡袋的逐帧运动、透视和遮挡，去除原袋并进行真实合成，匹配视频光线、色温、阴影和景深。保留背景、镜头运动、手部遮挡、原声、音乐、字幕、节奏和其他物体，不加配音，不改无关内容。",
+      "requirements": [],
+      "assumptions": [],
+      "gaps": [],
+      "interpretation": "pending-semantic-analysis"
+    },
+    "businessContract": {
+      "schemaVersion": 1,
+      "profile": "commerce-focus-v1",
+      "scenarioId": "product_detail",
+      "originalRequest": "将用户上传视频中的咖啡袋替换为一桶蛋白粉。请自动分析咖啡袋在画面中的位置、遮挡、运动、透视和光照；寻找或生成适配的蛋白粉桶素材，完成主体替换。保留原视频的背景、动作、镜头节奏、原声、音乐和字幕；不要添加配音，不改变无关内容。",
+      "taskMode": "create",
+      "workflowProfile": "create",
+      "workflow": {
+        "version": 1,
+        "taskMode": "create",
+        "taskModeExplicit": true,
+        "workflowProfile": "create",
+        "businessScenario": "product_detail",
+        "baseProjectId": null,
+        "baseRevisionId": null,
+        "assetScope": [],
+        "originalRequest": "将用户上传视频中的咖啡袋替换为一桶蛋白粉。请自动分析咖啡袋在画面中的位置、遮挡、运动、透视和光照；寻找或生成适配的蛋白粉桶素材，完成主体替换。保留原视频的背景、动作、镜头节奏、原声、音乐和字幕；不要添加配音，不改变无关内容。",
+        "requirements": [],
+        "assumptions": [],
+        "gaps": [],
+        "interpretation": "pending-semantic-analysis"
+      },
+      "persona": {
+        "creator": "商家／内容运营（待用户研究验证）",
+        "viewer": "首次了解商品的消费者"
+      },
+      "objective": "讲清商品结构与可信卖点",
+      "product": {},
+      "output": {
+        "preserveAudio": true,
+        "preserveCaptions": true
+      },
+      "audio": "original",
+      "mustHave": [],
+      "mustNot": [],
+      "explicitConstraints": {
+        "schemaVersion": 1,
+        "originalRequest": "将用户上传视频中的咖啡袋替换为一桶蛋白粉。请自动分析咖啡袋在画面中的位置、遮挡、运动、透视和光照；寻找或生成适配的蛋白粉桶素材，完成主体替换。保留原视频的背景、动作、镜头节奏、原声、音乐和字幕；不要添加配音，不改变无关内容。",
+        "narration": "forbidden",
+        "music": "unspecified",
+        "original": "unspecified",
+        "price": "unspecified",
+        "silent": false
+      },
+      "generatedFootageAllowed": false,
+      "deliverables": [
+        "candidate_mp4",
+        "editable_project",
+        "source_index",
+        "quality_report"
+      ]
+    }
+  },
+  "assets": [],
+  "revisions": [],
+  "currentRevisionId": null,
+  "jobs": [
+    {
+      "id": "job-5af6d144-58ed-43c5-8c4b-d1bb02c4175e",
+      "kind": "asset",
+      "input": {
+        "assetKind": "image",
+        "baseRevisionId": null,
+        "keep": [
+          "source video",
+          "background",
+          "camera movement",
+          "hands and occlusions",
+          "original audio",
+          "music",
+          "captions",
+          "timing",
+          "unrelated objects"
+        ],
+        "message": "Generate a photorealistic protein powder tub product asset for replacement in the uploaded video. Use a generic unbranded matte plastic supplement tub with a clean protein powder label, front three-quarter view, neutral modern packaging, realistic lid, soft studio lighting, transparent background if supported. Do not copy any existing brand, logo, or trademark. Match the apparent scale and perspective of the coffee bag replacement target.",
+        "projectId": "5ee4fda3-9129-465f-a956-745a5fd1f67a",
+        "requestedChanges": [
+          {
+            "type": "generate_replacement_asset",
+            "object": "coffee_bag",
+            "replacement": "generic_protein_powder_tub",
+            "visualConstraints": {
+              "photorealistic": true,
+              "unbranded": true,
+              "transparentBackgroundPreferred": true,
+              "perspective": "front_three_quarter",
+              "lighting": "match_source_video"
+            }
+          }
+        ],
+        "scenarioId": "product_detail",
+        "selectedNodeId": "coffee_bag",
+        "taskMode": "create",
+        "target": "image",
+        "workflowProfile": "commerce-object-replacement",
+        "authorizationId": "auth-a5ffc313-c3c2-42fb-be53-41fca447c3df",
+        "operationId": "op-f0052eaab88baeae3180c1d951e2f4f29ced81bb5344d448",
+        "action": "generate-asset",
+        "idempotencyKey": "op-f0052eaab88baeae3180c1d951e2f4f29ced81bb5344d448",
+        "workflow": {
+          "version": 1,
+          "taskMode": "create",
+          "taskModeExplicit": true,
+          "workflowProfile": "create",
+          "businessScenario": "product_detail",
+          "baseProjectId": "5ee4fda3-9129-465f-a956-745a5fd1f67a",
+          "baseRevisionId": null,
+          "assetScope": [],
+          "originalRequest": "Generate a photorealistic protein powder tub product asset for replacement in the uploaded video. Use a generic unbranded matte plastic supplement tub with a clean protein powder label, front three-quarter view, neutral modern packaging, realistic lid, soft studio lighting, transparent background if supported. Do not copy any existing brand, logo, or trademark. Match the apparent scale and perspective of the coffee bag replacement target.",
+          "requirements": [],
+          "assumptions": [],
+          "gaps": [],
+          "interpretation": "pending-semantic-analysis"
+        }
+      },
+      "baseRevisionId": null,
+      "status": "failed",
+      "createdAt": "2026-09-20T08:05:45.910Z",
+      "idempotencyKey": "op-f0052eaab88baeae3180c1d951e2f4f29ced81bb5344d448",
+      "startedAt": "2026-09-20T08:05:45.912Z",
+      "failureReceipt": {
+        "version": 2,
+        "code": "MEDIA_GENERATION_PAUSED",
+        "category": "quality_failure",
+        "recovery": {
+          "domain": "runtime",
+          "retryAllowed": false,
+          "automaticRetry": false,
+          "alternativeAllowed": false,
+          "qualityAccepted": false,
+          "goalReduced": false,
+          "nextAction": "保留成果，诊断失败阶段；不重做整片"
+        },
+        "reason": "本轮暂停新商品图片／视频生成。请使用已有素材制作；本地声音、字幕和工程编辑仍可用。",
+        "originalRequest": "Generate a photorealistic protein powder tub product asset for replacement in the uploaded video. Use a generic unbranded matte plastic supplement tub with a clean protein powder label, front three-quarter view, neutral modern packaging, realistic lid, soft studio lighting, transparent background if supported. Do not copy any existing brand, logo, or trademark. Match the apparent scale and perspective of the coffee bag replacement target.",
+        "requirements": [],
+        "baseRevisionId": null,
+        "actualAction": "保留上一有效版本；本次未发布修改",
+        "publishedRevisionId": null,
+        "preserved": [
+          "工程",
+          "已有音轨",
+          "素材",
+          "历史"
+        ],
+        "goalReduced": false,
+        "qualityAccepted": false,
+        "failedTargets": [],
+        "policyVersion": 1,
+        "nextAction": "定位失败对象，执行最小修复后重新检查"
+      },
+      "error": "本轮暂停新商品图片／视频生成。请使用已有素材制作；本地声音、字幕和工程编辑仍可用。",
+      "code": "MEDIA_GENERATION_PAUSED",
+      "completedAt": "2026-09-20T08:05:45.915Z",
+      "durationMs": 3,
+      "businessProgress": {
+        "current": "failed",
+        "label": "需要处理",
+        "events": [
+          {
+            "phase": "failed",
+            "label": "需要处理",
+            "stage": null,
+            "status": "failed",
+            "at": "2026-09-22T11:18:29.037Z"
+          }
+        ]
+      }
+    },
+    {
+      "id": "job-34e91279-6837-4acd-a080-ae7245f6588e",
+      "kind": "create",
+      "input": {
+        "attachmentIds": [
+          "media://inbound/06ca3299-d07d-4e9a-8397-e9ab430d156e-____.mp4"
+        ],
+        "baseRevisionId": null,
+        "keep": [
+          "source video",
+          "background",
+          "camera movement",
+          "hands and occlusions",
+          "original audio",
+          "music",
+          "captions",
+          "timing",
+          "unrelated objects"
+        ],
+        "message": "将上传视频中可识别的咖啡袋替换为一桶蛋白粉。使用已有本地商品素材 /Users/a1234/Desktop/hyperframe-main/video-agent/assets/product.png 作为替换源，并调整为蛋白粉桶的合理外观与比例；自动跟踪原咖啡袋的逐帧运动、透视和遮挡，去除原袋并进行真实合成，匹配视频光线、色温、阴影和景深。保留背景、镜头运动、手部遮挡、原声、音乐、字幕、节奏和其他物体，不加配音，不改无关内容。",
+        "projectId": "5ee4fda3-9129-465f-a956-745a5fd1f67a",
+        "requestedChanges": [
+          {
+            "type": "object_replacement",
+            "targetObject": "coffee_bag",
+            "replacementAssetPath": "/Users/a1234/Desktop/hyperframe-main/video-agent/assets/product.png",
+            "replacementRole": "protein_powder_tub",
+            "tracking": "automatic_per_frame",
+            "occlusion": "preserve_hands_and_foreground_occluders",
+            "compositing": {
+              "perspectiveMatch": true,
+              "scaleMatch": true,
+              "colorMatch": true,
+              "shadowMatch": true,
+              "depthOfFieldMatch": true
+            }
+          },
+          {
+            "type": "preserve",
+            "items": [
+              "original audio",
+              "music",
+              "captions",
+              "timing",
+              "background",
+              "camera movement",
+              "hands",
+              "unrelated objects"
+            ]
+          }
+        ],
+        "scenarioId": "product_detail",
+        "taskMode": "create",
+        "workflowProfile": "commerce-object-replacement",
+        "authorizationId": "auth-d2fee7a6-9af1-41d2-91e8-8d79bafaf3a7",
+        "operationId": "op-2fa36b8f7e9df33575ffb65f69ddbb5ee7dd4fd0afe5af11",
+        "action": "generate",
+        "idempotencyKey": "op-2fa36b8f7e9df33575ffb65f69ddbb5ee7dd4fd0afe5af11",
+        "workflow": {
+          "version": 1,
+          "taskMode": "create",
+          "taskModeExplicit": true,
+          "workflowProfile": "create",
+          "businessScenario": "product_detail",
+          "baseProjectId": "5ee4fda3-9129-465f-a956-745a5fd1f67a",
+          "baseRevisionId": null,
+          "assetScope": [],
+          "originalRequest": "将上传视频中可识别的咖啡袋替换为一桶蛋白粉。使用已有本地商品素材 /Users/a1234/Desktop/hyperframe-main/video-agent/assets/product.png 作为替换源，并调整为蛋白粉桶的合理外观与比例；自动跟踪原咖啡袋的逐帧运动、透视和遮挡，去除原袋并进行真实合成，匹配视频光线、色温、阴影和景深。保留背景、镜头运动、手部遮挡、原声、音乐、字幕、节奏和其他物体，不加配音，不改无关内容。",
+          "requirements": [],
+          "assumptions": [],
+          "gaps": [],
+          "interpretation": "pending-semantic-analysis"
+        }
+      },
+      "baseRevisionId": null,
+      "status": "recoverable",
+      "createdAt": "2026-09-20T08:07:50.740Z",
+      "idempotencyKey": "op-2fa36b8f7e9df33575ffb65f69ddbb5ee7dd4fd0afe5af11",
+      "startedAt": "2026-09-20T08:07:50.741Z",
+      "productionPolicy": {
+        "mediaGenerationPaused": true,
+        "source": "config/commerce.json"
+      },
+      "failureReceipt": {
+        "version": 2,
+        "code": "MISSING_MEDIA",
+        "category": "missing_evidence",
+        "recovery": {
+          "domain": "business",
+          "retryAllowed": false,
+          "automaticRetry": false,
+          "alternativeAllowed": false,
+          "qualityAccepted": false,
+          "goalReduced": false,
+          "nextAction": "保留制作单，只补缺项或定位目标"
+        },
+        "reason": "请添加已有商品图片或视频素材；本轮不生成新镜头",
+        "originalRequest": "将上传视频中可识别的咖啡袋替换为一桶蛋白粉。使用已有本地商品素材 /Users/a1234/Desktop/hyperframe-main/video-agent/assets/product.png 作为替换源，并调整为蛋白粉桶的合理外观与比例；自动跟踪原咖啡袋的逐帧运动、透视和遮挡，去除原袋并进行真实合成，匹配视频光线、色温、阴影和景深。保留背景、镜头运动、手部遮挡、原声、音乐、字幕、节奏和其他物体，不加配音，不改无关内容。",
+        "requirements": [],
+        "baseRevisionId": null,
+        "actualAction": "保留上一有效版本；本次未发布修改",
+        "publishedRevisionId": null,
+        "preserved": [
+          "工程",
+          "已有音轨",
+          "素材",
+          "历史"
+        ],
+        "goalReduced": false,
+        "qualityAccepted": false,
+        "failedTargets": [],
+        "policyVersion": 1,
+        "nextAction": "只补缺失对象或证据后恢复"
+      },
+      "error": "请添加已有商品图片或视频素材；本轮不生成新镜头",
+      "code": "MISSING_MEDIA",
+      "completedAt": "2026-09-20T08:07:50.748Z",
+      "durationMs": 7,
+      "businessProgress": {
+        "current": "recoverable",
+        "label": "需要处理",
+        "events": [
+          {
+            "phase": "recoverable",
+            "label": "需要处理",
+            "stage": null,
+            "status": "recoverable",
+            "at": "2026-09-22T11:18:29.037Z"
+          }
+        ]
+      }
+    }
+  ],
+  "messages": [
+    {
+      "role": "user",
+      "text": "Generate a photorealistic protein powder tub product asset for replacement in the uploaded video. Use a generic unbranded matte plastic supplement tub with a clean protein powder label, front three-quarter view, neutral modern packaging, realistic lid, soft studio lighting, transparent background if supported. Do not copy any existing brand, logo, or trademark. Match the apparent scale and perspective of the coffee bag replacement target.",
+      "attachmentIds": [],
+      "baseRevisionId": null,
+      "time": "2026-09-20T08:05:45.910Z"
+    },
+    {
+      "role": "assistant",
+      "text": "本轮暂停新商品图片／视频生成。请使用已有素材制作；本地声音、字幕和工程编辑仍可用。",
+      "time": "2026-09-20T08:05:45.915Z"
+    },
+    {
+      "role": "user",
+      "text": "将上传视频中可识别的咖啡袋替换为一桶蛋白粉。使用已有本地商品素材 /Users/a1234/Desktop/hyperframe-main/video-agent/assets/product.png 作为替换源，并调整为蛋白粉桶的合理外观与比例；自动跟踪原咖啡袋的逐帧运动、透视和遮挡，去除原袋并进行真实合成，匹配视频光线、色温、阴影和景深。保留背景、镜头运动、手部遮挡、原声、音乐、字幕、节奏和其他物体，不加配音，不改无关内容。",
+      "attachmentIds": [
+        "media://inbound/06ca3299-d07d-4e9a-8397-e9ab430d156e-____.mp4"
+      ],
+      "baseRevisionId": null,
+      "time": "2026-09-20T08:07:50.740Z"
+    },
+    {
+      "role": "assistant",
+      "text": "请添加已有商品图片或视频素材；本轮不生成新镜头",
+      "time": "2026-09-20T08:07:50.748Z"
+    }
+  ],
+  "redo": [],
+  "progressSignature": "[[\"job-5af6d144-58ed-43c5-8c4b-d1bb02c4175e\",\"failed\",null,null,null,\"MEDIA_GENERATION_PAUSED\",\"本轮暂停新商品图片／视频生成。请使用已有素材制作；本地声音、字幕和工程编辑仍可用。\",null,null,null],[\"job-34e91279-6837-4acd-a080-ae7245f6588e\",\"recoverable\",null,null,null,\"MISSING_MEDIA\",\"请添加已有商品图片或视频素材；本轮不生成新镜头\",null,null,null]]",
+  "recentProgressAt": "2026-09-20T08:07:50.748Z"
+}

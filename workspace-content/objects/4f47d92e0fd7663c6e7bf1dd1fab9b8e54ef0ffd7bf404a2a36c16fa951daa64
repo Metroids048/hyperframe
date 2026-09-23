@@ -1,0 +1,146 @@
+            | a short owned overlay block                                     | unrelated whole-clip styling                    |
+| make it feel like an old home video   | compare 8mm and VHS language against the source                                                 | finite weave/flicker or justified HUD                           | that every old-video request means VHS          |
+| hide this face                        | explain that realtime effects are whole-media; isolate the region first or use an external tool | whole-media Blur/Pixelate only when the user accepts that scope | face tracking or masking that was not performed |
+| keep the brand colors exact           | leave UI/logo pixels unchanged; use framing and motion                                          | demonstrated exposure-only correction                           | stylized preset, palette, or LUT                |
+
+When more than one lane could fit, generate at most two candidates and choose
+from inspected before/after evidence. Ordinary correction or polish starts with
+one candidate; a second candidate is an escalation, not the default. Do not
+stack effects merely to make the answer look more sophisticated.
+
+## Seed or assemble
+
+Use the table when a tested recipe directly fits. Read only that recipe
+section. Recipes are optional macros, not a closed list of allowed results.
+
+| Intent or source                                         | Recipe heading to read                            |
+| -------------------------------------------------------- | ------------------------------------------------- |
+| Talking head, interview, presenter, people-focused photo | `Natural Portrait`                                |
+| Product footage, lifestyle footage, clean social polish  | `Product Polish`                                  |
+| Screen capture, dashboard, website, app UI               | `UI Fidelity`                                     |
+| Warm memory, restrained nostalgia                        | `Film Memory`                                     |
+| Creator/UGC handheld camera character                    | `Creator Camcorder`                               |
+| Analog tape playback                                     | `VHS Playback`                                    |
+| Small-gauge home-movie character                         | `8mm Home Movie`                                  |
+| Editorial dots or ink print                              | `Editorial Halftone` or `Two-Ink Editorial Print` |
+| Monochrome dot/line screen print                         | `Monochrome Screen Print`                         |
+| Engraved or hand-hatched illustration                    | `Engraved Illustration` or `Crosshatched Sketch`  |
+| Curved scanlined display                                 | `CRT Display`                                     |
+| Glyph-based art                                          | `Procedural ASCII`                                |
+| Realtime palette quantization                            | `Ordered Palette Dither`                          |
+| Exact historical error diffusion                         | `Cached Error Diffusion`                          |
+| Finite warm flare layer                                  | `Organic Light Leak`                              |
+| Held-frame graphic interruption                          | `Freeze-Frame Cutout`                             |
+| Short exposure-flash transition                          | `Social Flash / Editorial Reveal`                 |
+
+Use `rg -n '^## <heading>$' <SKILL_DIR>/references/media-treatment-recipes.md`,
+then read only from that heading to the next `##`. Do not load the entire
+cookbook for one request.
+
+When source intent is unclear, inspect the concise capability overview:
+
+```bash
+hyperframes media-treatment --capabilities --json
+```
+
+It lists the complete surface by family with one-line descriptions. Then load
+only the family, effect, preset, or palette relevant to the inspected source:
+
+```bash
+hyperframes media-treatment --capability <id> --json
+```
+
+The focused result provides legal controls, recommended apply values, render
+cost, palette support, and the exact animation contract when supported. Use
+`--all` only for tooling/tests or a genuinely exhaustive audit. Compose one
+nested payload from these existing parts. Recipes and catalog-built payloads
+use the same renderer and persistence contract.
+
+Treat `renderLane: "multipass"` as a cost signal. Blur, Bloom, and Kuwahara are
+bounded but more expensive than single-pass effects; avoid stacking several of
+them across many simultaneous media elements unless the composition needs it,
+then verify playback and a draft render.
+Cost follows treated pixel area as well as element count. More than two
+simultaneously visible full-frame multipass media layers requires a continuous
+playback check on the target machine; simplify or pre-render the stack if it
+drops frames. Do not impose or claim a universal hard cap from one machine.
+
+## Common workflow
+
+1. Confirm the target is a real `<img>` or `<video>` and inspect source color
+   metadata.
+2. For an image, read it once. For video, capture early/middle/late output as
+   one labeled sheet and read that one image:
+
+   ```bash
+   hyperframes snapshot <project> --frames 3 --no-end --describe false \
+     --output snapshots/treatment-before
+   ```
+
+   Read `snapshots/treatment-before/contact-sheet.jpg`; do not spend separate
+   model turns reading each frame unless the sheet exposes a specific problem.
+   Do not infer semantics from signal statistics alone.
+
+3. Choose one primary lane. Use one matching recipe as a tested seed, or read
+   the overview and one focused capability detail when the request is bespoke.
+   A seed may be changed or combined with compatible catalog controls when the
+   contact sheet justifies it. Do not invent keys, exceed reported ranges, or
+   stack effects without a visual reason. Do not run the generic grade/LUT
+   resolver first; it adds irrelevant candidates and may download an unused
+   LUT. Use `media-treatment --selector "#hero" --analyze --json` only when
+   correction needs measured signal evidence.
+4. Persist pixel settings with `hyperframes media-treatment`; it validates and
+   merges a patch into the existing nested `data-color-grading` contract. Use registered
+   GSAP only for supported animated values and Registry overlay blocks only
+   for authored dressing.
+   ```bash
+   hyperframes media-treatment --selector "<unique selector>" \
+     --grading '<nested JSON patch>' --apply --json
+   ```
+   For a temporal reveal, use the focused capability result's `animation`
+   contract. If it is `null`, the capability is static. Author the starting CSS
+   property inline on the real media element and return temporary treatment
+   values to neutral so the finished shot preserves its existing pixels.
+   Prefer that bounded media animation first; if an overlay is justified,
+   install the owned Registry block instead of recreating it with bespoke
+   overlay markup.
+   For correction and ordinary polish, keep those values as editable
+   preset/adjustment JSON; do not generate a LUT for controls the realtime shader
+   already owns.
+   Use the canonical `details`/`effects` fields for vignette, grain, blur,
+   pixelate, and related primitives. Do not duplicate them with CSS filters,
+   SVG turbulence, opacity, or decorative DOM overlays.
+5. When the treatment calls for an overlay, install that named block with
+   `hyperframes add <name> --dir <project> --no-clipboard --json`, inspect its
+   returned `data-composition-src` host, and place it once using the block's
+   timing contract. Check for the installed file and host element
+   ID before insertion; never duplicate an existing overlay block. This is one
+   treatment workflow: do not make the user discover Catalog or separately ask
+   for the recipe's justified overlay.
+6. For ordinary correction/polish, capture one after-sheet with the same three
+   timestamps under `snapshots/treatment-after`, compare it to the before-sheet,
+   and stop when the result is clearly better. Run the normal project check;
+   do not encode a draft solely to prove a static correction.
+7. Escalate only when evidence requires it. Read individual frames to diagnose a
+   specific visual problem. Preview and render moving evidence when judging
+   treatment keyframes, glitch/tape motion, overlays, playback smoothness, LUT
+   timing, or any other temporal behavior. HDR/LOG, privacy, and brand-sensitive
+   work also require the existing explicit caveats and stronger verification.
+   If the treatment is not clearly better, keep the source unchanged.
+8. Report the selected media, primary intent, recipe seed if used, final
+   composed controls, optional overlays, and the frames/render that were
+   actually checked. Do not report visual quality from command success alone.
+
+`media-treatment --analyze` provides deterministic clipping and signal
+evidence for local composition media, not subject recognition or automatic
+taste. It reports HDR/metadata caveats and a bounded primary-correction patch;
+it does not invent wheels, curves, or HSL selections from statistics.
+
+</guidance>
+修正观察合同。框是归一化[x,y,width,height]，不是右下坐标；无法确认可留空。只需观察获准使用的素材，其余不能借相似外观建立同型号关系。inspectRanges为空，不重复已执行的抽帧。
+
+<editing_input>
+[{"role":"user","content":"{\"message\":\"开始制作，严格只使用当前完整使用过程实拍。\",\"brief\":{\"request\":{\"name\":\"\",\"cta\":\"\",\"price\":\"\",\"facts\":[],\"output\":{\"width\":1920,\"height\":1080,\"durationSeconds\":45,\"fps\":30}},\"needsTranscription\":false,\"needsNarration\":false,\"needsCaptions\":false,\"keepOriginalAudio\":true,\"capabilities\":[\"video-source-selection\",\"image-observation\",\"native-composition\",\"native-editing\",\"local-preview-review\",\"managed-original\"],\"gaps\":[],\"constraints\":[\"严格只使用当前完整使用过程实拍\",\"不生成新视频镜头\",\"优先采用横屏画幅\",\"时长按真实操作完整性确定，默认约45秒\",\"需通过实际素材观察确认必要步骤、先后依赖和完成结果\"],\"scenarioId\":\"product_howto\"},\"prior\":{\"observations\":[{\"assetId\":\"asset-0b67c824-f7c0-41d3-b401-72319be3aec1\",\"visibleContent\":\"横屏实拍中，一名成人用单手或双手握持、转动并挤压一个红色球状物体。物体可见黄色圆形区域和黑色环带；背景为室内浅色墙面，画面右侧多次出现黑色服装区域。\",\"uncertainty\":\"仅凭当前加密抽帧无法确认物体用途、型号、完整操作步骤、步骤依赖或完成结果；未确认初始状态、释放动作和收尾边界。\",\"role\":\"usage\",\"productGroup\":\"product-1\",\"subjectBox\":[],\"safeCrop\":[],\"confidence\":0.78,\"quality\":\"1920x1080横屏；主体持续可见，但多帧存在运动模糊，关键手部细节和动作连续性不足。\",\"visibleText\":[],\"sameProductAs\":[],\"differentProductFrom\":[]},{\"assetId\":\"asset-0b67c824-f7c0-41d3-b401-72319be3aec1\",\"visibleContent\":\"源片0.567–30.789秒的抽帧中，可见双手接触并握持红色球状物体，随后出现转动、按压或调整姿态。\",\"uncertainty\":\"无法确认这些画面是否构成第一个必要步骤，也无法确认动作起止和连续性。\",\"role\":\"detail\",\"productGroup\":\"product-1\",\"subjectBox\":[],\"safeCrop\":[],\"confidence\":0.66,\"quality\":\"动作主体基本清晰，部分抽帧有明显运动模糊。\",\"visibleText\":[],\"sameProductAs\":[\"asset-0b67c824-f7c0-41d3-b401-72319be3aec1\"],\"differentProductFrom\":[]},{\"assetId\":\"asset-0b67c824-f7c0-41d3-b401-72319be3aec1\",\"visibleContent\":\"源片34.567–64.789秒的抽帧中，物体持续被单手或双手握持和转动，姿态在不同抽帧间变化。\",\"uncertainty\":\"未确认中段是否发生新的必要操作，不能将姿态变化解释为不同步骤或连续完成的动作。\",\"role\":\"detail\",\"productGroup\":\"product-1\",\"subjectBox\":[],\"safeCrop\":[],\"confidence\":0.62,\"quality\":\"主体可见；中段若干帧运动模糊，操作区细节不足。\",\"visibleText\":[],\"sameProductAs\":[\"asset-0b67c824-f7c0-41d3-b401-72319be3aec1\"],\"differentProductFrom\":[]},{\"assetId\":\"asset-0b67c824-f7c0-41d3-b401-72319be3aec1\",\"visibleContent\":\"源片68.604–100.842秒的抽帧中，红色球状物体仍被握持、转动和调整；末段抽帧中物体仍在手中。\",\"uncertainty\":\"未观察到可确认的最终完成状态、释放动作或收尾边界，不能据此证明操作已完成。\",\"role\":\"overview\",\"productGroup\":\"product-1\",\"subjectBox\":[],\"safeCrop\":[],\"confidence\":0.61,\"quality\":\"后段主体持续可见，但完成结果和关键动作仍未得到连续证据。\",\"visibleText\":[],\"sameProductAs\":[\"asset-0b67c824-f7c0-41d3-b401-72319be3aec1\"],\"differentProductFrom\":[]}],\"candidates\":[{\"assetId\":\"asset-0b67c824-f7c0-41d3-b401-72319be3aec1\",\"startSeconds\":0,\"endSeconds\":34,\"reason\":\"早段可作为操作候选，实际抽帧显示双手握持、转动或按压；动作起止、步骤含义和连续性未确认。\"},{\"assetId\":\"asset-0b67c824-f7c0-41d3-b401-72319be3aec1\",\"startSeconds\":34,\"endSeconds\":68,\"reason\":\"中段可作为操作候选，实际抽帧显示持续握持和姿态变化；无法确认是否包含新的必要步骤。\"},{\"assetId\":\"asset-0b67c824-f7c0-41d3-b401-72319be3aec1\",\"startSeconds\":68,\"endSeconds\":104.267,\"reason\":\"后段可作为操作候选，实际抽帧显示持续握持或转动；未确认完成结果和收尾。\"}],\"inspectRanges\":[],\"gaps\":[\"当前证据不足以建立initialState、完整必要步骤、步骤先后依赖和finalState，不能确认45秒操作教程可制作。\",\"未确认产品用途、型号、品牌、功能或可写入字幕的事实，不能编写具体操作说明。\",\"关键动作仅由稀疏抽帧支持，连续性、动作边界及是否重复未验证。\",\"末段仍显示物体在手中，未确认完成或释放/收尾。\",\"素材虽含音频，但当前未提供听觉证据或转写，无法判断原声内容及其与动作的同步。\"]},\"validationError\":\"商品关系引用了未知素材\",\"attempt\":1,\"metadata\":[{\"id\":\"asset-0b67c824-f7c0-41d3-b401-72319be3aec1\",\"kind\":\"video\",\"duration\":104.267,\"frames\":3128,\"width\":1920,\"height\":1080,\"rotation\":0,\"hasAudio\":true,\"videoCodec\":\"h264\",\"pixelFormat\":\"yuv420p\",\"audioCodec\":\"aac\",\"sourceFps\":\"30/1\",\"nominalFps\":\"30/1\",\"size\":74123369,\"sourceStartSeconds\":0,\"sourceDurationSeconds\":104.283}],\"businessContract\":{\"schemaVersion\":1,\"profile\":\"commerce-focus-v1\",\"scenarioId\":\"product_howto\",\"originalRequest\":\"开始制作，严格只使用当前完整使用过程实拍。\",\"persona\":{\"creator\":\"商家／内容运营（待用户研究验证）\",\"viewer\":\"第一次操作的新手\"},\"objective\":\"理解并复现必要操作\",\"product\":{\"id\":\"product-1\",\"name\":\"\",\"facts\":[],\"price\":null,\"cta\":\"\",\"audience\":null,\"prohibited\":[]},\"output\":{\"width\":1920,\"height\":1080,\"durationSeconds\":45,\"fps\":30},\"audio\":\"unspecified\",\"mustHave\":[],\"mustNot\":[],\"generatedFootageAllowed\":false,\"deliverables\":[\"candidate_mp4\",\"editable_project\",\"source_index\",\"quality_report\"]},\"scenarioResources\":{\"template\":{\"id\":\"commerce-howto-v1\",\"version\":1,\"structure\":[\"前置准备\",\"必要操作及依赖\",\"完成结果\"],\"components\":[\"hero_media\",\"title\",\"operation_step\",\"caption\",\"ending\"],\"rule\":\"镜头服从真实步骤及源时间，字幕避开保护区，不得跳步、逆放或用静图代替动作。\"},\"components\":{\"hero_media\":{\"nativeKinds\":[\"video\",\"image\"],\"purpose\":\"保护主体的真实媒体容器\",\"resources\":[\"video-text-pivot\",\"comparison-split\"]},\"title\":{\"nativeKinds\":[\"text\"],\"purpose\":\"独立可改的标题\",\"resources\":[\"titlecard-reveal\"]},\"operation_step\":{\"nativeKinds\":[\"text\"],\"purpose\":\"绑定源动作与保护区的步骤说明\",\"resources\":[\"lt-ma[redacted]\",\"video-text-pivot\"]},\"caption\":{\"nativeKinds\":[\"text\"],\"purpose\":\"普通字幕与声音独立\",\"resources\":[\"caption-editorial-emphasis\"]},\"ending\":{\"nativeKinds\":[\"text\",\"video\"],\"purpose\":\"完整收尾和已提供的下一步提示\",\"resources\":[\"titlecard-reveal\"]}},\"sha256\":\"4bed2bc44787095380b34b53818f7c433e5aae09a94bb27e3e70946610dd6d74\"},\"scenePackage\":{\"id\":\"product_demo\",\"version\":\"3.0.0\",\"hash\":\"b324fd368981632bb702c266d5a0ae4d6bb6b5ab076f93464752d431e39f8500\",\"rules\":{\"MATERIAL_POLICY.md\":\"# MATERIAL_POLICY\\n\\n扫描所有目录素材；读取metadata和带时间观察证据，按同款身份、hero、usage、detail、supporting分类并记录拒绝原因。不从文件名猜事实。建立initialState、actions、dependencies、finalState；必要动作不能倒放、换序、删头尾；不连续片段不得伪造连续步骤。\\n\"}},\"creativeDirection\":null}\n视频 asset-0b67c824-f7c0-41d3-b401-72319be3aec1，实际时长 104.267s；本页源时间 1.448, 7.241, 13.033, 18.826, 24.619, 30.411, 36.204, 41.996, 47.789, 53.582, 59.374, 65.167 秒。只按这些真实画面判断动作，不能把备料/倒粉误称研磨，不能把倒水当成倒咖啡。未观察到的动作应继续查素材或说明，禁止从文件名和用户预期补写画面。\n【附图 1】\n视频 asset-0b67c824-f7c0-41d3-b401-72319be3aec1，实际时长 104.267s；本页源时间 70.959, 76.752, 82.545, 88.337, 94.13, 99.923 秒。只按这些真实画面判断动作，不能把备料/倒粉误称研磨，不能把倒水当成倒咖啡。未观察到的动作应继续查素材或说明，禁止从文件名和用户预期补写画面。\n【附图 2】\nasset-0b67c824-f7c0-41d3-b401-72319be3aec1 加密画面，按从左至右逐行对应源秒数：0.567,4.344,8.122,11.900,15.678,19.456,23.233,27.011,30.789\n【附图 3】\nasset-0b67c824-f7c0-41d3-b401-72319be3aec1 加密画面，按从左至右逐行对应源秒数：34.567,38.344,42.122,45.900,49.678,53.456,57.233,61.011,64.789\n【附图 4】\nasset-0b67c824-f7c0-41d3-b401-72319be3aec1 加密画面，按从左至右逐行对应源秒数：68.604,72.634,76.664,80.693,84.723,88.753,92.782,96.812,100.842\n【附图 5】"}]
+</editing_input>
+ERROR: Selected model is at capacity. Please try a different model.
+ERROR: Selected model is at capacity. Please try a different model.
