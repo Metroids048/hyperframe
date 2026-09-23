@@ -157,7 +157,7 @@ export function planCommerceDocument(request, preparedAssets) {
 
   if (creativeMode !== 'text') nodes.push(mediaNode(sEnd, 'hero', assetAt(0).id, {kind: assetAt(0).kind}));
   nodes.push(textNode(sEnd, 'title', brief.name));
-  nodes.push(textNode(sEnd, 'cta', brief.cta));
+  if (brief.cta) nodes.push(textNode(sEnd, 'cta', brief.cta));
 
   const transitions = scenes.slice(0, -1).map((scene, index) => ({
     id: `transition-${index + 1}`,
@@ -183,6 +183,26 @@ export function planCommerceDocument(request, preparedAssets) {
 
   document.audioRequirements={music,narration,original};
   if(music){const asset=preparedAssets.find(a=>a.kind==='audio'&&a.mediaMetadata?.hasAudio);if(asset)document.audioGraph.push({id:stableId('audio',document.projectId,'music'),assetId:asset.id,role:'music',startFrame:0,durationFrames:Math.min(document.durationFrames,Math.floor(asset.mediaMetadata.duration*30)),sourceStartSeconds:0,playbackRate:1,volume:.3,fadeInFrames:15,fadeOutFrames:30});}
+  // Fast local fallback: when a measured narration asset is already attached,
+  // bind it directly instead of asking the stage model to synthesize again.
+  if(narration){
+    const asset=preparedAssets.find(a=>a.kind==='audio'&&a.mediaMetadata?.hasAudio&&(a.generatedVoice||a.audioRole==='narration'));
+    if(asset){
+      const trackId=stableId('audio',document.projectId,'narration');
+      const durationFrames=Math.min(document.durationFrames,Math.floor(asset.mediaMetadata.duration*30));
+      document.audioGraph.push({id:trackId,assetId:asset.id,role:'narration',startFrame:0,durationFrames,sourceStartSeconds:0,playbackRate:1,volume:1,fadeInFrames:2,fadeOutFrames:2});
+      const script=String(asset.speechRequest?.text||'').trim();
+      const sentences=script.split(/(?<=[。！？!?])/u).map(s=>s.trim()).filter(Boolean);
+      if(sentences.length){
+        const total=Math.max(1,[...script].length),cues=[];let cursor=0;
+        for(const [index,text] of sentences.entries()){
+          const chars=[...text].length,start=Math.floor(cursor/total*durationFrames),end=index===sentences.length-1?durationFrames:Math.max(start+1,Math.floor((cursor+chars)/total*durationFrames));cursor+=chars;
+          cues.push({id:stableId('cue',asset.id,trackId,index),assetId:asset.id,trackId,anchor:'source-content',sourceStartSeconds:start/30,sourceEndSeconds:end/30,text,reviewRequired:true,source:'saved-script'});
+        }
+        document.captions=cues;
+      }
+    }
+  }
   if(original)for(const node of document.nodes.filter(n=>n.kind==='video')){if(preparedAssets.find(a=>a.id===node.assetId)?.mediaMetadata?.hasAudio)document.audioGraph.push({id:stableId('audio',node.id),assetId:node.assetId,role:'original',sourceNodeId:node.id,sceneId:node.sceneId,startFrame:node.startFrame,durationFrames:node.durationFrames,sourceStartSeconds:node.params.sourceStartSeconds||0,playbackRate:1,volume:1});}
   return document;
 }

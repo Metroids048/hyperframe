@@ -4,7 +4,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
-import {searchCommonsVideo,downloadCommonsVideo} from '../lib/creative/external-assets.mjs';
+import {searchCommonsImage,searchCommonsVideo,downloadCommonsImage,downloadCommonsVideo} from '../lib/creative/external-assets.mjs';
 import {businessContract,productionAdmission} from '../lib/creative/commerce-focus.mjs';
 
 const videoBytes=Buffer.from('fixture-video-bytes');
@@ -42,4 +42,20 @@ test('Commons video download rejects a non allowlisted host before requesting it
 test('Commons video search rejects non allowlisted result URLs',async()=>{
   const malicious=structuredClone(searchResponse);malicious.query.pages['42'].imageinfo[0].url='https://example.org/video.mp4';
   await assert.rejects(searchCommonsVideo('outdoor scene',{fetchImpl:async()=>new Response(JSON.stringify(malicious),{status:200,headers:{'content-type':'application/json'}})}),{code:'EXTERNAL_ASSET_URL_REJECTED'});
+});
+
+test('external searches require a real query and rank candidates by query relevance instead of product-specific defaults',async()=>{
+  await assert.rejects(searchCommonsVideo('   ',{fetchImpl:async()=>{throw new Error('must not fetch');}}),{code:'EXTERNAL_ASSET_QUERY_REQUIRED'});
+  const response={query:{pages:{
+    '1':{title:'File:Unrelated garden.webm',imageinfo:[{url:'https://upload.wikimedia.org/wikipedia/commons/a/aa/garden.webm',descriptionurl:'https://commons.wikimedia.org/wiki/File:Unrelated_garden.webm',mime:'video/webm',size:10,extmetadata:{LicenseShortName:{value:'CC BY 4.0'},ImageDescription:{value:'A garden'}}}]},
+    '2':{title:'File:Handheld gaming.webm',imageinfo:[{url:'https://upload.wikimedia.org/wikipedia/commons/b/bb/handheld-gaming.webm',descriptionurl:'https://commons.wikimedia.org/wiki/File:Handheld_gaming.webm',mime:'video/webm',size:20,extmetadata:{LicenseShortName:{value:'CC BY 4.0'},ImageDescription:{value:'Handheld game console gaming scene'}}}]}
+  }}};
+  const candidate=await searchCommonsVideo('handheld game console',{fetchImpl:async()=>new Response(JSON.stringify(response),{status:200})});
+  assert.match(candidate.title,/Handheld gaming/);
+  assert.equal(candidate.alternatives.length,1);
+});
+
+test('image acquisition rejects non-allowlisted candidate URLs before a fetch',async()=>{
+  const candidate={title:'File:Bad.jpg',url:'https://example.org/bad.jpg',mime:'image/jpeg',sourceUrl:'https://commons.wikimedia.org/wiki/File:Bad.jpg'};
+  await assert.rejects(downloadCommonsImage(candidate,{root:'/tmp',projectDirectory:'/tmp',fetchImpl:async()=>{throw new Error('must not fetch');}}),{code:'EXTERNAL_ASSET_DOWNLOAD_FAILED'});
 });

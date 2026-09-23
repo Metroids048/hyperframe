@@ -165,6 +165,17 @@ export function isUploadedSourceWorkflow(message,hasUploadedSource){
   const requestsWork=/(?:(?<!可)编辑|修改|调整|替换|换成|改成|改为|重剪|裁剪|加上|添加|去掉|移除)/u.test(text);
   return refersToSource&&requestsWork;
 }
+
+function requiresDirectedProduction(message){
+  const text=String(message||'');
+  return /(?:小红书|种草|商品视频|营销片|旁白|配音|音乐|配乐|BGM|字幕|HyperFrames|卖点|重点|操作|使用细节|真实画面|自行(?:联网|检索|找|获取)|素材缺口|约\s*\d+\s*秒|可继续编辑)/iu.test(text);
+}
+
+function requestsAutonomousExternalMedia(message){
+  const text=String(message||'');
+  return explicitlyRequestsExternalSceneVideo(text)
+    || /(?:素材缺口|缺素材|补素材|自行(?:联网|检索|找|获取)|外部(?:素材|媒体)|使用环境|场景补镜|网络(?:素材|视频))/iu.test(text);
+}
 // A prior candidate may contain only the first uploaded clip even though the
 // project still owns the complete upload set.  When the user explicitly asks
 // to rebuild that set in order, route it through the existing new-project
@@ -194,8 +205,10 @@ function externalSearchQuery(message){
   if(/咖啡|coffee/i.test(text))return 'coffee bag product package';
   if(/蛋白粉|protein/i.test(text))return 'protein powder container';
   if(/咖啡机|coffee machine/i.test(text))return 'coffee machine product';
+  if(/台灯|灯具|照明|desk lamp|lamp/i.test(text))return 'desk lamp product';
   if(/护肤|面霜|cream|skincare/i.test(text))return 'skincare product package';
   if(/耳机|headphone/i.test(text))return 'headphones product';
+  if(/键盘|keyboard/i.test(text))return 'mechanical keyboard product';
   return 'product package product photo';
 }
 function explicitlyRequestsExternalSceneVideo(message){
@@ -206,7 +219,40 @@ function externalSceneVideoQuery(message){
   if(/Steam|掌机|游戏机|handheld/i.test(text))return 'handheld game console gaming video';
   if(/咖啡|coffee/i.test(text))return 'coffee brewing scene video';
   if(/相机|camera/i.test(text))return 'camera usage scene video';
+  if(/台灯|灯具|照明|desk lamp|lamp/i.test(text))return 'desk lamp reading workspace video';
+  if(/耳机|headphone|earbud/i.test(text))return 'headphones listening workspace video';
+  if(/键盘|keyboard/i.test(text))return 'mechanical keyboard desktop typing video';
+  if(/扫地机|机器人|robot vacuum/i.test(text))return 'robot vacuum home cleaning video';
   return 'product lifestyle usage video';
+}
+function externalEnvironmentImageQuery(message){
+  const text=String(message||'');
+  if(/台灯|灯具|照明|desk lamp|lamp/i.test(text))return 'desk lamp reading workspace';
+  if(/耳机|headphone|earbud/i.test(text))return 'headphones listening workspace';
+  if(/键盘|keyboard/i.test(text))return 'mechanical keyboard desktop workspace';
+  if(/咖啡|coffee/i.test(text))return 'coffee brewing kitchen workspace';
+  if(/相机|camera/i.test(text))return 'camera desk photography workspace';
+  if(/Steam|掌机|游戏机|handheld/i.test(text))return 'gaming console living room';
+  return 'product lifestyle workspace';
+}
+function externalEnvironmentImageQueries(message){
+  const primary=externalEnvironmentImageQuery(message);
+  const text=String(message||'');
+  const candidates=[primary];
+  if(/台灯|灯具|照明|desk lamp|lamp/i.test(text))candidates.push('desk lamp','reading lamp','table lamp');
+  else if(/耳机|headphone|earbud/i.test(text))candidates.push('headphones desk','headphones listening');
+  else if(/键盘|keyboard/i.test(text))candidates.push('mechanical keyboard','computer keyboard desk');
+  else if(/咖啡|coffee/i.test(text))candidates.push('coffee brewing','coffee cup kitchen');
+  else candidates.push('product workspace','desk workspace');
+  return [...new Set(candidates)];
+}
+async function searchCommonsImageFallback(queries,{signal}={}){
+  let lastError=null;
+  for(const query of queries){
+    try{return {query,candidate:await searchCommonsImage(query,{signal}),attemptedQueries:queries};}
+    catch(error){lastError=error;}
+  }
+  throw Object.assign(lastError||new Error('没有找到可下载的公共图片候选'),{attemptedQueries:queries});
 }
 export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO_AGENT_CREATIVE_DATA_DIR||path.join(root,'data/commerce-runs'),planner='model',audioTransport,audioEnv,routingProvider,planningProvider}={}){
   try{process.loadEnvFile(path.join(root,'.env'));}catch(error){if(error.code!=='ENOENT')throw error;}
@@ -799,10 +845,10 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
             : null)
         );
         const sourceRebuildWorkflow=job.input.routeDecision?.reason==='explicit-upload-source-rebuild';
-        const sourceWorkflowRequested=!sourceRebuildWorkflow&&isUploadedSourceWorkflow(job.input.message,uploadedSource);
+        const sourceWorkflowRequested=!sourceRebuildWorkflow&&isUploadedSourceWorkflow(job.input.message,uploadedSource)&&!requiresDirectedProduction(job.input.message);
         if(sourceWorkflowRequested||sourceRebuildWorkflow){
           const acquisitionPolicy=(await productionPolicy(root)).mediaAcquisitionPolicy;
-          const externalVideoRequested=explicitlyRequestsExternalSceneVideo(job.input.message||'');
+          const externalVideoRequested=requestsAutonomousExternalMedia(job.input.message||'');
           let uploadedExternalVideo=null;
           if(externalVideoRequested){
             const query=externalSceneVideoQuery(job.input.message);
@@ -817,10 +863,24 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
               const candidate=await searchCommonsVideo(query,{signal});
               uploadedExternalVideo=await downloadCommonsVideo(candidate,{root,projectDirectory:directory(p),signal});
               if(!p.assets.some(item=>item.id===uploadedExternalVideo.id))p.assets.push(uploadedExternalVideo);
-              job.externalAsset={status:'downloaded-candidate',assetId:uploadedExternalVideo.id,query:candidate.query,sourceUrl:candidate.sourceUrl,downloadUrl:candidate.downloadUrl,license:candidate.license,artist:candidate.artist,sha256:uploadedExternalVideo.sha256,rightsStatus:uploadedExternalVideo.rights.status,deliveryStatus:'candidate-only'};
+              job.externalAsset={status:'downloaded-candidate',assetId:uploadedExternalVideo.id,query:candidate.query,sourceUrl:candidate.sourceUrl,downloadUrl:candidate.downloadUrl,license:candidate.license,artist:candidate.artist,sha256:uploadedExternalVideo.sha256,rightsStatus:uploadedExternalVideo.rights.status,deliveryStatus:'candidate-only',selection:{selected:candidate.title,alternatives:candidate.alternatives||[]}};
               p.messages.push({role:'assistant',text:`已检索并登记 Wikimedia Commons 外部场景视频候选（${candidate.title}，${candidate.license}）。其权利状态为待审核，当前仅作候选素材。`,attachmentIds:[uploadedExternalVideo.id],time:now()});await save(p);
             }catch(error){
-              job.externalAsset={status:'search_failed',query,code:error.code||'EXTERNAL_ASSET_FAILED',error:error.message};job.status='needs_user';job.code='EXTERNAL_VIDEO_UNAVAILABLE';job.stage='等待可用外部视频';job.error=`外部场景视频检索或下载失败：${error.message}`;job.question=job.error;job.requiredInputs=['authorized-external-video'];job.gaps=['external-video'];job.completedAt=now();p.messages.push({role:'assistant',text:job.error,time:now()});await save(p);return;
+              try{
+                const fallback=await searchCommonsImageFallback(externalEnvironmentImageQueries(job.input.message||''),{signal});
+                const environmentQuery=fallback.query,imageCandidate=fallback.candidate;
+                const imageAsset=await downloadCommonsImage(imageCandidate,{root,projectDirectory:directory(p),signal});
+                imageAsset.role='auxiliary-environment';imageAsset.externalSource={...imageAsset.externalSource,selection:{selected:imageCandidate.title,alternatives:imageCandidate.alternatives||[]},fallbackFrom:'video-search'};
+                if(!p.assets.some(item=>item.id===imageAsset.id))p.assets.push(imageAsset);
+                job.externalAsset={status:'downloaded-candidate',assetId:imageAsset.id,kind:'image',query:environmentQuery,sourceUrl:imageCandidate.sourceUrl,downloadUrl:imageCandidate.url,license:imageCandidate.license,artist:imageCandidate.artist,sha256:imageAsset.sha256,rightsStatus:imageAsset.rights.status,deliveryStatus:'candidate-only',selection:{selected:imageCandidate.title,alternatives:imageCandidate.alternatives||[]},fallbackFrom:{code:error.code||'EXTERNAL_ASSET_FAILED',message:error.message}};
+                job.stage='已取得环境补镜，继续制作';job.error=`外部视频未取得，已取得具备许可记录的环境图作为氛围收尾：${imageCandidate.title}。不将其作为产品功能证据。`;
+                p.messages.push({role:'assistant',text:job.error,attachmentIds:[imageAsset.id],time:now()});await save(p);
+              }catch(imageError){
+                job.externalAsset={status:'search_failed',query,code:imageError.code||error.code||'EXTERNAL_ASSET_FAILED',error:imageError.message,videoError:error.message};
+                job.stage='继续使用已上传素材';
+                job.error=`外部场景媒体未取得：${imageError.message}；已保留上传素材继续制作。`;
+                p.messages.push({role:'assistant',text:job.error,time:now()});await save(p);
+              }
             }
           }
           const objectReplacementRequested=/(?:替换|换成|改成|改为)/u.test(job.input.message||'')
@@ -877,23 +937,46 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
           if(!p.assets.some(x=>x.id===a.id))p.assets.push(a);job.resultAssetId=a.id;job.status='complete';job.completedAt=now();job.summary='生成素材已下载，可选择用于视频或营销成片；质量待审。';p.messages.push({role:'assistant',text:job.summary,time:now()});return;
         }
         const acquisitionPolicy=(await productionPolicy(root)).mediaAcquisitionPolicy;
-        const externalVideoRequested=explicitlyRequestsExternalSceneVideo(job.input.message||'');
+        const externalVideoRequested=requestsAutonomousExternalMedia(job.input.message||'');
+        const hasUploadedVideo=p.assets.some(asset=>asset.kind==='video'&&asset.mediaMetadata?.duration);
         if(externalVideoRequested&&['allowed','rights-gated'].includes(acquisitionPolicy.external_media_download)){
           const query=externalSceneVideoQuery(job.input.message);job.stage='搜索外部场景视频';await save(p);
           try{
             const candidate=await searchCommonsVideo(query,{signal});
             const asset=await downloadCommonsVideo(candidate,{root,projectDirectory:directory(p),signal});
             if(!p.assets.some(item=>item.id===asset.id))p.assets.push(asset);
-            job.externalAsset={status:'downloaded-candidate',assetId:asset.id,query:candidate.query,sourceUrl:candidate.sourceUrl,downloadUrl:candidate.downloadUrl,license:candidate.license,artist:candidate.artist,sha256:asset.sha256,rightsStatus:asset.rights.status,deliveryStatus:'candidate-only'};
+            job.externalAsset={status:'downloaded-candidate',assetId:asset.id,query:candidate.query,sourceUrl:candidate.sourceUrl,downloadUrl:candidate.downloadUrl,license:candidate.license,artist:candidate.artist,sha256:asset.sha256,rightsStatus:asset.rights.status,deliveryStatus:'candidate-only',selection:{selected:candidate.title,alternatives:candidate.alternatives||[]}};
             p.messages.push({role:'assistant',text:`已检索并登记 Wikimedia Commons 外部场景视频候选（${candidate.title}，${candidate.license}）。其权利状态为待审核，当前仅作候选素材。`,attachmentIds:[asset.id],time:now()});await save(p);
           }catch(error){
-            job.externalAsset={status:'search_failed',query,code:error.code||'EXTERNAL_ASSET_FAILED',error:error.message};
-            job.status='needs_user';job.code='EXTERNAL_VIDEO_UNAVAILABLE';job.stage='等待可用外部视频';job.error=`外部场景视频检索或下载失败：${error.message}`;job.question=job.error;job.requiredInputs=['authorized-external-video'];job.gaps=['external-video'];job.completedAt=now();p.messages.push({role:'assistant',text:job.error,time:now()});await save(p);return;
+            if(hasUploadedVideo){
+              try{
+                const fallback=await searchCommonsImageFallback(externalEnvironmentImageQueries(job.input.message||''),{signal});
+                const environmentQuery=fallback.query,imageCandidate=fallback.candidate;
+                const imageAsset=await downloadCommonsImage(imageCandidate,{root,projectDirectory:directory(p),signal});
+                imageAsset.role='auxiliary-environment';imageAsset.externalSource={...imageAsset.externalSource,selection:{selected:imageCandidate.title,alternatives:imageCandidate.alternatives||[]},fallbackFrom:'video-search'};
+                if(!p.assets.some(item=>item.id===imageAsset.id))p.assets.push(imageAsset);
+                job.externalAsset={status:'downloaded-candidate',assetId:imageAsset.id,kind:'image',query:environmentQuery,sourceUrl:imageCandidate.sourceUrl,downloadUrl:imageCandidate.url,license:imageCandidate.license,artist:imageCandidate.artist,sha256:imageAsset.sha256,rightsStatus:imageAsset.rights.status,deliveryStatus:'candidate-only',selection:{selected:imageCandidate.title,alternatives:imageCandidate.alternatives||[]},fallbackFrom:{code:error.code||'EXTERNAL_ASSET_FAILED',message:error.message}};
+                job.stage='已取得环境补镜，继续制作';job.error=`外部视频未取得，已取得具备许可记录的环境图作为氛围收尾：${imageCandidate.title}。不将其作为产品功能证据。`;p.messages.push({role:'assistant',text:job.error,attachmentIds:[imageAsset.id],time:now()});await save(p);
+              }catch(imageError){
+                job.externalAsset={status:'search_failed',query,code:imageError.code||error.code||'EXTERNAL_ASSET_FAILED',error:imageError.message,videoError:error.message};job.stage='继续使用已上传素材';job.error=`外部场景媒体未取得：${imageError.message}；已保留上传素材继续制作。`;p.messages.push({role:'assistant',text:job.error,time:now()});await save(p);
+              }
+            }else{
+              try{
+                const fallback=await searchCommonsImageFallback(externalEnvironmentImageQueries(job.input.message||''),{signal});
+                const environmentQuery=fallback.query,imageCandidate=fallback.candidate;
+                const imageAsset=await downloadCommonsImage(imageCandidate,{root,projectDirectory:directory(p),signal});
+                imageAsset.role='auxiliary-environment';imageAsset.externalSource={...imageAsset.externalSource,selection:{selected:imageCandidate.title,alternatives:imageCandidate.alternatives||[]},fallbackFrom:'video-search'};
+                if(!p.assets.some(item=>item.id===imageAsset.id))p.assets.push(imageAsset);
+                job.externalAsset={status:'downloaded-candidate',assetId:imageAsset.id,kind:'image',query:environmentQuery,sourceUrl:imageCandidate.sourceUrl,downloadUrl:imageCandidate.url,license:imageCandidate.license,artist:imageCandidate.artist,sha256:imageAsset.sha256,rightsStatus:imageAsset.rights.status,deliveryStatus:'candidate-only',selection:{selected:imageCandidate.title,alternatives:imageCandidate.alternatives||[]},fallbackFrom:{code:error.code||'EXTERNAL_ASSET_FAILED',message:error.message}};
+                job.stage='已取得环境补镜，继续制作';job.error=`外部视频未取得，已取得具备许可记录的环境图作为氛围收尾：${imageCandidate.title}。不将其作为产品功能证据。`;p.messages.push({role:'assistant',text:job.error,attachmentIds:[imageAsset.id],time:now()});await save(p);
+              }catch(imageError){
+                job.externalAsset={status:'search_failed',query,code:imageError.code||error.code||'EXTERNAL_ASSET_FAILED',error:imageError.message,videoError:error.message};job.status='needs_user';job.code='EXTERNAL_VIDEO_UNAVAILABLE';job.stage='等待可用外部视频';job.error=`外部场景媒体检索与下载均失败：${imageError.message}`;job.question=job.error;job.requiredInputs=['authorized-external-video'];job.gaps=['external-video'];job.completedAt=now();p.messages.push({role:'assistant',text:job.error,time:now()});await save(p);return;
+              }
+            }
           }
         }else if(externalVideoRequested&&acquisitionPolicy.external_media_download==='blocked'){
           job.externalAsset={status:'blocked-by-policy',query:externalSearchQuery(job.input.message)+' video'};job.status='needs_user';job.code='EXTERNAL_MEDIA_BLOCKED';job.stage='等待获准的外部素材来源';job.error='服务端策略禁止下载外部视频，请上传已授权的场景视频。';job.question=job.error;job.requiredInputs=['authorized-external-video'];job.gaps=['external-video'];job.completedAt=now();await save(p);return;
         }
-        const hasUploadedVideo=p.assets.some(asset=>asset.kind==='video'&&asset.mediaMetadata?.duration);
         if(acquisitionPolicy.runninghub_generation==='allowed'&&!hasUploadedVideo){
         if(!p.assets.some(a=>['image','video'].includes(a.kind))){
           job.stage='搜索可用商品与场景素材';await save(p);
@@ -944,7 +1027,8 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
         }
         job.stage='观察素材与设计分镜';await save(p);
         const dir=path.join(directory(p),'versions',job.id);
-        await buildCommerceProject({...p.request,projectId:p.id,assets:p.assets,outputDir:path.relative(root,dir).replaceAll('\\','/'),render:false,planning:'model',signal,resumeRunId:job.resumeRunId,onRun:async run=>{syncRun(job,run);await save(p);},onStage:async stage=>{job.stage=stage;await save(p);}},{root});
+        const planningMode=process.env.VIDEO_AGENT_FAST_FALLBACK==='1'?'rules':'model';
+        await buildCommerceProject({...p.request,projectId:p.id,assets:p.assets,outputDir:path.relative(root,dir).replaceAll('\\','/'),render:false,planning:planningMode,signal,resumeRunId:job.resumeRunId,onRun:async run=>{syncRun(job,run);await save(p);},onStage:async stage=>{job.stage=stage;await save(p);}},{root});
         const {document}=await readNativeProject(dir);p.title=document.brief.name;job.stage='检查原生预览';await save(p);const created=await publish(p,job,dir,document,'初始创作');await candidateExport(p,job,created,signal);job.summary='候选 MP4 与原生工程已导出，等待画面与人工审查。';
       }else if(job.kind==='edit'){
         const base=revision(p,job.baseRevisionId),from=versionDirectory(p,base),{document,assets}=await readNativeProject(from);

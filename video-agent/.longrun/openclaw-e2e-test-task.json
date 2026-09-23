@@ -1,0 +1,187 @@
+{
+  "testId": "openclaw-e2e-quality-validation",
+  "createdAt": "2026-09-23T10:00:00.000Z",
+  "purpose": "端到端测试:验证完整的视频生成和编辑链路,确保质量优化生效",
+  "scenario": "真实用户场景 - 蓝牙耳机产品上新视频",
+  "userRequest": {
+    "raw": "帮我做一个蓝牙耳机的产品上新视频,30秒,竖屏,小红书风格。重点展示降噪功能和续航时间,最后要有购买链接。",
+    "normalized": {
+      "product": "蓝牙降噪耳机",
+      "scenario": "product_launch",
+      "platform": "xiaohongshu",
+      "duration": "30s",
+      "aspectRatio": "9:16",
+      "keyPoints": [
+        "主动降噪技术",
+        "30小时续航",
+        "舒适佩戴",
+        "蓝牙5.3连接"
+      ],
+      "style": "premium",
+      "cta": "立即购买,限时优惠"
+    }
+  },
+  "qualityExpectations": {
+    "technical": {
+      "videoBitrate": ">=10Mbps",
+      "audioBitrate": ">=256kbps",
+      "resolution": "1080x1920",
+      "fps": 30,
+      "crf": "<=18",
+      "noDroppedFrames": true
+    },
+    "visual": {
+      "productClarity": "清晰展示耳机细节",
+      "textReadability": "所有文字停留>=2秒",
+      "smoothTransitions": "场景切换流畅无卡顿",
+      "hierarchy": "产品>卖点>价格的视觉层级清晰"
+    },
+    "audio": {
+      "narrationClarity": "旁白清晰无破音",
+      "bgmBalance": "背景音乐不盖过旁白",
+      "noNoise": "无杂音、电流声"
+    },
+    "content": {
+      "openingImpact": "前3秒吸引注意力",
+      "keyPointsCovered": "所有卖点都有展示",
+      "ctaClear": "购买引导明确",
+      "durationMatch": "28-32秒范围内"
+    }
+  },
+  "testStages": [
+    {
+      "stage": "preparation",
+      "description": "商品理解和素材准备",
+      "checkpoints": [
+        "解析用户需求到结构化参数",
+        "识别商品类型和场景",
+        "规划素材获取策略"
+      ]
+    },
+    {
+      "stage": "resource_selection",
+      "description": "HyperFrames资源选择",
+      "checkpoints": [
+        "选择合适的视觉效果",
+        "选择合适的转场动画",
+        "选择合适的文字模板"
+      ]
+    },
+    {
+      "stage": "storyboard",
+      "description": "分镜和导演计划",
+      "checkpoints": [
+        "生成6个场景的分镜",
+        "分配合理的场景时长",
+        "确定视觉层级"
+      ]
+    },
+    {
+      "stage": "asset_preparation",
+      "description": "素材准备和质量评估",
+      "checkpoints": [
+        "评估素材质量(分辨率/清晰度)",
+        "选择最佳素材",
+        "必要时进行素材预处理"
+      ]
+    },
+    {
+      "stage": "composition",
+      "description": "HyperFrames合成",
+      "checkpoints": [
+        "生成index.html",
+        "绑定素材和动画",
+        "通过lint检查"
+      ]
+    },
+    {
+      "stage": "audio",
+      "description": "音频制作",
+      "checkpoints": [
+        "生成旁白脚本",
+        "TTS生成旁白音频",
+        "选择背景音乐",
+        "混音处理"
+      ]
+    },
+    {
+      "stage": "render",
+      "description": "高质量渲染",
+      "checkpoints": [
+        "使用high质量档位",
+        "验证渲染参数(bitrate/crf)",
+        "监控渲染进度",
+        "无超时/无错误"
+      ]
+    },
+    {
+      "stage": "quality_check",
+      "description": "质量验证",
+      "checkpoints": [
+        "技术指标检查(码率/分辨率/帧率)",
+        "视觉质量检查(清晰度/层级/过渡)",
+        "音频质量检查(响度/清晰度/平衡)",
+        "内容完整性检查(时长/卖点/CTA)"
+      ]
+    },
+    {
+      "stage": "edit_iteration",
+      "description": "编辑迭代测试",
+      "userEdits": [
+        "把第3个场景的文字改成'超长续航30小时'",
+        "把开场的音乐换成更有节奏感的",
+        "最后的价格改成'限时特惠¥299'"
+      ],
+      "checkpoints": [
+        "编辑不影响其他场景",
+        "保留原有revision",
+        "重新渲染成功",
+        "编辑后质量不下降"
+      ]
+    }
+  ],
+  "expectedOutputs": {
+    "finalVideo": "commerce-final.mp4",
+    "projectStructure": [
+      "index.html",
+      "document.json",
+      "manifest.json",
+      "STORYBOARD.md",
+      "assets/*.{jpg,png,mp4,mp3}",
+      "check.log",
+      "render.log"
+    ],
+    "qualityReports": [
+      "quality-report.json",
+      "media-review.json",
+      "render-progress.json"
+    ]
+  },
+  "successCriteria": {
+    "allStagesComplete": true,
+    "allCheckpointsPassed": true,
+    "technicalQualityMet": true,
+    "visualQualityMet": true,
+    "audioQualityMet": true,
+    "contentQualityMet": true,
+    "editIterationSuccessful": true,
+    "noBlockingErrors": true,
+    "userSatisfied": "pending"
+  },
+  "executionPlan": {
+    "method": "openclaw-webui",
+    "sessionKey": "openclaw-e2e-test-2026-09-23",
+    "projectId": null,
+    "conversationUrl": null,
+    "startedAt": null,
+    "completedAt": null,
+    "actualDuration": null
+  },
+  "notes": [
+    "这个测试任务涵盖了完整的用户工作流程",
+    "每个阶段都有明确的验收检查点",
+    "测试了质量优化的所有关键点",
+    "包含了编辑迭代场景",
+    "最终需要用户的真实视觉和听觉验收"
+  ]
+}

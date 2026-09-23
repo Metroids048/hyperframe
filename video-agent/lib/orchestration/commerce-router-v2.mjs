@@ -15,10 +15,20 @@ const firstMatch=(text,entries)=>entries.flatMap(entry=>matches(text,entry.patte
 
 function genericProduct(text){
   const patterns=[
+    /(?:适合|面向|用于)[^，。！？]{0,18}?的\s*([^，。！？\s]{1,16}?)(?=商品|产品|视频|宣传|广告|教程|详情)/i,
     /(?:帮我|请|给我|想要|需要)?(?:做|制作|生成|剪|来)(?:一个|一条|个|条)?\s*([^，。！？\s]{1,16}?)(?=小红书|抖音|TikTok|视频号|淘宝|天猫|京东|详情页|商品页|视频)/i,
     /(?:关于|针对|用于)\s*([^，。！？\s]{1,16}?)(?=的?(?:视频|宣传|广告|教程|详情|促销|问答))/i,
   ];
-  for(const pattern of patterns){const hit=pattern.exec(text);if(hit?.[1]&&!/^(?:一个|一条|这条|这个|商品|产品)$/.test(hit[1]))return {id:'other',label:hit[1],evidence:hit[1],source:'rule:generic-product'};}
+  for(const pattern of patterns){
+    const hit=pattern.exec(text);
+    if(!hit?.[1])continue;
+    const label=hit[1]
+      .replace(/^(?:\d{1,3}\s*秒(?:钟)?[、,，]?|\d{1,4}\s*[:：]\s*\d{1,4}[、,，]?|竖屏[、,，]?|横屏[、,，]?|方形[、,，]?)+/u,'')
+      .trim();
+    if(!label||/^(?:一个|一条|这条|这个|商品|产品)$/.test(label))continue;
+    if(/^(?:\d|适合|面向|用于|关于|针对)/u.test(label))continue;
+    return {id:'other',label,evidence:label,source:'rule:generic-product'};
+  }
   return null;
 }
 

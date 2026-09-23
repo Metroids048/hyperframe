@@ -6,16 +6,27 @@ import {subscriptionEnv} from '../edit/codex-provider.mjs';
 import {spawn} from 'node:child_process';
 
 const SEARCH_ORIGIN='https://commons.wikimedia.org';
-const KNOWN_COMMONS={
-  'protein powder container':{title:'File:Container of Protein Powder.jpg',url:'https://upload.wikimedia.org/wikipedia/commons/4/42/Container_of_Protein_Powder.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original',sourceUrl:'https://commons.wikimedia.org/wiki/File:Container_of_Protein_Powder.jpg',mime:'image/jpeg',bytes:71967,license:'CC BY-SA 4.0',artist:'ShriniwasGajare',description:'Container of protein powder'},
-};
 const apiUrl=query=>`${SEARCH_ORIGIN}/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(query)}&gsrnamespace=6&gsrlimit=8&prop=imageinfo&iiprop=url|mime|size|extmetadata&iiurlwidth=1600&format=json&origin=*`;
 const videoApiUrl=query=>`${SEARCH_ORIGIN}/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(query)}&gsrnamespace=6&gsrlimit=12&prop=imageinfo&iiprop=url|mime|size|extmetadata&format=json&origin=*`;
 const headerValue=(metadata,key)=>metadata?.[key]?.value||metadata?.[key]?.text||'';
 
 function cleanQuery(value){
   const text=String(value||'').replace(/[“”"'‘’]/g,' ').replace(/[^\p{L}\p{N}\s-]/gu,' ').trim();
-  return text||'protein powder container';
+  return text;
+}
+
+function candidateScore(candidate,query){
+  const terms=cleanQuery(query).toLowerCase().split(/\s+/).filter(Boolean);
+  const haystack=`${candidate.title||''} ${candidate.description||''}`.toLowerCase();
+  const matched=terms.filter(term=>haystack.includes(term)).length;
+  const hasLicense=candidate.license&&candidate.license!=='未提供许可标记';
+  const usefulDescription=candidate.description&&candidate.description!==candidate.title;
+  return matched*10+(hasLicense?4:0)+(usefulDescription?1:0)+(candidate.bytes?1:0);
+}
+
+function rankCandidates(candidates,query){
+  return candidates.map(candidate=>({...candidate,selectionScore:candidateScore(candidate,query)}))
+    .sort((left,right)=>right.selectionScore-left.selectionScore||String(left.title).localeCompare(String(right.title)));
 }
 
 async function publicBytes(url,{signal,maxBytes=20*1024*1024}={}){
@@ -29,7 +40,7 @@ async function publicBytes(url,{signal,maxBytes=20*1024*1024}={}){
 }
 
 function imageDownloadUrls(candidate){
-  const urls=[candidate.url,candidate.originalUrl,candidate.downloadUrl].filter(Boolean);
+  const urls=[candidate.url,candidate.originalUrl,candidate.downloadUrl].filter(Boolean).filter(url=>{try{assertCommonsDownloadUrl(url);return true;}catch{return false;}});
   for(const url of [...urls]){
     try{
       const target=new URL(url);
@@ -38,12 +49,13 @@ function imageDownloadUrls(candidate){
         if(match){
           const parts=match[1].split('/');
           const filename=match[2].replace(/^\d+px-/,'');
-          urls.push(`https://upload.wikimedia.org/wikipedia/commons/${parts.join('/')}/${filename}`);
+          const expanded=`https://upload.wikimedia.org/wikipedia/commons/${parts.join('/')}/${filename}`;
+          if(!urls.includes(expanded))urls.push(expanded);
         }
       }
     }catch{}
   }
-  return [...new Set(urls)];
+  return [...new Set(urls)].filter(url=>{try{assertCommonsDownloadUrl(url);return true;}catch{return false;}});
 }
 
 function assertCommonsDownloadUrl(raw){
@@ -72,12 +84,11 @@ export async function externalReplacementIntent(message,{targets=[],assets=[],si
 }
 
 export async function searchCommonsImage(query,{signal,fetchImpl=fetch}={}){
-  const known=Object.entries(KNOWN_COMMONS).find(([key])=>cleanQuery(query).toLowerCase().includes(key));
-  if(known)return {...known[1],query:cleanQuery(query)};
-  let data;if(fetchImpl!==fetch){const response=await fetchImpl(apiUrl(cleanQuery(query)),{headers:{Accept:'application/json'},redirect:'error',signal});if(!response.ok)throw Object.assign(new Error('Wikimedia Commons 图片搜索失败：HTTP '+response.status),{code:'EXTERNAL_ASSET_SEARCH_FAILED'});data=await response.json();}
-  else data=JSON.parse((await publicBytes(apiUrl(cleanQuery(query)),{signal,maxBytes:4*1024*1024})).toString('utf8'));
+  const text=cleanQuery(query);if(!text)throw Object.assign(new Error('外部图片搜索缺少有效查询'),{code:'EXTERNAL_ASSET_QUERY_REQUIRED'});
+  let data;if(fetchImpl!==fetch){const response=await fetchImpl(apiUrl(text),{headers:{Accept:'application/json'},redirect:'error',signal});if(!response.ok)throw Object.assign(new Error('Wikimedia Commons 图片搜索失败：HTTP '+response.status),{code:'EXTERNAL_ASSET_SEARCH_FAILED'});data=await response.json();}
+  else data=JSON.parse((await publicBytes(apiUrl(text),{signal,maxBytes:4*1024*1024})).toString('utf8'));
   const pages=Object.values(data.query?.pages||{});
-  const candidate=pages.map(page=>{
+  const candidates=pages.map(page=>{
     const info=page.imageinfo?.[0],mime=info?.mime||'';
     return info&&/^image\/(?:jpeg|png|webp)$/i.test(mime)?{
       title:page.title,
@@ -89,12 +100,11 @@ export async function searchCommonsImage(query,{signal,fetchImpl=fetch}={}){
       license:headerValue(info.extmetadata,'LicenseShortName')||'未提供许可标记',
       artist:headerValue(info.extmetadata,'Artist')||'未提供作者',
       description:headerValue(info.extmetadata,'ImageDescription')||page.title,
+      width:info.width||null,height:info.height||null,
     }:null;
-  }).filter(Boolean).find(item=>/protein|powder|supplement|container|jar|桶|粉/i.test(`${item.title} ${item.description}`))||pages.map(page=>{
-    const info=page.imageinfo?.[0],mime=info?.mime||'';return info&&/^image\/(?:jpeg|png|webp)$/i.test(mime)?{title:page.title,url:info.thumburl||info.url,originalUrl:info.url,sourceUrl:info.descriptionurl||info.url,mime,bytes:info.size||null,license:headerValue(info.extmetadata,'LicenseShortName')||'未提供许可标记',artist:headerValue(info.extmetadata,'Artist')||'未提供作者',description:headerValue(info.extmetadata,'ImageDescription')||page.title}:null;
-  }).filter(Boolean)[0];
-  if(!candidate)throw Object.assign(new Error('没有找到可下载的公共图片候选'),{code:'EXTERNAL_ASSET_NOT_FOUND'});
-  return {...candidate,query:cleanQuery(query)};
+  }).filter(Boolean);
+  const ranked=rankCandidates(candidates,text);if(!ranked.length)throw Object.assign(new Error('没有找到可下载的公共图片候选'),{code:'EXTERNAL_ASSET_NOT_FOUND'});
+  return {...ranked[0],query:text,alternatives:ranked.slice(1,5).map(item=>({title:item.title,sourceUrl:item.sourceUrl,license:item.license,selectionScore:item.selectionScore}))};
 }
 
 export async function downloadCommonsImage(candidate,{root,projectDirectory,signal,fetchImpl=fetch}={}){
@@ -121,16 +131,18 @@ export async function downloadCommonsImage(candidate,{root,projectDirectory,sign
 }
 
 export async function searchCommonsVideo(query,{signal,fetchImpl=fetch}={}){
-  const text=cleanQuery(query);let data;
+  const text=cleanQuery(query);if(!text)throw Object.assign(new Error('外部视频搜索缺少有效查询'),{code:'EXTERNAL_ASSET_QUERY_REQUIRED'});let data;
   if(fetchImpl!==fetch){const response=await fetchImpl(videoApiUrl(text),{headers:{Accept:'application/json'},redirect:'error',signal});if(!response.ok)throw Object.assign(new Error('Wikimedia Commons 视频搜索失败：HTTP '+response.status),{code:'EXTERNAL_ASSET_SEARCH_FAILED'});data=await response.json();}
   else data=JSON.parse((await publicBytes(videoApiUrl(text),{signal,maxBytes:4*1024*1024})).toString('utf8'));
   const pages=Object.values(data.query?.pages||{});
-  const candidate=pages.map(page=>{
+  const candidates=pages.map(page=>{
     const info=page.imageinfo?.[0],mime=String(info?.mime||'').toLowerCase();
     if(!info||!['video/webm','video/mp4'].includes(mime)||!info.url)return null;
     return {title:page.title,url:info.url,downloadUrl:info.url,sourceUrl:info.descriptionurl||`https://commons.wikimedia.org/wiki/${encodeURIComponent(page.title.replaceAll(' ','_'))}`,mime,bytes:info.size||null,license:headerValue(info.extmetadata,'LicenseShortName')||'未提供许可标记',licenseUrl:headerValue(info.extmetadata,'LicenseUrl')||null,artist:headerValue(info.extmetadata,'Artist')||'未提供作者',description:headerValue(info.extmetadata,'ImageDescription')||page.title,query:text};
-  }).filter(Boolean)[0];
+  }).filter(Boolean);
+  const ranked=rankCandidates(candidates,text);const candidate=ranked[0];
   if(!candidate)throw Object.assign(new Error('没有找到可下载的 WebM 或 MP4 公共视频候选'),{code:'EXTERNAL_ASSET_NOT_FOUND'});
+  candidate.alternatives=ranked.slice(1,5).map(item=>({title:item.title,sourceUrl:item.sourceUrl,license:item.license,selectionScore:item.selectionScore}));
   assertCommonsDownloadUrl(candidate.downloadUrl);return candidate;
 }
 

@@ -100,7 +100,11 @@ export class OpenClawStageProvider {
     try{body=await response.json();}catch{throw fail('stage returned invalid JSON','OPENCLAW_STAGE_RESPONSE_INVALID',502);}
     if(response.ok)break;
     const upstream=body?.error?.message||body?.error||body?.message||'';
-    const retryable=attempt===1&&/tool_choice|required|return_stage_result|did not produce/i.test(String(upstream));
+    const retryable=attempt===1&&(
+      /tool_choice|required|return_stage_result|did not produce/i.test(String(upstream))
+      || /service is busy|temporarily unavailable|try again|upstream provider/i.test(String(upstream))
+      || response.status>=500
+    );
     if(retryable)continue;
     const code=response.status===401||response.status===403?'OPENCLAW_STAGE_AUTH':response.status===429?'OPENCLAW_STAGE_RATE_LIMIT':'OPENCLAW_STAGE_HTTP_ERROR';const requestId=response.headers.get('x-request-id')||response.headers.get('request-id')||null;const retryAfter=response.headers.get('retry-after')||null;throw fail(upstream||'stage HTTP '+response.status,code,response.status,{httpStatus:response.status,requestId:requestId?safeUpstream(requestId):null,retryAfter:retryAfter?safeUpstream(retryAfter):null,provider:this.model});
    }

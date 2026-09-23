@@ -19,7 +19,9 @@ try{
  let request;
  const rawSession=stableControlSessionKey(workspaceId,project.id),sessionKey=normalizedOpenClawSessionKey(rawSession);
  assert.ok(rawSession.startsWith('agent:commerce-control:'),'Gateway canonical session prefix must be included before authorization hashing');
- const operationId=stableControlOperationId(project.id,messageId,{message,baseRevisionId:'rev-1',attachmentIds:[],attachmentPaths:[]});
+ const attachmentAuthorization=await authorizations.issue({projectId:project.id,baseRevisionId:'rev-1',messageId:'message-attachment-0001',message:'prepare attached video',sessionKey,allowedTools:['video_prepare']});
+ await authorizations.validateAndBind({tool:'video_prepare',input:{projectId:project.id,baseRevisionId:'rev-1',operationId:'op-attachment-0001',authorizationId:attachmentAuthorization.authorizationId},context:{sessionKey}});
+ const operationId=stableControlOperationId(project.id,messageId,{message,baseRevisionId:'rev-1',attachmentIds:[],attachmentPaths:[],taskMode:'edit',scenarioId:null,workflowProfile:null,selectedNodeId:null,platform:null,output:null,audio:null});
  const fetchImpl=async(_url,options)=>{
   request={headers:options.headers,body:JSON.parse(options.body)};
   const payload=JSON.parse(request.body.input[0].content[0].text);
@@ -37,5 +39,5 @@ try{
  const shadow=createCommerceAgentBridge({workspaceId,mode:'shadow',token:'shadow-token',model:'openclaw/commerce-control',legacyDispatch:async()=>{shadowLegacy++;return {project,route:{mode:'legacy'}};},projectView:value=>value,authorizationStore:{issue:async()=>{shadowWriteAttempted=true;throw new Error('unexpected');},get:async()=>null},operationJournal:async()=>({operations:{}}),fetchImpl:async(_url,options)=>{const body=JSON.parse(options.body),payload=JSON.parse(body.input[0].content[0].text);assert.equal(payload.readOnly,true);return {ok:true,status:200,json:async()=>({output:[{type:'function_call',name:'return_control_result',arguments:JSON.stringify({status:'read_only',tool:'commerce_plan_validate',operationId:null,jobId:null,summary:'shadow plan',question:null})}]})};}});
  const shadowResult=await shadow.dispatchMessage(project,input);assert.equal(shadowResult.route.mode,'legacy');assert.equal(shadowResult.shadow.status,'read_only');assert.equal(shadowLegacy,1);assert.equal(shadowWriteAttempted,false);
 
- console.log('11/11 OpenClaw control bridge and authorization tests passed');
+ console.log('12/12 OpenClaw control bridge and authorization tests passed');
 }finally{await fs.rm(root,{recursive:true,force:true});}

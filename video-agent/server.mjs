@@ -51,6 +51,7 @@ const OPENCLAW_INBOUND_ROOT=path.resolve(process.env.OPENCLAW_INBOUND_MEDIA_DIR|
 const DEFAULT_OPENCLAW_VIDEO_UPLOAD_BYTES=64*1024*1024;
 const OPENCLAW_MAX_VIDEO_BYTES=Number.isFinite(Number(process.env.OPENCLAW_VIDEO_UPLOAD_MAX_BYTES))&&Number(process.env.OPENCLAW_VIDEO_UPLOAD_MAX_BYTES)>0?Math.floor(Number(process.env.OPENCLAW_VIDEO_UPLOAD_MAX_BYTES)):DEFAULT_OPENCLAW_VIDEO_UPLOAD_BYTES;
 const OPENCLAW_MAX_VIDEO_MIB=Math.round(OPENCLAW_MAX_VIDEO_BYTES/1024/1024);
+const inboundMediaRefs=value=>[...new Set(String(value||'').match(/media:\/\/inbound\/[A-Za-z0-9._-]+/g)||[])];
 // Test and recovery workers often use isolated project directories. Keep the
 // OpenClaw journal/session stores in that same data root unless callers give
 // explicit paths; otherwise an unrelated running server can lock startup.
@@ -117,6 +118,15 @@ async function openclawToolRoute(req,res){
  if(requestedProject && !['current','new'].includes(requestedProject)) trustedContext=await openclawSessions.replace(input.trustedContext,requestedProject);
  else trustedContext=await openclawSessions.bind(input.trustedContext,null);
  let normalizedInput=requestedProject==='current'&&trustedContext.workspaceProjectId?{...(input.input||{}),projectId:trustedContext.workspaceProjectId}:{...(input.input||{})};
+ // Native Control UI puts media receipts into the model's message text when
+ // an attachment and caption are submitted together. Canonicalize those
+ // server-issued receipts before authorization/import so the same request
+ // cannot become an empty project merely because the optional array fields
+ // were omitted by the model.
+ if(!((Array.isArray(normalizedInput.attachmentPaths)&&normalizedInput.attachmentPaths.length)||(Array.isArray(normalizedInput.attachmentIds)&&normalizedInput.attachmentIds.length))){
+  const refs=inboundMediaRefs(normalizedInput.message);
+  if(refs.length)normalizedInput={...normalizedInput,attachmentPaths:refs};
+ }
  // Models may place the Control UI's opaque media receipt in either field:
  // `attachmentPaths` is the documented form, while some providers naturally
  // treat the receipt as an attachment id. Canonicalize both before import so

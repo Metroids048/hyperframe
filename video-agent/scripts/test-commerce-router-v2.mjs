@@ -30,6 +30,14 @@ test('opening seconds are not mistaken for whole-film duration',()=>{
   assert.equal(intent.outputConstraints.aspect,'16:9');
 });
 
+test('generic product extraction ignores duration, aspect and audience qualifiers',()=>{
+  const intent=analyzeCommerceRouting('请制作一条30秒、9:16、适合小红书的桌面护眼台灯商品视频');
+  assert.equal(intent.product.label,'桌面护眼台灯');
+  assert.equal(intent.platform.id,'xiaohongshu');
+  assert.equal(intent.outputConstraints.durationSeconds,30);
+  assert.equal(intent.outputConstraints.aspect,'9:16');
+});
+
 test('strong business rules distinguish conversion, tutorial, promotion, faq and collection',()=>{
   const cases=[
     ['做一条化妆品商品转化视频','product_detail'],

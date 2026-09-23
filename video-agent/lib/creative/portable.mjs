@@ -39,7 +39,14 @@ async function productionFiles(dir,prefix=''){const found=[];for(const entry of 
 /** Immutable, content-addressed ZIP64 snapshot. Runtime scripts/fonts are dependencies, not imported code. */
 export function historyAssetFile(root,assetRoot,name){
   insist(typeof name==='string'&&!path.isAbsolute(name),'输入素材路径无效','PACKAGE_PATH');
-  return relativeFile(assetRoot,path.relative(assetRoot,path.resolve(root,name)).replaceAll('\\','/'));
+  // Native projects may retain a normalized path that contains `..` while still
+  // resolving inside the project asset root. Validate the resolved destination
+  // instead of rejecting the representation before normalization.
+  const base=path.resolve(assetRoot);
+  let file=path.resolve(assetRoot,name);
+  if(!file.startsWith(base+path.sep))file=path.resolve(root,name);
+  insist(file.startsWith(base+path.sep),'工程包路径越界','PACKAGE_PATH');
+  return file;
 }
 export async function exportCreativeHistory(root,projectDir,snapshot,selectedRevisionId,output,{signal,assetRoot=root}={}){
   insist(new Set(snapshot.revisions.map(r=>r.id)).size===snapshot.revisions.length,'工程历史含重复版本ID，不能交付歧义工程包','PACKAGE_INVALID');
