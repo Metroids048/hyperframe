@@ -1,0 +1,114 @@
+{
+  "brief": {
+    "capabilities": [
+      "video-source-selection",
+      "native-composition",
+      "managed-original",
+      "local-preview-review",
+      "native-editing"
+    ],
+    "constraints": [
+      "只使用 asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9 作为源视频。",
+      "授权仅用于本次本地时间线编辑。",
+      "商品身份以源视频可见内容为准，不虚构商品 claims。",
+      "不要生成新素材。",
+      "保持原视频画幅 1280x720、完整时长 120.022 秒和原始 AAC 声音。",
+      "不要裁剪、不要截短、不要重新构图、不要替换声音。"
+    ],
+    "gaps": [],
+    "keepOriginalAudio": true,
+    "needsCaptions": false,
+    "needsNarration": false,
+    "needsTranscription": false,
+    "request": {
+      "cta": "",
+      "facts": [],
+      "name": "新品体验",
+      "output": {
+        "durationSeconds": 120.022,
+        "height": 720,
+        "width": 1280
+      },
+      "price": ""
+    },
+    "scenarioId": "general",
+    "workflow": {
+      "assumptions": [],
+      "gaps": [],
+      "objective": "制作一个保留原视频画幅、完整时长与原声的本地时间线首版导出，仅在开头叠加标题文字。",
+      "overrides": [
+        {
+          "replacementQuote": "保持原视频画幅 1280x720、完整时长 120.022 秒和原始 AAC 声音",
+          "requirementId": "output_defaults"
+        },
+        {
+          "replacementQuote": "只使用 asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9 作为源视频",
+          "requirementId": "asset_scope"
+        }
+      ],
+      "requirements": [
+        {
+          "endSeconds": null,
+          "excludeIds": [],
+          "kind": "resource",
+          "quote": "只使用 asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9 作为源视频",
+          "startSeconds": null,
+          "targetIds": [
+            "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9"
+          ]
+        },
+        {
+          "endSeconds": 2,
+          "excludeIds": [],
+          "kind": "change",
+          "quote": "在开头 0.0-2.0 秒叠加标题文字“新品体验”",
+          "startSeconds": 0,
+          "targetIds": [
+            "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9"
+          ]
+        },
+        {
+          "endSeconds": null,
+          "excludeIds": [],
+          "kind": "preserve",
+          "quote": "保持原视频画幅 1280x720、完整时长 120.022 秒和原始 AAC 声音",
+          "startSeconds": null,
+          "targetIds": [
+            "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9"
+          ]
+        },
+        {
+          "endSeconds": null,
+          "excludeIds": [],
+          "kind": "prohibit",
+          "quote": "请不要生成新素材",
+          "startSeconds": null,
+          "targetIds": []
+        },
+        {
+          "endSeconds": null,
+          "excludeIds": [],
+          "kind": "prohibit",
+          "quote": "不要裁剪、不要截短、不要重新构图、不要替换声音",
+          "startSeconds": null,
+          "targetIds": [
+            "asset-3acd90d4-8ed9-4927-9976-10ba1910fcb9"
+          ]
+        },
+        {
+          "endSeconds": null,
+          "excludeIds": [],
+          "kind": "prohibit",
+          "quote": "不虚构商品 claims",
+          "startSeconds": null,
+          "targetIds": []
+        }
+      ],
+      "taskMode": "create"
+    }
+  },
+  "error": {
+    "code": "WORKFLOW_OVERRIDE_SCOPE",
+    "message": "覆盖要求必须指向同字段、同范围的旧要求及本轮原话"
+  }
+}

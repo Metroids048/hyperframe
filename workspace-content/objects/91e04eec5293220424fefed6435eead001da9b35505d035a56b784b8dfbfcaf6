@@ -1,0 +1,677 @@
+{
+  "time": "2026-09-17T07:14:24.366Z",
+  "action": "retry",
+  "sceneId": "S02",
+  "message": "",
+  "projectId": "1ae65883-a821-437b-be46-1ea4e7e0eebe",
+  "before": "rev-1b007f24fd33e5d3",
+  "after": "rev-1b007f24fd33e5d3",
+  "jobs": [
+    {
+      "id": "job-f0f99c45-3d85-43d8-b8d1-c7c708524742",
+      "kind": "edit",
+      "input": {
+        "action": "patch",
+        "jobId": "job-93ec5494-b5c4-4030-be8e-843347125e8a",
+        "projectId": "1ae65883-a821-437b-be46-1ea4e7e0eebe",
+        "baseRevisionId": "rev-1b007f24fd33e5d3",
+        "message": "最后这句刚才抬高了，现在让它稍小一些、颜色更柔和，便于读完；只调整这句字幕的字号和颜色，位置、文字、时间、其他字幕以及声音画面全部保留。",
+        "taskMode": "edit",
+        "taskModeExplicit": true,
+        "workflowProfile": "detail",
+        "selectedNodeId": null,
+        "routeDecision": {
+          "assetIds": [],
+          "mode": "edit",
+          "preserve": [
+            "unmentioned-objects",
+            "source-assets",
+            "revision-history",
+            "目标字幕当前位置（offsetY=-80）",
+            "目标字幕文字",
+            "目标字幕时间",
+            "目标字幕除字号和颜色以外的样式",
+            "其他字幕",
+            "全部声音和画面"
+          ],
+          "question": "",
+          "quote": "最后这句刚才抬高了，现在让它稍小一些、颜色更柔和，便于读完；只调整这句字幕的字号和颜色，位置、文字、时间、其他字幕以及声音画面全部保留。",
+          "reason": "原话明确仅调整最后一句字幕的字号和颜色，属于局部样式编辑；最后一句及最近上移记录均指向 cue-d18b235a237e72cf。本轮未明确业务目的，scenarioId 不沿用界面选择。",
+          "revisionId": "rev-1b007f24fd33e5d3",
+          "scenarioId": null,
+          "targets": [
+            {
+              "id": "cue-d18b235a237e72cf",
+              "kind": "caption",
+              "requirement": "最后这句刚才抬高了，现在让它稍小一些、颜色更柔和，便于读完；只调整这句字幕的字号和颜色，位置、文字、时间、其他字幕以及声音画面全部保留。"
+            }
+          ],
+          "source": "semantic",
+          "model": "gpt-6-astra",
+          "baseRevisionId": "rev-1b007f24fd33e5d3",
+          "version": 1,
+          "message": "最后这句刚才抬高了，现在让它稍小一些、颜色更柔和，便于读完；只调整这句字幕的字号和颜色，位置、文字、时间、其他字幕以及声音画面全部保留。",
+          "scenario": "product_detail",
+          "executionStrategy": "L2",
+          "confidence": 0.8,
+          "fallback": {
+            "version": 1,
+            "categories": [
+              "missing_evidence",
+              "ambiguous_target",
+              "unsupported_capability",
+              "resource_incompatible",
+              "provider_unavailable",
+              "quality_failure",
+              "revision_conflict"
+            ],
+            "maxReplans": 2,
+            "identicalFailureLimit": 2,
+            "preserveCurrentRevision": true,
+            "allowSilentSubstitution": false,
+            "steps": [
+              "retry-same-capability",
+              "safe-equivalent-execution",
+              "retain-valid-revision",
+              "report-failed-targets",
+              "repair-only-gap"
+            ],
+            "classifiers": [
+              [
+                "revision_conflict",
+                "REVISION_CONFLICT|STALE_REVISION"
+              ],
+              [
+                "provider_unavailable",
+                "^(MINIMAX_|CODEX_|PROVIDER_)"
+              ],
+              [
+                "resource_incompatible",
+                "RESOURCE_|INCOMPATIBLE"
+              ],
+              [
+                "unsupported_capability",
+                "UNSUPPORTED|CAPABILITY|VOICE_NOT_FOUND"
+              ],
+              [
+                "ambiguous_target",
+                "AMBIGUOUS|SCOPE|TARGET|CONFLICT|CAPTION_ALIGNMENT_REQUIRED"
+              ],
+              [
+                "missing_evidence",
+                "MISSING|NEEDS_INPUT|INSUFFICIENT|SPEECH_SCRIPT_REQUIRED|NO_SPEECH|NO_CAPTION_AUDIO"
+              ]
+            ]
+          },
+          "selectedSkills": [
+            "timeline-edit",
+            "speech-captions",
+            "visual-composition",
+            "audio-mix",
+            "hyperframes",
+            "commerce-promo",
+            "conversation-edit"
+          ],
+          "skillReasons": {
+            "speech-captions": [
+              "target:caption",
+              "request-evidence"
+            ],
+            "timeline-edit": [
+              "request-evidence"
+            ],
+            "visual-composition": [
+              "request-evidence"
+            ],
+            "audio-mix": [
+              "request-evidence"
+            ],
+            "conversation-edit": [
+              "request-evidence",
+              "existing-revision"
+            ],
+            "hyperframes": [
+              "native-document"
+            ],
+            "commerce-promo": [
+              "native-business-contract"
+            ]
+          }
+        },
+        "workflow": {
+          "version": 1,
+          "taskMode": "edit",
+          "taskModeExplicit": true,
+          "workflowProfile": "edit",
+          "businessScenario": "product_detail",
+          "baseProjectId": "1ae65883-a821-437b-be46-1ea4e7e0eebe",
+          "baseRevisionId": "rev-1b007f24fd33e5d3",
+          "assetScope": [
+            "asset-391904f8-3296-4c11-ba15-00b521adea04",
+            "s02-still-side",
+            "s02-still-ports",
+            "voice-7a6509e33c8e1395",
+            "audio-67f3a4d4-329c-4356-a5b9-1a1510bfbe43",
+            "audio-3f21a8ec-64ad-4018-a118-4028416b3106",
+            "asset-1dfa607d-1fbd-456e-8e59-5b6911beff5e"
+          ],
+          "originalRequest": "最后这句刚才抬高了，现在让它稍小一些、颜色更柔和，便于读完；只调整这句字幕的字号和颜色，位置、文字、时间、其他字幕以及声音画面全部保留。",
+          "requirements": [
+            {
+              "kind": "goal",
+              "quote": "用这段显卡实拍做一条35秒横屏商品详情片，给关注外观和接口布局的装机用户看。",
+              "targetIds": [],
+              "excludeIds": [],
+              "startSeconds": null,
+              "endSeconds": null,
+              "id": "requirement-68da955722034efd",
+              "field": "goal",
+              "inherited": true
+            },
+            {
+              "kind": "goal",
+              "quote": "先让人认清完整商品，再讲清画面里真实可见的正面风扇、侧面外壳和接口布局，最后把局部与整体的关系收回来。",
+              "targetIds": [],
+              "excludeIds": [],
+              "startSeconds": null,
+              "endSeconds": null,
+              "id": "requirement-8680bd135b82675b",
+              "field": "goal",
+              "inherited": true
+            },
+            {
+              "kind": "prohibit",
+              "quote": "不要剪成开箱教程，也不要只贴三个卖点标题",
+              "targetIds": [],
+              "excludeIds": [],
+              "startSeconds": null,
+              "endSeconds": null,
+              "id": "requirement-457a53232877a2de",
+              "field": "prohibit",
+              "inherited": true
+            },
+            {
+              "kind": "goal",
+              "quote": "需要清楚的整体与局部联动、部位说明和有阅读停留的画面。",
+              "targetIds": [],
+              "excludeIds": [],
+              "startSeconds": null,
+              "endSeconds": null,
+              "id": "requirement-351ea3f8d0f78244",
+              "field": "goal",
+              "inherited": true
+            },
+            {
+              "kind": "goal",
+              "quote": "按内容选择不同的版式和适量动效，商品始终是主体",
+              "targetIds": [],
+              "excludeIds": [],
+              "startSeconds": null,
+              "endSeconds": null,
+              "id": "requirement-7a76a8513b181522",
+              "field": "goal",
+              "inherited": true
+            },
+            {
+              "kind": "prohibit",
+              "quote": "文字与指示不能挡细节；移动画面不能用固定线条假装追踪。",
+              "targetIds": [],
+              "excludeIds": [],
+              "startSeconds": null,
+              "endSeconds": null,
+              "id": "requirement-3b5f778c1120e50a",
+              "field": "prohibit",
+              "inherited": true
+            },
+            {
+              "kind": "goal",
+              "quote": "整体采用清晰克制的科技设计，让不同信息层次、衔接和收尾达到精修成片水平。",
+              "targetIds": [],
+              "excludeIds": [],
+              "startSeconds": null,
+              "endSeconds": null,
+              "id": "requirement-d9442cf9e2c41787",
+              "field": "goal",
+              "inherited": true
+            },
+            {
+              "kind": "change",
+              "quote": "删除过暗等待、纯品牌片尾和无新增信息的重复",
+              "targetIds": [
+                "asset-391904f8-3296-4c11-ba15-00b521adea04"
+              ],
+              "excludeIds": [],
+              "startSeconds": null,
+              "endSeconds": null,
+              "id": "requirement-8194879ceab8ce5e",
+              "field": "change",
+              "inherited": true
+            },
+            {
+              "kind": "prohibit",
+              "quote": "不拉伸画面、不循环凑时长",
+              "targetIds": [],
+              "excludeIds": [],
+              "startSeconds": null,
+              "endSeconds": null,
+              "id": "requirement-3e2578a336f4e148",
+              "field": "prohibit",
+              "inherited": true
+            },
+            {
+              "kind": "preserve",
+              "quote": "保留有意义的转动动作完整。",
+              "targetIds": [
+                "asset-391904f8-3296-4c11-ba15-00b521adea04"
+              ],
+              "excludeIds": [],
+              "startSeconds": null,
+              "endSeconds": null,
+              "id": "requirement-1bf6280f447f35ce",
+              "field": "preserve",
+              "inherited": true
+            },
+            {
+              "kind": "resource",
+              "quote": "只使用这段现有视频",
+              "targetIds": [
+                "asset-391904f8-3296-4c11-ba15-00b521adea04"
+              ],
+              "excludeIds": [],
+              "startSeconds": null,
+              "endSeconds": null,
+              "id": "requirement-eea5cf20243fdf14",
+              "field": "resource",
+              "inherited": true
+            },
+            {
+              "kind": "prohibit",
+              "quote": "不生成新商品图片或镜头，不混入耳机或其他商品，不编性能、散热、噪声、尺寸、价格及未确认型号。",
+              "targetIds": [],
+              "excludeIds": [],
+              "startSeconds": null,
+              "endSeconds": null,
+              "id": "requirement-75edc5dd56825a9a",
+              "field": "prohibit",
+              "inherited": true
+            },
+            {
+              "kind": "change",
+              "quote": "加简短自然的中文说明旁白，台词只解释可见结构",
+              "targetIds": [],
+              "excludeIds": [],
+              "startSeconds": null,
+              "endSeconds": null,
+              "id": "requirement-5146c8e9fd9d763f",
+              "field": "sound.narration",
+              "inherited": true
+            },
+            {
+              "kind": "goal",
+              "quote": "字幕与真实声音同步",
+              "targetIds": [],
+              "excludeIds": [],
+              "startSeconds": null,
+              "endSeconds": null,
+              "id": "requirement-2acd6424d38daef9",
+              "field": "goal",
+              "inherited": true
+            },
+            {
+              "kind": "prohibit",
+              "quote": "不加背景音乐。",
+              "targetIds": [],
+              "excludeIds": [],
+              "startSeconds": null,
+              "endSeconds": null,
+              "id": "requirement-0ddf4c59670bb0d3",
+              "field": "sound.music",
+              "inherited": true
+            },
+            {
+              "kind": "resource",
+              "quote": "请自主观察选材、编排分镜、应用合适的本地HyperFrames资源",
+              "targetIds": [],
+              "excludeIds": [],
+              "startSeconds": null,
+              "endSeconds": null,
+              "id": "requirement-15895a5767cc96a7",
+              "field": "resource",
+              "inherited": true
+            },
+            {
+              "kind": "preserve",
+              "quote": "保留可编辑文字、部位说明、声音和原生工程。",
+              "targetIds": [],
+              "excludeIds": [],
+              "startSeconds": null,
+              "endSeconds": null,
+              "id": "requirement-8a05dc3ba97e85b2",
+              "field": "preserve",
+              "inherited": true
+            },
+            {
+              "endSeconds": null,
+              "excludeIds": [],
+              "kind": "change",
+              "quote": "只把最后一句字幕的“回到整体”改为“回看整体”",
+              "startSeconds": null,
+              "targetIds": [
+                "cue-d18b235a237e72cf"
+              ],
+              "id": "requirement-c610f6bc52e17879",
+              "field": "change",
+              "inherited": true
+            },
+            {
+              "endSeconds": null,
+              "excludeIds": [],
+              "kind": "preserve",
+              "quote": "保留这句的时间与样式",
+              "startSeconds": null,
+              "targetIds": [
+                "cue-d18b235a237e72cf"
+              ],
+              "id": "requirement-c80900c5e28c18f0",
+              "field": "preserve",
+              "inherited": true
+            },
+            {
+              "endSeconds": null,
+              "excludeIds": [],
+              "kind": "preserve",
+              "quote": "所有旁白、配乐和画面不动",
+              "startSeconds": null,
+              "targetIds": [
+                "audio-1",
+                "audio-2",
+                "audio-3",
+                "audio-4",
+                "audio-4124aaefa824859c",
+                "audio-bc35f0a994d81023",
+                "scene-01",
+                "scene-02",
+                "scene-03",
+                "scene-04",
+                "scene-05",
+                "scene-06",
+                "scene-07",
+                "scene-08",
+                "scene-09",
+                "scene-10"
+              ],
+              "id": "requirement-60cd6fafb35790cb",
+              "field": "sound.music",
+              "inherited": true
+            },
+            {
+              "kind": "change",
+              "field": "edit.objects",
+              "quote": "再往上一点。",
+              "targetIds": [
+                "cue-d18b235a237e72cf"
+              ],
+              "excludeIds": [],
+              "id": "requirement-4ca442b3820ca9c7",
+              "inherited": true
+            }
+          ],
+          "assumptions": [],
+          "gaps": [],
+          "interpretation": "pending-semantic-analysis",
+          "auxiliaryModes": [],
+          "auxiliaryScenarios": [],
+          "procedureSubtype": "not_applicable",
+          "steps": [],
+          "parentContractId": "contract-74413dee4ea139e6",
+          "sourceRequests": [
+            "用这段显卡实拍做一条35秒横屏商品详情片，给关注外观和接口布局的装机用户看。先让人认清完整商品，再讲清画面里真实可见的正面风扇、侧面外壳和接口布局，最后把局部与整体的关系收回来。不要剪成开箱教程，也不要只贴三个卖点标题：需要清楚的整体与局部联动、部位说明和有阅读停留的画面。按内容选择不同的版式和适量动效，商品始终是主体，文字与指示不能挡细节；移动画面不能用固定线条假装追踪。整体采用清晰克制的科技设计，让不同信息层次、衔接和收尾达到精修成片水平。删除过暗等待、纯品牌片尾和无新增信息的重复，不拉伸画面、不循环凑时长；保留有意义的转动动作完整。只使用这段现有视频，不生成新商品图片或镜头，不混入耳机或其他商品，不编性能、散热、噪声、尺寸、价格及未确认型号。加简短自然的中文说明旁白，台词只解释可见结构，字幕与真实声音同步；不加背景音乐。请自主观察选材、编排分镜、应用合适的本地HyperFrames资源，保留可编辑文字、部位说明、声音和原生工程。",
+            "只把最后一句字幕的“回到整体”改为“回看整体”，保留这句的时间与样式，所有旁白、配乐和画面不动。",
+            "再往上一点。"
+          ],
+          "facts": []
+        }
+      },
+      "routeDecision": {
+        "assetIds": [],
+        "mode": "edit",
+        "preserve": [
+          "unmentioned-objects",
+          "source-assets",
+          "revision-history",
+          "目标字幕当前位置（offsetY=-80）",
+          "目标字幕文字",
+          "目标字幕时间",
+          "目标字幕除字号和颜色以外的样式",
+          "其他字幕",
+          "全部声音和画面"
+        ],
+        "question": "",
+        "quote": "最后这句刚才抬高了，现在让它稍小一些、颜色更柔和，便于读完；只调整这句字幕的字号和颜色，位置、文字、时间、其他字幕以及声音画面全部保留。",
+        "reason": "原话明确仅调整最后一句字幕的字号和颜色，属于局部样式编辑；最后一句及最近上移记录均指向 cue-d18b235a237e72cf。本轮未明确业务目的，scenarioId 不沿用界面选择。",
+        "revisionId": "rev-1b007f24fd33e5d3",
+        "scenarioId": null,
+        "targets": [
+          {
+            "id": "cue-d18b235a237e72cf",
+            "kind": "caption",
+            "requirement": "最后这句刚才抬高了，现在让它稍小一些、颜色更柔和，便于读完；只调整这句字幕的字号和颜色，位置、文字、时间、其他字幕以及声音画面全部保留。"
+          }
+        ],
+        "source": "semantic",
+        "model": "gpt-6-astra",
+        "baseRevisionId": "rev-1b007f24fd33e5d3",
+        "version": 1,
+        "message": "最后这句刚才抬高了，现在让它稍小一些、颜色更柔和，便于读完；只调整这句字幕的字号和颜色，位置、文字、时间、其他字幕以及声音画面全部保留。",
+        "scenario": "product_detail",
+        "executionStrategy": "L2",
+        "confidence": 0.8,
+        "fallback": {
+          "version": 1,
+          "categories": [
+            "missing_evidence",
+            "ambiguous_target",
+            "unsupported_capability",
+            "resource_incompatible",
+            "provider_unavailable",
+            "quality_failure",
+            "revision_conflict"
+          ],
+          "maxReplans": 2,
+          "identicalFailureLimit": 2,
+          "preserveCurrentRevision": true,
+          "allowSilentSubstitution": false,
+          "steps": [
+            "retry-same-capability",
+            "safe-equivalent-execution",
+            "retain-valid-revision",
+            "report-failed-targets",
+            "repair-only-gap"
+          ],
+          "classifiers": [
+            [
+              "revision_conflict",
+              "REVISION_CONFLICT|STALE_REVISION"
+            ],
+            [
+              "provider_unavailable",
+              "^(MINIMAX_|CODEX_|PROVIDER_)"
+            ],
+            [
+              "resource_incompatible",
+              "RESOURCE_|INCOMPATIBLE"
+            ],
+            [
+              "unsupported_capability",
+              "UNSUPPORTED|CAPABILITY|VOICE_NOT_FOUND"
+            ],
+            [
+              "ambiguous_target",
+              "AMBIGUOUS|SCOPE|TARGET|CONFLICT|CAPTION_ALIGNMENT_REQUIRED"
+            ],
+            [
+              "missing_evidence",
+              "MISSING|NEEDS_INPUT|INSUFFICIENT|SPEECH_SCRIPT_REQUIRED|NO_SPEECH|NO_CAPTION_AUDIO"
+            ]
+          ]
+        },
+        "selectedSkills": [
+          "timeline-edit",
+          "speech-captions",
+          "visual-composition",
+          "audio-mix",
+          "hyperframes",
+          "commerce-promo",
+          "conversation-edit"
+        ],
+        "skillReasons": {
+          "speech-captions": [
+            "target:caption",
+            "request-evidence"
+          ],
+          "timeline-edit": [
+            "request-evidence"
+          ],
+          "visual-composition": [
+            "request-evidence"
+          ],
+          "audio-mix": [
+            "request-evidence"
+          ],
+          "conversation-edit": [
+            "request-evidence",
+            "existing-revision"
+          ],
+          "hyperframes": [
+            "native-document"
+          ],
+          "commerce-promo": [
+            "native-business-contract"
+          ]
+        }
+      },
+      "baseRevisionId": "rev-1b007f24fd33e5d3",
+      "status": "running",
+      "createdAt": "2026-09-17T07:14:24.128Z",
+      "startedAt": "2026-09-17T07:14:24.131Z",
+      "resumeAllowed": false,
+      "budgetExhausted": false
+    }
+  ],
+  "route": {
+    "time": "2026-09-17T06:33:14.233Z",
+    "message": "第一个转场改成色散，其他不动。",
+    "baseRevisionId": "rev-1b007f24fd33e5d3",
+    "mode": "edit",
+    "source": "exact-edit",
+    "quote": "第一个转场改成色散，其他不动。",
+    "question": "",
+    "revisionId": null,
+    "assetIds": [],
+    "version": 1,
+    "scenario": "product_detail",
+    "targets": [
+      {
+        "id": "scene-01",
+        "kind": "timeline",
+        "operation": "set_scene_duration"
+      },
+      {
+        "id": "scene-01",
+        "kind": "transition",
+        "operation": "set_transition"
+      }
+    ],
+    "preserve": [
+      "unmentioned-objects",
+      "source-assets",
+      "revision-history"
+    ],
+    "executionStrategy": "L1",
+    "confidence": 1,
+    "reason": "exact-edit",
+    "fallback": {
+      "version": 1,
+      "categories": [
+        "missing_evidence",
+        "ambiguous_target",
+        "unsupported_capability",
+        "resource_incompatible",
+        "provider_unavailable",
+        "quality_failure",
+        "revision_conflict"
+      ],
+      "maxReplans": 2,
+      "identicalFailureLimit": 2,
+      "preserveCurrentRevision": true,
+      "allowSilentSubstitution": false,
+      "steps": [
+        "retry-same-capability",
+        "safe-equivalent-execution",
+        "retain-valid-revision",
+        "report-failed-targets",
+        "repair-only-gap"
+      ],
+      "classifiers": [
+        [
+          "revision_conflict",
+          "REVISION_CONFLICT|STALE_REVISION"
+        ],
+        [
+          "provider_unavailable",
+          "^(MINIMAX_|CODEX_|PROVIDER_)"
+        ],
+        [
+          "resource_incompatible",
+          "RESOURCE_|INCOMPATIBLE"
+        ],
+        [
+          "unsupported_capability",
+          "UNSUPPORTED|CAPABILITY|VOICE_NOT_FOUND"
+        ],
+        [
+          "ambiguous_target",
+          "AMBIGUOUS|SCOPE|TARGET|CONFLICT|CAPTION_ALIGNMENT_REQUIRED"
+        ],
+        [
+          "missing_evidence",
+          "MISSING|NEEDS_INPUT|INSUFFICIENT|SPEECH_SCRIPT_REQUIRED|NO_SPEECH|NO_CAPTION_AUDIO"
+        ]
+      ]
+    },
+    "selectedSkills": [
+      "timeline-edit",
+      "visual-composition",
+      "hyperframes",
+      "hyperframes-animation",
+      "commerce-promo",
+      "conversation-edit"
+    ],
+    "skillReasons": {
+      "timeline-edit": [
+        "operation:set_scene_duration",
+        "target:timeline"
+      ],
+      "visual-composition": [
+        "operation:set_transition",
+        "target:transition",
+        "request-evidence"
+      ],
+      "hyperframes-animation": [
+        "operation:set_transition",
+        "target:transition",
+        "request-evidence"
+      ],
+      "conversation-edit": [
+        "existing-revision"
+      ],
+      "hyperframes": [
+        "native-document"
+      ],
+      "commerce-promo": [
+        "native-business-contract"
+      ]
+    }
+  },
+  "uiError": null
+}

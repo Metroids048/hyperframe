@@ -1,0 +1,227 @@
+{
+  "alternatives": [],
+  "operations": [
+    {
+      "assetId": "s02-still-side",
+      "durationFrames": null,
+      "effect": null,
+      "fromSceneId": null,
+      "height": null,
+      "nodeId": "scene06-detail-video",
+      "paramsJson": null,
+      "sceneId": null,
+      "sceneIds": null,
+      "source": null,
+      "text": null,
+      "toSceneId": null,
+      "type": "replace_asset",
+      "width": null
+    },
+    {
+      "assetId": null,
+      "durationFrames": null,
+      "effect": null,
+      "fromSceneId": null,
+      "height": null,
+      "nodeId": "node-4a2ff51527d8e3b4",
+      "paramsJson": null,
+      "sceneId": null,
+      "sceneIds": null,
+      "source": null,
+      "text": "矩形连接座｜源片静帧",
+      "toSceneId": null,
+      "type": "update_text",
+      "width": null
+    },
+    {
+      "assetId": null,
+      "durationFrames": null,
+      "effect": null,
+      "fromSceneId": null,
+      "height": null,
+      "nodeId": null,
+      "paramsJson": null,
+      "sceneId": "scene-06",
+      "sceneIds": null,
+      "source": {
+        "css": "#scene06-overlay{position:absolute;inset:0;width:1920px;height:1080px;background:transparent;font-family:Microsoft YaHei,Arial;}#scene06-media{position:absolute;left:72px;top:190px;width:1152px;height:648px;object-fit:contain;background:transparent;opacity:1;z-index:1;}#scene06-detail{position:absolute;left:739.6px;top:90px;width:1280px;height:720px;object-fit:contain;clip-path:inset(12% 12% 43% 43%);background:transparent;opacity:1;z-index:1;}#scene06-part{position:absolute;left:1290px;top:510px;width:560px;margin:0;padding:16px 20px;box-sizing:border-box;background:var(--brand-panel);border-left:2px solid var(--brand-accent);font-size:48px;font-weight:700;line-height:1.3;color:var(--brand-accent);white-space:nowrap;z-index:2;}#scene06-connector{position:absolute;left:1290px;top:610px;width:560px;margin:0;padding:16px 20px;box-sizing:border-box;background:var(--brand-panel);border-left:2px solid var(--brand-accent);font-size:36px;font-weight:400;line-height:1.5;color:var(--brand-foreground);white-space:nowrap;z-index:2;}",
+        "html": "<div id=\"scene06-overlay\"><div id=\"scene06-media\"></div><img id=\"scene06-detail\"><h2 id=\"scene06-part\"></h2><p id=\"scene06-connector\"></p></div>",
+        "motionTargets": [
+          "scene06-part",
+          "scene06-connector"
+        ],
+        "objects": [
+          {
+            "elementId": "scene06-media",
+            "nodeId": "node-6f1976475f26930e"
+          },
+          {
+            "elementId": "scene06-detail",
+            "nodeId": "scene06-detail-video"
+          },
+          {
+            "elementId": "scene06-part",
+            "nodeId": "node-273cc21cd4ec3159"
+          },
+          {
+            "elementId": "scene06-connector",
+            "nodeId": "node-4a2ff51527d8e3b4"
+          }
+        ],
+        "parameters": [],
+        "textStyles": [],
+        "timeline": "tl.fromTo(\"#scene06-part\",{opacity:0,y:6},{opacity:1,y:0,duration:params.sceneSeconds*0.033333,ease:\"power1.out\"},0);tl.fromTo(\"#scene06-connector\",{opacity:0,y:6},{opacity:1,y:0,duration:params.sceneSeconds*0.033333,ease:\"power1.out\"},params.sceneSeconds*0.1);",
+        "values": []
+      },
+      "text": null,
+      "toSceneId": null,
+      "type": "update_custom_source",
+      "width": null
+    }
+  ],
+  "summary": "拟仅将长侧边右窗替换为既有源片静帧，并更新第二行说明；左窗、35秒时长、全部声音字幕和片尾保持。裁切为待核对候选，尚未执行或验证。",
+  "workflow": {
+    "assumptions": [
+      "右窗采用可逆候选裁切：静帧横向43%—88%、纵向12%—57%，源区域864×486像素，显示576×324像素，无上采样、锐化或媒体动画。此范围依据已有位置描述，不视为实看确认。",
+      "第二行继续使用现有入场时刻和动效，背景直接附着该文字元素，随文字同时出现。"
+    ],
+    "gaps": [
+      "输入未提供静帧图像或连接座实测边界，不能确认候选裁切以连接座为中心并保留完整外框和周边参照；必须对照s02-still-side原图核验，不能把候选标为修复通过。",
+      "执行器须确认replace_asset支持原ID从视频切换为图片并正确处理原视频专属参数，保留180帧显示窗口；若不支持，应原子拒绝本批操作并保留原版本，不得以视频冻结或其他素材暗中替代。",
+      "以rev-57138e077ed78a9d为基准原子提交三项操作，重新编译scene-06及对象映射，检查图片注入、源码隔离、文字与底板同步、局部像素比例和可读性；复验15.6—21.6秒及19.767秒，检查scene-05、scene-07邻接边界。",
+      "新修订ID由服务端生成；须比对左窗源区间及布局、全部音轨和字幕、scene-10编号排版、其他镜头、转场、1050帧总时长和1920×1080输出。未进行渲染、完整预览或听音检查。"
+    ],
+    "objective": "让观众通过既有源片静帧稳定辨认长侧边矩形连接座及周边位置关系，同时保留左侧真实动态展示。",
+    "overrides": [
+      {
+        "replacementQuote": "现在将这个局部窗换成工程里已有、片尾也使用的同款长侧边源片静帧，左侧原视频继续保持不变。",
+        "requirementId": "requirement-1e7ebcb271536728"
+      }
+    ],
+    "requirements": [
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "只修长侧边说明这一幕的右侧局部窗",
+        "startSeconds": null,
+        "targetIds": [
+          "scene06-detail-video"
+        ]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "resource",
+        "quote": "工程里已有、片尾也使用的同款长侧边源片静帧",
+        "startSeconds": null,
+        "targetIds": [
+          "s02-still-side",
+          "scene06-detail-video",
+          "s02-end-side"
+        ]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "左侧原视频继续保持不变",
+        "startSeconds": null,
+        "targetIds": [
+          "node-6f1976475f26930e"
+        ]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "右侧用静帧里真实的矩形连接座做稳定细节展示，窗口以连接座为中心，保持完整外框和周边参照",
+        "startSeconds": null,
+        "targetIds": [
+          "scene06-detail-video"
+        ]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "prohibit",
+        "quote": "显示尺寸不要超过截取的原始像素，不锐化不造细节",
+        "startSeconds": null,
+        "targetIds": [
+          "scene06-detail-video"
+        ]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "将这一幕第二行说明改为“矩形连接座｜源片静帧”，与背景板同时出现。",
+        "startSeconds": null,
+        "targetIds": [
+          "node-4a2ff51527d8e3b4"
+        ]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "保持35秒",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "全部旁白音乐和字幕",
+        "startSeconds": null,
+        "targetIds": [
+          "audio-1",
+          "audio-2",
+          "audio-3",
+          "audio-4",
+          "audio-4124aaefa824859c",
+          "audio-bc35f0a994d81023",
+          "s02-caption-1",
+          "s02-caption-2",
+          "s02-caption-3",
+          "s02-caption-4",
+          "s02-caption-5",
+          "cue-d18b235a237e72cf"
+        ]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "片尾编号排版",
+        "startSeconds": null,
+        "targetIds": [
+          "scene-10"
+        ]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [
+          "scene-06"
+        ],
+        "kind": "preserve",
+        "quote": "其他镜头完全不变",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "prohibit",
+        "quote": "这个静帧仅辅助定位，不暗示是新拍摄或运动跟踪。",
+        "startSeconds": null,
+        "targetIds": [
+          "scene06-detail-video",
+          "node-4a2ff51527d8e3b4"
+        ]
+      }
+    ],
+    "taskMode": "edit"
+  }
+}

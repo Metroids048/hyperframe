@@ -1,0 +1,344 @@
+{
+  "capabilities": [
+    "从基准工程读取并受控重剪现有视频",
+    "保留原始音频并随画面同步",
+    "检查源素材长度、尺寸与可用片段"
+  ],
+  "constraints": [
+    "成片必须严格为50.0秒",
+    "优先保留主要内容、关键动作和信息，并删除停顿、重复或次要片段",
+    "保持原叙事顺序、画面构图及视觉风格，音画同步",
+    "不新增文字、字幕、旁白、音乐、水印或外部素材",
+    "优先自然硬切，仅在必要时使用极轻柔转场",
+    "源片长于目标时长，不采用延长或慢放策略",
+    "保留横屏源素材的构图，避免无依据改为竖屏裁切"
+  ],
+  "gaps": [
+    "当前版本未提供可验证的目标片段或已确认的源时间范围；内容删留与精确剪点需在后续媒体观察及候选审阅中确认。",
+    "当前没有人工听音证据；语音语义剪点和最终听感仍需后续审阅确认。"
+  ],
+  "keepOriginalAudio": true,
+  "needsCaptions": false,
+  "needsNarration": false,
+  "needsTranscription": false,
+  "request": {
+    "cta": "",
+    "facts": [],
+    "name": "",
+    "output": {
+      "width": 1280,
+      "height": 720,
+      "durationSeconds": 50,
+      "fps": 30
+    },
+    "price": ""
+  },
+  "scenarioId": "general",
+  "workflow": {
+    "assumptions": [
+      "以当前基准工程中的用户上传视频作为主素材；不使用被明确禁止的辅助网络图片。",
+      "沿用视频源素材的1280x720横屏尺寸，以保护原构图；不沿用与素材方向冲突的1080x1920设置。"
+    ],
+    "gaps": [
+      "目标对象被上一轮标记为不属于当前版本，须在后续执行前确认实际基准版本中对应的视频对象。",
+      "完整音画审阅尚未完成，具体删留窗口和切点依据待媒体观察确认。"
+    ],
+    "objective": "将当前工程中用户上传的视频按原顺序重剪至严格50.0秒，保留主要内容、关键动作和信息，删除冗余片段，并保持构图、视觉风格及原声同步。",
+    "overrides": [],
+    "requirements": [
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "将用户上传的视频重剪为准确50秒",
+        "startSeconds": null,
+        "targetIds": [
+          "asset-95bc8db3-f09c-410f-aa22-cc306122147c"
+        ]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "goal",
+        "quote": "优先保留主要内容、关键动作和信息，删除停顿、重复或次要片段",
+        "startSeconds": null,
+        "targetIds": [
+          "asset-95bc8db3-f09c-410f-aa22-cc306122147c"
+        ]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "保持原有叙事顺序、画面构图和视觉风格，音画同步",
+        "startSeconds": null,
+        "targetIds": [
+          "asset-95bc8db3-f09c-410f-aa22-cc306122147c"
+        ]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [
+          "web-6e669e36-a009-46ac-a5bf-3ac1f034b4f2"
+        ],
+        "kind": "prohibit",
+        "quote": "不要新增文字、字幕、旁白、音乐、水印或外部素材",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "优先使用自然硬切，仅在确有必要时使用极轻柔转场",
+        "startSeconds": null,
+        "targetIds": [
+          "asset-95bc8db3-f09c-410f-aa22-cc306122147c"
+        ]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "优先保留主要内容、关键动作和信息，删除停顿、重复或次要片段",
+        "startSeconds": null,
+        "targetIds": [
+          "asset-95bc8db3-f09c-410f-aa22-cc306122147c"
+        ]
+      }
+    ],
+    "taskMode": "recut"
+  },
+  "productionBinding": {
+    "message": "将用户上传的视频重剪为准确50秒。优先保留主要内容、关键动作和信息，删除停顿、重复或次要片段；保持原有叙事顺序、画面构图和视觉风格，音画同步。不要新增文字、字幕、旁白、音乐、水印或外部素材。优先使用自然硬切，仅在确有必要时使用极轻柔转场。成片必须严格为50.0秒。若源片短于50秒，优先自然延长无语音的片尾或适度放慢非语音镜头，避免明显重复与音频变调。",
+    "contract": {
+      "schemaVersion": 1,
+      "profile": "commerce-focus-v1",
+      "scenarioId": "general",
+      "originalRequest": "将用户上传的视频重剪为准确50秒。优先保留主要内容、关键动作和信息，删除停顿、重复或次要片段；保持原有叙事顺序、画面构图和视觉风格，音画同步。不要新增文字、字幕、旁白、音乐、水印或外部素材。优先使用自然硬切，仅在确有必要时使用极轻柔转场。成片必须严格为50.0秒。若源片短于50秒，优先自然延长无语音的片尾或适度放慢非语音镜头，避免明显重复与音频变调。",
+      "taskMode": "recut",
+      "workflowProfile": "recut",
+      "workflow": {
+        "version": 1,
+        "taskMode": "recut",
+        "taskModeExplicit": true,
+        "workflowProfile": "recut",
+        "businessScenario": "general",
+        "baseProjectId": "13f0a971-0a0d-4ef4-b33a-dc59c9bfa795",
+        "baseRevisionId": null,
+        "assetScope": [
+          "asset-95bc8db3-f09c-410f-aa22-cc306122147c",
+          "web-6e669e36-a009-46ac-a5bf-3ac1f034b4f2"
+        ],
+        "originalRequest": "将用户上传的视频重剪为准确50秒。优先保留主要内容、关键动作和信息，删除停顿、重复或次要片段；保持原有叙事顺序、画面构图和视觉风格，音画同步。不要新增文字、字幕、旁白、音乐、水印或外部素材。优先使用自然硬切，仅在确有必要时使用极轻柔转场。成片必须严格为50.0秒。若源片短于50秒，优先自然延长无语音的片尾或适度放慢非语音镜头，避免明显重复与音频变调。",
+        "requirements": [
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "change",
+            "quote": "将用户上传的视频重剪为准确50秒",
+            "startSeconds": null,
+            "targetIds": [
+              "asset-95bc8db3-f09c-410f-aa22-cc306122147c"
+            ],
+            "id": "requirement-42df614f09e39055",
+            "field": "change",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "goal",
+            "quote": "优先保留主要内容、关键动作和信息，删除停顿、重复或次要片段",
+            "startSeconds": null,
+            "targetIds": [
+              "asset-95bc8db3-f09c-410f-aa22-cc306122147c"
+            ],
+            "id": "requirement-181550f820b4d9f1",
+            "field": "goal",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "preserve",
+            "quote": "保持原有叙事顺序、画面构图和视觉风格，音画同步",
+            "startSeconds": null,
+            "targetIds": [
+              "asset-95bc8db3-f09c-410f-aa22-cc306122147c"
+            ],
+            "id": "requirement-e84e9709fe960023",
+            "field": "preserve",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [
+              "web-6e669e36-a009-46ac-a5bf-3ac1f034b4f2"
+            ],
+            "kind": "prohibit",
+            "quote": "不要新增文字、字幕、旁白、音乐、水印或外部素材",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-19a45d7d61f1b32f",
+            "field": "sound.music",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "change",
+            "quote": "优先使用自然硬切，仅在确有必要时使用极轻柔转场",
+            "startSeconds": null,
+            "targetIds": [
+              "asset-95bc8db3-f09c-410f-aa22-cc306122147c"
+            ],
+            "id": "requirement-e535d6ab515bc69f",
+            "field": "change",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "preserve",
+            "quote": "优先保留主要内容、关键动作和信息，删除停顿、重复或次要片段",
+            "startSeconds": null,
+            "targetIds": [
+              "asset-95bc8db3-f09c-410f-aa22-cc306122147c"
+            ],
+            "id": "requirement-45998f74d4127134",
+            "field": "preserve",
+            "inherited": false
+          }
+        ],
+        "assumptions": [
+          "以当前基准工程中的用户上传视频作为主素材；不使用被明确禁止的辅助网络图片。",
+          "沿用视频源素材的1280x720横屏尺寸，以保护原构图；不沿用与素材方向冲突的1080x1920设置。"
+        ],
+        "gaps": [
+          "目标对象被上一轮标记为不属于当前版本，须在后续执行前确认实际基准版本中对应的视频对象。",
+          "完整音画审阅尚未完成，具体删留窗口和切点依据待媒体观察确认。"
+        ],
+        "interpretation": "validated-semantic-analysis",
+        "objective": "将当前工程中用户上传的视频按原顺序重剪至严格50.0秒，保留主要内容、关键动作和信息，删除冗余片段，并保持构图、视觉风格及原声同步。",
+        "contractId": "contract-d69089503de33f0a",
+        "parentContractId": null,
+        "sourceRequests": [
+          "将用户上传的视频重剪为准确50秒。优先保留主要内容、关键动作和信息，删除停顿、重复或次要片段；保持原有叙事顺序、画面构图和视觉风格，音画同步。不要新增文字、字幕、旁白、音乐、水印或外部素材。优先使用自然硬切，仅在确有必要时使用极轻柔转场。成片必须严格为50.0秒。若源片短于50秒，优先自然延长无语音的片尾或适度放慢非语音镜头，避免明显重复与音频变调。"
+        ],
+        "requirementChanges": [],
+        "changeTargets": [
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "change",
+            "quote": "将用户上传的视频重剪为准确50秒",
+            "startSeconds": null,
+            "targetIds": [
+              "asset-95bc8db3-f09c-410f-aa22-cc306122147c"
+            ],
+            "id": "requirement-42df614f09e39055",
+            "field": "change",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "change",
+            "quote": "优先使用自然硬切，仅在确有必要时使用极轻柔转场",
+            "startSeconds": null,
+            "targetIds": [
+              "asset-95bc8db3-f09c-410f-aa22-cc306122147c"
+            ],
+            "id": "requirement-e535d6ab515bc69f",
+            "field": "change",
+            "inherited": false
+          }
+        ],
+        "preserveTargets": [
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "preserve",
+            "quote": "保持原有叙事顺序、画面构图和视觉风格，音画同步",
+            "startSeconds": null,
+            "targetIds": [
+              "asset-95bc8db3-f09c-410f-aa22-cc306122147c"
+            ],
+            "id": "requirement-e84e9709fe960023",
+            "field": "preserve",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "preserve",
+            "quote": "优先保留主要内容、关键动作和信息，删除停顿、重复或次要片段",
+            "startSeconds": null,
+            "targetIds": [
+              "asset-95bc8db3-f09c-410f-aa22-cc306122147c"
+            ],
+            "id": "requirement-45998f74d4127134",
+            "field": "preserve",
+            "inherited": false
+          }
+        ],
+        "resourceNeeds": [],
+        "prohibitions": [
+          {
+            "endSeconds": null,
+            "excludeIds": [
+              "web-6e669e36-a009-46ac-a5bf-3ac1f034b4f2"
+            ],
+            "kind": "prohibit",
+            "quote": "不要新增文字、字幕、旁白、音乐、水印或外部素材",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-19a45d7d61f1b32f",
+            "field": "sound.music",
+            "inherited": false
+          }
+        ]
+      },
+      "persona": {
+        "creator": "商家／内容运营（待用户研究验证）",
+        "viewer": "首次了解商品的消费者"
+      },
+      "objective": "明确电商内容目标",
+      "product": {
+        "id": "product-1",
+        "name": "",
+        "facts": [],
+        "price": null,
+        "cta": "",
+        "audience": null,
+        "prohibited": []
+      },
+      "output": {
+        "width": 1280,
+        "height": 720,
+        "durationSeconds": 50,
+        "fps": 30
+      },
+      "audio": "unspecified",
+      "mustHave": [],
+      "mustNot": [],
+      "explicitConstraints": {
+        "schemaVersion": 1,
+        "originalRequest": "将用户上传的视频重剪为准确50秒。优先保留主要内容、关键动作和信息，删除停顿、重复或次要片段；保持原有叙事顺序、画面构图和视觉风格，音画同步。不要新增文字、字幕、旁白、音乐、水印或外部素材。优先使用自然硬切，仅在确有必要时使用极轻柔转场。成片必须严格为50.0秒。若源片短于50秒，优先自然延长无语音的片尾或适度放慢非语音镜头，避免明显重复与音频变调。",
+        "narration": "unspecified",
+        "music": "unspecified",
+        "original": "unspecified",
+        "price": "unspecified",
+        "silent": false
+      },
+      "mediaAcquisitionPolicy": null,
+      "deliverables": [
+        "candidate_mp4",
+        "editable_project",
+        "source_index",
+        "quality_report"
+      ]
+    }
+  }
+}

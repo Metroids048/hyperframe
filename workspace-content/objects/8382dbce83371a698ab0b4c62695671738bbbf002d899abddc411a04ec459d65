@@ -1,0 +1,54 @@
+{
+  "binding": {
+    "documentHash": "aa8fba7f4c2d7d0bfc04a38bba3426e093a2877ea378fbab67b7366e692c366a",
+    "implementationHash": "31c23104e940e9b559019c83b4ead04a1aa72828e6115fc5ffb791cd4ceb34ec",
+    "reviewAttempt": "review-attempt-GJ3c2t",
+    "reviewedAt": "2026-09-23T13:30:03.014Z",
+    "coverage": "keyframes_only"
+  },
+  "summary": "本批12张帧图中未见应用新增字幕、标题、图形或额外媒体；可见文字均位于源视频像素内。sourceTimeline与audioGraph在结构上连续覆盖同一assetId的90–120秒，未见重复或时间倒序。主要失败是9:16固定焦点没有随源片版式变化：scene-01前约4秒主体消失，scene-03后段商品持续被截；需局部重做原生裁切跟踪后再验。scene-02在8秒和14.4秒主体清楚，17.967秒为米白过渡/空帧，但仅凭离散帧无法判断其持续时长及是否破坏自然连续性。",
+  "issues": [
+    {
+      "sceneId": "scene-01",
+      "endSeconds": 5.967,
+      "evidence": [
+        "review-attempt-GJ3c2t/round-0/batch-0/frame-00-at-0.3s.png",
+        "review-attempt-GJ3c2t/round-0/batch-0/frame-01-at-2s.png",
+        "review-attempt-GJ3c2t/round-0/batch-0/frame-02-at-4.2s.png",
+        "review-attempt-GJ3c2t/round-0/batch-0/frame-03-at-5.967s.png"
+      ],
+      "nodeIds": [
+        "node-9316fcb36048aa7a"
+      ],
+      "problem": "竖屏裁切未保护商品主体：0.3秒、2秒和4.2秒画面几乎只有大面积米白底、被截断的源片文字和最右侧极窄图像条，商品完全不可见；到5.967秒商品罐也仅在左侧露出一部分。该镜头作为“商品建立”无法建立主体，并且连续数秒近似空画面。",
+      "repair": "保留该节点的90–96秒原生连续源区间与源音轨，仅重做逐段竖裁跟踪：在前段把object-position移向源画面实际商品所在侧，确保商品罐或完整商品图进入9:16中心安全区；页面变化时设置必要的分段焦点关键帧，逐帧预览确认0–6秒不再只剩背景、断字或图像窄条。",
+      "repairKind": "layout",
+      "severity": "major",
+      "startSeconds": 0
+    },
+    {
+      "sceneId": "scene-03",
+      "endSeconds": 29.967,
+      "evidence": [
+        "review-attempt-GJ3c2t/round-0/batch-0/frame-09-at-20s.png",
+        "review-attempt-GJ3c2t/round-0/batch-0/frame-10-at-26.4s.png",
+        "review-attempt-GJ3c2t/round-0/batch-0/frame-11-at-29.967s.png"
+      ],
+      "nodeIds": [
+        "node-1c8065761929e081"
+      ],
+      "problem": "固定focusX未跟随源片后段版式变化：20秒商品罐右侧被截，26.4秒与29.967秒只保留右侧卡片中的半个罐体，同时左侧源片大字也被截断。主体虽仍可辨认，但收尾连续多处没有完整保留商品，未达到“主体构图适配到9:16”。",
+      "repair": "不更换108–120秒源区间；按源片页面切换给该视频节点增加分段object-position关键帧。20秒附近向能完整容纳罐体的方向重定位，26.4–30秒将右侧商品卡移入竖屏中心，优先完整保留罐体；源片文字无法与商品同时完整保留时按用户要求优先商品主体。",
+      "repairKind": "layout",
+      "severity": "major",
+      "startSeconds": 20
+    }
+  ],
+  "unreviewed": [
+    "无法试听，未验证AAC源音轨的实际内容、响度、噪声、首尾自然性，以及是否确实没有源外音乐、旁白或配音。",
+    "帧图仅能确认9:16预览比例，不能验证最终文件编码参数是否为1080x1920、30fps、高质量MP4。",
+    "提供文档只显示assetId，未提供该assetId到指定media://inbound/d533b902-c51e-4e64-9c3b-3a7b40c473cf-_________.mp4的可核验映射，也无法核验attachmentIds实际为空。",
+    "无法从静帧验证整片播放流畅度、页面切换时长、17.967秒空画面的持续时间或所有动态裁切路径。",
+    "未提供最终导出物或交付状态，无法验证成片可预览、可下载。"
+  ]
+}

@@ -1,0 +1,128 @@
+{
+  "status": "candidate_only",
+  "contractHash": "0d3b01539619611c8bf59965d442192994aa283771cc2236577bd325516c2523",
+  "assets": [
+    {
+      "assetId": "asset-2a9beb38-ca74-430d-a161-55ae1be4d7e2",
+      "sha256": "4d7ad9fac8526c38b4b029585817d52e4504707406f3f6632ab4e99be55427ef",
+      "steps": [
+        {
+          "id": "packaging-presentation",
+          "assetId": "asset-2a9beb38-ca74-430d-a161-55ae1be4d7e2",
+          "startSeconds": 24.344,
+          "endSeconds": 33.678,
+          "description": "必要包装段的已观察候选窗口：处理外袋并展示纸套、裸包。完整离箱动作尚缺证据，此宽窗口不是全段必要动作或精确切点。",
+          "dependsOn": [],
+          "canTrimStart": false,
+          "canTrimEnd": false,
+          "canReorder": false,
+          "importance": "necessary",
+          "visualRegion": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "audioDependency": true,
+          "evidence": [
+            {
+              "assetId": "asset-2a9beb38-ca74-430d-a161-55ae1be4d7e2",
+              "startSeconds": 24.344,
+              "endSeconds": 33.678,
+              "observation": "包已在手中、外袋处理、纸套展示、纸套移除后的闭包状态均有采样；中间动作未连续验证。"
+            }
+          ],
+          "protectedRegion": [
+            0,
+            0,
+            1,
+            1
+          ]
+        },
+        {
+          "id": "case-opening",
+          "assetId": "asset-2a9beb38-ca74-430d-a161-55ae1be4d7e2",
+          "startSeconds": 39.917,
+          "endSeconds": 44.917,
+          "description": "必要开包段的候选窗口：包边操作至包盖掀开、主机显露。不是完整拉链及开盖操作的已验证边界。",
+          "dependsOn": [
+            "packaging-presentation"
+          ],
+          "canTrimStart": false,
+          "canTrimEnd": false,
+          "canReorder": false,
+          "importance": "necessary",
+          "visualRegion": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "audioDependency": true,
+          "evidence": [
+            {
+              "assetId": "asset-2a9beb38-ca74-430d-a161-55ae1be4d7e2",
+              "startSeconds": 39.917,
+              "endSeconds": 44.917,
+              "observation": "包边操作、掀盖状态及开包结果有离散帧支持，完整过程未验证。"
+            }
+          ],
+          "protectedRegion": [
+            0,
+            0,
+            1,
+            1
+          ]
+        },
+        {
+          "id": "console-lift",
+          "assetId": "asset-2a9beb38-ca74-430d-a161-55ae1be4d7e2",
+          "startSeconds": 45.15,
+          "endSeconds": 46.583,
+          "description": "可选离包衔接：从包内主机到手持举起状态；取出过程尚未连续验证。",
+          "dependsOn": [
+            "case-opening"
+          ],
+          "canTrimStart": false,
+          "canTrimEnd": false,
+          "canReorder": false,
+          "importance": "optional",
+          "visualRegion": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "audioDependency": true,
+          "evidence": [
+            {
+              "assetId": "asset-2a9beb38-ca74-430d-a161-55ae1be4d7e2",
+              "startSeconds": 45.15,
+              "endSeconds": 46.583,
+              "observation": "45.150秒主机在包内；46.150和46.583秒已手持举起，不能推定间隔内动作完整。"
+            }
+          ],
+          "protectedRegion": [
+            0,
+            0,
+            1,
+            1
+          ]
+        }
+      ]
+    }
+  ],
+  "issues": [
+    "用户指定的从纸箱取出主包装动作尚未充分观察；23.755秒手在箱内接触包装，24.344秒已持起，需局部加密或连续核验，不能把适配器展示替代该动作。",
+    "必要开包动作的拉链、开盖起止及连续性未验证；34.917秒附件用途不明，36.583—38.250秒有离画，不得标成等待或已完成解锁。",
+    "actions中的时间均为观察候选边界，暂禁自动裁掉两端；这些标记不要求保留宽窗口全长，也不证明动作完整。",
+    "尚未确认连续至少2秒完整清楚的主机开场。整体与细节素材基本覆盖，但24秒要求和必要动作覆盖不能据抽帧直接判定满足。",
+    "优先核验49.150—50.150秒是否能形成自然整体收尾；66.753—68.827秒备选含不可直接编辑的源内互动贴片。",
+    "保护区域为保守全幅归一化区域，不是测量所得跟踪框。竖屏应保留横屏全幅并将标题、署名放在媒体外留白；源中已经出框部分无法恢复。",
+    "仅有单源外观关联证据，具体版本、配件销售承诺及末段拍摄连续性未知。",
+    "原声存在但未试听；听感与同步保留为候选审阅项，不视为缺失源音频。",
+    "必须保留独立可编辑的 Vic · CC BY 3.0 署名；来源链接及许可依据未提供核验结果，不能声称权利审核通过。",
+    "本轮未制作工程或导出MP4；候选导出仍需处理已有render=false配置并进行真实输出检查。"
+  ],
+  "scope": "internal candidate; rights and human review remain separate"
+}

@@ -1,0 +1,166 @@
+{
+  "baseline": "3c4b91aa1cf151e8c3ddef992007dc200a86972a",
+  "createdAt": "2026-09-20T04:04:33.699Z",
+  "node": "v24.19.0",
+  "scope": "Source-function reproductions using synthetic metadata and temporary files, not Gateway/browser/model/render E2E.",
+  "usesCopiedExcerpts": false,
+  "sourceFiles": [
+    {
+      "rel": "scripts/patch-openclaw-2026.6.11.mjs",
+      "sha256": "52b2de9ffb33238962f094e7ecb548316813a1926fe50fbeae3abf61d981edf3",
+      "excerpt": false
+    },
+    {
+      "rel": "lib/creative/commerce-focus.mjs",
+      "sha256": "fcad9548f61f66f7c2ff5a4cf3a7b0ccc73c355a01078ce0f9adcbccb4a49b95",
+      "excerpt": false
+    },
+    {
+      "rel": "lib/creative/service.mjs",
+      "sha256": "591337518b4460a04bef6734a2d7918ab01317c9be7667af462aa670794cf21f",
+      "excerpt": false
+    },
+    {
+      "rel": "lib/creative/workflow-intent.mjs",
+      "sha256": "a1239e6f92cef0bc193575a7a5f35f4fa5080e4f10a6f7b22f1037a850b08d89",
+      "excerpt": false
+    }
+  ],
+  "stubs": [],
+  "fixtures": [
+    "synthetic asset/document metadata",
+    "temporary empty review registry",
+    "synthetic JS text for patch helpers"
+  ],
+  "admissionScope": "general only",
+  "checks": [
+    {
+      "id": "PATCH-01",
+      "description": "A marker alone must not establish complete upload integration",
+      "result": "NO_DEFECT_REPRODUCED",
+      "observation": {
+        "returnedStatus": "failed-precondition",
+        "installerCalled": true,
+        "hasUploadHelper": false
+      }
+    },
+    {
+      "id": "PATCH-02",
+      "description": "A replacement matching nothing must not be reported as patched",
+      "result": "NO_DEFECT_REPRODUCED",
+      "observation": {
+        "returnedStatus": "failed-precondition",
+        "contentChanged": true,
+        "failedClosed": false
+      }
+    },
+    {
+      "id": "PATCH-03",
+      "description": "Unknown supplemental preimage should fail closed",
+      "result": "NO_DEFECT_REPRODUCED",
+      "observation": {
+        "threw": true
+      }
+    },
+    {
+      "id": "ADMISSION-01",
+      "description": "Rights/admission state should not be determined by special wording",
+      "result": "NO_DEFECT_REPRODUCED",
+      "observation": {
+        "ordinary": {
+          "status": "blocked",
+          "issues": [
+            "source-a：缺本次用途的素材审核与权利依据",
+            "素材缺少：product_identity"
+          ]
+        },
+        "special": {
+          "status": "blocked",
+          "issues": [
+            "source-a：缺本次用途的素材审核与权利依据",
+            "素材缺少：product_identity"
+          ]
+        },
+        "fixture": "same metadata and rights; empty on-disk review registry"
+      }
+    },
+    {
+      "id": "ADMISSION-02",
+      "description": "Do not manufacture verified observation evidence from wording",
+      "result": "NO_DEFECT_REPRODUCED",
+      "observation": {
+        "status": "blocked",
+        "realObservationFilesCreated": false
+      }
+    },
+    {
+      "id": "ADMISSION-03",
+      "description": "Two uploaded file hashes alone cannot prove different products",
+      "result": "NO_DEFECT_REPRODUCED",
+      "observation": {
+        "status": "blocked",
+        "issues": [
+          "source-a：缺本次用途的素材审核与权利依据",
+          "source-b：缺本次用途的素材审核与权利依据",
+          "素材缺少：product_identity"
+        ],
+        "identities": [],
+        "fixture": "two metadata records; no independently verified product identity"
+      }
+    },
+    {
+      "id": "EDIT-01",
+      "description": "Source preservation must not silently time-stretch to old project duration",
+      "result": "NO_DEFECT_REPRODUCED",
+      "observation": {
+        "sourceSeconds": 120,
+        "hostSeconds": 35,
+        "playbackRates": [
+          1
+        ],
+        "retimeOperations": [
+          {
+            "type": "set_scene_duration",
+            "sceneId": "scene-1",
+            "durationFrames": 3600
+          }
+        ]
+      }
+    },
+    {
+      "id": "EDIT-02",
+      "description": "A source without a pre-existing text node still needs the requested title",
+      "result": "NO_DEFECT_REPRODUCED",
+      "observation": {
+        "returnedPlan": true,
+        "operationTypes": [
+          "set_scene_duration",
+          "replace_asset",
+          "update_media",
+          "add_text"
+        ],
+        "titleOperationCount": 1
+      }
+    },
+    {
+      "id": "EDIT-03",
+      "description": "Natural equivalent title wording without quotation marks must not be silently ignored",
+      "result": "NO_DEFECT_REPRODUCED",
+      "observation": {
+        "operationTypes": [
+          "set_scene_duration",
+          "replace_asset",
+          "update_media",
+          "update_text",
+          "set_node_duration"
+        ],
+        "titleOperationCount": 1
+      }
+    }
+  ],
+  "summary": {
+    "total": 9,
+    "defectsReproduced": 0,
+    "testErrors": 0
+  }
+}

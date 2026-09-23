@@ -1,0 +1,90 @@
+Local frontend built: web-dist
+PASS 桌面左聊天右预览，唯一输入框，无手动时间轴
+PASS 建议仅填入要求，刷新保留新项目草稿
+PASS 动态真实样例目录，导入原片不自动剪辑
+PASS 当前帧引用精确到30fps；字幕请求autoExport=false，预览不冒充已导出
+PASS 范围引用和草稿刷新恢复，文字稿句子映射至成片
+PASS 导出不阻塞聊天，固定旧版本导出完成不覆盖最新预览
+PASS 原片对比、播放修改处、撤销和历史恢复可用
+PASS 编辑期间排队、刷新恢复任务，SSE使用已保存游标
+PASS 同一项目一次选择两个素材均被上传，不创建新项目
+PASS 手机预览在上聊天在下，无横向溢出
+PASS 重新打开连接设置会刷新真实登录状态
+PASS 事件流不可用时轮询仍能恢复修改结果
+PASS 停止当前修改只取消编辑任务，已完成版本保留
+PASS 导入与分析失败即使没有聊天消息也有重试入口
+PASS 失败消息提供可执行重试，并在成功后更新
+REPORT /Users/a1234/Desktop/hyperframe-main/video-agent/outputs/upgrade/ui/2026-09-12T15-47-31-905Z
+PASS fast import, immutable source cache, deferred analysis cache
+PASS targeted HyperFrames preview and check cache
+PASS caption-only audio reuse
+PASS full HyperFrames check and strict MP4 render 5.5
+PASS rendered 2x frame correspondence and PiP pixels
+PASS rendered crossfade blend, crop region and wipe pixels
+Engine media acceptance: /Users/a1234/Desktop/hyperframe-main/video-agent/outputs/upgrade/engine-media/2026-09-12T15-47-41.755Z
+PASS runtime seeks + screenshots agree with strict MP4
+PASS new revision reuses browser and content-addressed media cache
+PASS samples retain affected beginning/middle/end and global tail
+PASS runtime errors, external resources and overflowing captions fail preview
+PASS fractional caption end uses integer frame bounds without floating-point false positives
+PASS cancel during browser wait closes page and next request recovers
+PASS idle timeout and explicit shutdown allow a fresh browser
+Runtime preview acceptance: /Users/a1234/Desktop/hyperframe-main/video-agent/outputs/upgrade/preview-runtime/2026-09-12T15-48-31.725Z
+PASS silent portrait remains silent through strict rendering
+PASS rotation metadata is normalized without changing the portrait aspect
+PASS VFR footage is normalized to 30 fps
+PASS speed preserves pitch and music ducking follows sped-up speech
+PASS missing media invalidates a cached check and cancellation kills the child
+PASS corrupt media is rejected before timeline creation
+Engine edge acceptance: /Users/a1234/Desktop/hyperframe-main/video-agent/outputs/upgrade/engine-edges/2026-09-12T15-48-42.663Z
+PASS loudness target, caption cache reuse, disable restores original level /Users/a1234/Desktop/hyperframe-main/video-agent/outputs/upgrade/loudness/2026-09-12T15-49-00.166Z
+PASS unconfigured generation makes no network request
+PASS image, paths, URLs and invalid durations are rejected before execution
+PASS real video and audio downloads become ready reusable assets without forwarded credentials
+PASS private IPs, private DNS answers, other local origins and redirects cannot be downloaded
+PASS size and MIME mismatches fail with no partially imported asset
+PASS download timeout and cancellation abort the stream and clean temporary files
+PASS controlled public HTTPS fetch injection preserves the same URL policy
+PASS planner and service import generated footage then insert its returned asset ID
+Generation acceptance: /Users/a1234/Desktop/hyperframe-main/video-agent/outputs/upgrade/generation/2026-09-12T15-49-06.338Z
+PASS 90-second real film imports as unedited preview with no automatic speech/export
+PASS initial paused preview contains a decoded visible film frame (131ms after ready)
+file:///Users/a1234/Desktop/hyperframe-main/video-agent/node_modules/puppeteer-core/lib/puppeteer/common/WaitTask.js:46
+            this.#timeoutError = new TimeoutError(`Waiting failed: ${options.timeout}ms exceeded`);
+                                 ^
+
+TimeoutError: Waiting failed: 20000ms exceeded
+    at new WaitTask (file:///Users/a1234/Desktop/hyperframe-main/video-agent/node_modules/puppeteer-core/lib/puppeteer/common/WaitTask.js:46:34)
+    at IsolatedWorld.waitForFunction (file:///Users/a1234/Desktop/hyperframe-main/video-agent/node_modules/puppeteer-core/lib/puppeteer/api/Realm.js:49:26)
+    at CdpFrame.waitForFunction (file:///Users/a1234/Desktop/hyperframe-main/video-agent/node_modules/puppeteer-core/lib/puppeteer/api/Frame.js:585:43)
+    at CdpFrame.<anonymous> (file:///Users/a1234/Desktop/hyperframe-main/video-agent/node_modules/puppeteer-core/lib/puppeteer/util/decorators.js:101:27)
+    at CdpPage.waitForFunction (file:///Users/a1234/Desktop/hyperframe-main/video-agent/node_modules/puppeteer-core/lib/puppeteer/api/Page.js:1537:37)
+    at file:///Users/a1234/Desktop/hyperframe-main/video-agent/scripts/test-conversation-media.mjs:142:14
+
+Node.js v24.19.0
+✔ product colours are not parsed as oversized dimensions and duration failures identify the actual scene budget (9.960042ms)
+✔ original video remains an independent timed layer behind custom motion graphics (6.218041ms)
+✔ custom motion uses the actual scene duration without permitting a caller to override it (0.61975ms)
+✔ original SVG/HTML source compiles into named objects and finite parameter edits (2.03225ms)
+✔ scoped original source edits preserve native content and support selective undo with later text retained (3.724375ms)
+✔ AST/HTML/CSS parsing rejects side effects, external resources, callbacks, loops and infinite repeats (2.87275ms)
+✔ a declared target that is static is not accepted by runtime motion measurement (992.93575ms)
+✔ production worker renders motion while blocking network, project and file access (954.899542ms)
+﹣ Windows job terminates an unbounded worker and refuses excessive committed memory (0.078959ms) # SKIP
+✔ portable timeout and cancellation verify the worker process group has exited (4535.25575ms)
+✔ compiler static visibility contract runs through production parent and browser (1739.466333ms)
+✔ opaque overlay cannot satisfy required product visibility (890.124333ms)
+✔ mixed static and dynamic scenes pass through the production project verifier (3042.304041ms)
+✔ motion in one interval does not hide a false second interval (1259.718458ms)
+✔ static overlays preserve actual HyperFrames video source-time progression (1423.541667ms)
+✔ finite chained GSAP calls normalize without accepting arbitrary call roots (1.55875ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 1
+ℹ todo 0
+ℹ duration_ms 14870.263875
+ISOLATION_EVIDENCE /Users/a1234/Desktop/hyperframe-main/video-agent/outputs/resume/custom-isolation-2026-09-12T15-49-30.949Z
+Verification report: /Users/a1234/Desktop/hyperframe-main/video-agent/outputs/upgrade/verification/browser-2026-09-12T15-47-31.744Z

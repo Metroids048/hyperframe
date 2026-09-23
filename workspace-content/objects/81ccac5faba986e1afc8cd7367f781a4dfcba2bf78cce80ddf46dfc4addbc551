@@ -1,0 +1,2603 @@
+{
+  "schemaVersion": 3,
+  "projectId": "9398b920-4841-41aa-804a-abd2671fa402",
+  "revisionId": "rev-59204b93cd2d628e",
+  "fps": 30,
+  "output": {
+    "width": 1080,
+    "height": 1920,
+    "fit": "cover"
+  },
+  "durationFrames": 1770,
+  "assetRefs": [
+    "asset-5bed5fa6-aff4-4432-9819-bbd9e45610de",
+    "asset-c3b7ccd1-e51b-4aa4-a755-1905322101e3",
+    "asset-d15b0f6b-da27-45c0-b2c3-404512dee173",
+    "asset-1555e45e-ae5c-4342-a82e-731766200c7d"
+  ],
+  "brief": {
+    "id": "brief-36ebe2929d507920",
+    "productId": "s04-jewelry",
+    "name": "S04 · 首饰搭配",
+    "facts": [],
+    "price": null,
+    "cta": "",
+    "audience": "首饰搭配观看者",
+    "prohibited": [
+      "不编造材质品牌价格或系列关系"
+    ],
+    "assetIds": [
+      "asset-5bed5fa6-aff4-4432-9819-bbd9e45610de",
+      "asset-c3b7ccd1-e51b-4aa4-a755-1905322101e3",
+      "asset-d15b0f6b-da27-45c0-b2c3-404512dee173"
+    ],
+    "assumptions": [
+      "未提供可验证卖点，仅使用中性商品展示文案。"
+    ],
+    "originalRequest": "现在把第四场景改为约一分钟的竖屏首饰搭配展示，用已上传的三条真实视频和原创音乐完成。先看组合，再分别看戒指、项链和耳饰，最后回到佩戴关系；杂志画册感、文字少、真实颜色，不编品牌材质价格或同系列。总时长以58到60秒为目标，三条视频有约62秒的不同原始内容，合理剪辑分配，不重复凑时长。要调用本场景链路与可用HyperFrames分屏、网格和文字资源，局部视窗必须实际可见且不裁坏主体。无需复杂多窗口局部放大，优先稳定清楚的实拍与分屏。音乐轻，无旁白。保留单品标题、说明、镜头和音乐为可独立修改的原生对象，让我能在当前WebUI连续对话改标题、顺序、音乐并撤销；先完成可编辑候选工程和demo。"
+  },
+  "design": {
+    "id": "premium",
+    "background": "#EAE4D9",
+    "foreground": "#232621",
+    "panel": "#E2DBCF",
+    "accent": "#657A65",
+    "accentContrast": "#FFFFFF",
+    "fontFamily": "Microsoft YaHei",
+    "motionIntensity": 0.72,
+    "transition": "cut",
+    "description": "1080×1920、30fps竖屏画册。真实视频为主，保持原始颜色，不增添滤镜、模拟高光或商品图。横幅完整容纳于952×502左右的窗口；竖幅完整容纳，不再次放大裁切。标题、说明、媒体、布局及音乐分别保留原生对象和稳定版本映射。字体使用合同提供的系统字体，实际加载仍需制作阶段核验。标题仅作短暂轻揭示，媒体始终正常播放。",
+    "safeAreas": {
+      "top": 0.06,
+      "right": 0.06,
+      "bottom": 0.07,
+      "left": 0.06
+    },
+    "minReadFrames": 48,
+    "easingFamily": "power3.out",
+    "output": {
+      "width": 1080,
+      "height": 1920
+    },
+    "labelStyle": "全片统一直角、无阴影、24px文字内边距、1px强调线；类别标题52px，说明30px。文字位于媒体外留白，不覆盖耳侧、手部、链条或吊坠。不得逐幕更换字体或添加标签装饰。",
+    "safeMarginPx": 64,
+    "typeScale": {
+      "title": 80,
+      "body": 36,
+      "label": 30
+    }
+  },
+  "scenes": [
+    {
+      "id": "scene-01",
+      "purpose": "用真实共同佩戴画面开场，建立整片观看理由。",
+      "startFrame": 0,
+      "durationFrames": 207,
+      "effect": "custom-native",
+      "effectParams": {},
+      "reason": "补充观察已覆盖此前指定的三处开场采样缺口；原创画册首页承担唯一核心表达。"
+    },
+    {
+      "id": "scene-02",
+      "purpose": "完整保留戒指展示中的自然手势发展。",
+      "startFrame": 207,
+      "durationFrames": 354,
+      "effect": "custom-native",
+      "effectParams": {},
+      "reason": "文字资源适配到媒体外，避免标签遮挡戒指和手指；该段长度由实际手势发展支撑。"
+    },
+    {
+      "id": "scene-03",
+      "purpose": "以清楚的静物关系开启项链章节。",
+      "startFrame": 561,
+      "durationFrames": 165,
+      "effect": "custom-native",
+      "effectParams": {},
+      "reason": "复用网格资源组织一个真实视频槽与独立文字槽，不为网格额外增加媒体或虚构参数。"
+    },
+    {
+      "id": "scene-04",
+      "purpose": "从桌面外观进入真实佩戴观看。",
+      "startFrame": 726,
+      "durationFrames": 225,
+      "effect": "custom-native",
+      "effectParams": {},
+      "reason": "单段无文字实拍即可提供新增理解，保留原片自然运动。"
+    },
+    {
+      "id": "scene-05",
+      "purpose": "让胸前手势自然完成并露出佩戴结果。",
+      "startFrame": 951,
+      "durationFrames": 240,
+      "effect": "custom-native",
+      "effectParams": {},
+      "reason": "与上一镜连续取源、相同构图，不在靠近吊坠时跳切或伪造动作。"
+    },
+    {
+      "id": "scene-06",
+      "purpose": "建立耳饰章节及清楚的近景参照。",
+      "startFrame": 1191,
+      "durationFrames": 90,
+      "effect": "custom-native",
+      "effectParams": {},
+      "reason": "复用少字标题资源，以类别引导观看，不添加产品参数。"
+    },
+    {
+      "id": "scene-07",
+      "purpose": "补充耳侧自然展示，连接近景与整体佩戴。",
+      "startFrame": 1281,
+      "durationFrames": 240,
+      "effect": "custom-native",
+      "effectParams": {},
+      "reason": "源区间与开场相邻但不重叠，自然手势承担观看变化。"
+    },
+    {
+      "id": "scene-08",
+      "purpose": "从单品章节回到整体佩戴。",
+      "startFrame": 1521,
+      "durationFrames": 159,
+      "effect": "custom-native",
+      "effectParams": {},
+      "reason": "使用开场之后的未重复区间，以一条简短说明完成结构回收。"
+    },
+    {
+      "id": "scene-09",
+      "purpose": "end",
+      "startFrame": 1680,
+      "durationFrames": 90,
+      "effect": "custom-native",
+      "effectParams": {},
+      "reason": "comparison-split绑定两路未重复源区间；仅使用并列窗口结构，不采用前后对比或同款语义。"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "node-955788d805f23f36",
+      "sceneId": "scene-01",
+      "kind": "text",
+      "semanticRole": "title",
+      "anchor": "scene-local",
+      "localStartFrame": 0,
+      "localDurationFrames": 207,
+      "durationFrames": 207,
+      "params": {
+        "text": "首饰搭配",
+        "factRefs": []
+      },
+      "startFrame": 0
+    },
+    {
+      "id": "node-66da0b4e7e69c197",
+      "sceneId": "scene-01",
+      "kind": "video",
+      "semanticRole": "hero",
+      "assetId": "asset-c3b7ccd1-e51b-4aa4-a755-1905322101e3",
+      "anchor": "scene-local",
+      "localStartFrame": 0,
+      "localDurationFrames": 207,
+      "durationFrames": 207,
+      "params": {
+        "sourceStartSeconds": 8.1,
+        "fit": "contain",
+        "playbackRate": 1
+      },
+      "startFrame": 0
+    },
+    {
+      "id": "node-7b53c17a4779dab1",
+      "sceneId": "scene-02",
+      "kind": "text",
+      "semanticRole": "title",
+      "anchor": "scene-local",
+      "localStartFrame": 0,
+      "localDurationFrames": 354,
+      "durationFrames": 354,
+      "params": {
+        "text": "戒指",
+        "factRefs": []
+      },
+      "startFrame": 207
+    },
+    {
+      "id": "node-4a72a3c61b7dafb3",
+      "sceneId": "scene-02",
+      "kind": "video",
+      "semanticRole": "hero",
+      "assetId": "asset-5bed5fa6-aff4-4432-9819-bbd9e45610de",
+      "anchor": "scene-local",
+      "localStartFrame": 0,
+      "localDurationFrames": 354,
+      "durationFrames": 354,
+      "params": {
+        "sourceStartSeconds": 0.1,
+        "fit": "contain",
+        "playbackRate": 1
+      },
+      "startFrame": 207
+    },
+    {
+      "id": "node-5e91359aa7e508cc",
+      "sceneId": "scene-03",
+      "kind": "text",
+      "semanticRole": "title",
+      "anchor": "scene-local",
+      "localStartFrame": 0,
+      "localDurationFrames": 165,
+      "durationFrames": 165,
+      "params": {
+        "text": "项链",
+        "factRefs": []
+      },
+      "startFrame": 561
+    },
+    {
+      "id": "node-780ea8c89e219241",
+      "sceneId": "scene-03",
+      "kind": "video",
+      "semanticRole": "hero",
+      "assetId": "asset-5bed5fa6-aff4-4432-9819-bbd9e45610de",
+      "anchor": "scene-local",
+      "localStartFrame": 0,
+      "localDurationFrames": 165,
+      "durationFrames": 165,
+      "params": {
+        "sourceStartSeconds": 11.9,
+        "fit": "contain",
+        "playbackRate": 1
+      },
+      "startFrame": 561
+    },
+    {
+      "id": "node-d59405388ce0597c",
+      "sceneId": "scene-04",
+      "kind": "text",
+      "semanticRole": "title",
+      "anchor": "scene-local",
+      "localStartFrame": 0,
+      "localDurationFrames": 225,
+      "durationFrames": 225,
+      "params": {
+        "text": "佩戴细节",
+        "factRefs": []
+      },
+      "startFrame": 726
+    },
+    {
+      "id": "node-ecad24f564f5ae57",
+      "sceneId": "scene-04",
+      "kind": "video",
+      "semanticRole": "hero",
+      "assetId": "asset-d15b0f6b-da27-45c0-b2c3-404512dee173",
+      "anchor": "scene-local",
+      "localStartFrame": 0,
+      "localDurationFrames": 225,
+      "durationFrames": 225,
+      "params": {
+        "sourceStartSeconds": 3.066666666666667,
+        "fit": "contain",
+        "playbackRate": 1
+      },
+      "startFrame": 726
+    },
+    {
+      "id": "node-48e0aa28ceb70be3",
+      "sceneId": "scene-05",
+      "kind": "text",
+      "semanticRole": "title",
+      "anchor": "scene-local",
+      "localStartFrame": 0,
+      "localDurationFrames": 240,
+      "durationFrames": 240,
+      "params": {
+        "text": "佩戴细节",
+        "factRefs": []
+      },
+      "startFrame": 951
+    },
+    {
+      "id": "node-08cf13590ef60b55",
+      "sceneId": "scene-05",
+      "kind": "video",
+      "semanticRole": "hero",
+      "assetId": "asset-d15b0f6b-da27-45c0-b2c3-404512dee173",
+      "anchor": "scene-local",
+      "localStartFrame": 0,
+      "localDurationFrames": 240,
+      "durationFrames": 240,
+      "params": {
+        "sourceStartSeconds": 10.566666666666666,
+        "fit": "contain",
+        "playbackRate": 1
+      },
+      "startFrame": 951
+    },
+    {
+      "id": "node-02dcd46d7b1dee21",
+      "sceneId": "scene-06",
+      "kind": "text",
+      "semanticRole": "title",
+      "anchor": "scene-local",
+      "localStartFrame": 0,
+      "localDurationFrames": 90,
+      "durationFrames": 90,
+      "params": {
+        "text": "耳饰",
+        "factRefs": []
+      },
+      "startFrame": 1191
+    },
+    {
+      "id": "node-d4c66a066e423279",
+      "sceneId": "scene-06",
+      "kind": "video",
+      "semanticRole": "hero",
+      "assetId": "asset-d15b0f6b-da27-45c0-b2c3-404512dee173",
+      "anchor": "scene-local",
+      "localStartFrame": 0,
+      "localDurationFrames": 90,
+      "durationFrames": 90,
+      "params": {
+        "sourceStartSeconds": 0.06666666666666667,
+        "fit": "contain",
+        "playbackRate": 1
+      },
+      "startFrame": 1191
+    },
+    {
+      "id": "node-2986236484da24b5",
+      "sceneId": "scene-07",
+      "kind": "text",
+      "semanticRole": "title",
+      "anchor": "scene-local",
+      "localStartFrame": 0,
+      "localDurationFrames": 240,
+      "durationFrames": 240,
+      "params": {
+        "text": "佩戴细节",
+        "factRefs": []
+      },
+      "startFrame": 1281
+    },
+    {
+      "id": "node-aa82570a321eaea7",
+      "sceneId": "scene-07",
+      "kind": "video",
+      "semanticRole": "hero",
+      "assetId": "asset-c3b7ccd1-e51b-4aa4-a755-1905322101e3",
+      "anchor": "scene-local",
+      "localStartFrame": 0,
+      "localDurationFrames": 240,
+      "durationFrames": 240,
+      "params": {
+        "sourceStartSeconds": 0.1,
+        "fit": "contain",
+        "playbackRate": 1
+      },
+      "startFrame": 1281
+    },
+    {
+      "id": "node-8b6979e449fd5477",
+      "sceneId": "scene-08",
+      "kind": "text",
+      "semanticRole": "feature",
+      "anchor": "scene-local",
+      "localStartFrame": 0,
+      "localDurationFrames": 159,
+      "durationFrames": 159,
+      "params": {
+        "text": "佩戴关系",
+        "factRefs": []
+      },
+      "startFrame": 1521
+    },
+    {
+      "id": "node-d3abbacb57a440ff",
+      "sceneId": "scene-08",
+      "kind": "video",
+      "semanticRole": "hero",
+      "assetId": "asset-c3b7ccd1-e51b-4aa4-a755-1905322101e3",
+      "anchor": "scene-local",
+      "localStartFrame": 0,
+      "localDurationFrames": 159,
+      "durationFrames": 159,
+      "params": {
+        "sourceStartSeconds": 15,
+        "fit": "contain",
+        "playbackRate": 1
+      },
+      "startFrame": 1521
+    },
+    {
+      "id": "node-1dcc12111dcf1538",
+      "sceneId": "scene-09",
+      "kind": "text",
+      "semanticRole": "title",
+      "anchor": "scene-local",
+      "localStartFrame": 0,
+      "localDurationFrames": 90,
+      "durationFrames": 90,
+      "params": {
+        "text": "组合回望",
+        "factRefs": []
+      },
+      "startFrame": 1680
+    },
+    {
+      "id": "node-1d02e192ada6dde2",
+      "sceneId": "scene-09",
+      "kind": "video",
+      "semanticRole": "hero",
+      "assetId": "asset-c3b7ccd1-e51b-4aa4-a755-1905322101e3",
+      "anchor": "scene-local",
+      "localStartFrame": 0,
+      "localDurationFrames": 90,
+      "durationFrames": 90,
+      "params": {
+        "sourceStartSeconds": 20.3,
+        "fit": "contain",
+        "playbackRate": 1
+      },
+      "startFrame": 1680
+    },
+    {
+      "id": "node-d557ef3554e67639",
+      "sceneId": "scene-09",
+      "kind": "video",
+      "semanticRole": "detail",
+      "assetId": "asset-d15b0f6b-da27-45c0-b2c3-404512dee173",
+      "anchor": "scene-local",
+      "localStartFrame": 0,
+      "localDurationFrames": 90,
+      "durationFrames": 90,
+      "params": {
+        "sourceStartSeconds": 18.566666666666666,
+        "fit": "contain",
+        "playbackRate": 1
+      },
+      "startFrame": 1680
+    }
+  ],
+  "audioGraph": [
+    {
+      "id": "music-main",
+      "assetId": "asset-1555e45e-ae5c-4342-a82e-731766200c7d",
+      "role": "music",
+      "startFrame": 0,
+      "durationFrames": 1200,
+      "sourceStartSeconds": 0,
+      "playbackRate": 1,
+      "volume": 0.16,
+      "fadeInFrames": 30,
+      "fadeOutFrames": 60
+    },
+    {
+      "id": "music-continuation",
+      "assetId": "asset-1555e45e-ae5c-4342-a82e-731766200c7d",
+      "role": "music",
+      "startFrame": 1140,
+      "durationFrames": 630,
+      "sourceStartSeconds": 0,
+      "playbackRate": 1,
+      "volume": 0.16,
+      "fadeInFrames": 60,
+      "fadeOutFrames": 90
+    }
+  ],
+  "transitions": [],
+  "sourceBundles": [
+    {
+      "contractVersion": 2,
+      "html": "<div id=\"media1\"></div><div id=\"text1\"></div>",
+      "css": "#media1{position:absolute;left:60px;top:380px;width:960px;height:960px;overflow:hidden;border-radius:12px;object-fit:contain}\n#text1{position:absolute;left:72px;top:120px;width:936px;height:110px;color:#232621;font-size:80px;font-weight:800;line-height:1.25;letter-spacing:2px}",
+      "timeline": "tl.from(\"#media1\",{opacity:0,duration:0.25,ease:\"sine.out\"},0);\ntl.from(\"#text1\",{clipPath:\"inset(0 100% 0 0)\",duration:0.5,ease:\"power2.inOut\"},0.15);",
+      "parameters": [],
+      "objects": [
+        {
+          "elementId": "media1",
+          "nodeId": "node-66da0b4e7e69c197"
+        },
+        {
+          "elementId": "text1",
+          "nodeId": "node-955788d805f23f36"
+        }
+      ],
+      "motionTargets": [
+        "media1",
+        "text1"
+      ],
+      "textStyles": [],
+      "tokens": {},
+      "id": "source-scene-01",
+      "sceneId": "scene-01"
+    },
+    {
+      "contractVersion": 2,
+      "html": "<div id=\"media1\"></div><div id=\"text1\"></div>",
+      "css": "#media1{position:absolute;left:60px;top:380px;width:960px;height:960px;overflow:hidden;border-radius:12px;object-fit:contain}\n#text1{position:absolute;left:72px;top:120px;width:936px;height:110px;color:#232621;font-size:80px;font-weight:800;line-height:1.25;letter-spacing:2px}",
+      "timeline": "tl.from(\"#media1\",{opacity:0,duration:0.25,ease:\"sine.out\"},0);\ntl.from(\"#text1\",{clipPath:\"inset(0 100% 0 0)\",duration:0.5,ease:\"power2.inOut\"},0.15);",
+      "parameters": [],
+      "objects": [
+        {
+          "elementId": "media1",
+          "nodeId": "node-4a72a3c61b7dafb3"
+        },
+        {
+          "elementId": "text1",
+          "nodeId": "node-7b53c17a4779dab1"
+        }
+      ],
+      "motionTargets": [
+        "media1",
+        "text1"
+      ],
+      "textStyles": [],
+      "tokens": {},
+      "id": "source-scene-02",
+      "sceneId": "scene-02"
+    },
+    {
+      "contractVersion": 2,
+      "html": "<div id=\"media1\"></div><div id=\"text1\"></div>",
+      "css": "#media1{position:absolute;left:60px;top:380px;width:960px;height:960px;overflow:hidden;border-radius:12px;object-fit:contain}\n#text1{position:absolute;left:72px;top:120px;width:936px;height:110px;color:#232621;font-size:80px;font-weight:800;line-height:1.25;letter-spacing:2px}",
+      "timeline": "tl.from(\"#media1\",{opacity:0,duration:0.25,ease:\"sine.out\"},0);\ntl.from(\"#text1\",{clipPath:\"inset(0 100% 0 0)\",duration:0.5,ease:\"power2.inOut\"},0.15);",
+      "parameters": [],
+      "objects": [
+        {
+          "elementId": "media1",
+          "nodeId": "node-780ea8c89e219241"
+        },
+        {
+          "elementId": "text1",
+          "nodeId": "node-5e91359aa7e508cc"
+        }
+      ],
+      "motionTargets": [
+        "media1",
+        "text1"
+      ],
+      "textStyles": [],
+      "tokens": {},
+      "id": "source-scene-03",
+      "sceneId": "scene-03"
+    },
+    {
+      "contractVersion": 2,
+      "html": "<div id=\"media1\"></div><div id=\"text1\"></div>",
+      "css": "#media1{position:absolute;left:60px;top:340px;width:960px;height:1450px;overflow:hidden;border-radius:12px;object-fit:contain}\n#text1{position:absolute;left:72px;top:120px;width:936px;height:110px;color:#232621;font-size:80px;font-weight:800;line-height:1.25;letter-spacing:2px}",
+      "timeline": "tl.from(\"#media1\",{opacity:0,duration:0.25,ease:\"sine.out\"},0);\ntl.from(\"#text1\",{clipPath:\"inset(0 100% 0 0)\",duration:0.5,ease:\"power2.inOut\"},0.15);",
+      "parameters": [],
+      "objects": [
+        {
+          "elementId": "media1",
+          "nodeId": "node-ecad24f564f5ae57"
+        },
+        {
+          "elementId": "text1",
+          "nodeId": "node-d59405388ce0597c"
+        }
+      ],
+      "motionTargets": [
+        "media1",
+        "text1"
+      ],
+      "textStyles": [],
+      "tokens": {},
+      "id": "source-scene-04",
+      "sceneId": "scene-04"
+    },
+    {
+      "contractVersion": 2,
+      "html": "<div id=\"media1\"></div><div id=\"text1\"></div>",
+      "css": "#media1{position:absolute;left:60px;top:340px;width:960px;height:1450px;overflow:hidden;border-radius:12px;object-fit:contain}\n#text1{position:absolute;left:72px;top:120px;width:936px;height:110px;color:#232621;font-size:80px;font-weight:800;line-height:1.25;letter-spacing:2px}",
+      "timeline": "tl.from(\"#media1\",{opacity:0,duration:0.25,ease:\"sine.out\"},0);\ntl.from(\"#text1\",{clipPath:\"inset(0 100% 0 0)\",duration:0.5,ease:\"power2.inOut\"},0.15);",
+      "parameters": [],
+      "objects": [
+        {
+          "elementId": "media1",
+          "nodeId": "node-08cf13590ef60b55"
+        },
+        {
+          "elementId": "text1",
+          "nodeId": "node-48e0aa28ceb70be3"
+        }
+      ],
+      "motionTargets": [
+        "media1",
+        "text1"
+      ],
+      "textStyles": [],
+      "tokens": {},
+      "id": "source-scene-05",
+      "sceneId": "scene-05"
+    },
+    {
+      "contractVersion": 2,
+      "html": "<div id=\"media1\"></div><div id=\"text1\"></div>",
+      "css": "#media1{position:absolute;left:60px;top:340px;width:960px;height:1450px;overflow:hidden;border-radius:12px;object-fit:contain}\n#text1{position:absolute;left:72px;top:120px;width:936px;height:110px;color:#232621;font-size:80px;font-weight:800;line-height:1.25;letter-spacing:2px}",
+      "timeline": "tl.from(\"#media1\",{opacity:0,duration:0.25,ease:\"sine.out\"},0);\ntl.from(\"#text1\",{clipPath:\"inset(0 100% 0 0)\",duration:0.5,ease:\"power2.inOut\"},0.15);",
+      "parameters": [],
+      "objects": [
+        {
+          "elementId": "media1",
+          "nodeId": "node-d4c66a066e423279"
+        },
+        {
+          "elementId": "text1",
+          "nodeId": "node-02dcd46d7b1dee21"
+        }
+      ],
+      "motionTargets": [
+        "media1",
+        "text1"
+      ],
+      "textStyles": [],
+      "tokens": {},
+      "id": "source-scene-06",
+      "sceneId": "scene-06"
+    },
+    {
+      "contractVersion": 2,
+      "html": "<div id=\"media1\"></div><div id=\"text1\"></div>",
+      "css": "#media1{position:absolute;left:60px;top:380px;width:960px;height:960px;overflow:hidden;border-radius:12px;object-fit:contain}\n#text1{position:absolute;left:72px;top:120px;width:936px;height:110px;color:#232621;font-size:80px;font-weight:800;line-height:1.25;letter-spacing:2px}",
+      "timeline": "tl.from(\"#media1\",{opacity:0,duration:0.25,ease:\"sine.out\"},0);\ntl.from(\"#text1\",{clipPath:\"inset(0 100% 0 0)\",duration:0.5,ease:\"power2.inOut\"},0.15);",
+      "parameters": [],
+      "objects": [
+        {
+          "elementId": "media1",
+          "nodeId": "node-aa82570a321eaea7"
+        },
+        {
+          "elementId": "text1",
+          "nodeId": "node-2986236484da24b5"
+        }
+      ],
+      "motionTargets": [
+        "media1",
+        "text1"
+      ],
+      "textStyles": [],
+      "tokens": {},
+      "id": "source-scene-07",
+      "sceneId": "scene-07"
+    },
+    {
+      "contractVersion": 2,
+      "html": "<div id=\"media1\"></div><div id=\"text1\"></div>",
+      "css": "#media1{position:absolute;left:60px;top:380px;width:960px;height:960px;overflow:hidden;border-radius:12px;object-fit:contain}\n#text1{position:absolute;left:72px;top:120px;width:936px;height:110px;color:#232621;font-size:80px;font-weight:800;line-height:1.25;letter-spacing:2px}",
+      "timeline": "tl.from(\"#media1\",{opacity:0,duration:0.25,ease:\"sine.out\"},0);\ntl.from(\"#text1\",{clipPath:\"inset(0 100% 0 0)\",duration:0.5,ease:\"power2.inOut\"},0.15);",
+      "parameters": [],
+      "objects": [
+        {
+          "elementId": "media1",
+          "nodeId": "node-d3abbacb57a440ff"
+        },
+        {
+          "elementId": "text1",
+          "nodeId": "node-8b6979e449fd5477"
+        }
+      ],
+      "motionTargets": [
+        "media1",
+        "text1"
+      ],
+      "textStyles": [],
+      "tokens": {},
+      "id": "source-scene-08",
+      "sceneId": "scene-08"
+    },
+    {
+      "contractVersion": 2,
+      "html": "<div id=\"media1\"></div><div id=\"media2\"></div><div id=\"text1\"></div>",
+      "css": "#media1{position:absolute;left:60px;top:260px;width:960px;height:690px;overflow:hidden;border-radius:12px;object-fit:contain}\n#media2{position:absolute;left:60px;top:1000px;width:960px;height:690px;overflow:hidden;border-radius:12px;object-fit:contain}\n#text1{position:absolute;left:72px;top:120px;width:936px;height:110px;color:#232621;font-size:80px;font-weight:800;line-height:1.25;letter-spacing:2px}",
+      "timeline": "tl.from(\"#media1\",{opacity:0,duration:0.25,ease:\"sine.out\"},0);\ntl.from(\"#media2\",{opacity:0,duration:0.25,ease:\"sine.out\"},0);\ntl.from(\"#text1\",{clipPath:\"inset(0 100% 0 0)\",duration:0.5,ease:\"power2.inOut\"},0.15);",
+      "parameters": [],
+      "objects": [
+        {
+          "elementId": "media1",
+          "nodeId": "node-1d02e192ada6dde2"
+        },
+        {
+          "elementId": "media2",
+          "nodeId": "node-d557ef3554e67639"
+        },
+        {
+          "elementId": "text1",
+          "nodeId": "node-1dcc12111dcf1538"
+        }
+      ],
+      "motionTargets": [
+        "media1",
+        "media2",
+        "text1"
+      ],
+      "textStyles": [],
+      "tokens": {},
+      "id": "source-scene-09",
+      "sceneId": "scene-09"
+    }
+  ],
+  "dependencyLock": {
+    "hyperframes": "0.8.33",
+    "gsap": "3.14.2",
+    "schema": "commerce-v3.1"
+  },
+  "observations": [
+    {
+      "assetId": "asset-5bed5fa6-aff4-4432-9819-bbd9e45610de",
+      "confidence": 0.92,
+      "differentProductFrom": [],
+      "productGroup": "桌面戒指与项链搭配，单品身份待核",
+      "quality": "1920×1012横幅，戒指轮廓与反光吊坠可辨，右侧桌面留白较多。手势期间戒指局部遮挡，链条左上出画；连续清晰度未验证。",
+      "role": "detail",
+      "safeCrop": [
+        0,
+        0,
+        1,
+        1
+      ],
+      "sameProductAs": [],
+      "subjectBox": [
+        0,
+        0,
+        0.62,
+        0.93
+      ],
+      "uncertainty": "不能确认戒指是否离开桌面及其完整运动轨迹。近似保护框包含可见链条、吊坠、戒指与手部；居中窄裁可能丢失左侧吊坠。",
+      "visibleContent": "浅粉桌面、浅色圆形底座、细链连接的不规则反光吊坠与立起的戒指。0.291和2.232秒无手；4.173秒手接近，6.113至9.995秒手指位于戒指处；11.936至15.817秒手退出。",
+      "visibleText": []
+    },
+    {
+      "assetId": "asset-c3b7ccd1-e51b-4aa4-a755-1905322101e3",
+      "confidence": 0.93,
+      "differentProductFrom": [],
+      "productGroup": "真人佩戴戒指、项链与耳饰搭配，单品身份待核",
+      "quality": "1920×1012横幅，暖棕背景、绿色翻领服装；耳饰、吊坠与手上戒指可辨。头顶原本出画，戒指细节较小，胸前手势部分遮挡项链。",
+      "role": "usage",
+      "safeCrop": [
+        0,
+        0,
+        1,
+        1
+      ],
+      "sameProductAs": [],
+      "subjectBox": [
+        0.43,
+        0,
+        0.48,
+        1
+      ],
+      "uncertainty": "耳侧手势不能明确区分触碰耳饰和整理头发，没有佩戴或扣合过程。主体框由既有近似左右边界转换为宽高，不构成全段跟踪或最终裁切验证。",
+      "visibleContent": "人物佩戴胸前吊坠、一侧垂饰及手上戒指。2.982与5.574秒手在耳侧；8.167秒移至颈胸，10.760至18.538秒手在胸前；21.130秒手退出，吊坠无遮挡。",
+      "visibleText": []
+    },
+    {
+      "assetId": "asset-d15b0f6b-da27-45c0-b2c3-404512dee173",
+      "confidence": 0.92,
+      "differentProductFrom": [],
+      "productGroup": "真人佩戴项链与耳饰近景，含戒指展示，单品身份待核",
+      "quality": "1012×1920竖幅，一侧耳饰、细链、吊坠及手上戒指可辨。脸部部分出画，吊坠和手部靠近底边，不宜额外放大。接触表两侧黑色区域不作为源视频黑边证据。",
+      "role": "detail",
+      "safeCrop": [
+        0,
+        0,
+        1,
+        1
+      ],
+      "sameProductAs": [],
+      "subjectBox": [
+        0,
+        0.1,
+        1,
+        0.9
+      ],
+      "uncertainty": "指尖与吊坠局部重叠，不能确认提起或调整动作。另一侧耳饰、项链闭合位置和背面未见；不据与横幅素材的相似外观确认同款。",
+      "visibleContent": "0.359与2.756秒展示耳饰和胸前项链；5.152秒手进入，7.548秒胸前戒指可见；9.945与12.341秒指尖位于吊坠处，14.737秒接近画面下沿；17.134与19.530秒手退出。",
+      "visibleText": []
+    },
+    {
+      "assetId": "asset-1555e45e-ae5c-4342-a82e-731766200c7d",
+      "confidence": 1,
+      "differentProductFrom": [],
+      "productGroup": "指定独立音乐音源",
+      "quality": "输入元数据为40秒PCM音频；本轮未执行音频分析或听音。",
+      "role": "unknown",
+      "safeCrop": [],
+      "sameProductAs": [],
+      "subjectBox": [],
+      "uncertainty": "置信度仅针对输入元数据。乐器、情绪、人声、完整乐句及衔接听感未确认；既有低置信度节拍估计不足以建立可靠节拍网格。",
+      "visibleContent": "无视觉内容；时长和编码来自输入元数据，来源权利状态仅为user-provided。",
+      "visibleText": []
+    }
+  ],
+  "omitted": [],
+  "scenePackage": {
+    "schemaVersion": 1,
+    "id": "product_collection",
+    "version": "3.0.0",
+    "aliases": [
+      "product-collection"
+    ],
+    "creator": "中小商家、品牌运营、电商视觉和社媒内容运营",
+    "viewer": "需要分辨款式、理解搭配和组合关系的人",
+    "businessObjective": "讲清不同商品及组合关系",
+    "duration": {
+      "min": 25,
+      "max": 45,
+      "target": 35,
+      "policy": "Meaningful evidence and readable conditions take priority over target duration."
+    },
+    "orientation": "derive from source composition and user intent",
+    "grammar": [
+      "collection_identity",
+      "variant_showcase",
+      "relationship",
+      "collection_recap"
+    ],
+    "generatedFootageAllowed": false,
+    "hash": "9202fb74d400e417af4b28e360324cdd8830dda23a7e4272813fb7f2de6cbd39",
+    "files": {
+      "scene.json": {
+        "sha256": "75eca173047fb3d03aa64a29663dd5e2688c2e0d4d8b865db273f214ab7ec6e3",
+        "content": {
+          "schemaVersion": 1,
+          "id": "product_collection",
+          "version": "3.0.0",
+          "aliases": [
+            "product-collection"
+          ],
+          "creator": "中小商家、品牌运营、电商视觉和社媒内容运营",
+          "viewer": "需要分辨款式、理解搭配和组合关系的人",
+          "businessObjective": "讲清不同商品及组合关系",
+          "duration": {
+            "min": 25,
+            "max": 45,
+            "target": 35,
+            "policy": "Meaningful evidence and readable conditions take priority over target duration."
+          },
+          "orientation": "derive from source composition and user intent",
+          "grammar": [
+            "collection_identity",
+            "variant_showcase",
+            "relationship",
+            "collection_recap"
+          ],
+          "generatedFootageAllowed": false
+        }
+      },
+      "PERSONA.md": {
+        "sha256": "7988265432baa8af38465f1ff204032bb23cc6a8e7a0588021a6392b846ca20c",
+        "content": "# PERSONA\n\nD.1 用户画像与业务目标\n\n制作用户是有多个款式、颜色或组合方案的品牌内容人员；观看用户在选择款式、理解搭配或者比较适用场景。目标是让不同款的关系清楚，而不是把多款商品当作同一个商品混剪。\n\nstyle 在这里表示穿搭、组合、系列展示这一业务意图；“高级、杂志感、活泼”等只是其视觉风格，可以跨其他场景使用。\n"
+      },
+      "INPUT_CONTRACT.md": {
+        "sha256": "5d1b08e99708a3f5c10a276c0d70c6e3d9ba95c58ef1db3bd9b1acf89b45e2fe",
+        "content": "# INPUT_CONTRACT\n\nD.2 Agent 输入和最终输出\n\n项目\n\n定义\n\n输入素材\n\n每款商品整体与细节、对应穿搭／组合画面、系列或搭配关系。\n\n输入信息\n\n每款身份、色号／名称、允许的事实、组合逻辑、品牌风格、展示顺序偏好。\n\n用户不必提供\n\n多商品镜头调度、卡片网格、比较版式、连续转场设计。\n\n建议输出\n\n约 25—45 秒系列片；清楚的款式标识，可分别修改的商品层和字幕。\n\n不可缺少\n\n商品之间的身份边界；不能把 A 款的事实写到 B 款。\n\nD.3 真实用户需求示例\n\n把这三款运动鞋和对应上脚素材做成约 30 秒的系列展示，整体偏杂志感。每款都要出现整体和上脚状态，名称按我提供的写，不推断缓震性能。用同一套文字系统，最后同屏展示三款，方便观众选择。\n"
+      },
+      "OUTPUT_CONTRACT.md": {
+        "sha256": "ce8021c6eb84e98a935a68126a33b8a02ac0ac5f0e2d6c6534c57290298899f5",
+        "content": "# OUTPUT_CONTRACT\n\nD.2 Agent 输入和最终输出\n\n项目\n\n定义\n\n输入素材\n\n每款商品整体与细节、对应穿搭／组合画面、系列或搭配关系。\n\n输入信息\n\n每款身份、色号／名称、允许的事实、组合逻辑、品牌风格、展示顺序偏好。\n\n用户不必提供\n\n多商品镜头调度、卡片网格、比较版式、连续转场设计。\n\n建议输出\n\n约 25—45 秒系列片；清楚的款式标识，可分别修改的商品层和字幕。\n\n不可缺少\n\n商品之间的身份边界；不能把 A 款的事实写到 B 款。\n\nD.7 缺料和验收\n\n某款缺上脚素材时，不能复用另一款的上脚片；说明缺口，并让用户选择保留纯展示、补片或暂不展示该款。未确认多款属于同一系列时，不凭相似外观宣布同系列。\n\n合格标准是观众能分辨款式、名称和画面一致、搭配逻辑清楚、每款展示符合要求，没有串用事实。好看的拼贴不能替代清楚的商品关系。\n"
+      },
+      "STORY_GRAMMAR.md": {
+        "sha256": "5ca257cfbf7137db25d85ace83a17566b1e29ddf67b3956b3bc9e57250d0f5f0",
+        "content": "# STORY_GRAMMAR\n\nD.4 完整业务链路\n\n上传多款素材 → 识别展示关系 → 分离每款身份与事实 → 检查各款覆盖 → 选定系列叙事 → 分配展示时间 → 统一视觉系统 → 检查款式标识 → 修改与交付。\n\n段落\n\n观众应该获得什么\n\n制作重点\n\n系列建立\n\n为什么这些商品放在一起\n\n明确系列／搭配主题。\n\n各款展示\n\n每款是什么、怎样呈现\n\n名称、画面和事实严格绑定。\n\n差异／搭配\n\n款式之间的可观察差异\n\n对比依据一致，不伪造性能排名。\n\n整体回顾\n\n记住系列及选择关系\n\n清楚群像，标识可读。\n"
+      },
+      "MATERIAL_POLICY.md": {
+        "sha256": "d2543977c7c5adf3166062279b9a90f0f264e5f0058b9f19ce97f82eac86037b",
+        "content": "# MATERIAL_POLICY\n\nD.4 完整业务链路\n\n上传多款素材 → 识别展示关系 → 分离每款身份与事实 → 检查各款覆盖 → 选定系列叙事 → 分配展示时间 → 统一视觉系统 → 检查款式标识 → 修改与交付。\n\n段落\n\n观众应该获得什么\n\n制作重点\n\n系列建立\n\n为什么这些商品放在一起\n\n明确系列／搭配主题。\n\n各款展示\n\n每款是什么、怎样呈现\n\n名称、画面和事实严格绑定。\n\n差异／搭配\n\n款式之间的可观察差异\n\n对比依据一致，不伪造性能排名。\n\n整体回顾\n\n记住系列及选择关系\n\n清楚群像，标识可读。\n\nD.7 缺料和验收\n\n某款缺上脚素材时，不能复用另一款的上脚片；说明缺口，并让用户选择保留纯展示、补片或暂不展示该款。未确认多款属于同一系列时，不凭相似外观宣布同系列。\n\n合格标准是观众能分辨款式、名称和画面一致、搭配逻辑清楚、每款展示符合要求，没有串用事实。好看的拼贴不能替代清楚的商品关系。\n"
+      },
+      "RESOURCE_PROFILE.json": {
+        "sha256": "84f1473b8734057e077d3203472715800b26413e96c67e29d435d75063e0d61b",
+        "content": {
+          "sourceKind": "video",
+          "subjectProtection": "high",
+          "motionNeed": "derived from evidence, explanation and user style",
+          "layoutNeed": "identity-preserving groups and variant labels",
+          "textAreaMaxRatio": 0.25,
+          "forbidden": [
+            "full-screen cards hiding product",
+            "unverified claims",
+            "stock substituted product",
+            "invented price or terms"
+          ],
+          "businessObjective": "讲清不同商品及组合关系",
+          "sceneSelectionPolicy": "D.5 Agent 与 HyperFrames 的分工及资源策略\n\nAgent 负责分组、识别、排序、曝光分配和事实边界。HyperFrames 负责 grid、split-screen、cards、成组 typography、协调转场和系列收尾。\n\n可以比教程更强调节奏和视觉连续性，但商品必须仍可辨。转场遮罩不能把一款变形为另一款并造成误解；调色不能改变真实色号。统一模板不代表所有款必须有相同镜头数。"
+        }
+      },
+      "COMPONENTS.json": {
+        "sha256": "07e9297b0552b37886db20fba376c6561fccec36e92c19daaff9db2798b8f6e5",
+        "content": [
+          {
+            "id": "hero_media",
+            "semanticRole": "hero_media",
+            "acceptableNativeKinds": [
+              "video",
+              "image"
+            ],
+            "supportedScenes": [
+              "product_collection"
+            ],
+            "layoutConstraints": {
+              "textAreaMaxRatio": 0.25,
+              "safeMarginRatio": 0.06
+            },
+            "subjectProtection": "do not overlap evidence protected regions",
+            "maxInformation": 1,
+            "hyperframesCandidates": [
+              "video-text-pivot"
+            ],
+            "fallback": "native editable element or omit unnecessary decoration",
+            "qualityRules": [
+              "source evidence required",
+              "readable on mobile",
+              "stable timing",
+              "no hidden core action"
+            ]
+          },
+          {
+            "id": "product_title",
+            "semanticRole": "product_title",
+            "acceptableNativeKinds": [
+              "text",
+              "effect"
+            ],
+            "supportedScenes": [
+              "product_collection"
+            ],
+            "layoutConstraints": {
+              "textAreaMaxRatio": 0.25,
+              "safeMarginRatio": 0.06
+            },
+            "subjectProtection": "do not overlap evidence protected regions",
+            "maxInformation": 1,
+            "hyperframesCandidates": [
+              "lt-mask-reveal",
+              "titlecard-reveal"
+            ],
+            "fallback": "native editable element or omit unnecessary decoration",
+            "qualityRules": [
+              "source evidence required",
+              "readable on mobile",
+              "stable timing",
+              "no hidden core action"
+            ]
+          },
+          {
+            "id": "feature_callout",
+            "semanticRole": "feature_callout",
+            "acceptableNativeKinds": [
+              "text",
+              "effect"
+            ],
+            "supportedScenes": [
+              "product_collection"
+            ],
+            "layoutConstraints": {
+              "textAreaMaxRatio": 0.25,
+              "safeMarginRatio": 0.06
+            },
+            "subjectProtection": "do not overlap evidence protected regions",
+            "maxInformation": 1,
+            "hyperframesCandidates": [
+              "lt-mask-reveal",
+              "titlecard-reveal"
+            ],
+            "fallback": "native editable element or omit unnecessary decoration",
+            "qualityRules": [
+              "source evidence required",
+              "readable on mobile",
+              "stable timing",
+              "no hidden core action"
+            ]
+          },
+          {
+            "id": "detail_callout",
+            "semanticRole": "detail_callout",
+            "acceptableNativeKinds": [
+              "text",
+              "effect"
+            ],
+            "supportedScenes": [
+              "product_collection"
+            ],
+            "layoutConstraints": {
+              "textAreaMaxRatio": 0.25,
+              "safeMarginRatio": 0.06
+            },
+            "subjectProtection": "do not overlap evidence protected regions",
+            "maxInformation": 1,
+            "hyperframesCandidates": [
+              "lt-mask-reveal",
+              "titlecard-reveal"
+            ],
+            "fallback": "native editable element or omit unnecessary decoration",
+            "qualityRules": [
+              "source evidence required",
+              "readable on mobile",
+              "stable timing",
+              "no hidden core action"
+            ]
+          },
+          {
+            "id": "usage_label",
+            "semanticRole": "usage_label",
+            "acceptableNativeKinds": [
+              "text",
+              "effect"
+            ],
+            "supportedScenes": [
+              "product_collection"
+            ],
+            "layoutConstraints": {
+              "textAreaMaxRatio": 0.25,
+              "safeMarginRatio": 0.06
+            },
+            "subjectProtection": "do not overlap evidence protected regions",
+            "maxInformation": 1,
+            "hyperframesCandidates": [
+              "lt-mask-reveal",
+              "titlecard-reveal"
+            ],
+            "fallback": "native editable element or omit unnecessary decoration",
+            "qualityRules": [
+              "source evidence required",
+              "readable on mobile",
+              "stable timing",
+              "no hidden core action"
+            ]
+          },
+          {
+            "id": "operation_step",
+            "semanticRole": "operation_step",
+            "acceptableNativeKinds": [
+              "text",
+              "effect"
+            ],
+            "supportedScenes": [
+              "product_collection"
+            ],
+            "layoutConstraints": {
+              "textAreaMaxRatio": 0.25,
+              "safeMarginRatio": 0.06
+            },
+            "subjectProtection": "do not overlap evidence protected regions",
+            "maxInformation": 1,
+            "hyperframesCandidates": [
+              "lt-mask-reveal",
+              "titlecard-reveal"
+            ],
+            "fallback": "native editable element or omit unnecessary decoration",
+            "qualityRules": [
+              "source evidence required",
+              "readable on mobile",
+              "stable timing",
+              "no hidden core action"
+            ]
+          },
+          {
+            "id": "step_progress",
+            "semanticRole": "step_progress",
+            "acceptableNativeKinds": [
+              "text",
+              "effect"
+            ],
+            "supportedScenes": [
+              "product_collection"
+            ],
+            "layoutConstraints": {
+              "textAreaMaxRatio": 0.25,
+              "safeMarginRatio": 0.06
+            },
+            "subjectProtection": "do not overlap evidence protected regions",
+            "maxInformation": 1,
+            "hyperframesCandidates": [
+              "lt-mask-reveal",
+              "titlecard-reveal"
+            ],
+            "fallback": "native editable element or omit unnecessary decoration",
+            "qualityRules": [
+              "source evidence required",
+              "readable on mobile",
+              "stable timing",
+              "no hidden core action"
+            ]
+          },
+          {
+            "id": "comparison",
+            "semanticRole": "comparison",
+            "acceptableNativeKinds": [
+              "text",
+              "effect"
+            ],
+            "supportedScenes": [
+              "product_collection"
+            ],
+            "layoutConstraints": {
+              "textAreaMaxRatio": 0.25,
+              "safeMarginRatio": 0.06
+            },
+            "subjectProtection": "do not overlap evidence protected regions",
+            "maxInformation": 1,
+            "hyperframesCandidates": [
+              "comparison-split"
+            ],
+            "fallback": "native editable element or omit unnecessary decoration",
+            "qualityRules": [
+              "source evidence required",
+              "readable on mobile",
+              "stable timing",
+              "no hidden core action"
+            ]
+          },
+          {
+            "id": "caption",
+            "semanticRole": "caption",
+            "acceptableNativeKinds": [
+              "text",
+              "effect"
+            ],
+            "supportedScenes": [
+              "product_collection"
+            ],
+            "layoutConstraints": {
+              "textAreaMaxRatio": 0.25,
+              "safeMarginRatio": 0.06
+            },
+            "subjectProtection": "do not overlap evidence protected regions",
+            "maxInformation": 2,
+            "hyperframesCandidates": [
+              "lt-mask-reveal",
+              "titlecard-reveal"
+            ],
+            "fallback": "native editable element or omit unnecessary decoration",
+            "qualityRules": [
+              "source evidence required",
+              "readable on mobile",
+              "stable timing",
+              "no hidden core action"
+            ]
+          },
+          {
+            "id": "quote",
+            "semanticRole": "quote",
+            "acceptableNativeKinds": [
+              "text",
+              "effect"
+            ],
+            "supportedScenes": [
+              "product_collection"
+            ],
+            "layoutConstraints": {
+              "textAreaMaxRatio": 0.25,
+              "safeMarginRatio": 0.06
+            },
+            "subjectProtection": "do not overlap evidence protected regions",
+            "maxInformation": 1,
+            "hyperframesCandidates": [
+              "lt-mask-reveal",
+              "titlecard-reveal"
+            ],
+            "fallback": "native editable element or omit unnecessary decoration",
+            "qualityRules": [
+              "source evidence required",
+              "readable on mobile",
+              "stable timing",
+              "no hidden core action"
+            ]
+          },
+          {
+            "id": "audio_caption",
+            "semanticRole": "audio_caption",
+            "acceptableNativeKinds": [
+              "text",
+              "effect"
+            ],
+            "supportedScenes": [
+              "product_collection"
+            ],
+            "layoutConstraints": {
+              "textAreaMaxRatio": 0.25,
+              "safeMarginRatio": 0.06
+            },
+            "subjectProtection": "do not overlap evidence protected regions",
+            "maxInformation": 1,
+            "hyperframesCandidates": [
+              "lt-mask-reveal",
+              "titlecard-reveal"
+            ],
+            "fallback": "native editable element or omit unnecessary decoration",
+            "qualityRules": [
+              "source evidence required",
+              "readable on mobile",
+              "stable timing",
+              "no hidden core action"
+            ]
+          },
+          {
+            "id": "logo",
+            "semanticRole": "logo",
+            "acceptableNativeKinds": [
+              "text",
+              "effect"
+            ],
+            "supportedScenes": [
+              "product_collection"
+            ],
+            "layoutConstraints": {
+              "textAreaMaxRatio": 0.25,
+              "safeMarginRatio": 0.06
+            },
+            "subjectProtection": "do not overlap evidence protected regions",
+            "maxInformation": 1,
+            "hyperframesCandidates": [
+              "lt-mask-reveal",
+              "titlecard-reveal"
+            ],
+            "fallback": "native editable element or omit unnecessary decoration",
+            "qualityRules": [
+              "source evidence required",
+              "readable on mobile",
+              "stable timing",
+              "no hidden core action"
+            ]
+          },
+          {
+            "id": "brand_mark",
+            "semanticRole": "brand_mark",
+            "acceptableNativeKinds": [
+              "text",
+              "effect"
+            ],
+            "supportedScenes": [
+              "product_collection"
+            ],
+            "layoutConstraints": {
+              "textAreaMaxRatio": 0.25,
+              "safeMarginRatio": 0.06
+            },
+            "subjectProtection": "do not overlap evidence protected regions",
+            "maxInformation": 1,
+            "hyperframesCandidates": [
+              "lt-mask-reveal",
+              "titlecard-reveal"
+            ],
+            "fallback": "native editable element or omit unnecessary decoration",
+            "qualityRules": [
+              "source evidence required",
+              "readable on mobile",
+              "stable timing",
+              "no hidden core action"
+            ]
+          },
+          {
+            "id": "CTA",
+            "semanticRole": "CTA",
+            "acceptableNativeKinds": [
+              "text",
+              "effect"
+            ],
+            "supportedScenes": [
+              "product_collection"
+            ],
+            "layoutConstraints": {
+              "textAreaMaxRatio": 0.25,
+              "safeMarginRatio": 0.06
+            },
+            "subjectProtection": "do not overlap evidence protected regions",
+            "maxInformation": 1,
+            "hyperframesCandidates": [
+              "lt-mask-reveal",
+              "titlecard-reveal"
+            ],
+            "fallback": "native editable element or omit unnecessary decoration",
+            "qualityRules": [
+              "source evidence required",
+              "readable on mobile",
+              "stable timing",
+              "no hidden core action"
+            ]
+          },
+          {
+            "id": "ending",
+            "semanticRole": "ending",
+            "acceptableNativeKinds": [
+              "text",
+              "effect"
+            ],
+            "supportedScenes": [
+              "product_collection"
+            ],
+            "layoutConstraints": {
+              "textAreaMaxRatio": 0.25,
+              "safeMarginRatio": 0.06
+            },
+            "subjectProtection": "do not overlap evidence protected regions",
+            "maxInformation": 1,
+            "hyperframesCandidates": [
+              "lt-mask-reveal",
+              "titlecard-reveal"
+            ],
+            "fallback": "native editable element or omit unnecessary decoration",
+            "qualityRules": [
+              "source evidence required",
+              "readable on mobile",
+              "stable timing",
+              "no hidden core action"
+            ]
+          },
+          {
+            "id": "background",
+            "semanticRole": "background",
+            "acceptableNativeKinds": [
+              "shape",
+              "effect"
+            ],
+            "supportedScenes": [
+              "product_collection"
+            ],
+            "layoutConstraints": {
+              "textAreaMaxRatio": 0.25,
+              "safeMarginRatio": 0.06
+            },
+            "subjectProtection": "do not overlap evidence protected regions",
+            "maxInformation": 1,
+            "hyperframesCandidates": [
+              "lt-mask-reveal",
+              "titlecard-reveal"
+            ],
+            "fallback": "native editable element or omit unnecessary decoration",
+            "qualityRules": [
+              "source evidence required",
+              "readable on mobile",
+              "stable timing",
+              "no hidden core action"
+            ]
+          },
+          {
+            "id": "accent_shape",
+            "semanticRole": "accent_shape",
+            "acceptableNativeKinds": [
+              "shape",
+              "effect"
+            ],
+            "supportedScenes": [
+              "product_collection"
+            ],
+            "layoutConstraints": {
+              "textAreaMaxRatio": 0.25,
+              "safeMarginRatio": 0.06
+            },
+            "subjectProtection": "do not overlap evidence protected regions",
+            "maxInformation": 1,
+            "hyperframesCandidates": [
+              "lt-mask-reveal",
+              "titlecard-reveal"
+            ],
+            "fallback": "native editable element or omit unnecessary decoration",
+            "qualityRules": [
+              "source evidence required",
+              "readable on mobile",
+              "stable timing",
+              "no hidden core action"
+            ]
+          },
+          {
+            "id": "subject_highlight",
+            "semanticRole": "subject_highlight",
+            "acceptableNativeKinds": [
+              "shape",
+              "effect"
+            ],
+            "supportedScenes": [
+              "product_collection"
+            ],
+            "layoutConstraints": {
+              "textAreaMaxRatio": 0.25,
+              "safeMarginRatio": 0.06
+            },
+            "subjectProtection": "do not overlap evidence protected regions",
+            "maxInformation": 1,
+            "hyperframesCandidates": [
+              "lt-mask-reveal",
+              "titlecard-reveal"
+            ],
+            "fallback": "native editable element or omit unnecessary decoration",
+            "qualityRules": [
+              "source evidence required",
+              "readable on mobile",
+              "stable timing",
+              "no hidden core action"
+            ]
+          }
+        ]
+      },
+      "TEMPLATES.json": {
+        "sha256": "df5d9ba7bb69764d03f2db1ce8b8ff401b176468cc8a13c37067996ac9c39d53",
+        "content": {
+          "businessTemplates": [
+            {
+              "id": "product-collection-evidence-v1",
+              "version": "1.0.0",
+              "source": "local-scene-package",
+              "compatibility": "native-v2 / HyperFrames 0.8.33",
+              "grammar": [
+                "collection_identity",
+                "variant_showcase",
+                "relationship",
+                "collection_recap"
+              ],
+              "selectionPurpose": "讲清不同商品及组合关系",
+              "fixedCopy": false,
+              "fixedTiming": false,
+              "hash": "5a6e48da609a57615487d29c8076fe8692e9888959671c66f30e433c636ca577"
+            }
+          ],
+          "visualTemplates": [
+            {
+              "id": "premium-minimal",
+              "version": "1.0.0",
+              "source": "local creative direction",
+              "compatibility": "0.8.33",
+              "pace": "measured; hold details while new information remains",
+              "colors": [
+                "#151816",
+                "#F3F0E7",
+                "#C6AA71"
+              ],
+              "motion": "small mask reveal, restrained displacement",
+              "density": "one short label",
+              "layout": "footage dominates; quiet margin",
+              "hash": "e27ef4bf3dfab403dfc4edf3ca5d017d50dca30b7f285644edaa387d9aada7b0"
+            },
+            {
+              "id": "energetic-commerce",
+              "version": "1.0.0",
+              "source": "local creative direction",
+              "compatibility": "0.8.33",
+              "pace": "quick clear hooks, never truncate actions",
+              "colors": [
+                "#15151B",
+                "#FFF5E5",
+                "#FF7447"
+              ],
+              "motion": "rhythmic type accents, motivated cuts",
+              "density": "one claim per beat",
+              "layout": "bold short title outside subject",
+              "hash": "34c14e5cbc43d1159f4fcffcd34a05fa8603aed4645174400fc47e1f7071809a"
+            },
+            {
+              "id": "editorial-product",
+              "version": "1.0.0",
+              "source": "local creative direction",
+              "compatibility": "0.8.33",
+              "pace": "alternate whole and meaningful detail",
+              "colors": [
+                "#EAE4D9",
+                "#232621",
+                "#657A65"
+              ],
+              "motion": "grid alignment, soft reveal",
+              "density": "headline plus one annotation",
+              "layout": "asymmetric editorial margins",
+              "hash": "fb6726e64b199ef32509ff06619fe17619b513235ce997475023b157ae045f10"
+            },
+            {
+              "id": "technical-clean",
+              "version": "1.0.0",
+              "source": "local creative direction",
+              "compatibility": "0.8.33",
+              "pace": "follow operation completion",
+              "colors": [
+                "#EEF3F4",
+                "#15232B",
+                "#187A86"
+              ],
+              "motion": "step progress and precise callouts",
+              "density": "one instruction at a time",
+              "layout": "protected operation region, small side rail",
+              "hash": "f2a919f51628f5439de1b8d07be060d2a4c69dca62584f77f6ef449466cccc14"
+            }
+          ]
+        }
+      },
+      "AUDIO_POLICY.md": {
+        "sha256": "74a9cf6e5389791bfb03406c58e09b29396d9cee1bf298be7b1e4398816b2023",
+        "content": "# AUDIO_POLICY\n\nD.6 音频、字幕与后续修改\n\n音乐可以统一情绪；存在用户讲解时优先保证讲解可懂。不同商品名称、文案和旁白段独立绑定。后续“删掉第二款”“把第三款提前”“只换系列标题”应局部修改，而非重建所有素材。\n"
+      },
+      "QUALITY_RUBRIC.json": {
+        "sha256": "f6489f1e1273de749ddb5dfbf0e711d66d940c78ee1208188422d8345b60cdf9",
+        "content": {
+          "weights": {
+            "product": 15,
+            "sourceSelection": 15,
+            "story": 15,
+            "editing": 15,
+            "motion": 10,
+            "typography": 10,
+            "audio": 10,
+            "finish": 10
+          },
+          "perspectives": [
+            "Merchant",
+            "Viewer",
+            "Editor"
+          ],
+          "blockers": [
+            "wrong_product",
+            "unsupported_claim",
+            "missing_action",
+            "wrong_order",
+            "subject_crop",
+            "operation_obscured",
+            "black_frame",
+            "corrupt_frame",
+            "audio_sync",
+            "silence_contract",
+            "incomplete_ending",
+            "cross_product_facts",
+            "wrong_variant_label",
+            "substituted_variant_footage"
+          ],
+          "passingScoreIsNotHumanAcceptance": true,
+          "scenario": "product-collection",
+          "businessObjective": "讲清不同商品及组合关系",
+          "sceneAcceptance": "D.7 缺料和验收\n\n某款缺上脚素材时，不能复用另一款的上脚片；说明缺口，并让用户选择保留纯展示、补片或暂不展示该款。未确认多款属于同一系列时，不凭相似外观宣布同系列。\n\n合格标准是观众能分辨款式、名称和画面一致、搭配逻辑清楚、每款展示符合要求，没有串用事实。好看的拼贴不能替代清楚的商品关系。"
+        }
+      },
+      "REPAIR_POLICY.md": {
+        "sha256": "1a73d0d48dd8de781a935ac0af4d5d3e2bf7840cc416486ebc5cfdb8c9b38477",
+        "content": "# REPAIR_POLICY\n\nD.7 缺料和验收\n\n某款缺上脚素材时，不能复用另一款的上脚片；说明缺口，并让用户选择保留纯展示、补片或暂不展示该款。未确认多款属于同一系列时，不凭相似外观宣布同系列。\n\n合格标准是观众能分辨款式、名称和画面一致、搭配逻辑清楚、每款展示符合要求，没有串用事实。好看的拼贴不能替代清楚的商品关系。\n"
+      },
+      "EDITING_POLICY.md": {
+        "sha256": "e414e4fc41da81608de84af4b3175ff8b7186b20074fc279b235b52d08b03ccc",
+        "content": "# EDITING_POLICY\n\nD.6 音频、字幕与后续修改\n\n音乐可以统一情绪；存在用户讲解时优先保证讲解可懂。不同商品名称、文案和旁白段独立绑定。后续“删掉第二款”“把第三款提前”“只换系列标题”应局部修改，而非重建所有素材。\n"
+      }
+    },
+    "templates": {
+      "businessTemplates": [
+        {
+          "id": "product-collection-evidence-v1",
+          "version": "1.0.0",
+          "source": "local-scene-package",
+          "compatibility": "native-v2 / HyperFrames 0.8.33",
+          "grammar": [
+            "collection_identity",
+            "variant_showcase",
+            "relationship",
+            "collection_recap"
+          ],
+          "selectionPurpose": "讲清不同商品及组合关系",
+          "fixedCopy": false,
+          "fixedTiming": false,
+          "hash": "5a6e48da609a57615487d29c8076fe8692e9888959671c66f30e433c636ca577"
+        }
+      ],
+      "visualTemplates": [
+        {
+          "id": "premium-minimal",
+          "version": "1.0.0",
+          "source": "local creative direction",
+          "compatibility": "0.8.33",
+          "pace": "measured; hold details while new information remains",
+          "colors": [
+            "#151816",
+            "#F3F0E7",
+            "#C6AA71"
+          ],
+          "motion": "small mask reveal, restrained displacement",
+          "density": "one short label",
+          "layout": "footage dominates; quiet margin",
+          "hash": "e27ef4bf3dfab403dfc4edf3ca5d017d50dca30b7f285644edaa387d9aada7b0"
+        },
+        {
+          "id": "energetic-commerce",
+          "version": "1.0.0",
+          "source": "local creative direction",
+          "compatibility": "0.8.33",
+          "pace": "quick clear hooks, never truncate actions",
+          "colors": [
+            "#15151B",
+            "#FFF5E5",
+            "#FF7447"
+          ],
+          "motion": "rhythmic type accents, motivated cuts",
+          "density": "one claim per beat",
+          "layout": "bold short title outside subject",
+          "hash": "34c14e5cbc43d1159f4fcffcd34a05fa8603aed4645174400fc47e1f7071809a"
+        },
+        {
+          "id": "editorial-product",
+          "version": "1.0.0",
+          "source": "local creative direction",
+          "compatibility": "0.8.33",
+          "pace": "alternate whole and meaningful detail",
+          "colors": [
+            "#EAE4D9",
+            "#232621",
+            "#657A65"
+          ],
+          "motion": "grid alignment, soft reveal",
+          "density": "headline plus one annotation",
+          "layout": "asymmetric editorial margins",
+          "hash": "fb6726e64b199ef32509ff06619fe17619b513235ce997475023b157ae045f10"
+        },
+        {
+          "id": "technical-clean",
+          "version": "1.0.0",
+          "source": "local creative direction",
+          "compatibility": "0.8.33",
+          "pace": "follow operation completion",
+          "colors": [
+            "#EEF3F4",
+            "#15232B",
+            "#187A86"
+          ],
+          "motion": "step progress and precise callouts",
+          "density": "one instruction at a time",
+          "layout": "protected operation region, small side rail",
+          "hash": "f2a919f51628f5439de1b8d07be060d2a4c69dca62584f77f6ef449466cccc14"
+        }
+      ]
+    },
+    "components": [
+      {
+        "id": "hero_media",
+        "semanticRole": "hero_media",
+        "acceptableNativeKinds": [
+          "video",
+          "image"
+        ],
+        "supportedScenes": [
+          "product_collection"
+        ],
+        "layoutConstraints": {
+          "textAreaMaxRatio": 0.25,
+          "safeMarginRatio": 0.06
+        },
+        "subjectProtection": "do not overlap evidence protected regions",
+        "maxInformation": 1,
+        "hyperframesCandidates": [
+          "video-text-pivot"
+        ],
+        "fallback": "native editable element or omit unnecessary decoration",
+        "qualityRules": [
+          "source evidence required",
+          "readable on mobile",
+          "stable timing",
+          "no hidden core action"
+        ]
+      },
+      {
+        "id": "product_title",
+        "semanticRole": "product_title",
+        "acceptableNativeKinds": [
+          "text",
+          "effect"
+        ],
+        "supportedScenes": [
+          "product_collection"
+        ],
+        "layoutConstraints": {
+          "textAreaMaxRatio": 0.25,
+          "safeMarginRatio": 0.06
+        },
+        "subjectProtection": "do not overlap evidence protected regions",
+        "maxInformation": 1,
+        "hyperframesCandidates": [
+          "lt-mask-reveal",
+          "titlecard-reveal"
+        ],
+        "fallback": "native editable element or omit unnecessary decoration",
+        "qualityRules": [
+          "source evidence required",
+          "readable on mobile",
+          "stable timing",
+          "no hidden core action"
+        ]
+      },
+      {
+        "id": "feature_callout",
+        "semanticRole": "feature_callout",
+        "acceptableNativeKinds": [
+          "text",
+          "effect"
+        ],
+        "supportedScenes": [
+          "product_collection"
+        ],
+        "layoutConstraints": {
+          "textAreaMaxRatio": 0.25,
+          "safeMarginRatio": 0.06
+        },
+        "subjectProtection": "do not overlap evidence protected regions",
+        "maxInformation": 1,
+        "hyperframesCandidates": [
+          "lt-mask-reveal",
+          "titlecard-reveal"
+        ],
+        "fallback": "native editable element or omit unnecessary decoration",
+        "qualityRules": [
+          "source evidence required",
+          "readable on mobile",
+          "stable timing",
+          "no hidden core action"
+        ]
+      },
+      {
+        "id": "detail_callout",
+        "semanticRole": "detail_callout",
+        "acceptableNativeKinds": [
+          "text",
+          "effect"
+        ],
+        "supportedScenes": [
+          "product_collection"
+        ],
+        "layoutConstraints": {
+          "textAreaMaxRatio": 0.25,
+          "safeMarginRatio": 0.06
+        },
+        "subjectProtection": "do not overlap evidence protected regions",
+        "maxInformation": 1,
+        "hyperframesCandidates": [
+          "lt-mask-reveal",
+          "titlecard-reveal"
+        ],
+        "fallback": "native editable element or omit unnecessary decoration",
+        "qualityRules": [
+          "source evidence required",
+          "readable on mobile",
+          "stable timing",
+          "no hidden core action"
+        ]
+      },
+      {
+        "id": "usage_label",
+        "semanticRole": "usage_label",
+        "acceptableNativeKinds": [
+          "text",
+          "effect"
+        ],
+        "supportedScenes": [
+          "product_collection"
+        ],
+        "layoutConstraints": {
+          "textAreaMaxRatio": 0.25,
+          "safeMarginRatio": 0.06
+        },
+        "subjectProtection": "do not overlap evidence protected regions",
+        "maxInformation": 1,
+        "hyperframesCandidates": [
+          "lt-mask-reveal",
+          "titlecard-reveal"
+        ],
+        "fallback": "native editable element or omit unnecessary decoration",
+        "qualityRules": [
+          "source evidence required",
+          "readable on mobile",
+          "stable timing",
+          "no hidden core action"
+        ]
+      },
+      {
+        "id": "operation_step",
+        "semanticRole": "operation_step",
+        "acceptableNativeKinds": [
+          "text",
+          "effect"
+        ],
+        "supportedScenes": [
+          "product_collection"
+        ],
+        "layoutConstraints": {
+          "textAreaMaxRatio": 0.25,
+          "safeMarginRatio": 0.06
+        },
+        "subjectProtection": "do not overlap evidence protected regions",
+        "maxInformation": 1,
+        "hyperframesCandidates": [
+          "lt-mask-reveal",
+          "titlecard-reveal"
+        ],
+        "fallback": "native editable element or omit unnecessary decoration",
+        "qualityRules": [
+          "source evidence required",
+          "readable on mobile",
+          "stable timing",
+          "no hidden core action"
+        ]
+      },
+      {
+        "id": "step_progress",
+        "semanticRole": "step_progress",
+        "acceptableNativeKinds": [
+          "text",
+          "effect"
+        ],
+        "supportedScenes": [
+          "product_collection"
+        ],
+        "layoutConstraints": {
+          "textAreaMaxRatio": 0.25,
+          "safeMarginRatio": 0.06
+        },
+        "subjectProtection": "do not overlap evidence protected regions",
+        "maxInformation": 1,
+        "hyperframesCandidates": [
+          "lt-mask-reveal",
+          "titlecard-reveal"
+        ],
+        "fallback": "native editable element or omit unnecessary decoration",
+        "qualityRules": [
+          "source evidence required",
+          "readable on mobile",
+          "stable timing",
+          "no hidden core action"
+        ]
+      },
+      {
+        "id": "comparison",
+        "semanticRole": "comparison",
+        "acceptableNativeKinds": [
+          "text",
+          "effect"
+        ],
+        "supportedScenes": [
+          "product_collection"
+        ],
+        "layoutConstraints": {
+          "textAreaMaxRatio": 0.25,
+          "safeMarginRatio": 0.06
+        },
+        "subjectProtection": "do not overlap evidence protected regions",
+        "maxInformation": 1,
+        "hyperframesCandidates": [
+          "comparison-split"
+        ],
+        "fallback": "native editable element or omit unnecessary decoration",
+        "qualityRules": [
+          "source evidence required",
+          "readable on mobile",
+          "stable timing",
+          "no hidden core action"
+        ]
+      },
+      {
+        "id": "caption",
+        "semanticRole": "caption",
+        "acceptableNativeKinds": [
+          "text",
+          "effect"
+        ],
+        "supportedScenes": [
+          "product_collection"
+        ],
+        "layoutConstraints": {
+          "textAreaMaxRatio": 0.25,
+          "safeMarginRatio": 0.06
+        },
+        "subjectProtection": "do not overlap evidence protected regions",
+        "maxInformation": 2,
+        "hyperframesCandidates": [
+          "lt-mask-reveal",
+          "titlecard-reveal"
+        ],
+        "fallback": "native editable element or omit unnecessary decoration",
+        "qualityRules": [
+          "source evidence required",
+          "readable on mobile",
+          "stable timing",
+          "no hidden core action"
+        ]
+      },
+      {
+        "id": "quote",
+        "semanticRole": "quote",
+        "acceptableNativeKinds": [
+          "text",
+          "effect"
+        ],
+        "supportedScenes": [
+          "product_collection"
+        ],
+        "layoutConstraints": {
+          "textAreaMaxRatio": 0.25,
+          "safeMarginRatio": 0.06
+        },
+        "subjectProtection": "do not overlap evidence protected regions",
+        "maxInformation": 1,
+        "hyperframesCandidates": [
+          "lt-mask-reveal",
+          "titlecard-reveal"
+        ],
+        "fallback": "native editable element or omit unnecessary decoration",
+        "qualityRules": [
+          "source evidence required",
+          "readable on mobile",
+          "stable timing",
+          "no hidden core action"
+        ]
+      },
+      {
+        "id": "audio_caption",
+        "semanticRole": "audio_caption",
+        "acceptableNativeKinds": [
+          "text",
+          "effect"
+        ],
+        "supportedScenes": [
+          "product_collection"
+        ],
+        "layoutConstraints": {
+          "textAreaMaxRatio": 0.25,
+          "safeMarginRatio": 0.06
+        },
+        "subjectProtection": "do not overlap evidence protected regions",
+        "maxInformation": 1,
+        "hyperframesCandidates": [
+          "lt-mask-reveal",
+          "titlecard-reveal"
+        ],
+        "fallback": "native editable element or omit unnecessary decoration",
+        "qualityRules": [
+          "source evidence required",
+          "readable on mobile",
+          "stable timing",
+          "no hidden core action"
+        ]
+      },
+      {
+        "id": "logo",
+        "semanticRole": "logo",
+        "acceptableNativeKinds": [
+          "text",
+          "effect"
+        ],
+        "supportedScenes": [
+          "product_collection"
+        ],
+        "layoutConstraints": {
+          "textAreaMaxRatio": 0.25,
+          "safeMarginRatio": 0.06
+        },
+        "subjectProtection": "do not overlap evidence protected regions",
+        "maxInformation": 1,
+        "hyperframesCandidates": [
+          "lt-mask-reveal",
+          "titlecard-reveal"
+        ],
+        "fallback": "native editable element or omit unnecessary decoration",
+        "qualityRules": [
+          "source evidence required",
+          "readable on mobile",
+          "stable timing",
+          "no hidden core action"
+        ]
+      },
+      {
+        "id": "brand_mark",
+        "semanticRole": "brand_mark",
+        "acceptableNativeKinds": [
+          "text",
+          "effect"
+        ],
+        "supportedScenes": [
+          "product_collection"
+        ],
+        "layoutConstraints": {
+          "textAreaMaxRatio": 0.25,
+          "safeMarginRatio": 0.06
+        },
+        "subjectProtection": "do not overlap evidence protected regions",
+        "maxInformation": 1,
+        "hyperframesCandidates": [
+          "lt-mask-reveal",
+          "titlecard-reveal"
+        ],
+        "fallback": "native editable element or omit unnecessary decoration",
+        "qualityRules": [
+          "source evidence required",
+          "readable on mobile",
+          "stable timing",
+          "no hidden core action"
+        ]
+      },
+      {
+        "id": "CTA",
+        "semanticRole": "CTA",
+        "acceptableNativeKinds": [
+          "text",
+          "effect"
+        ],
+        "supportedScenes": [
+          "product_collection"
+        ],
+        "layoutConstraints": {
+          "textAreaMaxRatio": 0.25,
+          "safeMarginRatio": 0.06
+        },
+        "subjectProtection": "do not overlap evidence protected regions",
+        "maxInformation": 1,
+        "hyperframesCandidates": [
+          "lt-mask-reveal",
+          "titlecard-reveal"
+        ],
+        "fallback": "native editable element or omit unnecessary decoration",
+        "qualityRules": [
+          "source evidence required",
+          "readable on mobile",
+          "stable timing",
+          "no hidden core action"
+        ]
+      },
+      {
+        "id": "ending",
+        "semanticRole": "ending",
+        "acceptableNativeKinds": [
+          "text",
+          "effect"
+        ],
+        "supportedScenes": [
+          "product_collection"
+        ],
+        "layoutConstraints": {
+          "textAreaMaxRatio": 0.25,
+          "safeMarginRatio": 0.06
+        },
+        "subjectProtection": "do not overlap evidence protected regions",
+        "maxInformation": 1,
+        "hyperframesCandidates": [
+          "lt-mask-reveal",
+          "titlecard-reveal"
+        ],
+        "fallback": "native editable element or omit unnecessary decoration",
+        "qualityRules": [
+          "source evidence required",
+          "readable on mobile",
+          "stable timing",
+          "no hidden core action"
+        ]
+      },
+      {
+        "id": "background",
+        "semanticRole": "background",
+        "acceptableNativeKinds": [
+          "shape",
+          "effect"
+        ],
+        "supportedScenes": [
+          "product_collection"
+        ],
+        "layoutConstraints": {
+          "textAreaMaxRatio": 0.25,
+          "safeMarginRatio": 0.06
+        },
+        "subjectProtection": "do not overlap evidence protected regions",
+        "maxInformation": 1,
+        "hyperframesCandidates": [
+          "lt-mask-reveal",
+          "titlecard-reveal"
+        ],
+        "fallback": "native editable element or omit unnecessary decoration",
+        "qualityRules": [
+          "source evidence required",
+          "readable on mobile",
+          "stable timing",
+          "no hidden core action"
+        ]
+      },
+      {
+        "id": "accent_shape",
+        "semanticRole": "accent_shape",
+        "acceptableNativeKinds": [
+          "shape",
+          "effect"
+        ],
+        "supportedScenes": [
+          "product_collection"
+        ],
+        "layoutConstraints": {
+          "textAreaMaxRatio": 0.25,
+          "safeMarginRatio": 0.06
+        },
+        "subjectProtection": "do not overlap evidence protected regions",
+        "maxInformation": 1,
+        "hyperframesCandidates": [
+          "lt-mask-reveal",
+          "titlecard-reveal"
+        ],
+        "fallback": "native editable element or omit unnecessary decoration",
+        "qualityRules": [
+          "source evidence required",
+          "readable on mobile",
+          "stable timing",
+          "no hidden core action"
+        ]
+      },
+      {
+        "id": "subject_highlight",
+        "semanticRole": "subject_highlight",
+        "acceptableNativeKinds": [
+          "shape",
+          "effect"
+        ],
+        "supportedScenes": [
+          "product_collection"
+        ],
+        "layoutConstraints": {
+          "textAreaMaxRatio": 0.25,
+          "safeMarginRatio": 0.06
+        },
+        "subjectProtection": "do not overlap evidence protected regions",
+        "maxInformation": 1,
+        "hyperframesCandidates": [
+          "lt-mask-reveal",
+          "titlecard-reveal"
+        ],
+        "fallback": "native editable element or omit unnecessary decoration",
+        "qualityRules": [
+          "source evidence required",
+          "readable on mobile",
+          "stable timing",
+          "no hidden core action"
+        ]
+      }
+    ],
+    "resourceProfile": {
+      "sourceKind": "video",
+      "subjectProtection": "high",
+      "motionNeed": "derived from evidence, explanation and user style",
+      "layoutNeed": "identity-preserving groups and variant labels",
+      "textAreaMaxRatio": 0.25,
+      "forbidden": [
+        "full-screen cards hiding product",
+        "unverified claims",
+        "stock substituted product",
+        "invented price or terms"
+      ],
+      "businessObjective": "讲清不同商品及组合关系",
+      "sceneSelectionPolicy": "D.5 Agent 与 HyperFrames 的分工及资源策略\n\nAgent 负责分组、识别、排序、曝光分配和事实边界。HyperFrames 负责 grid、split-screen、cards、成组 typography、协调转场和系列收尾。\n\n可以比教程更强调节奏和视觉连续性，但商品必须仍可辨。转场遮罩不能把一款变形为另一款并造成误解；调色不能改变真实色号。统一模板不代表所有款必须有相同镜头数。"
+    }
+  },
+  "workflowContract": {
+    "version": 1,
+    "taskMode": "create",
+    "taskModeExplicit": false,
+    "workflowProfile": "create",
+    "businessScenario": "product_collection",
+    "baseProjectId": "504ff9a1-f8f1-466a-99a0-3bdd82862262",
+    "baseRevisionId": null,
+    "assetScope": [
+      "asset-5bed5fa6-aff4-4432-9819-bbd9e45610de",
+      "asset-c3b7ccd1-e51b-4aa4-a755-1905322101e3",
+      "asset-d15b0f6b-da27-45c0-b2c3-404512dee173",
+      "asset-1555e45e-ae5c-4342-a82e-731766200c7d"
+    ],
+    "originalRequest": "现在把第四场景改为约一分钟的竖屏首饰搭配展示，用已上传的三条真实视频和原创音乐完成。先看组合，再分别看戒指、项链和耳饰，最后回到佩戴关系；杂志画册感、文字少、真实颜色，不编品牌材质价格或同系列。总时长以58到60秒为目标，三条视频有约62秒的不同原始内容，合理剪辑分配，不重复凑时长。要调用本场景链路与可用HyperFrames分屏、网格和文字资源，局部视窗必须实际可见且不裁坏主体。无需复杂多窗口局部放大，优先稳定清楚的实拍与分屏。音乐轻，无旁白。保留单品标题、说明、镜头和音乐为可独立修改的原生对象，让我能在当前WebUI连续对话改标题、顺序、音乐并撤销；先完成可编辑候选工程和demo。",
+    "requirements": [
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "goal",
+        "quote": "现在把第四场景改为约一分钟的竖屏首饰搭配展示",
+        "startSeconds": null,
+        "targetIds": [],
+        "id": "requirement-8fe185e310aa6355",
+        "field": "goal",
+        "inherited": false
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "竖屏",
+        "startSeconds": null,
+        "targetIds": [],
+        "id": "requirement-f096f23359941418",
+        "field": "change",
+        "inherited": false
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "resource",
+        "quote": "用已上传的三条真实视频和原创音乐完成",
+        "startSeconds": null,
+        "targetIds": [
+          "asset-5bed5fa6-aff4-4432-9819-bbd9e45610de",
+          "asset-c3b7ccd1-e51b-4aa4-a755-1905322101e3",
+          "asset-d15b0f6b-da27-45c0-b2c3-404512dee173",
+          "asset-1555e45e-ae5c-4342-a82e-731766200c7d"
+        ],
+        "id": "requirement-54502d0776d62019",
+        "field": "sound.music",
+        "inherited": false
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "goal",
+        "quote": "先看组合，再分别看戒指、项链和耳饰，最后回到佩戴关系",
+        "startSeconds": null,
+        "targetIds": [],
+        "id": "requirement-4fef3d28ff305121",
+        "field": "goal",
+        "inherited": false
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "goal",
+        "quote": "杂志画册感、文字少、真实颜色",
+        "startSeconds": null,
+        "targetIds": [],
+        "id": "requirement-18c612a05c42082e",
+        "field": "goal",
+        "inherited": false
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "prohibit",
+        "quote": "不编品牌材质价格或同系列",
+        "startSeconds": null,
+        "targetIds": [],
+        "id": "requirement-f43343b2dff16e7f",
+        "field": "prohibit",
+        "inherited": false
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "goal",
+        "quote": "总时长以58到60秒为目标",
+        "startSeconds": null,
+        "targetIds": [],
+        "id": "requirement-5131f47c159787f5",
+        "field": "goal",
+        "inherited": false
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "prohibit",
+        "quote": "合理剪辑分配，不重复凑时长",
+        "startSeconds": null,
+        "targetIds": [],
+        "id": "requirement-0cf97b6d683f9671",
+        "field": "prohibit",
+        "inherited": false
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "resource",
+        "quote": "要调用本场景链路与可用HyperFrames分屏、网格和文字资源",
+        "startSeconds": null,
+        "targetIds": [],
+        "id": "requirement-115fa6655b03def7",
+        "field": "resource",
+        "inherited": false
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "goal",
+        "quote": "局部视窗必须实际可见且不裁坏主体",
+        "startSeconds": null,
+        "targetIds": [],
+        "id": "requirement-f5e3926be875578c",
+        "field": "goal",
+        "inherited": false
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "goal",
+        "quote": "无需复杂多窗口局部放大，优先稳定清楚的实拍与分屏",
+        "startSeconds": null,
+        "targetIds": [],
+        "id": "requirement-f3ade21d35a26cb6",
+        "field": "goal",
+        "inherited": false
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "音乐轻",
+        "startSeconds": null,
+        "targetIds": [
+          "asset-1555e45e-ae5c-4342-a82e-731766200c7d"
+        ],
+        "id": "requirement-8fc9bc75671e6b1c",
+        "field": "sound.music",
+        "inherited": false
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "prohibit",
+        "quote": "无旁白",
+        "startSeconds": null,
+        "targetIds": [],
+        "id": "requirement-1cc55733575f77db",
+        "field": "sound.narration",
+        "inherited": false
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "保留单品标题、说明、镜头和音乐为可独立修改的原生对象",
+        "startSeconds": null,
+        "targetIds": [],
+        "id": "requirement-02515f8da01c40e0",
+        "field": "sound.music",
+        "inherited": false
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "goal",
+        "quote": "让我能在当前WebUI连续对话改标题、顺序、音乐并撤销",
+        "startSeconds": null,
+        "targetIds": [],
+        "id": "requirement-180cbda379eac5c3",
+        "field": "sound.music",
+        "inherited": false
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "goal",
+        "quote": "先完成可编辑候选工程和demo",
+        "startSeconds": null,
+        "targetIds": [],
+        "id": "requirement-bf7ea696109317b3",
+        "field": "goal",
+        "inherited": false
+      }
+    ],
+    "assumptions": [
+      "沿用当前合同的create模式：没有已有工程修订，结合校验错误，将“第四场景”理解为本次业务场景制作，不臆造已有时间线第四段或启动编辑任务。",
+      "默认输出1080×1920、59秒；在58至60秒范围内根据实际素材调整。",
+      "三条视频均无音轨，keepOriginalAudio=false；上传音乐另设独立原生音轨。",
+      "音乐暂按40秒真实音源配合留白考虑，不默认循环或生成延长；后续根据实际衔接核验调整。",
+      "当前有效合同requirements为空；priorBrief为同一请求的失败解析候选，本次纠正任务模式并重新提取原消息要求。"
+    ],
+    "gaps": [
+      "未提供时间线对象ID，所有构图、文字和场景目标留空；仅引用真实素材ID。",
+      "真实内容覆盖、分屏造成的时长消耗、音乐安排和场景资源可用性待后续核验。"
+    ],
+    "interpretation": "validated-semantic-analysis",
+    "objective": "让潜在消费者先理解首饰整体组合，再看清戒指、项链和耳饰，最后理解佩戴搭配关系。",
+    "contractId": "contract-80cf37951813ad45",
+    "parentContractId": null,
+    "sourceRequests": [
+      "现在把第四场景改为约一分钟的竖屏首饰搭配展示，用已上传的三条真实视频和原创音乐完成。先看组合，再分别看戒指、项链和耳饰，最后回到佩戴关系；杂志画册感、文字少、真实颜色，不编品牌材质价格或同系列。总时长以58到60秒为目标，三条视频有约62秒的不同原始内容，合理剪辑分配，不重复凑时长。要调用本场景链路与可用HyperFrames分屏、网格和文字资源，局部视窗必须实际可见且不裁坏主体。无需复杂多窗口局部放大，优先稳定清楚的实拍与分屏。音乐轻，无旁白。保留单品标题、说明、镜头和音乐为可独立修改的原生对象，让我能在当前WebUI连续对话改标题、顺序、音乐并撤销；先完成可编辑候选工程和demo。"
+    ],
+    "requirementChanges": [],
+    "changeTargets": [
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "竖屏",
+        "startSeconds": null,
+        "targetIds": [],
+        "id": "requirement-f096f23359941418",
+        "field": "change",
+        "inherited": false
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "音乐轻",
+        "startSeconds": null,
+        "targetIds": [
+          "asset-1555e45e-ae5c-4342-a82e-731766200c7d"
+        ],
+        "id": "requirement-8fc9bc75671e6b1c",
+        "field": "sound.music",
+        "inherited": false
+      }
+    ],
+    "preserveTargets": [
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "保留单品标题、说明、镜头和音乐为可独立修改的原生对象",
+        "startSeconds": null,
+        "targetIds": [],
+        "id": "requirement-02515f8da01c40e0",
+        "field": "sound.music",
+        "inherited": false
+      }
+    ],
+    "resourceNeeds": [
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "resource",
+        "quote": "用已上传的三条真实视频和原创音乐完成",
+        "startSeconds": null,
+        "targetIds": [
+          "asset-5bed5fa6-aff4-4432-9819-bbd9e45610de",
+          "asset-c3b7ccd1-e51b-4aa4-a755-1905322101e3",
+          "asset-d15b0f6b-da27-45c0-b2c3-404512dee173",
+          "asset-1555e45e-ae5c-4342-a82e-731766200c7d"
+        ],
+        "id": "requirement-54502d0776d62019",
+        "field": "sound.music",
+        "inherited": false
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "resource",
+        "quote": "要调用本场景链路与可用HyperFrames分屏、网格和文字资源",
+        "startSeconds": null,
+        "targetIds": [],
+        "id": "requirement-115fa6655b03def7",
+        "field": "resource",
+        "inherited": false
+      }
+    ],
+    "prohibitions": [
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "prohibit",
+        "quote": "不编品牌材质价格或同系列",
+        "startSeconds": null,
+        "targetIds": [],
+        "id": "requirement-f43343b2dff16e7f",
+        "field": "prohibit",
+        "inherited": false
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "prohibit",
+        "quote": "合理剪辑分配，不重复凑时长",
+        "startSeconds": null,
+        "targetIds": [],
+        "id": "requirement-0cf97b6d683f9671",
+        "field": "prohibit",
+        "inherited": false
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "prohibit",
+        "quote": "无旁白",
+        "startSeconds": null,
+        "targetIds": [],
+        "id": "requirement-1cc55733575f77db",
+        "field": "sound.narration",
+        "inherited": false
+      }
+    ]
+  },
+  "provenance": {
+    "kind": "host-agent-assisted-native",
+    "sourceProject": "504ff9a1-f8f1-466a-99a0-3bdd82862262",
+    "sourceJob": "job-fd91b032-874b-4aba-a179-e6541fc541d3",
+    "description": "复用真实产品Agent观察与分镜，由当前Codex完成原生配方适配；不冒充原production run已完成"
+  },
+  "resourceReceipts": [
+    {
+      "sceneId": "scene-01",
+      "resourceId": "lt-mask-reveal",
+      "method": "host-agent-adapted-native-recipe",
+      "adapterId": "lt-mask-reveal",
+      "adapterVersion": 2,
+      "implementationHash": "942bf4a8c6fb604f8efa1f1d05b337386eddaadc821a6a34a1672913e4c6d0df",
+      "sourceProject": "504ff9a1-f8f1-466a-99a0-3bdd82862262",
+      "sourceJob": "job-fd91b032-874b-4aba-a179-e6541fc541d3",
+      "originalMethod": "original",
+      "status": "authored-pending-check"
+    },
+    {
+      "sceneId": "scene-02",
+      "resourceId": "lt-mask-reveal",
+      "method": "host-agent-adapted-native-recipe",
+      "adapterId": "lt-mask-reveal",
+      "adapterVersion": 2,
+      "implementationHash": "942bf4a8c6fb604f8efa1f1d05b337386eddaadc821a6a34a1672913e4c6d0df",
+      "sourceProject": "504ff9a1-f8f1-466a-99a0-3bdd82862262",
+      "sourceJob": "job-fd91b032-874b-4aba-a179-e6541fc541d3",
+      "originalMethod": "composition-adapt",
+      "status": "authored-pending-check"
+    },
+    {
+      "sceneId": "scene-03",
+      "resourceId": "grid-card-assemble",
+      "method": "host-agent-adapted-native-recipe",
+      "adapterId": "grid-card-assemble",
+      "adapterVersion": 3,
+      "implementationHash": "9ee270c120b10c620ffa751640c0fa0483279cdd0c33e3358635f90166f00f0b",
+      "sourceProject": "504ff9a1-f8f1-466a-99a0-3bdd82862262",
+      "sourceJob": "job-fd91b032-874b-4aba-a179-e6541fc541d3",
+      "originalMethod": "composition-adapt",
+      "status": "authored-pending-check"
+    },
+    {
+      "sceneId": "scene-04",
+      "resourceId": "lt-mask-reveal",
+      "method": "host-agent-adapted-native-recipe",
+      "adapterId": "lt-mask-reveal",
+      "adapterVersion": 2,
+      "implementationHash": "942bf4a8c6fb604f8efa1f1d05b337386eddaadc821a6a34a1672913e4c6d0df",
+      "sourceProject": "504ff9a1-f8f1-466a-99a0-3bdd82862262",
+      "sourceJob": "job-fd91b032-874b-4aba-a179-e6541fc541d3",
+      "originalMethod": "footage-cut",
+      "status": "authored-pending-check"
+    },
+    {
+      "sceneId": "scene-05",
+      "resourceId": "lt-mask-reveal",
+      "method": "host-agent-adapted-native-recipe",
+      "adapterId": "lt-mask-reveal",
+      "adapterVersion": 2,
+      "implementationHash": "942bf4a8c6fb604f8efa1f1d05b337386eddaadc821a6a34a1672913e4c6d0df",
+      "sourceProject": "504ff9a1-f8f1-466a-99a0-3bdd82862262",
+      "sourceJob": "job-fd91b032-874b-4aba-a179-e6541fc541d3",
+      "originalMethod": "footage-cut",
+      "status": "authored-pending-check"
+    },
+    {
+      "sceneId": "scene-06",
+      "resourceId": "lt-mask-reveal",
+      "method": "host-agent-adapted-native-recipe",
+      "adapterId": "lt-mask-reveal",
+      "adapterVersion": 2,
+      "implementationHash": "942bf4a8c6fb604f8efa1f1d05b337386eddaadc821a6a34a1672913e4c6d0df",
+      "sourceProject": "504ff9a1-f8f1-466a-99a0-3bdd82862262",
+      "sourceJob": "job-fd91b032-874b-4aba-a179-e6541fc541d3",
+      "originalMethod": "composition-adapt",
+      "status": "authored-pending-check"
+    },
+    {
+      "sceneId": "scene-07",
+      "resourceId": "lt-mask-reveal",
+      "method": "host-agent-adapted-native-recipe",
+      "adapterId": "lt-mask-reveal",
+      "adapterVersion": 2,
+      "implementationHash": "942bf4a8c6fb604f8efa1f1d05b337386eddaadc821a6a34a1672913e4c6d0df",
+      "sourceProject": "504ff9a1-f8f1-466a-99a0-3bdd82862262",
+      "sourceJob": "job-fd91b032-874b-4aba-a179-e6541fc541d3",
+      "originalMethod": "footage-cut",
+      "status": "authored-pending-check"
+    },
+    {
+      "sceneId": "scene-08",
+      "resourceId": "lt-mask-reveal",
+      "method": "host-agent-adapted-native-recipe",
+      "adapterId": "lt-mask-reveal",
+      "adapterVersion": 2,
+      "implementationHash": "942bf4a8c6fb604f8efa1f1d05b337386eddaadc821a6a34a1672913e4c6d0df",
+      "sourceProject": "504ff9a1-f8f1-466a-99a0-3bdd82862262",
+      "sourceJob": "job-fd91b032-874b-4aba-a179-e6541fc541d3",
+      "originalMethod": "composition-adapt",
+      "status": "authored-pending-check"
+    },
+    {
+      "sceneId": "scene-09",
+      "resourceId": "comparison-split",
+      "method": "host-agent-adapted-native-recipe",
+      "adapterId": "comparison-split",
+      "adapterVersion": 3,
+      "implementationHash": "9ee270c120b10c620ffa751640c0fa0483279cdd0c33e3358635f90166f00f0b",
+      "sourceProject": "504ff9a1-f8f1-466a-99a0-3bdd82862262",
+      "sourceJob": "job-fd91b032-874b-4aba-a179-e6541fc541d3",
+      "originalMethod": "composition-adapt",
+      "status": "authored-pending-check"
+    }
+  ],
+  "audioRequirements": {
+    "music": true,
+    "original": false
+  }
+}

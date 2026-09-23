@@ -1,0 +1,410 @@
+{
+  "message": "在这段视频开头 2 秒添加标题“新品体验”，不要裁掉原视频，保持原来的画幅、完整时长和声音，给我完整修改后的视频。",
+  "baseRevisionId": "rev-66c2ac8eaa0dd8b2",
+  "routeDecision": {
+    "mode": "edit",
+    "source": "structured",
+    "targets": [
+      {
+        "id": "node-aa9af36075fb903e",
+        "kind": "text",
+        "operation": "update_text"
+      }
+    ],
+    "requestedTargets": [],
+    "reason": "structured",
+    "version": 1,
+    "message": "在这段视频开头 2 秒添加标题“新品体验”，不要裁掉原视频，保持原来的画幅、完整时长和声音，给我完整修改后的视频。",
+    "scenario": null,
+    "preserve": [
+      "unmentioned-objects",
+      "source-assets",
+      "revision-history"
+    ],
+    "executionStrategy": "L1",
+    "confidence": 1,
+    "fallback": {
+      "version": 1,
+      "categories": [
+        "missing_evidence",
+        "ambiguous_target",
+        "unsupported_capability",
+        "resource_incompatible",
+        "provider_unavailable",
+        "quality_failure",
+        "revision_conflict"
+      ],
+      "maxReplans": 2,
+      "identicalFailureLimit": 2,
+      "preserveCurrentRevision": true,
+      "allowSilentSubstitution": false,
+      "steps": [
+        "retry-same-capability",
+        "safe-equivalent-execution",
+        "retain-valid-revision",
+        "report-failed-targets",
+        "repair-only-gap"
+      ],
+      "classifiers": [
+        [
+          "revision_conflict",
+          "REVISION_CONFLICT|STALE_REVISION"
+        ],
+        [
+          "provider_unavailable",
+          "^(MINIMAX_|CODEX_|PROVIDER_)"
+        ],
+        [
+          "resource_incompatible",
+          "RESOURCE_|INCOMPATIBLE"
+        ],
+        [
+          "unsupported_capability",
+          "UNSUPPORTED|CAPABILITY|VOICE_NOT_FOUND"
+        ],
+        [
+          "ambiguous_target",
+          "AMBIGUOUS|SCOPE|TARGET|CONFLICT|CAPTION_ALIGNMENT_REQUIRED"
+        ],
+        [
+          "missing_evidence",
+          "MISSING|NEEDS_INPUT|INSUFFICIENT|SPEECH_SCRIPT_REQUIRED|NO_SPEECH|NO_CAPTION_AUDIO"
+        ]
+      ]
+    },
+    "baseRevisionId": "rev-66c2ac8eaa0dd8b2",
+    "selectedSkills": [
+      "timeline-edit",
+      "visual-composition",
+      "audio-mix",
+      "hyperframes",
+      "conversation-edit"
+    ],
+    "skillReasons": {
+      "visual-composition": [
+        "target:text",
+        "request-evidence"
+      ],
+      "timeline-edit": [
+        "request-evidence"
+      ],
+      "audio-mix": [
+        "request-evidence"
+      ],
+      "conversation-edit": [
+        "existing-revision"
+      ],
+      "hyperframes": [
+        "native-document"
+      ]
+    }
+  },
+  "changeReceipt": {
+    "baseRevision": "rev-66c2ac8eaa0dd8b2",
+    "userRequest": "在这段视频开头 2 秒添加标题“新品体验”，不要裁掉原视频，保持原来的画幅、完整时长和声音，给我完整修改后的视频。",
+    "targetSet": [
+      {
+        "type": "update_text",
+        "id": "node-aa9af36075fb903e"
+      },
+      {
+        "type": "update_custom_source",
+        "id": "scene-01"
+      }
+    ],
+    "preserveSet": [
+      "audioGraph",
+      "captions",
+      "transitions",
+      "untargeted-content",
+      "output"
+    ],
+    "changeSet": [
+      {
+        "type": "update_text",
+        "nodeId": "node-aa9af36075fb903e",
+        "text": "新品体验"
+      },
+      {
+        "sceneId": "scene-01",
+        "sceneIds": [],
+        "type": "update_custom_source",
+        "params": {
+          "css": "#scene01-media-wrap-node-c3ab4afa90140b2c{position:absolute;inset:0;width:1920px;height:1080px;z-index:0}#scene01-text-1{position:absolute;left:72px;bottom:180px;padding:12px 18px;background:#2A2520;color:#F5F1E8;border:1px solid #C88A5A;border-radius:4px;font-family:Arial,sans-serif;font-size:54px;font-weight:700;line-height:1.1;z-index:2;white-space:nowrap}",
+          "html": "<div id=\"scene01-media-wrap-node-c3ab4afa90140b2c\"></div><div id=\"scene01-text-1\">准备器具</div>",
+          "motionTargets": [
+            "scene01-text-1"
+          ],
+          "objects": [
+            {
+              "elementId": "scene01-media-wrap-node-c3ab4afa90140b2c",
+              "nodeId": "node-c3ab4afa90140b2c"
+            },
+            {
+              "elementId": "scene01-text-1",
+              "nodeId": "node-aa9af36075fb903e"
+            }
+          ],
+          "parameters": [],
+          "textStyles": [
+            {
+              "color": "#F5F1E8",
+              "elementId": "scene01-text-1",
+              "fontSize": 54,
+              "fontWeight": 700,
+              "match": "新品体验"
+            }
+          ],
+          "timeline": "tl.fromTo(\"#scene01-text-1\", {y:24, opacity:0}, {y:0, opacity:1, duration:0.45, ease:\"power2.out\"}, 0.35).to(\"#scene01-text-1\", {opacity:0, duration:0.3, ease:\"power2.in\"}, 1.7)"
+        }
+      }
+    ],
+    "changedFields": [
+      "nodes"
+    ],
+    "validation": {
+      "passed": true,
+      "checks": [
+        {
+          "field": "audioGraph",
+          "passed": true
+        },
+        {
+          "field": "captions",
+          "passed": true
+        },
+        {
+          "field": "transitions",
+          "passed": true
+        },
+        {
+          "field": "untargeted-content",
+          "passed": true
+        },
+        {
+          "field": "output",
+          "passed": true
+        }
+      ]
+    },
+    "newRevision": "rev-863941aeeac316ca"
+  },
+  "operations": [
+    {
+      "type": "update_text",
+      "nodeId": "node-aa9af36075fb903e",
+      "text": "新品体验"
+    }
+  ],
+  "mode": "structured",
+  "requestedOperations": [
+    {
+      "type": "update_text",
+      "nodeId": "node-aa9af36075fb903e",
+      "text": "新品体验"
+    }
+  ],
+  "repairs": [
+    {
+      "workflow": {
+        "version": 1,
+        "taskMode": "edit",
+        "taskModeExplicit": false,
+        "workflowProfile": "edit",
+        "businessScenario": null,
+        "baseProjectId": "1625db9d-628d-460e-9ec2-98aa457eeaee",
+        "baseRevisionId": "rev-e25406ebb96820bc",
+        "assetScope": [],
+        "originalRequest": "只修复本次修改造成的这些画面问题：[{\"sceneId\":\"scene-01\",\"evidence\":\"edit-review-0/batch-0/frame-01-at-4.167s.png\",\"nodeId\":\"node-aa9af36075fb903e\",\"problem\":\"用户要求标题“新品体验”只添加在视频开头 2 秒；但在 4.167s 关键帧中标题仍位于左下角并清晰可见，显示时长超出本次修改意图。\",\"repair\":\"将标题节点的可见动画限制在 0–2s 内：保持当前入场和版式，最迟在 2.0s 前完成淡出；不要改动视频节点、声音、画幅或总时长。修复后复查 1.5s 标题可读、2s 后标题不可见。\",\"seconds\":4.167,\"severity\":\"major\"}]。允许修改的镜头：[\"scene-01\"]。只能修改这些镜头的自定义布局/动效源码、已有效果参数或明确字幕ID的样式，保持字幕时间、全文字、媒体区间、声音、时长和其他镜头。",
+        "requirements": [
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "change",
+            "quote": "只修复本次修改造成的这些画面问题",
+            "startSeconds": null,
+            "targetIds": [
+              "scene-01",
+              "node-aa9af36075fb903e"
+            ],
+            "id": "requirement-8a80a2021254751a",
+            "field": "change",
+            "inherited": false
+          },
+          {
+            "endSeconds": 2,
+            "excludeIds": [],
+            "kind": "change",
+            "quote": "将标题节点的可见动画限制在 0–2s 内：保持当前入场和版式，最迟在 2.0s 前完成淡出；不要改动视频节点、声音、画幅或总时长。",
+            "startSeconds": 0,
+            "targetIds": [
+              "scene-01",
+              "node-aa9af36075fb903e"
+            ],
+            "id": "requirement-3703aff7e5ba1fde",
+            "field": "change",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "preserve",
+            "quote": "允许修改的镜头：[\"scene-01\"]",
+            "startSeconds": null,
+            "targetIds": [
+              "scene-01"
+            ],
+            "id": "requirement-0d2844c0b757c4f6",
+            "field": "preserve",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [
+              "scene-01"
+            ],
+            "kind": "preserve",
+            "quote": "保持字幕时间、全文字、媒体区间、声音、时长和其他镜头。",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-438aa498f66a2eb9",
+            "field": "preserve",
+            "inherited": false
+          }
+        ],
+        "assumptions": [],
+        "gaps": [],
+        "interpretation": "validated-semantic-analysis",
+        "objective": "修复开头标题显示超时的问题，同时保持本次允许范围外内容不变。",
+        "contractId": "contract-6271dcaed7843a68",
+        "parentContractId": null,
+        "sourceRequests": [
+          "只修复本次修改造成的这些画面问题：[{\"sceneId\":\"scene-01\",\"evidence\":\"edit-review-0/batch-0/frame-01-at-4.167s.png\",\"nodeId\":\"node-aa9af36075fb903e\",\"problem\":\"用户要求标题“新品体验”只添加在视频开头 2 秒；但在 4.167s 关键帧中标题仍位于左下角并清晰可见，显示时长超出本次修改意图。\",\"repair\":\"将标题节点的可见动画限制在 0–2s 内：保持当前入场和版式，最迟在 2.0s 前完成淡出；不要改动视频节点、声音、画幅或总时长。修复后复查 1.5s 标题可读、2s 后标题不可见。\",\"seconds\":4.167,\"severity\":\"major\"}]。允许修改的镜头：[\"scene-01\"]。只能修改这些镜头的自定义布局/动效源码、已有效果参数或明确字幕ID的样式，保持字幕时间、全文字、媒体区间、声音、时长和其他镜头。"
+        ],
+        "requirementChanges": [],
+        "changeTargets": [
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "change",
+            "quote": "只修复本次修改造成的这些画面问题",
+            "startSeconds": null,
+            "targetIds": [
+              "scene-01",
+              "node-aa9af36075fb903e"
+            ],
+            "id": "requirement-8a80a2021254751a",
+            "field": "change",
+            "inherited": false
+          },
+          {
+            "endSeconds": 2,
+            "excludeIds": [],
+            "kind": "change",
+            "quote": "将标题节点的可见动画限制在 0–2s 内：保持当前入场和版式，最迟在 2.0s 前完成淡出；不要改动视频节点、声音、画幅或总时长。",
+            "startSeconds": 0,
+            "targetIds": [
+              "scene-01",
+              "node-aa9af36075fb903e"
+            ],
+            "id": "requirement-3703aff7e5ba1fde",
+            "field": "change",
+            "inherited": false
+          }
+        ],
+        "preserveTargets": [
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "preserve",
+            "quote": "允许修改的镜头：[\"scene-01\"]",
+            "startSeconds": null,
+            "targetIds": [
+              "scene-01"
+            ],
+            "id": "requirement-0d2844c0b757c4f6",
+            "field": "preserve",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [
+              "scene-01"
+            ],
+            "kind": "preserve",
+            "quote": "保持字幕时间、全文字、媒体区间、声音、时长和其他镜头。",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-438aa498f66a2eb9",
+            "field": "preserve",
+            "inherited": false
+          }
+        ],
+        "resourceNeeds": [],
+        "prohibitions": []
+      },
+      "operations": [
+        {
+          "sceneId": "scene-01",
+          "sceneIds": [],
+          "type": "update_custom_source",
+          "params": {
+            "css": "#scene01-media-wrap-node-c3ab4afa90140b2c{position:absolute;inset:0;width:1920px;height:1080px;z-index:0}#scene01-text-1{position:absolute;left:72px;bottom:180px;padding:12px 18px;background:#2A2520;color:#F5F1E8;border:1px solid #C88A5A;border-radius:4px;font-family:Arial,sans-serif;font-size:54px;font-weight:700;line-height:1.1;z-index:2;white-space:nowrap}",
+            "html": "<div id=\"scene01-media-wrap-node-c3ab4afa90140b2c\"></div><div id=\"scene01-text-1\">准备器具</div>",
+            "motionTargets": [
+              "scene01-text-1"
+            ],
+            "objects": [
+              {
+                "elementId": "scene01-media-wrap-node-c3ab4afa90140b2c",
+                "nodeId": "node-c3ab4afa90140b2c"
+              },
+              {
+                "elementId": "scene01-text-1",
+                "nodeId": "node-aa9af36075fb903e"
+              }
+            ],
+            "parameters": [],
+            "textStyles": [
+              {
+                "color": "#F5F1E8",
+                "elementId": "scene01-text-1",
+                "fontSize": 54,
+                "fontWeight": 700,
+                "match": "新品体验"
+              }
+            ],
+            "timeline": "tl.fromTo(\"#scene01-text-1\", {y:24, opacity:0}, {y:0, opacity:1, duration:0.45, ease:\"power2.out\"}, 0.35).to(\"#scene01-text-1\", {opacity:0, duration:0.3, ease:\"power2.in\"}, 1.7)"
+          }
+        }
+      ],
+      "alternatives": [],
+      "resourceScopes": [],
+      "summary": "仅修复 scene-01 的自定义动效源码：保留现有标题入场、位置、样式和媒体映射，把标题淡出提前到 1.7s 开始、2.0s 完成，使 1.5s 仍可读且 2s 后不可见。未改动视频节点、字幕时间、文字内容、媒体区间、声音、画幅、总时长或其他镜头。",
+      "mode": "model",
+      "model": "openclaw/commerce-stage",
+      "promptContext": [
+        {
+          "file": "prompts/commerce/R0.md",
+          "sha256": "b253f55c56fe3b45ef85dd40958034c3ee7cbfefd01572fc835f776d480aa306"
+        },
+        {
+          "file": "prompts/commerce/R7.md",
+          "sha256": "59fc8e53bd9e9c7c243ce97210a512aa62a7be6ca16bdf26649a73c64ef2c247"
+        },
+        {
+          "file": "agent.md",
+          "sha256": "91e592dbf5a9a9f090e7ced8ec1ced07c89b177da3040e21ecfd570f8c7f4568"
+        },
+        {
+          "file": "prompts/commerce/commerce-focus.md",
+          "sha256": "7fe5a32d4ed1d530d2daa5c8b661e1d95621fd69dbe8e249f1448e62dabce35f"
+        },
+        {
+          "file": "docs/commerce-focus-v1/scenario-registry.spec.json",
+          "sha256": "d8c28def4a22ab875c65642942a7fa1417b8b7f62dbeaca74bd0007feed8c430"
+        }
+      ]
+    }
+  ]
+}

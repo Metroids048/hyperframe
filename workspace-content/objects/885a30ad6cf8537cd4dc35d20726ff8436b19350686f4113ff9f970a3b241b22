@@ -1,0 +1,968 @@
+{
+  "id": "e6d3d22f-6567-4b7e-a746-0d16e5843930",
+  "userRequest": "使用上传的视频，在开头 2 秒添加标题“新品体验”，不要裁掉原视频，保持原来的画幅、完整时长和声音，给我完整修改后的视频。",
+  "projectId": "a622602c-b02c-4762-af79-19749714cc3f",
+  "baseRevisionId": null,
+  "inputFingerprint": "448b26e132b1e727e83066081d03bfa6475c9ab26c82a14f60eb86a2b7570744",
+  "selectedSkills": [],
+  "constraints": {
+    "requirements": [
+      "在开头 0-2 秒添加独立可编辑标题文本“新品体验”。",
+      "不得裁切原视频；输出保持源视频 1920x1080 横屏画幅。",
+      "保留原视频完整 35 秒时长。",
+      "保留原视频声音，不新增配音或音乐。",
+      "使用用户上传且权利状态为 user-provided 的视频素材。"
+    ]
+  },
+  "plan": null,
+  "artifacts": {},
+  "checkpoints": {
+    "brief": {
+      "idempotencyKey": "ffe479752bd684ec8886feab109328f5946bbf20e01d885e700c23fcf4556832",
+      "status": "completed",
+      "result": {
+        "capabilities": [
+          "video-source-selection",
+          "native-composition",
+          "managed-original",
+          "native-editing",
+          "local-preview-review"
+        ],
+        "constraints": [
+          "在开头 0-2 秒添加独立可编辑标题文本“新品体验”。",
+          "不得裁切原视频；输出保持源视频 1920x1080 横屏画幅。",
+          "保留原视频完整 35 秒时长。",
+          "保留原视频声音，不新增配音或音乐。",
+          "使用用户上传且权利状态为 user-provided 的视频素材。"
+        ],
+        "gaps": [],
+        "keepOriginalAudio": true,
+        "needsCaptions": false,
+        "needsNarration": false,
+        "needsTranscription": false,
+        "request": {
+          "cta": "",
+          "facts": [],
+          "name": "上传视频项目",
+          "output": {
+            "width": 1920,
+            "height": 1080,
+            "durationSeconds": 35,
+            "fps": 30
+          },
+          "price": ""
+        },
+        "scenarioId": "product_launch",
+        "workflow": {
+          "assumptions": [
+            "标题作为独立可编辑文字叠加层处理，不替换或烧录为不可编辑源素材。",
+            "输出画幅与时长以已读素材元数据为准：1920x1080，35 秒。"
+          ],
+          "gaps": [],
+          "objective": "在上传视频基础上添加开头标题，同时保留原视频画幅、完整时长与声音，交付完整修改后视频。",
+          "overrides": [],
+          "requirements": [
+            {
+              "endSeconds": null,
+              "excludeIds": [],
+              "kind": "resource",
+              "quote": "使用上传的视频",
+              "startSeconds": null,
+              "targetIds": [
+                "asset-ce3e07ba-acbd-4aac-9e5e-0408ce2534ac"
+              ]
+            },
+            {
+              "endSeconds": 2,
+              "excludeIds": [],
+              "kind": "change",
+              "quote": "在开头 2 秒添加标题“新品体验”",
+              "startSeconds": 0,
+              "targetIds": []
+            },
+            {
+              "endSeconds": null,
+              "excludeIds": [],
+              "kind": "preserve",
+              "quote": "不要裁掉原视频",
+              "startSeconds": null,
+              "targetIds": [
+                "asset-ce3e07ba-acbd-4aac-9e5e-0408ce2534ac"
+              ]
+            },
+            {
+              "endSeconds": null,
+              "excludeIds": [],
+              "kind": "preserve",
+              "quote": "保持原来的画幅",
+              "startSeconds": null,
+              "targetIds": [
+                "asset-ce3e07ba-acbd-4aac-9e5e-0408ce2534ac"
+              ]
+            },
+            {
+              "endSeconds": null,
+              "excludeIds": [],
+              "kind": "preserve",
+              "quote": "完整时长",
+              "startSeconds": null,
+              "targetIds": [
+                "asset-ce3e07ba-acbd-4aac-9e5e-0408ce2534ac"
+              ]
+            },
+            {
+              "endSeconds": null,
+              "excludeIds": [],
+              "kind": "preserve",
+              "quote": "声音",
+              "startSeconds": null,
+              "targetIds": [
+                "asset-ce3e07ba-acbd-4aac-9e5e-0408ce2534ac"
+              ]
+            },
+            {
+              "endSeconds": null,
+              "excludeIds": [],
+              "kind": "goal",
+              "quote": "给我完整修改后的视频",
+              "startSeconds": null,
+              "targetIds": []
+            }
+          ],
+          "taskMode": "create"
+        },
+        "productionBinding": {
+          "message": "使用上传的视频，在开头 2 秒添加标题“新品体验”，不要裁掉原视频，保持原来的画幅、完整时长和声音，给我完整修改后的视频。",
+          "contract": {
+            "schemaVersion": 1,
+            "profile": "commerce-focus-v1",
+            "scenarioId": "product_launch",
+            "originalRequest": "使用上传的视频，在开头 2 秒添加标题“新品体验”，不要裁掉原视频，保持原来的画幅、完整时长和声音，给我完整修改后的视频。",
+            "taskMode": "create",
+            "workflowProfile": "create",
+            "workflow": {
+              "version": 1,
+              "taskMode": "create",
+              "taskModeExplicit": true,
+              "workflowProfile": "create",
+              "businessScenario": "product_launch",
+              "baseProjectId": "a622602c-b02c-4762-af79-19749714cc3f",
+              "baseRevisionId": null,
+              "assetScope": [
+                "asset-ce3e07ba-acbd-4aac-9e5e-0408ce2534ac"
+              ],
+              "originalRequest": "使用上传的视频，在开头 2 秒添加标题“新品体验”，不要裁掉原视频，保持原来的画幅、完整时长和声音，给我完整修改后的视频。",
+              "requirements": [
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "resource",
+                  "quote": "使用上传的视频",
+                  "startSeconds": null,
+                  "targetIds": [
+                    "asset-ce3e07ba-acbd-4aac-9e5e-0408ce2534ac"
+                  ],
+                  "id": "requirement-36929fe1ef556e01",
+                  "field": "resource",
+                  "inherited": false
+                },
+                {
+                  "endSeconds": 2,
+                  "excludeIds": [],
+                  "kind": "change",
+                  "quote": "在开头 2 秒添加标题“新品体验”",
+                  "startSeconds": 0,
+                  "targetIds": [],
+                  "id": "requirement-c1f139beeaf69170",
+                  "field": "change",
+                  "inherited": false
+                },
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "preserve",
+                  "quote": "不要裁掉原视频",
+                  "startSeconds": null,
+                  "targetIds": [
+                    "asset-ce3e07ba-acbd-4aac-9e5e-0408ce2534ac"
+                  ],
+                  "id": "requirement-ab99f2a3f629aa9d",
+                  "field": "preserve",
+                  "inherited": false
+                },
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "preserve",
+                  "quote": "保持原来的画幅",
+                  "startSeconds": null,
+                  "targetIds": [
+                    "asset-ce3e07ba-acbd-4aac-9e5e-0408ce2534ac"
+                  ],
+                  "id": "requirement-71b8457ff1a1e005",
+                  "field": "preserve",
+                  "inherited": false
+                },
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "preserve",
+                  "quote": "完整时长",
+                  "startSeconds": null,
+                  "targetIds": [
+                    "asset-ce3e07ba-acbd-4aac-9e5e-0408ce2534ac"
+                  ],
+                  "id": "requirement-875ae396f89e9498",
+                  "field": "preserve",
+                  "inherited": false
+                },
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "preserve",
+                  "quote": "声音",
+                  "startSeconds": null,
+                  "targetIds": [
+                    "asset-ce3e07ba-acbd-4aac-9e5e-0408ce2534ac"
+                  ],
+                  "id": "requirement-7db0e74a6e42e19f",
+                  "field": "preserve",
+                  "inherited": false
+                },
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "goal",
+                  "quote": "给我完整修改后的视频",
+                  "startSeconds": null,
+                  "targetIds": [],
+                  "id": "requirement-90708dd8f8044e20",
+                  "field": "goal",
+                  "inherited": false
+                }
+              ],
+              "assumptions": [
+                "标题作为独立可编辑文字叠加层处理，不替换或烧录为不可编辑源素材。",
+                "输出画幅与时长以已读素材元数据为准：1920x1080，35 秒。"
+              ],
+              "gaps": [],
+              "interpretation": "validated-semantic-analysis",
+              "objective": "在上传视频基础上添加开头标题，同时保留原视频画幅、完整时长与声音，交付完整修改后视频。",
+              "contractId": "contract-760a57ff2d4f7ada",
+              "parentContractId": null,
+              "sourceRequests": [
+                "使用上传的视频，在开头 2 秒添加标题“新品体验”，不要裁掉原视频，保持原来的画幅、完整时长和声音，给我完整修改后的视频。"
+              ],
+              "requirementChanges": [],
+              "changeTargets": [
+                {
+                  "endSeconds": 2,
+                  "excludeIds": [],
+                  "kind": "change",
+                  "quote": "在开头 2 秒添加标题“新品体验”",
+                  "startSeconds": 0,
+                  "targetIds": [],
+                  "id": "requirement-c1f139beeaf69170",
+                  "field": "change",
+                  "inherited": false
+                }
+              ],
+              "preserveTargets": [
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "preserve",
+                  "quote": "不要裁掉原视频",
+                  "startSeconds": null,
+                  "targetIds": [
+                    "asset-ce3e07ba-acbd-4aac-9e5e-0408ce2534ac"
+                  ],
+                  "id": "requirement-ab99f2a3f629aa9d",
+                  "field": "preserve",
+                  "inherited": false
+                },
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "preserve",
+                  "quote": "保持原来的画幅",
+                  "startSeconds": null,
+                  "targetIds": [
+                    "asset-ce3e07ba-acbd-4aac-9e5e-0408ce2534ac"
+                  ],
+                  "id": "requirement-71b8457ff1a1e005",
+                  "field": "preserve",
+                  "inherited": false
+                },
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "preserve",
+                  "quote": "完整时长",
+                  "startSeconds": null,
+                  "targetIds": [
+                    "asset-ce3e07ba-acbd-4aac-9e5e-0408ce2534ac"
+                  ],
+                  "id": "requirement-875ae396f89e9498",
+                  "field": "preserve",
+                  "inherited": false
+                },
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "preserve",
+                  "quote": "声音",
+                  "startSeconds": null,
+                  "targetIds": [
+                    "asset-ce3e07ba-acbd-4aac-9e5e-0408ce2534ac"
+                  ],
+                  "id": "requirement-7db0e74a6e42e19f",
+                  "field": "preserve",
+                  "inherited": false
+                }
+              ],
+              "resourceNeeds": [
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "resource",
+                  "quote": "使用上传的视频",
+                  "startSeconds": null,
+                  "targetIds": [
+                    "asset-ce3e07ba-acbd-4aac-9e5e-0408ce2534ac"
+                  ],
+                  "id": "requirement-36929fe1ef556e01",
+                  "field": "resource",
+                  "inherited": false
+                }
+              ],
+              "prohibitions": []
+            },
+            "persona": {
+              "creator": "商家／内容运营（待用户研究验证）",
+              "viewer": "首次了解商品的消费者"
+            },
+            "objective": "吸引首次观看者继续了解商品",
+            "product": {
+              "id": "product-1",
+              "name": "上传视频项目",
+              "facts": [],
+              "price": null,
+              "cta": "",
+              "audience": null,
+              "prohibited": []
+            },
+            "output": {
+              "width": 1920,
+              "height": 1080,
+              "durationSeconds": 35,
+              "fps": 30
+            },
+            "audio": "unspecified",
+            "mustHave": [],
+            "mustNot": [],
+            "explicitConstraints": {
+              "schemaVersion": 1,
+              "originalRequest": "使用上传的视频，在开头 2 秒添加标题“新品体验”，不要裁掉原视频，保持原来的画幅、完整时长和声音，给我完整修改后的视频。",
+              "narration": "unspecified",
+              "music": "unspecified",
+              "original": "unspecified",
+              "price": "unspecified",
+              "silent": false
+            },
+            "generatedFootageAllowed": false,
+            "deliverables": [
+              "candidate_mp4",
+              "editable_project",
+              "source_index",
+              "quality_report"
+            ]
+          }
+        }
+      }
+    },
+    "observe": {
+      "idempotencyKey": "229257780fdb391bf1ade9b284c4f8c6112fe65e638fc0edd3dc21ad9ffd3915",
+      "status": "completed",
+      "result": {
+        "candidates": [
+          {
+            "assetId": "asset-ce3e07ba-acbd-4aac-9e5e-0408ce2534ac",
+            "endSeconds": 35,
+            "reason": "用户要求保留原视频完整时长、画幅和声音；本次只需在0-2秒叠加可编辑标题，不需要裁剪或重排，因此全片作为源区间。",
+            "startSeconds": 0
+          }
+        ],
+        "gaps": [
+          "当前仅有间隔抽帧与接触表，未进行完整连续观片；但本次修改不依赖识别具体动作起止。",
+          "未实际听音，已有元数据仅能确认源视频包含AAC音轨；保留原声应作为后续合成/导出检查项。"
+        ],
+        "inspectRanges": [],
+        "observations": [
+          {
+            "assetId": "asset-ce3e07ba-acbd-4aac-9e5e-0408ce2534ac",
+            "confidence": 0.86,
+            "differentProductFrom": [],
+            "productGroup": "黑色头戴式耳机/耳罩式耳机展示视频",
+            "quality": "1920x1080横屏，30fps，35秒；抽帧画面清晰，主体多为白色或浅色背景上的黑色耳机，已有画面内文字和版式。",
+            "role": "overview",
+            "safeCrop": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "sameProductAs": [],
+            "subjectBox": [
+              0.22,
+              0.15,
+              0.64,
+              0.67
+            ],
+            "uncertainty": "仅根据6个间隔抽帧判断，不能确认每个转场和全部画面细节；未听音，不能评价声音内容。",
+            "visibleContent": "视频展示黑色头戴式耳机，多帧包含产品整体图、正面佩戴形态/耳罩细节、头梁与轮廓等静态展示版式。开头抽帧已有页面式标题区域和耳机产品图，后续抽帧包含多页中文说明。",
+            "visibleText": [
+              "验收标题",
+              "象音耳机，外观展示",
+              "一条弧线，连接两侧",
+              "从整体，到耳垫轮廓",
+              "弧形头梁 / 黑色外观",
+              "回到，完整形状。"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "toolCalls": [
+    {
+      "name": "brief.parse",
+      "input": {},
+      "inputHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "idempotencyKey": "ffe479752bd684ec8886feab109328f5946bbf20e01d885e700c23fcf4556832",
+      "step": 1,
+      "startedAt": "2026-09-19T15:36:02.915Z"
+    },
+    {
+      "name": "assets.observe",
+      "input": {},
+      "inputHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "idempotencyKey": "229257780fdb391bf1ade9b284c4f8c6112fe65e638fc0edd3dc21ad9ffd3915",
+      "step": 2,
+      "startedAt": "2026-09-19T15:36:44.700Z"
+    },
+    {
+      "name": "resources.plan",
+      "input": {},
+      "inputHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "idempotencyKey": "d37750f5df2b14979c7a598f59260d590005e6753a18c0b81ef204138b179041",
+      "step": 3,
+      "startedAt": "2026-09-19T15:37:27.186Z"
+    }
+  ],
+  "toolResults": [
+    {
+      "tool": "brief.parse",
+      "status": "completed",
+      "result": {
+        "capabilities": [
+          "video-source-selection",
+          "native-composition",
+          "managed-original",
+          "native-editing",
+          "local-preview-review"
+        ],
+        "constraints": [
+          "在开头 0-2 秒添加独立可编辑标题文本“新品体验”。",
+          "不得裁切原视频；输出保持源视频 1920x1080 横屏画幅。",
+          "保留原视频完整 35 秒时长。",
+          "保留原视频声音，不新增配音或音乐。",
+          "使用用户上传且权利状态为 user-provided 的视频素材。"
+        ],
+        "gaps": [],
+        "keepOriginalAudio": true,
+        "needsCaptions": false,
+        "needsNarration": false,
+        "needsTranscription": false,
+        "request": {
+          "cta": "",
+          "facts": [],
+          "name": "上传视频项目",
+          "output": {
+            "width": 1920,
+            "height": 1080,
+            "durationSeconds": 35,
+            "fps": 30
+          },
+          "price": ""
+        },
+        "scenarioId": "product_launch",
+        "workflow": {
+          "assumptions": [
+            "标题作为独立可编辑文字叠加层处理，不替换或烧录为不可编辑源素材。",
+            "输出画幅与时长以已读素材元数据为准：1920x1080，35 秒。"
+          ],
+          "gaps": [],
+          "objective": "在上传视频基础上添加开头标题，同时保留原视频画幅、完整时长与声音，交付完整修改后视频。",
+          "overrides": [],
+          "requirements": [
+            {
+              "endSeconds": null,
+              "excludeIds": [],
+              "kind": "resource",
+              "quote": "使用上传的视频",
+              "startSeconds": null,
+              "targetIds": [
+                "asset-ce3e07ba-acbd-4aac-9e5e-0408ce2534ac"
+              ]
+            },
+            {
+              "endSeconds": 2,
+              "excludeIds": [],
+              "kind": "change",
+              "quote": "在开头 2 秒添加标题“新品体验”",
+              "startSeconds": 0,
+              "targetIds": []
+            },
+            {
+              "endSeconds": null,
+              "excludeIds": [],
+              "kind": "preserve",
+              "quote": "不要裁掉原视频",
+              "startSeconds": null,
+              "targetIds": [
+                "asset-ce3e07ba-acbd-4aac-9e5e-0408ce2534ac"
+              ]
+            },
+            {
+              "endSeconds": null,
+              "excludeIds": [],
+              "kind": "preserve",
+              "quote": "保持原来的画幅",
+              "startSeconds": null,
+              "targetIds": [
+                "asset-ce3e07ba-acbd-4aac-9e5e-0408ce2534ac"
+              ]
+            },
+            {
+              "endSeconds": null,
+              "excludeIds": [],
+              "kind": "preserve",
+              "quote": "完整时长",
+              "startSeconds": null,
+              "targetIds": [
+                "asset-ce3e07ba-acbd-4aac-9e5e-0408ce2534ac"
+              ]
+            },
+            {
+              "endSeconds": null,
+              "excludeIds": [],
+              "kind": "preserve",
+              "quote": "声音",
+              "startSeconds": null,
+              "targetIds": [
+                "asset-ce3e07ba-acbd-4aac-9e5e-0408ce2534ac"
+              ]
+            },
+            {
+              "endSeconds": null,
+              "excludeIds": [],
+              "kind": "goal",
+              "quote": "给我完整修改后的视频",
+              "startSeconds": null,
+              "targetIds": []
+            }
+          ],
+          "taskMode": "create"
+        },
+        "productionBinding": {
+          "message": "使用上传的视频，在开头 2 秒添加标题“新品体验”，不要裁掉原视频，保持原来的画幅、完整时长和声音，给我完整修改后的视频。",
+          "contract": {
+            "schemaVersion": 1,
+            "profile": "commerce-focus-v1",
+            "scenarioId": "product_launch",
+            "originalRequest": "使用上传的视频，在开头 2 秒添加标题“新品体验”，不要裁掉原视频，保持原来的画幅、完整时长和声音，给我完整修改后的视频。",
+            "taskMode": "create",
+            "workflowProfile": "create",
+            "workflow": {
+              "version": 1,
+              "taskMode": "create",
+              "taskModeExplicit": true,
+              "workflowProfile": "create",
+              "businessScenario": "product_launch",
+              "baseProjectId": "a622602c-b02c-4762-af79-19749714cc3f",
+              "baseRevisionId": null,
+              "assetScope": [
+                "asset-ce3e07ba-acbd-4aac-9e5e-0408ce2534ac"
+              ],
+              "originalRequest": "使用上传的视频，在开头 2 秒添加标题“新品体验”，不要裁掉原视频，保持原来的画幅、完整时长和声音，给我完整修改后的视频。",
+              "requirements": [
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "resource",
+                  "quote": "使用上传的视频",
+                  "startSeconds": null,
+                  "targetIds": [
+                    "asset-ce3e07ba-acbd-4aac-9e5e-0408ce2534ac"
+                  ],
+                  "id": "requirement-36929fe1ef556e01",
+                  "field": "resource",
+                  "inherited": false
+                },
+                {
+                  "endSeconds": 2,
+                  "excludeIds": [],
+                  "kind": "change",
+                  "quote": "在开头 2 秒添加标题“新品体验”",
+                  "startSeconds": 0,
+                  "targetIds": [],
+                  "id": "requirement-c1f139beeaf69170",
+                  "field": "change",
+                  "inherited": false
+                },
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "preserve",
+                  "quote": "不要裁掉原视频",
+                  "startSeconds": null,
+                  "targetIds": [
+                    "asset-ce3e07ba-acbd-4aac-9e5e-0408ce2534ac"
+                  ],
+                  "id": "requirement-ab99f2a3f629aa9d",
+                  "field": "preserve",
+                  "inherited": false
+                },
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "preserve",
+                  "quote": "保持原来的画幅",
+                  "startSeconds": null,
+                  "targetIds": [
+                    "asset-ce3e07ba-acbd-4aac-9e5e-0408ce2534ac"
+                  ],
+                  "id": "requirement-71b8457ff1a1e005",
+                  "field": "preserve",
+                  "inherited": false
+                },
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "preserve",
+                  "quote": "完整时长",
+                  "startSeconds": null,
+                  "targetIds": [
+                    "asset-ce3e07ba-acbd-4aac-9e5e-0408ce2534ac"
+                  ],
+                  "id": "requirement-875ae396f89e9498",
+                  "field": "preserve",
+                  "inherited": false
+                },
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "preserve",
+                  "quote": "声音",
+                  "startSeconds": null,
+                  "targetIds": [
+                    "asset-ce3e07ba-acbd-4aac-9e5e-0408ce2534ac"
+                  ],
+                  "id": "requirement-7db0e74a6e42e19f",
+                  "field": "preserve",
+                  "inherited": false
+                },
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "goal",
+                  "quote": "给我完整修改后的视频",
+                  "startSeconds": null,
+                  "targetIds": [],
+                  "id": "requirement-90708dd8f8044e20",
+                  "field": "goal",
+                  "inherited": false
+                }
+              ],
+              "assumptions": [
+                "标题作为独立可编辑文字叠加层处理，不替换或烧录为不可编辑源素材。",
+                "输出画幅与时长以已读素材元数据为准：1920x1080，35 秒。"
+              ],
+              "gaps": [],
+              "interpretation": "validated-semantic-analysis",
+              "objective": "在上传视频基础上添加开头标题，同时保留原视频画幅、完整时长与声音，交付完整修改后视频。",
+              "contractId": "contract-760a57ff2d4f7ada",
+              "parentContractId": null,
+              "sourceRequests": [
+                "使用上传的视频，在开头 2 秒添加标题“新品体验”，不要裁掉原视频，保持原来的画幅、完整时长和声音，给我完整修改后的视频。"
+              ],
+              "requirementChanges": [],
+              "changeTargets": [
+                {
+                  "endSeconds": 2,
+                  "excludeIds": [],
+                  "kind": "change",
+                  "quote": "在开头 2 秒添加标题“新品体验”",
+                  "startSeconds": 0,
+                  "targetIds": [],
+                  "id": "requirement-c1f139beeaf69170",
+                  "field": "change",
+                  "inherited": false
+                }
+              ],
+              "preserveTargets": [
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "preserve",
+                  "quote": "不要裁掉原视频",
+                  "startSeconds": null,
+                  "targetIds": [
+                    "asset-ce3e07ba-acbd-4aac-9e5e-0408ce2534ac"
+                  ],
+                  "id": "requirement-ab99f2a3f629aa9d",
+                  "field": "preserve",
+                  "inherited": false
+                },
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "preserve",
+                  "quote": "保持原来的画幅",
+                  "startSeconds": null,
+                  "targetIds": [
+                    "asset-ce3e07ba-acbd-4aac-9e5e-0408ce2534ac"
+                  ],
+                  "id": "requirement-71b8457ff1a1e005",
+                  "field": "preserve",
+                  "inherited": false
+                },
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "preserve",
+                  "quote": "完整时长",
+                  "startSeconds": null,
+                  "targetIds": [
+                    "asset-ce3e07ba-acbd-4aac-9e5e-0408ce2534ac"
+                  ],
+                  "id": "requirement-875ae396f89e9498",
+                  "field": "preserve",
+                  "inherited": false
+                },
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "preserve",
+                  "quote": "声音",
+                  "startSeconds": null,
+                  "targetIds": [
+                    "asset-ce3e07ba-acbd-4aac-9e5e-0408ce2534ac"
+                  ],
+                  "id": "requirement-7db0e74a6e42e19f",
+                  "field": "preserve",
+                  "inherited": false
+                }
+              ],
+              "resourceNeeds": [
+                {
+                  "endSeconds": null,
+                  "excludeIds": [],
+                  "kind": "resource",
+                  "quote": "使用上传的视频",
+                  "startSeconds": null,
+                  "targetIds": [
+                    "asset-ce3e07ba-acbd-4aac-9e5e-0408ce2534ac"
+                  ],
+                  "id": "requirement-36929fe1ef556e01",
+                  "field": "resource",
+                  "inherited": false
+                }
+              ],
+              "prohibitions": []
+            },
+            "persona": {
+              "creator": "商家／内容运营（待用户研究验证）",
+              "viewer": "首次了解商品的消费者"
+            },
+            "objective": "吸引首次观看者继续了解商品",
+            "product": {
+              "id": "product-1",
+              "name": "上传视频项目",
+              "facts": [],
+              "price": null,
+              "cta": "",
+              "audience": null,
+              "prohibited": []
+            },
+            "output": {
+              "width": 1920,
+              "height": 1080,
+              "durationSeconds": 35,
+              "fps": 30
+            },
+            "audio": "unspecified",
+            "mustHave": [],
+            "mustNot": [],
+            "explicitConstraints": {
+              "schemaVersion": 1,
+              "originalRequest": "使用上传的视频，在开头 2 秒添加标题“新品体验”，不要裁掉原视频，保持原来的画幅、完整时长和声音，给我完整修改后的视频。",
+              "narration": "unspecified",
+              "music": "unspecified",
+              "original": "unspecified",
+              "price": "unspecified",
+              "silent": false
+            },
+            "generatedFootageAllowed": false,
+            "deliverables": [
+              "candidate_mp4",
+              "editable_project",
+              "source_index",
+              "quality_report"
+            ]
+          }
+        }
+      },
+      "idempotencyKey": "ffe479752bd684ec8886feab109328f5946bbf20e01d885e700c23fcf4556832",
+      "step": 1,
+      "durationMs": 41783
+    },
+    {
+      "tool": "assets.observe",
+      "status": "completed",
+      "result": {
+        "candidates": [
+          {
+            "assetId": "asset-ce3e07ba-acbd-4aac-9e5e-0408ce2534ac",
+            "endSeconds": 35,
+            "reason": "用户要求保留原视频完整时长、画幅和声音；本次只需在0-2秒叠加可编辑标题，不需要裁剪或重排，因此全片作为源区间。",
+            "startSeconds": 0
+          }
+        ],
+        "gaps": [
+          "当前仅有间隔抽帧与接触表，未进行完整连续观片；但本次修改不依赖识别具体动作起止。",
+          "未实际听音，已有元数据仅能确认源视频包含AAC音轨；保留原声应作为后续合成/导出检查项。"
+        ],
+        "inspectRanges": [],
+        "observations": [
+          {
+            "assetId": "asset-ce3e07ba-acbd-4aac-9e5e-0408ce2534ac",
+            "confidence": 0.86,
+            "differentProductFrom": [],
+            "productGroup": "黑色头戴式耳机/耳罩式耳机展示视频",
+            "quality": "1920x1080横屏，30fps，35秒；抽帧画面清晰，主体多为白色或浅色背景上的黑色耳机，已有画面内文字和版式。",
+            "role": "overview",
+            "safeCrop": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "sameProductAs": [],
+            "subjectBox": [
+              0.22,
+              0.15,
+              0.64,
+              0.67
+            ],
+            "uncertainty": "仅根据6个间隔抽帧判断，不能确认每个转场和全部画面细节；未听音，不能评价声音内容。",
+            "visibleContent": "视频展示黑色头戴式耳机，多帧包含产品整体图、正面佩戴形态/耳罩细节、头梁与轮廓等静态展示版式。开头抽帧已有页面式标题区域和耳机产品图，后续抽帧包含多页中文说明。",
+            "visibleText": [
+              "验收标题",
+              "象音耳机，外观展示",
+              "一条弧线，连接两侧",
+              "从整体，到耳垫轮廓",
+              "弧形头梁 / 黑色外观",
+              "回到，完整形状。"
+            ]
+          }
+        ]
+      },
+      "idempotencyKey": "229257780fdb391bf1ade9b284c4f8c6112fe65e638fc0edd3dc21ad9ffd3915",
+      "step": 2,
+      "durationMs": 42484
+    },
+    {
+      "tool": "resources.plan",
+      "status": "failed",
+      "error": "asset-ce3e07ba-acbd-4aac-9e5e-0408ce2534ac：缺本次用途的素材审核与权利依据；素材缺少：product_identity；素材缺少：real_usage_or_effective_demonstration；素材缺少：supported_details",
+      "code": "COMMERCE_MATERIALS_BLOCKED",
+      "idempotencyKey": "d37750f5df2b14979c7a598f59260d590005e6753a18c0b81ef204138b179041",
+      "step": 3
+    }
+  ],
+  "verification": null,
+  "repairCount": 0,
+  "resultRevisionId": null,
+  "status": "recoverable",
+  "steps": 3,
+  "modelCalls": 3,
+  "maxModelCalls": 128,
+  "budgetSource": "application-default",
+  "completionReserve": 0,
+  "createdAt": "2026-09-19T15:36:02.913Z",
+  "updatedAt": "2026-09-19T15:37:27.189Z",
+  "stage": "resources",
+  "modelInvocations": [
+    {
+      "number": 1,
+      "runId": "d06de8cc-b111-4206-8b3e-c7710ec64626",
+      "stage": "R1",
+      "invocation": 1,
+      "attempt": 1,
+      "model": "openclaw/commerce-stage",
+      "requestHash": "23d2b297cb8d180b26a2dcfc5b3544f71d6f41770e466f8b4201ae735922c26e",
+      "sessionHash": "f221d4da8af7e4d445c2f9e86fad03a24f69171a45961c09924789141896216e",
+      "images": [],
+      "usage": "unknown",
+      "startedAt": "2026-09-19T15:36:02.920Z"
+    },
+    {
+      "number": 2,
+      "runId": "d06de8cc-b111-4206-8b3e-c7710ec64626",
+      "stage": "R2",
+      "invocation": 2,
+      "attempt": 1,
+      "model": "openclaw/commerce-stage",
+      "requestHash": "19bb9d9621c9492efcf127bc6a24ec6780e24968ecc986841f6cc0d8d75b740f",
+      "sessionHash": "965ffd465709a87145b9ad32275fc8fb779c61180afa7651803a65a394fe8315",
+      "images": [
+        {
+          "ordinal": 0,
+          "messageIndex": 0,
+          "contentIndex": 2,
+          "mime": "image/jpeg",
+          "bytes": 45085,
+          "sha256": "510ecfa143f1f66a4831cffde35604112481f8bdab69f34a3f1a1c764addd84e"
+        }
+      ],
+      "usage": "unknown",
+      "startedAt": "2026-09-19T15:36:45.751Z"
+    },
+    {
+      "number": 3,
+      "runId": "d06de8cc-b111-4206-8b3e-c7710ec64626",
+      "stage": "R2",
+      "invocation": 3,
+      "attempt": 1,
+      "model": "openclaw/commerce-stage",
+      "requestHash": "1906008eb6a2266c9638e92f8de8afe2473136628c2ae44870d7d7f05ef63e18",
+      "sessionHash": "9bb4225cb8c9268ec733aa267cb98707f237f9812b8dacb9bf0c00216cefb4f3",
+      "images": [
+        {
+          "ordinal": 0,
+          "messageIndex": 0,
+          "contentIndex": 2,
+          "mime": "image/jpeg",
+          "bytes": 45085,
+          "sha256": "510ecfa143f1f66a4831cffde35604112481f8bdab69f34a3f1a1c764addd84e"
+        }
+      ],
+      "usage": "unknown",
+      "startedAt": "2026-09-19T15:37:09.032Z"
+    }
+  ],
+  "error": "asset-ce3e07ba-acbd-4aac-9e5e-0408ce2534ac：缺本次用途的素材审核与权利依据；素材缺少：product_identity；素材缺少：real_usage_or_effective_demonstration；素材缺少：supported_details",
+  "code": "COMMERCE_MATERIALS_BLOCKED"
+}

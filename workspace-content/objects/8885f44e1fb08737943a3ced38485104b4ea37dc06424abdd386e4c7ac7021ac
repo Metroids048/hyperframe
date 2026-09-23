@@ -1,0 +1,250 @@
+{
+  "selected": [
+    {
+      "id": "kinetic-type-beats",
+      "reason": "承担全片以动态排版为主体的表达（开场定调与卖点节奏）：词句在中轴原位切换或逐拍建立，正好对应“动态排版呈现咖啡文化与品质氛围”，且完全不依赖任何实拍动作，与“不虚构冲泡实拍过程”的约束一致。"
+    },
+    {
+      "id": "titlecard-reveal",
+      "reason": "用于开场的品牌/标题卡与片尾整体回归的克制落点（单次揭示后静止停留）。符合“品牌动画”诉求，且在用户未给 CTA/口号时，结尾只做整体回归、不补写无依据文案。"
+    },
+    {
+      "id": "grid-card-assemble",
+      "reason": "把包装上真实可读的事实（3合1速溶、每份 20g、含 Instant Coffee Powder 12%、马来西亚制造、熱/冰冲调法）以自组装卡片/列表逐条枚举，构成“可信细节”段落，也避免单张包装照片独自承担全部信息。"
+    }
+  ],
+  "originalNeeds": [
+    "受保护的主体媒体容器：把唯一的真实包装照片作为 hero（原生 image 容器），做安全裁切去除底部水印与喷码区，并加轻微慢推/位移防止静帧冻结——该容器需原生实现。",
+    "与包装内容调性一致的氛围底色（咖啡色系渐变、纸质/颗粒质感）用原生 HTML/CSS 实现，作为“咖啡文化与品质氛围”的视觉基调，不引入任何外部图片素材。",
+    "竖屏 1080×1920 的中轴排版层级与安全区（顶部/底部留白）原生样式，保证文字字号与对比度清晰可读。"
+  ],
+  "gaps": [
+    "素材仅一张真实包装照片：第二个 asset 为 sha256 相同的重复文件，不提供任何新增视觉信息，不能当作第二个机位；因此无多角度、无细节特写、无使用/冲泡画面，所有镜头只能从这一张照片派生。",
+    "素材范围内没有任何视频文件，故不存在可列出的动作源区间；任何“冲泡/使用”镜头都会是虚构，与用户约束冲突，因此不制作。",
+    "包装照片底部存在手机水印（REDMI NOTE 13 PRO / 2026.03.22 14:26）与 Best Before 喷码，使用时必须裁掉该区域，底部不可用，且不得把水印/有效期当作商品卖点。",
+    "用户未提供价格、CTA 与品牌口号：结尾与卖点文案只能取自包装可见事实，不补写口号或未提供的下一步提示。",
+    "音频未指定：无旁白、无背景音乐；suppliedAudio 为空，未挂入工程的音乐不可用，不能假设已有可用背景音乐。",
+    "模型聆听能力不可用，人工听感复核待定；源音频保留。",
+    "comparison-split 需要两个等权且彼此不同的视觉输入，当前只有一个唯一图像，无法支撑真正的对比分屏，故未选入。"
+  ],
+  "blockingGaps": [],
+  "candidates": [
+    {
+      "id": "lt-mask-reveal",
+      "tags": [
+        "video",
+        "action",
+        "text",
+        "操作",
+        "实拍",
+        "口播",
+        "标签",
+        "文字"
+      ],
+      "inputs": [
+        "video"
+      ],
+      "description": "Transparent editable lower-third over continuing footage; no stat, price, or full-screen text takeover is required. Adapt the wipe and accent sweep to approved native text, local fonts and the managed timeline.",
+      "files": [
+        "registry/blocks/lt-mask-reveal/registry-item.json",
+        "registry/blocks/lt-mask-reveal/lt-mask-reveal.html"
+      ],
+      "requirements": {
+        "minMedia": 1,
+        "mediaKinds": [
+          "video"
+        ],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": false,
+      "score": 1,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "comparison-split",
+      "tags": [
+        "compare",
+        "detail",
+        "image",
+        "比较",
+        "细节",
+        "双栏"
+      ],
+      "inputs": [
+        "visual-pair"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/comparison-split.md",
+        "skills/hyperframes-animation/rules/split-tilt-cards.md",
+        "registry/components/comparison-split/registry-item.json",
+        "registry/components/comparison-split/comparison-split.html"
+      ],
+      "requirements": {
+        "minMedia": 2,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 1,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "video-text-pivot",
+      "tags": [
+        "video",
+        "action",
+        "操作",
+        "实拍",
+        "讲解"
+      ],
+      "inputs": [
+        "video"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/video-text-pivot.md",
+        "skills/hyperframes-animation/rules/gsap-effects.md"
+      ],
+      "requirements": {
+        "minMedia": 1,
+        "mediaKinds": [
+          "video"
+        ],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "occluding",
+      "compatible": true,
+      "eligible": false,
+      "score": 1,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "grid-card-assemble",
+      "tags": [
+        "image",
+        "details",
+        "steps",
+        "参数",
+        "配件",
+        "步骤"
+      ],
+      "inputs": [],
+      "files": [
+        "skills/hyperframes-animation/blueprints/grid-card-assemble.md",
+        "skills/hyperframes-animation/rules/gsap-effects.md"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 1,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "caption-editorial-emphasis",
+      "tags": [
+        "caption",
+        "speech",
+        "字幕",
+        "口播",
+        "强调"
+      ],
+      "inputs": [
+        "text"
+      ],
+      "description": "Editable editorial text emphasis; align spoken captions to measured transcript timestamps, never invented timing.",
+      "files": [
+        "registry/components/caption-editorial-emphasis/registry-item.json",
+        "registry/components/caption-editorial-emphasis/caption-editorial-emphasis.html"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 0,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "titlecard-reveal",
+      "tags": [
+        "title",
+        "brand",
+        "text",
+        "收尾",
+        "标题"
+      ],
+      "inputs": [],
+      "files": [
+        "skills/hyperframes-animation/blueprints/titlecard-reveal.md",
+        "skills/hyperframes-animation/rules/discrete-text-sequence.md"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 0,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "kinetic-type-beats",
+      "tags": [
+        "text",
+        "caption",
+        "文字",
+        "字幕",
+        "强调"
+      ],
+      "inputs": [
+        "text"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/kinetic-type-beats.md",
+        "skills/hyperframes-animation/rules/discrete-text-sequence.md"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "occluding",
+      "compatible": true,
+      "eligible": true,
+      "score": 0,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    }
+  ],
+  "originalRequest": "用项目中已登记的真实咖啡包装素材，制作 30 秒竖屏小红书咖啡新品介绍视频：以真实包装画面 + 动态排版/品牌动画呈现咖啡文化与品质氛围，不虚构冲泡实拍过程。",
+  "assetKinds": {
+    "web-65c21c2d-a1c2-48e4-b961-b14d464ab520": "image",
+    "demo-web-65c21c2d-a1c2-48e4-b961-b14d464ab520": "image"
+  }
+}

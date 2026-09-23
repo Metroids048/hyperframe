@@ -1,0 +1,172 @@
+{
+  "schema_version": 2,
+  "assessment_basis": "engineering_heuristics_and_observed_keyframe_issues",
+  "score": 10,
+  "threshold": 78,
+  "hard_minimum": 65,
+  "components": {
+    "product_exposure": 0,
+    "first_three_seconds": 0,
+    "pacing": 0,
+    "captions": 7,
+    "motion": 0,
+    "transitions": 0,
+    "audio": 75,
+    "commercial_conversion": 0
+  },
+  "issues": [
+    {
+      "severity": "blocker",
+      "dimension": "product_exposure",
+      "score": 0,
+      "problem": "product_exposure 低于商业最低线 65",
+      "repair": "只修改与 product_exposure 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+    },
+    {
+      "severity": "blocker",
+      "dimension": "first_three_seconds",
+      "score": 0,
+      "problem": "first_three_seconds 低于商业最低线 65",
+      "repair": "只修改与 first_three_seconds 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+    },
+    {
+      "severity": "blocker",
+      "dimension": "pacing",
+      "score": 0,
+      "problem": "pacing 低于商业最低线 65",
+      "repair": "只修改与 pacing 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+    },
+    {
+      "severity": "blocker",
+      "dimension": "captions",
+      "score": 7,
+      "problem": "captions 低于商业最低线 65",
+      "repair": "只修改与 captions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+    },
+    {
+      "severity": "blocker",
+      "dimension": "motion",
+      "score": 0,
+      "problem": "motion 低于商业最低线 65",
+      "repair": "只修改与 motion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+    },
+    {
+      "severity": "blocker",
+      "dimension": "transitions",
+      "score": 0,
+      "problem": "transitions 低于商业最低线 65",
+      "repair": "只修改与 transitions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+    },
+    {
+      "severity": "blocker",
+      "dimension": "commercial_conversion",
+      "score": 0,
+      "problem": "commercial_conversion 低于商业最低线 65",
+      "repair": "只修改与 commercial_conversion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。"
+    },
+    {
+      "id": "issue-0",
+      "requirementId": "final-output",
+      "severity": "blocker",
+      "startSeconds": 72.63333333333334,
+      "endSeconds": 72.63333333333334,
+      "problem": "成片时长远超需求：抽帧显示 43.600s（frame-1）仍在开箱、72.567s（frame-2）与 72.633s（frame-3）仍有画面，说明导出 MP4 至少约 72.6s，而需求要求约 45s、合同 output 仅 40s，超限约 27–32s。",
+      "evidenceRefs": [
+        "final-review/frame-3.jpg"
+      ],
+      "repair": "按约 45s 重新剪辑：删除冗余/重复区间，保留 6–9 个有效镜头与 ≥5 段不同源区间后重新导出。",
+      "preserve": [
+        "未涉及的镜头、文字和音轨"
+      ],
+      "dimension": "visual"
+    },
+    {
+      "id": "issue-1",
+      "requirementId": "final-output",
+      "severity": "blocker",
+      "startSeconds": 72.56666666666668,
+      "endSeconds": 72.56666666666668,
+      "problem": "画幅方向不符：frame-2/frame-3 为 16:9 横版并带左右黑边（pillarbox），合同 output 亦为 1280×720，未满足需求 #8 的 1080×1920 竖屏 9:16，小红书竖屏交付未达成。",
+      "evidenceRefs": [
+        "final-review/frame-2.jpg"
+      ],
+      "repair": "按 1080×1920、30fps 竖屏 9:16 重新构图并导出，消除横版画布与左右黑边，确保商品主体不被裁切。",
+      "preserve": [
+        "未涉及的镜头、文字和音轨"
+      ],
+      "dimension": "visual"
+    },
+    {
+      "id": "issue-2",
+      "requirementId": "final-output",
+      "severity": "major",
+      "startSeconds": 72.63333333333334,
+      "endSeconds": 72.63333333333334,
+      "problem": "结尾疑似静止/重复：72.567s 与 72.633s 两帧几乎一致，末段未见可见的收尾画面或购买/关注引导，且该段已处于超限时长内。",
+      "evidenceRefs": [
+        "final-review/frame-3.jpg"
+      ],
+      "repair": "重做结尾：缩短末段、补入简洁结尾文案（如来源/引导），确保尾帧非冻结式重复。",
+      "preserve": [
+        "未涉及的镜头、文字和音轨"
+      ],
+      "dimension": "visual"
+    },
+    {
+      "id": "issue-3",
+      "requirementId": "final-output",
+      "severity": "major",
+      "startSeconds": 43.6,
+      "endSeconds": 43.6,
+      "problem": "结构顺序存疑：开箱动作出现在 43.600s（成片中段偏后），与需求 #2 的「开头钩子→特点展示→真实开箱/操作→简洁结尾」组织方式难以核对；单帧亦无法确认是否呈现 ≥3 个可见特点。",
+      "evidenceRefs": [
+        "final-review/frame-1.jpg"
+      ],
+      "repair": "按需求顺序重排时间线：开头（含标题文案）→≥3 个可见特点展示→真实开箱/操作→简洁结尾，并避免按原素材顺序搬运。",
+      "preserve": [
+        "未涉及的镜头、文字和音轨"
+      ],
+      "dimension": "visual"
+    },
+    {
+      "id": "issue-4",
+      "requirementId": "final-output",
+      "severity": "minor",
+      "startSeconds": 72.56666666666668,
+      "endSeconds": 72.56666666666668,
+      "problem": "界面文字偏小：frame-2 中 Steam 库界面文字相对画面较小，与商品同屏时移动端可读性存疑（无法逐帧确认字幕字号与停留时长）。",
+      "evidenceRefs": [
+        "final-review/frame-2.jpg"
+      ],
+      "repair": "如需展示界面，加入局部细节放大/标注揭示等动态处理或延长停留，保证移动端文字可读。",
+      "preserve": [
+        "未涉及的镜头、文字和音轨"
+      ],
+      "dimension": "visual"
+    }
+  ],
+  "suggestions": [
+    "只修改与 product_exposure 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+    "只修改与 first_three_seconds 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+    "只修改与 pacing 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+    "只修改与 captions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+    "只修改与 motion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+    "只修改与 transitions 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+    "只修改与 commercial_conversion 相关的 DirectorTimeline 镜头和对象，保留其余素材、声音与工程历史。",
+    "按约 45s 重新剪辑：删除冗余/重复区间，保留 6–9 个有效镜头与 ≥5 段不同源区间后重新导出。",
+    "按 1080×1920、30fps 竖屏 9:16 重新构图并导出，消除横版画布与左右黑边，确保商品主体不被裁切。",
+    "重做结尾：缩短末段、补入简洁结尾文案（如来源/引导），确保尾帧非冻结式重复。",
+    "按需求顺序重排时间线：开头（含标题文案）→≥3 个可见特点展示→真实开箱/操作→简洁结尾，并避免按原素材顺序搬运。",
+    "如需展示界面，加入局部细节放大/标注揭示等动态处理或延长停留，保证移动端文字可读。",
+    "完成连续观片后校准节奏、动作和转场评分；自动分数不代签真人观看。",
+    "完成实际试听后校准声音情绪、清晰度和音画同步；电平检测不代替听感。"
+  ],
+  "revision_required": true,
+  "coverage": {
+    "actual_mp4": true,
+    "full_video_observed": false,
+    "audio_perception_verified": false
+  },
+  "status": "needs_revision",
+  "human_acceptance": "pending"
+}

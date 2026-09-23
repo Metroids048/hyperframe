@@ -1,0 +1,49 @@
+{
+  "issues": [
+    {
+      "sceneId": "scene-01",
+      "evidence": "edit-review-0/batch-0/frame-01-at-4.167s.png",
+      "nodeId": "node-aa9af36075fb903e",
+      "problem": "用户要求标题“新品体验”只添加在视频开头 2 秒；但在 4.167s 关键帧中标题仍位于左下角并清晰可见，显示时长超出本次修改意图。",
+      "repair": "将标题节点的可见动画限制在 0–2s 内：保持当前入场和版式，最迟在 2.0s 前完成淡出；不要改动视频节点、声音、画幅或总时长。修复后复查 1.5s 标题可读、2s 后标题不可见。",
+      "seconds": 4.167,
+      "severity": "major"
+    }
+  ],
+  "summary": "局部关键帧检查发现标题文字本身清晰、未被裁切；但标题在 4.167s 仍显示，违反“开头 2 秒添加标题”的时长要求，需要收短标题可见时间。",
+  "unreviewed": [
+    "声音保留与同步未评审：本批证据仅包含静态关键帧，没有音频或波形证据。",
+    "完整时长与连续运动未评审：未提供完整视频连续播放证据。",
+    "原视频是否完全未裁切只能部分判断：当前关键帧未见标题裁切，但缺少源画幅对照和完整视频检查。"
+  ],
+  "revisionId": "rev-e25406ebb96820bc",
+  "promptContext": [
+    {
+      "file": "prompts/commerce/R0.md",
+      "sha256": "b253f55c56fe3b45ef85dd40958034c3ee7cbfefd01572fc835f776d480aa306"
+    },
+    {
+      "file": "prompts/commerce/R6.md",
+      "sha256": "bc2daf9c7fdb6947acb652f3ea931715af1cfd5bb9bdcd3a64f6d91539114108"
+    },
+    {
+      "file": "agent.md",
+      "sha256": "91e592dbf5a9a9f090e7ced8ec1ced07c89b177da3040e21ecfd570f8c7f4568"
+    },
+    {
+      "file": "prompts/commerce/commerce-focus.md",
+      "sha256": "7fe5a32d4ed1d530d2daa5c8b661e1d95621fd69dbe8e249f1448e62dabce35f"
+    },
+    {
+      "file": "docs/commerce-focus-v1/scenario-registry.spec.json",
+      "sha256": "d8c28def4a22ab875c65642942a7fa1417b8b7f62dbeaca74bd0007feed8c430"
+    },
+    {
+      "file": "skills/hyperframes-core/references/review-loop.md",
+      "sha256": "0c7297d26ba2eab7cf0d73c71db1162aae7a907b029f6f214eaa81091f5afdbf"
+    }
+  ],
+  "inputHash": "9aa17f93619816a3ed8be9a3715e4e0e60e61bc7771425b5d6357cc1c932b9d4",
+  "model": "openclaw/commerce-stage",
+  "reasoningEffort": "configured"
+}

@@ -1,0 +1,252 @@
+{
+  "selected": [
+    {
+      "id": "lt-mask-reveal",
+      "reason": "适合实拍持续播放时的短画面说明。适配为独立留白区内的小字与一次轻遮罩揭示，使用暖白、咖啡棕，避免覆盖商品、手部和液流；不采用步骤编号。来源为HyperFrames 0.8.33、提交6e3308be4f2ab886597fcee7c5896a5f842ec4b6，后续按受管原生合同适配。"
+    },
+    {
+      "id": "titlecard-reveal",
+      "reason": "借用“一次克制出现后静置”的结构呈现标题“一杯咖啡的时间”及收尾文字，置于实拍之外的留白区，不增加全屏标题幕。与短说明错时出现，各自绑定独立文字对象，仅共享配色与字体，不共同驱动媒体变换。来源版本与提交同上；选择不代表已执行或通过渲染验证。"
+    }
+  ],
+  "originalNeeds": [
+    "原生编排一条35秒、1920×1080、30fps母片，使用六段实拍、最多六幕，组织磨豆器、咖啡粉、壶体接合、出液、倒杯与杯中饮品；壶体的两个非重叠区间可归入同幕。",
+    "从已观察候选区间按30fps帧边界去重选段并重新分配时长。最后一段候选仅约5.334秒，不能沿用暂拟6秒；通过其他候选余量满足总计1050帧，不循环、定格、重复或慢放补时长。",
+    "将完整源画幅等比置入暖白画布，原创独立文字留白区；标题、短说明、咖啡棕装饰线及“Shokuiku Cuisine · CC BY 3.0”署名保持可编辑，不添加虚构Logo、CTA或商品事实。",
+    "按选段源时间同步保留原始音轨，视频、音频和文字分别建对象并保存源时间映射；不调用旁白、转写、配乐或新镜头生成。",
+    "后续由应用读取所选资源合同并校验哈希、字体、依赖与许可，执行受管原生适配、编译、隔离检查和实际渲染验证；保留可编辑工程、候选MP4与版本证据。"
+  ],
+  "gaps": [
+    "残留product_howto、product_demo及教程模板绑定与明确的品牌日常展示目标冲突，应用需按已确认的general展示目的纠正，不增设完整教程验收要求。",
+    "已有素材观察支持选段，但主要为离散联系表；候选去重后约37.557秒仅为名义余量，内部切点、连续可用性及35秒节奏仍需时间线复核。",
+    "跨段同款、同一实物及同次制作未确认，应呈现日常片段蒙太奇；不宣称磨粉、旋紧或倒杯完成，不命名浅色液体。",
+    "统一主体保护框与稳定文字安全区未确认；采用独立留白布局后仍需复核遮挡、字号和署名可读性，源画面已有遮挡与出框无法补回。",
+    "六段原素材有音轨，但听音能力不可用；原声听感及视听同步的人类检查待完成，音轨存在不代表检查通过。",
+    "完整素材来源与许可证据待核验，指定署名须保留，但不能据此宣称商用权利已完备。",
+    "资源索引标记兼容且可选，实际适配、字体与依赖检查、工程可编辑性和导出质量尚未验证；本计划不代表已制作或通过审查。"
+  ],
+  "blockingGaps": [],
+  "candidates": [
+    {
+      "id": "lt-mask-reveal",
+      "tags": [
+        "video",
+        "action",
+        "text",
+        "操作",
+        "实拍",
+        "口播",
+        "标签",
+        "文字"
+      ],
+      "inputs": [
+        "video"
+      ],
+      "description": "Transparent editable lower-third over continuing footage; no stat, price, or full-screen text takeover is required. Adapt the wipe and accent sweep to approved native text, local fonts and the managed timeline.",
+      "files": [
+        "registry/blocks/lt-mask-reveal/registry-item.json",
+        "registry/blocks/lt-mask-reveal/lt-mask-reveal.html"
+      ],
+      "requirements": {
+        "minMedia": 1,
+        "mediaKinds": [
+          "video"
+        ],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 2,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "video-text-pivot",
+      "tags": [
+        "video",
+        "action",
+        "操作",
+        "实拍",
+        "讲解"
+      ],
+      "inputs": [
+        "video"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/video-text-pivot.md",
+        "skills/hyperframes-animation/rules/gsap-effects.md"
+      ],
+      "requirements": {
+        "minMedia": 1,
+        "mediaKinds": [
+          "video"
+        ],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "occluding",
+      "compatible": true,
+      "eligible": false,
+      "score": 2,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "grid-card-assemble",
+      "tags": [
+        "image",
+        "details",
+        "steps",
+        "参数",
+        "配件",
+        "步骤"
+      ],
+      "inputs": [],
+      "files": [
+        "skills/hyperframes-animation/blueprints/grid-card-assemble.md",
+        "skills/hyperframes-animation/rules/gsap-effects.md"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 2,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "titlecard-reveal",
+      "tags": [
+        "title",
+        "brand",
+        "text",
+        "收尾",
+        "标题"
+      ],
+      "inputs": [],
+      "files": [
+        "skills/hyperframes-animation/blueprints/titlecard-reveal.md",
+        "skills/hyperframes-animation/rules/discrete-text-sequence.md"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 1,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "comparison-split",
+      "tags": [
+        "compare",
+        "detail",
+        "image",
+        "比较",
+        "细节",
+        "双栏"
+      ],
+      "inputs": [
+        "visual-pair"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/comparison-split.md",
+        "skills/hyperframes-animation/rules/split-tilt-cards.md",
+        "registry/components/comparison-split/registry-item.json",
+        "registry/components/comparison-split/comparison-split.html"
+      ],
+      "requirements": {
+        "minMedia": 2,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 1,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "caption-editorial-emphasis",
+      "tags": [
+        "caption",
+        "speech",
+        "字幕",
+        "口播",
+        "强调"
+      ],
+      "inputs": [
+        "text"
+      ],
+      "description": "Editable editorial text emphasis; align spoken captions to measured transcript timestamps, never invented timing.",
+      "files": [
+        "registry/components/caption-editorial-emphasis/registry-item.json",
+        "registry/components/caption-editorial-emphasis/caption-editorial-emphasis.html"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 0,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "kinetic-type-beats",
+      "tags": [
+        "text",
+        "caption",
+        "文字",
+        "字幕",
+        "强调"
+      ],
+      "inputs": [
+        "text"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/kinetic-type-beats.md",
+        "skills/hyperframes-animation/rules/discrete-text-sequence.md"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "occluding",
+      "compatible": true,
+      "eligible": false,
+      "score": 0,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    }
+  ],
+  "originalRequest": "使用当前六段咖啡实拍制作35秒1920×1080横屏品牌日常展示，标题“一杯咖啡的时间”。本次只制作这一条母片。暖白与咖啡棕配色，真实动态画面为主，短标题和克制动效形成层次，呈现磨豆器、摩卡壶、出液、倒杯和成品的日常仪式。六段素材按真实内容选段，最多六幕；仅描述可见画面，型号、价格、参数均不写。保留原声，不加配乐，不加配音，不循环凑时长。短画面说明避开商品与手部，保留Shokuiku Cuisine · CC BY 3.0署名。请直接制作并导出候选视频，保留可编辑原生工程。",
+  "assetKinds": {
+    "asset-090d6ddb-4fad-42e5-b89c-e8fe5ae868ff": "video",
+    "asset-7d5754b2-87b3-44fe-adcf-19775a979961": "video",
+    "asset-21219824-5057-44bb-90c5-7653ccc5062b": "video",
+    "asset-1ffdd0cd-55cf-41ee-99e9-2f2c645c2e79": "video",
+    "asset-5ee74ba1-fb35-4f7b-b997-e97fa10efffb": "video",
+    "asset-60f16188-20f0-42dc-8d24-11d8f9870565": "video"
+  }
+}

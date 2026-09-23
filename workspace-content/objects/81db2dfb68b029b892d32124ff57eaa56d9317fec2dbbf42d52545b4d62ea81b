@@ -1,0 +1,249 @@
+{
+  "selected": [
+    {
+      "id": "grid-card-assemble",
+      "reason": "用于『展示包装细节』：对唯一静物图做裁切分块，把边框装饰、咖啡杯线描插画、两行文字等细节以错落自组装的卡片/网格逐个呈现并停留，动效低风险、节奏可控，契合简洁高级调性（Adapt 复用其错落组装结构，仅替换内容与载体）。"
+    },
+    {
+      "id": "titlecard-reveal",
+      "reason": "用于优雅的开场/落版节拍：以克制的单一动作（滑入交叉淡入或擦拭揭示）呈现真实观察到的品牌名 'CAFÉ-TASSE' 并静置定格。低动效即高级感，适合 premium 调性与收尾锁版。"
+    },
+    {
+      "id": "kinetic-type-beats",
+      "reason": "承载『简短文案』：在纯净背景上以节拍式短句逐条落版，无需素材输入、适配竖屏；文字仅使用已观察到的真实包装文字（CAFÉ-TASSE / Croquant de café Noir）与中性操作说明，不编造。"
+    }
+  ],
+  "originalNeeds": [
+    "对唯一一张 4:3 横版静物图做竖屏 9:16 的原生重构（裁切+分层+动态构图）与慢速优雅推镜/平移（Ken-Burns 式）——候选蓝图中无『单图静态包装的优雅运镜/细节揭示』形态，须以受管原生构图与动画实现。",
+    "包装正面的放大裁切特写与柔和显隐动效（边框角花、咖啡杯插画、文字区域逐块呈现），仅基于可观察的正面细节，不新增、不生成任何素材。"
+  ],
+  "gaps": [
+    "『简短文案』缺少用户提供的具体内容，且约束明确不得编造屏幕文字（尤其结尾文案与 CTA）；当前可用的真实文字仅为包装正面已观察到的 'CAFÉ-TASSE'、'Croquant de café Noir' 及中性操作说明，其余文案需用户提供。",
+    "素材仅有单张静态 4:3 图片（两个资产 ID 为同 sha256 的重复项），没有任何视频/动态素材，所有动画只能对静态图做原生图形重构，不能冒充实拍动作或使用场景。",
+    "仅包装正面单一视角，缺少侧面/背面/底部与其他细节特写素材，『包装细节』的完整呈现受限于此；放大裁切会因原图对焦偏软进一步损失清晰度。",
+    "源图 1920x1440 相对 1080x1920 目标分辨率并不富余，竖屏放大后清晰度有限，属制作阶段需评估的素材充分性限制。",
+    "subjectBox/safeCrop 为基于可见红色包装正面的保守归一化估计，非精确检测边界，精确框选需在制作阶段以可复现图像分析确认。"
+  ],
+  "blockingGaps": [
+    "『轻音乐』为必需项（explicitConstraints.music=required）但客观无法满足：工程未挂入任何可用音源（suppliedAudio 为空），当前能力无音乐生成或曲库检索能力，且不得以静音或随机音频顶替，缺少可绑定的真实音乐素材与权利依据——需用户提供可授权的音乐音源后方可完成带音乐的成片。"
+  ],
+  "candidates": [
+    {
+      "id": "comparison-split",
+      "tags": [
+        "compare",
+        "detail",
+        "image",
+        "比较",
+        "细节",
+        "双栏"
+      ],
+      "inputs": [
+        "visual-pair"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/comparison-split.md",
+        "skills/hyperframes-animation/rules/split-tilt-cards.md",
+        "registry/components/comparison-split/registry-item.json",
+        "registry/components/comparison-split/comparison-split.html"
+      ],
+      "requirements": {
+        "minMedia": 2,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 2,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "grid-card-assemble",
+      "tags": [
+        "image",
+        "details",
+        "steps",
+        "参数",
+        "配件",
+        "步骤"
+      ],
+      "inputs": [],
+      "files": [
+        "skills/hyperframes-animation/blueprints/grid-card-assemble.md",
+        "skills/hyperframes-animation/rules/gsap-effects.md"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 1,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "lt-mask-reveal",
+      "tags": [
+        "video",
+        "action",
+        "text",
+        "操作",
+        "实拍",
+        "口播",
+        "标签",
+        "文字"
+      ],
+      "inputs": [
+        "video"
+      ],
+      "description": "Transparent editable lower-third over continuing footage; no stat, price, or full-screen text takeover is required. Adapt the wipe and accent sweep to approved native text, local fonts and the managed timeline.",
+      "files": [
+        "registry/blocks/lt-mask-reveal/registry-item.json",
+        "registry/blocks/lt-mask-reveal/lt-mask-reveal.html"
+      ],
+      "requirements": {
+        "minMedia": 1,
+        "mediaKinds": [
+          "video"
+        ],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": false,
+      "score": 0,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "caption-editorial-emphasis",
+      "tags": [
+        "caption",
+        "speech",
+        "字幕",
+        "口播",
+        "强调"
+      ],
+      "inputs": [
+        "text"
+      ],
+      "description": "Editable editorial text emphasis; align spoken captions to measured transcript timestamps, never invented timing.",
+      "files": [
+        "registry/components/caption-editorial-emphasis/registry-item.json",
+        "registry/components/caption-editorial-emphasis/caption-editorial-emphasis.html"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 0,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "titlecard-reveal",
+      "tags": [
+        "title",
+        "brand",
+        "text",
+        "收尾",
+        "标题"
+      ],
+      "inputs": [],
+      "files": [
+        "skills/hyperframes-animation/blueprints/titlecard-reveal.md",
+        "skills/hyperframes-animation/rules/discrete-text-sequence.md"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "low",
+      "compatible": true,
+      "eligible": true,
+      "score": 0,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "video-text-pivot",
+      "tags": [
+        "video",
+        "action",
+        "操作",
+        "实拍",
+        "讲解"
+      ],
+      "inputs": [
+        "video"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/video-text-pivot.md",
+        "skills/hyperframes-animation/rules/gsap-effects.md"
+      ],
+      "requirements": {
+        "minMedia": 1,
+        "mediaKinds": [
+          "video"
+        ],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "occluding",
+      "compatible": true,
+      "eligible": false,
+      "score": 0,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    },
+    {
+      "id": "kinetic-type-beats",
+      "tags": [
+        "text",
+        "caption",
+        "文字",
+        "字幕",
+        "强调"
+      ],
+      "inputs": [
+        "text"
+      ],
+      "files": [
+        "skills/hyperframes-animation/blueprints/kinetic-type-beats.md",
+        "skills/hyperframes-animation/rules/discrete-text-sequence.md"
+      ],
+      "requirements": {
+        "minMedia": 0,
+        "mediaKinds": [],
+        "maxTextCharacters": 80
+      },
+      "motionRisk": "occluding",
+      "compatible": true,
+      "eligible": true,
+      "score": 0,
+      "kind": "reviewed-blueprint-adapter",
+      "runtime": "0.8.33",
+      "sourceCommit": "6e3308be4f2ab886597fcee7c5896a5f842ec4b6"
+    }
+  ],
+  "originalRequest": "制作一个展示产品包装的宣传视频，使用优雅的动画效果展示包装细节，配合轻音乐和简短文案，30秒竖屏",
+  "assetKinds": {
+    "web-d000119d-7163-4dbd-ab34-bb77df79d1fc": "image",
+    "demo-web-d000119d-7163-4dbd-ab34-bb77df79d1fc": "image"
+  }
+}

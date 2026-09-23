@@ -1,0 +1,25 @@
+import puppeteer from 'puppeteer-core';
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import {runtimeEnv} from '../../lib/workflow.mjs';
+const browser=await puppeteer.launch({executablePath:runtimeEnv().HYPERFRAMES_BROWSER_PATH,headless:true,args:['--no-sandbox']});
+try{
+ const page=await browser.newPage();await page.setViewport({width:1440,height:1000});const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto('http://localhost:3024/?work=mijia-v2',{waitUntil:'networkidle2'});
+ await page.waitForFunction(()=>document.querySelector('#conversation-status').textContent.includes('参考成片'));
+ assert.equal(await page.$eval('#send',e=>e.disabled),true);
+ await page.screenshot({path:'outputs/conversation-entry-20260917/reference.png',fullPage:true});
+ await page.type('#message','把时间缩短到30s');
+ await page.select('#edit-project-picker','1ae65883-a821-437b-be46-1ea4e7e0eebe');await page.click('#continue-project');
+ await page.waitForFunction(()=>document.querySelector('#message').value==='把时间缩短到30s'&&!document.querySelector('#send').disabled);
+ await page.waitForFunction(()=>!document.querySelector('#revision-tools').hidden);
+ const current=await page.$eval('#revisions',e=>e.value);const history=await page.$$eval('#revisions option',es=>es.map(e=>e.value));
+ await page.select('#revisions',history.find(id=>id!==current));assert.equal(await page.$eval('#send',e=>e.disabled),true);
+ await page.select('#revisions',current);assert.equal(await page.$eval('#send',e=>e.disabled),false);
+ await page.screenshot({path:'outputs/conversation-entry-20260917/editor.png',fullPage:true});
+ await page.reload({waitUntil:'networkidle2'});await page.waitForFunction(id=>document.querySelector('#revisions').value===id,{},current);
+ assert.equal(await page.$eval('#message',e=>e.value),'把时间缩短到30s');assert.deepEqual(errors,[]);
+ await page.setViewport({width:390,height:844});await page.screenshot({path:'outputs/conversation-entry-20260917/mobile.png',fullPage:true});
+ assert(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),'mobile viewport has no horizontal overflow');
+ await fs.writeFile('outputs/conversation-entry-20260917/live.json',JSON.stringify({url:page.url(),currentRevision:current,versions:history.length,checks:['reference explanation','existing project entry','draft preserved','version browsing','reload'],mutations:'No edits submitted to user project',errors},null,2));console.log('PASS live WebUI reference → project, draft retention, version browsing and reload; no project writes');
+}finally{await browser.close();}

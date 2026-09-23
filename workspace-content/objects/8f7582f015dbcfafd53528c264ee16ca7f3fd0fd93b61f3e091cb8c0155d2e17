@@ -1,0 +1,746 @@
+{
+  "schemaVersion": 1,
+  "id": "45524cb7-c25d-4dd4-a9a2-0ca5c72fb941",
+  "title": "新创作",
+  "createdAt": "2026-09-21T05:43:15.605Z",
+  "updatedAt": "2026-09-23T13:05:44.001Z",
+  "request": {
+    "message": "Create an editable project from the attached video (media://inbound/c11c3547-ea8d-4288-83a6-ca5bccd774dd-CI_30s_fixture.mp4). Small change only: add a title card reading \"测试片段\" at the beginning. Preserve the original footage, original audio, duration, and aspect ratio.",
+    "inferRequest": true,
+    "taskMode": "create",
+    "taskModeExplicit": true,
+    "commerceProfile": "commerce-focus-v1",
+    "source": "openclaw-request"
+  },
+  "assets": [
+    {
+      "id": "asset-27477b65-89fa-4dcb-aff2-813a32cb7a8c",
+      "kind": "video",
+      "name": "c11c3547-ea8d-4288-83a6-ca5bccd774dd-CI_30s_fixture.mp4",
+      "path": "data/result-completion-projects/45524cb7-c25d-4dd4-a9a2-0ca5c72fb941/uploads/asset-27477b65-89fa-4dcb-aff2-813a32cb7a8c.mp4",
+      "originalRef": "/Users/a1234/Desktop/hyperframe-main/video-agent/data/result-completion-projects/45524cb7-c25d-4dd4-a9a2-0ca5c72fb941/uploads/asset-27477b65-89fa-4dcb-aff2-813a32cb7a8c.mp4",
+      "normalizedRef": "data/result-completion-projects/45524cb7-c25d-4dd4-a9a2-0ca5c72fb941/uploads/asset-27477b65-89fa-4dcb-aff2-813a32cb7a8c.mp4",
+      "bytes": 1105935,
+      "rights": {
+        "status": "user-provided"
+      },
+      "mediaMetadata": {
+        "kind": "video",
+        "duration": 30,
+        "frames": 900,
+        "width": 1080,
+        "height": 1920,
+        "rotation": 0,
+        "hasAudio": false,
+        "videoCodec": "h264",
+        "pixelFormat": "yuv420p",
+        "audioCodec": null,
+        "sourceFps": "30/1",
+        "nominalFps": "30/1",
+        "size": 1105935
+      }
+    }
+  ],
+  "revisions": [],
+  "currentRevisionId": null,
+  "jobs": [
+    {
+      "id": "job-a3cd3438-3045-4179-ae9b-9ab627faf75b",
+      "kind": "route",
+      "status": "recoverable",
+      "stage": "子任务规划镜头与素材缺口",
+      "progress": 0,
+      "createdAt": "2026-09-21T05:43:15.822Z",
+      "input": {
+        "message": "Create an editable project from the attached video (media://inbound/c11c3547-ea8d-4288-83a6-ca5bccd774dd-CI_30s_fixture.mp4). Small change only: add a title card reading \"测试片段\" at the beginning. Preserve the original footage, original audio, duration, and aspect ratio.",
+        "baseRevisionId": null,
+        "attachmentIds": [
+          "asset-27477b65-89fa-4dcb-aff2-813a32cb7a8c"
+        ],
+        "idempotencyKey": "op-21f7ec60425bcd623d4ffec7cd32dc821ddd61f924f39f23"
+      },
+      "routeJob": true,
+      "retryCount": 0,
+      "startedAt": "2026-09-21T05:43:15.823Z",
+      "childProjectId": "45524cb7-c25d-4dd4-a9a2-0ca5c72fb941",
+      "childJobId": "job-dbe79b39-dbd0-41fe-925f-4d4be52bca79",
+      "error": "素材路径必须相对于 video-agent 工作目录",
+      "code": "INVALID_ASSET_PATH",
+      "completedAt": "2026-09-21T05:45:11.364Z",
+      "businessProgress": {
+        "current": "recoverable",
+        "label": "子任务规划镜头与素材缺口",
+        "events": [
+          {
+            "phase": "recoverable",
+            "label": "子任务规划镜头与素材缺口",
+            "stage": "子任务规划镜头与素材缺口",
+            "status": "recoverable",
+            "at": "2026-09-22T11:18:29.013Z"
+          }
+        ]
+      }
+    },
+    {
+      "id": "job-dbe79b39-dbd0-41fe-925f-4d4be52bca79",
+      "kind": "create",
+      "input": {
+        "message": "Create an editable project from the attached video (media://inbound/c11c3547-ea8d-4288-83a6-ca5bccd774dd-CI_30s_fixture.mp4). Small change only: add a title card reading \"测试片段\" at the beginning. Preserve the original footage, original audio, duration, and aspect ratio.",
+        "attachmentIds": [
+          "asset-27477b65-89fa-4dcb-aff2-813a32cb7a8c"
+        ],
+        "selectedNodeId": null,
+        "baseRevisionId": null,
+        "idempotencyKey": "op-21f7ec60425bcd623d4ffec7cd32dc821ddd61f924f39f23",
+        "displayMessage": "Create an editable project from the attached video (media://inbound/c11c3547-ea8d-4288-83a6-ca5bccd774dd-CI_30s_fixture.mp4). Small change only: add a title card reading \"测试片段\" at the beginning. Preserve the original footage, original audio, duration, and aspect ratio.",
+        "action": "generate",
+        "routeDecision": {
+          "mode": "create",
+          "quote": "Create an editable project from the attached video",
+          "revisionId": null,
+          "assetIds": [
+            "asset-27477b65-89fa-4dcb-aff2-813a32cb7a8c"
+          ],
+          "question": "",
+          "scenarioId": null,
+          "targets": [
+            {
+              "id": null,
+              "kind": "text",
+              "requirement": "在视频开头添加标题卡，文字为“测试片段”"
+            },
+            {
+              "id": null,
+              "kind": "timeline",
+              "requirement": "标题卡应置于开头且不改变原始总时长与画幅"
+            }
+          ],
+          "preserve": [
+            "unmentioned-objects",
+            "source-assets",
+            "revision-history",
+            "原始视频画面与素材内容",
+            "原始音频",
+            "原始总时长",
+            "原始画幅比例"
+          ],
+          "reason": "当前没有已有版本，且用户明确要求从附件视频创建可编辑项目并复用该素材；仅新增开头标题卡，其他原始属性保持不变。",
+          "source": "semantic",
+          "model": "gpt-5.6-sol",
+          "baseRevisionId": null,
+          "businessIntent": {
+            "version": 2,
+            "product": null,
+            "platform": null,
+            "audience": [],
+            "marketingGoal": null,
+            "outputConstraints": null,
+            "videoType": "create",
+            "creationRequested": false,
+            "scenario": {
+              "id": null,
+              "status": "unresolved",
+              "source": null,
+              "selectedId": null,
+              "candidates": []
+            },
+            "ruleIds": [],
+            "llmRequired": true,
+            "confidence": 0.5
+          },
+          "version": 1,
+          "message": "Create an editable project from the attached video (media://inbound/c11c3547-ea8d-4288-83a6-ca5bccd774dd-CI_30s_fixture.mp4). Small change only: add a title card reading \"测试片段\" at the beginning. Preserve the original footage, original audio, duration, and aspect ratio.",
+          "scenario": null,
+          "executionStrategy": "L2",
+          "confidence": 0.8,
+          "fallback": {
+            "version": 1,
+            "categories": [
+              "missing_evidence",
+              "ambiguous_target",
+              "unsupported_capability",
+              "resource_incompatible",
+              "provider_unavailable",
+              "quality_failure",
+              "revision_conflict"
+            ],
+            "maxReplans": 2,
+            "identicalFailureLimit": 2,
+            "preserveCurrentRevision": true,
+            "allowSilentSubstitution": false,
+            "steps": [
+              "retry-same-capability",
+              "safe-equivalent-execution",
+              "retain-valid-revision",
+              "report-failed-targets",
+              "repair-only-gap"
+            ],
+            "classifiers": [
+              [
+                "revision_conflict",
+                "REVISION_CONFLICT|STALE_REVISION"
+              ],
+              [
+                "provider_unavailable",
+                "^(MINIMAX_|CODEX_|PROVIDER_)"
+              ],
+              [
+                "resource_incompatible",
+                "RESOURCE_|INCOMPATIBLE"
+              ],
+              [
+                "unsupported_capability",
+                "UNSUPPORTED|CAPABILITY|VOICE_NOT_FOUND"
+              ],
+              [
+                "ambiguous_target",
+                "AMBIGUOUS|SCOPE|TARGET|CONFLICT|CAPTION_ALIGNMENT_REQUIRED"
+              ],
+              [
+                "missing_evidence",
+                "MISSING|NEEDS_INPUT|INSUFFICIENT|SPEECH_SCRIPT_REQUIRED|NO_SPEECH|NO_CAPTION_AUDIO"
+              ]
+            ]
+          },
+          "selectedSkills": [
+            "timeline-edit",
+            "visual-composition",
+            "audio-mix",
+            "media-use",
+            "conversation-edit"
+          ],
+          "skillReasons": {
+            "visual-composition": [
+              "target:text"
+            ],
+            "timeline-edit": [
+              "target:timeline"
+            ],
+            "audio-mix": [
+              "request-evidence"
+            ],
+            "media-use": [
+              "request-evidence"
+            ],
+            "conversation-edit": [
+              "request-evidence"
+            ]
+          }
+        },
+        "taskMode": "create",
+        "taskModeExplicit": true,
+        "workflow": {
+          "version": 1,
+          "taskMode": "create",
+          "taskModeExplicit": true,
+          "workflowProfile": "create",
+          "businessScenario": null,
+          "baseProjectId": "45524cb7-c25d-4dd4-a9a2-0ca5c72fb941",
+          "baseRevisionId": null,
+          "assetScope": [
+            "asset-27477b65-89fa-4dcb-aff2-813a32cb7a8c"
+          ],
+          "originalRequest": "Create an editable project from the attached video (media://inbound/c11c3547-ea8d-4288-83a6-ca5bccd774dd-CI_30s_fixture.mp4). Small change only: add a title card reading \"测试片段\" at the beginning. Preserve the original footage, original audio, duration, and aspect ratio.",
+          "requirements": [],
+          "assumptions": [],
+          "gaps": [],
+          "interpretation": "pending-semantic-analysis"
+        }
+      },
+      "routeDecision": {
+        "mode": "create",
+        "quote": "Create an editable project from the attached video",
+        "revisionId": null,
+        "assetIds": [
+          "asset-27477b65-89fa-4dcb-aff2-813a32cb7a8c"
+        ],
+        "question": "",
+        "scenarioId": null,
+        "targets": [
+          {
+            "id": null,
+            "kind": "text",
+            "requirement": "在视频开头添加标题卡，文字为“测试片段”"
+          },
+          {
+            "id": null,
+            "kind": "timeline",
+            "requirement": "标题卡应置于开头且不改变原始总时长与画幅"
+          }
+        ],
+        "preserve": [
+          "unmentioned-objects",
+          "source-assets",
+          "revision-history",
+          "原始视频画面与素材内容",
+          "原始音频",
+          "原始总时长",
+          "原始画幅比例"
+        ],
+        "reason": "当前没有已有版本，且用户明确要求从附件视频创建可编辑项目并复用该素材；仅新增开头标题卡，其他原始属性保持不变。",
+        "source": "semantic",
+        "model": "gpt-5.6-sol",
+        "baseRevisionId": null,
+        "businessIntent": {
+          "version": 2,
+          "product": null,
+          "platform": null,
+          "audience": [],
+          "marketingGoal": null,
+          "outputConstraints": null,
+          "videoType": "create",
+          "creationRequested": false,
+          "scenario": {
+            "id": null,
+            "status": "unresolved",
+            "source": null,
+            "selectedId": null,
+            "candidates": []
+          },
+          "ruleIds": [],
+          "llmRequired": true,
+          "confidence": 0.5
+        },
+        "version": 1,
+        "message": "Create an editable project from the attached video (media://inbound/c11c3547-ea8d-4288-83a6-ca5bccd774dd-CI_30s_fixture.mp4). Small change only: add a title card reading \"测试片段\" at the beginning. Preserve the original footage, original audio, duration, and aspect ratio.",
+        "scenario": null,
+        "executionStrategy": "L2",
+        "confidence": 0.8,
+        "fallback": {
+          "version": 1,
+          "categories": [
+            "missing_evidence",
+            "ambiguous_target",
+            "unsupported_capability",
+            "resource_incompatible",
+            "provider_unavailable",
+            "quality_failure",
+            "revision_conflict"
+          ],
+          "maxReplans": 2,
+          "identicalFailureLimit": 2,
+          "preserveCurrentRevision": true,
+          "allowSilentSubstitution": false,
+          "steps": [
+            "retry-same-capability",
+            "safe-equivalent-execution",
+            "retain-valid-revision",
+            "report-failed-targets",
+            "repair-only-gap"
+          ],
+          "classifiers": [
+            [
+              "revision_conflict",
+              "REVISION_CONFLICT|STALE_REVISION"
+            ],
+            [
+              "provider_unavailable",
+              "^(MINIMAX_|CODEX_|PROVIDER_)"
+            ],
+            [
+              "resource_incompatible",
+              "RESOURCE_|INCOMPATIBLE"
+            ],
+            [
+              "unsupported_capability",
+              "UNSUPPORTED|CAPABILITY|VOICE_NOT_FOUND"
+            ],
+            [
+              "ambiguous_target",
+              "AMBIGUOUS|SCOPE|TARGET|CONFLICT|CAPTION_ALIGNMENT_REQUIRED"
+            ],
+            [
+              "missing_evidence",
+              "MISSING|NEEDS_INPUT|INSUFFICIENT|SPEECH_SCRIPT_REQUIRED|NO_SPEECH|NO_CAPTION_AUDIO"
+            ]
+          ]
+        },
+        "selectedSkills": [
+          "timeline-edit",
+          "visual-composition",
+          "audio-mix",
+          "media-use",
+          "conversation-edit"
+        ],
+        "skillReasons": {
+          "visual-composition": [
+            "target:text"
+          ],
+          "timeline-edit": [
+            "target:timeline"
+          ],
+          "audio-mix": [
+            "request-evidence"
+          ],
+          "media-use": [
+            "request-evidence"
+          ],
+          "conversation-edit": [
+            "request-evidence"
+          ]
+        }
+      },
+      "baseRevisionId": null,
+      "status": "recoverable",
+      "createdAt": "2026-09-21T05:45:11.356Z",
+      "idempotencyKey": "op-21f7ec60425bcd623d4ffec7cd32dc821ddd61f924f39f23",
+      "startedAt": "2026-09-21T05:45:11.359Z",
+      "stage": "规划镜头与素材缺口",
+      "failureReceipt": {
+        "version": 2,
+        "code": "INVALID_ASSET_PATH",
+        "category": "quality_failure",
+        "recovery": {
+          "domain": "runtime",
+          "retryAllowed": false,
+          "automaticRetry": false,
+          "alternativeAllowed": false,
+          "qualityAccepted": false,
+          "goalReduced": false,
+          "nextAction": "保留成果，诊断失败阶段；不重做整片"
+        },
+        "reason": "素材路径必须相对于 video-agent 工作目录",
+        "originalRequest": "Create an editable project from the attached video (media://inbound/c11c3547-ea8d-4288-83a6-ca5bccd774dd-CI_30s_fixture.mp4). Small change only: add a title card reading \"测试片段\" at the beginning. Preserve the original footage, original audio, duration, and aspect ratio.",
+        "requirements": [],
+        "baseRevisionId": null,
+        "actualAction": "保留上一有效版本；本次未发布修改",
+        "publishedRevisionId": null,
+        "preserved": [
+          "工程",
+          "已有音轨",
+          "素材",
+          "历史"
+        ],
+        "goalReduced": false,
+        "qualityAccepted": false,
+        "failedTargets": [
+          {
+            "id": null,
+            "kind": "text",
+            "requirement": "在视频开头添加标题卡，文字为“测试片段”"
+          },
+          {
+            "id": null,
+            "kind": "timeline",
+            "requirement": "标题卡应置于开头且不改变原始总时长与画幅"
+          }
+        ],
+        "policyVersion": 1,
+        "nextAction": "定位失败对象，执行最小修复后重新检查"
+      },
+      "error": "素材路径必须相对于 video-agent 工作目录",
+      "code": "INVALID_ASSET_PATH",
+      "completedAt": "2026-09-21T05:45:11.364Z",
+      "durationMs": 5,
+      "businessProgress": {
+        "current": "recoverable",
+        "label": "规划镜头与素材缺口",
+        "events": [
+          {
+            "phase": "recoverable",
+            "label": "规划镜头与素材缺口",
+            "stage": "规划镜头与素材缺口",
+            "status": "recoverable",
+            "at": "2026-09-22T11:18:29.013Z"
+          }
+        ]
+      }
+    }
+  ],
+  "messages": [
+    {
+      "role": "user",
+      "text": "Create an editable project from the attached video (media://inbound/c11c3547-ea8d-4288-83a6-ca5bccd774dd-CI_30s_fixture.mp4). Small change only: add a title card reading \"测试片段\" at the beginning. Preserve the original footage, original audio, duration, and aspect ratio.",
+      "attachmentIds": [
+        "asset-27477b65-89fa-4dcb-aff2-813a32cb7a8c"
+      ],
+      "baseRevisionId": null,
+      "time": "2026-09-21T05:45:11.356Z"
+    },
+    {
+      "role": "assistant",
+      "text": "素材路径必须相对于 video-agent 工作目录",
+      "time": "2026-09-21T05:45:11.364Z"
+    }
+  ],
+  "redo": [],
+  "progressSignature": "[[\"job-a3cd3438-3045-4179-ae9b-9ab627faf75b\",\"recoverable\",\"子任务规划镜头与素材缺口\",null,null,\"INVALID_ASSET_PATH\",\"素材路径必须相对于 video-agent 工作目录\",null,null,null],[\"job-dbe79b39-dbd0-41fe-925f-4d4be52bca79\",\"recoverable\",\"规划镜头与素材缺口\",null,null,\"INVALID_ASSET_PATH\",\"素材路径必须相对于 video-agent 工作目录\",null,null,null]]",
+  "recentProgressAt": "2026-09-21T05:45:11.364Z",
+  "routingReceipts": [
+    {
+      "time": "2026-09-21T05:45:11.355Z",
+      "message": "Create an editable project from the attached video (media://inbound/c11c3547-ea8d-4288-83a6-ca5bccd774dd-CI_30s_fixture.mp4). Small change only: add a title card reading \"测试片段\" at the beginning. Preserve the original footage, original audio, duration, and aspect ratio.",
+      "baseRevisionId": null,
+      "mode": "create",
+      "quote": "Create an editable project from the attached video",
+      "revisionId": null,
+      "assetIds": [
+        "asset-27477b65-89fa-4dcb-aff2-813a32cb7a8c"
+      ],
+      "question": "",
+      "scenarioId": null,
+      "targets": [
+        {
+          "id": null,
+          "kind": "text",
+          "requirement": "在视频开头添加标题卡，文字为“测试片段”"
+        },
+        {
+          "id": null,
+          "kind": "timeline",
+          "requirement": "标题卡应置于开头且不改变原始总时长与画幅"
+        }
+      ],
+      "preserve": [
+        "unmentioned-objects",
+        "source-assets",
+        "revision-history",
+        "原始视频画面与素材内容",
+        "原始音频",
+        "原始总时长",
+        "原始画幅比例"
+      ],
+      "reason": "当前没有已有版本，且用户明确要求从附件视频创建可编辑项目并复用该素材；仅新增开头标题卡，其他原始属性保持不变。",
+      "source": "semantic",
+      "model": "gpt-5.6-sol",
+      "businessIntent": {
+        "version": 2,
+        "product": null,
+        "platform": null,
+        "audience": [],
+        "marketingGoal": null,
+        "outputConstraints": null,
+        "videoType": "create",
+        "creationRequested": false,
+        "scenario": {
+          "id": null,
+          "status": "unresolved",
+          "source": null,
+          "selectedId": null,
+          "candidates": []
+        },
+        "ruleIds": [],
+        "llmRequired": true,
+        "confidence": 0.5
+      },
+      "version": 1,
+      "scenario": null,
+      "executionStrategy": "L2",
+      "confidence": 0.8,
+      "fallback": {
+        "version": 1,
+        "categories": [
+          "missing_evidence",
+          "ambiguous_target",
+          "unsupported_capability",
+          "resource_incompatible",
+          "provider_unavailable",
+          "quality_failure",
+          "revision_conflict"
+        ],
+        "maxReplans": 2,
+        "identicalFailureLimit": 2,
+        "preserveCurrentRevision": true,
+        "allowSilentSubstitution": false,
+        "steps": [
+          "retry-same-capability",
+          "safe-equivalent-execution",
+          "retain-valid-revision",
+          "report-failed-targets",
+          "repair-only-gap"
+        ],
+        "classifiers": [
+          [
+            "revision_conflict",
+            "REVISION_CONFLICT|STALE_REVISION"
+          ],
+          [
+            "provider_unavailable",
+            "^(MINIMAX_|CODEX_|PROVIDER_)"
+          ],
+          [
+            "resource_incompatible",
+            "RESOURCE_|INCOMPATIBLE"
+          ],
+          [
+            "unsupported_capability",
+            "UNSUPPORTED|CAPABILITY|VOICE_NOT_FOUND"
+          ],
+          [
+            "ambiguous_target",
+            "AMBIGUOUS|SCOPE|TARGET|CONFLICT|CAPTION_ALIGNMENT_REQUIRED"
+          ],
+          [
+            "missing_evidence",
+            "MISSING|NEEDS_INPUT|INSUFFICIENT|SPEECH_SCRIPT_REQUIRED|NO_SPEECH|NO_CAPTION_AUDIO"
+          ]
+        ]
+      },
+      "selectedSkills": [
+        "timeline-edit",
+        "visual-composition",
+        "audio-mix",
+        "media-use",
+        "conversation-edit"
+      ],
+      "skillReasons": {
+        "visual-composition": [
+          "target:text"
+        ],
+        "timeline-edit": [
+          "target:timeline"
+        ],
+        "audio-mix": [
+          "request-evidence"
+        ],
+        "media-use": [
+          "request-evidence"
+        ],
+        "conversation-edit": [
+          "request-evidence"
+        ]
+      }
+    }
+  ],
+  "messageDispatches": [
+    {
+      "key": "op-21f7ec60425bcd623d4ffec7cd32dc821ddd61f924f39f23",
+      "projectId": "45524cb7-c25d-4dd4-a9a2-0ca5c72fb941",
+      "route": {
+        "mode": "create",
+        "quote": "Create an editable project from the attached video",
+        "revisionId": null,
+        "assetIds": [
+          "asset-27477b65-89fa-4dcb-aff2-813a32cb7a8c"
+        ],
+        "question": "",
+        "scenarioId": null,
+        "targets": [
+          {
+            "id": null,
+            "kind": "text",
+            "requirement": "在视频开头添加标题卡，文字为“测试片段”"
+          },
+          {
+            "id": null,
+            "kind": "timeline",
+            "requirement": "标题卡应置于开头且不改变原始总时长与画幅"
+          }
+        ],
+        "preserve": [
+          "unmentioned-objects",
+          "source-assets",
+          "revision-history",
+          "原始视频画面与素材内容",
+          "原始音频",
+          "原始总时长",
+          "原始画幅比例"
+        ],
+        "reason": "当前没有已有版本，且用户明确要求从附件视频创建可编辑项目并复用该素材；仅新增开头标题卡，其他原始属性保持不变。",
+        "source": "semantic",
+        "model": "gpt-5.6-sol",
+        "baseRevisionId": null,
+        "businessIntent": {
+          "version": 2,
+          "product": null,
+          "platform": null,
+          "audience": [],
+          "marketingGoal": null,
+          "outputConstraints": null,
+          "videoType": "create",
+          "creationRequested": false,
+          "scenario": {
+            "id": null,
+            "status": "unresolved",
+            "source": null,
+            "selectedId": null,
+            "candidates": []
+          },
+          "ruleIds": [],
+          "llmRequired": true,
+          "confidence": 0.5
+        },
+        "version": 1,
+        "message": "Create an editable project from the attached video (media://inbound/c11c3547-ea8d-4288-83a6-ca5bccd774dd-CI_30s_fixture.mp4). Small change only: add a title card reading \"测试片段\" at the beginning. Preserve the original footage, original audio, duration, and aspect ratio.",
+        "scenario": null,
+        "executionStrategy": "L2",
+        "confidence": 0.8,
+        "fallback": {
+          "version": 1,
+          "categories": [
+            "missing_evidence",
+            "ambiguous_target",
+            "unsupported_capability",
+            "resource_incompatible",
+            "provider_unavailable",
+            "quality_failure",
+            "revision_conflict"
+          ],
+          "maxReplans": 2,
+          "identicalFailureLimit": 2,
+          "preserveCurrentRevision": true,
+          "allowSilentSubstitution": false,
+          "steps": [
+            "retry-same-capability",
+            "safe-equivalent-execution",
+            "retain-valid-revision",
+            "report-failed-targets",
+            "repair-only-gap"
+          ],
+          "classifiers": [
+            [
+              "revision_conflict",
+              "REVISION_CONFLICT|STALE_REVISION"
+            ],
+            [
+              "provider_unavailable",
+              "^(MINIMAX_|CODEX_|PROVIDER_)"
+            ],
+            [
+              "resource_incompatible",
+              "RESOURCE_|INCOMPATIBLE"
+            ],
+            [
+              "unsupported_capability",
+              "UNSUPPORTED|CAPABILITY|VOICE_NOT_FOUND"
+            ],
+            [
+              "ambiguous_target",
+              "AMBIGUOUS|SCOPE|TARGET|CONFLICT|CAPTION_ALIGNMENT_REQUIRED"
+            ],
+            [
+              "missing_evidence",
+              "MISSING|NEEDS_INPUT|INSUFFICIENT|SPEECH_SCRIPT_REQUIRED|NO_SPEECH|NO_CAPTION_AUDIO"
+            ]
+          ]
+        },
+        "selectedSkills": [
+          "timeline-edit",
+          "visual-composition",
+          "audio-mix",
+          "media-use",
+          "conversation-edit"
+        ],
+        "skillReasons": {
+          "visual-composition": [
+            "target:text"
+          ],
+          "timeline-edit": [
+            "target:timeline"
+          ],
+          "audio-mix": [
+            "request-evidence"
+          ],
+          "media-use": [
+            "request-evidence"
+          ],
+          "conversation-edit": [
+            "request-evidence"
+          ]
+        }
+      },
+      "jobId": "job-a3cd3438-3045-4179-ae9b-9ab627faf75b",
+      "childJobId": "job-dbe79b39-dbd0-41fe-925f-4d4be52bca79"
+    }
+  ]
+}

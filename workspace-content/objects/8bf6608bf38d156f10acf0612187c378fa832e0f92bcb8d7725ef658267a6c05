@@ -1,0 +1,660 @@
+{
+  "id": "5971c19a-eb3e-47ca-8d51-bd9765f8b194",
+  "userRequest": "用我提供的摩卡壶实拍做60秒横屏商品视频。保留操作原声，不加配音，不编造参数；要看清冲煮动作和细节，不要做成纯图片轮播。",
+  "projectId": "284e279c-6e71-46f5-9257-5ea34262e86d",
+  "baseRevisionId": null,
+  "inputFingerprint": "0ecf3d4ff42aa52684d97ca2ed1d29d29eedc14785bb2ba21be6cdc25c55c8c8",
+  "selectedSkills": [],
+  "constraints": {
+    "requirements": [
+      "仅使用用户提供素材，不编造商品参数或性能信息。",
+      "保留操作原声且不添加配音；在获得真实视频和音频素材前不能宣称完成。",
+      "输出按用户本次要求采用1920×1080横屏，时长60秒。",
+      "不能制作成纯图片轮播。"
+    ]
+  },
+  "plan": null,
+  "artifacts": {},
+  "checkpoints": {
+    "brief": {
+      "idempotencyKey": "e61c2f76f279b5eff33315ec1d948605be466e09fe552836aa10474a5e5e56c0",
+      "status": "completed",
+      "result": {
+        "request": {
+          "name": "摩卡壶60秒横屏商品视频",
+          "cta": "",
+          "price": "",
+          "facts": [],
+          "output": {
+            "width": 1920,
+            "height": 1080,
+            "durationSeconds": 60
+          }
+        },
+        "needsTranscription": false,
+        "needsNarration": false,
+        "needsCaptions": false,
+        "keepOriginalAudio": true,
+        "capabilities": [
+          "image-observation",
+          "video-source-selection",
+          "native-composition",
+          "managed-original",
+          "local-preview-review",
+          "native-editing"
+        ],
+        "gaps": [
+          "当前仅检测到一张摩卡壶图片，没有可用于展示冲煮动作的实拍视频素材。",
+          "当前素材不包含可保留的操作原声。",
+          "缺少足够的动态画面，无法按要求制作看清冲煮动作和细节的60秒实拍商品视频。"
+        ],
+        "constraints": [
+          "仅使用用户提供素材，不编造商品参数或性能信息。",
+          "保留操作原声且不添加配音；在获得真实视频和音频素材前不能宣称完成。",
+          "输出按用户本次要求采用1920×1080横屏，时长60秒。",
+          "不能制作成纯图片轮播。"
+        ]
+      }
+    },
+    "observe": {
+      "idempotencyKey": "17ac17e72d711cf1de02af38d9fb6273262698478f55948a99aadf4a65b7907b",
+      "status": "completed",
+      "result": {
+        "observations": [
+          {
+            "assetId": "asset-09ab3522-6ec4-4624-89e8-50a8da6eab5d",
+            "visibleContent": "粉色背景上的一副浅色头戴式耳机，居中平放，可见头梁、左右耳罩及下垂线缆；未见摩卡壶或冲煮操作。",
+            "uncertainty": "该图片与用户所述摩卡壶商品不一致，无法提供冲煮动作或操作原声证据。",
+            "role": "overview",
+            "productGroup": "未知（耳机，不是摩卡壶）",
+            "subjectBox": [
+              0.194,
+              0.104,
+              0.342,
+              0.896
+            ],
+            "safeCrop": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "confidence": 0.99,
+            "quality": "1800×1014，主体清晰但为静态图片，无可用音频或动态信息",
+            "visibleText": [],
+            "sameProductAs": [],
+            "differentProductFrom": []
+          }
+        ],
+        "candidates": [],
+        "inspectRanges": [],
+        "gaps": [
+          "当前唯一素材是耳机静态图片，不包含摩卡壶。",
+          "没有视频源，无法确认或列出冲煮动作起止区间。",
+          "没有可保留的操作原声；无法按要求制作60秒横屏实拍商品视频。"
+        ]
+      }
+    },
+    "resources": {
+      "idempotencyKey": "fa154a12d8ec6928cdeed413354c7609581b9b0fe4289c0ca6ead0590f0eae52",
+      "status": "completed",
+      "result": {
+        "selected": [],
+        "originalNeeds": [
+          "需要用户提供与摩卡壶一致的横屏或可裁切实拍视频，覆盖装粉、注水、加热、出液等冲煮动作细节，且总时长足以剪辑为约60秒。",
+          "需要与该实拍视频同步的真实操作原声素材，以满足保留原声且不加配音的要求。"
+        ],
+        "gaps": [
+          "当前唯一素材是一张粉色背景耳机静态图，与所述摩卡壶商品不一致。",
+          "现有图片没有冲煮动作、细节变化或可保留的操作音频。",
+          "候选蓝图均只能辅助静态信息或文字呈现，无法替代真实动态商品素材；使用它们会违背“不要做成纯图片轮播”的要求。",
+          "无法据现有素材可靠确认商品名称、结构、操作步骤或性能信息。"
+        ],
+        "blockingGaps": [
+          "缺少与摩卡壶对应的实拍视频素材，无法制作用户要求的冲煮动作展示。",
+          "缺少该实拍的真实操作原声，无法满足保留操作原声的硬性要求。"
+        ],
+        "candidates": [
+          {
+            "id": "lt-mask-reveal",
+            "tags": [
+              "video",
+              "action",
+              "text",
+              "操作",
+              "实拍",
+              "口播",
+              "标签",
+              "文字"
+            ],
+            "inputs": [
+              "video"
+            ],
+            "description": "Transparent editable lower-third over continuing footage; no stat, price, or full-screen text takeover is required. Adapt the wipe and accent sweep to approved native text, local fonts and the managed timeline.",
+            "files": [
+              "registry/blocks/lt-mask-reveal/registry-item.json",
+              "registry/blocks/lt-mask-reveal/lt-mask-reveal.html"
+            ],
+            "compatible": true,
+            "eligible": false,
+            "score": 3,
+            "kind": "reviewed-blueprint-adapter",
+            "runtime": "0.8.33",
+            "sourceCommit": "ea7e1dbd0bd2afb77370b946461c4ea16afdb387"
+          },
+          {
+            "id": "video-text-pivot",
+            "tags": [
+              "video",
+              "action",
+              "操作",
+              "实拍",
+              "讲解"
+            ],
+            "inputs": [
+              "video"
+            ],
+            "files": [
+              "skills/hyperframes-animation/blueprints/video-text-pivot.md",
+              "skills/hyperframes-animation/rules/gsap-effects.md"
+            ],
+            "compatible": true,
+            "eligible": false,
+            "score": 3,
+            "kind": "reviewed-blueprint-adapter",
+            "runtime": "0.8.33",
+            "sourceCommit": "ea7e1dbd0bd2afb77370b946461c4ea16afdb387"
+          },
+          {
+            "id": "comparison-split",
+            "tags": [
+              "compare",
+              "detail",
+              "image",
+              "比较",
+              "细节",
+              "双栏"
+            ],
+            "inputs": [
+              "visual-pair"
+            ],
+            "files": [
+              "skills/hyperframes-animation/blueprints/comparison-split.md",
+              "skills/hyperframes-animation/rules/split-tilt-cards.md",
+              "registry/components/comparison-split/registry-item.json",
+              "registry/components/comparison-split/comparison-split.html"
+            ],
+            "compatible": true,
+            "eligible": false,
+            "score": 2,
+            "kind": "reviewed-blueprint-adapter",
+            "runtime": "0.8.33",
+            "sourceCommit": "ea7e1dbd0bd2afb77370b946461c4ea16afdb387"
+          },
+          {
+            "id": "grid-card-assemble",
+            "tags": [
+              "image",
+              "details",
+              "steps",
+              "参数",
+              "配件",
+              "步骤"
+            ],
+            "inputs": [],
+            "files": [
+              "skills/hyperframes-animation/blueprints/grid-card-assemble.md",
+              "skills/hyperframes-animation/rules/gsap-effects.md"
+            ],
+            "compatible": true,
+            "eligible": true,
+            "score": 2,
+            "kind": "reviewed-blueprint-adapter",
+            "runtime": "0.8.33",
+            "sourceCommit": "ea7e1dbd0bd2afb77370b946461c4ea16afdb387"
+          },
+          {
+            "id": "caption-editorial-emphasis",
+            "tags": [
+              "caption",
+              "speech",
+              "字幕",
+              "口播",
+              "强调"
+            ],
+            "inputs": [
+              "text"
+            ],
+            "description": "Editable editorial text emphasis; align spoken captions to measured transcript timestamps, never invented timing.",
+            "files": [
+              "registry/components/caption-editorial-emphasis/registry-item.json",
+              "registry/components/caption-editorial-emphasis/caption-editorial-emphasis.html"
+            ],
+            "compatible": true,
+            "eligible": true,
+            "score": 0,
+            "kind": "reviewed-blueprint-adapter",
+            "runtime": "0.8.33",
+            "sourceCommit": "ea7e1dbd0bd2afb77370b946461c4ea16afdb387"
+          },
+          {
+            "id": "titlecard-reveal",
+            "tags": [
+              "title",
+              "brand",
+              "text",
+              "收尾",
+              "标题"
+            ],
+            "inputs": [],
+            "files": [
+              "skills/hyperframes-animation/blueprints/titlecard-reveal.md",
+              "skills/hyperframes-animation/rules/discrete-text-sequence.md"
+            ],
+            "compatible": true,
+            "eligible": true,
+            "score": 0,
+            "kind": "reviewed-blueprint-adapter",
+            "runtime": "0.8.33",
+            "sourceCommit": "ea7e1dbd0bd2afb77370b946461c4ea16afdb387"
+          },
+          {
+            "id": "kinetic-type-beats",
+            "tags": [
+              "text",
+              "caption",
+              "文字",
+              "字幕",
+              "强调"
+            ],
+            "inputs": [
+              "text"
+            ],
+            "files": [
+              "skills/hyperframes-animation/blueprints/kinetic-type-beats.md",
+              "skills/hyperframes-animation/rules/discrete-text-sequence.md"
+            ],
+            "compatible": true,
+            "eligible": true,
+            "score": 0,
+            "kind": "reviewed-blueprint-adapter",
+            "runtime": "0.8.33",
+            "sourceCommit": "ea7e1dbd0bd2afb77370b946461c4ea16afdb387"
+          }
+        ]
+      }
+    }
+  },
+  "toolCalls": [
+    {
+      "name": "brief.parse",
+      "input": {},
+      "inputHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "idempotencyKey": "e61c2f76f279b5eff33315ec1d948605be466e09fe552836aa10474a5e5e56c0",
+      "step": 1,
+      "startedAt": "2026-09-12T10:20:14.523Z"
+    },
+    {
+      "name": "assets.observe",
+      "input": {},
+      "inputHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "idempotencyKey": "17ac17e72d711cf1de02af38d9fb6273262698478f55948a99aadf4a65b7907b",
+      "step": 2,
+      "startedAt": "2026-09-12T10:22:28.789Z"
+    },
+    {
+      "name": "resources.plan",
+      "input": {},
+      "inputHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "idempotencyKey": "fa154a12d8ec6928cdeed413354c7609581b9b0fe4289c0ca6ead0590f0eae52",
+      "step": 3,
+      "startedAt": "2026-09-12T10:26:59.912Z"
+    }
+  ],
+  "toolResults": [
+    {
+      "tool": "brief.parse",
+      "status": "completed",
+      "result": {
+        "request": {
+          "name": "摩卡壶60秒横屏商品视频",
+          "cta": "",
+          "price": "",
+          "facts": [],
+          "output": {
+            "width": 1920,
+            "height": 1080,
+            "durationSeconds": 60
+          }
+        },
+        "needsTranscription": false,
+        "needsNarration": false,
+        "needsCaptions": false,
+        "keepOriginalAudio": true,
+        "capabilities": [
+          "image-observation",
+          "video-source-selection",
+          "native-composition",
+          "managed-original",
+          "local-preview-review",
+          "native-editing"
+        ],
+        "gaps": [
+          "当前仅检测到一张摩卡壶图片，没有可用于展示冲煮动作的实拍视频素材。",
+          "当前素材不包含可保留的操作原声。",
+          "缺少足够的动态画面，无法按要求制作看清冲煮动作和细节的60秒实拍商品视频。"
+        ],
+        "constraints": [
+          "仅使用用户提供素材，不编造商品参数或性能信息。",
+          "保留操作原声且不添加配音；在获得真实视频和音频素材前不能宣称完成。",
+          "输出按用户本次要求采用1920×1080横屏，时长60秒。",
+          "不能制作成纯图片轮播。"
+        ]
+      },
+      "idempotencyKey": "e61c2f76f279b5eff33315ec1d948605be466e09fe552836aa10474a5e5e56c0",
+      "step": 1,
+      "durationMs": 134263
+    },
+    {
+      "tool": "assets.observe",
+      "status": "completed",
+      "result": {
+        "observations": [
+          {
+            "assetId": "asset-09ab3522-6ec4-4624-89e8-50a8da6eab5d",
+            "visibleContent": "粉色背景上的一副浅色头戴式耳机，居中平放，可见头梁、左右耳罩及下垂线缆；未见摩卡壶或冲煮操作。",
+            "uncertainty": "该图片与用户所述摩卡壶商品不一致，无法提供冲煮动作或操作原声证据。",
+            "role": "overview",
+            "productGroup": "未知（耳机，不是摩卡壶）",
+            "subjectBox": [
+              0.194,
+              0.104,
+              0.342,
+              0.896
+            ],
+            "safeCrop": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "confidence": 0.99,
+            "quality": "1800×1014，主体清晰但为静态图片，无可用音频或动态信息",
+            "visibleText": [],
+            "sameProductAs": [],
+            "differentProductFrom": []
+          }
+        ],
+        "candidates": [],
+        "inspectRanges": [],
+        "gaps": [
+          "当前唯一素材是耳机静态图片，不包含摩卡壶。",
+          "没有视频源，无法确认或列出冲煮动作起止区间。",
+          "没有可保留的操作原声；无法按要求制作60秒横屏实拍商品视频。"
+        ]
+      },
+      "idempotencyKey": "17ac17e72d711cf1de02af38d9fb6273262698478f55948a99aadf4a65b7907b",
+      "step": 2,
+      "durationMs": 271120
+    },
+    {
+      "tool": "resources.plan",
+      "status": "completed",
+      "result": {
+        "selected": [],
+        "originalNeeds": [
+          "需要用户提供与摩卡壶一致的横屏或可裁切实拍视频，覆盖装粉、注水、加热、出液等冲煮动作细节，且总时长足以剪辑为约60秒。",
+          "需要与该实拍视频同步的真实操作原声素材，以满足保留原声且不加配音的要求。"
+        ],
+        "gaps": [
+          "当前唯一素材是一张粉色背景耳机静态图，与所述摩卡壶商品不一致。",
+          "现有图片没有冲煮动作、细节变化或可保留的操作音频。",
+          "候选蓝图均只能辅助静态信息或文字呈现，无法替代真实动态商品素材；使用它们会违背“不要做成纯图片轮播”的要求。",
+          "无法据现有素材可靠确认商品名称、结构、操作步骤或性能信息。"
+        ],
+        "blockingGaps": [
+          "缺少与摩卡壶对应的实拍视频素材，无法制作用户要求的冲煮动作展示。",
+          "缺少该实拍的真实操作原声，无法满足保留操作原声的硬性要求。"
+        ],
+        "candidates": [
+          {
+            "id": "lt-mask-reveal",
+            "tags": [
+              "video",
+              "action",
+              "text",
+              "操作",
+              "实拍",
+              "口播",
+              "标签",
+              "文字"
+            ],
+            "inputs": [
+              "video"
+            ],
+            "description": "Transparent editable lower-third over continuing footage; no stat, price, or full-screen text takeover is required. Adapt the wipe and accent sweep to approved native text, local fonts and the managed timeline.",
+            "files": [
+              "registry/blocks/lt-mask-reveal/registry-item.json",
+              "registry/blocks/lt-mask-reveal/lt-mask-reveal.html"
+            ],
+            "compatible": true,
+            "eligible": false,
+            "score": 3,
+            "kind": "reviewed-blueprint-adapter",
+            "runtime": "0.8.33",
+            "sourceCommit": "ea7e1dbd0bd2afb77370b946461c4ea16afdb387"
+          },
+          {
+            "id": "video-text-pivot",
+            "tags": [
+              "video",
+              "action",
+              "操作",
+              "实拍",
+              "讲解"
+            ],
+            "inputs": [
+              "video"
+            ],
+            "files": [
+              "skills/hyperframes-animation/blueprints/video-text-pivot.md",
+              "skills/hyperframes-animation/rules/gsap-effects.md"
+            ],
+            "compatible": true,
+            "eligible": false,
+            "score": 3,
+            "kind": "reviewed-blueprint-adapter",
+            "runtime": "0.8.33",
+            "sourceCommit": "ea7e1dbd0bd2afb77370b946461c4ea16afdb387"
+          },
+          {
+            "id": "comparison-split",
+            "tags": [
+              "compare",
+              "detail",
+              "image",
+              "比较",
+              "细节",
+              "双栏"
+            ],
+            "inputs": [
+              "visual-pair"
+            ],
+            "files": [
+              "skills/hyperframes-animation/blueprints/comparison-split.md",
+              "skills/hyperframes-animation/rules/split-tilt-cards.md",
+              "registry/components/comparison-split/registry-item.json",
+              "registry/components/comparison-split/comparison-split.html"
+            ],
+            "compatible": true,
+            "eligible": false,
+            "score": 2,
+            "kind": "reviewed-blueprint-adapter",
+            "runtime": "0.8.33",
+            "sourceCommit": "ea7e1dbd0bd2afb77370b946461c4ea16afdb387"
+          },
+          {
+            "id": "grid-card-assemble",
+            "tags": [
+              "image",
+              "details",
+              "steps",
+              "参数",
+              "配件",
+              "步骤"
+            ],
+            "inputs": [],
+            "files": [
+              "skills/hyperframes-animation/blueprints/grid-card-assemble.md",
+              "skills/hyperframes-animation/rules/gsap-effects.md"
+            ],
+            "compatible": true,
+            "eligible": true,
+            "score": 2,
+            "kind": "reviewed-blueprint-adapter",
+            "runtime": "0.8.33",
+            "sourceCommit": "ea7e1dbd0bd2afb77370b946461c4ea16afdb387"
+          },
+          {
+            "id": "caption-editorial-emphasis",
+            "tags": [
+              "caption",
+              "speech",
+              "字幕",
+              "口播",
+              "强调"
+            ],
+            "inputs": [
+              "text"
+            ],
+            "description": "Editable editorial text emphasis; align spoken captions to measured transcript timestamps, never invented timing.",
+            "files": [
+              "registry/components/caption-editorial-emphasis/registry-item.json",
+              "registry/components/caption-editorial-emphasis/caption-editorial-emphasis.html"
+            ],
+            "compatible": true,
+            "eligible": true,
+            "score": 0,
+            "kind": "reviewed-blueprint-adapter",
+            "runtime": "0.8.33",
+            "sourceCommit": "ea7e1dbd0bd2afb77370b946461c4ea16afdb387"
+          },
+          {
+            "id": "titlecard-reveal",
+            "tags": [
+              "title",
+              "brand",
+              "text",
+              "收尾",
+              "标题"
+            ],
+            "inputs": [],
+            "files": [
+              "skills/hyperframes-animation/blueprints/titlecard-reveal.md",
+              "skills/hyperframes-animation/rules/discrete-text-sequence.md"
+            ],
+            "compatible": true,
+            "eligible": true,
+            "score": 0,
+            "kind": "reviewed-blueprint-adapter",
+            "runtime": "0.8.33",
+            "sourceCommit": "ea7e1dbd0bd2afb77370b946461c4ea16afdb387"
+          },
+          {
+            "id": "kinetic-type-beats",
+            "tags": [
+              "text",
+              "caption",
+              "文字",
+              "字幕",
+              "强调"
+            ],
+            "inputs": [
+              "text"
+            ],
+            "files": [
+              "skills/hyperframes-animation/blueprints/kinetic-type-beats.md",
+              "skills/hyperframes-animation/rules/discrete-text-sequence.md"
+            ],
+            "compatible": true,
+            "eligible": true,
+            "score": 0,
+            "kind": "reviewed-blueprint-adapter",
+            "runtime": "0.8.33",
+            "sourceCommit": "ea7e1dbd0bd2afb77370b946461c4ea16afdb387"
+          }
+        ]
+      },
+      "idempotencyKey": "fa154a12d8ec6928cdeed413354c7609581b9b0fe4289c0ca6ead0590f0eae52",
+      "step": 3,
+      "durationMs": 128442
+    }
+  ],
+  "verification": null,
+  "repairCount": 0,
+  "resultRevisionId": null,
+  "status": "needs_user",
+  "steps": 4,
+  "modelCalls": 4,
+  "createdAt": "2026-09-12T10:20:14.522Z",
+  "updatedAt": "2026-09-12T10:29:08.357Z",
+  "stage": "resources",
+  "modelInvocations": [
+    {
+      "number": 1,
+      "model": null,
+      "timeoutMs": 180000,
+      "reasoningEffort": "low",
+      "attempt": 0,
+      "imageCount": 0,
+      "promptSha256": "ebf77fabd4e64831246ddbc16595baa74747fbedb2ae9298a949b2900944bac5",
+      "schemaSha256": "5f32ed23175262c2c061ace3ad9d10cf2df38b050b0a6cf79a33f9523d92ca7c",
+      "directory": "/Users/a1234/Desktop/hyperframe-main/video-agent/data/commerce-runs/284e279c-6e71-46f5-9257-5ea34262e86d/versions/job-f1662bcc-01ae-42be-9b8f-7122a1a5ad67/model-calls/edit-engine/398da610-98e1-4ad3-9e7e-3a1d8b4f7c7a",
+      "stage": "R1",
+      "startedAt": "2026-09-12T10:20:14.539Z"
+    },
+    {
+      "number": 2,
+      "model": null,
+      "timeoutMs": 180000,
+      "reasoningEffort": "low",
+      "attempt": 0,
+      "imageCount": 1,
+      "promptSha256": "738a1c152f91665c0ff0a21853b2a6c86b60290342af04ab9fb6e972e41149dc",
+      "schemaSha256": "9525e3f542b7ec8df6b581b8932b92c0184a246ad9fd5a9ef5b0cb3a44a3dc32",
+      "directory": "/Users/a1234/Desktop/hyperframe-main/video-agent/data/commerce-runs/284e279c-6e71-46f5-9257-5ea34262e86d/versions/job-f1662bcc-01ae-42be-9b8f-7122a1a5ad67/model-calls/edit-engine/ff9b26f5-34df-4d75-9bed-2de5c28133d8",
+      "stage": "R2",
+      "startedAt": "2026-09-12T10:22:28.836Z"
+    },
+    {
+      "number": 3,
+      "model": null,
+      "timeoutMs": 180000,
+      "reasoningEffort": "low",
+      "attempt": 0,
+      "imageCount": 1,
+      "promptSha256": "9b392c87e52a135c34aa0bf836a47ff8b0eb2da35ecfa6b59a0feec130ebff21",
+      "schemaSha256": "9525e3f542b7ec8df6b581b8932b92c0184a246ad9fd5a9ef5b0cb3a44a3dc32",
+      "directory": "/Users/a1234/Desktop/hyperframe-main/video-agent/data/commerce-runs/284e279c-6e71-46f5-9257-5ea34262e86d/versions/job-f1662bcc-01ae-42be-9b8f-7122a1a5ad67/model-calls/edit-engine/921e8939-978d-4a57-85d1-4ac912c79d02",
+      "stage": "R2",
+      "startedAt": "2026-09-12T10:24:38.082Z"
+    },
+    {
+      "number": 4,
+      "model": null,
+      "timeoutMs": 180000,
+      "reasoningEffort": "low",
+      "attempt": 0,
+      "imageCount": 0,
+      "promptSha256": "08168d22ee5befe468e64bcdaebacdfa75fc346a3d7b069bed53d31c8ae7699e",
+      "schemaSha256": "424d6f2e0647999fe68036b678f170b39db9cec2eedd2d4438cd014c0d3561a7",
+      "directory": "/Users/a1234/Desktop/hyperframe-main/video-agent/data/commerce-runs/284e279c-6e71-46f5-9257-5ea34262e86d/versions/job-f1662bcc-01ae-42be-9b8f-7122a1a5ad67/model-calls/edit-engine/dd9d3efd-2ecb-4045-8a13-af219c8eda2b",
+      "stage": "R3",
+      "startedAt": "2026-09-12T10:26:59.951Z"
+    }
+  ],
+  "gaps": [
+    "缺少与摩卡壶对应的实拍视频素材，无法制作用户要求的冲煮动作展示。",
+    "缺少该实拍的真实操作原声，无法满足保留操作原声的硬性要求。"
+  ]
+}
