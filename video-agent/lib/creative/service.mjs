@@ -294,7 +294,7 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
     const text=String(query||'').trim().toLowerCase();
     const terms=text.split(/[^\p{L}\p{N}]+/u).filter(Boolean);
     const roots=await discoverMaterialRoots(root);
-    const localMaterials=roots.flatMap(rootRecord=>rootRecord.entries.filter(entry=>entry.status==='indexed'&&entry.technicalStatus==='headers_passed').map(entry=>({
+    const localMaterials=roots.flatMap(rootRecord=>rootRecord.entries.filter(entry=>rootRecord.productionAllowed!==false&&entry.status==='indexed'&&entry.technicalStatus==='headers_passed').map(entry=>({
       ...entry, rootId:rootRecord.id, rootLabel:rootRecord.label,
       relevance:terms.length?terms.reduce((score,term)=>score+(entry.name.toLowerCase().includes(term)||entry.relativePath.toLowerCase().includes(term)?1:0),0):0,
       executionStatus:'discovered', bindingStatus:projectId?'unbound':'unbound'
@@ -581,6 +581,7 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
   async function attachSelectedMaterials(p,id,assetIds){
     insist(!p.currentRevisionId&&!p.jobs.some(active),'制作中不能更换素材目录','PROJECT_BUSY');
     const selected=await resolveMaterialRoot(root,id);
+    insist(selected.productionAllowed!==false,'项目内置素材仅供自动化测试，不能进入正式制作；请上传本轮素材或配置项目外授权素材目录','MATERIAL_SOURCE_FORBIDDEN');
     const entries=selectMaterialEntries(selected,assetIds),pending=entries.filter(e=>!p.assets.some(a=>a.materialSource?.id===e.id&&a.sha256===e.sha256));
     insist(p.assets.length+pending.length<=MAX_ASSETS,'所选素材超过工程上限，请减少选择','ASSET_LIMIT');
     const added=[];

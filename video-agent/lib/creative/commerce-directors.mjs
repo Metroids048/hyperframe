@@ -9,6 +9,18 @@ const candidate=obj({assetId:str,startSeconds:num,endSeconds:num,reason:str,evid
 export const materialSchema=obj({productSummary:str,facts:arr(obj({text:str,evidence:arr(evidence)})),unsupportedClaims:arr(str),heroCandidates:arr(candidate),usageCandidates:arr(candidate),detailCandidates:arr(candidate),supportingCandidates:arr(candidate),rejectedAssets:arr(obj({assetId:str,reason:str})),audioSummary:str,evidence:arr(evidence),initialState:str,finalState:str,actions:arr(obj({id:str,assetId:str,startSeconds:num,endSeconds:num,description:str,dependsOn:arr(str),canTrimStart:bool,canTrimEnd:bool,canReorder:bool,importance:{type:'string',enum:['necessary','optional']},visualRegion:arr(num),audioDependency:bool,evidence:arr(evidence)})),gaps:arr(str)});
 export const directionSchema=obj({businessGoal:str,viewer:str,singleSentenceIdea:str,hookStrategy:str,storyStrategy:str,pace:str,visualDirection:{type:'string',enum:['premium-minimal','energetic-commerce','editorial-product','technical-clean']},visualFunctions:arr({type:'string',enum:['hero-reveal','detail-link','step-guide','comparison','collection','campaign','question-answer','caption','type-emphasis','callout','ending']}),businessTemplate:str,motionDirection:str,typeDirection:str,audioDirection:str,heroStrategy:str,endingStrategy:str,whatNotToDo:arr(str)});
 
+/** Reject a structurally valid but unusable direction before it can drive resources or shots. */
+export function validateCreativeDirection(direction,{templates=[],marketingPlan={},scenarioId=null}={}){
+ const fields=['businessGoal','viewer','singleSentenceIdea','hookStrategy','storyStrategy','pace','businessTemplate','motionDirection','typeDirection','audioDirection','heroStrategy','endingStrategy'];
+ for(const field of fields)insist(typeof direction?.[field]==='string'&&direction[field].trim().length>=3,'Creative Direction 缺少可执行内容：'+field,'CREATIVE_DIRECTION');
+ insist(templates.some(t=>t.id===direction.businessTemplate),'未知业务模板','BUSINESS_TEMPLATE');
+ insist(Array.isArray(direction.visualFunctions)&&direction.visualFunctions.length>0&&direction.visualFunctions.every(x=>['hero-reveal','detail-link','step-guide','comparison','collection','campaign','question-answer','caption','type-emphasis','callout','ending'].includes(x)),'Creative Direction 没有可执行的视觉功能','CREATIVE_DIRECTION');
+ insist(Array.isArray(direction.whatNotToDo)&&direction.whatNotToDo.length>0&&direction.whatNotToDo.every(x=>typeof x==='string'&&x.trim().length>=3),'Creative Direction 缺少具体禁区','CREATIVE_DIRECTION');
+ if(marketingPlan.marketing_objective)insist(direction.businessGoal.toLocaleLowerCase().includes(marketingPlan.marketing_objective.toLocaleLowerCase())||marketingPlan.marketing_objective.toLocaleLowerCase().includes(direction.businessGoal.toLocaleLowerCase())||direction.businessGoal.trim().length>=12,'Creative Direction 的业务目标过于空泛，无法对应营销策略','CREATIVE_DIRECTION_ALIGNMENT');
+ if(['product_howto','product_demo'].includes(scenarioId))insist(direction.visualFunctions.includes('step-guide')||/步骤|操作|动作|演示/.test(direction.visualDirection+' '+direction.storyStrategy+' '+direction.heroStrategy),'操作演示方向没有保护步骤或动作','CREATIVE_DIRECTION_ACTION');
+ return direction;
+}
+
 /**
  * A single-asset run has only one possible source identity. Structured model
  * responses occasionally drop one character from the long generated asset id;

@@ -26,6 +26,13 @@ import {runtimeTools} from '../runtime-tools.mjs';
 
 const moduleDir = path.dirname(fileURLToPath(import.meta.url));
 export const VIDEO_AGENT_ROOT = path.resolve(moduleDir, '../..');
+const RENDER_QUALITIES=new Set(['draft','standard','high']);
+export function finalRenderQuality(input,document){
+  const requested=input.finalRenderQuality||input.quality;
+  const quality=requested|| (document.businessContract?'high':'standard');
+  if(!RENDER_QUALITIES.has(quality))throw Object.assign(Error('最终渲染画质必须为 draft、standard 或 high'),{code:'RENDER_QUALITY'});
+  return quality;
+}
 
 async function copyGsap(outputDir) {
   const candidates = [
@@ -110,10 +117,12 @@ export async function buildCommerceProject(input, {root = VIDEO_AGENT_ROOT} = {}
     const checkLog = await runHyperFrames(outputDir, 'check');
     await fs.writeFile(path.join(outputDir, 'check.log'), checkLog);
     const video = 'commerce-final.mp4';
-    const renderLog = await runHyperFrames(outputDir, 'render', ['--output', video, '--fps', '30', '--quality', 'standard', '--workers', '1', '--strict']);
+    const quality=finalRenderQuality(input,document),args=['--output',video,'--fps','30','--quality',quality,'--workers','1','--strict'];
+    const renderLog = await runHyperFrames(outputDir, 'render', args);
+    await fs.writeFile(path.join(outputDir,'final-render-settings.json'),JSON.stringify({quality,fps:30,workers:1,strict:true,args,sourceRevisionId:document.revisionId,reason:document.businessContract?'commerce candidate/final export default uses HyperFrames high quality':'existing generic project default retained'},null,2));
     await fs.writeFile(path.join(outputDir, 'render.log'), renderLog);
     status.mediaReview=await reviewExport(root,outputDir,document,video,{signal:input.signal});
-    status.state = 'rendered'; status.rendered = true; status.video = video;
+    status.state = 'rendered'; status.rendered = true; status.video = video;status.renderSettings={quality,fps:30,workers:1,strict:true};
     await fs.writeFile(path.join(outputDir, 'status.json'), JSON.stringify(status, null, 2));
   }
   return status;
@@ -261,11 +270,13 @@ export async function renderCommerceProject(input, {root = VIDEO_AGENT_ROOT, out
   const checkLog = await runHyperFrames(outputDir, 'check', [], {signal:input.signal});
   await fs.writeFile(path.join(outputDir, 'check.log'), checkLog);
   const video = input.video || 'commerce-final.mp4';
-  const renderLog = await runHyperFrames(outputDir, 'render', ['--output', video, '--fps', '30', '--quality', input.quality || 'standard', '--workers', '1', '--strict'], {signal:input.signal,onProgress:input.onProgress});
+  const quality=finalRenderQuality(input,document),args=['--output',video,'--fps','30','--quality',quality,'--workers','1','--strict'];
+  const renderLog = await runHyperFrames(outputDir, 'render', args, {signal:input.signal,onProgress:input.onProgress});
+  await fs.writeFile(path.join(outputDir,'final-render-settings.json'),JSON.stringify({quality,fps:30,workers:1,strict:true,args,sourceRevisionId:document.revisionId,reason:document.businessContract?'commerce candidate/final export default uses HyperFrames high quality':'existing generic project default retained'},null,2));
   await fs.writeFile(path.join(outputDir, 'render.log'), renderLog);
   await input.onStage?.('检查实际导出文件');
   const mediaReview=await reviewExport(root,outputDir,document,video,{signal:input.signal});
-  const status = {state: 'rendered', projectId: document.projectId, outputDir: path.relative(root, outputDir).split(path.sep).join('/'), document: documentSummary(document), rendered: true, video};
+  const status = {state: 'rendered', projectId: document.projectId, outputDir: path.relative(root, outputDir).split(path.sep).join('/'), document: documentSummary(document), rendered: true, video,renderSettings:{quality,fps:30,workers:1,strict:true}};
   status.mediaReview=mediaReview;
   await fs.writeFile(path.join(outputDir, 'status.json'), JSON.stringify(status, null, 2));
   return status;

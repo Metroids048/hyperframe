@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises';
 import {spawn} from 'node:child_process';
-import {ensureState,loadState,saveState,inspectLock,acquireWriter,releaseWriter,appendLog,PROMPT_FILE,ROOT,STATE_DIR,now} from './common.mjs';
+import {ensureState,loadState,saveState,inspectLock,acquireWriter,releaseWriter,appendLog,PROMPT_FILE,ROOT,STATE_DIR,now,classifyFailure} from './common.mjs';
 
 const protectedStates = ['waiting_external','waiting_capacity','stopped_by_user','accepted_by_agent'];
 const state = await ensureState();
@@ -38,6 +38,11 @@ if (state.capacityRetryAfter && Date.parse(state.capacityRetryAfter) > Date.now(
   console.log('WAIT_CAPACITY');
   process.exit(0);
 }
+if (state.nextRetryAt && Date.parse(state.nextRetryAt) > Date.now()) {
+  await appendLog('resume',{task:'resume',state_before:state.status,decision:'wait_retry',action:'none',state_after:state.status,retryAt:state.nextRetryAt,errorClass:state.lastErrorClass||null});
+  console.log('WAIT_RETRY');
+  process.exit(0);
+}
 
 // Recover the exact persisted child job before considering a Codex resume.
 // This keeps provider timeouts from turning into a second video_task dispatch.
@@ -52,6 +57,7 @@ if (state.activeVideoChildJobId && state.activeVideoJobStatus === 'recoverable' 
       state.status='running';
       state.activeVideoJobStatus='queued';
       state.capacityRetryAfter=null;
+      state.nextRetryAt=null;
       state.resumeNeeded=false;
       state.lastError=null;
       state.lastErrorClass=null;
@@ -63,8 +69,25 @@ if (state.activeVideoChildJobId && state.activeVideoJobStatus === 'recoverable' 
       console.log('RESUMED_EXACT_CHILD_JOB');
       process.exit(0);
     }
+    state.status='recoverable';
+    state.lastErrorClass='timeout';
+    state.nextRetryAt=new Date(Date.now()+Math.max(1,Number(state.timeoutRetryMinutes||5))*60_000).toISOString();
+    state.lastError=`Exact child-job resume returned HTTP ${response.status}`;
+    await saveState(state);
+    await appendLog('resume',{task:'resume',state_before:'recoverable',decision:'exact_child_resume_rejected',action:'wait_and_retry_exact_child',state_after:state.status,jobId:state.activeVideoChildJobId,httpStatus:response.status,retryAt:state.nextRetryAt});
+    await releaseWriter();
+    console.log('EXACT_CHILD_RESUME_REJECTED');
+    process.exit(0);
   } catch (error) {
-    await appendLog('resume',{task:'resume',state_before:state.status,decision:'exact_child_resume_failed',action:'fall_through',state_after:state.status,error:error.code||error.name||'resume_failed'});
+    state.status='recoverable';
+    state.lastErrorClass='timeout';
+    state.nextRetryAt=new Date(Date.now()+Math.max(1,Number(state.timeoutRetryMinutes||5))*60_000).toISOString();
+    state.lastError='Exact child-job resume could not reach the service';
+    await saveState(state);
+    await appendLog('resume',{task:'resume',state_before:state.status,decision:'exact_child_resume_failed',action:'wait_and_retry_exact_child',state_after:state.status,error:error.code||error.name||'resume_failed',retryAt:state.nextRetryAt});
+    await releaseWriter();
+    console.log('EXACT_CHILD_RESUME_FAILED');
+    process.exit(0);
   }
 }
 
@@ -111,7 +134,8 @@ const extendCapacityWait = () => {
 
 if (code !== 0) {
   const text = await fs.readFile(`${STATE_DIR}/logs/codex-resume.log`,'utf8').catch(()=>'');
-  const capacity = /capacity|temporarily unavailable|rate.?limit|timed out|timeout|stream disconnected/i.test(text);
+  const failureClass=classifyFailure({message:text});
+  const capacity=failureClass==='capacity';
   if (capacity && latest.status === 'waiting_capacity' && retryExpired) {
     extendCapacityWait();
     await saveState(latest);
@@ -126,7 +150,7 @@ if (code !== 0) {
     process.exit(code || 1);
   }
   latest.lastError = capacity ? 'Selected model is at capacity' : `codex resume exit ${code}`;
-  latest.lastErrorClass = capacity ? 'capacity' : 'codex';
+  latest.lastErrorClass = capacity ? 'capacity' : failureClass==='timeout' ? 'timeout' : 'codex';
   if (capacity) {
     const minutes = latest.capacityRetryAfter ? Math.min(60,Math.max(15,Number(latest.capacityRetryMinutes||15)*2)) : 15;
     latest.capacityRetryMinutes = minutes;
@@ -134,6 +158,7 @@ if (code !== 0) {
     latest.status = 'waiting_capacity';
   } else {
     latest.status = 'needs_repair';
+    if(failureClass==='timeout')latest.nextRetryAt=new Date(Date.now()+Math.max(1,Number(latest.timeoutRetryMinutes||5))*60_000).toISOString();
   }
   await saveState(latest);
   await appendLog('resume',{task:'resume',state_before:'running',decision:capacity?'capacity_backoff':'resume_failed',action:capacity?'wait_and_retry':'preserve_recovery_point',state_after:latest.status,exitCode:code});
@@ -141,10 +166,25 @@ if (code !== 0) {
   process.exit(code || 1);
 }
 
+// Only extend capacity wait if the error class is genuinely capacity and retry expired
 if (latest.status === 'waiting_capacity' && latest.lastErrorClass === 'capacity' && retryExpired) {
   extendCapacityWait();
   await saveState(latest);
   await appendLog('resume',{task:'resume',state_before:'running',decision:'capacity_backoff',action:'wait_and_retry',state_after:latest.status,exitCode:0});
+  await releaseWriter();
+  process.exit(0);
+}
+
+// Clear spurious waiting_capacity if lastErrorClass is not capacity
+if (latest.status === 'waiting_capacity' && latest.lastErrorClass !== 'capacity') {
+  latest.status = 'recoverable';
+  latest.capacityRetryAfter = null;
+  latest.capacityRetryMinutes = 0;
+  if (latest.lastErrorClass === 'timeout') {
+    latest.nextRetryAt = new Date(Date.now()+Math.max(1,Number(latest.timeoutRetryMinutes||5))*60_000).toISOString();
+  }
+  await saveState(latest);
+  await appendLog('resume',{task:'resume',state_before:'running',decision:'clear_spurious_capacity_wait',action:'reclassify_as_recoverable',state_after:latest.status,actualErrorClass:latest.lastErrorClass,exitCode:0});
   await releaseWriter();
   process.exit(0);
 }
@@ -158,6 +198,7 @@ if (protectedStates.includes(String(latest.status)) || latest.userStopped || lat
 latest.status = 'running';
 latest.capacityRetryAfter = null;
 latest.capacityRetryMinutes = 0;
+latest.nextRetryAt = null;
 await saveState(latest);
 await appendLog('resume',{task:'resume',state_before:'running',decision:'resume_process_returned',action:'continue_next_action',state_after:'running',exitCode:0});
 await releaseWriter();

@@ -1,16 +1,16 @@
 # Longrun Status
 
-更新时间：2026-09-23T00:22:50.849Z
+更新时间：2026-09-23T02:22:52.187Z
 
-当前阶段：v0_recovery
+当前阶段：clean_run_init
 
 长期目标：未完成
 
 最近实际成果：
-- 2026-09-23T00:18:04.994Z
+- 2026-09-23T01:30:00.000Z
 
 当前视频任务：
-- job-fe4f0ad1-6b91-4f8e-87e1-deb634da8a45
+- none
 
 最近生成视频：
 - 暂无
@@ -19,16 +19,16 @@
 - pending
 
 当前最高优先级问题：
-- 保留同一 child job job-623d430e-87e3-4d75-af3c-d9ff6c73a129，等待看护恢复入口；禁止新建 video_task。
+- 恢复 OpenClaw gateway 18789 并允许当前 Codex 使用 Chrome 后，从 clean_run_init 继续 WebUI 上传；未创建视频任务，不得重复提交
 
 最近错误：
-- timeout
+- OpenClaw gateway unavailable and Chrome computer-use denied
 
 下一动作：
-- 保留同一 child job job-623d430e-87e3-4d75-af3c-d9ff6c73a129，等待看护恢复入口；禁止新建 video_task。
+- 恢复 OpenClaw gateway 18789 并允许当前 Codex 使用 Chrome 后，从 clean_run_init 继续 WebUI 上传；未创建视频任务，不得重复提交
 
 Writer：
 - stopped
 
 下次自动续跑：
-- 2026-09-23T00:46:21.635Z
+- 按15分钟任务检查

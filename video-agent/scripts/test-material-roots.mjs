@@ -73,5 +73,32 @@ test('service imports only selected index entries, deduplicates concurrent/resta
   const stale=index.entries[2];await sharp({create:{width:13,height:8,channels:3,background:'white'}}).png().toFile(path.join(source,stale.relativePath));
   await assert.rejects(restarted.attachMaterialRoot(restored,index.id,[stale.id]),{code:'MATERIAL_CHANGED'});assert.equal(restored.assets.length,2);
   await assert.rejects(restarted.attachMaterialRoot(restored,'../unauthorized',[ids[0]]),{code:'MATERIAL_ROOT_UNKNOWN'});
- }finally{assert.ok(path.resolve(root).startsWith(path.resolve(os.tmpdir())+path.sep));await fs.rm(root,{recursive:true,force:true});}
+}finally{assert.ok(path.resolve(root).startsWith(path.resolve(os.tmpdir())+path.sep));await fs.rm(root,{recursive:true,force:true});}
+});
+
+test('repository fixtures stay visible for tests but are blocked from production attachment and search',async()=>{
+ const sandbox=await fs.mkdtemp(path.join(os.tmpdir(),'hf-material-boundary-'));
+ try{
+  const root=path.join(sandbox,'workspace'),outside=path.join(sandbox,'outside-materials');
+  await fs.mkdir(path.join(root,'config'),{recursive:true});
+  await fs.mkdir(path.join(root,'assets'),{recursive:true});
+  await fs.mkdir(path.join(root,'showcase'),{recursive:true});
+  await fs.mkdir(outside,{recursive:true});
+  const image=async(file,color)=>{await sharp({create:{width:12,height:8,channels:3,background:color}}).png().toFile(file);};
+  await image(path.join(root,'assets','fixture.png'),'red');
+  await image(path.join(root,'showcase','reference.png'),'blue');
+  await image(path.join(outside,'upload.png'),'green');
+  await fs.writeFile(path.join(root,'config','commerce.json'),JSON.stringify({commerce:{materialRoots:['showcase','../outside-materials']}}));
+  const roots=await discoverMaterialRoots(root),fixture=roots.find(item=>item.label==='assets'),showcase=roots.find(item=>item.label==='showcase'),external=roots.find(item=>item.label==='../outside-materials');
+  assert.equal(fixture.productionAllowed,false);assert.equal(fixture.sourceClass,'repository-fixture');
+  assert.equal(showcase.productionAllowed,false);assert.equal(external.productionAllowed,true);assert.equal(external.sourceClass,'external-authorized');
+  const service=await createCreativeService({root,dataDir:path.join(root,'data')});
+  const project=await service.create({message:'使用授权素材制作商品视频'});
+  await assert.rejects(service.attachMaterialRoot(project,fixture.id,[fixture.entries[0].id]),{code:'MATERIAL_SOURCE_FORBIDDEN'});
+  await assert.rejects(service.attachMaterialRoot(project,showcase.id,[showcase.entries[0].id]),{code:'MATERIAL_SOURCE_FORBIDDEN'});
+  const search=await service.searchResources('fixture',project.id);
+  assert.equal(search.localMaterials.some(item=>item.rootId===fixture.id),false);
+  await service.attachMaterialRoot(project,external.id,[external.entries[0].id]);
+  assert.equal(project.assets.length,1);assert.equal(project.assets[0].materialSource.rootId,external.id);
+ }finally{assert.ok(path.resolve(sandbox).startsWith(path.resolve(os.tmpdir())+path.sep));await fs.rm(sandbox,{recursive:true,force:true});}
 });

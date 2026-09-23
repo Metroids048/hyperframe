@@ -1,4 +1,4 @@
-import {ensureState,saveState,inspectLock,appendLog,now,watchdogDecision} from './common.mjs';
+import {ensureState,saveState,inspectLock,appendLog,now,watchdogDecision,classifyFailure} from './common.mjs';
 const state=await ensureState();
 const before=JSON.stringify({status:state.status,accepted:state.accepted,userStopped:state.userStopped,job:state.activeVideoJobId});
 const lock=await inspectLock();
@@ -20,10 +20,18 @@ if(state.projectId&&state.activeVideoJobId){
         state.activeVideoJobStage=job.stage||null;
         if(['recoverable','failed'].includes(String(job.status).toLowerCase())){
           state.lastError=job.error||job.code||'video job recoverable';
-          state.lastErrorClass=job.code==='OPENCLAW_STAGE_TIMEOUT'?'openclaw_stage_timeout':'video_job';
+          const errorClass=classifyFailure({code:job.code,status:job.statusCode,message:job.error});
+          state.lastErrorClass=errorClass;
           state.nextAction=`保留同一 child job ${job.id}，等待看护恢复入口；禁止新建 video_task。`;
-          if(job.code==='OPENCLAW_STAGE_TIMEOUT'&&!state.capacityRetryAfter)state.capacityRetryAfter=new Date(Date.now()+Math.max(30,Number(state.capacityRetryMinutes||30))*60_000).toISOString();
-          if(job.code==='OPENCLAW_STAGE_TIMEOUT')state.status='waiting_capacity';
+          if(errorClass==='capacity'){
+            if(!state.capacityRetryAfter)state.capacityRetryAfter=new Date(Date.now()+Math.max(30,Number(state.capacityRetryMinutes||30))*60_000).toISOString();
+            state.nextRetryAt=null;
+            state.status='waiting_capacity';
+          }else if(errorClass==='timeout'){
+            state.capacityRetryAfter=null;
+            state.nextRetryAt=new Date(Date.now()+Math.max(1,Number(state.timeoutRetryMinutes||5))*60_000).toISOString();
+            state.status='recoverable';
+          }
         }
         if(['queued','running','processing','rendering','uploading'].includes(String(job.status).toLowerCase())){
           state.status=state.userStopped?'stopped_by_user':'running';

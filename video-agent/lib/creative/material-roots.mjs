@@ -8,11 +8,33 @@ import {CreativeError,insist} from './contracts.mjs';
 const media=/\.(mp4|mov|webm|png|jpe?g|webp)$/i;
 const generatedDirectories=new Set(['outputs','output','exports','export','deliverables','versions','uploads','cache','node_modules','thumbs','thumbnails','previews','evidence','resources','导出','成片','缩略图','参考作品','Agent候选'.toLowerCase(),'历史输出']);
 const generatedFile=/^(?:contact(?:-sheet)?[-_.]|review[-_]|candidate[-_]|poster[-_.]|crop[-_]|frame[-_]|commerce-final\.)/i;
+// The repository ships media for tests, examples and historical showcases.
+// Those files remain indexable for test fixtures and diagnostics, but must
+// never be selectable by a production/OpenClaw job.  Only an explicitly
+// configured directory outside the workspace (or a neutral user directory
+// such as ../素材) is a production source.
+const forbiddenProductionRootNames=new Set([
+  'assets','showcase','cases','case','demo','demos','commerce-mvp','commerce-showcase',
+  'commerce-rebuild-v2','history','historical','outputs','output','exports','export',
+  'deliverables','versions','evidence','codex-evidence','test-output','test-outputs',
+  'examples','fixtures','fixture',
+]);
 const hash=text=>createHash('sha256').update(text).digest('hex');
 const canonical=file=>process.platform==='win32'?file.toLowerCase():file;
 const inside=(base,file)=>{const relative=path.relative(base,file);return !path.isAbsolute(relative)&&relative!=='..'&&!relative.startsWith('..'+path.sep);};
 const display=file=>file.replaceAll('\\','/');
 const errorStatus=error=>error.code==='ENOENT'?'missing':['EACCES','EPERM'].includes(error.code)?'inaccessible':'scan_failed';
+
+function sourcePolicy(workspace,configured,directory){
+  const workspaceRoot=path.resolve(workspace),configuredPath=path.resolve(configured),resolvedPath=path.resolve(directory||configured);
+  const relative=path.relative(workspaceRoot,configuredPath);
+  const parts=inside(workspaceRoot,configuredPath)?relative.split(path.sep).filter(Boolean).map(part=>part.toLowerCase()):[];
+  const resolvedParts=inside(workspaceRoot,resolvedPath)?path.relative(workspaceRoot,resolvedPath).split(path.sep).filter(Boolean).map(part=>part.toLowerCase()):[];
+  const blocked=parts.some(part=>forbiddenProductionRootNames.has(part))||resolvedParts.some(part=>forbiddenProductionRootNames.has(part));
+  if(blocked)return {productionAllowed:false,sourceClass:'repository-fixture',productionBlockReason:'repository_fixture'};
+  if(!inside(workspaceRoot,configuredPath))return {productionAllowed:true,sourceClass:'external-authorized',productionBlockReason:null};
+  return {productionAllowed:true,sourceClass:'configured-workspace',productionBlockReason:null};
+}
 
 /** Only server configuration grants traversal. Indexing never copies originals. */
 export async function discoverMaterialRoots(root,{filesystem=fs}={}){
@@ -21,10 +43,19 @@ export async function discoverMaterialRoots(root,{filesystem=fs}={}){
   insist(Array.isArray(configured)&&configured.every(p=>typeof p==='string'&&p.length),'素材目录配置无效','MATERIAL_CONFIG');
   const bases=[path.join(root,'assets'),...configured.map(p=>path.resolve(root,p))],found=[],seenRoots=new Set();
   for(const base of bases){
-    const record={id:hash(canonical(base)).slice(0,24),label:display(path.relative(root,base)),directory:base,status:'ready',entries:[],files:[],videos:0,images:0,diagnostics:[],excluded:[]};
+    const initialPolicy=sourcePolicy(root,base,base);
+    const record={id:hash(canonical(base)).slice(0,24),label:display(path.relative(root,base)),directory:base,status:'ready',entries:[],files:[],videos:0,images:0,diagnostics:[],excluded:[],...initialPolicy};
     try{record.directory=await filesystem.realpath(base);const stat=await filesystem.stat(record.directory);insist(stat.isDirectory(),'配置的素材根不是目录','MATERIAL_NOT_DIRECTORY');}
     catch(error){record.status=errorStatus(error);record.diagnostics.push({path:record.label,code:error.code||'SCAN_FAILED',status:record.status});found.push(record);continue;}
     record.id=hash(canonical(record.directory)).slice(0,24);
+    // Keep the lexical path policy as a guard even when a repository fixture
+    // is symlinked outside the workspace.  A configured external path is
+    // allowed, while a path configured from a forbidden repository subtree is
+    // never upgraded by realpath resolution.
+    const resolvedPolicy=sourcePolicy(root,base,record.directory);
+    record.productionAllowed=initialPolicy.productionAllowed&&resolvedPolicy.productionAllowed;
+    record.sourceClass=record.productionAllowed?resolvedPolicy.sourceClass:'repository-fixture';
+    record.productionBlockReason=record.productionAllowed?null:'repository_fixture';
     if(seenRoots.has(record.id))continue;seenRoots.add(record.id);
     const visited=new Set(),indexed=new Set();
     const diagnostic=(file,error)=>{record.status='partial';record.diagnostics.push({path:display(path.relative(record.directory,file)),code:error.code||'SCAN_FAILED',status:errorStatus(error)});};

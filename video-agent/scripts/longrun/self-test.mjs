@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import {spawn} from 'node:child_process';
-import {atomicWrite,defaultState,inspectLock,watchdogDecision} from './common.mjs';
+import {atomicWrite,defaultState,inspectLock,watchdogDecision,classifyFailure} from './common.mjs';
 
 const dir=await fs.mkdtemp(path.join(os.tmpdir(),'hyperframe-longrun-'));
 await fs.mkdir(path.join(dir,'logs'),{recursive:true});
@@ -24,6 +24,12 @@ state.activeVideoJobStatus=null;
 state.capacityRetryAfter=new Date(Date.now()+60000).toISOString();
 assertDecision('wait_capacity','capacity backoff');
 state.capacityRetryAfter=null;
+state.nextRetryAt=new Date(Date.now()+60000).toISOString();
+assertDecision('wait_retry','timeout retry backoff');
+state.nextRetryAt=null;
+if(classifyFailure({code:'OPENCLAW_STAGE_TIMEOUT',message:'timeout'})!=='timeout')throw Error('stage timeout was not classified separately');
+if(classifyFailure({code:'OPENCLAW_STAGE_RATE_LIMIT',status:429})!=='capacity')throw Error('rate limit was not classified as capacity');
+if(classifyFailure({message:'socket timed out'})!=='timeout')throw Error('transport timeout was classified as capacity');
 state.userStopped=true;
 assertDecision('user_stop','STOP state');
 state.userStopped=false;
@@ -45,4 +51,4 @@ const inactive=await inspectLock(dir);
 if(inactive.alive||!inactive.safeToRecover)throw Error('dead writer did not become recoverable');
 
 await fs.rm(dir,{recursive:true,force:true});
-console.log(JSON.stringify({selfTest:'passed',cases:['normal_round_resumes','backend_job_tracked','active_writer_blocks','dead_writer_can_recover','capacity_backoff_waits','STOP_blocks','external_blocker_waits'],modelCalls:0},null,2));
+console.log(JSON.stringify({selfTest:'passed',cases:['normal_round_resumes','backend_job_tracked','active_writer_blocks','dead_writer_can_recover','capacity_backoff_waits','timeout_backoff_waits','capacity_timeout_classification','STOP_blocks','external_blocker_waits'],modelCalls:0},null,2));

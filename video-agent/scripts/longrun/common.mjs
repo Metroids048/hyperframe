@@ -70,7 +70,14 @@ export function watchdogDecision(state,lock,{at=Date.now()}={}){
   if(lock.exists&&!lock.safeToRecover)return {decision:'already_running',action:'none'};
   if(state.activeVideoJobId&&(!state.activeVideoJobStatus||['queued','running','processing','rendering','uploading'].includes(String(state.activeVideoJobStatus).toLowerCase())))return {decision:'track_existing_job',action:'no_new_submission'};
   if(state.capacityRetryAfter&&Date.parse(state.capacityRetryAfter)>at)return {decision:'wait_capacity',action:'none'};
+  if(state.nextRetryAt&&Date.parse(state.nextRetryAt)>at)return {decision:'wait_retry',action:'none'};
   return {decision:'resume_needed',action:'set_resume_needed'};
+}
+export function classifyFailure({code=null,status=null,message=''}={}){
+  const text=String(message||'');
+  if(Number(status)===429||code==='OPENCLAW_STAGE_RATE_LIMIT'||/\b429\b|too many requests|rate[ -]?limit|at capacity|capacity exceeded/i.test(text))return 'capacity';
+  if(/TIMEOUT|timed? ?out/i.test(String(code||''))||/timed? ?out|timeout/i.test(text))return 'timeout';
+  return 'video_job';
 }
 export async function acquireWriter({sessionId=null,phase='resume',dir=STATE_DIR}={}){
   await fs.mkdir(dir,{recursive:true});
