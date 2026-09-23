@@ -1,0 +1,207 @@
+◆  Checking s06-faq-redesign-20260917
+[hyperframes] browserGpuMode probe → hardware (WebGL renderer vendor="Google Inc. (Apple)" renderer="ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Pro, Unspecified Version)")
+
+Lint
+  ⚠ duplicate_media_discovery_risk: Detected 2 matching img entries with the same source/start/duration.
+    /Users/a1234/Desktop/hyperframe-main/video-agent/deliverables/s06-faq-redesign-20260917/index.html [data-composition-id] t=0s
+    Fix: Avoid duplicated media nodes that can be discovered twice during compilation.
+  ⚠ gsap_repeated_fromto_without_baseline: 2 tl.fromTo() calls target "#wipe" with no stable baseline. The last-authored fromTo "from" values become the element's resting state for any seek before the first tween actually runs, because GSAP applies fromTo from-values at authoring time (immediateRender), not at tween position.
+    /Users/a1234/Desktop/hyperframe-main/video-agent/deliverables/s06-faq-redesign-20260917/index.html #wipe t=0s
+    Fix: Add `immediateRender: false` to the destination vars of each future fromTo, or set a safe resting state with an earlier `tl.set("#wipe", { ... }, 0)`. Pre-first-tween seeks must not inherit whichever fromTo call happened to author last.
+  ⚠ timeline_track_too_dense: Track 1 has 11 timed elements in this HTML file. Smaller sub-compositions keep timelines easier to read, iterate on, and diff.
+    /Users/a1234/Desktop/hyperframe-main/video-agent/deliverables/s06-faq-redesign-20260917/index.html [data-composition-id] t=0s
+    Fix: Move coherent scene groups into separate .html files under compositions/ and mount them from the parent with data-composition-src so the timeline stays easier to inspect, revise, and validate.
+  0 error(s), 3 warning(s), 0 info(s)
+
+Runtime
+  ◇ 0 errors, 0 warnings
+
+Layout
+  ✗ t=53.56-60.41s (50 samples) content_overlap h1.unknown-head inside div.unknown-badge "这件是什么？" — Two text blocks overlap and may render unreadable.
+        Fix: Give each block its own zone, or mark intentional layering with data-layout-allow-overlap.
+  ✗ t=69.81-79.11s (2 samples) text_occluded #s-checklist > div:nth-of-type(1) > div:nth-of-type(1) inside #wipe "你的下一步" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ✗ t=69.81-79.11s (2 samples) text_occluded div.check-left > h1:nth-of-type(1) inside #wipe "下单前" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ✗ t=69.81-79.11s (2 samples) text_occluded div.check-left > h1:nth-of-type(1) > em:nth-of-type(1) inside #wipe "问清这三项" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ✗ t=69.81-79.11s (2 samples) text_occluded div.check-rows > div:nth-of-type(1) > b:nth-of-type(1) inside #wipe "01" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ✗ t=69.81-79.11s (2 samples) text_occluded div.check-rows > div:nth-of-type(1) > div:nth-of-type(1) > h2:nth-of-type(1) inside #wipe "具体版本" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ✗ t=69.81-79.11s (2 samples) text_occluded div.check-rows > div:nth-of-type(1) > div:nth-of-type(1) > p:nth-of-type(1) inside #wipe "型号与购买版本是否一致" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ✗ t=69.81-79.11s (2 samples) text_occluded div.check-rows > div:nth-of-type(2) > b:nth-of-type(1) inside #wipe "02" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ✗ t=69.81-79.11s (2 samples) text_occluded div.check-rows > div:nth-of-type(2) > div:nth-of-type(1) > h2:nth-of-type(1) inside #wipe "随附物件" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ✗ t=69.81-79.11s (2 samples) text_occluded div.check-rows > div:nth-of-type(2) > div:nth-of-type(1) > p:nth-of-type(1) inside #wipe "订单中实际包含哪些物件" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ✗ t=69.81-79.11s (2 samples) text_occluded div.check-rows > div:nth-of-type(3) > b:nth-of-type(1) inside #wipe "03" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ✗ t=69.81-79.11s (2 samples) text_occluded div.check-rows > div:nth-of-type(3) > div:nth-of-type(1) > h2:nth-of-type(1) inside #wipe "所需规格" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ✗ t=69.81-79.11s (2 samples) text_occluded div.check-rows > div:nth-of-type(3) > div:nth-of-type(1) > p:nth-of-type(1) inside #wipe "是否符合自己的使用需求" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ✗ t=69.81-79.11s (2 samples) text_occluded div.check-note inside #wipe "性能 / 续航 / 兼容性 → 另查资料或测试" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ℹ t=13.96s text_occluded #s-answer > div:nth-of-type(1) > div:nth-of-type(1) inside #wipe "ANSWER FIRST" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ℹ t=13.96s text_occluded h1.answer-title inside #wipe "先确认" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ℹ t=13.96s text_occluded h1.answer-title > em:nth-of-type(1) inside #wipe "三件核心物件" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ℹ t=13.96s text_occluded div.answer-tile.tile-front > div:nth-of-type(2) > b:nth-of-type(1) inside #wipe "01" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ℹ t=13.96s text_occluded div.answer-tile.tile-front > div:nth-of-type(2) > span:nth-of-type(1) inside #wipe "掌机" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ℹ t=13.96s text_occluded div.answer-tile.tile-front > div:nth-of-type(2) > i:nth-of-type(1) inside #wipe "✓" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ℹ t=13.96s text_occluded div.answer-tile.tile-case > div:nth-of-type(2) > b:nth-of-type(1) inside #wipe "02" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ℹ t=13.96s text_occluded div.answer-tile.tile-case > div:nth-of-type(2) > span:nth-of-type(1) inside #wipe "收纳包" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ℹ t=13.96s text_occluded div.answer-tile.tile-case > div:nth-of-type(2) > i:nth-of-type(1) inside #wipe "✓" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ℹ t=13.96s text_occluded div.answer-tile.tile-power > div:nth-of-type(2) > b:nth-of-type(1) inside #wipe "03" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ℹ t=13.96s text_occluded div.answer-tile.tile-power > div:nth-of-type(2) > span:nth-of-type(1) inside #wipe "带线电源适配器" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ℹ t=13.96s text_occluded div.answer-tile.tile-power > div:nth-of-type(2) > i:nth-of-type(1) inside #wipe "✓" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ℹ t=13.96s text_occluded div.extra > span:nth-of-type(1) inside #wipe "还有" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ℹ t=13.96s text_occluded div.extra > b:nth-of-type(1) inside #wipe "束口小袋" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ℹ t=13.96s text_occluded div.extra > b:nth-of-type(2) inside #wipe "纸质提示卡" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ℹ t=13.96s text_occluded div.extra > p:nth-of-type(1) inside #wipe "其他物件逐项核对" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ℹ t=23.27s text_occluded #s-case > div:nth-of-type(1) > div:nth-of-type(1) inside #wipe "02 / 核心物件" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ℹ t=23.27s text_occluded #s-case > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) inside #wipe "02" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ℹ t=23.27s text_occluded #s-case > div:nth-of-type(1) > div:nth-of-type(2) > h1:nth-of-type(1) inside #wipe "收纳包" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ℹ t=23.27s text_occluded #s-case > div:nth-of-type(1) > div:nth-of-type(2) > p:nth-of-type(1) inside #wipe "包装，分开看" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ℹ t=23.27s text_occluded div.mini-proof > span:nth-of-type(1) inside #wipe "纸套 ≠ 功能配件" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ℹ t=23.27s text_occluded div.fact-chip inside #wipe "黑色包体 · 拉链可见" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ℹ t=23.27s text_occluded #s-case > div:nth-of-type(1) > div:nth-of-type(3) inside #wipe "整体轮廓 → 识别包体" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ℹ t=32.58s text_occluded #s-power > div:nth-of-type(1) > div:nth-of-type(1) inside #wipe "03 / 核心物件" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ℹ t=32.58s text_occluded #s-power > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) inside #wipe "03" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ℹ t=32.58s text_occluded #s-power > div:nth-of-type(1) > div:nth-of-type(2) > h1:nth-of-type(1) inside #wipe "电源适配器" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ℹ t=32.58s text_occluded #s-power > div:nth-of-type(1) > div:nth-of-type(2) > p:nth-of-type(1) inside #wipe "有线缆，不猜规格" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ℹ t=32.58s text_occluded #s-power > div:nth-of-type(1) > div:nth-of-type(3) > span:nth-of-type(1) inside #wipe "来自白色小盒" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ℹ t=32.58s text_occluded #s-power > div:nth-of-type(1) > div:nth-of-type(3) > span:nth-of-type(2) inside #wipe "适配器 + 线缆" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ℹ t=32.58s text_occluded small.orange inside #wipe "不推断功率或充电效果" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ℹ t=32.58s text_occluded div.proof-line > span:nth-of-type(1) inside #wipe "对应取出镜头" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ℹ t=41.88s text_occluded #s-pouch > div:nth-of-type(1) > div:nth-of-type(1) inside #wipe "04 / 随盒小物" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ℹ t=41.88s text_occluded #s-pouch > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) inside #wipe "04" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ℹ t=41.88s text_occluded #s-pouch > div:nth-of-type(1) > div:nth-of-type(2) > h1:nth-of-type(1) inside #wipe "束口小袋" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ℹ t=41.88s text_occluded #s-pouch > div:nth-of-type(1) > div:nth-of-type(2) > p:nth-of-type(1) inside #wipe "看得见，才列入" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ℹ t=41.88s text_occluded div.fact-stack > span:nth-of-type(1) inside #wipe "黑色" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ℹ t=41.88s text_occluded div.fact-stack > span:nth-of-type(2) inside #wipe "束口" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ℹ t=41.88s text_occluded div.fact-stack > small:nth-of-type(1) inside #wipe "用途暂不确认" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ℹ t=41.88s text_occluded #s-pouch > div:nth-of-type(1) > div:nth-of-type(3) inside #wipe "独立举起 → 外形可辨" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ℹ t=51.19s text_occluded #s-paper > div:nth-of-type(1) > div:nth-of-type(1) inside #wipe "05 / 随盒小物" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ℹ t=51.19s text_occluded #s-paper > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) inside #wipe "05" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ℹ t=51.19s text_occluded #s-paper > div:nth-of-type(1) > div:nth-of-type(2) > h1:nth-of-type(1) inside #wipe "纸质提示卡" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ℹ t=51.19s text_occluded #s-paper > div:nth-of-type(1) > div:nth-of-type(2) > p:nth-of-type(1) inside #wipe "保留可见信息" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ℹ t=51.19s text_occluded #s-paper > div:nth-of-type(1) > div:nth-of-type(3) > span:nth-of-type(1) inside #wipe "开箱前段出现" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ℹ t=51.19s text_occluded #s-paper > div:nth-of-type(1) > div:nth-of-type(3) > span:nth-of-type(2) inside #wipe "保留画面原貌" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  ℹ t=51.19s text_occluded #s-paper > div:nth-of-type(1) > div:nth-of-type(3) > small:nth-of-type(1) inside #wipe "小字未核实，不扩写说明" — Text is hidden beneath an opaque element.
+        Fix: Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.
+  14 error(s), 0 warning(s), 46 info(s)
+
+Motion
+  ◇ 0 errors, 0 warnings
+
+Contrast
+  ✗ div > section:nth-of-type(4) > div > div:nth-of-type(1) 1:1 (need 3:1, t=23.269s)
+    Try rgb(54,123,115); source index.html
+  ✗ div > section:nth-of-type(4) > div > div:nth-of-type(2) > div:nth-of-type(1) 1:1 (need 3:1, t=23.269s)
+    Try rgb(54,123,115); source index.html
+  ✗ div > section:nth-of-type(4) > div > div:nth-of-type(2) > h1 1.47:1 (need 3:1, t=23.269s)
+    Try rgb(112,112,108); source index.html
+  ✗ div > section:nth-of-type(4) > div > div:nth-of-type(2) > p 1.05:1 (need 3:1, t=23.269s)
+    Try rgb(102,114,118); source index.html
+  ✗ div > section:nth-of-type(4) > div > div:nth-of-type(2) > div:nth-of-type(2) > span 1.47:1 (need 3:1, t=23.269s)
+    Try rgb(112,112,108); source index.html
+  ✗ div > section:nth-of-type(4) > div > div:nth-of-type(2) > div:nth-of-type(3) 1:1 (need 3:1, t=23.269s)
+    Try rgb(54,123,115); source index.html
+  ✗ div > section:nth-of-type(4) > div > div:nth-of-type(3) 1.05:1 (need 3:1, t=23.269s)
+    Try rgb(102,114,118); source index.html
+  ✗ div > section:nth-of-type(6) > div > div:nth-of-type(1) 1:1 (need 3:1, t=41.883s)
+    Try rgb(54,123,115); source index.html
+  ✗ div > section:nth-of-type(6) > div > div:nth-of-type(2) > div:nth-of-type(1) 1:1 (need 3:1, t=41.883s)
+    Try rgb(54,123,115); source index.html
+  ✗ div > section:nth-of-type(6) > div > div:nth-of-type(2) > h1 1.47:1 (need 3:1, t=41.883s)
+    Try rgb(112,112,108); source index.html
+  ✗ div > section:nth-of-type(6) > div > div:nth-of-type(2) > p 1.05:1 (need 3:1, t=41.883s)
+    Try rgb(102,114,118); source index.html
+  ✗ div > section:nth-of-type(6) > div > div:nth-of-type(2) > div:nth-of-type(2) > span:nth-of-type(1) 1.47:1 (need 3:1, t=41.883s)
+    Try rgb(112,112,108); source index.html
+  ✗ div > section:nth-of-type(6) > div > div:nth-of-type(2) > div:nth-of-type(2) > span:nth-of-type(2) 1.47:1 (need 3:1, t=41.883s)
+    Try rgb(112,112,108); source index.html
+  ✗ div > section:nth-of-type(6) > div > div:nth-of-type(2) > div:nth-of-type(2) > small 1.05:1 (need 3:1, t=41.883s)
+    Try rgb(145,103,63); source index.html
+  ✗ div > section:nth-of-type(6) > div > div:nth-of-type(3) 1.05:1 (need 3:1, t=41.883s)
+    Try rgb(102,114,118); source index.html
+  ✗ div > section:nth-of-type(10) > div > div:nth-of-type(1) 1:1 (need 3:1, t=79.113s)
+    Try rgb(54,123,115); source index.html
+  ✗ div > section:nth-of-type(10) > div > div:nth-of-type(2) > h1 1.47:1 (need 3:1, t=79.113s)
+    Try rgb(112,112,108); source index.html
+  ✗ div > section:nth-of-type(10) > div > div:nth-of-type(2) > h1 > em 1:1 (need 3:1, t=79.113s)
+    Try rgb(54,123,115); source index.html
+  ✗ div > section:nth-of-type(10) > div > div:nth-of-type(3) > div:nth-of-type(1) > b 1:1 (need 3:1, t=79.113s)
+    Try rgb(54,123,115); source index.html
+  ✗ div > section:nth-of-type(10) > div > div:nth-of-type(3) > div:nth-of-type(1) > div > h2 1.47:1 (need 3:1, t=79.113s)
+    Try rgb(112,112,108); source index.html
+  ✗ div > section:nth-of-type(10) > div > div:nth-of-type(3) > div:nth-of-type(1) > div > p 1.05:1 (need 3:1, t=79.113s)
+    Try rgb(102,114,118); source index.html
+  ✗ div > section:nth-of-type(10) > div > div:nth-of-type(3) > div:nth-of-type(2) > b 1:1 (need 3:1, t=79.113s)
+    Try rgb(54,123,115); source index.html
+  ✗ div > section:nth-of-type(10) > div > div:nth-of-type(3) > div:nth-of-type(2) > div > h2 1.47:1 (need 3:1, t=79.113s)
+    Try rgb(112,112,108); source index.html
+  ✗ div > section:nth-of-type(10) > div > div:nth-of-type(3) > div:nth-of-type(2) > div > p 1.05:1 (need 3:1, t=79.113s)
+    Try rgb(102,114,118); source index.html
+  ✗ div > section:nth-of-type(10) > div > div:nth-of-type(3) > div:nth-of-type(3) > b 1:1 (need 3:1, t=79.113s)
+    Try rgb(54,123,115); source index.html
+  ✗ div > section:nth-of-type(10) > div > div:nth-of-type(3) > div:nth-of-type(3) > div > h2 1.47:1 (need 3:1, t=79.113s)
+    Try rgb(112,112,108); source index.html
+  ✗ div > section:nth-of-type(10) > div > div:nth-of-type(3) > div:nth-of-type(3) > div > p 1.05:1 (need 3:1, t=79.113s)
+    Try rgb(102,114,118); source index.html
+  ✗ div > section:nth-of-type(10) > div > div:nth-of-type(4) 1.05:1 (need 3:1, t=79.113s)
+    Try rgb(145,103,63); source index.html
+  0 error(s), 28 warning(s), 0 info(s)
+
+Snapshots
+  ◇ disabled
+
+◇  Check failed

@@ -1,0 +1,436 @@
+{
+  "capabilities": [
+    "image-observation",
+    "video-source-selection",
+    "native-composition",
+    "managed-original",
+    "local-preview-review",
+    "native-editing"
+  ],
+  "constraints": [
+    "仅使用现有真实素材，不生成新商品图片或镜头。",
+    "目标约55秒，只删无新信息的重复和等待；若与保留必要过程冲突，须记录冲突。",
+    "保留启动、运动状态变化与结束的真实顺序及原意。",
+    "保留所用源片段对应原声，剪接后核对声画同步。",
+    "添加少量原生可编辑章节说明，不默认添加逐字字幕或配音。",
+    "不添加音乐、训练效果或鼓励高强度模仿的内容。",
+    "提供源片段与成片时间映射，明确删除区间、删除理由和保留内容。",
+    "沿用1920×1080横屏输出，保护主体与关键动作。"
+  ],
+  "gaps": [
+    "尚未观察素材内容，启动、运动状态变化、结束及可删除重复和等待的源时间区间待核实。",
+    "仅确认素材含音轨，尚未确认是否有真实讲话；若存在需语义精剪的讲话，再启用转写。",
+    "约55秒内能否完整保留必要过程，需经素材观察后确认。"
+  ],
+  "keepOriginalAudio": true,
+  "needsCaptions": false,
+  "needsNarration": false,
+  "needsTranscription": false,
+  "request": {
+    "cta": "",
+    "facts": [],
+    "name": "",
+    "output": {
+      "width": 1920,
+      "height": 1080,
+      "durationSeconds": 55,
+      "fps": 30
+    },
+    "price": ""
+  },
+  "scenarioId": "general",
+  "workflow": {
+    "assumptions": [
+      "用户明确要求精剪使用过程记录，按recut处理，覆盖上游未明确确认的create默认值。",
+      "本次目的为忠实呈现过程与剪辑取舍，没有明确六类电商业务目的，采用general。",
+      "少量章节说明按独立可编辑文字处理，不视为逐字字幕。",
+      "默认不新增配音，沿用对应原声。"
+    ],
+    "gaps": [
+      "具体剪接点与保留区间尚待观察，不在需求理解阶段编造时间戳。",
+      "当前未提供母工程修订ID及对象映射；以已给源素材ID限定范围，后续需绑定实际修订。"
+    ],
+    "objective": "让观众在约55秒内看清使用过程的启动、运动状态变化与结束，保持真实顺序和原意，并让用户核对删减与保留内容。",
+    "overrides": [],
+    "requirements": [
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "把这个较长的使用过程记录精剪成约55秒",
+        "startSeconds": null,
+        "targetIds": [
+          "asset-78763853-4a32-42a0-9173-6437b3bf4060"
+        ]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "保留启动、运动状态变化与结束的真实顺序",
+        "startSeconds": null,
+        "targetIds": [
+          "asset-78763853-4a32-42a0-9173-6437b3bf4060"
+        ]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "只删无新信息的重复和等待",
+        "startSeconds": null,
+        "targetIds": [
+          "asset-78763853-4a32-42a0-9173-6437b3bf4060"
+        ]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "保留对应原声",
+        "startSeconds": null,
+        "targetIds": [
+          "asset-78763853-4a32-42a0-9173-6437b3bf4060"
+        ]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "加少量章节说明",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "prohibit",
+        "quote": "不添加音乐",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "prohibit",
+        "quote": "不重写原意",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "prohibit",
+        "quote": "不加入训练效果或鼓励高强度模仿的内容",
+        "startSeconds": null,
+        "targetIds": []
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "goal",
+        "quote": "给我看清楚删了哪里、保留了什么。",
+        "startSeconds": null,
+        "targetIds": [
+          "asset-78763853-4a32-42a0-9173-6437b3bf4060"
+        ]
+      }
+    ],
+    "taskMode": "recut"
+  },
+  "productionBinding": {
+    "message": "把这个较长的使用过程记录精剪成约55秒，保留启动、运动状态变化与结束的真实顺序，只删无新信息的重复和等待，保留对应原声。加少量章节说明，不添加音乐、不重写原意、不加入训练效果或鼓励高强度模仿的内容。给我看清楚删了哪里、保留了什么。",
+    "contract": {
+      "schemaVersion": 1,
+      "profile": "commerce-focus-v1",
+      "scenarioId": "general",
+      "originalRequest": "把这个较长的使用过程记录精剪成约55秒，保留启动、运动状态变化与结束的真实顺序，只删无新信息的重复和等待，保留对应原声。加少量章节说明，不添加音乐、不重写原意、不加入训练效果或鼓励高强度模仿的内容。给我看清楚删了哪里、保留了什么。",
+      "taskMode": "recut",
+      "workflowProfile": "recut",
+      "workflow": {
+        "version": 1,
+        "taskMode": "recut",
+        "taskModeExplicit": false,
+        "workflowProfile": "recut",
+        "businessScenario": "general",
+        "baseProjectId": "2bd33ba4-9d23-4035-ace8-06d54dfc76d9",
+        "baseRevisionId": null,
+        "assetScope": [
+          "asset-78763853-4a32-42a0-9173-6437b3bf4060"
+        ],
+        "originalRequest": "把这个较长的使用过程记录精剪成约55秒，保留启动、运动状态变化与结束的真实顺序，只删无新信息的重复和等待，保留对应原声。加少量章节说明，不添加音乐、不重写原意、不加入训练效果或鼓励高强度模仿的内容。给我看清楚删了哪里、保留了什么。",
+        "requirements": [
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "change",
+            "quote": "把这个较长的使用过程记录精剪成约55秒",
+            "startSeconds": null,
+            "targetIds": [
+              "asset-78763853-4a32-42a0-9173-6437b3bf4060"
+            ],
+            "id": "requirement-68d1f446462d9e96",
+            "field": "change",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "preserve",
+            "quote": "保留启动、运动状态变化与结束的真实顺序",
+            "startSeconds": null,
+            "targetIds": [
+              "asset-78763853-4a32-42a0-9173-6437b3bf4060"
+            ],
+            "id": "requirement-0a7d6719c6e1bf20",
+            "field": "preserve",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "change",
+            "quote": "只删无新信息的重复和等待",
+            "startSeconds": null,
+            "targetIds": [
+              "asset-78763853-4a32-42a0-9173-6437b3bf4060"
+            ],
+            "id": "requirement-f0534f9607d33db9",
+            "field": "change",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "preserve",
+            "quote": "保留对应原声",
+            "startSeconds": null,
+            "targetIds": [
+              "asset-78763853-4a32-42a0-9173-6437b3bf4060"
+            ],
+            "id": "requirement-3acf1e64654fe6c9",
+            "field": "sound.original",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "change",
+            "quote": "加少量章节说明",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-ea0b0b0cf3380c87",
+            "field": "change",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "prohibit",
+            "quote": "不添加音乐",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-a8ca4bfdc9eba0a6",
+            "field": "sound.music",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "prohibit",
+            "quote": "不重写原意",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-e9af40a14a674e30",
+            "field": "prohibit",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "prohibit",
+            "quote": "不加入训练效果或鼓励高强度模仿的内容",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-32564f8afc456888",
+            "field": "prohibit",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "goal",
+            "quote": "给我看清楚删了哪里、保留了什么。",
+            "startSeconds": null,
+            "targetIds": [
+              "asset-78763853-4a32-42a0-9173-6437b3bf4060"
+            ],
+            "id": "requirement-34de70079af184ec",
+            "field": "goal",
+            "inherited": false
+          }
+        ],
+        "assumptions": [
+          "用户明确要求精剪使用过程记录，按recut处理，覆盖上游未明确确认的create默认值。",
+          "本次目的为忠实呈现过程与剪辑取舍，没有明确六类电商业务目的，采用general。",
+          "少量章节说明按独立可编辑文字处理，不视为逐字字幕。",
+          "默认不新增配音，沿用对应原声。"
+        ],
+        "gaps": [
+          "具体剪接点与保留区间尚待观察，不在需求理解阶段编造时间戳。",
+          "当前未提供母工程修订ID及对象映射；以已给源素材ID限定范围，后续需绑定实际修订。"
+        ],
+        "interpretation": "validated-semantic-analysis",
+        "objective": "让观众在约55秒内看清使用过程的启动、运动状态变化与结束，保持真实顺序和原意，并让用户核对删减与保留内容。",
+        "contractId": "contract-12bbc49f7f371f4a",
+        "parentContractId": null,
+        "sourceRequests": [
+          "把这个较长的使用过程记录精剪成约55秒，保留启动、运动状态变化与结束的真实顺序，只删无新信息的重复和等待，保留对应原声。加少量章节说明，不添加音乐、不重写原意、不加入训练效果或鼓励高强度模仿的内容。给我看清楚删了哪里、保留了什么。"
+        ],
+        "requirementChanges": [],
+        "changeTargets": [
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "change",
+            "quote": "把这个较长的使用过程记录精剪成约55秒",
+            "startSeconds": null,
+            "targetIds": [
+              "asset-78763853-4a32-42a0-9173-6437b3bf4060"
+            ],
+            "id": "requirement-68d1f446462d9e96",
+            "field": "change",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "change",
+            "quote": "只删无新信息的重复和等待",
+            "startSeconds": null,
+            "targetIds": [
+              "asset-78763853-4a32-42a0-9173-6437b3bf4060"
+            ],
+            "id": "requirement-f0534f9607d33db9",
+            "field": "change",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "change",
+            "quote": "加少量章节说明",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-ea0b0b0cf3380c87",
+            "field": "change",
+            "inherited": false
+          }
+        ],
+        "preserveTargets": [
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "preserve",
+            "quote": "保留启动、运动状态变化与结束的真实顺序",
+            "startSeconds": null,
+            "targetIds": [
+              "asset-78763853-4a32-42a0-9173-6437b3bf4060"
+            ],
+            "id": "requirement-0a7d6719c6e1bf20",
+            "field": "preserve",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "preserve",
+            "quote": "保留对应原声",
+            "startSeconds": null,
+            "targetIds": [
+              "asset-78763853-4a32-42a0-9173-6437b3bf4060"
+            ],
+            "id": "requirement-3acf1e64654fe6c9",
+            "field": "sound.original",
+            "inherited": false
+          }
+        ],
+        "resourceNeeds": [],
+        "prohibitions": [
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "prohibit",
+            "quote": "不添加音乐",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-a8ca4bfdc9eba0a6",
+            "field": "sound.music",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "prohibit",
+            "quote": "不重写原意",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-e9af40a14a674e30",
+            "field": "prohibit",
+            "inherited": false
+          },
+          {
+            "endSeconds": null,
+            "excludeIds": [],
+            "kind": "prohibit",
+            "quote": "不加入训练效果或鼓励高强度模仿的内容",
+            "startSeconds": null,
+            "targetIds": [],
+            "id": "requirement-32564f8afc456888",
+            "field": "prohibit",
+            "inherited": false
+          }
+        ]
+      },
+      "persona": {
+        "creator": "商家／内容运营（待用户研究验证）",
+        "viewer": "首次了解商品的消费者"
+      },
+      "objective": "明确电商内容目标",
+      "product": {
+        "id": "product-1",
+        "name": "",
+        "facts": [],
+        "price": null,
+        "cta": "",
+        "audience": null,
+        "prohibited": []
+      },
+      "output": {
+        "width": 1920,
+        "height": 1080,
+        "durationSeconds": 55,
+        "fps": 30
+      },
+      "audio": "original",
+      "mustHave": [],
+      "mustNot": [],
+      "explicitConstraints": {
+        "schemaVersion": 1,
+        "originalRequest": "把这个较长的使用过程记录精剪成约55秒，保留启动、运动状态变化与结束的真实顺序，只删无新信息的重复和等待，保留对应原声。加少量章节说明，不添加音乐、不重写原意、不加入训练效果或鼓励高强度模仿的内容。给我看清楚删了哪里、保留了什么。",
+        "narration": "unspecified",
+        "music": "forbidden",
+        "original": "required",
+        "price": "unspecified",
+        "silent": false
+      },
+      "generatedFootageAllowed": false,
+      "deliverables": [
+        "candidate_mp4",
+        "editable_project",
+        "source_index",
+        "quality_report"
+      ]
+    }
+  }
+}

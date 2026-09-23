@@ -1,0 +1,249 @@
+{
+  "id": "436e421f-f085-4006-b779-1cf53b3969b1",
+  "type": "video-edit",
+  "schemaVersion": 2,
+  "name": "first",
+  "initialText": "",
+  "assets": {
+    "f0229f21-ac28-4318-81a2-d33e4b53e012": {
+      "id": "f0229f21-ac28-4318-81a2-d33e4b53e012",
+      "name": "first.mp4",
+      "original": "original.mp4",
+      "status": "ready",
+      "size": 11,
+      "createdAt": "2026-09-15T12:32:09.094Z",
+      "kind": "video",
+      "frames": 300,
+      "duration": 10,
+      "width": 640,
+      "height": 360,
+      "hasAudio": true,
+      "work": "work.mp4",
+      "thumbnails": [],
+      "sha256": "mock-f0229f21-ac28-4318-81a2-d33e4b53e012"
+    },
+    "slow-source": {
+      "id": "slow-source",
+      "name": "second.mp4",
+      "original": "original.mp4",
+      "status": "ready",
+      "kind": "video",
+      "frames": 300,
+      "duration": 10,
+      "width": 640,
+      "height": 360,
+      "hasAudio": true,
+      "work": "work.mp4",
+      "thumbnails": [],
+      "sha256": "mock-slow-source"
+    }
+  },
+  "revisions": [
+    {
+      "id": "cfd47d61-c137-4965-bd93-816e08ffa07d",
+      "number": 1,
+      "parentId": null,
+      "description": "导入原视频",
+      "media": {
+        "duration": 10,
+        "width": 640,
+        "height": 360,
+        "hasAudio": true,
+        "compileMs": 0,
+        "cache": {}
+      },
+      "quality": {
+        "level": "preview",
+        "status": "passed"
+      },
+      "createdAt": "2026-09-15T12:32:09.099Z",
+      "render": {
+        "status": "pending"
+      }
+    },
+    {
+      "id": "32053f37-3ab0-43ce-9c41-f62068186237",
+      "number": 2,
+      "parentId": "cfd47d61-c137-4965-bd93-816e08ffa07d",
+      "description": "已关闭主视频原声，其他音轨不变。",
+      "media": {
+        "duration": 10,
+        "width": 640,
+        "height": 360,
+        "hasAudio": true,
+        "compileMs": 0,
+        "cache": {}
+      },
+      "quality": {
+        "level": "preview",
+        "status": "passed"
+      },
+      "createdAt": "2026-09-15T12:32:09.146Z",
+      "render": {
+        "status": "pending"
+      }
+    }
+  ],
+  "currentRevisionId": "32053f37-3ab0-43ce-9c41-f62068186237",
+  "messages": [
+    {
+      "id": "8b415ee3-c46c-4b1c-8a21-13d60ee761e9",
+      "role": "user",
+      "text": "关闭原声",
+      "revisionId": "cfd47d61-c137-4965-bd93-816e08ffa07d",
+      "jobId": "76d7b25a-4371-4db0-9cc8-505299a42ecf"
+    },
+    {
+      "id": "948250b1-7eaf-41d5-895e-2f4adabca6be",
+      "role": "assistant",
+      "text": "已关闭主视频原声，其他音轨不变。",
+      "revisionId": "32053f37-3ab0-43ce-9c41-f62068186237",
+      "jobId": "76d7b25a-4371-4db0-9cc8-505299a42ecf"
+    }
+  ],
+  "jobs": [
+    {
+      "id": "1b2a95ae-013f-4b1b-a22f-20ba5dca9b60",
+      "key": "import-436e421f-f085-4006-b779-1cf53b3969b1",
+      "hash": "bde3405ceef9394d59dec5a9adc609416bc791eff184daa1176fd3f2a5e6c21f",
+      "kind": "asset",
+      "payload": {
+        "assetId": "f0229f21-ac28-4318-81a2-d33e4b53e012"
+      },
+      "afterJobId": null,
+      "status": "complete",
+      "stage": "已完成",
+      "progress": 100,
+      "createdAt": "2026-09-15T12:32:09.095Z",
+      "metrics": {
+        "stages": [
+          {
+            "name": "prepare_asset",
+            "startedAt": "2026-09-15T12:32:09.097Z",
+            "elapsedMs": 0,
+            "status": "complete"
+          },
+          {
+            "name": "compose",
+            "startedAt": "2026-09-15T12:32:09.098Z",
+            "elapsedMs": 1,
+            "status": "complete",
+            "cache": {}
+          },
+          {
+            "name": "preview_check",
+            "startedAt": "2026-09-15T12:32:09.099Z",
+            "elapsedMs": 0,
+            "status": "complete"
+          }
+        ],
+        "modelCalls": 0,
+        "cacheHits": 0,
+        "elapsedMs": 6
+      },
+      "startedAt": "2026-09-15T12:32:09.095Z",
+      "revisionId": "cfd47d61-c137-4965-bd93-816e08ffa07d",
+      "committedAt": "2026-09-15T12:32:09.100Z",
+      "completedAt": "2026-09-15T12:32:09.101Z"
+    },
+    {
+      "id": "a828c749-4d22-4a90-a1a1-c9b1f4197280",
+      "key": "e2717bc9-191e-430d-a860-3af4da10bea6",
+      "hash": "9f35692801b1ced2f0fb1b42f76c22dbcaad4306b425d62787305eb673c0f1bc",
+      "kind": "asset",
+      "payload": {
+        "assetId": "slow-source"
+      },
+      "afterJobId": null,
+      "status": "complete",
+      "stage": "已完成",
+      "progress": 100,
+      "createdAt": "2026-09-15T12:32:09.128Z",
+      "metrics": {
+        "stages": [
+          {
+            "name": "prepare_asset",
+            "startedAt": "2026-09-15T12:32:09.130Z",
+            "elapsedMs": 21,
+            "status": "complete"
+          }
+        ],
+        "modelCalls": 0,
+        "cacheHits": 0,
+        "elapsedMs": 23
+      },
+      "startedAt": "2026-09-15T12:32:09.128Z",
+      "completedAt": "2026-09-15T12:32:09.151Z"
+    },
+    {
+      "id": "76d7b25a-4371-4db0-9cc8-505299a42ecf",
+      "key": "8a5d9cfa-d0fd-4346-a0af-6f1763f44c6f",
+      "hash": "17f14bf4bcf9125a4c24ed0f3cf0da50e3bf18a06bbf729a2318de3ce11aaa65",
+      "kind": "edit",
+      "payload": {
+        "baseRevisionId": "cfd47d61-c137-4965-bd93-816e08ffa07d",
+        "text": "关闭原声"
+      },
+      "afterJobId": null,
+      "status": "complete",
+      "stage": "已完成",
+      "progress": 100,
+      "createdAt": "2026-09-15T12:32:09.139Z",
+      "metrics": {
+        "stages": [
+          {
+            "name": "compose",
+            "startedAt": "2026-09-15T12:32:09.144Z",
+            "elapsedMs": 1,
+            "status": "complete",
+            "cache": {}
+          },
+          {
+            "name": "preview_check",
+            "startedAt": "2026-09-15T12:32:09.146Z",
+            "elapsedMs": 0,
+            "status": "complete"
+          }
+        ],
+        "modelCalls": 0,
+        "cacheHits": 0,
+        "elapsedMs": 8
+      },
+      "startedAt": "2026-09-15T12:32:09.140Z",
+      "selectedSkills": [
+        {
+          "id": "audio-mix",
+          "version": "1.0.0",
+          "source": "https://github.com/kajisho5/ffmpeg-skill",
+          "sourceCommit": "ae3627595b66497b5d247daffcae17f4a035cfbc",
+          "license": "MIT"
+        }
+      ],
+      "planningMetrics": {
+        "modelCalls": 0,
+        "planMs": 0,
+        "executionMode": "exact-local-intent"
+      },
+      "toolCalls": [
+        {
+          "tool": "exact_edit_intent",
+          "status": "completed",
+          "revisionId": "cfd47d61-c137-4965-bd93-816e08ffa07d"
+        }
+      ],
+      "model": null,
+      "executionMode": "exact-local-intent",
+      "revisionId": "32053f37-3ab0-43ce-9c41-f62068186237",
+      "committedAt": "2026-09-15T12:32:09.147Z",
+      "completedAt": "2026-09-15T12:32:09.148Z"
+    }
+  ],
+  "createdAt": "2026-09-15T12:32:09.092Z",
+  "updatedAt": "2026-09-15T12:32:09.151Z",
+  "eventSequence": 20,
+  "originProjectId": null,
+  "originSourceHash": null,
+  "sampleId": null,
+  "sampleContext": null,
+  "storageVersion": 2
+}

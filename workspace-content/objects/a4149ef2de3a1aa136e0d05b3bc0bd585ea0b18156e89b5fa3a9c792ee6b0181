@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 3,
+  "projectId": "preview-regression",
+  "revisionId": "rev-529c6ecf4692d23b",
+  "fps": 30,
+  "output": {
+    "width": 640,
+    "height": 360,
+    "fit": "cover"
+  },
+  "durationFrames": 120,
+  "assetRefs": [],
+  "brief": {
+    "name": "preview",
+    "facts": []
+  },
+  "design": {
+    "background": "#102020",
+    "foreground": "#FFFFFF",
+    "panel": "#203030",
+    "accent": "#AAEECC",
+    "accentContrast": "#102020",
+    "fontFamily": "Arial",
+    "transition": "cut"
+  },
+  "scenes": [
+    {
+      "id": "scene",
+      "startFrame": 0,
+      "durationFrames": 120,
+      "effect": "custom-native",
+      "effectParams": {},
+      "purpose": "numeric preview"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "title",
+      "sceneId": "scene",
+      "kind": "text",
+      "semanticRole": "title",
+      "anchor": "scene-local",
+      "localStartFrame": 0,
+      "localDurationFrames": 120,
+      "durationFrames": 120,
+      "params": {
+        "text": "实际文字检查",
+        "style": {
+          "fontSize": 36,
+          "color": "#FFFFFF"
+        }
+      },
+      "startFrame": 0
+    }
+  ],
+  "audioGraph": [],
+  "transitions": [],
+  "sourceBundles": [
+    {
+      "id": "source",
+      "sceneId": "scene",
+      "contractVersion": 2,
+      "parameters": [],
+      "objects": [
+        {
+          "elementId": "title",
+          "nodeId": "title"
+        }
+      ],
+      "motionTargets": [
+        "title"
+      ],
+      "textStyles": [],
+      "html": "<div id=\"title\"></div>",
+      "css": "#title{position:absolute;left:30px;top:90px;width:500px;height:80px;line-height:1.4}",
+      "timeline": "tl.fromTo(\"#title\",{x:0},{x:30,duration:3,ease:\"none\"},0);"
+    }
+  ],
+  "dependencyLock": {
+    "hyperframes": "0.8.33",
+    "gsap": "3.14.2",
+    "schema": "commerce-v3.1"
+  }
+}

@@ -1,0 +1,95 @@
+{
+  "source": {
+    "html": "<div id=\"media-1\"></div><div id=\"text-1\">相机与包装同框</div>",
+    "css": "#media-1{position:absolute;inset:0;width:100%;height:100%;}#text-1{position:absolute;left:72px;top:72px;padding:8px;background:rgba(255,255,255,0.82);border:1px solid #B8B8B8;border-radius:2px;color:#171717;font-family:Arial,sans-serif;font-size:24px;font-weight:400;line-height:1.2;white-space:nowrap;z-index:2;}\n#media-1{background:transparent;opacity:1;z-index:1}",
+    "timeline": "",
+    "parameters": [],
+    "objects": [
+      {
+        "elementId": "media-1",
+        "ref": "media-1"
+      },
+      {
+        "elementId": "text-1",
+        "ref": "text-1"
+      }
+    ],
+    "motionTargets": [],
+    "textStyles": [
+      {
+        "elementId": "text-1",
+        "match": "相机与包装同框",
+        "fontSize": 24,
+        "fontWeight": 400,
+        "color": "#171717"
+      }
+    ],
+    "contractVersion": 2,
+    "tokens": {
+      "background": "#F3F1EE",
+      "foreground": "#171717",
+      "panel": "#FFFFFF",
+      "accent": "#6B6B6B",
+      "accentContrast": "#FFFFFF"
+    }
+  },
+  "binding": {
+    "shotHash": "d2a5fbe7cce5a754382d56bc0ec1d8980e8bd0e10c93df14666efe62673e750a",
+    "designHash": "036051f9d3793223589140192d5f1ec1a5fd167cbbef6f6f2b84f7356621b8c5",
+    "outputHash": "f1745ca0f6847b0a63c40d6a41a12117e9f01a445e03fe45a7ac4c4e6836e9da"
+  },
+  "evidence": {
+    "inspectionVersion": 3,
+    "validationFiles": [
+      [
+        "lib/creative/custom-source.mjs",
+        "c1b2a00a6a6dd27dbc6ee2fcef5e226d972375ae0056808f40f630982c816894"
+      ],
+      [
+        "lib/creative/isolation.mjs",
+        "6d232d5019810af7d1ba75aca99e074b76841da20fb3fc7b55dfe1d7b43aaf0a"
+      ],
+      [
+        "lib/creative/isolation-protocol.mjs",
+        "b5344dfc6663b9a5a41461475ab08ecf141d7230d0e3b5bb1debf1c310e4ca7d"
+      ],
+      [
+        "scripts/native-scene-worker.mjs",
+        "c9fdeb53f010be5b70a29371a7305be0039e30a8a0660e9f36d237a006905d7c"
+      ]
+    ],
+    "inputHash": "6d3ca6723d2e8acbc2c63211c0da9e719391d01077b0224eb4f791e0f9797280",
+    "sceneId": "scene-02",
+    "sourceRevisionId": "rev-7524c03e17675cea",
+    "globalSeconds": 5.266666666666667,
+    "image": "frames/frame-00-at-2.267s.png",
+    "imageHash": "9803a5fad06b1f90ca36f36d77920b6a8bd3e4d8bb7039572b10ce4bbaa8fdfb",
+    "engineering": "static-frame-checked",
+    "checkScope": {
+      "kind": "static-keyframe",
+      "atSeconds": 2.2666666666666666,
+      "fullTimeline": "pending-assembly",
+      "mediaExtraction": "checked"
+    },
+    "animation": "not-yet-authored",
+    "imagePath": "/Users/a1234/Desktop/hyperframe-main/video-agent/data/result-completion-projects/2ba994d0-d750-494c-99ec-0f5527add49a/versions/job-27c1e043-2842-4953-8cf8-dcfdaf421ab8/keyframes/scene-02-6d3ca6723d2e8acb/frames/frame-00-at-2.267s.png",
+    "folder": "keyframes/scene-02-6d3ca6723d2e8acb"
+  },
+  "review": {
+    "issues": [
+      {
+        "severity": "minor",
+        "repairKind": "source-selection",
+        "problem": "镜头目的要求“稳定同框展示相机、托盘和包装”，但源区间11.100–16.067秒的首末帧及关键帧都显示手部持续翻动说明纸张，画面并非稳定整体展示；这会削弱整体外观信息的清晰度。",
+        "repair": "优先改用同一素材中手部移开、相机与包装完整同框的连续源区间；若不存在，应缩短本镜头并保留动作连续性，避免用静帧或额外生成画面补齐。重新核对入点、末帧和中段连续动作。"
+      },
+      {
+        "severity": "minor",
+        "repairKind": "layout",
+        "problem": "合成关键帧中的“相机与包装同框”标签位于左上角，虽未遮挡主体，但字号相对画面较小，且源画面上下黑边占据可视区域，整体信息层级偏弱。",
+        "repair": "在不覆盖相机、手部和纸张的前提下，将标签字号或字重略微提高，并确认其位于有效画面区域；保持独立可编辑文字对象。"
+      }
+    ],
+    "summary": "已检查源首帧、末帧、同刻源画面和合成静态关键帧。商品与新增文字未见事实冲突或明显遮挡；音频、完整连续动作及动态字幕时序未在本次静态检查中验证。"
+  }
+}

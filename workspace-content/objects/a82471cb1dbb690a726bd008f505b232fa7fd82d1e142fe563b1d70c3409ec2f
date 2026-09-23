@@ -1,0 +1,45 @@
+{
+  "answer": {
+    "source": {
+      "html": "<div id=\"s01-layout\"><div id=\"s01-upper\"></div><div id=\"s01-lower\"></div><div id=\"s01-media\"></div><div id=\"s01-overlay\"><div id=\"s01-accent\"></div><h1 id=\"s01-title\"></h1><p id=\"s01-credit\"></p></div></div>",
+      "css": "#s01-layout{position:absolute;inset:0;width:1080px;height:1920px;background:transparent;}#s01-upper{position:absolute;left:0;top:0;width:1080px;height:656px;background:var(--brand-background);z-index:0;}#s01-lower{position:absolute;left:0;top:1264px;width:1080px;height:656px;background:var(--brand-background);z-index:0;}#s01-media{position:absolute;left:0;top:656px;width:1080px;height:608px;object-fit:contain;overflow:hidden;z-index:1;}#s01-overlay{position:absolute;inset:0;width:1080px;height:1920px;background:transparent;z-index:2;}#s01-accent{position:absolute;left:76px;top:526px;width:48px;height:2px;background:var(--brand-accent);}#s01-title{position:absolute;left:60px;top:546px;width:960px;height:92px;box-sizing:border-box;padding:10px 16px;margin:0;color:var(--brand-foreground);font-family:Arial;font-size:56px;font-weight:600;line-height:72px;white-space:nowrap;}#s01-credit{position:absolute;left:60px;top:1300px;width:960px;height:56px;box-sizing:border-box;padding:10px 16px;margin:0;color:var(--brand-foreground);font-family:Arial;font-size:26px;font-weight:400;line-height:36px;white-space:nowrap;}",
+      "timeline": "",
+      "parameters": [],
+      "objects": [
+        {
+          "elementId": "s01-media",
+          "ref": "media-1"
+        },
+        {
+          "elementId": "s01-title",
+          "ref": "text-1"
+        },
+        {
+          "elementId": "s01-credit",
+          "ref": "text-2"
+        },
+        {
+          "elementId": "s01-upper",
+          "ref": "decoration-1"
+        },
+        {
+          "elementId": "s01-lower",
+          "ref": "decoration-2"
+        },
+        {
+          "elementId": "s01-accent",
+          "ref": "decoration-3"
+        }
+      ],
+      "motionTargets": [],
+      "textStyles": []
+    },
+    "notes": "选择0.4秒：主机正面接近水平、机身完整，较后两帧更利于立即识别。实拍全幅等比置于1080×608窗口，文字均在媒体外，叠层透明。仅提交静态关键画面源码；尚未编译、截图验证或试听。原声及源时间由框架保留。",
+    "keyframeAtSeconds": 0.4,
+    "mediaBindingGap": ""
+  },
+  "error": {
+    "code": "KEYFRAME_SOURCE",
+    "message": "[{\"severity\":\"major\",\"repairKind\":\"source-selection\",\"problem\":\"scene-01，成片0—2秒：附图1（源63.000秒）主机上缘及部分控件已出框；附图2（源64.967秒／成片1.967秒）主机大幅转斜且上部出框。虽然0.4秒关键帧完整清晰，但当前源边界不支持“完整手持主机先出现、前2秒看清主体”的要求（requirement-a7439e2d8cb97a3c、requirement-19ef0e2c56e7e236）。这是源取景问题，合成布局无法恢复。\",\"repair\":\"仅重选scene-01对应素材的连续2秒源区间，逐帧确认从入点到末帧机身四边及主要控件均清楚可见；同步调整对应原声音源区间。保持2秒时长、全幅等比容器、标题node-489bce1ad0406cd6与署名node-90e14e3e2d02cc26，不通过裁切或遮盖修补。重新渲染并连续检查0—2秒；若无合适区间，明确保留素材缺口。\"}]"
+  }
+}

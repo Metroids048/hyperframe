@@ -1,0 +1,184 @@
+{
+  "message": "只把最后一句字幕的字号设为30，位置、文字、时间、其他字幕和全部声音画面保持不变。",
+  "baseRevisionId": "rev-d356e6d636ec43dc",
+  "routeDecision": {
+    "mode": "edit",
+    "source": "local-scoped",
+    "quote": "只把最后一句字幕的字号设为30，位置、文字、时间、其他字幕和全部声音画面保持不变。",
+    "question": "",
+    "revisionId": null,
+    "assetIds": [],
+    "version": 1,
+    "message": "只把最后一句字幕的字号设为30，位置、文字、时间、其他字幕和全部声音画面保持不变。",
+    "scenario": "product_detail",
+    "targets": [
+      {
+        "id": "cue-d18b235a237e72cf",
+        "kind": "caption",
+        "operation": "update_caption_style"
+      }
+    ],
+    "preserve": [
+      "unmentioned-objects",
+      "source-assets",
+      "revision-history"
+    ],
+    "executionStrategy": "L1",
+    "confidence": 1,
+    "reason": "仅调整已确定字幕的字号，其他内容保持。",
+    "fallback": {
+      "version": 1,
+      "categories": [
+        "missing_evidence",
+        "ambiguous_target",
+        "unsupported_capability",
+        "resource_incompatible",
+        "provider_unavailable",
+        "quality_failure",
+        "revision_conflict"
+      ],
+      "maxReplans": 2,
+      "identicalFailureLimit": 2,
+      "preserveCurrentRevision": true,
+      "allowSilentSubstitution": false,
+      "steps": [
+        "retry-same-capability",
+        "safe-equivalent-execution",
+        "retain-valid-revision",
+        "report-failed-targets",
+        "repair-only-gap"
+      ],
+      "classifiers": [
+        [
+          "revision_conflict",
+          "REVISION_CONFLICT|STALE_REVISION"
+        ],
+        [
+          "provider_unavailable",
+          "^(MINIMAX_|CODEX_|PROVIDER_)"
+        ],
+        [
+          "resource_incompatible",
+          "RESOURCE_|INCOMPATIBLE"
+        ],
+        [
+          "unsupported_capability",
+          "UNSUPPORTED|CAPABILITY|VOICE_NOT_FOUND"
+        ],
+        [
+          "ambiguous_target",
+          "AMBIGUOUS|SCOPE|TARGET|CONFLICT|CAPTION_ALIGNMENT_REQUIRED"
+        ],
+        [
+          "missing_evidence",
+          "MISSING|NEEDS_INPUT|INSUFFICIENT|SPEECH_SCRIPT_REQUIRED|NO_SPEECH|NO_CAPTION_AUDIO"
+        ]
+      ]
+    },
+    "baseRevisionId": "rev-d356e6d636ec43dc",
+    "selectedSkills": [
+      "speech-captions",
+      "visual-composition",
+      "audio-mix",
+      "hyperframes",
+      "commerce-promo",
+      "conversation-edit"
+    ],
+    "skillReasons": {
+      "speech-captions": [
+        "operation:update_caption_style",
+        "target:caption",
+        "request-evidence"
+      ],
+      "visual-composition": [
+        "request-evidence"
+      ],
+      "audio-mix": [
+        "request-evidence"
+      ],
+      "conversation-edit": [
+        "existing-revision"
+      ],
+      "hyperframes": [
+        "native-document"
+      ],
+      "commerce-promo": [
+        "native-business-contract"
+      ]
+    },
+    "requestedTargets": [
+      {
+        "id": "cue-d18b235a237e72cf",
+        "kind": "caption",
+        "operation": "update_caption_style"
+      }
+    ]
+  },
+  "changeReceipt": {
+    "baseRevision": "rev-d356e6d636ec43dc",
+    "userRequest": "只把最后一句字幕的字号设为30，位置、文字、时间、其他字幕和全部声音画面保持不变。",
+    "targetSet": [
+      {
+        "type": "update_caption_style",
+        "id": "cue-d18b235a237e72cf"
+      }
+    ],
+    "preserveSet": [
+      "audioGraph",
+      "transitions",
+      "untargeted-content",
+      "output"
+    ],
+    "changeSet": [
+      {
+        "type": "update_caption_style",
+        "nodeId": "cue-d18b235a237e72cf",
+        "params": {
+          "fontSize": 30
+        }
+      }
+    ],
+    "validation": {
+      "passed": true,
+      "checks": [
+        {
+          "field": "audioGraph",
+          "passed": true
+        },
+        {
+          "field": "transitions",
+          "passed": true
+        },
+        {
+          "field": "untargeted-content",
+          "passed": true
+        },
+        {
+          "field": "output",
+          "passed": true
+        }
+      ]
+    },
+    "newRevision": "rev-e48738c38e055edd"
+  },
+  "mode": "local-scoped",
+  "operations": [
+    {
+      "type": "update_caption_style",
+      "nodeId": "cue-d18b235a237e72cf",
+      "params": {
+        "fontSize": 30
+      }
+    }
+  ],
+  "summary": "仅调整已确定字幕的字号，其他内容保持。",
+  "requestedOperations": [
+    {
+      "type": "update_caption_style",
+      "nodeId": "cue-d18b235a237e72cf",
+      "params": {
+        "fontSize": 30
+      }
+    }
+  ]
+}

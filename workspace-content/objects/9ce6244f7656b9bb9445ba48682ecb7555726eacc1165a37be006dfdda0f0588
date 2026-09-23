@@ -1,0 +1,94 @@
+{
+  "alternatives": [],
+  "operations": [
+    {
+      "assetId": null,
+      "durationFrames": 12,
+      "effect": "chromatic-split",
+      "fromSceneId": "scene-01",
+      "height": null,
+      "nodeId": null,
+      "paramsJson": null,
+      "sceneId": null,
+      "sceneIds": null,
+      "source": null,
+      "text": null,
+      "toSceneId": "scene-02",
+      "type": "set_transition",
+      "width": null
+    }
+  ],
+  "summary": "计划仅在第一处切点使用色散转场；其他切点、全部字幕和声音保持。尚未执行或验证。",
+  "workflow": {
+    "assumptions": [
+      "未指定转场长度，默认使用12帧（0.4秒），可逆调整；保持原切点位置、各幕时序及35秒总时长。"
+    ],
+    "gaps": [
+      "执行器需基于rev-afa566585ae466c8重新编译转场并生成新修订，检查第一、二幕衔接及字幕可读性，核验其他切点、全部字幕、音轨、画幅和总时长不变；若转场实现会改变这些保持项，应阻断提交并保留原版本。"
+    ],
+    "objective": "以第一处色散衔接整体展示与正面说明，保持显卡结构讲解及原有视听节奏。",
+    "overrides": [],
+    "requirements": [
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "change",
+        "quote": "只在第一处转场用色散",
+        "startSeconds": null,
+        "targetIds": [
+          "transition-ddec311a475f5ee1"
+        ]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [
+          "transition-ddec311a475f5ee1"
+        ],
+        "kind": "preserve",
+        "quote": "不要改其他切点",
+        "startSeconds": null,
+        "targetIds": [
+          "transition-b4b9ce49655cd0b2",
+          "transition-d34d95e9dcaec96d",
+          "transition-ff07c8e7b5c98a48",
+          "transition-17832298d5690eed",
+          "transition-8998ce61beacac8f",
+          "transition-0a9b0f153901cad0",
+          "transition-59193fcaba637509",
+          "transition-3f0cdb76c26b35ea"
+        ]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "全部字幕",
+        "startSeconds": null,
+        "targetIds": [
+          "s02-caption-1",
+          "s02-caption-2",
+          "s02-caption-3",
+          "s02-caption-4",
+          "s02-caption-5",
+          "cue-d18b235a237e72cf"
+        ]
+      },
+      {
+        "endSeconds": null,
+        "excludeIds": [],
+        "kind": "preserve",
+        "quote": "声音保持",
+        "startSeconds": null,
+        "targetIds": [
+          "audio-1",
+          "audio-2",
+          "audio-3",
+          "audio-4",
+          "audio-4124aaefa824859c",
+          "audio-bc35f0a994d81023"
+        ]
+      }
+    ],
+    "taskMode": "edit"
+  }
+}

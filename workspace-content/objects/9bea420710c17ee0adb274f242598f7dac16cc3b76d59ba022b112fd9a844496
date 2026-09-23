@@ -1,0 +1,431 @@
+{
+  "schemaVersion": 2,
+  "recordType": "runtime_quality_report",
+  "qualityPolicy": {
+    "id": "quality-acceptance-v1",
+    "policyHash": "54a9dfc4472786f37d1ae18811872a35892fc912a26b98ef13269680140f4d9f"
+  },
+  "binding": {
+    "projectId": "f19e5db5-5a76-4f27-870b-1a604b6046ae",
+    "revisionId": "rev-378d87362a0bfb16",
+    "contractHash": "2a72785e225e88cdc1a6fb9fc71f82ae1a9ebcc9e4117886cb534a60ea58f822",
+    "assetManifestHash": "28873aa10c4b925c14d415762079da2f9d00d2a6a7dbc52a0a740c93a9b5ec98",
+    "policyHash": "700087abcdc84c71afe3d948473a113a0dc2f14ecbe55cfa752b0a4cbba6e4de",
+    "documentHash": "9369773455837759b6420ffc56d9b50cc4618e0435202d582d4077ce305654ee",
+    "finalVideoSha256": "aa7e1afed51f08a06cdb5cd0fd1a7b18fb936bb0300f35f6970c1e0579b83481",
+    "resourceHash": "2e77a322f849cb307074c9a6e0f5e6e05d8078681395e419bdf10b098fa8aee3",
+    "runId": null,
+    "jobId": "job-4c0e2d5c-85c5-414b-a0dc-c224cd8df9e6"
+  },
+  "origin": "scripted_runner",
+  "dimensions": {
+    "materials": "pending",
+    "technical": "pass",
+    "content": "pending",
+    "visual": "fail",
+    "actionContinuity": "pending",
+    "audioPerception": "pending",
+    "rights": "pending",
+    "humanAcceptance": "pending"
+  },
+  "coverage": {
+    "method": "keyframes_with_scene_tail",
+    "evidenceRefs": [
+      "final-review/frame-0.jpg",
+      "final-review/frame-1.jpg",
+      "final-review/frame-2.jpg",
+      "final-review/frame-3.jpg"
+    ],
+    "videoRangesObserved": [],
+    "audioRangesObserved": [],
+    "requirements": {
+      "technical": {
+        "required": [
+          "decode",
+          "duration",
+          "dimensions",
+          "tracks",
+          "version"
+        ],
+        "observed": [],
+        "unreviewed": [
+          "decode",
+          "duration",
+          "dimensions",
+          "tracks",
+          "version"
+        ]
+      },
+      "content": {
+        "required": [
+          "contract",
+          "facts",
+          "shotPurpose",
+          "sourceEvidence"
+        ],
+        "observed": [],
+        "unreviewed": [
+          "contract",
+          "facts",
+          "shotPurpose",
+          "sourceEvidence"
+        ]
+      },
+      "visual": {
+        "required": [
+          "keyframes",
+          "sceneBoundaries",
+          "textSafety"
+        ],
+        "observed": [],
+        "unreviewed": [
+          "keyframes",
+          "sceneBoundaries",
+          "textSafety"
+        ]
+      },
+      "motion": {
+        "required": [
+          "continuousPlayback",
+          "transitions",
+          "captionLifecycle"
+        ],
+        "observed": [],
+        "unreviewed": [
+          "continuousPlayback",
+          "transitions",
+          "captionLifecycle"
+        ]
+      },
+      "audio": {
+        "required": [
+          "audioInput",
+          "speech",
+          "musicMix",
+          "sync"
+        ],
+        "observed": [],
+        "unreviewed": [
+          "audioInput",
+          "speech",
+          "musicMix",
+          "sync"
+        ]
+      }
+    }
+  },
+  "evidenceIndex": [
+    {
+      "path": "final-review/frame-0.jpg",
+      "sha256": "50271c4ababae9395c5b6accf0fcdeb27c21b75278bbe98f9fa505be2cb9d173",
+      "seconds": 0
+    },
+    {
+      "path": "final-review/frame-1.jpg",
+      "sha256": "5fdef44824f88bd879ab18cbd9ee9ea7828a7a2d31d3d7d3c1d8367992f84e9b",
+      "seconds": 4.8
+    },
+    {
+      "path": "final-review/frame-2.jpg",
+      "sha256": "13ae8708c5810927d00f69cfaa39b71e3a7d76287f00bdd3ee8251b4fa3a6242",
+      "seconds": 7.9
+    },
+    {
+      "path": "final-review/frame-3.jpg",
+      "sha256": "7cbd437324b567c7d4928610bfe96327657bca3bef56832842b18bfa4d47bf12",
+      "seconds": 7.966666666666667
+    }
+  ],
+  "issues": [
+    {
+      "id": "issue-0",
+      "requirementId": "final-output",
+      "severity": "blocker",
+      "startSeconds": 0,
+      "endSeconds": 0,
+      "problem": "开场首帧（实际成片 0.000s）为俯拍壶具内部：画面严重失焦、整体偏暗，金属壶身与咖啡粉糊成一片，首次观看者与商家视角都无法在开头辨识这是什么商品——直接违背合同「开头尽快让我看清商品」。属技术缺陷＋商品表达问题。",
+      "evidenceRefs": [
+        "final-review/frame-0.jpg"
+      ],
+      "repair": "把 0.000s 首帧换为清晰、有光、一眼可辨商品的镜头（例如完整的壶具或磨豆机）；若必须用此条素材，需在约1秒内合焦并把主体拉实，或将该镜头后移出开场，不要作为第一帧。",
+      "preserve": [
+        "未涉及的镜头、文字和音轨"
+      ]
+    },
+    {
+      "id": "issue-1",
+      "requirementId": "final-output",
+      "severity": "major",
+      "startSeconds": 4.8,
+      "endSeconds": 4.8,
+      "problem": "实际成片 4.800s：画面仍是失焦/弱对比的俯拍壶具内部（勺与咖啡粉），背景偏暗、主体与背景分离不足，壶具形制依旧读不出，商品主体不清晰。属技术缺陷。",
+      "evidenceRefs": [
+        "final-review/frame-1.jpg"
+      ],
+      "repair": "换用更锐利、曝光更足的同类镜头；或先提升曝光/对比、降噪后再使用，确保壶身轮廓与咖啡粉在画面中可分辨。",
+      "preserve": [
+        "未涉及的镜头、文字和音轨"
+      ]
+    },
+    {
+      "id": "issue-2",
+      "requirementId": "final-output",
+      "severity": "minor",
+      "startSeconds": 7.9,
+      "endSeconds": 7.9,
+      "problem": "实际成片 7.900s：木质手摇磨豆机被画面上边缘裁切、主体贴左侧，画面下方大片白色盘面留白，视觉重心落在零散咖啡粉而非商品本身，商品表达偏弱。属排版美术/构图问题。",
+      "evidenceRefs": [
+        "final-review/frame-2.jpg"
+      ],
+      "repair": "重新构图让磨豆机完整入镜并成为主体，收紧画面、减少盘面空白；必要时微调机位或裁切，使商品居中偏上、不被画框切顶。",
+      "preserve": [
+        "未涉及的镜头、文字和音轨"
+      ]
+    },
+    {
+      "id": "issue-3",
+      "requirementId": "final-output",
+      "severity": "minor",
+      "startSeconds": 7.966666666666667,
+      "endSeconds": 7.966666666666667,
+      "problem": "实际成片 7.967s：与 7.900s 属同一磨豆机镜头的相邻两帧，构图、柔焦程度与下方留白基本一致，抽帧中亦未见任何文字/署名锚点，观感与信息锚点都偏单一。属排版美术问题。",
+      "evidenceRefs": [
+        "final-review/frame-3.jpg"
+      ],
+      "repair": "在磨豆机相关镜头之间变换景别或角度，避免相邻画面观感重复；并确保片尾出现 Shokuiku Cuisine · CC BY 3.0 署名（本批抽帧无法验证其存在）。",
+      "preserve": [
+        "未涉及的镜头、文字和音轨"
+      ]
+    }
+  ],
+  "unreviewed": [
+    "连续动作、节奏与完整观看",
+    "实际听感与音画同步"
+  ],
+  "creativeReview": {
+    "status": "frame_limited",
+    "basis": "independent_context_over_exported_frames",
+    "openingComparison": null,
+    "observedScore": null
+  },
+  "score": {
+    "total": 29,
+    "max": 100,
+    "components": {
+      "product_exposure": 30,
+      "first_three_seconds": 15,
+      "pacing": 68,
+      "captions": 10,
+      "motion": 0,
+      "transitions": 30,
+      "audio": 70,
+      "commercial_conversion": 10
+    },
+    "status": "needs_revision"
+  },
+  "scenarioAssessment": {
+    "status": "pending",
+    "summary": "审查范围：仅本批4张MP4抽帧（frame-0 = 实际成片 0.000s；frame-1 = 4.800s；frame-2 = 7.900s；frame-3 = 7.967s）。未听音频、未逐帧覆盖完整~30秒、不能推断运动连续性。可观察到的内容：竖屏画幅；金属壶具（摩卡壶形制，内含勺与咖啡粉）与木质手摇磨豆机（架在白色盘上、盘面有咖啡粉）；抽帧中未出现任何文字。核心问题：开场首帧（0.000s）严重失焦且欠曝，商品无法辨识，直接违背「开头尽快看清商品」的明确要求；4.800s 的壶具镜头仍偏软、偏暗。7.900s 与 7.967s 是同一磨豆机镜头的相邻抽帧，构图相近、磨豆机上部被裁、下方留白偏大。未验证项（不作为结论）：原始声是否保留、是否确实无旁白/音乐、文字排版是否满足「不满屏大字/不套同一底板」、片尾 Shokuiku Cuisine · CC BY 3.0 署名是否出现、30秒整体节奏与镜头衔接、相邻镜头是否重复。以上抽帧不足以核对商品名称/价格/性能等事实（合同 product 字段为空，无可比对事实）。（仅抽帧；完整业务目标待连续观片确认）"
+  },
+  "humanAcceptance": {
+    "status": "pending",
+    "eventId": null,
+    "actorContext": null,
+    "revisionId": "rev-378d87362a0bfb16",
+    "submittedAt": null
+  },
+  "deliveryDecision": {
+    "computedBy": "backend-commerce-focus-v1",
+    "status": "needs_revision",
+    "reasonCodes": [
+      "COMMERCIAL_QUALITY_REVISION_REQUIRED",
+      "HUMAN_CONFIRMATION_PENDING"
+    ]
+  },
+  "playbackReview": {
+    "manifest": "final-review/playback-manifest.json",
+    "watch": "final-review/watch.html",
+    "finalVideoSha256": "aa7e1afed51f08a06cdb5cd0fd1a7b18fb936bb0300f35f6970c1e0579b83481",
+    "clipCount": 2,
+    "fullVideoObserved": false,
+    "audioPerceptionVerified": false
+  },
+  "editorialReview": null,
+  "commercialQuality": {
+    "schema_version": 3,
+    "assessment_basis": "engineering_heuristics_bound_to_actual_mp4; observed_quality_requires_coverage",
+    "score": 29,
+    "engineering_score": 29,
+    "observed_score": null,
+    "observed_quality_basis": "pending_independent_media_review",
+    "score_meaning": "engineering_score measures implementation completeness; observed_score is supplied only by an independent media review and is never copied from engineering_score",
+    "threshold": 78,
+    "hard_minimum": 65,
+    "components": {
+      "product_exposure": 30,
+      "first_three_seconds": 15,
+      "pacing": 68,
+      "captions": 10,
+      "motion": 0,
+      "transitions": 30,
+      "audio": 70,
+      "commercial_conversion": 10
+    },
+    "observed_components": {
+      "product_exposure": null,
+      "first_three_seconds": null,
+      "pacing": null,
+      "captions": null,
+      "motion": null,
+      "transitions": null,
+      "audio": null,
+      "commercial_conversion": null
+    },
+    "issues": [
+      {
+        "id": "issue-0",
+        "requirementId": "final-output",
+        "severity": "blocker",
+        "startSeconds": 0,
+        "endSeconds": 0,
+        "problem": "开场首帧（实际成片 0.000s）为俯拍壶具内部：画面严重失焦、整体偏暗，金属壶身与咖啡粉糊成一片，首次观看者与商家视角都无法在开头辨识这是什么商品——直接违背合同「开头尽快让我看清商品」。属技术缺陷＋商品表达问题。",
+        "evidenceRefs": [
+          "final-review/frame-0.jpg"
+        ],
+        "repair": "把 0.000s 首帧换为清晰、有光、一眼可辨商品的镜头（例如完整的壶具或磨豆机）；若必须用此条素材，需在约1秒内合焦并把主体拉实，或将该镜头后移出开场，不要作为第一帧。",
+        "preserve": [
+          "未涉及的镜头、文字和音轨"
+        ],
+        "revisionId": "rev-378d87362a0bfb16",
+        "finalMp4Sha256": "aa7e1afed51f08a06cdb5cd0fd1a7b18fb936bb0300f35f6970c1e0579b83481",
+        "evidenceBound": true,
+        "coverage": "keyframes_only"
+      },
+      {
+        "id": "issue-1",
+        "requirementId": "final-output",
+        "severity": "major",
+        "startSeconds": 4.8,
+        "endSeconds": 4.8,
+        "problem": "实际成片 4.800s：画面仍是失焦/弱对比的俯拍壶具内部（勺与咖啡粉），背景偏暗、主体与背景分离不足，壶具形制依旧读不出，商品主体不清晰。属技术缺陷。",
+        "evidenceRefs": [
+          "final-review/frame-1.jpg"
+        ],
+        "repair": "换用更锐利、曝光更足的同类镜头；或先提升曝光/对比、降噪后再使用，确保壶身轮廓与咖啡粉在画面中可分辨。",
+        "preserve": [
+          "未涉及的镜头、文字和音轨"
+        ],
+        "revisionId": "rev-378d87362a0bfb16",
+        "finalMp4Sha256": "aa7e1afed51f08a06cdb5cd0fd1a7b18fb936bb0300f35f6970c1e0579b83481",
+        "evidenceBound": true,
+        "coverage": "keyframes_only"
+      },
+      {
+        "id": "issue-2",
+        "requirementId": "final-output",
+        "severity": "minor",
+        "startSeconds": 7.9,
+        "endSeconds": 7.9,
+        "problem": "实际成片 7.900s：木质手摇磨豆机被画面上边缘裁切、主体贴左侧，画面下方大片白色盘面留白，视觉重心落在零散咖啡粉而非商品本身，商品表达偏弱。属排版美术/构图问题。",
+        "evidenceRefs": [
+          "final-review/frame-2.jpg"
+        ],
+        "repair": "重新构图让磨豆机完整入镜并成为主体，收紧画面、减少盘面空白；必要时微调机位或裁切，使商品居中偏上、不被画框切顶。",
+        "preserve": [
+          "未涉及的镜头、文字和音轨"
+        ],
+        "revisionId": "rev-378d87362a0bfb16",
+        "finalMp4Sha256": "aa7e1afed51f08a06cdb5cd0fd1a7b18fb936bb0300f35f6970c1e0579b83481",
+        "evidenceBound": true,
+        "coverage": "keyframes_only"
+      },
+      {
+        "id": "issue-3",
+        "requirementId": "final-output",
+        "severity": "minor",
+        "startSeconds": 7.966666666666667,
+        "endSeconds": 7.966666666666667,
+        "problem": "实际成片 7.967s：与 7.900s 属同一磨豆机镜头的相邻两帧，构图、柔焦程度与下方留白基本一致，抽帧中亦未见任何文字/署名锚点，观感与信息锚点都偏单一。属排版美术问题。",
+        "evidenceRefs": [
+          "final-review/frame-3.jpg"
+        ],
+        "repair": "在磨豆机相关镜头之间变换景别或角度，避免相邻画面观感重复；并确保片尾出现 Shokuiku Cuisine · CC BY 3.0 署名（本批抽帧无法验证其存在）。",
+        "preserve": [
+          "未涉及的镜头、文字和音轨"
+        ],
+        "revisionId": "rev-378d87362a0bfb16",
+        "finalMp4Sha256": "aa7e1afed51f08a06cdb5cd0fd1a7b18fb936bb0300f35f6970c1e0579b83481",
+        "evidenceBound": true,
+        "coverage": "keyframes_only"
+      }
+    ],
+    "engineering_diagnostics": [
+      {
+        "severity": "blocker",
+        "dimension": "product_exposure",
+        "score": 30,
+        "problem": "product_exposure 低于工程诊断线 65",
+        "repair": "检查 product_exposure 的实际片段；只有观察到具体问题时才修改。"
+      },
+      {
+        "severity": "blocker",
+        "dimension": "first_three_seconds",
+        "score": 15,
+        "problem": "first_three_seconds 低于工程诊断线 65",
+        "repair": "检查 first_three_seconds 的实际片段；只有观察到具体问题时才修改。"
+      },
+      {
+        "severity": "blocker",
+        "dimension": "captions",
+        "score": 10,
+        "problem": "captions 低于工程诊断线 65",
+        "repair": "检查 captions 的实际片段；只有观察到具体问题时才修改。"
+      },
+      {
+        "severity": "blocker",
+        "dimension": "motion",
+        "score": 0,
+        "problem": "motion 低于工程诊断线 65",
+        "repair": "检查 motion 的实际片段；只有观察到具体问题时才修改。"
+      },
+      {
+        "severity": "blocker",
+        "dimension": "transitions",
+        "score": 30,
+        "problem": "transitions 低于工程诊断线 65",
+        "repair": "检查 transitions 的实际片段；只有观察到具体问题时才修改。"
+      },
+      {
+        "severity": "blocker",
+        "dimension": "commercial_conversion",
+        "score": 10,
+        "problem": "commercial_conversion 低于工程诊断线 65",
+        "repair": "检查 commercial_conversion 的实际片段；只有观察到具体问题时才修改。"
+      }
+    ],
+    "suggestions": [
+      "把 0.000s 首帧换为清晰、有光、一眼可辨商品的镜头（例如完整的壶具或磨豆机）；若必须用此条素材，需在约1秒内合焦并把主体拉实，或将该镜头后移出开场，不要作为第一帧。",
+      "换用更锐利、曝光更足的同类镜头；或先提升曝光/对比、降噪后再使用，确保壶身轮廓与咖啡粉在画面中可分辨。",
+      "重新构图让磨豆机完整入镜并成为主体，收紧画面、减少盘面空白；必要时微调机位或裁切，使商品居中偏上、不被画框切顶。",
+      "在磨豆机相关镜头之间变换景别或角度，避免相邻画面观感重复；并确保片尾出现 Shokuiku Cuisine · CC BY 3.0 署名（本批抽帧无法验证其存在）。",
+      "完成连续观片后再判断节奏、动作和转场；抽帧只证明抽帧时刻。",
+      "完成实际试听后再判断声音情绪、清晰度和音画同步；电平检查不代替听感。"
+    ],
+    "revision_required": true,
+    "coverage": {
+      "actual_mp4": true,
+      "revision_id": "rev-378d87362a0bfb16",
+      "final_mp4_sha256": "aa7e1afed51f08a06cdb5cd0fd1a7b18fb936bb0300f35f6970c1e0579b83481",
+      "full_video_observed": false,
+      "audio_required": true,
+      "audio_perception_verified": false,
+      "evidence_bound": true,
+      "unreviewed": [
+        "连续观片、节奏和动作完整性",
+        "实际听感、发音、音乐／旁白／原声关系"
+      ]
+    },
+    "status": "needs_revision",
+    "human_acceptance": "pending"
+  }
+}

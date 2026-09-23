@@ -1,0 +1,98 @@
+{
+  "workflow": {
+    "taskMode": "variant",
+    "objective": "制作独立A版开头，引导观众先看显卡整体再看细节，保留母版与既有内容。",
+    "requirements": [
+      {
+        "kind": "goal",
+        "quote": "继续制作独立A版候选，母版保留。",
+        "targetIds": [],
+        "excludeIds": [],
+        "startSeconds": null,
+        "endSeconds": null
+      },
+      {
+        "kind": "preserve",
+        "quote": "保留原有第一幕及原有标题",
+        "targetIds": ["scene-01", "node-7577747edc2ff37a"],
+        "excludeIds": [],
+        "startSeconds": null,
+        "endSeconds": null
+      },
+      {
+        "kind": "change",
+        "quote": "在前0至2.6秒增加独立的可编辑开头标题“先看整体，再看细节”",
+        "targetIds": [],
+        "excludeIds": [],
+        "startSeconds": 0,
+        "endSeconds": 2.6
+      },
+      {
+        "kind": "change",
+        "quote": "放在不挡显卡的顶部区域，短促淡入，在2.6秒前淡出。",
+        "targetIds": [],
+        "excludeIds": [],
+        "startSeconds": 0,
+        "endSeconds": 2.6
+      },
+      {
+        "kind": "prohibit",
+        "quote": "不要直接替换持续到3.2秒的原标题对象。",
+        "targetIds": ["node-7577747edc2ff37a"],
+        "excludeIds": [],
+        "startSeconds": 0,
+        "endSeconds": 3.2
+      },
+      {
+        "kind": "change",
+        "quote": "这样只改变前3秒",
+        "targetIds": ["scene-01"],
+        "excludeIds": [],
+        "startSeconds": 0,
+        "endSeconds": 3
+      },
+      {
+        "kind": "preserve",
+        "quote": "3秒后的画面",
+        "targetIds": ["scene-01", "scene-02", "scene-03", "scene-04", "scene-05", "scene-06", "scene-07", "scene-08", "scene-09", "scene-10"],
+        "excludeIds": [],
+        "startSeconds": 3,
+        "endSeconds": null
+      },
+      {
+        "kind": "preserve",
+        "quote": "全片声音",
+        "targetIds": ["audio-1", "audio-2", "audio-3", "audio-4", "audio-4124aaefa824859c", "audio-bc35f0a994d81023"],
+        "excludeIds": [],
+        "startSeconds": null,
+        "endSeconds": null
+      },
+      {
+        "kind": "preserve",
+        "quote": "字幕",
+        "targetIds": ["s02-caption-1", "s02-caption-2", "s02-caption-3", "s02-caption-4", "s02-caption-5", "cue-d18b235a237e72cf"],
+        "excludeIds": [],
+        "startSeconds": null,
+        "endSeconds": null
+      },
+      {
+        "kind": "preserve",
+        "quote": "时长均保持",
+        "targetIds": [],
+        "excludeIds": [],
+        "startSeconds": null,
+        "endSeconds": null
+      }
+    ],
+    "overrides": [],
+    "assumptions": [],
+    "gaps": [
+      "当前允许操作不支持新增独立原生文字节点。scene-01仅有原标题、视频及装饰对象；新增标题尚无真实ID，因此对应targetIds留空。update_custom_source不能创建原生节点，duplicate_media仅能复制媒体，不能用于新增标题。",
+      "需执行器提供受控新增文字能力，并由版本服务基于rev-cd7c6ea7ebdf228e建立独立A版分支；本轮不能伪造新增对象或分支操作。",
+      "能力补齐后需重新编译第一幕，检查0—2.6秒标题与商品遮挡、2.6秒前完全淡出，以及2.8—3.2秒原色散转场；核验3秒后画面、全部音轨、字幕及1050帧总时长保持。当前未执行或验证新候选。"
+    ]
+  },
+  "summary": "当前操作集缺少新增独立可编辑标题的能力，无法按要求执行。保留母版及现有工程，不替换原标题，不用源码硬写文字冒充原生对象。",
+  "operations": [],
+  "alternatives": []
+}

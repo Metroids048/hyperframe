@@ -1,0 +1,142 @@
+      | explain that realtime effects are whole-media; isolate the region first or use an external tool | whole-media Blur/Pixelate only when the user accepts that scope | face tracking or masking that was not performed |
+| keep the brand colors exact           | leave UI/logo pixels unchanged; use framing and motion                                          | demonstrated exposure-only correction                           | stylized preset, palette, or LUT                |
+
+When more than one lane could fit, generate at most two candidates and choose
+from inspected before/after evidence. Ordinary correction or polish starts with
+one candidate; a second candidate is an escalation, not the default. Do not
+stack effects merely to make the answer look more sophisticated.
+
+## Seed or assemble
+
+Use the table when a tested recipe directly fits. Read only that recipe
+section. Recipes are optional macros, not a closed list of allowed results.
+
+| Intent or source                                         | Recipe heading to read                            |
+| -------------------------------------------------------- | ------------------------------------------------- |
+| Talking head, interview, presenter, people-focused photo | `Natural Portrait`                                |
+| Product footage, lifestyle footage, clean social polish  | `Product Polish`                                  |
+| Screen capture, dashboard, website, app UI               | `UI Fidelity`                                     |
+| Warm memory, restrained nostalgia                        | `Film Memory`                                     |
+| Creator/UGC handheld camera character                    | `Creator Camcorder`                               |
+| Analog tape playback                                     | `VHS Playback`                                    |
+| Small-gauge home-movie character                         | `8mm Home Movie`                                  |
+| Editorial dots or ink print                              | `Editorial Halftone` or `Two-Ink Editorial Print` |
+| Monochrome dot/line screen print                         | `Monochrome Screen Print`                         |
+| Engraved or hand-hatched illustration                    | `Engraved Illustration` or `Crosshatched Sketch`  |
+| Curved scanlined display                                 | `CRT Display`                                     |
+| Glyph-based art                                          | `Procedural ASCII`                                |
+| Realtime palette quantization                            | `Ordered Palette Dither`                          |
+| Exact historical error diffusion                         | `Cached Error Diffusion`                          |
+| Finite warm flare layer                                  | `Organic Light Leak`                              |
+| Held-frame graphic interruption                          | `Freeze-Frame Cutout`                             |
+| Short exposure-flash transition                          | `Social Flash / Editorial Reveal`                 |
+
+Use `rg -n '^## <heading>$' <SKILL_DIR>/references/media-treatment-recipes.md`,
+then read only from that heading to the next `##`. Do not load the entire
+cookbook for one request.
+
+When source intent is unclear, inspect the concise capability overview:
+
+```bash
+hyperframes media-treatment --capabilities --json
+```
+
+It lists the complete surface by family with one-line descriptions. Then load
+only the family, effect, preset, or palette relevant to the inspected source:
+
+```bash
+hyperframes media-treatment --capability <id> --json
+```
+
+The focused result provides legal controls, recommended apply values, render
+cost, palette support, and the exact animation contract when supported. Use
+`--all` only for tooling/tests or a genuinely exhaustive audit. Compose one
+nested payload from these existing parts. Recipes and catalog-built payloads
+use the same renderer and persistence contract.
+
+Treat `renderLane: "multipass"` as a cost signal. Blur, Bloom, and Kuwahara are
+bounded but more expensive than single-pass effects; avoid stacking several of
+them across many simultaneous media elements unless the composition needs it,
+then verify playback and a draft render.
+Cost follows treated pixel area as well as element count. More than two
+simultaneously visible full-frame multipass media layers requires a continuous
+playback check on the target machine; simplify or pre-render the stack if it
+drops frames. Do not impose or claim a universal hard cap from one machine.
+
+## Common workflow
+
+1. Confirm the target is a real `<img>` or `<video>` and inspect source color
+   metadata.
+2. For an image, read it once. For video, capture early/middle/late output as
+   one labeled sheet and read that one image:
+
+   ```bash
+   hyperframes snapshot <project> --frames 3 --no-end --describe false \
+     --output snapshots/treatment-before
+   ```
+
+   Read `snapshots/treatment-before/contact-sheet.jpg`; do not spend separate
+   model turns reading each frame unless the sheet exposes a specific problem.
+   Do not infer semantics from signal statistics alone.
+
+3. Choose one primary lane. Use one matching recipe as a tested seed, or read
+   the overview and one focused capability detail when the request is bespoke.
+   A seed may be changed or combined with compatible catalog controls when the
+   contact sheet justifies it. Do not invent keys, exceed reported ranges, or
+   stack effects without a visual reason. Do not run the generic grade/LUT
+   resolver first; it adds irrelevant candidates and may download an unused
+   LUT. Use `media-treatment --selector "#hero" --analyze --json` only when
+   correction needs measured signal evidence.
+4. Persist pixel settings with `hyperframes media-treatment`; it validates and
+   merges a patch into the existing nested `data-color-grading` contract. Use registered
+   GSAP only for supported animated values and Registry overlay blocks only
+   for authored dressing.
+   ```bash
+   hyperframes media-treatment --selector "<unique selector>" \
+     --grading '<nested JSON patch>' --apply --json
+   ```
+   For a temporal reveal, use the focused capability result's `animation`
+   contract. If it is `null`, the capability is static. Author the starting CSS
+   property inline on the real media element and return temporary treatment
+   values to neutral so the finished shot preserves its existing pixels.
+   Prefer that bounded media animation first; if an overlay is justified,
+   install the owned Registry block instead of recreating it with bespoke
+   overlay markup.
+   For correction and ordinary polish, keep those values as editable
+   preset/adjustment JSON; do not generate a LUT for controls the realtime shader
+   already owns.
+   Use the canonical `details`/`effects` fields for vignette, grain, blur,
+   pixelate, and related primitives. Do not duplicate them with CSS filters,
+   SVG turbulence, opacity, or decorative DOM overlays.
+5. When the treatment calls for an overlay, install that named block with
+   `hyperframes add <name> --dir <project> --no-clipboard --json`, inspect its
+   returned `data-composition-src` host, and place it once using the block's
+   timing contract. Check for the installed file and host element
+   ID before insertion; never duplicate an existing overlay block. This is one
+   treatment workflow: do not make the user discover Catalog or separately ask
+   for the recipe's justified overlay.
+6. For ordinary correction/polish, capture one after-sheet with the same three
+   timestamps under `snapshots/treatment-after`, compare it to the before-sheet,
+   and stop when the result is clearly better. Run the normal project check;
+   do not encode a draft solely to prove a static correction.
+7. Escalate only when evidence requires it. Read individual frames to diagnose a
+   specific visual problem. Preview and render moving evidence when judging
+   treatment keyframes, glitch/tape motion, overlays, playback smoothness, LUT
+   timing, or any other temporal behavior. HDR/LOG, privacy, and brand-sensitive
+   work also require the existing explicit caveats and stronger verification.
+   If the treatment is not clearly better, keep the source unchanged.
+8. Report the selected media, primary intent, recipe seed if used, final
+   composed controls, optional overlays, and the frames/render that were
+   actually checked. Do not report visual quality from command success alone.
+
+`media-treatment --analyze` provides deterministic clipping and signal
+evidence for local composition media, not subject recognition or automatic
+taste. It reports HDR/metadata caveats and a bounded primary-correction patch;
+it does not invent wheels, curves, or HSL selections from statistics.
+
+</guidance>
+修正观察合同。框是归一化[x,y,width,height]，不是右下坐标；无法确认可留空。只需观察获准使用的素材，其余不能借相似外观建立同型号关系。inspectRanges为空，不重复已执行的抽帧。
+
+<editing_input>
+[{"role":"user","content":"{\"message\":\"用这个素材目录制作一条键盘新品上新短片。面向第一次认识这款键盘的人，挑选最有质感的整体与细节，展示真实打字使用。目标25秒，横屏，文字简洁克制，商品占主体，不写品牌、价格或性能参数。先看完素材再选源片段，结尾完整。保持静音，不加旁白或音乐。\",\"brief\":{\"request\":{\"name\":\"键盘新品上新短片\",\"cta\":\"\",\"price\":\"\",\"facts\":[],\"output\":{\"width\":1920,\"height\":1080,\"durationSeconds\":25,\"fps\":30}},\"needsTranscription\":false,\"needsNarration\":false,\"needsCaptions\":false,\"keepOriginalAudio\":false,\"capabilities\":[\"image-observation\",\"video-source-selection\",\"native-composition\",\"managed-original\",\"local-preview-review\",\"native-editing\"],\"gaps\":[],\"constraints\":[\"面向第一次认识这款键盘的人\",\"挑选最有质感的整体与细节\",\"展示真实打字使用\",\"文字简洁克制\",\"商品占主体\",\"不写品牌、价格或性能参数\",\"先看完素材再选源片段\",\"结尾完整\",\"保持静音\",\"不加旁白或音乐\",\"仅使用真实素材，不生成新视频镜头\",\"横屏输出\",\"目标时长25秒\"],\"scenarioId\":\"product_launch\"},\"prior\":{\"observations\":[{\"assetId\":\"asset-f77ea10a-e60f-4853-b6a7-9c44b9548018\",\"visibleContent\":\"加密抽帧0.263–14.308秒均显示同一黑色机械键盘与蓝白灯光，俯视角双手持续接触并敲击键帽；主体完整、构图稳定，适合整体建立、真实使用和结尾回归。\",\"uncertainty\":\"抽帧间隔约1.7秒，未能证明连续敲击的精确起止、停顿或最终停手状态；无可读文字。\",\"role\":\"usage\",\"productGroup\":\"product-1\",\"subjectBox\":[0.03,0.16,0.96,0.99],\"safeCrop\":[0.02,0.08,0.98,1],\"confidence\":0.91,\"quality\":\"1920x1080，清晰，主体占画面大部分；低光但灯光与手部可见。\",\"visibleText\":[],\"sameProductAs\":[\"asset-776b4544-d52f-4c4f-b495-14d67e19d0df\"],\"differentProductFrom\":[]},{\"assetId\":\"asset-776b4544-d52f-4c4f-b495-14d67e19d0df\",\"visibleContent\":\"加密抽帧0.269–14.640秒均显示同一黑色键盘的低机位近景，蓝色底部灯带明显，双手手指在键帽上敲击，适合打字细节展示。\",\"uncertainty\":\"抽帧不足以确认连续动作边界、停顿及完整收尾；手部遮挡部分键区；品牌、型号、轴体和性能均未知。\",\"role\":\"detail\",\"productGroup\":\"product-1\",\"subjectBox\":[0.04,0.2,0.98,0.94],\"safeCrop\":[0.03,0.12,0.99,0.98],\"confidence\":0.91,\"quality\":\"1920x1080，近景清晰，灯带与键帽细节可见。\",\"visibleText\":[],\"sameProductAs\":[\"asset-f77ea10a-e60f-4853-b6a7-9c44b9548018\"],\"differentProductFrom\":[]},{\"assetId\":\"asset-f77ea10a-e60f-4853-b6a7-9c44b9548018\",\"visibleContent\":\"候选源区间0.2–15.6秒；加密关键帧覆盖0.263、2.019、3.774、5.530、7.286、9.041、10.797、12.552、14.308秒，均为俯视整体打字画面。\",\"uncertainty\":\"未观察到连续视频边界，不能锁定可直接剪辑的精确起止。\",\"role\":\"overview\",\"productGroup\":\"product-1\",\"subjectBox\":[0.03,0.16,0.96,0.99],\"safeCrop\":[0.02,0.08,0.98,1],\"confidence\":0.87,\"quality\":\"可用\",\"visibleText\":[],\"sameProductAs\":[],\"differentProductFrom\":[]},{\"assetId\":\"asset-776b4544-d52f-4c4f-b495-14d67e19d0df\",\"visibleContent\":\"候选源区间0.2–15.9秒；加密关键帧覆盖0.269、2.066、3.862、5.658、7.455、9.251、11.047、12.844、14.640秒，均为低机位打字细节。\",\"uncertainty\":\"未观察到连续视频边界，不能锁定动作完整片段或收尾。\",\"role\":\"usage\",\"productGroup\":\"product-1\",\"subjectBox\":[0.04,0.2,0.98,0.94],\"safeCrop\":[0.03,0.12,0.99,0.98],\"confidence\":0.87,\"quality\":\"可用\",\"visibleText\":[],\"sameProductAs\":[],\"differentProductFrom\":[]}],\"candidates\":[{\"assetId\":\"asset-f77ea10a-e60f-4853-b6a7-9c44b9548018\",\"startSeconds\":0.2,\"endSeconds\":15.6,\"reason\":\"俯视整体镜头，关键帧持续显示商品与真实打字，适合建立与整体回归；连续起止和结尾仍待验证。\"},{\"assetId\":\"asset-776b4544-d52f-4c4f-b495-14d67e19d0df\",\"startSeconds\":0.2,\"endSeconds\":15.9,\"reason\":\"低机位近景突出键帽、手指和蓝色灯带，适合细节段；连续动作边界与收尾未验证。\"}],\"inspectRanges\":[],\"gaps\":[\"仍缺少连续视频观察，无法证明真实打字动作的精确起止、停顿和完整结尾；25秒成片分镜暂不能锁定。\",\"两段素材均无音轨，保持静音可执行。\",\"未提供品牌、价格、性能或其他核实事实，文案只能描述画面可见的键盘、灯光与打字，不得添加参数或卖点。\",\"素材总时长约16秒/条，若要求25秒需通过两机位真实片段重排；不得用无效重复或静帧填充。\"]},\"validationError\":\"观察 asset-f77ea10a-e60f-4853-b6a7-9c44b9548018.subjectBox=[0.03,0.16,0.96,0.99] 必须为归一化[x,y,width,height]：width>0、height>0、x+width<=1、y+height<=1。当前右边界=0.99，下边界=1.15。例如左上(0.4,0.25)、右下(0.63,0.73)应输出[0.4,0.25,0.23,0.48]；无法确认可输出[]，不得猜测。\",\"attempt\":0,\"metadata\":[{\"id\":\"asset-f77ea10a-e60f-4853-b6a7-9c44b9548018\",\"kind\":\"video\",\"duration\":15.8,\"frames\":474,\"width\":1920,\"height\":1080,\"rotation\":0,\"hasAudio\":false,\"videoCodec\":\"h264\",\"pixelFormat\":\"yuv420p\",\"audioCodec\":null,\"sourceFps\":\"30/1\",\"nominalFps\":\"30/1\",\"size\":10596487,\"sourceStartSeconds\":0,\"sourceDurationSeconds\":15.8},{\"id\":\"asset-776b4544-d52f-4c4f-b495-14d67e19d0df\",\"kind\":\"video\",\"duration\":16.167,\"frames\":485,\"width\":1920,\"height\":1080,\"rotation\":0,\"hasAudio\":false,\"videoCodec\":\"h264\",\"pixelFormat\":\"yuv420p\",\"audioCodec\":null,\"sourceFps\":\"30/1\",\"nominalFps\":\"30/1\",\"size\":10755663,\"sourceStartSeconds\":0,\"sourceDurationSeconds\":16.16}],\"businessContract\":{\"schemaVersion\":1,\"profile\":\"commerce-focus-v1\",\"scenarioId\":\"product_launch\",\"originalRequest\":\"用这个素材目录制作一条键盘新品上新短片。面向第一次认识这款键盘的人，挑选最有质感的整体与细节，展示真实打字使用。目标25秒，横屏，文字简洁克制，商品占主体，不写品牌、价格或性能参数。先看完素材再选源片段，结尾完整。保持静音，不加旁白或音乐。\",\"persona\":{\"creator\":\"商家／内容运营（待用户研究验证）\",\"viewer\":\"首次了解商品的消费者\"},\"objective\":\"吸引首次观看者继续了解商品\",\"product\":{\"id\":\"product-1\",\"name\":\"\",\"facts\":[],\"price\":null,\"cta\":\"\",\"audience\":null,\"prohibited\":[]},\"output\":{\"width\":1080,\"height\":1920,\"durationSeconds\":30,\"fps\":30},\"audio\":\"silent\",\"mustHave\":[],\"mustNot\":[],\"generatedFootageAllowed\":false,\"deliverables\":[\"candidate_mp4\",\"editable_project\",\"source_index\",\"quality_report\"]},\"scenarioResources\":{\"template\":{\"id\":\"commerce-launch-v1\",\"version\":1,\"structure\":[\"建立商品\",\"真实使用\",\"可信细节\",\"整体回归与收尾\"],\"components\":[\"hero_media\",\"title\",\"detail_callout\",\"caption\",\"ending\"],\"rule\":\"按有效内容调整镜头，不按槽位补造内容；先主体、后说明；价格与Logo可缺省。\"},\"components\":{\"hero_media\":{\"nativeKinds\":[\"video\",\"image\"],\"purpose\":\"保护主体的真实媒体容器\",\"resources\":[\"video-text-pivot\",\"comparison-split\"]},\"title\":{\"nativeKinds\":[\"text\"],\"purpose\":\"独立可改的标题\",\"resources\":[\"titlecard-reveal\"]},\"detail_callout\":{\"nativeKinds\":[\"text\",\"shape\"],\"purpose\":\"与可信细节对应的标注\",\"resources\":[\"comparison-split\",\"lt-ma[redacted]\"]},\"caption\":{\"nativeKinds\":[\"text\"],\"purpose\":\"普通字幕与声音独立\",\"resources\":[\"caption-editorial-emphasis\"]},\"ending\":{\"nativeKinds\":[\"text\",\"video\"],\"purpose\":\"完整收尾和已提供的下一步提示\",\"resources\":[\"titlecard-reveal\"]}},\"sha256\":\"7e684f50dd4ef5484357229720064e13b4605f932282470b27cd3df262b78c32\"},\"scenePackage\":{\"id\":\"product_launch\",\"version\":\"3.0.0\",\"hash\":\"dd6f72e387f8eb58ad3880d62431446c062709c5739e984072588f3fd94a7f18\",\"rules\":{\"MATERIAL_POLICY.md\":\"# MATERIAL_POLICY\\n\\n扫描所有目录素材；读取metadata和带时间观察证据，按同款身份、hero、usage、detail、supporting分类并记录拒绝原因。不从文件名猜事实。依据源证据重排镜头；不把多张相似图当内容，不通过长静帧凑时长。\\n\"}},\"creativeDirection\":null}\n视频 asset-f77ea10a-e60f-4853-b6a7-9c44b9548018，实际时长 15.8s；本页源时间 0.658, 3.292, 5.925, 8.558, 11.192, 13.825 秒。只按这些真实画面判断动作，不能把备料/倒粉误称研磨，不能把倒水当成倒咖啡。未观察到的动作应继续查素材或说明，禁止从文件名和用户预期补写画面。\n【附图 1】\n视频 asset-776b4544-d52f-4c4f-b495-14d67e19d0df，实际时长 16.167s；本页源时间 0.674, 3.368, 6.063, 8.757, 11.452, 14.146 秒。只按这些真实画面判断动作，不能把备料/倒粉误称研磨，不能把倒水当成倒咖啡。未观察到的动作应继续查素材或说明，禁止从文件名和用户预期补写画面。\n【附图 2】\nasset-f77ea10a-e60f-4853-b6a7-9c44b9548018 加密画面，按从左至右逐行对应源秒数：0.263,2.019,3.774,5.530,7.286,9.041,10.797,12.552,14.308\n【附图 3】\nasset-776b4544-d52f-4c4f-b495-14d67e19d0df 加密画面，按从左至右逐行对应源秒数：0.269,2.066,3.862,5.658,7.455,9.251,11.047,12.844,14.640\n【附图 4】"}]
+</editing_input>
