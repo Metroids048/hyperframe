@@ -20,6 +20,60 @@ test('explicit refusal to resume rejects a stale resume parameter before any mut
  assert.equal(resumed,false);
 });
 
+test('resume resolves a completed route envelope to its recoverable child',async()=>{
+ const child={id:'job-child',kind:'create',status:'recoverable',stage:'合成原生母工程',baseRevisionId:null};
+ const route={id:'job-route',kind:'route',status:'complete',childProjectId:'project-route-resume',childJobId:child.id};
+ const project={id:'project-route-resume',currentRevisionId:null,jobs:[route,child],assets:[]};
+ let resumed=null,submitted=false;
+ const service={get:id=>id===project.id?project:null,view:value=>value,enqueue:async()=>{submitted=true;},resume:async(_project,id)=>{resumed=id;child.status='queued';}};
+ const facade=createCommerceEngineFacade(service,{journalPath:path.join(root,'ops-route-resume.json'),authorizeWrite});
+ const result=await facade.invoke('video_task',{projectId:project.id,baseRevisionId:null,operationId:'op-route-resume-0001',authorizationId:'auth-route-resume',resumeJobId:route.id,message:'继续原任务'},context);
+ assert.equal(resumed,child.id);
+ assert.equal(result.jobId,child.id);
+ assert.equal(submitted,false);
+});
+
+test('project list identifies uploaded media in same-named projects',async()=>{
+ const projects=[
+  {id:'project-with-video',title:'新创作',updatedAt:'2026-09-24T06:00:00Z',currentRevisionId:null,assets:[{id:'asset-video',kind:'video',name:'source.mp4',bytes:4000}],jobs:[],revisions:[]},
+  {id:'project-empty',title:'新创作',updatedAt:'2026-09-24T05:00:00Z',currentRevisionId:null,assets:[],jobs:[],revisions:[]},
+ ];
+ const service={get:id=>projects.find(project=>project.id===id),list:()=>projects,enqueue:async()=>{},view:value=>value};
+ const facade=createCommerceEngineFacade(service,{journalPath:path.join(root,'ops-list-media.json')});
+ const result=await facade.invoke('video_project_list',{},context);
+ assert.deepEqual(result.projects[0].media.map(asset=>[asset.id,asset.name,asset.kind]),[['asset-video','source.mp4','video']]);
+ assert.equal(result.projects[0].assetCount,1);
+ assert.equal(result.projects[1].assetCount,0);
+});
+
+test('unsupported object replacement is a capability block, not a request for another upload',async()=>{
+ const child={id:'job-child',kind:'edit',status:'needs_user',code:'NEEDS_INPUT',error:'[blocked: unsupported_capability] video object tracking unavailable'};
+ const route={id:'job-route',kind:'route',status:'needs_user',childJobId:child.id};
+ const project={id:'project-capability',currentRevisionId:'rev-base',jobs:[route,child],assets:[]};
+ const service={get:id=>id===project.id?project:null,view:value=>value,enqueue:async()=>{}};
+ const facade=createCommerceEngineFacade(service,{journalPath:path.join(root,'ops-capability.json')});
+ const result=await facade.invoke('video_job_status',{projectId:project.id,jobId:route.id},context);
+ assert.equal(result.status,'blocked');
+ assert.equal(result.errorCode,'UNSUPPORTED_CAPABILITY');
+ assert.equal(result.job.actionRequired,false);
+ assert.equal(result.job.question,null);
+ assert.equal(result.recommendedAction,'capability_unavailable');
+});
+
+test('project view normalizes legacy unsupported-capability jobs for WebUI',async()=>{
+ const isolated=await fs.mkdtemp(path.join(os.tmpdir(),'capability-view-'));
+ try{
+  const service=await createCreativeService({root:isolated,dataDir:path.join(isolated,'projects')});
+  const project=await service.create({message:'capability view test',inferRequest:true});
+  project.jobs.push({id:'job-old-capability',status:'needs_user',code:'NEEDS_INPUT',error:'[blocked: unsupported_capability] video object tracking unavailable',question:'Please upload again'});
+  const visible=service.view(project).jobs.at(-1);
+  assert.equal(visible.status,'blocked');
+  assert.equal(visible.code,'UNSUPPORTED_CAPABILITY');
+  assert.equal(visible.question,null);
+  assert.deepEqual(visible.requiredInputs,[]);
+ }finally{await fs.rm(isolated,{recursive:true,force:true});}
+});
+
 test('facade reads the existing service without creating a second authority', async () => {
   const service = await createCreativeService({root, dataDir});
   const p = await service.create({message: 'facade test', inferRequest: true});

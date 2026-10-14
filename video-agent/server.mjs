@@ -27,11 +27,11 @@ import {CreativeError} from './lib/creative/contracts.mjs';
 import {MiniMaxError} from './lib/edit/adapters/minimax-client.mjs';
 import {createCommerceEngineFacade} from './lib/openclaw/commerce-engine-facade.mjs';
 import {acquireDirectoryLeases} from './lib/openclaw/directory-lease.mjs';
-import {createOpenClawSessionBindings} from './lib/openclaw/session-bindings.mjs';
+import {createOpenClawSessionBindings,resolveOpenClawTaskProject} from './lib/openclaw/session-bindings.mjs';
 import {createOpenClawExecutionAuthorizations} from './lib/openclaw/execution-authorizations.mjs';
 import {createCommerceAgentBridge,stableControlOperationId} from './lib/openclaw/commerce-agent-bridge.mjs';
 import {bindOpenClawJobProgress,createOpenClawProgressNotifier} from './lib/openclaw/progress-notifier.mjs';
-import {resolveCreativeDataDirectory} from './lib/runtime-project-directory.mjs';
+import {resolveCreativeDataDirectory,projectStoreFingerprint,writeRuntimeDescriptor} from './lib/runtime-project-directory.mjs';
 
 // The native OpenClaw gateway and the workbench are launched by separate
 // processes.  The gateway's launch agent persists their shared, non-source
@@ -44,7 +44,7 @@ try {
  for(const [key,value] of Object.entries(configured||{}))if(process.env[key]==null&&typeof value==='string'&&value)process.env[key]=value;
 } catch(error) { if(!['ENOENT','ENOTDIR','EACCES'].includes(error.code)) throw error; }
 
-const PORT=Number(process.env.VIDEO_AGENT_PORT||3020),DATA=path.resolve(process.env.VIDEO_AGENT_DATA_DIR||path.join(ROOT,'data/projects')),EDIT_DATA=path.resolve(process.env.VIDEO_AGENT_EDIT_DATA_DIR||path.join(ROOT,'data/edit-projects'));
+const PORT=Number(process.env.VIDEO_AGENT_PORT||process.env.PORT||3024),DATA=path.resolve(process.env.VIDEO_AGENT_DATA_DIR||path.join(ROOT,'data/projects')),EDIT_DATA=path.resolve(process.env.VIDEO_AGENT_EDIT_DATA_DIR||path.join(ROOT,'data/edit-projects'));
 // OpenClaw 模式下,统一使用 STATE_ROOT 下的 projects 目录,避免相对路径问题
 const OPENCLAW_STATE_ROOT=path.resolve(process.env.OPENCLAW_STATE_DIR||path.join(process.env.HOME||'', '.openclaw','hyperframe','state'));
 const CREATIVE_DATA=await resolveCreativeDataDirectory({root:ROOT,stateRoot:OPENCLAW_STATE_ROOT});
@@ -68,10 +68,76 @@ const openclawProgressNotifier=createOpenClawProgressNotifier();
 const commerceEngine=createCommerceEngineFacade(creative,{journalPath:OPENCLAW_JOURNAL,authorizeWrite:request=>openclawAuthorizations.validateAndBind(request)});
 const openclawSessions=createOpenClawSessionBindings({file:OPENCLAW_SESSIONS,workspaceId});
 const commerceAgentBridge=createCommerceAgentBridge({workspaceId,legacyDispatch:creative.dispatchMessage,projectView:creative.view,authorizationStore:openclawAuthorizations,operationJournal:commerceEngine.getJournal,recordControlResult:creative.recordControlResult});
+// Progress subscriptions are process-local, while jobs are durable. Rebind
+// every persisted OpenClaw route after a backend restart so a task does not
+// appear frozen until the user asks for a status update.
+for(const binding of creative.openclawProgressBindings?.()||[]){
+  bindOpenClawJobProgress({service:creative,notifier:openclawProgressNotifier,...binding});
+}
+async function fileSha256(file){try{return createHash('sha256').update(await fs.readFile(file)).digest('hex');}catch(error){if(error.code==='ENOENT')return null;throw error;}}
+async function resolvePluginHash(){
+  const configured=process.env.VIDEO_AGENT_OPENCLAW_PLUGIN||'';
+  const root=path.resolve(configured||path.join(ROOT,'openclaw-plugin'));
+  const files=[];
+  for(const name of ['openclaw.plugin.json','index.mjs']){const file=path.join(root,name);const digest=await fileSha256(file);if(digest)files.push(`${name}:${digest}`);}
+  return {path:root,hash:files.length?createHash('sha256').update(files.join('|')).digest('hex'):null};
+}
+async function resolveRuntimeCapabilities(pluginRoot){
+  let registeredToolNames=[];
+  try{
+    const manifest=JSON.parse(await fs.readFile(path.join(pluginRoot,'openclaw.plugin.json'),'utf8'));
+    registeredToolNames=Array.isArray(manifest.contracts?.tools)?[...new Set(manifest.contracts.tools.map(String))].sort():[];
+  }catch(error){if(!['ENOENT','ENOTDIR','EACCES'].includes(error.code))throw error;}
+  let commerceControlAllowlist=[];
+  try{
+    const configured=JSON.parse(await fs.readFile(path.resolve(process.env.OPENCLAW_CONFIG_PATH||''),'utf8'));
+    const control=configured.agents?.list?.find(item=>item.id==='commerce-control');
+    commerceControlAllowlist=Array.isArray(control?.tools?.allow)?[...new Set(control.tools.allow.map(String))].sort():[];
+  }catch(error){if(!['ENOENT','ENOTDIR','EACCES','ERR_INVALID_ARG_TYPE'].includes(error.code))throw error;}
+  return {registeredToolNames,commerceControlAllowlist};
+}
+const projectStoreInfo=await projectStoreFingerprint(CREATIVE_DATA);
+const pluginInfo=await resolvePluginHash();
+const runtimeCapabilities=await resolveRuntimeCapabilities(pluginInfo.path);
+const runtimeCapabilitySetsMatch = runtimeCapabilities.registeredToolNames.length > 0 &&
+  runtimeCapabilities.commerceControlAllowlist.length > 0 &&
+  JSON.stringify(runtimeCapabilities.registeredToolNames) === JSON.stringify(runtimeCapabilities.commerceControlAllowlist);
+// A reachable backend is not a ready OpenClaw runtime.  When the OpenClaw
+// config is present, refuse to boot if the model-visible allowlist cannot be
+// resolved to the plugin's registered tools.  Isolated legacy/edit servers
+// without an OpenClaw config retain their existing startup behavior.
+if ((process.env.COMMERCE_AGENT_RUNTIME === 'openclaw' || process.env.OPENCLAW_CONFIG_PATH) &&
+    (!runtimeCapabilitySetsMatch || !pluginInfo.hash)) {
+  throw new Error(`OpenClaw runtime capability mismatch: registered=${runtimeCapabilities.registeredToolNames.join(',')} allowlist=${runtimeCapabilities.commerceControlAllowlist.join(',')}`);
+}
+const runtimeDescriptor={schemaVersion:1,gitHead:process.env.VIDEO_AGENT_GIT_HEAD||null,gatewayPort:Number(process.env.OPENCLAW_GATEWAY_PORT||18789),backendPort:PORT,gatewayPid:Number(process.env.OPENCLAW_GATEWAY_PID||0)||null,backendPid:process.pid,openclawVersion:process.env.OPENCLAW_VERSION||'2026.6.11',projectStoreRealPath:projectStoreInfo.realpath,projectStoreFingerprint:projectStoreInfo.fingerprint,projectCount:projectStoreInfo.projectCount,openclawStateRoot:OPENCLAW_STATE_ROOT,inboundMediaRoot:OPENCLAW_INBOUND_ROOT,operationsStore:OPENCLAW_JOURNAL,sessionsStore:OPENCLAW_SESSIONS,pluginPath:pluginInfo.path,pluginHash:pluginInfo.hash,workspacePath:process.env.VIDEO_AGENT_OPENCLAW_WORKSPACE||null,publicBaseUrl:String(process.env.VIDEO_AGENT_PUBLIC_BASE_URL||`http://127.0.0.1:${PORT}`).replace(/\/$/,''),configPath:process.env.OPENCLAW_CONFIG_PATH||null,configFingerprint:await fileSha256(process.env.OPENCLAW_CONFIG_PATH||''),workspaceHash:workspaceId,skillsLockHash:await fileSha256(path.join(process.env.VIDEO_AGENT_OPENCLAW_WORKSPACE||'', 'skills-lock.json')),pluginLoaded:process.env.VIDEO_AGENT_OPENCLAW_PLUGIN_LOADED==='true',...runtimeCapabilities};
+await writeRuntimeDescriptor(ROOT,runtimeDescriptor);
 const projects=new Map(),writes=new Map();let active=null,studioProject=null,studioBusy=false,accepting=true;
 await fs.mkdir(DATA,{recursive:true});
 async function save(p){const snapshot=JSON.stringify(p,null,2),file=path.join(DATA,p.id,'project.json');const task=(writes.get(p.id)||Promise.resolve()).catch(()=>{}).then(async()=>{await fs.writeFile(file+'.tmp',snapshot);await fs.rename(file+'.tmp',file);});writes.set(p.id,task);await task;}
 for(const id of await fs.readdir(DATA)){if(!/^[a-f0-9-]{36}$/.test(id))continue;try{const p=JSON.parse(await fs.readFile(path.join(DATA,id,'project.json'),'utf8'));if(['queued','composing','checking','rendering'].includes(p.status)){p.status='failed';p.error='服务重启，中断了上次任务。输入已保留，可以重试。';await save(p);}projects.set(id,p);}catch{}}
+async function reconcileLongrun(){
+ if(process.env.COMMERCE_AGENT_RUNTIME!=='openclaw'&&process.env.VIDEO_AGENT_RECONCILE_LONGRUN!=='1')return;
+ const file=path.join(ROOT,'.longrun','STATE.json');let state;
+ try{state=JSON.parse(await fs.readFile(file,'utf8'));}catch(error){if(error.code==='ENOENT')return;throw error;}
+ const projectId=state.projectId;
+ const project=projectId&&creative.has(projectId)?creative.get(projectId):null;
+ const store=await projectStoreFingerprint(CREATIVE_DATA);
+ state.runtimeFingerprint={...(state.runtimeFingerprint||{}),node:process.version,videoAgentPort:PORT,backendPort:PORT,openclawGatewayPort:Number(process.env.OPENCLAW_GATEWAY_PORT||18789),projectStoreRealPath:store.realpath,projectStoreFingerprint:store.fingerprint,projectCount:store.projectCount,openclawStateRoot:OPENCLAW_STATE_ROOT};
+ state.head=runtimeDescriptor.gitHead||state.head||null;
+ if(project){
+  const route=state.activeVideoJobId?project.jobs.find(job=>job.id===state.activeVideoJobId):null;
+  const child=route?.childJobId?project.jobs.find(job=>job.id===route.childJobId):null;
+  const job=child||route||[...project.jobs].reverse().find(candidate=>candidate.status&&!['complete','cancelled'].includes(candidate.status))||project.jobs.at(-1);
+  if(job){state.activeVideoJobId=route?.id||job.id;state.activeVideoChildJobId=child?.id||state.activeVideoChildJobId||null;state.activeVideoJobStatus=job.status;state.activeVideoJobStage=job.stage||null;state.activeRevisionId=job.revisionId||null;state.revisionId=job.revisionId||null;state.status=job.status;state.lastError=job.error||null;state.lastErrorClass=job.code||null;state.nextAction=job.status==='needs_user'?(job.question||job.error||'等待用户输入后继续同一工程/任务'):job.status==='recoverable'?'在同一 Project/Job 上恢复，不重新提交 video_task':'读取持久 Job 状态并继续';}
+  state.projectOrphaned=false;
+ }else if(projectId){
+  state.status='project_orphaned';state.projectOrphaned=true;state.lastError='PROJECT_ORPHANED';state.lastErrorClass='PROJECT_NOT_FOUND';state.nextAction='先跨 legacy store 搜索并校验原工程；未确认找回前禁止新建工程或重交 video_task';
+ }
+ state.updatedAt=new Date().toISOString();
+ const temp=`${file}.${process.pid}.tmp`;await fs.writeFile(temp,JSON.stringify(state,null,2)+'\n',{mode:0o600});await fs.rename(temp,file);
+}
+await reconcileLongrun();
 function get(id){const p=projects.get(id);if(!p)throw new InputError('项目不存在',404);return p;}
 function view(p){const s=p.requestedSettings||{duration:15,aspect:'16:9',quality:'720p'},duration=p.engine==='multishot-v1'?p.storyboard.at(-1).end:15;return {...p,requestedSettings:s,actualSettings:{duration,aspect:'16:9',quality:'720p'},renderNotice:s.aspect!=='16:9'||s.quality!=='720p'?'时长与镜头设置实际生效；本轮输出横屏 720p，其他画幅与画质仅保存需求。':null,videoUrl:p.status==='complete'?`/api/projects/${p.id}/video`:null,storyboardUrl:`/api/projects/${p.id}/storyboard`,imageUrls:Array.from({length:p.assetCount||3},(_,n)=>`/api/projects/${p.id}/image/${n+1}`),studioUrl:studioProject===p.id?STUDIO_URL:null};}
 async function stage(p,status,progress){p.status=status;p.progress=progress;p.updatedAt=new Date().toISOString();await save(p);}
@@ -102,23 +168,33 @@ async function openclawToolRoute(req,res){
  const requestedProject=input.input?.projectId;
  const hasProject=id=>typeof id==='string'&&id.trim()&&typeof creative.has==='function'&&creative.has(id);
  if(requestedProject!=null && !['current','new'].includes(requestedProject) && !hasProject(requestedProject)){
-  // A model can occasionally repeat a stale UUID.  Reads should report a
-  // typed not-found result so the agent can recover; do not let a bad read
-  // poison the trusted session or turn into a generic plugin error.
-  if(input.tool==='video_project_open'){
-   const projects=typeof creative.list==='function'?creative.list().slice(0,20).map(project=>({id:project.id,name:project.title||project.name||'未命名视频',currentRevisionId:project.currentRevisionId||null})):[];
-   return json(res,{ok:true,result:{schemaVersion:'openclaw-commerce.v1',tool:'video_project_open',status:'not_found',projectId:String(requestedProject),operationId:null,projects,message:'工程不存在；可使用 video_project_list 查看真实工程'}});
-  }
+  // A stale UUID is a recoverable business state, never a generic plugin
+  // error and never a reason to submit video_task again.
+  const projects=typeof creative.list==='function'?creative.list().slice(0,20).map(project=>({id:project.id,name:project.title||project.name||'未命名视频',currentRevisionId:project.currentRevisionId||null})):[];
+  if(input.tool==='video_project_open')return json(res,{ok:true,result:{schemaVersion:'openclaw-commerce.v1',tool:'video_project_open',status:'project_missing',projectId:String(requestedProject),operationId:null,projects,errorCode:'PROJECT_NOT_FOUND',errorMessage:'工程不存在；请先对真实工程执行 reconcile',retryable:false,resumeAllowed:false,recommendedAction:'reconcile_project'}});
+  if(['video_job_status','video_result','video_cancel','video_task','video_prepare'].includes(input.tool))return json(res,{ok:true,result:{schemaVersion:'openclaw-commerce.v1',tool:input.tool,status:'project_missing',projectId:String(requestedProject),jobId:input.input?.jobId||null,stage:'reconcile',errorCode:'PROJECT_NOT_FOUND',errorMessage:'原生工程不存在，已阻止自动重交任务',retryable:false,resumeAllowed:false,recommendedAction:'reconcile_project',projects}});
   throw new InputError('原生项目不存在，请使用真实工程 ID 或省略工程 ID创建新任务',404);
  }
- let trustedContext;
- // Any explicit, valid project is an intentional session transition.  The
- // low-level bind() primitive still rejects accidental cross-project access;
- // this route uses replace() only after the server has validated the project
- // and the tool's authorization has been checked.
- if(requestedProject && !['current','new'].includes(requestedProject)) trustedContext=await openclawSessions.replace(input.trustedContext,requestedProject);
- else trustedContext=await openclawSessions.bind(input.trustedContext,null);
- let normalizedInput=requestedProject==='current'&&trustedContext.workspaceProjectId?{...(input.input||{}),projectId:trustedContext.workspaceProjectId}:{...(input.input||{})};
+ let trustedContext=await openclawSessions.bind(input.trustedContext,null);
+ if(['video_prepare','video_task'].includes(input.tool)){
+  const selection=resolveOpenClawTaskProject({requestedProjectId:requestedProject,boundProjectId:hasProject(trustedContext.workspaceProjectId)?trustedContext.workspaceProjectId:null,attachmentIds:input.input?.attachmentIds||[],projects:creative.list()});
+  if(selection.status==='project_mismatch')return json(res,{ok:true,result:{schemaVersion:'openclaw-commerce.v1',tool:input.tool,status:'project_mismatch',projectId:selection.projectId,requestedProjectId:selection.requestedProjectId,errorCode:'PROJECT_BINDING_CONFLICT',errorMessage:'当前会话绑定了另一个工程；请先核对素材并打开正确工程',resumeAllowed:false,recommendedAction:'video_project_list'}});
+  if(selection.projectId&&selection.projectId!==trustedContext.workspaceProjectId)trustedContext=await openclawSessions.replace(input.trustedContext,selection.projectId);
+ }else if(input.tool==='video_project_open'&&requestedProject&&hasProject(requestedProject))trustedContext=await openclawSessions.replace(input.trustedContext,requestedProject);
+ const boundProject=trustedContext.workspaceProjectId;
+ const explicitNew=/(?:新建|创建|制作|生成|做一条|做个|宣传片|营销片|新品|商品视频|产品视频)/u.test(String(input.input?.message||''))
+   && !/(?:把|将|修改|编辑|调整|替换|换成|改成|改为|第[一二三四五六七八九十0-9]+个镜头|这条视频|本视频|原片|原视频)/u.test(String(input.input?.message||''));
+ const hasAttachment=Array.isArray(input.input?.attachmentPaths)&&input.input.attachmentPaths.length
+   ||Array.isArray(input.input?.attachmentIds)&&input.input.attachmentIds.length;
+ if(boundProject&&!hasProject(boundProject)&&['video_prepare','video_task'].includes(input.tool)
+   && !hasAttachment&&!explicitNew){
+  return json(res,{ok:true,result:{schemaVersion:'openclaw-commerce.v1',tool:input.tool,status:'project_orphaned',projectId:boundProject,stage:'reconcile',errorCode:'PROJECT_ORPHANED',errorMessage:'当前会话绑定的原生工程不存在，已解除自动创建/重交；请先 reconcile 或明确开始新任务',retryable:false,resumeAllowed:false,recommendedAction:'reconcile_project'}});
+ }
+ let normalizedInput={...(input.input||{})};
+ if(['video_prepare','video_task'].includes(input.tool)){
+  const selection=resolveOpenClawTaskProject({requestedProjectId:requestedProject,boundProjectId:trustedContext.workspaceProjectId,attachmentIds:normalizedInput.attachmentIds||[],projects:creative.list()});
+  normalizedInput.projectId=selection.projectId;
+ }else if(requestedProject==='current'&&trustedContext.workspaceProjectId)normalizedInput.projectId=trustedContext.workspaceProjectId;
  // Native Control UI puts media receipts into the model's message text when
  // an attachment and caption are submitted together. Canonicalize those
  // server-issued receipts before authorization/import so the same request
@@ -145,12 +221,12 @@ async function openclawToolRoute(req,res){
  // Control UI uploads are materialized by OpenClaw under its inbound media
  // directory. Import only those files, never arbitrary model-provided paths.
  // The operation remains behind the normal project/session authorization.
-  const attachmentPaths=Array.isArray(normalizedInput.attachmentPaths)?normalizedInput.attachmentPaths:[];
+ const attachmentPaths=Array.isArray(normalizedInput.attachmentPaths)?normalizedInput.attachmentPaths:[];
  if(attachmentPaths.length){
-  // Bind the server-issued authorization before touching any uploaded bytes.
-  // This keeps malformed or unauthorized tool calls side-effect free.
+  // The authorization endpoint only issues a project-less scope for a new
+  // upload. Validate every receipt and stage before creating or binding a
+  // native project; a bad attachment therefore cannot leave an empty project.
   if(!normalizedInput.authorizationId||!normalizedInput.operationId)throw new InputError('OpenClaw 附件导入需要已签发的写授权',403);
-  await openclawAuthorizations.validateAndBind({tool:input.tool,input:normalizedInput,context:trustedContext});
   // Idempotent retries must not materialize the same inbound file again. The
   // first attempt records the imported asset ids in the operation journal;
   // reuse that result (or fail closed while submission state is unknown)
@@ -162,13 +238,8 @@ async function openclawToolRoute(req,res){
   const inboundRoot=await fs.realpath(inboundRootBase).catch(()=>inboundRootBase);
   let projectId=String(normalizedInput.projectId||'');
   let project=projectId&&hasProject(projectId)?creative.get(projectId):null;
-  if(!project && input.tool==='video_task' && typeof creative.create==='function'){
-   project=await creative.create({message:String(normalizedInput.message||''),inferRequest:true,taskMode:'create',taskModeExplicit:true,commerceProfile:'commerce-focus-v1',source:'openclaw-request'});
-   projectId=project.id;normalizedInput.projectId=projectId;normalizedInput.baseRevisionId=null;
-   trustedContext=await openclawSessions.replace(input.trustedContext,projectId);
-  }
-  if(!project)throw new InputError('视频附件导入需要有效工程',400);
   const importedAttachmentIds=[...(normalizedInput.attachmentIds||[])];
+  const staged=[];
   for(const raw of attachmentPaths){
    // Some OpenClaw turns repeat a project-local asset reference after the
    // upload has already been materialized. It is safe to reuse it only when
@@ -194,14 +265,30 @@ async function openclawToolRoute(req,res){
    const stat=await fs.stat(candidateReal).catch(()=>null);if(!stat?.isFile())throw new InputError('OpenClaw 附件不存在',400);
    if(stat.size>OPENCLAW_MAX_VIDEO_BYTES)throw new InputError(`OpenClaw 视频不能超过 ${OPENCLAW_MAX_VIDEO_MIB} MiB`,413);
    if(!/\.(?:mp4|mov|webm)$/i.test(path.basename(candidateReal)))throw new InputError('OpenClaw 仅支持 MP4、MOV、WebM 视频',415);
-   const asset=await creative.upload(project,createReadStream(candidateReal),path.basename(candidateReal));
-   if(asset?.id) importedAttachmentIds.push(asset.id);
+   staged.push({path:candidateReal,name:path.basename(candidateReal),bytes:stat.size});
+  }
+  let createdDraft=false;
+  try{
+   if(!project && typeof creative.create==='function'){
+    project=await creative.create({message:String(normalizedInput.message||''),inferRequest:true,taskMode:'create',taskModeExplicit:true,commerceProfile:'commerce-focus-v1',source:'openclaw-request'});
+    createdDraft=true;projectId=project.id;normalizedInput.projectId=projectId;normalizedInput.baseRevisionId=null;
+   }
+   if(!project)throw new InputError('视频附件导入需要有效工程',400);
+   for(const item of staged){const asset=await creative.upload(project,createReadStream(item.path),item.name);if(asset?.id)importedAttachmentIds.push(asset.id);}
+   // Bind the session only after staged validation and asset import succeed.
+   trustedContext=await openclawSessions.replace(input.trustedContext,projectId);
+   await openclawAuthorizations.validateAndBind({tool:input.tool,input:normalizedInput,context:trustedContext});
+  }catch(error){
+   if(createdDraft&&typeof creative.discardDraft==='function')await creative.discardDraft(project).catch(()=>{});
+   throw error;
   }
   normalizedInput.attachmentIds=[...new Set(importedAttachmentIds)];
   delete normalizedInput.attachmentPaths;
  }
  const result=await commerceEngine.invoke(input.tool,normalizedInput,trustedContext);
+ if(input.tool==='video_prepare'&&result?.projectId&&!trustedContext.workspaceProjectId)await openclawSessions.replace(input.trustedContext,result.projectId);
  if(input.tool==='video_task'&&result?.projectId&&result?.jobId&&typeof creative.subscribeJobProgress==='function'){
+  await creative.bindOpenClawProgress?.(result.projectId,result.jobId,input.trustedContext.sessionKey);
   const progress=bindOpenClawJobProgress({service:creative,notifier:openclawProgressNotifier,projectId:result.projectId,jobId:result.jobId,sessionKey:input.trustedContext.sessionKey});
   result.proactiveProgress={status:progress.status,sessionBound:true,percentPolicy:'real-render-progress-only'};
  }
@@ -227,18 +314,21 @@ async function openclawAuthorizationRoute(req,res){
  const messageText=String(input.message||'');
  const explicitNewTask=/(?:新建|创建|制作|生成|做一条|做个|宣传片|营销片|新品|商品视频|产品视频)/u.test(messageText)
    && !/(?:把|将|修改|编辑|调整|替换|换成|改成|改为|第[一二三四五六七八九十0-9]+个镜头|这条视频|本视频|原片|原视频)/u.test(messageText);
+ const selection=resolveOpenClawTaskProject({requestedProjectId,boundProjectId:currentProjectId,attachmentIds:input.attachmentIds||[],projects:creative.list()});
+ if(['video_task','video_prepare'].includes(body.tool)&&selection.status==='project_mismatch')return json(res,{ok:true,status:'project_mismatch',result:{schemaVersion:'openclaw-commerce.v1',tool:body.tool,status:'project_mismatch',projectId:selection.projectId,requestedProjectId:selection.requestedProjectId,errorCode:'PROJECT_BINDING_CONFLICT',errorMessage:'当前会话绑定了另一个工程；请先核对素材并打开正确工程',resumeAllowed:false,recommendedAction:'video_project_list'}});
  let projectId;
  if(body.tool==='video_task'||body.tool==='video_prepare'){
   // Project binding is a convenience for continuing a conversation, not a
   // prerequisite.  A new upload starts a new editable project; a text-only
   // follow-up reuses the current project when one exists; an invalid/stale
   // model UUID is never trusted and falls back to the same rules.
-  if(requestedProjectId==='new') projectId=null;
-  else if(requestedProjectId&&requestedProjectId!=='current'&&hasProject(requestedProjectId)) projectId=requestedProjectId;
-  else if(requestedProjectId==='current') projectId=currentProjectId;
-  else if(requestedProjectId&&!hasProject(requestedProjectId)) projectId=attachmentCount?null:currentProjectId;
+  if(selection.source==='attachment')projectId=selection.projectId;
+  else if(requestedProjectId==='new')projectId=null;
+  else if(requestedProjectId&&requestedProjectId!=='current'&&hasProject(requestedProjectId))projectId=requestedProjectId;
+  else if(requestedProjectId==='current')projectId=currentProjectId;
+  else if(requestedProjectId&&!hasProject(requestedProjectId))projectId=attachmentCount?null:currentProjectId;
   else projectId=(attachmentCount||explicitNewTask)?null:currentProjectId;
-  if(!projectId){
+  if(!projectId && !attachmentCount){
    const created=await creative.create({message:String(input.message||''),inferRequest:true,taskMode:'create',taskModeExplicit:true,commerceProfile:'commerce-focus-v1',source:'openclaw-request'});
    projectId=created.id;await openclawSessions.replace(body.trustedContext,projectId);
   }
@@ -246,11 +336,11 @@ async function openclawAuthorizationRoute(req,res){
   projectId=requestedProjectId||currentProjectId;
   if(!projectId||!hasProject(projectId))throw new InputError('该工具需要真实工程 ID，请先使用 video_project_list',404);
  }
- const project=creative.get(projectId);
- const context=await openclawSessions.replace(body.trustedContext,projectId);
+ const project=projectId?creative.get(projectId):null;
+ const context=projectId?await openclawSessions.replace(body.trustedContext,projectId):await openclawSessions.bind(body.trustedContext,null);
  const messageId=String(body.trustedContext.messageId||'');
  if(!messageId)throw new InputError('OpenClaw inbound message identity required',403);
- const currentRevisionId=project.currentRevisionId||null;
+ const currentRevisionId=project?.currentRevisionId||null;
  // Treat omitted, null, and the literal string "null" as "use the current
  // revision".  Preserve any other explicit value so a genuine stale edit
  // still fails closed with REVISION_CONFLICT.
@@ -351,7 +441,11 @@ const server=http.createServer(async(req,res)=>{
    return await file(req,res,servedPath,type,kind==='video'?`candidate-${commerceFile[1]}.mp4`:null);
   }
   if(['GET','HEAD'].includes(req.method)&&route==='/editor-player.js')return await file(req,res,path.join(ROOT,'node_modules/hyperframes/dist/hyperframes-player.global.js'),'text/javascript; charset=utf-8');
-  if(req.method==='GET'&&(route==='/api/health'||route==='/health'))return json(res,{ok:true,version:'0.7.0-conversation',workspaceId,workbench:'commerce',agentRuntime:commerceAgentBridge.mode,activeProjectId:active,studioProjectId:studioProject,openclawMedia:{stateRoot:OPENCLAW_STATE_ROOT,inboundRoot:OPENCLAW_INBOUND_ROOT}});
+  if(req.method==='GET'&&(route==='/api/health'||route==='/health')){
+    const currentStore=await projectStoreFingerprint(CREATIVE_DATA);
+    const safeRuntime={...runtimeDescriptor,projectStoreRealPath:currentStore.realpath,projectStoreFingerprint:currentStore.fingerprint,projectCount:currentStore.projectCount,registeredToolNames:runtimeDescriptor.registeredToolNames,commerceControlAllowlist:runtimeDescriptor.commerceControlAllowlist};
+    return json(res,{ok:true,version:'0.7.0-conversation',workspaceId,workbench:'commerce',agentRuntime:commerceAgentBridge.mode,activeProjectId:active,studioProjectId:studioProject,projectStoreRealPath:currentStore.realpath,projectCount:currentStore.projectCount,runtimeFingerprint:safeRuntime,openclawMedia:{stateRoot:OPENCLAW_STATE_ROOT,inboundRoot:OPENCLAW_INBOUND_ROOT}});
+  }
   if(req.method==='POST'&&route==='/api/optimize'){const input=await jsonBody(req,16000,'需求描述');if(input.mode==='live'&&process.env.VIDEO_AGENT_LIVE_CODEX!=='1')throw new InputError('实时 Codex 当前未启用：上次模型连接超时。请使用演示整理，或手动补充；输入已保留。',503);return json(res,input.mode==='live'?await optimizePrompt(input.text):demoOptimize(input.text));}
   if(req.method==='GET'&&route==='/api/cases')return json(res,await Promise.all(cases.map(async c=>({...c,ready:await fs.access(path.join(ROOT,'showcase',c.id,'media.json')).then(()=>true).catch(()=>false),imageUrl:`/cases/${c.id}/image`,videoUrl:`/cases/${c.id}/video`}))));
   const ce=/^\/api\/cases\/([a-z]+)\/edit$/.exec(route);

@@ -3,6 +3,8 @@ import fsSync from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import {randomUUID} from 'node:crypto';
+import {execFile} from 'node:child_process';
+import {promisify} from 'node:util';
 
 export const ROOT=path.resolve(new URL('../..',import.meta.url).pathname);
 // Tests and recovery probes may point at an isolated state directory. The
@@ -13,6 +15,14 @@ export const STATE_FILE=path.join(STATE_DIR,'STATE.json');
 export const LOCK_FILE=path.join(STATE_DIR,'WRITER.lock');
 export const LOG_DIR=path.join(STATE_DIR,'logs');
 export const PROMPT_FILE=path.join(STATE_DIR,'RESUME_PROMPT.md');
+export async function runtimeDescriptor(){
+  try{return JSON.parse(await fs.readFile(path.join(ROOT,'.state','runtime.json'),'utf8'));}
+  catch(error){if(error.code==='ENOENT')return {};throw error;}
+}
+export async function backendPort(state={}){
+  const descriptor=await runtimeDescriptor();
+  return Number(descriptor.backendPort||state.runtimeFingerprint?.videoAgentPort||process.env.VIDEO_AGENT_PORT||3024);
+}
 
 export const now=()=>new Date().toISOString();
 export async function atomicWrite(file,value){
@@ -34,6 +44,26 @@ export async function appendLog(name,entry){
     const old=await fs.readFile(file,'utf8');
     await atomicWrite(file,old.slice(-512*1024));
   }
+}
+export function createBoundedLog(file,{maxBytes=4*1024*1024,retainBytes=2*1024*1024}={}){
+  let pending=Promise.resolve();
+  return {
+    append(chunk){
+      pending=pending.then(async()=>{
+        await fs.appendFile(file,chunk,{mode:0o600});
+        const size=(await fs.stat(file)).size;
+        if(size>maxBytes){
+          const handle=await fs.open(file,'r');
+          let buffer=Buffer.alloc(Math.min(retainBytes,size));
+          try{await handle.read(buffer,0,buffer.length,size-buffer.length);}finally{await handle.close();}
+          const newline=buffer.indexOf(10);if(newline>=0)buffer=buffer.subarray(newline+1);
+          await atomicWrite(file,buffer.toString('utf8'));
+        }
+      });
+      return pending;
+    },
+    flush:()=>pending
+  };
 }
 export function processAlive(pid,host){
   // An owner with no valid PID is unverifiable. Treat it as active so a
@@ -57,7 +87,12 @@ export async function inspectLock(dir=STATE_DIR){
   try{
     const owner=await readJson(file);
     const alive=processAlive(owner.pid,owner.host);
-    return {exists:true,owner,alive,safeToRecover:!alive};
+    const state=await readJson(path.join(dir,'STATE.json'),{});
+    const heartbeats=[owner.startedAt,owner.lastHeartbeatAt];
+    if(state.writerPid===owner.pid&&state.writerStartedAt===owner.startedAt)heartbeats.push(state.lastCodexHeartbeatAt);
+    const dates=heartbeats.map(value=>Date.parse(value)).filter(Number.isFinite);
+    const heartbeatStale=dates.length>0&&Date.now()-Math.max(...dates)>=120_000;
+    return {exists:true,owner,alive,heartbeatStale,safeToRecover:!alive&&heartbeatStale};
   }catch(e){
     if(e.code==='ENOENT')return {exists:false,owner:null,alive:false,safeToRecover:true};
     return {exists:true,owner:null,alive:true,safeToRecover:false,error:e.code||'INVALID_LOCK'};
@@ -79,14 +114,42 @@ export function classifyFailure({code=null,status=null,message=''}={}){
   if(/TIMEOUT|timed? ?out/i.test(String(code||''))||/timed? ?out|timeout/i.test(text))return 'timeout';
   return 'video_job';
 }
-export async function acquireWriter({sessionId=null,phase='resume',dir=STATE_DIR}={}){
-  await fs.mkdir(dir,{recursive:true});
-  const file=path.join(dir,'WRITER.lock');
-  const owner={pid:process.pid,host:os.hostname(),startedAt:now(),sessionId,phase,token:randomUUID()};
-  try{const handle=await fs.open(file,'wx',0o600);await handle.writeFile(JSON.stringify(owner,null,2)+'\n');await handle.close();return owner;}
-  catch(e){if(e.code!=='EEXIST')throw e;const lock=await inspectLock(dir);if(lock.safeToRecover){await fs.unlink(file).catch(()=>{});return acquireWriter({sessionId,phase,dir});}return null;}
+// Never classify a new execution using historical transcripts or an agent's
+// discussion of capacity. Only actual error events and this process's stderr
+// are relevant; keep the in-memory diagnostic bounded.
+export function createResumeFailureTracker(){
+  let pending='',errors='',stderr='';
+  const limit=64*1024;
+  function line(text){
+    try{
+      const event=JSON.parse(text);
+      const error=event.type==='error'||event.type==='turn.failed'?event.error||event:
+        event.item?.type==='error'?event.item:null;
+      if(error)errors=(errors+'\n'+String(error.message||error.code||'')).slice(-limit);
+    }catch{/* Non-JSON stdout is not an error event. */}
+  }
+  return {
+    stdout(chunk){pending+=String(chunk);const lines=pending.split('\n');pending=lines.pop();lines.forEach(line);if(pending.length>limit)pending=pending.slice(-limit);},
+    stderr(chunk){stderr=(stderr+String(chunk)).slice(-limit);},
+    message(){if(pending){line(pending);pending='';}return (errors+'\n'+stderr).trim();}
+  };
 }
-export async function releaseWriter(dir=STATE_DIR){await fs.unlink(path.join(dir,'WRITER.lock')).catch(()=>{});}
+export function clearInheritedCapacity(previous,current){
+  if(current.status!=='waiting_capacity'||current.accepted||current.userStopped||previous.lastErrorClass!=='capacity')return false;
+  const unchanged=['lastError','lastErrorClass','lastErrorAt','lastErrorFingerprint','capacityRetryAfter'].every(key=>current[key]===previous[key]);
+  if(!unchanged)return false;
+  Object.assign(current,{status:'running',lastError:null,lastErrorClass:null,lastErrorFingerprint:null,capacityRetryAfter:null,capacityRetryMinutes:0});
+  return true;
+}
+export async function acquireWriter({sessionId=null,phase='resume',dir=STATE_DIR}={}){
+  const owner={pid:process.pid,host:os.hostname(),startedAt:now(),sessionId,phase,token:randomUUID()};
+  return writerLockOperation(dir,'acquire',owner);
+}
+async function writerLockOperation(dir,action,owner){
+  const {stdout}=await promisify(execFile)(process.platform==='darwin'?'/usr/bin/python3':'python3',[path.join(ROOT,'scripts/longrun/writer-lock.py'),dir,action,JSON.stringify(owner)],{timeout:5000});
+  return JSON.parse(stdout);
+}
+export async function releaseWriter(dir=STATE_DIR){return writerLockOperation(dir,'release',{pid:process.pid});}
 export function defaultState(){return {
   schemaVersion:1,
   goal:'openclaw-video-quality-final-acceptance',

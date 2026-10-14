@@ -6,7 +6,8 @@ export function optionalProviderCapabilities(){return [
   {id:'whisperx',kind:'transcription',configured:process.env.VIDEO_AGENT_ASR_ENGINE==='whisperx',health:'unchecked',source:'https://github.com/m-bain/whisperX',setup:'设置 VIDEO_AGENT_ASR_ENGINE=whisperx 并在语音 Python 环境安装 WhisperX'},
   {id:'pyscenedetect',kind:'scene-detection',configured:process.env.VIDEO_AGENT_SCENE_ENGINE==='pyscenedetect',health:'unchecked',source:'https://github.com/Breakthrough/PySceneDetect',setup:'设置 VIDEO_AGENT_SCENE_ENGINE=pyscenedetect 并安装 scenedetect；默认可用内置 FFmpeg 检测'},
   {id:'elevenlabs',kind:'speech',configured:!!process.env.ELEVENLABS_API_KEY,health:'unchecked',source:'https://github.com/elevenlabs/skills',setup:'设置 ELEVENLABS_API_KEY、ELEVENLABS_VOICE_ID 和 VIDEO_AGENT_TTS_ENGINE=elevenlabs'},
-  {id:'generation',kind:'media-generation',configured:!!process.env.VIDEO_AGENT_GENERATION_URL,health:'unchecked',setup:'接入应用提供方接口；生成结果作为新素材上传，不直接写入时间线'}
+  {id:'generation',kind:'media-generation',configured:!!process.env.VIDEO_AGENT_GENERATION_URL,health:'unchecked',setup:'接入应用提供方接口；生成结果作为新素材上传，不直接写入时间线'},
+  {id:'tavily',kind:'web-research',configured:!!String(process.env.TAVILY_API_KEY||'').trim(),health:'unchecked',source:'https://tavily.com',setup:'设置 TAVILY_API_KEY；用于公开网页搜索和 URL 内容提取，不自动下载媒体'}
 ];}
 export async function transcribeWhisperX(file,signal){return speechWorker('asr').request('transcribe',{source:file,engine:'whisperx'},{signal,timeout:900000});}
 export async function speakElevenLabs(text,voice,signal,{rate=1}={}) {

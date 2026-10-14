@@ -28,6 +28,7 @@ import {ROOT} from '../workflow.mjs';
 import {acquireRender} from '../render-queue.mjs';
 import {linkOrCopy,hashFile,probe,run,ffmpeg} from '../edit/media.mjs';
 import {CreativeError, insist, assetKindFromName, MAX_FILE_BYTES, MAX_ASSETS, stableId,safeRelativePath} from './contracts.mjs';
+import {resourceHash} from './capabilities.mjs';
 import {buildCommerceProject,buildUploadedVideoProject,uploadedVideoTitle,patchCommerceProject,readNativeProject,writeCompiledProject,runHyperFrames,renderCommerceProject} from './runner.mjs';
 import {applyDocumentPatch,computeInvalidation} from './patch.mjs';
 import {requireCommerceMessagePlan,sceneNumber} from './intent.mjs';
@@ -53,9 +54,11 @@ import {exportCreativeHistory,unpackCreativeHistory,restoreCreativeHistory,MAX_P
 import {externalReplacementIntent,searchCommonsImage,downloadCommonsImage,searchCommonsVideo,downloadCommonsVideo} from './external-assets.mjs';
 import {analyzeCommerceRouting} from '../orchestration/commerce-router-v2.mjs';
 import {buildCommercePreparation} from './commerce-preparation.mjs';
-import {searchCommerceWeb} from './commerce-web-research.mjs';
+import {searchCommerceWeb,tavilyCapabilityStatus} from './commerce-web-research.mjs';
+import {reconcileProjectAssets} from './asset-reconcile.mjs';
 
 const active=j=>['queued','running'].includes(j.status);
+const capabilityBlockedJob=job=>job.code==='UNSUPPORTED_CAPABILITY'||/^\[blocked: unsupported_capability\]/i.test(job.error||'');
 // A route acknowledgement is an active status record, but it must not block
 // the child production job that the route is about to create.
 const productionActive=j=>active(j)&&!j.routeJob;
@@ -79,7 +82,7 @@ const BUSINESS_PHASES=[
 function syncBusinessProgress(job){
   let phase=BUSINESS_PHASES.find(([,label,pattern])=>pattern.test(String(job.stage||'')))||BUSINESS_PHASES[0];
   if(job.status==='complete')phase=['complete','完成',/.*/];
-  if(['failed','recoverable','needs_user','cancelled'].includes(job.status))phase=[job.status,job.stage||'需要处理',/.*/];
+  if(['failed','recoverable','needs_user','blocked','cancelled'].includes(job.status))phase=[job.status,job.stage||'需要处理',/.*/];
   if(job.businessProgress?.current===phase[0])return false;
   job.businessProgress={current:phase[0],label:phase[1],events:[...(job.businessProgress?.events||[]),{phase:phase[0],label:phase[1],stage:job.stage||null,status:job.status,at:now()}]};
   return true;
@@ -186,6 +189,22 @@ export function isUploadedSourceWorkflow(message,hasUploadedSource){
 function requiresDirectedProduction(message){
   const text=String(message||'');
   return /(?:小红书|种草|商品视频|营销片|旁白|配音|音乐|配乐|BGM|字幕|HyperFrames|卖点|重点|操作|使用细节|真实画面|自行(?:联网|检索|找|获取)|素材缺口|约\s*\d+\s*秒|可继续编辑)/iu.test(text);
+}
+
+function isSimpleUploadedCaptionEdit(message){
+  const text=String(message||'');
+  if(!/(?:加上|添加|增加|放上|叠加)[^。！？\n]{0,80}(?:字幕|文字|标题)/u.test(text))return false;
+  return !/(?:旁白|配音|音乐|配乐|BGM|种草|营销片|卖点|重点|操作细节|替换|换成|改成|改为|联网|检索|素材缺口|约\s*\d+\s*秒)/iu.test(text);
+}
+
+export function needsTrackedObjectReplacement(message){
+ const text=String(message||'');
+ // A model may restate a supported edit as "不做对象替换" or "不是包装
+ // 替换任务".  Those negated mentions must not activate the capability gate.
+ if(/(?:不(?:做|需要|进行)|不是|无需|禁止|不得)[^。；;\n]{0,24}(?:对象|包装|蛋白粉|咖啡袋)?[^。；;\n]{0,8}(?:替换|换成|改成|改为)/u.test(text))return false;
+ return /(?:替换|换成|改成|改为)/u.test(text)
+   && /(?:蛋白粉|咖啡袋|包装|容器|商品|产品|主体|物体|对象)/u.test(text)
+   && /(?:视频|原片|原视频|所有画面|全片|逐帧)/u.test(text);
 }
 
 export function requestsAutonomousExternalMedia(message){
@@ -337,6 +356,17 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
     }
   }
   function runStore(p,job){return new AgentRunStore(path.join(directory(p),'versions',job.id,'runs'));}
+  function projectAssetRefs(assets,projectDir){
+    return (assets||[]).map(asset=>{
+      const copy={...asset};
+      // OpenClaw stores uploads relative to the project.  The production
+      // runner receives the worktree root, so an unqualified `uploads/...`
+      // path would incorrectly resolve to video-agent/uploads.
+      if(copy.originalRef&&path.isAbsolute(copy.originalRef))copy.normalizedRef=copy.originalRef;
+      else if(copy.path&&/^uploads\//.test(copy.path))copy.normalizedRef=path.join(projectDir,copy.path);
+      return copy;
+    });
+  }
   function syncRun(job,run){job.runId=run.id;job.checkpoints=Object.entries(run.checkpoints||{}).filter(([,v])=>v.status==='completed').map(([k])=>k);job.modelCalls=run.modelCalls;job.maxModelCalls=run.maxModelCalls??(run.code==='MODEL_BUDGET'?run.modelCalls:null);job.completionReserve=run.completionReserve||0;job.budgetSource=run.budgetSource||'legacy-application-estimate';job.runStage=run.stage;job.completedShots=job.checkpoints.filter(k=>/^shot-\d+$/.test(k)).length;job.gaps=run.gaps||[];job.quality=run.verification;job.directionPreview=run.artifacts?.directionPreview;}
   for(const id of await fs.readdir(dataDir)){
     if(!/^[a-zA-Z0-9_-]{1,100}$/.test(id))continue;
@@ -348,7 +378,7 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
   }
   const get=id=>{const p=projects.get(id);if(!p)throw new CreativeError('原生项目不存在','PROJECT_NOT_FOUND',404);return p;};
   const revision=(p,id=p.currentRevisionId)=>{const r=p.revisions.find(r=>r.id===id);if(!r)throw new CreativeError('版本不存在','REVISION_NOT_FOUND',404);return r;};
-  const view=p=>({...structuredClone(p),artifactBaseUrl:artifactBase,deliveryStatus:p.request?.commerceProfile==='commerce-focus-v1'?'awaiting_review':'legacy_unverified',jobs:p.jobs.map(({snapshot,...job})=>({...job,...(job.directionPreview?{directionPreview:{...job.directionPreview,previewUrl:artifactUrl(`/api/commerce/${p.id}/jobs/${job.id}/direction/watch.html`)}}:{}),resumeAllowed:canResumeJob(job),budgetExhausted:budgetExhausted(job)})),auditions:(p.auditions||[]).map(a=>({...a,url:artifactUrl(`/api/commerce/${p.id}/auditions/${a.id}.wav`)})),revisions:p.revisions.map(r=>({...r,previewUrl:artifactUrl(`/api/commerce/${p.id}/revisions/${r.id}/preview.html`),videoUrl:r.rendered?artifactUrl(`/api/commerce/${p.id}/revisions/${r.id}/commerce-final.mp4`):null,documentUrl:artifactUrl(`/api/commerce/${p.id}/revisions/${r.id}/document.json`),packageUrl:r.historyPackaged?artifactUrl(`/api/commerce/${p.id}/revisions/${r.id}/history.zip`):r.packaged?artifactUrl(`/api/commerce/${p.id}/revisions/${r.id}/project.zip`):null}))});
+  const view=p=>({...structuredClone(p),artifactBaseUrl:artifactBase,deliveryStatus:p.request?.commerceProfile==='commerce-focus-v1'?'awaiting_review':'legacy_unverified',jobs:p.jobs.map(({snapshot,...job})=>({...job,...(capabilityBlockedJob(job)?{status:'blocked',code:'UNSUPPORTED_CAPABILITY',question:null,requiredInputs:[]}:{}),...(job.directionPreview?{directionPreview:{...job.directionPreview,previewUrl:artifactUrl(`/api/commerce/${p.id}/jobs/${job.id}/direction/watch.html`)}}:{}),resumeAllowed:canResumeJob(job),budgetExhausted:budgetExhausted(job)})),auditions:(p.auditions||[]).map(a=>({...a,url:artifactUrl(`/api/commerce/${p.id}/auditions/${a.id}.wav`)})),revisions:p.revisions.map(r=>({...r,previewUrl:artifactUrl(`/api/commerce/${p.id}/revisions/${r.id}/preview.html`),videoUrl:r.rendered?artifactUrl(`/api/commerce/${p.id}/revisions/${r.id}/commerce-final.mp4`):null,documentUrl:artifactUrl(`/api/commerce/${p.id}/revisions/${r.id}/document.json`),packageUrl:r.historyPackaged?artifactUrl(`/api/commerce/${p.id}/revisions/${r.id}/history.zip`):r.packaged?artifactUrl(`/api/commerce/${p.id}/revisions/${r.id}/project.zip`):null}))});
   async function create(input={}){
     // Preserve explicit natural-language output constraints even when the
     // OpenClaw attachment import creates the project before routing. The
@@ -373,6 +403,11 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
     const p={schemaVersion:1,id:randomUUID(),title:String(input.title||input.product?.name||'新创作'),createdAt:now(),updatedAt:now(),request,assets:[],revisions:[],currentRevisionId:null,jobs:[],messages:[],redo:[]};
     await fs.mkdir(path.join(directory(p),'uploads'),{recursive:true});projects.set(p.id,p);try{await save(p);}catch(error){projects.delete(p.id);throw error;}return p;
   }
+  async function discardDraft(p){
+    if(!p||!projects.has(p.id))return;
+    if((p.jobs||[]).length||(p.revisions||[]).length||(p.assets||[]).length)throw new CreativeError('已有业务数据的工程不能回滚为空草稿','DRAFT_NOT_EMPTY',409);
+    projects.delete(p.id);await fs.rm(directory(p),{recursive:true,force:true});
+  }
   async function searchResources(query='', projectId=null){
     const text=String(query||'').trim().toLowerCase();
     const terms=text.split(/[^\p{L}\p{N}]+/u).filter(Boolean);
@@ -394,6 +429,41 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
     return searchCommerceWeb(query,{urls:options.urls||[],maxItems:options.maxItems||5,signal:options.signal});
   }
   async function prepareTask(p,input={}){
+    // Object replacement inside a baked source video requires provider-side
+    // tracking, masking, and redraw support.  Do this capability check before
+    // resource search or web research so an unsupported request cannot enter
+    // the asynchronous production queue and appear stuck to the user.
+    if(needsTrackedObjectReplacement(input.message)){
+      const hasBakedVideo=Boolean(p?.currentRevisionId)&&Boolean((p?.assets||[]).some(asset=>asset?.kind==='video'));
+      const hasVideoAttachment=Array.isArray(input.attachmentIds)&&input.attachmentIds.some(id=>(p?.assets||[]).some(asset=>asset?.id===id&&asset?.kind==='video'));
+      if(hasBakedVideo||hasVideoAttachment){
+        const blockingGaps=[{
+          field:'capability',
+          code:'UNSUPPORTED_CAPABILITY',
+          category:'unsupported_capability',
+          severity:'blocking',
+          question:'当前原片是已合成的视频像素，系统没有逐帧对象跟踪、遮罩和重绘能力，无法可靠地把所有蛋白粉包装替换为咖啡袋。请提供带可编辑包装图层或对象跟踪数据的原始工程，并提供咖啡袋源素材。',
+        }];
+        const result={
+          schemaVersion:2,
+          originalRequest:String(input.message||'').trim(),
+          optimizedBrief:'已识别为视频内对象替换，但当前执行器不具备可靠的逐帧跟踪、遮罩和重绘能力。',
+          taskMode:input.taskMode||'edit',
+          scenarioId:input.scenarioId||p?.request?.scenarioId||'general',
+          workflowProfile:input.workflowProfile||input.taskMode||'edit',
+          blockingGaps,
+          capabilityBlocker:true,
+          status:'needs_input',
+          resourceQueries:[],
+          selectedSkills:[],
+          assumptions:[],
+          mediaAcquisition:{policy:{},hasProjectVisuals:true,steps:[]},
+          receiptId:`prep-blocked-${Date.now().toString(36)}`,
+        };
+        if(p){p.orchestrationPreparation=structuredClone(result);await save(p);}
+        return result;
+      }
+    }
     const policy=await productionPolicy(root);
     const preparation=buildCommercePreparation(input,{project:p,mediaAcquisitionPolicy:policy.mediaAcquisitionPolicy});
     const searches=await Promise.all(preparation.resourceQueries.map(query=>searchResources(query,p?.id||null)));
@@ -438,7 +508,12 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
         route=sourceRebuildIntent
           ? {mode:'create',scenarioId:input.scenarioId||p.request?.scenarioId||analyzeCommerceRouting(input.message).scenario.id||'general',scenario:input.scenarioId||p.request?.scenarioId||analyzeCommerceRouting(input.message).scenario.id||'general',taskMode:'create',taskModeExplicit:true,assetIds:p.assets.filter(asset=>asset.kind==='video').map(asset=>asset.id),targets:[{id:null,kind:'visual',requirement:input.message}],preserve:['source-assets','unmentioned-objects','revision-history'],reason:'explicit-upload-source-rebuild'}
           : sourceEditIntent
-          ? {mode:'create',scenarioId:input.scenarioId||p.request?.scenarioId||analyzeCommerceRouting(input.message).scenario.id||'general',scenario:input.scenarioId||p.request?.scenarioId||analyzeCommerceRouting(input.message).scenario.id||'general',taskMode:input.taskMode==='create'?'recut':(input.taskMode||'recut'),taskModeExplicit:true,assetIds:[uploadedSource.id],targets:[{id:null,kind:'visual',requirement:input.message}],preserve:['source-assets','unmentioned-objects','revision-history'],reason:'fresh-upload-source-workflow'}
+          ? {mode:'create',scenarioId:input.scenarioId||p.request?.scenarioId||analyzeCommerceRouting(input.message).scenario.id||'general',scenario:input.scenarioId||p.request?.scenarioId||analyzeCommerceRouting(input.message).scenario.id||'general',
+            // A fresh upload has no base revision.  It still represents an
+            // edit intent, but the native executor must enter its source
+            // create path so workflow-intent does not reject `edit` with
+            // EDIT_BASE_REQUIRED before the upload can become a revision.
+            taskMode:!base?'create':(input.taskMode==='create'?'recut':(input.taskMode||'recut')),taskModeExplicit:true,assetIds:[uploadedSource.id],targets:[{id:null,kind:'visual',requirement:input.message}],preserve:['source-assets','unmentioned-objects','revision-history'],reason:'fresh-upload-source-workflow'}
           : await routeWorkbenchMessage(p,input.message,{provider:routingProvider,document,taskMode:input.taskMode||input.request?.taskMode,taskModeExplicit:input.taskModeExplicit??input.request?.taskModeExplicit,scenarioId:input.scenarioId||input.request?.scenarioId||p.request?.scenarioId,conversation});
       }
       catch(error){
@@ -484,7 +559,8 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
       else if(route.mode==='create'&&base){
         const request={message:input.message,inferRequest:true,target:'marketing',taskMode:'create',taskModeExplicit:true,pipelineVersion:3,commerceProfile:FOCUS_PROFILE};
         request.businessContract=businessContract(request);resultProject=await create(request);
-        for(const id of route.assetIds){const asset=p.assets.find(a=>a.id===id),source=safeRelativePath(root,asset.path),target=path.join(directory(resultProject),'uploads',asset.id+path.extname(source));await linkOrCopy(source,target);resultProject.assets.push({...structuredClone(asset),path:path.relative(root,target).replaceAll('\\','/')});}
+        await reconcileProjectAssets(directory(p),p.assets,{root});
+        for(const id of route.assetIds){const asset=p.assets.find(a=>a.id===id),source=safeRelativePath(root,asset.originalRef||asset.path),target=path.join(directory(resultProject),'uploads',asset.id+path.extname(source));await linkOrCopy(source,target);resultProject.assets.push({...structuredClone(asset),path:`uploads/${path.basename(target)}`,originalRef:target,normalizedRef:`uploads/${path.basename(target)}`});}
         resultProject.creationSource={projectId:p.id,revisionId:base,assetIds:route.assetIds};await save(resultProject);
         if(resultProject.assets.length)await enqueue(resultProject,{action:'generate',message:input.message,attachmentIds:[...(input.attachmentIds||[])],idempotencyKey:input.idempotencyKey,routeDecision:route});
         else resultProject.messages.push({role:'assistant',text:'新制作已独立保存，请添加这条新视频要使用的素材。',time:now()});
@@ -645,6 +721,7 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
         try{asset.mediaMetadata=await probe(target);insist(asset.mediaMetadata?.duration>0,'视频无法解析或时长无效','INVALID_VIDEO_ASSET');}
         catch(error){throw new CreativeError('视频无法解析，请确认文件完整且为合法 MP4/MOV/WebM','INVALID_VIDEO_ASSET',415);}
       }
+      asset.sha256=await hashFile(target);
       p.assets.push(asset);await save(p);return asset;
     }catch(e){p.assets=p.assets.filter(a=>a.id!==id);await fs.unlink(target).catch(()=>{});throw e;}finally{uploads.delete(key);}
   }
@@ -811,6 +888,7 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
     const controller=new AbortController();controllers.set(job.id,controller);const signal=controller.signal;
     job.status='running';job.startedAt=now();
     try{
+      if(['create','edit'].includes(job.kind))await reconcileProjectAssets(directory(p),p.assets,{root});
       await save(p);
       if(job.kind==='plan'){
         job.stage='理解需求与检查工作流';await save(p);
@@ -844,6 +922,9 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
         const asset=await generateCommerceAsset({root,project:p,job,kind:target,role:target==='image'?'商品整体':'原始展示',sourceAsset:source,prompt:job.input.message||p.request.message,duration:p.request.output?.durationSeconds,save:()=>save(p),signal});
         if(!p.assets.some(item=>item.id===asset.id))p.assets.push(asset);job.resultAssetId=asset.id;job.summary='生成素材已登记到当前工程；质量待审。';
       }else if(job.kind==='create'){
+        // Media acquisition is a server-owned contract. A model preparation
+        // may omit the policy or return an empty object; neither may erase it.
+        const serverMediaPolicy=(await productionPolicy(root)).mediaAcquisitionPolicy;
         if(job.input.preparation){
           job.preparation=structuredClone(job.input.preparation);
           job.selectedSkills=[...(job.preparation.selectedSkills||[])];
@@ -851,8 +932,10 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
           job.scenePackage=job.preparation.scenePackage||null;
           job.audioStrategy=structuredClone(job.preparation.audio||{});
           job.fallbackStrategy=job.preparation.fallbackStrategy||null;
-          p.request={...p.request,platform:job.preparation.platform||p.request.platform,output:{...p.request.output,...(job.preparation.output||{})},audioRequirements:job.preparation.audio,mediaAcquisitionPolicy:job.preparation.mediaAcquisition?.policy||p.request.mediaAcquisitionPolicy,orchestrationPreparation:structuredClone(job.preparation)};
+          job.preparation.mediaAcquisition={...(job.preparation.mediaAcquisition||{}),policy:structuredClone(serverMediaPolicy)};
+          p.request={...p.request,platform:job.preparation.platform||p.request.platform,output:{...p.request.output,...(job.preparation.output||{})},audioRequirements:job.preparation.audio,mediaAcquisitionPolicy:structuredClone(serverMediaPolicy),orchestrationPreparation:structuredClone(job.preparation)};
         }
+        p.request={...p.request,mediaAcquisitionPolicy:structuredClone(serverMediaPolicy)};
         if(job.input.request)p.request={...p.request,...commerceIntake(job.input.request)};
         if(job.input.workflow?.businessScenario||job.input.scenarioId){p.request={...p.request,scenarioId:job.input.workflow?.businessScenario||job.input.scenarioId,taskMode:job.input.workflow?.taskMode||job.input.taskMode||p.request.taskMode,workflow:job.input.workflow||p.request.workflow};p.request.businessContract=businessContract(p.request);}
         const target=p.request.target||'marketing';
@@ -862,7 +945,12 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
         // clarification asking the user to open/bind an existing project.
         const uploadedSource=selectUploadedWorkflowSource(p,job.input);
         const sourceRebuildWorkflow=job.input.routeDecision?.reason==='explicit-upload-source-rebuild';
-        const sourceWorkflowRequested=!sourceRebuildWorkflow&&(isUploadedSourceExport(job.input,uploadedSource)||(isUploadedSourceWorkflow(job.input.message,uploadedSource)&&!requiresDirectedProduction(job.input.message)));
+        const uploadedSourceEdit=isUploadedSourceWorkflow(job.input.message,uploadedSource);
+        // A short, explicit caption overlay is source-first work: the native
+        // uploaded-video builder can preserve the original duration/audio and
+        // add the requested editable title without invoking the full
+        // model-authored scene and quality-repair loop.
+        const sourceWorkflowRequested=!sourceRebuildWorkflow&&(isUploadedSourceExport(job.input,uploadedSource)||(uploadedSourceEdit&&(!requiresDirectedProduction(job.input.message)||needsTrackedObjectReplacement(job.input.message)||isSimpleUploadedCaptionEdit(job.input.message))));
         if(sourceWorkflowRequested||sourceRebuildWorkflow){
           const acquisitionPolicy=(await productionPolicy(root)).mediaAcquisitionPolicy;
           const externalVideoRequested=requestsAutonomousExternalMedia(job.input.message||'');
@@ -900,9 +988,7 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
               }
             }
           }
-          const objectReplacementRequested=/(?:替换|换成|改成|改为)/u.test(job.input.message||'')
-            && /(?:袋|蛋白粉|商品|产品|主体|物体|对象)/u.test(job.input.message||'')
-            && !/(?:标题|文字|字幕|颜色|字号|音量)/u.test(job.input.message||'');
+          const objectReplacementRequested=needsTrackedObjectReplacement(job.input.message);
           if(sourceWorkflowRequested&&objectReplacementRequested){
             // Search for a traceable target asset before pausing. A source
             // video alone is not evidence of an object mask/tracking pass, so
@@ -922,8 +1008,8 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
             job.code='OBJECT_REPLACEMENT_REQUIRES_TRACKED_ASSET';
             job.stage='等待可追踪的替换素材';
             job.error=job.externalAsset?.status==='downloaded'
-              ? `已完成“${query}”公共素材搜索并登记，但当前上传视频只有原片级素材，仍无法证明画面内对象替换。请上传对象跟踪/遮罩数据，或提供已完成替换的目标视频。`
-              : `已尝试搜索“${query}”公共素材，但未能合法下载可用候选（${job.externalAsset?.error||'未知原因'}）。当前上传视频只有原片级素材，无法证明画面内对象替换。请上传目标素材及对象跟踪/遮罩数据，或提供已完成替换的目标视频。`;
+              ? `已自主搜索并登记“${query}”素材，但当前服务没有经验证的视频对象遮罩、跟踪和局部重绘能力，无法只替换原片中的目标包装。需接入该能力，或提供已完成替换且权利明确的逐帧视频素材。`
+              : `已自主搜索“${query}”素材，但未取得可合法使用的候选（${job.externalAsset?.error||'未知原因'}）；当前服务也没有经验证的视频对象遮罩、跟踪和局部重绘能力。需接入该能力，或提供已完成替换且权利明确的逐帧视频素材。`;
             job.gaps=['target-object-asset','object-mask-and-tracking'];
             job.question=job.error;
             job.requiredInputs=['target-object-asset','object-mask-and-tracking'];
@@ -938,7 +1024,7 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
           job.skipAutoQualityRevision=true;
           job.stage='建立上传原片初始工程';await save(p);
           const dir=path.join(directory(p),'versions',job.id);
-          await buildUploadedVideoProject({...p.request,projectId:p.id,assets:selectProductionAssets(p.assets,job.input),outputDir:path.relative(root,dir).replaceAll('\\','/'),message:job.input.message,rebuildAllUploadedVideoSources:sourceRebuildWorkflow||Boolean(uploadedExternalVideo),signal,onStage:async stage=>{job.stage=stage;await save(p);}},{root});
+          await buildUploadedVideoProject({...p.request,projectId:p.id,assets:projectAssetRefs(selectProductionAssets(p.assets,job.input),directory(p)),outputDir:path.relative(root,dir).replaceAll('\\','/'),message:job.input.message,rebuildAllUploadedVideoSources:sourceRebuildWorkflow||Boolean(uploadedExternalVideo),signal,onStage:async stage=>{job.stage=stage;await save(p);}},{root});
           const {document}=await readNativeProject(dir);p.title=document.brief.name;const created=await publish(p,job,dir,document,'上传原片初始版本');await candidateExport(p,job,created,signal);job.summary=isUploadedSourceShortcut(job.input.message,uploadedSource)?'已按上传原片的真实时长建立独立可编辑工程，并应用本轮局部修改，导出候选视频。':'已按上传原片的真实时长建立独立可编辑工程并导出候选视频，后续编辑将基于该工程继续执行。';job.status='complete';job.completedAt=now();p.messages.push({role:'assistant',text:job.summary,time:now()});return;
         }
         if(job.revisionId&&p.revisions.some(r=>r.id===job.revisionId)){
@@ -1003,7 +1089,7 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
             const asset=await downloadCommonsImage(candidate,{root,projectDirectory:directory(p),signal});
             if(!p.assets.some(item=>item.id===asset.id))p.assets.push(asset);
             job.externalAsset={status:'downloaded',assetId:asset.id,query,sourceUrl:candidate.sourceUrl,license:candidate.license,artist:candidate.artist};
-            p.messages.push({role:'assistant',text:`未提供本地素材，已搜索并登记可追溯素材：${candidate.title.replace(/^File:/i,'')}（Wikimedia Commons，${candidate.license}）。`,attachmentIds:[asset.id],time:now()});await save(p);
+            p.messages.push({role:'assistant',text:`未提供本地素材，已下载 Wikimedia Commons 候选：${candidate.title.replace(/^File:/i,'')}（${candidate.license}）。当前状态为“已下载候选、待权利与镜头适配审核”，不代表已具备动态镜头或已通过生产准入。`,attachmentIds:[asset.id],time:now()});await save(p);
           }catch(error){
             job.externalAsset={status:'search_failed',query,code:error.code||'EXTERNAL_ASSET_FAILED',error:error.message};
             job.status='needs_user';job.code='MISSING_MEDIA';job.stage='等待补充可用素材';
@@ -1042,7 +1128,7 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
         // are currently attached to the project. Retries can receive the same
         // file under a fresh inbound ID; collapse byte-identical media so a
         // recoverable run keeps the original input fingerprint.
-        const productionAssets=selectProductionAssets(p.assets,job.input);
+        const productionAssets=projectAssetRefs(selectProductionAssets(p.assets,job.input),directory(p));
         p.request={...p.request,assets:structuredClone(productionAssets)};
         if(p.workflowPlan){
           const workflow=productionWorkflowFromPlan(p.workflowPlan,{message:p.request.message,assets:productionAssets,baseRevisionId:job.baseRevisionId});
@@ -1051,6 +1137,34 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
         }
         job.stage='观察素材与设计分镜';await save(p);
         const dir=path.join(directory(p),'versions',job.id);
+        // When a recoverable Job receives a newly imported attachment, the
+        // previous run fingerprint is no longer valid. Preserve its durable
+        // evidence and start a fresh internal run in the same Job directory.
+        // The production runner archives the old run-input proof before
+        // writing the new one; no second user-visible Job is created.
+        if(job.resumeRunId){
+          const inputFile=path.join(dir,'run-input.json');
+          const prior=await fs.readFile(inputFile,'utf8').then(JSON.parse).catch(()=>null);
+          // Attachment IDs alone do not describe a resumed production input:
+          // an existing project may receive a music bed, measured narration,
+          // or a rights-gated environment candidate without a new upload.
+          // Compare the complete persisted asset manifest so stale checkpoints
+          // cannot keep running with the old "no music" snapshot.
+          const assetFingerprint=assets=>JSON.stringify((assets||[]).map(asset=>({
+            id:asset.id,kind:asset.kind,name:asset.name||null,sha256:asset.sha256||null,
+            bytes:asset.bytes||null,duration:asset.mediaMetadata?.duration||null,
+            rights:asset.rights?.status||null,role:asset.audioRole||asset.role||null
+          })).sort((a,b)=>String(a.id).localeCompare(String(b.id))));
+          const changed=Boolean(prior&&assetFingerprint(prior.request?.assets)!==assetFingerprint(productionAssets));
+          if(changed){
+            await fs.mkdir(path.join(dir,'run-input-history'),{recursive:true});
+            await fs.writeFile(path.join(dir,'run-input-history',`run-input-${resourceHash(prior)}.json`),JSON.stringify(prior,null,2),{flag:'wx'}).catch(e=>{if(e.code!=='EEXIST')throw e;});
+            await fs.rename(inputFile,path.join(dir,'run-input-before-input-migration.json')).catch(()=>{});
+            job.inputMigration={from:resourceHash(prior),reason:'same Job resumed with changed input',at:now()};
+            job.artifacts={...(job.artifacts||{}),inputMigration:job.inputMigration};
+            job.resumeRunId=null;
+          }
+        }
         const planningMode=process.env.VIDEO_AGENT_FAST_FALLBACK==='1'?'rules':'model';
         await buildCommerceProject({...p.request,projectId:p.id,assets:productionAssets,outputDir:path.relative(root,dir).replaceAll('\\','/'),render:false,planning:planningMode,signal,resumeRunId:job.resumeRunId,onRun:async run=>{syncRun(job,run);await save(p);},onStage:async stage=>{job.stage=stage;await save(p);}},{root});
         const {document}=await readNativeProject(dir);p.title=document.brief.name;job.stage='检查原生预览';await save(p);const created=await publish(p,job,dir,document,'初始创作');await candidateExport(p,job,created,signal);job.summary='候选 MP4 与原生工程已导出，等待画面与人工审查。';
@@ -1098,12 +1212,10 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
         // is unavailable or returns an under-specified target. This covers the
         // concrete Chinese request that previously fell through to a generic
         // edit and produced an unchanged or low-quality MP4.
-        const directReplacement=/(?:替换|换成|改成|改为)/u.test(job.input.message||'')
-          && /(?:袋|蛋白粉|商品|产品|主体|物体|对象)/u.test(job.input.message||'')
-          && !/(?:标题|文字|字幕|颜色|字号|音量)/u.test(job.input.message||'');
+        const directReplacement=needsTrackedObjectReplacement(job.input.message);
         if(directReplacement&&!externalIntent.needed){
           externalIntent.needed=true;
-          externalIntent.query=/(?:蛋白粉|protein)/iu.test(job.input.message||'')?'protein powder container':'product package container';
+          externalIntent.query=externalSearchQuery(job.input.message);
           externalIntent.reason='explicit-object-replacement';
         }
         let downloadedExternalAsset=null;
@@ -1271,7 +1383,7 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
         await candidateExport(p,job,revision(p,job.baseRevisionId),signal);
       }
       job.status='complete';delete job.code;delete job.error;job.completedAt=now();p.messages.push({role:'assistant',text:job.kind==='export'?'已导出指定版本。':job.summary||'预览检查通过，新版本已保存。',revisionId:job.revisionId,time:now()});
-    }catch(e){job.failureReceipt=failureReceipt(e,{request:job.input.message||job.input.request?.message||p.request.message,revisionId:job.baseRevisionId,publishedRevisionId:job.revisionId,requirements:job.input.workflow?.requirements||[],targets:job.routeDecision?.targets||[]});job.status=signal.aborted?'cancelled':e.code==='NEEDS_INPUT'?'needs_user':(job.runId||['create','audio'].includes(job.kind))?'recoverable':'failed';job.error=signal.aborted?'已取消，上一有效版本保留':e.message;job.code=e.code||'CREATIVE_JOB_FAILED';job.gaps=e.gaps||job.gaps;job.completedAt=now();p.messages.push({role:'assistant',text:job.error,time:now()});}
+    }catch(e){job.failureReceipt=failureReceipt(e,{request:job.input.message||job.input.request?.message||p.request.message,revisionId:job.baseRevisionId,publishedRevisionId:job.revisionId,requirements:job.input.workflow?.requirements||[],targets:job.routeDecision?.targets||[]});const capabilityBlocked=e.code==='NEEDS_INPUT'&&/^\[blocked: unsupported_capability\]/i.test(e.message||'');job.status=signal.aborted?'cancelled':capabilityBlocked?'blocked':e.code==='NEEDS_INPUT'?'needs_user':(job.runId||['create','audio'].includes(job.kind))?'recoverable':'failed';job.error=signal.aborted?'已取消，上一有效版本保留':e.message;job.code=capabilityBlocked?'UNSUPPORTED_CAPABILITY':e.code||'CREATIVE_JOB_FAILED';job.gaps=e.gaps||job.gaps;job.completedAt=now();p.messages.push({role:'assistant',text:job.error,time:now()});}
     finally{
       controllers.delete(job.id);delete job.snapshot;job.durationMs=Date.parse(job.completedAt)-Date.parse(job.startedAt);
       // Route jobs are the durable acknowledgement boundary for asynchronous
@@ -1327,7 +1439,7 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
     while(Date.now()-started <= timeoutMs){
       const job=p.jobs.find(item=>item.id===jobId);
       if(!job) throw new CreativeError('任务不存在','JOB_NOT_FOUND');
-      if(['complete','failed','recoverable','needs_user','cancelled'].includes(job.status)) return job;
+      if(['complete','failed','recoverable','needs_user','blocked','cancelled'].includes(job.status)) return job;
       await new Promise(resolve=>setTimeout(resolve, intervalMs));
     }
     const job=p.jobs.find(item=>item.id===jobId);
@@ -1348,7 +1460,7 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
     const run=await runStore(p,job).authorizeBudget(job.runId,{maxModelCalls:input.maxModelCalls,completionReserve:input.completionReserve??6,authorizationId:input.idempotencyKey,source:'explicit-webui-approval'});
     syncRun(job,run);await save(p);return view(p);
   }
-  async function resume(p,id){const job=p.jobs.find(j=>j.id===id);insist(canResumeJob(job),budgetExhausted(job)?'本轮修复预算已耗尽，已保留检查点和缺陷；不能重复恢复同一轮':'任务没有可恢复检查点','INVALID_RESUME');insist(!p.jobs.some(j=>productionActive(j)&&j.kind!=='export'),'项目已有任务在执行','PROJECT_BUSY');if(job.routeJob){job.status='queued';job.stage='等待路由恢复';job.error=null;job.code=null;job.retryScheduled=false;job.input={...job.input,idempotencyKey:job.input?.idempotencyKey||job.id};await save(p);void dispatchMessage(p,{...job.input},job).catch(async error=>{job.status='recoverable';job.stage='等待路由恢复';job.error=error?.message||'路由恢复失败';job.code=error?.code||'MESSAGE_ROUTE_RESUME_FAILED';job.retryable=true;try{await save(p);}catch(persistError){job.persistenceError=persistError?.message||'路由恢复状态保存失败';console.error('video route resume persistence error',persistError);}});return view(p);}insist(p.currentRevisionId===(job.revisionId||job.baseRevisionId),'基准版本已变化，保留旧任务但不能覆盖新版本','REVISION_CONFLICT');delete job.cancelRequestedAt;if(job.kind==='audio')job.input.audio.retryKnownFailure=true;job.resumeRunId=job.runId;job.status='queued';delete job.error;delete job.code;delete job.completedAt;await save(p);void execute(p,job).catch(error=>{job.status='recoverable';job.error=error.message;});return view(p);}
+  async function resume(p,id){const job=p.jobs.find(j=>j.id===id);insist(canResumeJob(job),budgetExhausted(job)?'本轮修复预算已耗尽，已保留检查点和缺陷；不能重复恢复同一轮':'任务没有可恢复检查点','INVALID_RESUME');insist(!p.jobs.some(j=>productionActive(j)&&j.kind!=='export'),'项目已有任务在执行','PROJECT_BUSY');if(job.routeJob){job.status='queued';job.stage='等待路由恢复';job.error=null;job.code=null;job.retryScheduled=false;job.input={...job.input,idempotencyKey:job.input?.idempotencyKey||job.id};await save(p);void dispatchMessage(p,{...job.input},job).catch(async error=>{job.status='recoverable';job.stage='等待路由恢复';job.error=error?.message||'路由恢复失败';job.code=error?.code||'MESSAGE_ROUTE_RESUME_FAILED';job.retryable=true;try{await save(p);}catch(persistError){job.persistenceError=persistError?.message||'路由恢复状态保存失败';console.error('video route resume persistence error',persistError);}});return view(p);}const current=p.currentRevisionId&&p.revisions.find(revision=>revision.id===p.currentRevisionId);const currentBelongsToJob=Boolean(current?.directory&&current.directory.includes(job.id));const sameBase=p.currentRevisionId===(job.revisionId||job.baseRevisionId);const freshCreateResume=job.kind==='create'&&!job.revisionId&&!job.baseRevisionId&&!currentBelongsToJob;insist(sameBase||freshCreateResume,'基准版本已变化，保留旧任务但不能覆盖新版本','REVISION_CONFLICT');delete job.cancelRequestedAt;if(job.kind==='audio')job.input.audio.retryKnownFailure=true;job.resumeRunId=job.runId;job.status='queued';delete job.error;delete job.code;delete job.completedAt;await save(p);void execute(p,job).catch(error=>{job.status='recoverable';job.error=error.message;});return view(p);}
   for(const p of projects.values())for(const job of p.jobs){
     if(job.status==='recoverable'&&job.code==='INTERRUPTED'&&!job.cancelRequestedAt&&(job.routeJob||(job.generationPlan||job.generationStarted)))queueMicrotask(()=>resume(p,job.id).catch(async error=>{job.status='recoverable';job.code=error.code;job.error=error.message;await save(p);}));
   }
@@ -1381,16 +1493,28 @@ export async function createCreativeService({root=ROOT,dataDir=process.env.VIDEO
     if(!p.jobs.some(j=>result.operationId&&j.input?.operationId===result.operationId)&&!p.messages.some(m=>m.role==='user'&&m.text===input.message&&m.baseRevisionId===input.baseRevisionId))p.messages.push({role:'user',text:input.message,baseRevisionId:input.baseRevisionId,time:now()});
     p.messages.push({role:'assistant',text:result.summary,controlMessageId:key,controlStatus:result.status,time:now()});await save(p);
   }
-  function subscribeJobProgress(projectId,jobId,callback){
+  function subscribeJobProgress(projectId,jobId,callback,{emitCurrent=true}={}){
     insist(typeof callback==='function','进度订阅回调无效','PROGRESS_SUBSCRIBER_INVALID');
     const key=`${projectId}:${jobId}`,set=progressSubscribers.get(key)||new Set();set.add(callback);progressSubscribers.set(key,set);
+    if(emitCurrent){
+      const p=projects.get(projectId),job=p?.jobs.find(item=>item.id===jobId);
+      if(job)queueMicrotask(()=>Promise.resolve(callback({projectId,jobId:job.id,status:job.status,stage:job.stage||null,businessProgress:structuredClone(job.businessProgress||null),revisionId:job.revisionId||null,question:job.question||job.error||null})).catch(error=>console.error('OpenClaw 初始进度回传失败：',error.code||error.message)));
+    }
     return ()=>{set.delete(callback);if(!set.size)progressSubscribers.delete(key);};
   }
-  return {openclawProjectContext,validateOpenclawOperations,recordControlResult,artifacts,dispatchMessage,submitMessage,subscribeJobProgress,prepareTask,searchResources,searchWeb,audioVoices:()=>new MiniMaxClient({root,env:audioEnv,transport:audioTransport}).execute('voices'),applyAudio:async(p,input)=>{const {document}=await readNativeProject(versionDirectory(p,revision(p)));const operations=await audioApplication(root,document,p.assets.find(a=>a.id===input.assetId),input);return enqueue(p,{...input,action:'patch',operations,message:(input.replaceTrackId?'替换已选':'添加已选')+(input.role==='narration'?'旁白':input.role==='original'?'原声':'背景音乐')});},productionPolicy:()=>productionPolicy(root),finishedWorks:()=>readFinishedWorks(root),materialRoots:async()=>(await discoverMaterialRoots(root)).map(publicMaterialRoot),attachMaterialRoot,get,has:id=>projects.has(id),view,create,loadPreset,presetFile,presets:async()=>(await refreshPresets()).map(publicPreset),unavailablePresets:async()=>(await refreshPresets()).unavailable||[],upload,importPackage,retryImport,enqueue,waitForJob,navigate,cancel,resume,authorizeBudget,revision,versionDirectory,list:()=>[...projects.values()].map(view).sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt))};
+  async function bindOpenClawProgress(projectId,jobId,sessionKey){
+    const p=get(projectId),job=p.jobs.find(item=>item.id===jobId);insist(job,'任务不存在','JOB_NOT_FOUND');
+    insist(typeof sessionKey==='string'&&sessionKey.trim(),'OpenClaw 会话标识无效','SESSION_KEY_REQUIRED');
+    job.openclawProgressSessionKey=sessionKey;await save(p);return true;
+  }
+  function openclawProgressBindings(){
+    return [...projects.values()].flatMap(p=>p.jobs.filter(job=>job.openclawProgressSessionKey).map(job=>({projectId:p.id,jobId:job.id,sessionKey:job.openclawProgressSessionKey})));
+  }
+  return {openclawProjectContext,validateOpenclawOperations,recordControlResult,artifacts,dispatchMessage,submitMessage,subscribeJobProgress,bindOpenClawProgress,openclawProgressBindings,prepareTask,searchResources,searchWeb,audioVoices:()=>new MiniMaxClient({root,env:audioEnv,transport:audioTransport}).execute('voices'),applyAudio:async(p,input)=>{const {document}=await readNativeProject(versionDirectory(p,revision(p)));const operations=await audioApplication(root,document,p.assets.find(a=>a.id===input.assetId),input);return enqueue(p,{...input,action:'patch',operations,message:(input.replaceTrackId?'替换已选':'添加已选')+(input.role==='narration'?'旁白':input.role==='original'?'原声':'背景音乐')});},productionPolicy:()=>productionPolicy(root),finishedWorks:()=>readFinishedWorks(root),materialRoots:async()=>(await discoverMaterialRoots(root)).map(publicMaterialRoot),attachMaterialRoot,get,has:id=>projects.has(id),view,create,discardDraft,loadPreset,presetFile,presets:async()=>(await refreshPresets()).map(publicPreset),unavailablePresets:async()=>(await refreshPresets()).unavailable||[],upload,importPackage,retryImport,enqueue,waitForJob,navigate,cancel,resume,authorizeBudget,revision,versionDirectory,list:()=>[...projects.values()].map(view).sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt))};
 }
 
 export async function creativeRoutes(service,req,res,url,{json,jsonBody,file,dispatchMessage=service.dispatchMessage}){
-  if(req.method==='GET'&&url.pathname==='/api/commerce-capabilities'){json(res,{ok:true,workflowEntries,workflowPlanning:{action:'plan-workflow',productionStarted:false,skills:commerceSkills,stages:workflowStages()},...await service.productionPolicy(),audioProviders:{local:{speech:'not_verified',transcription:'not_verified',music:'local-files'},minimax:minimaxCapabilityStatus()}});return true;}
+  if(req.method==='GET'&&url.pathname==='/api/commerce-capabilities'){json(res,{ok:true,workflowEntries,workflowPlanning:{action:'plan-workflow',productionStarted:false,skills:commerceSkills,stages:workflowStages()},...await service.productionPolicy(),audioProviders:{local:{speech:'not_verified',transcription:'not_verified',music:'local-files'},minimax:minimaxCapabilityStatus()},webResearchProviders:{tavily:tavilyCapabilityStatus()}});return true;}
   if(req.method==='GET'&&url.pathname==='/api/commerce-material-roots'){json(res,{ok:true,roots:await service.materialRoots()});return true;}
   if(await humanReviewRoute(ROOT,service,req,res,url,{json,jsonBody}))return true;
   const route=url.pathname;

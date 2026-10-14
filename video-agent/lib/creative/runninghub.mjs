@@ -53,6 +53,8 @@ async function generateAsset({root,project,job,kind,prompt,sourceAsset,duration=
    kind:sourceAsset.kind,
    name:'[演示模式] '+sourceAsset.name,
    path:sourceAsset.path,
+   originalRef:sourceAsset.originalRef||null,
+   normalizedRef:sourceAsset.normalizedRef||sourceAsset.path,
    role:role||sourceAsset.role,
    rights:{status:'demo'},
    demoMode:true,

@@ -125,8 +125,8 @@ export async function downloadCommonsImage(candidate,{root,projectDirectory,sign
   if(!bytes.length)throw Object.assign(new Error('公共图片内容为空'),{code:'EXTERNAL_ASSET_DOWNLOAD_FAILED'});
   await fs.writeFile(target,bytes,{flag:'wx'});
   return {
-    id,kind:'image',name:`网络素材 · ${candidate.title.replace(/^File:/i,'').slice(0,100)}`,path:path.relative(root,target).replaceAll('\\','/'),bytes:bytes.length,
-    sha256:createHash('sha256').update(bytes).digest('hex'),rights:{status:'source-review',sourceUrl:candidate.sourceUrl,license:candidate.license,artist:candidate.artist},externalSource:{provider:'wikimedia-commons',query:candidate.query||null,title:candidate.title,sourceUrl:candidate.sourceUrl,license:candidate.license,artist:candidate.artist,downloadUrl:candidate.url,description:candidate.description},
+    id,kind:'image',name:`网络素材 · ${candidate.title.replace(/^File:/i,'').slice(0,100)}`,path:relative,originalRef:target,normalizedRef:relative,bytes:bytes.length,
+    sha256:createHash('sha256').update(bytes).digest('hex'),acquisitionStatus:'downloaded_candidate',bindingStatus:'unbound',productionEligible:false,deliveryStatus:'candidate-only',rights:{status:'source-review',sourceUrl:candidate.sourceUrl,license:candidate.license,artist:candidate.artist},externalSource:{provider:'wikimedia-commons',query:candidate.query||null,title:candidate.title,sourceUrl:candidate.sourceUrl,license:candidate.license,artist:candidate.artist,downloadUrl:candidate.url,description:candidate.description},
   };
 }
 
@@ -155,7 +155,7 @@ export async function downloadCommonsVideo(candidate,{root,projectDirectory,sign
   const ext=candidate.mime==='video/webm'?'.webm':'.mp4',id='web-'+randomUUID(),relative=`uploads/${id}${ext}`,target=path.join(projectDirectory,relative);
   await fs.mkdir(path.dirname(target),{recursive:true});await fs.writeFile(target,bytes,{flag:'wx'});
   const sha256=createHash('sha256').update(bytes).digest('hex');
-  return {id,kind:'video',name:`网络视频 · ${String(candidate.title||'Commons video').replace(/^File:/i,'').slice(0,100)}`,path:path.relative(root,target).replaceAll('\\','/'),bytes:bytes.length,sha256,rights:{status:'source-review',sourceUrl:candidate.sourceUrl,license:candidate.license,licenseUrl:candidate.licenseUrl||null,artist:candidate.artist},externalSource:{provider:'wikimedia-commons',query:candidate.query||null,title:candidate.title,sourceUrl:candidate.sourceUrl,license:candidate.license,licenseUrl:candidate.licenseUrl||null,artist:candidate.artist,downloadUrl:url,description:candidate.description,downloadedAt:new Date().toISOString()},deliveryStatus:'candidate-only'};
+  return {id,kind:'video',name:`网络视频 · ${String(candidate.title||'Commons video').replace(/^File:/i,'').slice(0,100)}`,path:relative,originalRef:target,normalizedRef:relative,bytes:bytes.length,sha256,acquisitionStatus:'downloaded_candidate',bindingStatus:'unbound',productionEligible:false,rights:{status:'source-review',sourceUrl:candidate.sourceUrl,license:candidate.license,licenseUrl:candidate.licenseUrl||null,artist:candidate.artist},externalSource:{provider:'wikimedia-commons',query:candidate.query||null,title:candidate.title,sourceUrl:candidate.sourceUrl,license:candidate.license,licenseUrl:candidate.licenseUrl||null,artist:candidate.artist,downloadUrl:url,description:candidate.description,downloadedAt:new Date().toISOString()},deliveryStatus:'candidate-only'};
 }
 
 function insistVideoCandidate(candidate){

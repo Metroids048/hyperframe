@@ -1,0 +1,119 @@
+{
+  "version": 1,
+  "status": "implementing_not_complete",
+  "requirements": [
+    {
+      "id": "A01",
+      "requirement": "独立 OpenClaw Agent，旧后端停止时仍能执行任务",
+      "status": "verified_local",
+      "evidenceNote": "真实 OpenClaw Gateway 与媒体制作运行时，3024/3020 无监听；本机回路已验证。",
+      "evidenceRoot": "evidence/live-local/"
+    },
+    {
+      "id": "A02",
+      "requirement": "Skill 可真实读取，能力目录与运行时工具一致",
+      "status": "verified_local",
+      "evidenceNote": "真实模型读取 commerce-creation/SKILL.md，调用 commerce_capabilities、commerce_generate；实际插件加载器注册四工具并执行 Python。",
+      "evidenceRoot": "evidence/live-local/"
+    },
+    {
+      "id": "A03",
+      "requirement": "文字、商品图、视频附件从原生入口进入同一任务",
+      "status": "partial",
+      "evidenceNote": "文字与 40 MB 视频通过 Gateway 工具/API 实测；浏览器原生图片/视频交互待验。",
+      "evidenceRoot": "evidence/live-local/"
+    },
+    {
+      "id": "A04",
+      "requirement": "RunningHub 实际生图与图像修改并保留商品身份",
+      "status": "awaiting_configuration",
+      "evidenceNote": "独立进程无 RunningHub 凭据，本轮生成预算尚未答复；未实跑。",
+      "evidenceRoot": null
+    },
+    {
+      "id": "A05",
+      "requirement": "RunningHub 实际视频生成并正确交付",
+      "status": "awaiting_configuration",
+      "evidenceNote": "同 A04；适配器代码与能力目录不能作为生成成功证据。",
+      "evidenceRoot": null
+    },
+    {
+      "id": "A06",
+      "requirement": "实际媒体观察、选段、字幕和本地剪辑成片",
+      "status": "partial",
+      "evidenceNote": "真实视频抽帧、6 秒选段、中文字幕与成片已验证；ASR/复杂选段尚未验。",
+      "evidenceRoot": "evidence/live-local/"
+    },
+    {
+      "id": "A07",
+      "requirement": "真实配音/音乐能力及原声、字幕、混音正确串联",
+      "status": "partial",
+      "evidenceNote": "真实源音轨保留；双音轨信号的混音/时间通过技术测试；TTS、音乐生成及听感未验。",
+      "evidenceRoot": "evidence/live-local/"
+    },
+    {
+      "id": "A08",
+      "requirement": "指定单张/镜头/字幕/音轨修改，未指定对象保持",
+      "status": "partial",
+      "evidenceNote": "同会话标题续改已生成；仅 text 字段改变、旧片哈希未变、编码音轨一致。图像/镜头/音轨多类修改未验。",
+      "evidenceRoot": "evidence/live-local/"
+    },
+    {
+      "id": "A09",
+      "requirement": "任务与版本持久化，刷新/重启恢复不重复提交",
+      "status": "partial",
+      "evidenceNote": "任务文件与 parentRunId 持久化、并发幂等已测；实际供应商任务重启恢复未验。",
+      "evidenceRoot": "evidence/live-local/"
+    },
+    {
+      "id": "A10",
+      "requirement": "真实附件预览、播放、下载，文件与当前任务对应",
+      "status": "partial",
+      "evidenceNote": "第一版原生 MEDIA 附件、受保护下载 200 与哈希匹配；浏览器内可见播放下载待验。",
+      "evidenceRoot": "evidence/live-local/"
+    },
+    {
+      "id": "A11",
+      "requirement": "缺输入、供应商失败、超时、预算不足有准确可恢复结果",
+      "status": "partial",
+      "evidenceNote": "预算/参数/范围失败已测；主模型回复真实超时已复现并保留产物，稳定恢复仍在验证。",
+      "evidenceRoot": "evidence/live-local/"
+    },
+    {
+      "id": "A12",
+      "requirement": "八场景：上新、详情、教程、系列、促销、问答、精剪、多版分别有真实结果及修改证据",
+      "status": "pending",
+      "evidenceNote": "只有现有视频精剪/字幕修改的局部样本，不能代表八场景。",
+      "evidenceRoot": null
+    },
+    {
+      "id": "A13",
+      "requirement": "商品事实不编造、输入不越权、凭据不暴露、生成内容不冒充真实功能证据",
+      "status": "partial",
+      "evidenceNote": "媒体路径和会话隔离、目录参数限制、凭据不入参数/日志的实现已检查；场景事实与对抗输入未完整验。",
+      "evidenceRoot": "evidence/live-local/"
+    },
+    {
+      "id": "A14",
+      "requirement": "当前版本媒体技术、自动视觉/声音覆盖与真人反馈如实区分",
+      "status": "partial",
+      "evidenceNote": "技术检查与抽帧、听感待审分别记录；首版已实际查看抽帧，未声称真人业务验收。",
+      "evidenceRoot": "evidence/live-local/"
+    },
+    {
+      "id": "A15",
+      "requirement": "旧素材、工程、未提交修改保留；安装包脱离开发仓库可用",
+      "status": "verified_local",
+      "evidenceNote": "新包和媒体二进制安装到 ~/.openclaw/commerce-agent，运行不依赖仓库后端；未改动旧业务源码。",
+      "evidenceRoot": "evidence/live-local/"
+    },
+    {
+      "id": "A16",
+      "requirement": "内部 RunningHub 与 WorkBuddy/扣子同题对标，有实测才宣称达到基准",
+      "status": "awaiting_input",
+      "evidenceNote": "内部 RunningHub 地址与 Workbody 产品身份仍待提供；未取得竞品同题实测。",
+      "evidenceRoot": null
+    }
+  ],
+  "updatedAt": "2026-10-08"
+}

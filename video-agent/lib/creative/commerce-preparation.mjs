@@ -61,7 +61,7 @@ export function buildCommercePreparation(input={}, {project=null,mediaAcquisitio
   const acquisitionSteps=[];
   if(hasVisual)acquisitionSteps.push({id:'project-assets',status:'available',count:assets.filter(asset=>['image','video'].includes(asset.kind)).length});
   for(const [key,label] of [['local_library','本地素材库'],['web_research','公开资料研究'],['runninghub_generation','RunningHub 缺失镜头生成']]){
-    if(mediaAcquisitionPolicy[key]==='allowed')acquisitionSteps.push({id:key,status:'available',label});
+    if(mediaAcquisitionPolicy[key]==='allowed')acquisitionSteps.push({id:key,status:key==='web_research'?'research-only':'available',label});
   }
   if(mediaAcquisitionPolicy.external_media_download==='rights-gated')acquisitionSteps.push({id:'external_media_download',status:'rights-gated',label:'外部素材下载需权利核验'});
   const blockingGaps=[];

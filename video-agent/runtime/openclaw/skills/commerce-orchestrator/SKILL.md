@@ -16,16 +16,16 @@ Require the trusted session context and current user request. A selected project
 ## Tool order
 
 ### For NEW requests (with or without uploaded files)
-1. Call `video_prepare` with the natural-language request and any structured intake fields. Display its `optimizedBrief`, `product`, `platform`, `marketingObjective`, `taskMode`, `scenarioId`, `output`, `audio`, `assumptions`, `blockingGaps`, acquisition steps, and selected skills.
+1. Resolve the current upload receipt or asset ID first. If the upload is already registered in a project, continue that project; if this is a fresh inbound receipt, let the server create one project. When names repeat, use `video_project_list` media IDs/names and `video_project_open`; never select by list position. Call `video_prepare` with the unchanged natural-language request and structured intake. Display its `optimizedBrief`, `product`, `platform`, `marketingObjective`, `taskMode`, `scenarioId`, `output`, `audio`, `assumptions`, `blockingGaps`, acquisition steps, and selected skills.
 2. Always call model-visible `video_resource_search` as a separate Activity using the preparation queries, even when `video_prepare` embeds a server receipt. If product facts or visual references need evidence, call `video_web_research`; treat returned media as reference-only unless a separate rights check approves it. Before production, show the research outcome and 3-5 selected HyperFrames resource names with their intended shot purposes.
 3. If preparation returns `needs_input`, ask only its first blocking question and do not start production. Otherwise call `video_task` with the preparation context and these parameters:
-   - `projectId: null`
-   - `baseRevisionId: null`
+   - `projectId`: the verified upload-owning project ID, or `null` only for a fresh task with no project
+   - `baseRevisionId`: the actual current revision, or `null` for a draft
    - `attachmentPaths: [...]` or `attachmentIds: [...]` when the Control UI supplied them
    - `message: "user's natural language request"`
    - `operationId: "unique-id"`
    - `authorizationId: "from-context"`
-4. The service will automatically create a new project and return `projectId` and `baseRevisionId`
+4. The service creates a project only when needed and returns its real `projectId` and `baseRevisionId`.
 5. If the returned job is already terminal, call `video_job_status` once and then `video_result`; if it is queued/running, report the business stage and stop this turn instead of polling repeatedly. Internal IDs stay hidden unless diagnostic details were requested.
 
 **Example video_task call for new project:**
@@ -40,7 +40,7 @@ Require the trusted session context and current user request. A selected project
 }
 ```
 
-For a text-only request, use the same call with `projectId: null`, `baseRevisionId: null`, and no attachments. Do not call `video_project_list` merely to unblock it; the service will persist a new editable project and report any concrete capability or material gap.
+For a text-only request that refers to an earlier upload, keep its verified project ID and registered asset ID. Use `projectId: null` only when no existing task or asset is referenced. Do not require a new upload of a file already registered in the project.
 
 ### For EDITING existing projects
 1. If the user refers to "this video", "current project", or a specific name, use an actual ID from `video_project_list`/`video_project_open`
@@ -68,8 +68,11 @@ For a text-only request, use the same call with `projectId: null`, `baseRevision
 ```
 
 ### Critical rules
-- **New video + user request = projectId:null + baseRevisionId:null + attachmentPaths**
+- **Fresh inbound video = one project created from its opaque receipt; registered video = its verified project ID and asset ID.**
 - **Edit existing = projectId:uuid + baseRevisionId:rev-id**
+- **No revision + registered source video + edit wording = source-first create within the same task; do not submit edit against a null base or report source import as final delivery.**
+- **A search result is evidence, not an acquired or licensed replacement asset. Check actual local, rights-reviewed, and configured generation capabilities before asking for a missing target. Baked-pixel object replacement requires tracking/mask/inpainting evidence; never claim a still image or whole-video swap satisfies it.**
+- **Resume only the recoverable child of the same original request. A completed route ID, changed request, or terminal child must not trigger a duplicate `video_task`.**
 - **Never invent UUIDs, revision IDs, or local paths. `new`/`current` are server-side normalization values only; omit them from user-facing explanations.**
 - **Don't ask the user to select/bind a project for an ordinary request or a fresh upload.**
 - **Uploaded paths are opaque `media://inbound/...` receipts; never rewrite them as local filesystem paths.**

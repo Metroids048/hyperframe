@@ -80,7 +80,7 @@ const writeContext = {
   // OpenClaw Control UI stores local uploads behind opaque inbound receipts.
   // Only media://inbound/<filename> values belong here; the backend resolves
   // and imports them before the authorized operation runs.
-  attachmentPaths: Type.Optional({ type: "array", maxItems: 30, items: { type: "string", minLength: 1, maxLength: 1024 } }),
+  attachmentPaths: Type.Optional({ type: "array", maxItems: 30, description: "仅填写 Control UI 上传后签发的 opaque media://inbound/<receipt> 回执；禁止填写本地文件路径、URL、资源搜索结果路径或任意服务器路径。", items: { type: "string", minLength: 1, maxLength: 1024, pattern: "^media://inbound/" } }),
   taskMode: Type.Optional({ type: "string", enum: ["create", "edit", "recut", "variant"] }),
   scenarioId: Type.Optional({ type: "string", enum: ["product_launch", "product_detail", "product_demo", "product_collection", "product_promotion", "product_faq", "general"] }),
   workflowProfile: Type.Optional(idSchema),
@@ -225,8 +225,10 @@ function registerUploadRoute(api) {
     const remote = String(req.socket?.remoteAddress || "");
     const loopbackRemote = remote === "127.0.0.1" || remote === "::1" || remote === "::ffff:127.0.0.1";
     const loopbackHost = /^(?:127\.0\.0\.1|localhost|\[::1\]):\d+$/.test(host);
-    const localOrigin = !origin || /^https?:\/\/(?:127\.0\.0\.1|localhost|\[::1\])(?::\d+)?$/i.test(origin);
-    if (!loopbackRemote || !loopbackHost || !localOrigin) {
+    const sameHostOrigin = origin === `http://${host}`;
+    const localOrigin = !origin || sameHostOrigin || /^https?:\/\/(?:127\.0\.0\.1|localhost|\[::1\])(?::\d+)?$/i.test(origin);
+    const foreignOrigin = origin && origin !== `http://${host}` && !localOrigin;
+    if (!loopbackRemote || !loopbackHost || foreignOrigin) {
       res.statusCode = 403; res.setHeader("content-type", "application/json");
       res.end(JSON.stringify({ok:false, error:"视频上传只允许从本机 Control UI 发起"})); return true;
     }
@@ -253,7 +255,9 @@ function registerUploadRoute(api) {
       await new Promise((resolve, reject) => { const out = fs.createWriteStream(temp, {flags:"wx", mode:0o600}); const fail = e => { out.destroy(); reject(e); }; req.on("data", chunk => { bytes += chunk.length; if (bytes > limit) fail(Object.assign(new Error(`视频不能超过 ${MAX_VIDEO_UPLOAD_MIB} MiB`), {statusCode:413})); else if (!out.write(chunk)) req.pause(); }); out.on("drain", () => req.resume()); req.on("end", () => out.end(resolve)); req.on("error", reject); out.on("error", reject); });
       await fsp.rename(temp, target);
       const detectedMime = mime === "application/octet-stream" || !mime ? (ext === ".mov" ? "video/quicktime" : ext === ".webm" ? "video/webm" : "video/mp4") : mime;
-      res.statusCode = 200; res.setHeader("content-type", "application/json"); res.end(JSON.stringify({ok:true, mediaPath:`media://inbound/${path.basename(target)}`, fileName, mimeType:detectedMime, bytes, path:target})); return true;
+      // The receipt is the only media reference exposed to the model.  Keep
+      // the filesystem target private to the gateway/backend transaction.
+      res.statusCode = 200; res.setHeader("content-type", "application/json"); res.end(JSON.stringify({ok:true, mediaReceipt:`media://inbound/${path.basename(target)}`, fileName, mimeType:detectedMime, bytes})); return true;
     } catch (error) { await fsp.rm(temp, {force:true}).catch(()=>{}); res.statusCode = error.statusCode || 500; res.setHeader("content-type", "application/json"); res.end(JSON.stringify({ok:false, error:error.message || "视频上传失败"})); return true; }
   }});
 }
@@ -291,6 +295,8 @@ function buildTool(name, description) {
             });
             const authorizationPayload = await authorizationResponse.json().catch(() => ({ error: "authorization endpoint returned invalid JSON" }));
             if (!authorizationResponse.ok) throw bridgeError(authorizationPayload, "commerce authorization " + authorizationResponse.status);
+            if (authorizationPayload.status === "project_mismatch" && authorizationPayload.result)
+              return { content: [{ type: "text", text: toolResponseText({ok:true,result:authorizationPayload.result}) }] };
             input = { ...authorizationInput,
               projectId: authorizationPayload.projectId || authorizationInput.projectId,
               // `null` is the authoritative base for a draft/new project. Do

@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises';
 import {spawn} from 'node:child_process';
-import {ensureState,loadState,saveState,inspectLock,acquireWriter,releaseWriter,appendLog,PROMPT_FILE,ROOT,STATE_DIR,now,classifyFailure} from './common.mjs';
+import {ensureState,loadState,saveState,inspectLock,acquireWriter,releaseWriter,appendLog,PROMPT_FILE,ROOT,STATE_DIR,now,classifyFailure,backendPort,createResumeFailureTracker,clearInheritedCapacity,createBoundedLog} from './common.mjs';
 
 const protectedStates = ['waiting_external','waiting_capacity','stopped_by_user','accepted_by_agent'];
 const state = await ensureState();
@@ -48,7 +48,7 @@ if (state.nextRetryAt && Date.parse(state.nextRetryAt) > Date.now()) {
 // This keeps provider timeouts from turning into a second video_task dispatch.
 if (state.activeVideoChildJobId && state.activeVideoJobStatus === 'recoverable' && state.projectId) {
   try {
-    const response = await fetch(`http://127.0.0.1:${state.runtimeFingerprint?.videoAgentPort||3024}/api/commerce-chat`, {
+    const response = await fetch(`http://127.0.0.1:${await backendPort(state)}/api/commerce-chat`, {
       method: 'POST', headers: {'content-type':'application/json'},
       body: JSON.stringify({action:'resume',projectId:state.projectId,jobId:state.activeVideoChildJobId}),
       signal: AbortSignal.timeout(5000)
@@ -108,12 +108,16 @@ const codex = '/Users/a1234/Desktop/ChatGPT.app/Contents/Resources/codex';
 const prompt = await fs.readFile(PROMPT_FILE,'utf8');
 const args = ['-C',ROOT,'exec','resume','--json',state.codexSessionId,'-'];
 const child = spawn(codex,args,{cwd:ROOT,stdio:['pipe','pipe','pipe'],env:{...process.env}});
-const log = async (chunk) => { await fs.appendFile(`${STATE_DIR}/logs/codex-resume.log`,chunk,{mode:0o600}); };
-child.stdout.on('data',b => void log(b));
-child.stderr.on('data',b => void log(b));
+const failure = createResumeFailureTracker();
+const log = createBoundedLog(`${STATE_DIR}/logs/codex-resume.log`);
+let logError=null;
+child.stdout.on('data',b => { failure.stdout(b); void log.append(b).catch(error=>{logError=error;}); });
+child.stderr.on('data',b => { failure.stderr(b); void log.append(b).catch(error=>{logError=error;}); });
 child.stdin.end(prompt);
 
 const code = await new Promise(resolve => child.on('close',resolve));
+await log.flush().catch(error=>{logError=error;});
+if(logError)await appendLog('resume',{task:'resume',decision:'raw_log_write_failed',errorCode:logError.code||'LOG_WRITE_FAILED'});
 // Reload after the child exits: the resumed Codex may have written a newer
 // external-stop, capacity, or acceptance state while it was running. Never
 // overwrite those states with `running` from this wrapper.
@@ -124,7 +128,7 @@ latest.writerStartedAt = null;
 latest.writerSessionId = null;
 const retryExpired = !latest.capacityRetryAfter || Date.parse(latest.capacityRetryAfter) <= Date.now();
 const extendCapacityWait = () => {
-  const minutes = Math.max(30,Number(latest.capacityRetryMinutes||30));
+  const minutes = Math.min(60,Math.max(15,Number(latest.capacityRetryMinutes||15)*2));
   latest.lastError = 'Selected model is at capacity';
   latest.lastErrorClass = 'capacity';
   latest.capacityRetryMinutes = minutes;
@@ -133,9 +137,9 @@ const extendCapacityWait = () => {
 };
 
 if (code !== 0) {
-  const text = await fs.readFile(`${STATE_DIR}/logs/codex-resume.log`,'utf8').catch(()=>'');
-  const failureClass=classifyFailure({message:text});
+  const failureClass=classifyFailure({message:failure.message()});
   const capacity=failureClass==='capacity';
+  if(!capacity)clearInheritedCapacity(state,latest);
   if (capacity && latest.status === 'waiting_capacity' && retryExpired) {
     extendCapacityWait();
     await saveState(latest);
@@ -166,6 +170,9 @@ if (code !== 0) {
   process.exit(code || 1);
 }
 
+// A successful resumed round must not renew a capacity error inherited from
+// before this execution. A newly persisted error/backoff is still respected.
+clearInheritedCapacity(state,latest);
 // Only extend capacity wait if the error class is genuinely capacity and retry expired
 if (latest.status === 'waiting_capacity' && latest.lastErrorClass === 'capacity' && retryExpired) {
   extendCapacityWait();

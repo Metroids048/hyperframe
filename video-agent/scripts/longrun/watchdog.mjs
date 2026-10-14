@@ -1,11 +1,11 @@
-import {ensureState,saveState,inspectLock,appendLog,now,watchdogDecision,classifyFailure} from './common.mjs';
+import {ensureState,saveState,inspectLock,appendLog,now,watchdogDecision,classifyFailure,backendPort} from './common.mjs';
 const state=await ensureState();
 const before=JSON.stringify({status:state.status,accepted:state.accepted,userStopped:state.userStopped,job:state.activeVideoJobId});
 const lock=await inspectLock();
 let backendProbe=null;
-if(state.projectId&&state.activeVideoJobId){
+if(!state.accepted&&!state.userStopped&&!['accepted_by_agent','stopped_by_user','waiting_external'].includes(state.status)&&state.projectId&&state.activeVideoJobId){
   try{
-    const response=await fetch(`http://127.0.0.1:${state.runtimeFingerprint?.videoAgentPort||3024}/api/commerce/${encodeURIComponent(state.projectId)}`,{signal:AbortSignal.timeout(3000)});
+    const response=await fetch(`http://127.0.0.1:${await backendPort(state)}/api/commerce/${encodeURIComponent(state.projectId)}`,{signal:AbortSignal.timeout(3000)});
     if(response.ok){
       const project=(await response.json())?.project;
       const jobs=project?.jobs||[];

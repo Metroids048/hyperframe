@@ -232,11 +232,16 @@ export function createCommerceEngineFacade(service, { journalPath, mode = runtim
         if (namedResumeJobId) {
           if (/(?:不要|不得|禁止|无需|不用|不再|不)\s*(?:重新)?(?:恢复|续跑)|(?:do not|don't|never)\s+resume/iu.test(input.message)) fail('本轮要求不恢复旧任务，请省略 resumeJobId 并提交当前需求的新版本', 'RESUME_INTENT_CONFLICT');
           required(namedResumeJobId, 'resumeJobId');
-          const target = value.jobs.find(item => item.id === namedResumeJobId);
-          if (!target || !canResumeJob(target)) fail('指定的 recoverable child job 不存在或不可恢复', 'INVALID_RESUME');
-          await service.resume(value, namedResumeJobId);
-          const job = value.jobs.find(item => item.id === namedResumeJobId) || {};
-          return baseResult({ tool, projectId, operationId: input.operationId, status: 'queued', jobId: namedResumeJobId, stage: job.stage || '等待恢复', businessProgress: job.businessProgress || null, project: service.view(service.get(projectId)), resumed: true });
+          const envelope=value.jobs.find(item=>item.id===namedResumeJobId);
+          if(!envelope)return baseResult({tool,projectId,operationId:input.operationId,status:'job_orphaned',jobId:namedResumeJobId,errorCode:'JOB_NOT_FOUND',resumeAllowed:false,recommendedAction:'reconcile_job'});
+          const childProjectId=envelope.childProjectId||projectId;
+          if(childProjectId!==projectId)return baseResult({tool,projectId,operationId:input.operationId,status:'project_mismatch',jobId:namedResumeJobId,childProjectId,errorCode:'PROJECT_BINDING_CONFLICT',resumeAllowed:false,recommendedAction:'open_child_project'});
+          const target=envelope.childJobId?value.jobs.find(item=>item.id===envelope.childJobId):envelope;
+          if(!target)return baseResult({tool,projectId,operationId:input.operationId,status:'job_orphaned',jobId:envelope.childJobId,errorCode:'JOB_NOT_FOUND',resumeAllowed:false,recommendedAction:'reconcile_job'});
+          if(target.status==='complete')return baseResult({tool,projectId,operationId:input.operationId,status:'complete',jobId:target.id,revisionId:target.revisionId||null,resumed:false,recommendedAction:'fetch_result'});
+          if(!canResumeJob(target))return baseResult({tool,projectId,operationId:input.operationId,status:target.status||'blocked',jobId:target.id,errorCode:'INVALID_RESUME',errorMessage:'原任务当前不可恢复，已保留其状态且未重新提交',resumeAllowed:false,recommendedAction:'inspect_job'});
+          await service.resume(value,target.id);
+          return baseResult({ tool, projectId, operationId: input.operationId, status: 'queued', jobId: target.id, stage: target.stage || '等待恢复', businessProgress: target.businessProgress || null, project: service.view(service.get(projectId)), resumed: true });
         }
         // Routing can involve a configured model and must never hold the
         // OpenClaw tool request open. The existing service persists the
@@ -310,9 +315,9 @@ export function createCommerceEngineFacade(service, { journalPath, mode = runtim
       const query = typeof input.query === 'string' ? input.query.trim().toLowerCase() : '';
       const maxItems = Number.isInteger(input.maxItems) ? Math.min(50, Math.max(1, input.maxItems)) : 20;
       const projects = (typeof service.list === 'function' ? service.list() : [])
-        .filter(value => !query || `${value.name || ''} ${value.initialText || ''} ${value.id}`.toLowerCase().includes(query))
+        .filter(value => !query || `${displayProjectName(value)} ${value.initialText || ''} ${value.id} ${(value.assets||[]).map(asset=>asset.name||'').join(' ')}`.toLowerCase().includes(query))
         .slice(0, maxItems)
-        .map(value => ({ id: value.id, name: displayProjectName(value), currentRevisionId: value.currentRevisionId || null, updatedAt: value.updatedAt || null, revisionCount: Array.isArray(value.revisions) ? value.revisions.length : 0, sessionRoute: `/status/chat?session=agent:commerce-control:project-${sha(value.id).slice(0, 24)}`, activeJobs: Array.isArray(value.jobs) ? value.jobs.filter(job => ['queued', 'running', 'recoverable'].includes(job.status)).map(job => ({ id: job.id, status: job.status, stage: job.stage || null })) : [] }));
+        .map(value => ({ id: value.id, name: displayProjectName(value), currentRevisionId: value.currentRevisionId || null, updatedAt: value.updatedAt || null, revisionCount: Array.isArray(value.revisions) ? value.revisions.length : 0, assetCount: Array.isArray(value.assets)?value.assets.length:0, media:(value.assets||[]).slice(0,8).map(asset=>({id:asset.id,name:asset.name||null,kind:asset.kind,bytes:asset.bytes||null})), sessionBound:context.workspaceProjectId===value.id, sessionRoute: `/status/chat?session=agent:commerce-control:project-${sha(value.id).slice(0, 24)}`, activeJobs: Array.isArray(value.jobs) ? value.jobs.filter(job => ['queued', 'running', 'recoverable','needs_user'].includes(job.status)).map(job => ({ id: job.id, status: job.status, stage: job.stage || null })) : [] }));
       return baseResult({ tool, projects, query: query || null });
     }
     if (tool === 'commerce_project_get') {
@@ -351,7 +356,7 @@ export function createCommerceEngineFacade(service, { journalPath, mode = runtim
     if (tool === 'commerce_job_get') {
       const { projectId, value } = project(input); required(input.jobId, 'jobId');
       const job = value.jobs.find(item => item.id === input.jobId);
-      if (!job) fail('任务不存在', 'JOB_NOT_FOUND', 404);
+      if (!job) return baseResult({ tool, projectId, jobId: input.jobId, status: 'job_orphaned', stage: 'reconcile', errorCode: 'JOB_NOT_FOUND', errorMessage: '任务不在当前工程的持久记录中，已阻止自动重交', retryable: false, resumeAllowed: false, recommendedAction: 'reconcile_job', job: {id: input.jobId, status: 'job_orphaned', stage: 'reconcile', errorCode: 'JOB_NOT_FOUND', errorMessage: '任务不在当前工程的持久记录中，已阻止自动重交', retryable: false, resumeAllowed: false} });
       const childProject = job.childProjectId && job.childProjectId !== projectId && typeof service.get === 'function' ? service.get(job.childProjectId) : value;
       const child = job.childJobId ? childProject.jobs.find(item => item.id === job.childJobId) : null;
       // A route job is only an envelope around the real production job.
@@ -360,16 +365,55 @@ export function createCommerceEngineFacade(service, { journalPath, mode = runtim
       const rawProgress = effective.renderProgress;
       const percent = Number.isFinite(rawProgress?.percent) ? rawProgress.percent : Number.isFinite(rawProgress?.completed) && Number.isFinite(rawProgress?.total) && rawProgress.total > 0 ? Math.round(rawProgress.completed / rawProgress.total * 100) : null;
       const error=effective.error||job.error||null;
-      return baseResult({ tool, projectId, childProjectId: job.childProjectId || null, job: { id: job.id, status: effective.status, stage: effective.stage || job.stage, businessProgress:effective.businessProgress||job.businessProgress||null, preparation:effective.preparation||job.preparation||null, progress: rawProgress, percent, revisionId: effective.revisionId || null, childJobId: child?.id || null, error, question: effective.question || job.question || (effective.status==='needs_user'?error:null), requiredInputs: effective.requiredInputs || job.requiredInputs || effective.gaps || job.gaps || [], actionRequired: effective.status==='needs_user', resumeAllowed: canResumeJob(effective), failureReceipt: job.failureReceipt || effective.failureReceipt || null, externalAsset: effective.externalAsset || job.externalAsset || null } });
+      const capabilityBlocked=effective.code==='UNSUPPORTED_CAPABILITY'||/^\[blocked: unsupported_capability\]/i.test(error||'');
+      const typedStatus=capabilityBlocked?'blocked':['queued','running','needs_user','blocked','recoverable','project_missing','job_orphaned','failed','cancelled','complete'].includes(effective.status)?effective.status:(error?'failed':'queued');
+      const resumeAllowed=canResumeJob(effective);
+      return baseResult({ tool, projectId, jobId: job.id, status: typedStatus, childProjectId: job.childProjectId || null, stage: effective.stage || job.stage || null, errorCode: capabilityBlocked?'UNSUPPORTED_CAPABILITY':error?(effective.code||job.code||'JOB_FAILED'):null, errorMessage: error, retryable: Boolean(effective.retryable), resumeAllowed, recommendedAction: typedStatus==='blocked'?'capability_unavailable':typedStatus==='needs_user'?'provide_required_input':typedStatus==='recoverable'&&resumeAllowed?'resume_same_job':typedStatus==='project_missing'||typedStatus==='job_orphaned'?'reconcile_job':typedStatus==='complete'?'fetch_result':null, job: { id: job.id, status: typedStatus, stage: effective.stage || job.stage, businessProgress:effective.businessProgress||job.businessProgress||null, preparation:effective.preparation||job.preparation||null, progress: rawProgress, percent, revisionId: effective.revisionId || null, childJobId: child?.id || null, error, question: capabilityBlocked?null:effective.question || job.question || (effective.status==='needs_user'?error:null), requiredInputs: capabilityBlocked?[]:effective.requiredInputs || job.requiredInputs || effective.gaps || job.gaps || [], actionRequired: typedStatus==='needs_user', resumeAllowed, failureReceipt: job.failureReceipt || effective.failureReceipt || null, externalAsset: effective.externalAsset || job.externalAsset || null } });
     }
     if (tool === 'commerce_artifact_list') {
       const { projectId, value } = project(input);
       const childRef = [...(value.jobs || [])].reverse().find(item => item.childProjectId && item.childJobId);
       const artifactProject = childRef && typeof service.get === 'function' ? service.get(childRef.childProjectId) : value;
+      // A project can retain an older playable revision after its newest
+      // route/child job failed.  Never expose that baseline as the result of
+      // the current request: callers use this tool to deliver the latest
+      // task, so the durable job state must win over a stale currentRevisionId.
+      if (!input.revisionId && childRef) {
+        const child = artifactProject.jobs?.find(item => item.id === childRef.childJobId) || childRef;
+        const latestStatus = child?.status || childRef.status;
+        if (latestStatus !== 'complete') {
+          const blocked = latestStatus === 'blocked'
+            || child?.code === 'UNSUPPORTED_CAPABILITY'
+            || childRef.code === 'UNSUPPORTED_CAPABILITY'
+            || /^\[blocked: unsupported_capability\]/i.test(child?.error || childRef.error || '');
+          const status = blocked ? 'blocked' : latestStatus === 'needs_user' ? 'needs_user' : latestStatus === 'recoverable' ? 'recoverable' : latestStatus === 'failed' ? 'failed' : 'needs_revision';
+          const errorMessage = child?.error || childRef.error || null;
+          const resumeAllowed = child ? canResumeJob(child) : false;
+          return baseResult({
+            tool,
+            projectId,
+            artifactProjectId: artifactProject.id,
+            status,
+            revisionId: null,
+            artifacts: [],
+            message: errorMessage || '当前任务尚未产生新的可交付版本。',
+            errorCode: blocked ? 'UNSUPPORTED_CAPABILITY' : child?.code || childRef.code || null,
+            errorMessage,
+            retryable: Boolean(child?.retryable || childRef.retryable),
+            question: blocked ? null : child?.question || childRef.question || null,
+            requiredInputs: blocked ? [] : child?.requiredInputs || childRef.requiredInputs || child?.gaps || childRef.gaps || [],
+            actionRequired: status === 'needs_user',
+            resumeAllowed,
+            recommendedAction: blocked ? 'capability_unavailable' : status === 'needs_user' ? 'provide_required_input' : status === 'recoverable' && resumeAllowed ? 'resume_same_job' : 'wait_for_revision',
+          });
+        }
+      }
       const revisionId = input.revisionId || artifactProject.currentRevisionId;
       if (!revisionId) {
         const latest=[...(artifactProject.jobs||[])].reverse().find(item=>['needs_user','recoverable','failed'].includes(item.status));
-        return baseResult({ tool, projectId, status: latest?.status==='needs_user'?'needs_user':'needs_revision', revisionId: null, artifacts: [], message: latest?.question||latest?.error||'当前工程还没有可交付版本。', question: latest?.question||latest?.error||null, requiredInputs: latest?.requiredInputs||latest?.gaps||[], actionRequired: latest?.status==='needs_user', resumeAllowed: latest?canResumeJob(latest):false });
+        const status=latest?.status==='needs_user'?'needs_user':latest?.status==='recoverable'?'recoverable':'needs_revision';
+        const resumeAllowed=latest?canResumeJob(latest):false;
+        return baseResult({ tool, projectId, status, revisionId: null, artifacts: [], message: latest?.question||latest?.error||'当前工程还没有可交付版本。', errorCode: latest?.code||null, errorMessage: latest?.error||null, retryable:false, question: latest?.question||latest?.error||null, requiredInputs: latest?.requiredInputs||latest?.gaps||[], actionRequired: latest?.status==='needs_user', resumeAllowed, recommendedAction:status==='needs_user'?'provide_required_input':status==='recoverable'&&resumeAllowed?'resume_same_job':'wait_for_revision' });
       }
       required(revisionId, 'revisionId');
       const result = await service.artifacts(artifactProject, revisionId);

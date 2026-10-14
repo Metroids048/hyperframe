@@ -7,6 +7,7 @@ import {canonicalScene,loadScenePackage,sceneContext} from './scene-package.mjs'
 import {workflowObjectIds,mergeWorkflowRequirements} from './workflow-intent.mjs';
 import {insist} from './contracts.mjs';
 import {advanceWorkflow,recoveryDecision} from './workflow-gates.mjs';
+import {productionPolicy} from './production-policy.mjs';
 
 const hash=x=>createHash('sha256').update(JSON.stringify(x)).digest('hex');
 const str={type:'string'},list=items=>({type:'array',items}),obj=properties=>({type:'object',additionalProperties:false,properties,required:Object.keys(properties)});
@@ -126,7 +127,11 @@ export async function planWorkbenchWorkflow({root,message,document=null,assets=[
   }
   const blockers=[...order.gaps.filter(g=>g.blocking).map(g=>({code:'MISSING_INPUT',field:g.field,nextAction:g.question})),
     ...resources.filter(r=>r.requirement.required&&!['resolved','excluded','source_pending_observation'].includes(r.status)).map(r=>({code:'RESOURCE_UNAVAILABLE',field:r.requirement.quote,nextAction:'保留指定要求；补齐兼容执行器或明确选择替代，不自动偷换'}))];
-  const acquisitionPolicy=intake.mediaAcquisitionPolicy||{};
+  // The policy belongs to the service, not to model output. Recover the
+  // server value when an older caller or malformed preparation omits it.
+  const acquisitionPolicy=(intake.mediaAcquisitionPolicy&&Object.keys(intake.mediaAcquisitionPolicy).length)
+    ? structuredClone(intake.mediaAcquisitionPolicy)
+    : (await productionPolicy(root)).mediaAcquisitionPolicy;
   const canAcquireMedia=['local_library','web_research','runninghub_generation'].some(key=>acquisitionPolicy[key]==='allowed')
     || acquisitionPolicy.external_media_download==='rights-gated';
   if(!assets.some(a=>['image','video'].includes(a.kind))&&!document&&!canAcquireMedia)blockers.push({code:'MISSING_ASSETS',field:'visuals',nextAction:'当前服务端素材获取策略没有可执行来源，请提供一份商品图片或视频'});

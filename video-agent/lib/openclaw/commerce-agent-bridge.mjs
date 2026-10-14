@@ -65,7 +65,7 @@ CRITICAL RULES:
 ERROR HANDLING:
 - REVISION_CONFLICT: Project was edited elsewhere. Tell user to refresh and retry.
 - SERVICE_NOT_READY: Video service is not running. Tell user to start the service.
-- PROJECT_NOT_FOUND: Should never happen because server auto-creates projects. If it does, call video_task again.
+- PROJECT_NOT_FOUND: Treat this as a typed recovery state. Do not call video_task again. First use video_project_list/reconcile to locate the original project; if it cannot be recovered, return status=project_missing with resumeAllowed=false and ask the user whether to explicitly start a new task.
 - For any other error, return status=blocked with the error message.
 
 EXAMPLES OF CORRECT BEHAVIOR:

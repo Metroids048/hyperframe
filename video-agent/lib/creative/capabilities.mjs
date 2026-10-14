@@ -62,6 +62,7 @@ export function normalizeMediaBindings(source,mediaKinds=[]){
     changes.push({reason:'compiler-owned image alt binding'});
   }
   const mediaIds=[...(source.objects||[])].filter(o=>/^media-/.test(o.ref||'')).map(o=>o.elementId);
+  const overlayIds=[...(source.objects||[])].filter(o=>!/^media-/.test(o.ref||'')).map(o=>o.elementId);
   if(mediaIds.length && (changes.length || normalizedSource.css)){
     let css=normalizedSource.css||'';
     css=css.replace(/(#root\{[^}]*?)background(?:-color)?:(?!transparent)[^;}]*(;?)/, '$1background:transparent$2');
@@ -69,7 +70,13 @@ export function normalizeMediaBindings(source,mediaKinds=[]){
     // selector. It must be transparent whenever managed video is underneath;
     // local text panels remain opaque and are intentionally left untouched.
     css=css.replace(/(#[a-zA-Z][a-zA-Z0-9_-]*(?:root|bg)\{[^}]*?)background(?:-color)?:((?!transparent)[^;}]*)/g, '$1background:transparent');
-    const rules=mediaIds.map(id=>`#${id}{background:transparent;opacity:1;z-index:1}`);
+    // Managed media is rendered in a separate layer. Keep it below every
+    // custom overlay so an image/video element cannot occlude required text
+    // or graphics at sampled points, regardless of source DOM order.
+    const rules=[
+      ...mediaIds.map(id=>`#${id}{background:transparent;opacity:1;z-index:0}`),
+      ...overlayIds.map(id=>`#${id}{position:relative;z-index:2}`),
+    ];
     for(const rule of rules)css=css.split(rule).join('');
     const normalizedCss=css.trimEnd()+'\n'+rules.join('\n');
     if(normalizedCss!==normalizedSource.css){normalizedSource={...normalizedSource,css:normalizedCss};changes.push(...mediaIds.map(elementId=>({elementId,reason:'transparent native media surface'})));}

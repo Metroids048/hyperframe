@@ -5,13 +5,14 @@ import {parseEnv} from 'node:util';
 // Exported variables win. Empty placeholders never mask an existing key.
 export function loadLocalEnvironment(directory,env=process.env) {
   const exported=new Set(Object.keys(env));
-  for(const name of ['edit.local.env','minimax.local.env']) {
+  for(const name of ['edit.local.env','minimax.local.env','tavily.local.env']) {
     let parsed;
     try { parsed=parseEnv(fs.readFileSync(path.join(directory,name),'utf8')); }
     catch(error) { if(error.code==='ENOENT')continue;throw new Error(`本地配置无法读取，请检查 config/${name} 的格式`); }
     for(const [key,value] of Object.entries(parsed)) {
       if(exported.has(key))continue;
       if(name==='minimax.local.env'&&(!key.startsWith('MINIMAX_')||!value.trim()))continue;
+      if(name==='tavily.local.env'&&key!=='TAVILY_API_KEY'&&!key.startsWith('TAVILY_'))continue;
       env[key]=value;
     }
   }

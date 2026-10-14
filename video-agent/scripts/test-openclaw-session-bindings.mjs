@@ -2,7 +2,15 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import {createOpenClawSessionBindings} from '../lib/openclaw/session-bindings.mjs';
+import {createOpenClawSessionBindings,resolveOpenClawTaskProject} from '../lib/openclaw/session-bindings.mjs';
+
+const projects=[
+ {id:'project-video',assets:[{id:'asset-video',kind:'video'}]},
+ {id:'project-empty',assets:[]},
+];
+assert.deepEqual(resolveOpenClawTaskProject({requestedProjectId:'project-empty',boundProjectId:'project-video',projects}),{status:'project_mismatch',projectId:'project-video',requestedProjectId:'project-empty'});
+assert.deepEqual(resolveOpenClawTaskProject({requestedProjectId:'project-empty',boundProjectId:'project-empty',attachmentIds:['asset-video'],projects}),{status:'selected',projectId:'project-video',source:'attachment'});
+assert.deepEqual(resolveOpenClawTaskProject({requestedProjectId:'current',boundProjectId:'project-video',projects}),{status:'selected',projectId:'project-video',source:'session'});
 
 const root=await fs.mkdtemp(path.join(os.tmpdir(),'openclaw-sessions-')),file=path.join(root,'sessions.json'),workspaceId='workspace-test';
 try{

@@ -35,7 +35,7 @@ export async function ensureGenerationPlan({root,project,job,directory,save,sign
  job.generationPlan={version:1,originalPrompt:message,output,createdAt:new Date().toISOString(),shots:plan.shots.map((shot,i)=>({...shot,id:stableId('shot',job.id,i),aspect,status:shot.missing?'pending':'available',assetId:shot.missing?null:shot.sourceAssetId,acceptance:{status:shot.missing?'pending':'source-range-checked',visual:'pending'}}))};
  for(const shot of job.generationPlan.shots){
   const source=project.assets.find(a=>a.id===shot.sourceAssetId);
-  shot.sourceSha256=await hashFile(safeRelativePath(root,source.path));
+  shot.sourceSha256=await hashFile(safeRelativePath(root,source.originalRef||source.path));
   if(shot.status==='available')shot.sha256=shot.sourceSha256;
  }
  await save();return job.generationPlan;
@@ -44,7 +44,11 @@ export async function fillGenerationGaps({root,project,job,save,signal,generate=
  for(const shot of job.generationPlan.shots){
   signal.throwIfAborted();if(['available','complete'].includes(shot.status)){
    const asset=project.assets.find(a=>a.id===shot.assetId);insist(asset,'已完成镜头素材未登记','GENERATION_ASSET_MISSING');
-   if(shot.sha256)insist(await hashFile(safeRelativePath(root,asset.path))===shot.sha256,'已完成镜头内容已变更，不能复用','PROVENANCE_CHANGED');continue;
+   if(shot.sha256){
+    const registeredPath=asset.originalRef||asset.path;
+    insist(await hashFile(safeRelativePath(root,registeredPath))===shot.sha256,'已完成镜头内容已变更，不能复用','PROVENANCE_CHANGED');
+   }
+   continue;
   }
   insist(!/(?:不要|不许|无需|禁止|不得)[^。！？\n]{0,12}(?:生成|生图|生视频)/.test(job.generationPlan.originalPrompt),'缺失镜头且本次禁止生成','GENERATION_DISABLED');
   if(shot.sourceSha256){const source=project.assets.find(a=>a.id===shot.sourceAssetId);const sourcePath=source.originalRef||source.path;insist(source&&await hashFile(safeRelativePath(root,sourcePath))===shot.sourceSha256,'镜头计划的商品源素材已变更，请重新规划','PROVENANCE_CHANGED');}

@@ -1,7 +1,7 @@
 import {canonicalScene} from '../lib/creative/scene-package.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {workflowEntries,workflowContract,resolveWorkflowIntent,workflowObjectIds,inheritRevisionWorkflow,bindRevisionWorkflow} from '../lib/creative/workflow-intent.mjs';
+import {workflowEntries,workflowContract,resolveWorkflowIntent,resolvedTargetGaps,workflowObjectIds,inheritRevisionWorkflow,bindRevisionWorkflow} from '../lib/creative/workflow-intent.mjs';
 import {businessContract} from '../lib/creative/commerce-focus.mjs';
 import {commerceIntake} from '../lib/creative/intake.mjs';
 import {normalizeCommerceRequest} from '../lib/creative/contracts.mjs';
@@ -38,8 +38,19 @@ test('ordinary continuation can infer a variant without requiring the user to se
  assert.throws(()=>resolveWorkflowIntent(implicit,{...parsed,taskMode:'create'},{objectIds:['opening','audio']}),{code:'WORKFLOW_MODE_CONFLICT'});
 });
 test('explicit create and implicit edit both retain their required base constraints',()=>{
- assert.throws(()=>resolveWorkflowIntent(workflowContract({message,taskMode:'create'}),parsed),{code:'WORKFLOW_MODE_CONFLICT'});
- assert.throws(()=>resolveWorkflowIntent(workflowContract({message}),{...parsed,taskMode:'edit'}),{code:'EDIT_BASE_REQUIRED'});
+  assert.throws(()=>resolveWorkflowIntent(workflowContract({message,taskMode:'create'}),parsed),{code:'WORKFLOW_MODE_CONFLICT'});
+  assert.throws(()=>resolveWorkflowIntent(workflowContract({message}),{...parsed,taskMode:'edit'}),{code:'EDIT_BASE_REQUIRED'});
+});
+test('create requirements may target the project scope, but never an unknown revision object',()=>{
+ const create=workflowContract({message:'在同一工程制作商品发布片，使用当前素材',taskMode:'create',projectId:'project-1'});
+ const parsedCreate={taskMode:'create',objective:'新品发布',requirements:[requirement('preserve','在同一工程制作商品发布片',['project-1']),requirement('resource','使用当前素材',['asset-1'])],assumptions:[],gaps:[]};
+ const resolved=resolveWorkflowIntent({...create,gaps:['需将本次目标重新绑定到该工程的有效版本后才能提交生产。']},parsedCreate,{objectIds:['asset-1'],scopeIds:['project-1']});
+ assert.deepEqual(resolved.requirements.map(r=>r.targetIds),[['project-1'],['asset-1']]);
+ assert.deepEqual(resolved.gaps,[]);
+ assert.deepEqual(resolvedTargetGaps(['当前记录包含“修改目标不属于当前版本”的 validationError；需重新绑定。','片尾素材仍需观察']),['片尾素材仍需观察']);
+ assert.deepEqual(resolvedTargetGaps(['需解决当前记录的版本目标绑定错误后再提交生产。','音乐音源仍需核验']),['音乐音源仍需核验']);
+ assert.throws(()=>resolveWorkflowIntent({...create,taskMode:'edit',baseRevisionId:'rev-1'},{...parsedCreate,taskMode:'edit'},{objectIds:['asset-1'],scopeIds:['project-1']}),{code:'WORKFLOW_TARGET_INVALID'});
+ assert.throws(()=>resolveWorkflowIntent(create,{...parsedCreate,requirements:[requirement('change','使用当前素材',['deleted-node'])]},{objectIds:['asset-1'],scopeIds:['project-1']}),{code:'WORKFLOW_TARGET_INVALID'});
 });
 test('variant without native base fails before generation',()=>assert.throws(()=>resolveWorkflowIntent(workflowContract({message}),parsed),{code:'VARIANT_BASE_REQUIRED'}));
 test('normalization retains operation and base version',()=>{

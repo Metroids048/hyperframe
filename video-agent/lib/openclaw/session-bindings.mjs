@@ -4,6 +4,16 @@ import {createHash} from 'node:crypto';
 
 function fail(message,code='OPENCLAW_SESSION_INVALID',status=403){const error=new Error(message);error.code=code;error.status=status;throw error;}
 const hash=value=>createHash('sha256').update(value).digest('hex');
+
+export function resolveOpenClawTaskProject({requestedProjectId=null,boundProjectId=null,attachmentIds=[],projects=[]}={}){
+ const ids=[...new Set(attachmentIds.filter(id=>typeof id==='string'&&!id.startsWith('media://')))];
+ const owners=ids.length?projects.filter(project=>ids.every(id=>project.assets?.some(asset=>asset.id===id))):[];
+ if(owners.length===1)return {status:'selected',projectId:owners[0].id,source:'attachment'};
+ const requested=requestedProjectId==='current'?boundProjectId:requestedProjectId;
+ if(requested==='new'||requested==='null')return {status:'selected',projectId:null,source:'new'};
+ if(requested&&boundProjectId&&requested!==boundProjectId)return {status:'project_mismatch',projectId:boundProjectId,requestedProjectId:requested};
+ return {status:'selected',projectId:requested||boundProjectId||null,source:requestedProjectId&&requestedProjectId!=='current'?'requested':'session'};
+}
 async function read(file){try{return JSON.parse(await fs.readFile(file,'utf8'));}catch(error){if(error.code!=='ENOENT')throw error;return {schemaVersion:1,sessions:{}};}}
 async function write(file,value){await fs.mkdir(path.dirname(file),{recursive:true});const tmp=file+'.'+process.pid+'.'+Date.now()+'.tmp';await fs.writeFile(tmp,JSON.stringify(value,null,2));await fs.rename(tmp,file);}
 

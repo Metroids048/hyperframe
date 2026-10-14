@@ -92,10 +92,12 @@ export function planCommerceMessage(document, message = '') {
   const subtitles = text.match(/[""]([^""]+)[""]/g);
   if (subtitles && /字幕|说明|提示|文案/.test(text)) {
     const texts = subtitles.map(s => s.replace(/["“”]/g, '').trim());
+    const window = text.match(/(?:开头|起始)\s*(\d+(?:\.\d+)?)\s*(?:到|至|-)\s*(\d+(?:\.\d+)?)\s*秒/);
     operations.push({type:'add_subtitles', params:{
       texts,
       timing: /关键镜头|特写/.test(text) ? 'key-moments' : 'auto',
-      animation: /渐入|渐出|淡入淡出/.test(text) ? 'fade' : 'none'
+      animation: /渐入|渐出|淡入淡出/.test(text) ? 'fade' : 'none',
+      ...(window ? {startSeconds:Number(window[1]), durationSeconds:Number(window[2])-Number(window[1])} : {})
     }});
   }
 

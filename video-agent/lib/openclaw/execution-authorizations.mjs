@@ -19,7 +19,7 @@ export function createOpenClawExecutionAuthorizations({file,ttlMs=24*60*60*1000}
  const target=path.resolve(file);let flight=Promise.resolve();
  const serialize=fn=>{const run=flight.then(fn,fn);flight=run.catch(()=>{});return run;};
  async function issue({projectId,baseRevisionId,messageId,message,sessionKey,allowedTools=[...WRITE_TOOLS]}){
-  if(!projectId||!messageId||!sessionKey)fail('authorization scope is incomplete','OPENCLAW_AUTHORIZATION_SCOPE_INVALID',400);
+  if(projectId===undefined||projectId===''||!messageId||!sessionKey)fail('authorization scope is incomplete','OPENCLAW_AUTHORIZATION_SCOPE_INVALID',400);
   const tools=[...new Set(allowedTools)];if(!tools.length||tools.some(tool=>!WRITE_TOOLS.has(tool)&&!ATTACHMENT_TOOLS.has(tool)))fail('authorization tool scope is invalid','OPENCLAW_AUTHORIZATION_SCOPE_INVALID',400);
   const payloadHash=hash({projectId,baseRevisionId:baseRevisionId??null,messageId,message:String(message||''),sessionKey,tools});
   const messageKey=hash({projectId,messageId});
@@ -35,7 +35,9 @@ export function createOpenClawExecutionAuthorizations({file,ttlMs=24*60*60*1000}
    const state=await read(target),record=state.authorizations[input.authorizationId];
    if(!record)fail('execution authorization was not issued by this server');
    if(Date.parse(record.expiresAt)<=Date.now())fail('execution authorization expired','OPENCLAW_AUTHORIZATION_EXPIRED');
-   if(record.projectId!==input.projectId||record.baseRevisionId!==(input.baseRevisionId??null))fail('execution authorization scope mismatch','OPENCLAW_AUTHORIZATION_SCOPE_INVALID');
+   if(record.projectId!==null&&record.projectId!==input.projectId)fail('execution authorization scope mismatch','OPENCLAW_AUTHORIZATION_SCOPE_INVALID');
+   if(record.projectId===null)record.projectId=input.projectId;
+   if(record.baseRevisionId!==(input.baseRevisionId??null))fail('execution authorization scope mismatch','OPENCLAW_AUTHORIZATION_SCOPE_INVALID');
    if(record.sessionKeyHash!==hash(context.sessionKey)||!record.allowedTools.includes(tool)||(!WRITE_TOOLS.has(tool)&&!ATTACHMENT_TOOLS.has(tool)))fail('execution authorization context mismatch','OPENCLAW_AUTHORIZATION_SCOPE_INVALID');
    if(record.operationId&&record.operationId!==input.operationId)fail('execution authorization already bound to another operation','OPENCLAW_AUTHORIZATION_REUSED',409);
    if(record.tool&&record.tool!==tool)fail('execution authorization already bound to another tool','OPENCLAW_AUTHORIZATION_REUSED',409);

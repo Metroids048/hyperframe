@@ -25,8 +25,8 @@ test('Commons video search, download and registration retain provenance and sour
     assert.equal(asset.kind,'video');assert.equal(asset.rights.status,'source-review');assert.equal(asset.rights.license,'CC BY 4.0');
     assert.equal(asset.externalSource.sourceUrl,candidate.sourceUrl);assert.equal(asset.externalSource.downloadUrl,candidate.downloadUrl);assert.equal(asset.externalSource.query,candidate.query);
     assert.equal(asset.sha256,createHash('sha256').update(videoBytes).digest('hex'));
-    assert.deepEqual(await fs.readFile(path.join(root,asset.path)),videoBytes);
-    assert.equal(asset.deliveryStatus,'candidate-only');assert.equal(calls.length,2);assert.equal(calls[1].options.redirect,'error');
+    assert.deepEqual(await fs.readFile(path.join(projectDirectory,asset.path)),videoBytes);
+    assert.equal(asset.deliveryStatus,'candidate-only');assert.equal(asset.acquisitionStatus,'downloaded_candidate');assert.equal(asset.productionEligible,false);assert.equal(calls.length,2);assert.equal(calls[1].options.redirect,'error');
     const registry=path.join(root,'assets/commerce-focus-v1');await fs.mkdir(registry,{recursive:true});await fs.writeFile(path.join(registry,'review-registry.json'),JSON.stringify({assets:[]}));
     const admission=await productionAdmission(root,businessContract({businessGoal:['launch']}),[{...asset,mediaMetadata:{width:1920,height:1080,duration:5}}]);
     assert.equal(admission.status,'blocked');assert.ok(admission.issues.some(issue=>issue.includes('权利依据')));

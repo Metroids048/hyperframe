@@ -89,6 +89,7 @@ export const workflowObjectIds = document => [...new Set([
   ...(document.assetRefs||[]),
   ...['nodes','scenes','audioGraph','captions','transitions','sourceBundles','fontResources'].flatMap(key=>(document[key]||[]).map(object=>object.id)),
 ].filter(id=>typeof id==='string'&&id))];
+export const resolvedTargetGaps = gaps => (gaps||[]).filter(g=>!/(?:修改目标不属于当前版本|版本目标绑定(?:错误|.*validationError)|重新绑定.*有效版本)/.test(String(g)));
 const modes=new Set(['create','edit','recut','variant']);
 const obj=properties=>({type:'object',additionalProperties:false,properties,required:Object.keys(properties)});
 const str={type:'string'},strings={type:'array',items:str};
@@ -117,16 +118,21 @@ export function workflowContract(input={},base={}) {
     requirements:prior?structuredClone(prior.requirements):[],assumptions:prior?.assumptions||[],gaps:prior?.gaps||[],interpretation:prior?'inherited-production-contract':'pending-semantic-analysis'};
 }
 
-export function resolveWorkflowIntent(contract,parsed,{objectIds=[],durationSeconds=Infinity}={}) {
+export function resolveWorkflowIntent(contract,parsed,{objectIds=[],scopeIds=[],durationSeconds=Infinity}={}) {
   if(!parsed||!modes.has(parsed.taskMode)||!Array.isArray(parsed.requirements))throw new CreativeError('缺少结构化制作单','WORKFLOW_INTENT_INVALID');
   if((contract.taskModeExplicit??(contract.taskMode!=='create'))&&parsed.taskMode!==contract.taskMode)throw new CreativeError('理解结果改变了用户指定的操作模式','WORKFLOW_MODE_CONFLICT');
   if(contract.baseRevisionId&&contract.taskMode!=='create'&&parsed.taskMode==='create')throw new CreativeError('已有工程续改不能被隐式改成新建','WORKFLOW_MODE_CONFLICT');
   if(parsed.taskMode==='edit'&&!contract.baseRevisionId)throw new CreativeError('修改需要已有工程版本','EDIT_BASE_REQUIRED');
   if(parsed.taskMode==='variant'&&!contract.baseRevisionId)throw new CreativeError('变体需要已有工程及基准版本','VARIANT_BASE_REQUIRED');
-  const known=new Set(objectIds);
+  // A create request can refer to the project/product scope while it is
+  // being planned. That scope is not a native document object yet, so it is
+  // passed explicitly instead of being mixed into the current revision IDs.
+  const known=new Set(objectIds),scope=new Set(scopeIds);
+  const allowed=new Set([...known,...(parsed.taskMode==='create'?scope:[])]);
   const requirements=parsed.requirements.map(r=>{
     if(!r.quote||!contract.originalRequest.includes(r.quote))throw new CreativeError('要求来源必须逐字引用本轮原话','WORKFLOW_SOURCE_INVALID');
-    if(!Array.isArray(r.targetIds)||!Array.isArray(r.excludeIds)||[...r.targetIds,...r.excludeIds].some(id=>!known.has(id)))throw new CreativeError('修改目标不属于当前版本','WORKFLOW_TARGET_INVALID');
+    const newTextTarget = r.targetIds?.some(id=>id===null) && /(?:新增|新建|独立可编辑文字|add_text)/iu.test(r.quote||'');
+    if(!Array.isArray(r.targetIds)||!Array.isArray(r.excludeIds)||[...r.targetIds,...r.excludeIds].some(id=>id!==null&&!allowed.has(id))||r.targetIds.some(id=>id===null&&!newTextTarget))throw new CreativeError('修改目标不属于当前版本','WORKFLOW_TARGET_INVALID');
     if(r.targetIds.length&&/第[一二三四五六七八九十\d]+个(?!镜头|场景|字幕|标题|文字|音轨|转场)/.test(r.quote))throw new CreativeError('请说明“第几个”指镜头、文字、音轨还是转场','WORKFLOW_TARGET_AMBIGUOUS');
     if(r.startSeconds!==null&&(!Number.isFinite(r.startSeconds)||r.startSeconds<0))throw new CreativeError('作用时间无效','WORKFLOW_SCOPE_INVALID');
     if(r.endSeconds!==null&&(!Number.isFinite(r.endSeconds)||r.endSeconds<=(r.startSeconds??0)))throw new CreativeError('作用时间无效','WORKFLOW_SCOPE_INVALID');
@@ -135,7 +141,8 @@ export function resolveWorkflowIntent(contract,parsed,{objectIds=[],durationSeco
     return structuredClone(r);
   });
   const merged=mergeWorkflowRequirements(contract.requirements||[],requirements,{message:contract.originalRequest,overrides:parsed.overrides||[]});
-  return {...contract,taskMode:parsed.taskMode,workflowProfile:parsed.taskMode,objective:parsed.objective,
+  const gaps=resolvedTargetGaps(contract.gaps);
+  return {...contract,taskMode:parsed.taskMode,workflowProfile:parsed.taskMode,gaps,objective:parsed.objective,
     contractId:stableId('contract',contract.contractId||null,contract.baseRevisionId,contract.originalRequest,merged.requirements),parentContractId:contract.contractId||null,
     sourceRequests:[...new Set([...(contract.sourceRequests||[]),contract.originalRequest].filter(Boolean))],
     requirements:merged.requirements,requirementChanges:merged.changes,changeTargets:merged.requirements.filter(r=>r.kind==='change'),preserveTargets:merged.requirements.filter(r=>r.kind==='preserve'),

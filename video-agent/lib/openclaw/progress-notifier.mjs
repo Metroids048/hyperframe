@@ -22,8 +22,12 @@ export function createOpenClawProgressNotifier({cli=defaultCli(),node=process.ex
   async function notify(sessionKey,event){
     if(!available()||typeof sessionKey!=='string'||!sessionKey.trim())return {status:'unavailable'};
     const args=[cli,'system','event','--session-key',sessionKey,'--text',progressEventText(event),'--mode','now','--timeout','30000','--json'];
-    const child=spawnImpl(node,args,{env,stdio:'ignore'});
-    child.unref?.();
+    let child;
+    try { child=spawnImpl(node,args,{env,stdio:'ignore'}); }
+    catch(error){ console.error('OpenClaw 进度事件启动失败：',error.code||error.message); return {status:'failed',error:error.code||error.message}; }
+    child?.once?.('error',error=>console.error('OpenClaw 进度事件发送失败：',error.code||error.message));
+    child?.once?.('close',code=>{if(code!==0)console.error('OpenClaw 进度事件退出异常：',code);});
+    child?.unref?.();
     return {status:'enqueued'};
   }
   return {available,notify};

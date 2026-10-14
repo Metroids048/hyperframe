@@ -49,12 +49,15 @@ export function applyDocumentPatch(input, operations, assets) {
     }
     if(op.type==='add_text'){
       const scene=document.scenes.find(s=>s.id===op.sceneId);insist(scene,'目标场景不存在','PATCH_TARGET_MISSING');
-      const node=op.node||{};insist(typeof node.id==='string'&&/^[a-zA-Z][\w-]{0,99}$/.test(node.id)&&!document.nodes.some(n=>n.id===node.id),'新增文字对象ID无效或重复','INVALID_NODE_ID');
-      const text=String(op.text??node.params?.text??'').trim();insist(text&&[...text].length<=240,'文字必须为 1～240 字','INVALID_TEXT');
-      const start=Math.max(0,Number.isInteger(op.localStartFrame)?op.localStartFrame:Number(node.localStartFrame||0));
-      const duration=Number.isInteger(op.durationFrames)?op.durationFrames:Number(node.durationFrames??scene.durationFrames-start);
+      const params=op.params&&typeof op.params==='object'&&!Array.isArray(op.params)?op.params:{};
+      const node=op.node||{};const nodeId=op.nodeId||node.id||params.nodeId;
+      insist(typeof nodeId==='string'&&/^[a-zA-Z][\w-]{0,99}$/.test(nodeId)&&!document.nodes.some(n=>n.id===nodeId),'新增文字对象ID无效或重复','INVALID_NODE_ID');
+      const text=String(op.text??params.text??node.params?.text??'').trim();insist(text&&[...text].length<=240,'文字必须为 1～240 字','INVALID_TEXT');
+      const start=Math.max(0,Number.isInteger(op.localStartFrame)?op.localStartFrame:Number.isInteger(params.localStartFrame)?params.localStartFrame:Number(node.localStartFrame||0));
+      const duration=Number.isInteger(op.durationFrames)?op.durationFrames:Number.isInteger(params.durationFrames)?params.durationFrames:Number(node.durationFrames??scene.durationFrames-start);
       insist(duration>=1&&start+duration<=scene.durationFrames,'新增文字对象时长超出所属场景','INVALID_SCENE_TIME');
-      document.nodes.push({id:node.id,sceneId:scene.id,semanticRole:node.semanticRole||'title',kind:'text',anchor:'scene-local',localStartFrame:start,startFrame:scene.startFrame+start,localDurationFrames:duration,durationFrames:duration,params:{...(node.params||{}),text}});
+      const style=params.style||node.params?.style; if(style)validateTextStyle(style);
+      document.nodes.push({id:nodeId,sceneId:scene.id,semanticRole:params.semanticRole||node.semanticRole||'title',kind:'text',anchor:'scene-local',localStartFrame:start,startFrame:scene.startFrame+start,localDurationFrames:duration,durationFrames:duration,params:{...(node.params||{}),...(style?{style}:{}),text}});
     }
     if(op.type==='update_media'){
       const node=document.nodes.find(n=>n.id===op.nodeId);insist(node&&['image','video'].includes(node.kind),'目标素材节点不存在','PATCH_TARGET_MISSING');
@@ -240,7 +243,9 @@ export function applyDocumentPatch(input, operations, assets) {
       }
     }
     if (op.type === 'add_subtitles') {
-      // 添加字幕：在指定时机添加字幕文本
+      // 用户指定文案的字幕覆盖层是独立的原生文字对象，不是语音识别
+      // cue。语音字幕必须带真实音源锚点；把手写文案落进 captions 会
+      // 触发 INVALID_CAPTION_SOURCE，也会让它无法按用户指定时间显示。
       const params = op.params || {};
       const texts = params.texts || [];
 
@@ -257,25 +262,36 @@ export function applyDocumentPatch(input, operations, assets) {
         const text = texts[i];
         const cueId = stableId('subtitle', scene.id, i);
 
-        // 检查是否已存在相同 ID 的字幕
-        if (!document.captions) document.captions = [];
-        if (document.captions.some(c => c.id === cueId)) continue;
-
-        // 创建字幕对象
-        const startFrame = scene.startFrame + Math.floor(scene.durationFrames * 0.1); // 场景开始后 10%
-        const durationFrames = Math.min(60, scene.durationFrames * 0.8); // 持续 2 秒或场景的 80%
-
-        document.captions.push({
-          id: cueId,
-          text: text,
-          startFrame: startFrame,
-          durationFrames: durationFrames,
-          style: {
-            fontSize: 32,
-            fontWeight: 600,
-            color: '#FFFFFF',
-            offsetY: -100,
-            ...(params.animation === 'fade' ? {fadeIn: 15, fadeOut: 15} : {})
+        const nodeId = stableId('subtitle-node', scene.id, i, text);
+        if (document.nodes.some(n => n.id === nodeId)) continue;
+        const requestedStart = Number.isFinite(params.startSeconds) ? params.startSeconds : null;
+        const requestedDuration = Number.isFinite(params.durationSeconds) ? params.durationSeconds : null;
+        const localStart = requestedStart === null
+          ? (i === 0 && scene === document.scenes[0] ? 0 : Math.floor(scene.durationFrames * 0.1) / 30)
+          : Math.max(0, Math.floor(requestedStart * 30) / 30);
+        const durationSeconds = requestedDuration === null
+          ? (i === 0 && scene === document.scenes[0] ? Math.min(3, scene.durationFrames / 30 - localStart) : Math.min(2, scene.durationFrames / 30 - localStart))
+          : requestedDuration;
+        const start = Math.round(localStart * 30);
+        const durationFrames = Math.max(1, Math.min(Math.round(durationSeconds * 30), scene.durationFrames - start));
+        document.nodes.push({
+          id: nodeId,
+          sceneId: scene.id,
+          semanticRole: 'caption',
+          kind: 'text',
+          anchor: 'scene-local',
+          localStartFrame: start,
+          startFrame: scene.startFrame + start,
+          localDurationFrames: durationFrames,
+          durationFrames,
+          params: {
+            text,
+            style: {
+              fontSize: 32,
+              fontWeight: 600,
+              color: '#FFFFFF',
+              offsetY: -100
+            }
           }
         });
       }

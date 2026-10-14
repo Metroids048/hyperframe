@@ -48,7 +48,9 @@ if(!active.alive||active.safeToRecover)throw Error('active writer was not blocke
 holder.kill();
 await new Promise(resolve=>setTimeout(resolve,100));
 const inactive=await inspectLock(dir);
-if(inactive.alive||!inactive.safeToRecover)throw Error('dead writer did not become recoverable');
+if(inactive.alive||inactive.safeToRecover)throw Error('recent dead writer must wait for heartbeat expiry');
+await atomicWrite(lockFile,{...inactive.owner,startedAt:new Date(Date.now()-180_000).toISOString()});
+if(!(await inspectLock(dir)).safeToRecover)throw Error('dead writer with stale heartbeat did not become recoverable');
 
 await fs.rm(dir,{recursive:true,force:true});
 console.log(JSON.stringify({selfTest:'passed',cases:['normal_round_resumes','backend_job_tracked','active_writer_blocks','dead_writer_can_recover','capacity_backoff_waits','timeout_backoff_waits','capacity_timeout_classification','STOP_blocks','external_blocker_waits'],modelCalls:0},null,2));
